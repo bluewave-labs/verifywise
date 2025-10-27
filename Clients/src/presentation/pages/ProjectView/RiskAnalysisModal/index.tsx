@@ -240,8 +240,9 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
           border: "none",
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
-          p: { xs: 4, sm: 6, md: 8 },
+          p: { xs: 4, sm: 8, md: 16 },
           outline: "none",
+          color: theme.palette.text.primary,
         }}
       >
         {/* Header */}
@@ -253,10 +254,10 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <Stack>
-              <Typography fontSize={20} fontWeight={700}>
-                EU AI Act Risk Assessment
+              <Typography fontSize={15} fontWeight={700} sx={{color: theme.palette.text.primary}}>
+                EU AI Act risk classification
               </Typography>
-              <Typography fontSize={13} color="text.secondary">
+              <Typography fontSize={13}>
                 Determine your AI system's regulatory classification.
               </Typography>
             </Stack>
@@ -297,8 +298,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
             {/* Footer */}
             <Box
               sx={{
-                my: 5,
-                mr: 14,
+                mt: 5,
                 display: "flex",
                 justifyContent: "space-between",
               }}
@@ -316,7 +316,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
                 )}
               </Box>
               <CustomizableButton
-                text={finalQuestion ? "View Results" : "Next"}
+                text={finalQuestion ? "View results" : "Next"}
                 onClick={finalQuestion ? handleShowResults : handleNextQuestion}
                 isDisabled={
                   currentQuestionId ? !answers[currentQuestionId] : true

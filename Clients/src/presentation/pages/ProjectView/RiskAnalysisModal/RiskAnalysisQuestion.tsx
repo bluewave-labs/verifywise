@@ -6,6 +6,7 @@ import {
   RadioGroup,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { IQuestion, IQuestionnaireAnswers } from "./iQuestion";
 
@@ -17,6 +18,8 @@ const radioOptionStyle = {
   backgroundColor: "#FFFFFF",
   cursor: "pointer",
   transition: "all 0.2s ease-in-out",
+  marginLeft: 0,
+  marginRight: 0,
   "&:hover": {
     borderColor: "#13715B",
     backgroundColor: "#F9F9F9",
@@ -38,13 +41,14 @@ const RiskAnalysisQuestion = ({
   onSelect,
   answers,
 }: RiskAnalysisQuestionProps) => {
+  const theme = useTheme();
   return (
     <Stack>
-      <Typography fontWeight={600} mt={4}>
+      <Typography fontWeight={600} my={4} sx={{color: theme.palette.text.primary}}>
         {question.id}. {question.text}
       </Typography>
       {/* Options */}
-      <Stack spacing={2} m={8}>
+      <Stack spacing={2}>
         {question.inputType === "single_select" ? (
           <RadioGroup
             value={answers[question.id] || ""}
@@ -58,7 +62,7 @@ const RiskAnalysisQuestion = ({
                 control={<Radio />}
                 label={
                   <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
+                    sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.secondary }}
                   >
                     {option.label}
                   </Typography>
@@ -76,7 +80,7 @@ const RiskAnalysisQuestion = ({
             ))}
           </RadioGroup>
         ) : (
-          <FormControl>
+          <FormControl sx={{gap: 4}}>
             {question.options.map((option) => {
               const selectedValues =
                 answers[question.id] && Array.isArray(answers[question.id])

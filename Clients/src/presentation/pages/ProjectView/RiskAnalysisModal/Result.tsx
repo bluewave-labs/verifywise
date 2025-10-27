@@ -26,7 +26,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
           color: "#D32F2F",
           bgColor: "#FFEBEE",
           icon: <AlertCircle size={32} />,
-          title: "Prohibited Practice",
+          title: "Prohibited AI system",
           description:
             "This AI system falls under prohibited practices and cannot be deployed under the EU AI Act.",
         };
@@ -35,7 +35,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
           color: "#F57C00",
           bgColor: "#FFF3E0",
           icon: <AlertTriangle size={32} />,
-          title: "High-Risk AI System",
+          title: "High-Risk AI system",
           description:
             "This AI system is classified as high-risk and must comply with strict regulatory requirements.",
         };
@@ -44,7 +44,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
           color: "#FBC02D",
           bgColor: "#FFFDE7",
           icon: <Info size={32} />,
-          title: "Limited Risk - Transparency Requirements",
+          title: "Limited risk",
           description:
             "This AI system has limited risk but requires specific transparency obligations.",
         };
@@ -53,7 +53,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
           color: "#388E3C",
           bgColor: "#E8F5E9",
           icon: <CheckCircle size={32} />,
-          title: "Minimal Risk",
+          title: "Minimal risk",
           description:
             "This AI system is classified as minimal risk with no specific regulatory obligations under the EU AI Act.",
         };
@@ -62,7 +62,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
           color: theme.palette.text.secondary,
           bgColor: theme.palette.background.paper,
           icon: <Info size={32} />,
-          title: "Assessment Pending",
+          title: "Assessment pending",
           description:
             "Complete the questionnaire to receive your classification.",
         };
@@ -72,7 +72,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
   const config = getLevelConfig();
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={10}>
       {/* Classification Header */}
       <Box
         sx={{
@@ -87,14 +87,14 @@ const Results: React.FC<ResultsDisplayProps> = ({
           <Box sx={{ color: config.color }}>{config.icon}</Box>
           <Stack flex={1}>
             <Typography
-              fontSize={20}
+              fontSize={15}
               fontWeight={700}
               color={config.color}
               mb={0.5}
             >
               {config.title}
             </Typography>
-            <Typography fontSize={14} color="text.secondary">
+            <Typography fontSize={13} color="text.secondary">
               {config.description}
             </Typography>
           </Stack>
@@ -106,7 +106,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
         {onRestart && (
           <CustomizableButton
             variant="outlined"
-            text="Start New Assessment"
+            text="Start new assessment"
             icon={<RotateCcw size={16} />}
             onClick={onRestart}
           />
@@ -114,7 +114,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
         {onSave && (
           <CustomizableButton
             variant="contained"
-            text="Save Results"
+            text="Save results"
             icon={<Save size={16} />}
             onClick={onSave}
             sx={{

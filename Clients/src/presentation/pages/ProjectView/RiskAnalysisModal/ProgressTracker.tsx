@@ -25,9 +25,10 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     <Box
       sx={{
         mb: 4,
-        p: 3,
+        p: 4,
         borderRadius: theme.shape.borderRadius,
-        bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "#1A1A1A",
+        bgcolor: theme.palette.background.main,
+        color: theme.palette.text.primary,
         border: 1,
         borderColor: theme.palette.divider,
       }}

@@ -332,7 +332,7 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
 
   } catch (error) {
     await logFailure({
-      eventType: "Read",
+      eventType: "Error",
       description: "Failed to retrieve file list",
       functionName: "listFiles",
       fileName: "fileManager.ctrl.ts",
@@ -432,7 +432,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       await fs.promises.access(filePath, fs.constants.F_OK);
     } catch (error) {
       await logFailure({
-        eventType: "Read",
+        eventType: "Error",
         description: `File not found on disk: ${filePath}. Database record exists but file is missing.`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
@@ -539,7 +539,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
 
     if (!file) {
       await logFailure({
-        eventType: "Delete",
+        eventType: "Error",
         description: `File not found: ID ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
@@ -584,7 +584,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
 
     if (!deleted) {
       await logFailure({
-        eventType: "Delete",
+        eventType: "Error",
         description: `File not found during deletion: ID ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
@@ -609,7 +609,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     );
   } catch (error) {
     await logFailure({
-      eventType: "Delete",
+      eventType: "Error",
       description: "Failed to delete file",
       functionName: "removeFile",
       fileName: "fileManager.ctrl.ts",

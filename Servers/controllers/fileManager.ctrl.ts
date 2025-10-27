@@ -189,7 +189,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
 
     if (!file) {
       await logFailure({
-        eventType: "Create",
+        eventType: "Error",
         description: "No file provided in upload request",
         functionName: "uploadFile",
         fileName: "fileManager.ctrl.ts",
@@ -216,7 +216,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     if (!validation.valid) {
       await cleanupTempFile(tempFilePath);
       await logFailure({
-        eventType: "Create",
+        eventType: "Error",
         description: `File validation failed: ${validation.error}`,
         functionName: "uploadFile",
         fileName: "fileManager.ctrl.ts",
@@ -254,7 +254,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     await cleanupTempFile(tempFilePath);
 
     await logFailure({
-      eventType: "Create",
+      eventType: "Error",
       description: "Failed to upload file",
       functionName: "uploadFile",
       fileName: "fileManager.ctrl.ts",
@@ -382,7 +382,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
 
     if (!file) {
       await logFailure({
-        eventType: "Read",
+        eventType: "Error",
         description: `File not found: ID ${fileId}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
@@ -394,7 +394,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     // Verify file belongs to user's organization (ensure type consistency)
     if (Number(file.org_id) !== orgId) {
       await logFailure({
-        eventType: "Read",
+        eventType: "Error",
         description: `Unauthorized access attempt to file ${fileId}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
@@ -418,7 +418,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
 
     if (!isContained) {
       await logFailure({
-        eventType: "Read",
+        eventType: "Error",
         description: `Blocked path traversal attempt. Target: ${filePath}, Base: ${baseDir}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
@@ -461,7 +461,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       });
     } catch (streamError) {
       await logFailure({
-        eventType: "Read",
+        eventType: "Error",
         description: `Error streaming file: ${filePath}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
@@ -477,7 +477,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     }
   } catch (error) {
     await logFailure({
-      eventType: "Read",
+      eventType: "Error",
       description: "Failed to download file",
       functionName: "downloadFile",
       fileName: "fileManager.ctrl.ts",
@@ -518,7 +518,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
   // Defense-in-depth: Verify user has delete permission (in addition to route middleware)
   if (!hasPermission(req, 'delete:file', ['Admin', 'Reviewer', 'Editor'])) {
     await logFailure({
-      eventType: "Delete",
+      eventType: "Error",
       description: `Unauthorized role attempted to delete file ${fileId}`,
       functionName: "removeFile",
       fileName: "fileManager.ctrl.ts",
@@ -551,7 +551,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     // Verify file belongs to user's organization (ensure type consistency)
     if (Number(file.org_id) !== orgId) {
       await logFailure({
-        eventType: "Delete",
+        eventType: "Error",
         description: `Unauthorized deletion attempt for file ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
@@ -568,7 +568,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       // Handle partial deletion failure (DB deleted but disk failed)
       if (error.message?.includes("Partial deletion")) {
         await logFailure({
-          eventType: "Delete",
+          eventType: "Error",
           description: `Partial deletion failure for file ${fileId}: ${error.message}`,
           functionName: "removeFile",
           fileName: "fileManager.ctrl.ts",

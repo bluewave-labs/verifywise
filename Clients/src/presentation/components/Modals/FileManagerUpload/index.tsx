@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +50,25 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  //Store timeout IDs to prevent race conditions and memory leaks
+  const removeSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  //Cleanup timeouts on unmount (KISS: simple cleanup pattern)
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts when component unmounts
+      if (removeSuccessTimeoutRef.current) {
+        clearTimeout(removeSuccessTimeoutRef.current);
+        removeSuccessTimeoutRef.current = null;
+      }
+      if (autoCloseTimeoutRef.current) {
+        clearTimeout(autoCloseTimeoutRef.current);
+        autoCloseTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -112,7 +131,6 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         const response = await uploadFileToManager({ file: fileList[i].file });
 
         // Validate server response structure
-        // Backend returns: { message: "Created", data: { id, filename, ... } }
         if (!response || !response.data) {
           throw new Error("Server failed to store the file. Please try again.");
         }
@@ -161,14 +179,23 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
       onSuccess();
     }
 
+    // DEFENSIVE: Clear any existing timeouts before scheduling new ones
+    if (removeSuccessTimeoutRef.current) {
+      clearTimeout(removeSuccessTimeoutRef.current);
+    }
+    if (autoCloseTimeoutRef.current) {
+      clearTimeout(autoCloseTimeoutRef.current);
+    }
+
     // Remove successfully uploaded files after a short delay
-    setTimeout(() => {
+    removeSuccessTimeoutRef.current = setTimeout(() => {
       setFileList((prev) => {
         const filtered = prev.filter((item) => item.status !== "success");
 
         // If no files remain (all were successful), close the modal
         if (filtered.length === 0 && successCount > 0) {
-          setTimeout(() => handleClose(), 300);
+          // DEFENSIVE: Store nested timeout ID to prevent race condition
+          autoCloseTimeoutRef.current = setTimeout(() => handleClose(), 300);
         }
 
         return filtered;

@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -22,6 +23,8 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import PageTour from "../../components/PageTour";
+import RiskManagementSteps from "./RiskManagementSteps";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -50,6 +53,8 @@ const initialLoadingState: LoadingStatus = {
 
 
 const RiskManagement = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -88,7 +93,7 @@ const RiskManagement = () => {
 
   // State for filtering
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [, setActiveFilters] = useState<any>(null);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
@@ -123,9 +128,9 @@ const RiskManagement = () => {
     };
   }, [projectRisks]);
 
-  const fetchProjectRisks = useCallback(async () => {
+  const fetchProjectRisks = useCallback(async (filter = 'active') => {
     try {
-      const response = await getAllProjectRisks();
+      const response = await getAllProjectRisks({ filter: filter as 'active' | 'deleted' | 'all' });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
       setFilteredRisks(response.data); // Initialize filtered risks
@@ -142,6 +147,19 @@ const RiskManagement = () => {
     setShowCustomizableSkeleton(true);
     fetchProjectRisks();
   }, [fetchProjectRisks, refreshKey]);
+
+  // Auto-open create risk popup when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      // Create a temporary button element to use as anchor
+      const tempButton = document.createElement('button');
+      setAnchor(tempButton as any);
+      setSelectedRow([]);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   /**
    * Handle actions for project risk modal
@@ -285,6 +303,12 @@ const RiskManagement = () => {
   const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
+    
+    // If deletion status filter changes, refetch data from API
+    if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
+      setShowCustomizableSkeleton(true);
+      fetchProjectRisks(filters.deletionStatus);
+    }
   };
 
   return (
@@ -350,7 +374,7 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
@@ -365,39 +389,45 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <RiskFilters
-            risks={projectRisks}
-            onFilterChange={handleRiskFilterChange}
-          />
+          <div data-joyride-id="risk-filters">
+            <RiskFilters
+              risks={projectRisks}
+              onFilterChange={handleRiskFilterChange}
+            />
+          </div>
           <Stack direction="row" gap={4}>
-            <CustomizableButton
-              variant="contained"
-              text="Insert from AI risks database"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new risk"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
+            <div data-joyride-id="import-ai-risks-button">
+              <CustomizableButton
+                variant="contained"
+                text="Insert from AI risks database"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleAIModalOpen}
+                icon={<AddCircleOutlineIcon size={16} />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+            </div>
+            <div data-joyride-id="add-risk-button">
+              <CustomizableButton
+                variant="contained"
+                text="Add new risk"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleOpenOrClose}
+                icon={<AddCircleOutlineIcon size={16} />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+            </div>
           </Stack>
         </Stack>
 
@@ -490,6 +520,8 @@ const RiskManagement = () => {
           anchor={aiRiskAnchor}
         />
       )}
+
+      <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
       </Stack>
     </Stack>
   );

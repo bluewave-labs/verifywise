@@ -1,12 +1,14 @@
-import CustomStep from "../../components/PageTour/CustomStep";
-import { PageTourStep } from "../../components/PageTour";
+import { FileText } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const FileSteps: PageTourStep[] = [
+const FileSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="file-manager-title"]',
-    content: (
-      <CustomStep body="The table below lists all the files uploaded to the system." />
-    ),
+    content: {
+      header: "Organize Documentation",
+      body: "All uploaded files are catalogued here. Upload policy documents, compliance certificates, assessment reports, and other AI governance documentation for easy access and reference.",
+      icon: <FileText size={20} color="#ffffff" />,
+    },
     placement: "left",
   },
 ];

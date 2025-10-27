@@ -23,15 +23,17 @@ export async function getAllRisks(
   req: Request,
   res: Response
 ): Promise<any> {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+  
   logStructured(
     "processing",
-    `fetching all project risks`,
+    `fetching all project risks with filter: ${filter}`,
     "getAllProjectRisks",
     "projectRisks.ctrl.ts"
   );
-  logger.debug(`🔍 Fetching all project risks`);
+  logger.debug(`🔍 Fetching all project risks with filter: ${filter}`);
   try {
-    const projectRisks = await getAllRisksQuery(req.tenantId!);
+    const projectRisks = await getAllRisksQuery(req.tenantId!, filter);
 
     if (projectRisks) {
       logStructured(
@@ -73,24 +75,26 @@ export async function getRisksByProject(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id as string);
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logStructured(
     "processing",
-    `fetching risks for project ID: ${projectId}`,
+    `fetching risks for project ID: ${projectId} with filter: ${filter}`,
     "getRisksByProject",
     "risks.ctrl.ts"
   );
-  logger.debug(`🔍 Fetching risks for project ID: ${projectId}`);
+  logger.debug(`🔍 Fetching risks for project ID: ${projectId} with filter: ${filter}`);
   try {
     const risks = await getRisksByProjectQuery(
       projectId,
-      req.tenantId!
+      req.tenantId!,
+      filter
     );
 
     if (risks) {
       logStructured(
         "successful",
-        `risks found for project ID: ${projectId}`,
+        `risks found for project ID: ${projectId} with filter: ${filter}`,
         "getRisksByProject",
         "risks.ctrl.ts"
       );
@@ -99,7 +103,7 @@ export async function getRisksByProject(
 
     logStructured(
       "successful",
-      `no risks found for project ID: ${projectId}`,
+      `no risks found for project ID: ${projectId} with filter: ${filter}`,
       "getRisksByProject",
       "risks.ctrl.ts"
     );
@@ -127,24 +131,26 @@ export async function getRisksByFramework(
   res: Response
 ): Promise<any> {
   const frameworkId = parseInt(req.params.id as string);
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   logStructured(
     "processing",
-    `fetching risks for framework ID: ${frameworkId}`,
+    `fetching risks for framework ID: ${frameworkId} with filter: ${filter}`,
     "getRisksByFramework",
     "risks.ctrl.ts"
   );
-  logger.debug(`🔍 Fetching risks for framework ID: ${frameworkId}`);
+  logger.debug(`🔍 Fetching risks for framework ID: ${frameworkId} with filter: ${filter}`);
   try {
     const risks = await getRisksByFrameworkQuery(
       frameworkId,
-      req.tenantId!
+      req.tenantId!,
+      filter
     );
 
     if (risks) {
       logStructured(
         "successful",
-        `risks found for framework ID: ${frameworkId}`,
+        `risks found for framework ID: ${frameworkId} with filter: ${filter}`,
         "getRisksByFramework",
         "risks.ctrl.ts"
       );
@@ -153,7 +159,7 @@ export async function getRisksByFramework(
 
     logStructured(
       "successful",
-      `no risks found for framework ID: ${frameworkId}`,
+      `no risks found for framework ID: ${frameworkId} with filter: ${filter}`,
       "getRisksByFramework",
       "risks.ctrl.ts"
     );

@@ -1,7 +1,9 @@
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
 import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
+import Integrations from "../../presentation/pages/Integrations";
+import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
 import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -12,7 +14,6 @@ import ForgotPassword from "../../presentation/pages/Authentication/ForgotPasswo
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
-import ProjectView from "../../presentation/pages/ProjectView";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
 import Playground from "../../presentation/pages";
@@ -30,10 +31,12 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
+import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
+import AutomationsPage from "../../presentation/pages/Automations";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -51,10 +54,12 @@ export const createRoutes = (
       element={<Home onProjectUpdate={triggerSidebarReload} />}
     />
     <Route path="/vendors" element={<Vendors />} />
-    <Route path="/setting" element={<Setting />} />
+    <Route path="/integrations" element={<Integrations />} />
+    <Route path="/settings" element={<Setting />} />
+    <Route path="/integrations/slack" element={<SlackManagement />} />
+    <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
-    <Route path="/test/project-view" element={<ProjectView />} />
-    <Route path="/file-manager" element={<FileManager />} />
+      <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
@@ -71,6 +76,8 @@ export const createRoutes = (
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
+    <Route path="/automations" element={<AutomationsPage />} />
+    <Route path="/ai-incident-managements" element={<IncidentManagement />} />
   </Route>,
   <Route
     key="admin-reg"

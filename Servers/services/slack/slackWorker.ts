@@ -1,14 +1,8 @@
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
+import redisClient from "../../database/redis"
 
 import { sendPolicyDueSoonNotification } from "./policyDueSoonNotification";
 import { logSuccess, logFailure } from "../../utils/logger/logHelper";
-
-const connection = new IORedis({
-  host: process.env.REDIS_HOST || "127.0.0.1",
-  port: parseInt(process.env.REDIS_PORT || "6379", 10),
-  maxRetriesPerRequest: null,
-});
 
 export const createNotificationWorker = () => {
   const worker = new Worker(
@@ -21,7 +15,7 @@ export const createNotificationWorker = () => {
         throw new Error(`Unknown job type: ${job.data.type}`);
       }
     },
-    { connection },
+    { connection: redisClient },
   );
 
   worker.on("completed", (job) => {

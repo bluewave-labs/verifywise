@@ -128,8 +128,7 @@ const RegisterUser: React.FC = () => {
         // Extract error message from server response
         let errorMessage = "Registration failed. Please check your information and try again.";
         
-        console.log("Registration error response:", response); // Debug log
-        
+              
         if (response?.data) {
           errorMessage = response.data;
         } else if (response?.response?.data?.data) {
@@ -142,8 +141,7 @@ const RegisterUser: React.FC = () => {
           errorMessage = "An account with this email address already exists. Please try logging in instead, or contact your administrator if you believe this is an error.";
         }
         
-        console.log("Final error message:", errorMessage); // Debug log
-
+      
         handleAlert({
           variant: "error",
           body: errorMessage,

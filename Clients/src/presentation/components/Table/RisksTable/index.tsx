@@ -22,8 +22,11 @@ import { ChevronsUpDown } from "lucide-react";
 import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
+import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const titleOfTableColumns = [
   "risk description",
@@ -36,16 +39,7 @@ const titleOfTableColumns = [
   " ",
 ];
 
-interface RiskTableProps {
-  users: any;
-  vendors: VendorDetails[];
-  vendorRisks: any;
-  onDelete: (riskId: number) => void;
-  onEdit: (riskId: number) => void;
-  isDeletingAllowed?: boolean;
-}
-
-const RiskTable: React.FC<RiskTableProps> = ({
+const RiskTable: React.FC<IRiskTableProps> = ({
   users,
   vendors,
   vendorRisks,
@@ -60,6 +54,13 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  
+  const getCellStyle = (row: VendorRisk) => ({
+    ...cellStyle,
+    ...(row.is_deleted && {
+      textDecoration: 'line-through',
+    })
+  });
   const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -162,11 +163,17 @@ const RiskTable: React.FC<RiskTableProps> = ({
             .map((row: VendorRisk & { project_titles: string }) => (
               <TableRow
                 key={row.risk_id}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  ...(row.is_deleted && {
+                    opacity: 0.7,
+                    backgroundColor: theme.palette.action?.hover || '#fafafa',
+                  })
+                }}
                 onClick={() => onEdit(row.risk_id!)}
               >
-                <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>{row.risk_description}</TableCell>
+                <TableCell sx={getCellStyle(row)}>
                   {
                     formattedVendors?.find(
                       (vendor: any) => vendor._id === row.vendor_id
@@ -175,7 +182,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 </TableCell>
                 <TableCell
                   sx={{
-                    ...cellStyle,
+                    ...getCellStyle(row),
                     maxWidth: 200,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -185,21 +192,29 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   {(() => {
                     // Check if project_titles is empty or contains only empty strings
                     const projectTitles = row.project_titles as string;
-                    if (!projectTitles || projectTitles.trim() === '' || projectTitles === 'null') {
+                    if (
+                      !projectTitles ||
+                      projectTitles.trim() === "" ||
+                      projectTitles === "null"
+                    ) {
                       return (
-                        <span style={{ color: "#888", fontStyle: "normal" }}>-</span>
+                        <span style={{ color: "#888", fontStyle: "normal" }}>
+                          -
+                        </span>
                       );
                     }
 
                     const projects = projectTitles
                       .split(",")
                       .map((p) => p.trim())
-                      .filter((p) => p !== '' && p !== 'null'); // Filter out empty strings and 'null'
+                      .filter((p) => p !== "" && p !== "null"); // Filter out empty strings and 'null'
 
                     // If no valid projects after filtering, show dash
                     if (projects.length === 0) {
                       return (
-                        <span style={{ color: "#888", fontStyle: "normal" }}>-</span>
+                        <span style={{ color: "#888", fontStyle: "normal" }}>
+                          -
+                        </span>
                       );
                     }
 
@@ -259,18 +274,18 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     );
                   })()}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   {
                     formattedUsers?.find(
                       (user: any) => user._id === row.action_owner
                     )?.name
                   }
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   <RiskChip label={row.risk_severity} />
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>{row.likelihood}</TableCell>
+                <TableCell sx={getCellStyle(row)}>
                   <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell

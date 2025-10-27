@@ -167,9 +167,10 @@ const ProjectForm = ({
 
   const riskClassificationItems = useMemo(
     () => [
-      { _id: 1, name: AiRiskClassification.HIGH_RISK },
-      { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-      { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+      { _id: 1, name: AiRiskClassification.PROHIBITED },
+      { _id: 2, name: AiRiskClassification.HIGH_RISK },
+      { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+      { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
     ],
     []
   );

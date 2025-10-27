@@ -7,23 +7,34 @@ export class TrainingRegistarModel {
   provider!: string;
   department!: string;
   status!: TrainingStatus;
-  numberOfPeople!: number;
+  people!: number;
   description!: string;
 
-  constructor(data: TrainingRegistarModel) {
+  constructor(data: Partial<TrainingRegistarModel> & { numberOfPeople?: number }) {
     this.id = data.id;
-    this.training_name = data.training_name;
-    this.duration = data.duration;
-    this.provider = data.provider;
-    this.department = data.department;
-    this.status = data.status;
-    this.numberOfPeople = data.numberOfPeople;
-    this.description = data.description;
+    this.training_name = data.training_name!;
+    this.duration = data.duration!;
+    this.provider = data.provider!;
+    this.department = data.department!;
+    this.status = data.status!;
+    // Handle both 'people' and 'numberOfPeople' for backward compatibility
+    this.people = data.people ?? data.numberOfPeople ?? 0;
+    this.description = data.description ?? "";
   }
 
   static createTrainingRegistar(
-    data: TrainingRegistarModel
+    data: Partial<TrainingRegistarModel> & { numberOfPeople?: number }
   ): TrainingRegistarModel {
     return new TrainingRegistarModel(data);
+  }
+
+  // Getter for backward compatibility with forms using 'numberOfPeople'
+  get numberOfPeople(): number {
+    return this.people;
+  }
+
+  // Setter for backward compatibility with forms using 'numberOfPeople'
+  set numberOfPeople(value: number) {
+    this.people = value;
   }
 }

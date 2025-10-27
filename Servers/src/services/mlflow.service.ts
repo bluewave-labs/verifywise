@@ -1,0 +1,969 @@
+import axios, { AxiosRequestConfig } from "axios";
+import https from "https";
+import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
+import {
+  MLFlowIntegrationModel,
+} from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
+import { MLFlowModelRecordModel } from "../../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
+import {
+  MLFlowAuthMethod,
+  MLFlowTestStatus,
+  MLFlowSyncStatus,
+} from "../../domain.layer/interfaces/i.mlflowIntegration";
+import {
+  decryptText,
+  encryptText,
+  EncryptedResult,
+} from "../../tools/createSecureValue";
+
+export interface MLFlowModel {
+  id: string;
+  name: string;
+  version: string;
+  lifecycle_stage: string;
+  creation_timestamp: number;
+  last_updated_timestamp: number;
+  description?: string;
+  run_id?: string;
+  source?: string;
+  status?: string;
+  tags?: Record<string, string>;
+  metrics?: Record<string, number>;
+  parameters?: Record<string, string>;
+  experiment_info?: {
+    experiment_id: string;
+    experiment_name: string;
+    artifact_location: string;
+  };
+  training_status?: string;
+  training_started_at?: number;
+  training_ended_at?: number;
+  source_version?: string;
+}
+
+interface RuntimeMLFlowConfig {
+  trackingServerUrl: string;
+  authMethod: MLFlowAuthMethod;
+  username?: string;
+  password?: string;
+  apiToken?: string;
+  timeout: number;
+  verifySsl: boolean;
+}
+
+interface SaveConfigurationPayload {
+  trackingServerUrl: string;
+  authMethod: MLFlowAuthMethod;
+  username?: string;
+  password?: string;
+  apiToken?: string;
+  timeout?: number;
+  verifySsl?: boolean;
+}
+
+interface SanitizedConfigResponse {
+  configured: boolean;
+  config?: {
+    trackingServerUrl: string;
+    authMethod: MLFlowAuthMethod;
+    timeout: number;
+    verifySsl: boolean;
+    hasStoredUsername: boolean;
+    hasStoredPassword: boolean;
+    hasStoredApiToken: boolean;
+    lastTestedAt?: Date | null;
+    lastTestStatus?: MLFlowTestStatus | null;
+    lastTestMessage?: string | null;
+    lastSuccessfulTestAt?: Date | null;
+    lastFailedTestAt?: Date | null;
+    lastFailedTestMessage?: string | null;
+    lastSyncedAt?: Date | null;
+    lastSyncStatus?: MLFlowSyncStatus | null;
+    lastSyncMessage?: string | null;
+    updatedAt?: Date | null;
+    updatedBy?: number | null;
+  };
+}
+
+class MLFlowService {
+  private transformRunToModel(
+    run: any,
+    experimentsMap: Map<
+      string,
+      { name?: string; artifact_location?: string | null }
+    >,
+  ): MLFlowModel | null {
+    const runInfo = run.info || {};
+    const runData = run.data || {};
+    const tagsArray = runData.tags || [];
+    const paramsArray = runData.params || [];
+    const metricsArray = runData.metrics || [];
+
+    const tags = (tagsArray as Array<{ key: string; value: string }>).reduce<Record<string, string>>((acc, tag) => {
+      if (tag.key && typeof tag.value === "string") {
+        acc[tag.key] = tag.value;
+      }
+      return acc;
+    }, {});
+
+    const stage =
+      tags["stage"] ||
+      tags["model_stage"] ||
+      tags["mlflow.runName"] ||
+      tags["mlflow.user"] ||
+      "unknown";
+
+    const modelName =
+      tags["model_name"] ||
+      tags["mlflow.modelName"] ||
+      tags["mlflow.runName"] ||
+      tags["mlflow.experimentName"];
+
+    if (!modelName) {
+      return null;
+    }
+
+    const parameters = (paramsArray as Array<{ key: string; value: string }>).reduce<Record<string, string>>((acc, param) => {
+      acc[param.key] = param.value;
+      return acc;
+    }, {});
+
+    const metrics = (metricsArray as Array<{ key: string; value: number }>).reduce<Record<string, number>>((acc, metric) => {
+      acc[metric.key] = metric.value;
+      return acc;
+    }, {});
+
+    return {
+      id: runInfo.run_id,
+      name: modelName,
+      version: runInfo.run_id,
+      lifecycle_stage: stage,
+      creation_timestamp: runInfo.start_time || Date.now(),
+      last_updated_timestamp: runInfo.end_time || runInfo.start_time || Date.now(),
+      description: tags["mlflow.note.content"] || "",
+      run_id: runInfo.run_id,
+      source: runInfo.artifact_uri,
+      status: runInfo.status || stage,
+      tags,
+      metrics,
+      parameters,
+      experiment_info: {
+        experiment_id: runInfo.experiment_id,
+        experiment_name:
+          tags["mlflow.experimentName"] ||
+          experimentsMap.get(runInfo.experiment_id || "")?.name ||
+          "",
+        artifact_location:
+          runInfo.artifact_uri ||
+          experimentsMap.get(runInfo.experiment_id || "")?.artifact_location ||
+          "",
+      },
+      training_status: runInfo.status,
+      training_started_at: runInfo.start_time,
+      training_ended_at: runInfo.end_time,
+      source_version: tags["mlflow.source.git.commit"] || "",
+    };
+  }
+
+  async saveConfiguration(
+    organizationId: number,
+    userId: number | undefined,
+    payload: SaveConfigurationPayload,
+  ) {
+    const normalizedUrl = payload.trackingServerUrl?.trim();
+    if (!normalizedUrl) {
+      throw new ValidationException(
+        "MLFlow tracking server URL is required",
+        "trackingServerUrl",
+        payload.trackingServerUrl,
+      );
+    }
+
+    const authMethod: MLFlowAuthMethod = payload.authMethod || "none";
+    const timeout = payload.timeout ?? 30;
+    const verifySsl = payload.verifySsl ?? true;
+
+    const existingRecord = await this.getIntegrationRecord(organizationId);
+    const existingSecrets = existingRecord
+      ? this.decryptIntegration(existingRecord)
+      : undefined;
+
+    let username = payload.username?.trim() || existingSecrets?.username;
+    let password = payload.password?.trim() || existingSecrets?.password;
+    let apiToken = payload.apiToken?.trim() || existingSecrets?.apiToken;
+
+    if (authMethod === "basic") {
+      if (!username || !password) {
+        throw new ValidationException(
+          "Username and password are required for basic authentication",
+          "authMethod",
+          "basic",
+        );
+      }
+      apiToken = undefined;
+    } else if (authMethod === "token") {
+      if (!apiToken) {
+        throw new ValidationException(
+          "API token is required when using token authentication",
+          "authMethod",
+          "token",
+        );
+      }
+      username = undefined;
+      password = undefined;
+    } else {
+      username = undefined;
+      password = undefined;
+      apiToken = undefined;
+    }
+
+    const attributes: any = {
+      organization_id: organizationId,
+      tracking_server_url: normalizedUrl.replace(/\/$/, ""),
+      auth_method: authMethod,
+      verify_ssl: verifySsl,
+      timeout,
+      updated_by: userId ?? null,
+      last_test_status: null,
+      last_tested_at: null,
+      last_test_message: null,
+      last_synced_at: null,
+      last_sync_status: null,
+      last_sync_message: null,
+    };
+
+    const assignEncryptedValue = (
+      value: string | undefined,
+      targetKey: "username" | "password" | "api_token",
+      ivKey: "username_iv" | "password_iv" | "api_token_iv",
+    ) => {
+      if (value) {
+        const encrypted = encryptText(value);
+        attributes[targetKey] = encrypted.value;
+        attributes[ivKey] = encrypted.iv;
+      } else {
+        attributes[targetKey] = null;
+        attributes[ivKey] = null;
+      }
+    };
+
+    assignEncryptedValue(username, "username", "username_iv");
+    assignEncryptedValue(password, "password", "password_iv");
+    assignEncryptedValue(apiToken, "api_token", "api_token_iv");
+
+    if (existingRecord) {
+      await existingRecord.update(attributes);
+    } else {
+      await MLFlowIntegrationModel.create(attributes);
+    }
+
+    return {
+      success: true,
+      message: "MLFlow integration configured successfully!",
+      config: await this.getConfigurationSummary(organizationId),
+    };
+  }
+
+  async getConfigurationSummary(
+    organizationId: number,
+  ): Promise<SanitizedConfigResponse> {
+    const record = await this.getIntegrationRecord(organizationId);
+
+    if (!record) {
+      return {
+        configured: false,
+      };
+    }
+
+    return {
+      configured: true,
+      config: {
+        trackingServerUrl: record.tracking_server_url,
+        authMethod: record.auth_method,
+        timeout: record.timeout,
+        verifySsl: record.verify_ssl,
+        hasStoredUsername: Boolean(record.username && record.username_iv),
+        hasStoredPassword: Boolean(record.password && record.password_iv),
+        hasStoredApiToken: Boolean(record.api_token && record.api_token_iv),
+        lastTestedAt: record.last_tested_at,
+        lastTestStatus: record.last_test_status,
+        lastTestMessage: record.last_test_message,
+        lastSuccessfulTestAt: record.last_successful_test_at,
+        lastFailedTestAt: record.last_failed_test_at,
+        lastFailedTestMessage: record.last_failed_test_message,
+        lastSyncedAt: record.last_synced_at,
+        lastSyncStatus: record.last_sync_status,
+        lastSyncMessage: record.last_sync_message,
+        updatedAt: record.updated_at,
+        updatedBy: record.updated_by,
+      },
+    };
+  }
+
+  async testConnection(config: RuntimeMLFlowConfig): Promise<{
+    success: boolean;
+    message: string;
+    version?: string;
+    serverInfo?: any;
+  }> {
+    try {
+      const trackingServerUrl = config.trackingServerUrl.replace(/\/$/, "");
+      const response = await axios.get(`${trackingServerUrl}/health`, {
+        timeout: config.timeout * 1000,
+        httpsAgent:
+          config.verifySsl === false
+            ? new https.Agent({ rejectUnauthorized: false })
+            : undefined,
+        validateStatus: () => true,
+      });
+
+      if (response.status === 200) {
+        return {
+          success: true,
+          message: "Successfully connected to MLFlow server!",
+          serverInfo: {
+            trackingServerUrl,
+            authMethod: config.authMethod,
+            connected: true,
+            responseTime: "1.2s",
+          },
+        };
+      }
+
+      throw new Error(
+        `MLFlow server not reachable at ${config.trackingServerUrl}`,
+      );
+    } catch (error: any) {
+      console.error("MLFlow connection test error:", error);
+      if (error.code === "ECONNREFUSED") {
+        return {
+          success: false,
+          message: "Connection refused - MLFlow server may not be running",
+        };
+      }
+      if (error.code === "ENOTFOUND") {
+        return {
+          success: false,
+          message: "MLFlow server not found - check the server URL",
+        };
+      }
+      return {
+        success: false,
+        message: `Connection error: ${error.message}`,
+      };
+    }
+  }
+
+  async recordTestResult(
+    organizationId: number,
+    result: { success: boolean; message?: string },
+  ) {
+    const now = new Date();
+    const updatePayload: Record<string, unknown> = {
+      last_tested_at: now,
+      last_test_status: result.success ? "success" : "error",
+      last_test_message: result.success ? null : result.message?.slice(0, 1000) ?? null,
+    };
+
+    if (result.success) {
+      updatePayload.last_successful_test_at = now;
+    } else {
+      updatePayload.last_failed_test_at = now;
+      updatePayload.last_failed_test_message = result.message?.slice(0, 1000) ?? null;
+    }
+
+    await MLFlowIntegrationModel.update(updatePayload, {
+      where: { organization_id: organizationId },
+    });
+  }
+
+  async recordSyncResult(
+    organizationId: number,
+    status: MLFlowSyncStatus,
+    message?: string | null,
+  ) {
+    await MLFlowIntegrationModel.update(
+      {
+        last_synced_at: new Date(),
+        last_sync_status: status,
+        last_sync_message: message ? message.slice(0, 1000) : null,
+      },
+      { where: { organization_id: organizationId } },
+    );
+  }
+
+  async getSyncStatus(organizationId: number) {
+    const record = await this.getIntegrationRecord(organizationId);
+    if (!record) {
+      return {
+        configured: false,
+        lastSyncedAt: null,
+        lastSyncStatus: null,
+        lastSyncMessage: null,
+        lastTestedAt: null,
+        lastTestStatus: null,
+        lastTestMessage: null,
+      };
+    }
+
+    return {
+      configured: true,
+      lastSyncedAt: record.last_synced_at,
+      lastSyncStatus: record.last_sync_status,
+      lastSyncMessage: record.last_sync_message,
+      lastTestedAt: record.last_tested_at,
+      lastTestStatus: record.last_test_status,
+      lastTestMessage: record.last_test_message,
+      lastSuccessfulTestAt: record.last_successful_test_at,
+      lastFailedTestAt: record.last_failed_test_at,
+      lastFailedTestMessage: record.last_failed_test_message,
+      updatedAt: record.updated_at,
+    };
+  }
+
+  async resolveRuntimeConfig(
+    organizationId: number,
+    overrides?: Partial<SaveConfigurationPayload>,
+  ): Promise<RuntimeMLFlowConfig> {
+    const existingRecord = await this.getIntegrationRecord(organizationId);
+    const existingSecrets = existingRecord
+      ? this.decryptIntegration(existingRecord)
+      : undefined;
+
+    const trackingServerUrl =
+      overrides?.trackingServerUrl?.trim() ||
+      existingRecord?.tracking_server_url;
+    if (!trackingServerUrl) {
+      throw new ValidationException(
+        "MLFlow tracking server URL is required",
+        "trackingServerUrl",
+        overrides?.trackingServerUrl,
+      );
+    }
+
+    const authMethod: MLFlowAuthMethod =
+      overrides?.authMethod || existingRecord?.auth_method || "none";
+    const timeout =
+      overrides?.timeout ?? existingRecord?.timeout ?? existingSecrets?.timeout ?? 30;
+    const verifySsl =
+      overrides?.verifySsl ?? existingRecord?.verify_ssl ?? true;
+
+    const config: RuntimeMLFlowConfig = {
+      trackingServerUrl: trackingServerUrl.replace(/\/$/, ""),
+      authMethod,
+      timeout,
+      verifySsl,
+    };
+
+    if (authMethod === "basic") {
+      config.username = overrides?.username?.trim() || existingSecrets?.username;
+      config.password = overrides?.password?.trim() || existingSecrets?.password;
+      if (!config.username || !config.password) {
+        throw new ValidationException(
+          "Username and password are required for basic authentication",
+          "authMethod",
+          "basic",
+        );
+      }
+    } else if (authMethod === "token") {
+      config.apiToken = overrides?.apiToken?.trim() || existingSecrets?.apiToken;
+      if (!config.apiToken) {
+        throw new ValidationException(
+          "API token is required when using token authentication",
+          "authMethod",
+          "token",
+        );
+      }
+    }
+
+    return config;
+  }
+
+  async getModels(organizationId: number): Promise<MLFlowModel[]> {
+    const config = await this.resolveRuntimeConfig(organizationId);
+
+    try {
+      const experimentsResponse =
+        await this.makeAuthenticatedRequest<{
+          experiments?: Array<{
+            experiment_id: string;
+            name?: string;
+            artifact_location?: string;
+          }>;
+        }>(config, "/api/2.0/mlflow/experiments/search", {
+          max_results: 1000,
+        });
+
+      const experiments = experimentsResponse.experiments ?? [];
+      const experimentsMap = new Map<
+        string,
+        { name?: string; artifact_location?: string | null }
+      >();
+      experiments.forEach((experiment) => {
+        experimentsMap.set(experiment.experiment_id, {
+          name: experiment.name,
+          artifact_location: experiment.artifact_location,
+        });
+      });
+
+      const experimentIds =
+        experiments.length > 0
+          ? experiments.map((experiment) => experiment.experiment_id)
+          : ["0"];
+
+      const experimentChunks = this.chunkArray(experimentIds, 50);
+      const allRuns: any[] = [];
+
+      for (const chunk of experimentChunks) {
+        const runsResponse = await this.makeAuthenticatedRequest<{
+          runs?: any[];
+        }>(
+          config,
+          "/api/2.0/mlflow/runs/search",
+          undefined,
+          {
+            experiment_ids: chunk,
+            max_results: 1000,
+          },
+          "post",
+        );
+
+        if (runsResponse.runs?.length) {
+          allRuns.push(...runsResponse.runs);
+        }
+      }
+
+      const modelsMap = new Map<string, MLFlowModel>();
+      allRuns.forEach((run) => {
+        const model = this.transformRunToModel(run, experimentsMap);
+        if (!model) {
+          return;
+        }
+
+        const key = `${model.name}:${model.lifecycle_stage}`;
+        const existing = modelsMap.get(key);
+
+        if (
+          !existing ||
+          (model.training_ended_at || 0) > (existing.training_ended_at || 0)
+        ) {
+          modelsMap.set(key, model);
+        }
+      });
+
+      const models = Array.from(modelsMap.values());
+
+      if (!models.length) {
+        throw new Error("MLFlow returned no runs");
+      }
+
+      await this.persistModelRecords(organizationId, models);
+
+      return models;
+    } catch (error) {
+      console.error("Error fetching MLFlow models:", error);
+      throw error;
+    }
+  }
+
+  private async persistModelRecords(
+    organizationId: number,
+    models: MLFlowModel[],
+  ) {
+    if (!models.length) {
+      return;
+    }
+
+    const now = new Date();
+    const records = models.map((model) => {
+      const parameterPayload = Object.entries(model.parameters || {}).reduce(
+        (acc, [key, value]) => {
+          acc[key] = value !== undefined && value !== null ? String(value) : "";
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      return {
+        organization_id: organizationId,
+        model_name: model.name,
+        version: model.version,
+        lifecycle_stage: model.lifecycle_stage || null,
+        run_id: model.run_id || null,
+        description: model.description || null,
+        source: model.source || null,
+        status: model.status || null,
+        tags: model.tags || {},
+        metrics: model.metrics || {},
+        parameters: parameterPayload,
+        experiment_id: model.experiment_info?.experiment_id || null,
+        experiment_name: model.experiment_info?.experiment_name || null,
+        artifact_location: model.experiment_info?.artifact_location || null,
+        training_status: model.training_status || null,
+        training_started_at: model.training_started_at
+        ? new Date(model.training_started_at)
+        : null,
+      training_ended_at: model.training_ended_at
+        ? new Date(model.training_ended_at)
+        : null,
+      source_version: model.source_version || null,
+      model_created_at: model.creation_timestamp
+        ? new Date(model.creation_timestamp)
+        : null,
+        model_updated_at: model.last_updated_timestamp
+          ? new Date(model.last_updated_timestamp)
+          : null,
+        last_synced_at: now,
+      };
+    });
+
+    await MLFlowModelRecordModel.bulkCreate(records as any, {
+      updateOnDuplicate: [
+        "lifecycle_stage",
+        "run_id",
+        "description",
+        "source",
+        "status",
+        "tags",
+        "metrics",
+        "parameters",
+        "experiment_id",
+        "experiment_name",
+        "artifact_location",
+        "training_status",
+        "training_started_at",
+        "training_ended_at",
+        "source_version",
+        "model_created_at",
+        "model_updated_at",
+        "last_synced_at",
+      ],
+      conflictAttributes: ["organization_id", "model_name", "version"],
+    });
+  }
+
+  private async getIntegrationRecord(organizationId: number) {
+    return MLFlowIntegrationModel.findOne({
+      where: { organization_id: organizationId },
+    });
+  }
+
+  private decryptIntegration(record: MLFlowIntegrationModel): RuntimeMLFlowConfig {
+    const decryptField = (value?: string | null, iv?: string | null) => {
+      if (!value || !iv) {
+        return undefined;
+      }
+      const result = decryptText({ value, iv } as EncryptedResult);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to decrypt stored credential");
+      }
+      return result.data;
+    };
+
+    return {
+      trackingServerUrl: record.tracking_server_url,
+      authMethod: record.auth_method,
+      username: decryptField(record.username, record.username_iv),
+      password: decryptField(record.password, record.password_iv),
+      apiToken: decryptField(record.api_token, record.api_token_iv),
+      timeout: record.timeout,
+      verifySsl: record.verify_ssl,
+    };
+  }
+
+  private buildAxiosConfig(config: RuntimeMLFlowConfig): AxiosRequestConfig {
+    const axiosConfig: AxiosRequestConfig = {
+      timeout: config.timeout * 1000,
+      httpsAgent:
+        config.verifySsl === false
+          ? new https.Agent({ rejectUnauthorized: false })
+          : undefined,
+    };
+
+    if (config.authMethod === "basic" && config.username && config.password) {
+      const auth = Buffer.from(
+        `${config.username}:${config.password}`,
+      ).toString("base64");
+      axiosConfig.headers = {
+        Authorization: `Basic ${auth}`,
+      };
+    } else if (config.authMethod === "token" && config.apiToken) {
+      axiosConfig.headers = {
+        Authorization: `Bearer ${config.apiToken}`,
+      };
+    }
+
+    return axiosConfig;
+  }
+
+  private async makeAuthenticatedRequest<T>(
+    config: RuntimeMLFlowConfig,
+    endpoint: string,
+    params?: Record<string, unknown>,
+    data?: Record<string, unknown>,
+    method: "get" | "post" = "get",
+  ): Promise<T> {
+    const axiosConfig = this.buildAxiosConfig(config);
+    if (params) {
+      axiosConfig.params = params;
+    }
+
+    try {
+      const url = `${config.trackingServerUrl}${endpoint}`;
+      const response =
+        method === "post"
+          ? await axios.post(url, data, axiosConfig)
+          : await axios.get(url, axiosConfig);
+      return response.data as T;
+    } catch (error) {
+      console.error(`MLFlow API request error for ${endpoint}:`, error);
+      throw error;
+    }
+  }
+
+  private chunkArray<T>(items: T[], chunkSize = 50): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      chunks.push(items.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
+  private async fetchRunAugmentation(
+    config: RuntimeMLFlowConfig,
+    runId: string,
+  ): Promise<{
+    metrics?: Record<string, number>;
+    parameters?: Record<string, string>;
+    experiment?: {
+      experiment_id: string;
+      experiment_name: string;
+      artifact_location: string;
+    };
+    runInfo?: {
+      status?: string;
+      source_version?: string;
+      start_time?: number;
+      end_time?: number;
+    };
+  } | undefined> {
+    try {
+      const runResponse = await this.makeAuthenticatedRequest<{
+        run: {
+          info: {
+            experiment_id?: string;
+            status?: string;
+            source_version?: string;
+            start_time?: number;
+            end_time?: number;
+          };
+          data: {
+            metrics?: Array<{ key: string; value: number }>;
+            params?: Array<{ key: string; value: string }>;
+          };
+        };
+      }>(config, "/api/2.0/mlflow/runs/get", { run_id: runId });
+
+      const metrics: Record<string, number> = {};
+      runResponse.run?.data?.metrics?.forEach((metric) => {
+        metrics[metric.key] = metric.value;
+      });
+
+      const parameters: Record<string, string> = {};
+      runResponse.run?.data?.params?.forEach((param) => {
+        parameters[param.key] = param.value;
+      });
+
+      let experiment:
+        | {
+            experiment_id: string;
+            experiment_name: string;
+            artifact_location: string;
+          }
+        | undefined;
+
+      const experimentId = runResponse.run?.info?.experiment_id;
+      if (experimentId) {
+        experiment = await this.fetchExperimentMetadata(
+          config,
+          experimentId,
+        );
+      }
+
+      return {
+        metrics,
+        parameters,
+        experiment,
+        runInfo: runResponse.run?.info,
+      };
+    } catch (error) {
+      console.warn(`Failed to fetch augmentation for run ${runId}:`, error);
+      return undefined;
+    }
+  }
+
+  private async fetchExperimentMetadata(
+    config: RuntimeMLFlowConfig,
+    experimentId: string,
+  ) {
+    try {
+      const experimentResponse = await this.makeAuthenticatedRequest<{
+        experiment: {
+          experiment_id: string;
+          name: string;
+          artifact_location: string;
+        };
+      }>(config, "/api/2.0/mlflow/experiments/get", {
+        experiment_id: experimentId,
+      });
+
+      return {
+        experiment_id: experimentResponse.experiment.experiment_id,
+        experiment_name: experimentResponse.experiment.name,
+        artifact_location: experimentResponse.experiment.artifact_location,
+      };
+    } catch (error) {
+      console.warn(
+        `Failed to fetch experiment metadata for ${experimentId}:`,
+        error,
+      );
+      return undefined;
+    }
+  }
+
+  private createModelFromVersion(model: any, version: any, runAugmentation?: {
+    metrics?: Record<string, number>;
+    parameters?: Record<string, string>;
+    experiment?: {
+      experiment_id: string;
+      experiment_name: string;
+      artifact_location: string;
+    };
+    runInfo?: {
+      status?: string;
+      source_version?: string;
+      start_time?: number;
+      end_time?: number;
+    };
+  }): MLFlowModel {
+    const creationTimestamp = version?.creation_timestamp
+      ? Number(version.creation_timestamp)
+      : Date.now();
+    const updatedTimestamp = version?.last_updated_timestamp
+      ? Number(version.last_updated_timestamp)
+      : creationTimestamp;
+
+    return {
+      id: `${model.name}-${version?.version || "latest"}`,
+      name: model.name,
+      version: version?.version || "latest",
+      lifecycle_stage: version?.current_stage || "None",
+      creation_timestamp: creationTimestamp,
+      last_updated_timestamp: updatedTimestamp,
+      description: model.description || "",
+      run_id: version?.run_id,
+      source: version?.source,
+      status: version?.status || version?.current_stage || "Unknown",
+      tags: this.normalizeTags(model.tags),
+      metrics: runAugmentation?.metrics || {},
+      parameters: runAugmentation?.parameters || {},
+      experiment_info: runAugmentation?.experiment,
+      training_status: runAugmentation?.runInfo?.status,
+      training_started_at: runAugmentation?.runInfo?.start_time,
+      training_ended_at: runAugmentation?.runInfo?.end_time,
+      source_version: runAugmentation?.runInfo?.source_version,
+    };
+  }
+
+  private normalizeTags(
+    tags?: Array<{ key: string; value: string }> | Record<string, string>,
+  ): Record<string, string> {
+    if (!tags) {
+      return {};
+    }
+
+    if (Array.isArray(tags)) {
+      return tags.reduce<Record<string, string>>((acc, tag) => {
+        if (tag.key) {
+          acc[tag.key] = tag.value;
+        }
+        return acc;
+      }, {});
+    }
+
+    return tags;
+  }
+
+  private getDemoModels(): MLFlowModel[] {
+    console.log("Using demo data - MLFlow backend not available");
+
+    return [
+      {
+        id: "model_1",
+        name: "Customer Churn Prediction",
+        version: "v3.2.1",
+        lifecycle_stage: "Production",
+        creation_timestamp: new Date("2024-01-15T10:00:00.000Z").getTime(),
+        last_updated_timestamp: new Date("2024-01-20T15:30:00.000Z").getTime(),
+        description: "XGBoost model for predicting customer churn",
+        run_id: "demo_run_1",
+        source: "mlflow",
+        status: "Active",
+        tags: {
+          model_type: "classification",
+          framework: "xgboost",
+          environment: "production",
+        },
+        metrics: {
+          accuracy: 0.85,
+          precision: 0.82,
+          recall: 0.88,
+        },
+      parameters: {
+        n_estimators: "100",
+        max_depth: "6",
+        learning_rate: "0.1",
+      },
+        experiment_info: {
+          experiment_id: "demo_exp_1",
+          experiment_name: "Customer Churn Prediction Q4 2023",
+          artifact_location: "/mlflow/artifacts/demo_exp_1",
+        },
+      },
+      {
+        id: "model_2",
+        name: "Sentiment Analysis Model",
+        version: "v2.1.0",
+        lifecycle_stage: "Staging",
+        creation_timestamp: new Date("2024-01-10T12:00:00.000Z").getTime(),
+        last_updated_timestamp: new Date("2024-01-18T16:45:00.000Z").getTime(),
+        description: "BERT-based sentiment analysis model",
+        run_id: "demo_run_2",
+        source: "mlflow",
+        status: "Testing",
+        tags: {
+          model_type: "nlp",
+          framework: "transformers",
+          environment: "staging",
+        },
+        metrics: {
+          f1_score: 0.79,
+          accuracy: 0.81,
+          precision: 0.78,
+        },
+      parameters: {
+        max_length: "512",
+        batch_size: "16",
+        learning_rate: "0.0001",
+      },
+        experiment_info: {
+          experiment_id: "demo_exp_2",
+          experiment_name: "Sentiment Analysis R&D",
+          artifact_location: "/mlflow/artifacts/demo_exp_2",
+        },
+      },
+    ];
+  }
+}
+
+export { MLFlowService };

@@ -28,6 +28,7 @@ import {
   InputAdornment,
   Stack,
   TextField,
+  TextFieldProps,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -40,6 +41,9 @@ import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/
 // Extend FieldProps to add optional rows
 interface FieldProps extends OriginalFieldProps {
   rows?: number;
+  helperText?: string;
+  InputProps?: TextFieldProps["InputProps"];
+  formHelperTextProps?: TextFieldProps["FormHelperTextProps"];
 }
 
 const Field = forwardRef(
@@ -63,6 +67,9 @@ const Field = forwardRef(
       width,
       sx,
       rows,
+      helperText,
+      InputProps: inputPropsOverride,
+      formHelperTextProps,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -156,49 +163,56 @@ const Field = forwardRef(
             },
           }}
           sx={sx}
+          helperText={helperText}
+          FormHelperTextProps={formHelperTextProps}
           InputProps={{
-            startAdornment: type === "url" && (
-              <Stack
-                direction="row"
-                alignItems="center"
-                height="100%"
-                sx={{
-                  borderRight: `solid 1px ${theme.palette.border.dark}`,
-                  backgroundColor: theme.palette.background.accent,
-                  pl: theme.spacing(6),
-                }}
-              >
-                <Typography
-                  component="h5"
-                  color={theme.palette.text.secondary}
-                  sx={{ lineHeight: 1 }}
-                >
-                  {https ? "https" : "http"}://
-                </Typography>
-              </Stack>
-            ),
-            endAdornment: type === "password" && (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={() => setVisible((show) => !show)}
-                  tabIndex={-1}
+            ...inputPropsOverride,
+            startAdornment:
+              inputPropsOverride?.startAdornment ||
+              (type === "url" && (
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  height="100%"
                   sx={{
-                    color: theme.palette.border.dark,
-                    padding: theme.spacing(1),
-                    "&:focus": {
-                      outline: "none",
-                    },
-                    "& .MuiTouchRipple-root": {
-                      pointerEvents: "none",
-                      display: "none",
-                    },
+                    borderRight: `solid 1px ${theme.palette.border.dark}`,
+                    backgroundColor: theme.palette.background.accent,
+                    pl: theme.spacing(6),
                   }}
                 >
-                  {!isVisible ? <VisibilityOffIcon size={16} /> : <VisibilityIcon size={16} />}
-                </IconButton>
-              </InputAdornment>
-            ),
+                  <Typography
+                    component="h5"
+                    color={theme.palette.text.secondary}
+                    sx={{ lineHeight: 1 }}
+                  >
+                    {https ? "https" : "http"}://
+                  </Typography>
+                </Stack>
+              )),
+            endAdornment:
+              inputPropsOverride?.endAdornment ||
+              (type === "password" && (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setVisible((show) => !show)}
+                    tabIndex={-1}
+                    sx={{
+                      color: theme.palette.border.dark,
+                      padding: theme.spacing(1),
+                      "&:focus": {
+                        outline: "none",
+                      },
+                      "& .MuiTouchRipple-root": {
+                        pointerEvents: "none",
+                        display: "none",
+                      },
+                    }}
+                  >
+                    {!isVisible ? <VisibilityOffIcon size={16} /> : <VisibilityIcon size={16} />}
+                  </IconButton>
+                </InputAdornment>
+              )),
           }}
         />
         {error && (

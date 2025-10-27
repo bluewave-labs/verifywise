@@ -4,6 +4,7 @@ import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
 import Integrations from "../../presentation/pages/Integrations";
 import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
+import MLFlowManagement from "../../presentation/pages/Integrations/MLFlowManagement";
 import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -57,6 +58,7 @@ export const createRoutes = (
     <Route path="/integrations" element={<Integrations />} />
     <Route path="/settings" element={<Setting />} />
     <Route path="/integrations/slack" element={<SlackManagement />} />
+    <Route path="/integrations/mlflow" element={<MLFlowManagement />} />
     <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
       <Route path="/file-manager" element={<FileManager />} />

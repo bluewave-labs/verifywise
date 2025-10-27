@@ -29,6 +29,7 @@ import {
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
+import MLFlowDataTable from "./MLFlowDataTable";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -109,7 +110,7 @@ const ModelInventory: React.FC = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks
+  const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks, "mlflow" = MLFlow Data
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -747,6 +748,12 @@ const ModelInventory: React.FC = () => {
                 value="model-risks"
                 disableRipple
               />
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="MLFlow data"
+                value="mlflow"
+                disableRipple
+              />
             </TabList>
           </Box>
         </TabContext>
@@ -918,6 +925,10 @@ const ModelInventory: React.FC = () => {
               users={users}
             />
           </>
+        )}
+
+        {activeTab === "mlflow" && (
+          <MLFlowDataTable />
         )}
       </Stack>
 

@@ -251,7 +251,6 @@ const AutomationsPage: React.FC = () => {
         setSelectedItemType(null);
       }
 
-      console.log('Automation deleted successfully');
     } catch (error: any) {
       console.error('Error deleting automation:', error);
     }
@@ -319,8 +318,7 @@ const AutomationsPage: React.FC = () => {
         is_active: newIsActive
       });
 
-      console.log('Automation toggle status updated successfully');
-
+    
       // Show success toast
       setToast({
         variant: "success",
@@ -1183,8 +1181,7 @@ This notification was sent on {{date_and_time}}.`
 
         if (response.status === 200) {
           // Show success notification
-          console.log('Automation updated successfully!', response.data);
-
+  
           // Refresh the automations list, preserving the current selection
           await fetchAutomations(selectedAutomationId ?? undefined, false);
 
@@ -1208,8 +1205,7 @@ This notification was sent on {{date_and_time}}.`
 
         if (response.status === 201) {
           // Show success notification
-          console.log('Automation created successfully!', response.data);
-
+    
           // Get the newly created automation's ID from the response
           const newAutomationId = response.data.data?.id;
 

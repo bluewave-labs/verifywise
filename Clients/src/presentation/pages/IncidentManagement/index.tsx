@@ -261,8 +261,7 @@ const IncidentManagement: React.FC = () => {
                 body: {},
             });
 
-            console.log("sucess Srchived action");
-
+        
             // Re-fetch to ensure consistent state
             await fetchIncidentsData(false);
 

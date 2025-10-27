@@ -456,7 +456,7 @@ const MLFlowManagement: React.FC = () => {
                 title={card.title}
                 count={card.count}
                 icon={card.icon}
-                disableNavigation
+                disableNavigation={true}
               />
             ))}
           </Box>

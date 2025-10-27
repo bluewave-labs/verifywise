@@ -200,7 +200,7 @@ const MLFlowDataTable: React.FC = () => {
         <HeaderCard
           title="Models"
           count={summaryStats.total}
-          disableNavigation
+          disableNavigation={true}
         />
         <HeaderCard
           title="Active"

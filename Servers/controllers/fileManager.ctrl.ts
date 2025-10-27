@@ -45,6 +45,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     description: "Starting file upload to file manager",
     functionName: "uploadFile",
     fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   let tempFilePath: string | undefined;
@@ -59,6 +61,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         functionName: "uploadFile",
         fileName: "fileManager.ctrl.ts",
         error: new Error("No file provided"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400]("No file provided"));
     }
@@ -94,6 +98,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         functionName: "uploadFile",
         fileName: "fileManager.ctrl.ts",
         error: new Error(validation.error),
+        userId,
+        tenantId: req.tenantId!,
       });
       // Clean up temp file before returning error
       if (tempFilePath) {
@@ -128,6 +134,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       functionName: "uploadFile",
       fileName: "fileManager.ctrl.ts",
       userId,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(
@@ -158,6 +165,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       functionName: "uploadFile",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
@@ -188,6 +197,8 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
     description: `Retrieving file list for organization ${orgId}`,
     functionName: "listFiles",
     fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -209,6 +220,7 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       functionName: "listFiles",
       fileName: "fileManager.ctrl.ts",
       userId: Number(req.userId),
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json({
@@ -233,6 +245,8 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       functionName: "listFiles",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
@@ -263,6 +277,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     description: `Starting file download for file ID ${fileId}`,
     functionName: "downloadFile",
     fileName: "fileManager.ctrl.ts",
+    userId,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -275,6 +291,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         description: `File not found: ID ${fileId}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
+        userId,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404]({}));
     }
@@ -287,6 +305,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
         error: new Error("Access denied"),
+        userId,
+        tenantId: req.tenantId!,
       });
       return res.status(403).json(STATUS_CODE[403]("Access denied"));
     }
@@ -311,6 +331,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
         error: new Error("Invalid file path"),
+        userId,
+        tenantId: req.tenantId!,
       });
       return res.status(400).json(STATUS_CODE[400]("Invalid file path"));
     }
@@ -332,6 +354,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
         userId,
+        tenantId: req.tenantId!,
       });
     } catch (streamError) {
       await logFailure({
@@ -340,6 +363,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
         error: streamError as Error,
+        userId,
+        tenantId: req.tenantId!,
       });
 
       // Only send error response if headers haven't been sent yet
@@ -356,6 +381,8 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       functionName: "downloadFile",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }

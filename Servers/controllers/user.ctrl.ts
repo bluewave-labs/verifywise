@@ -1226,7 +1226,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "uploadUserProfilePhoto",
         "user.ctrl.ts",
       );
-      await logEvent("Create", `Profile photo uploaded for user ID ${userId}`);
+      await logEvent("Create", `Profile photo uploaded for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo uploaded successfully",
@@ -1244,6 +1244,8 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       await logEvent(
         "Error",
         `Failed to upload profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(500).json(
         STATUS_CODE[500]({
@@ -1262,6 +1264,8 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
     await logEvent(
       "Error",
       `Unexpected error uploading profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in uploadUserProfilePhoto:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1346,7 +1350,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
         "deleteUserProfilePhoto",
         "user.ctrl.ts",
       );
-      await logEvent("Delete", `Profile photo deleted for user ID ${userId}`);
+      await logEvent("Delete", `Profile photo deleted for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo deleted successfully",
@@ -1363,6 +1367,8 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
       await logEvent(
         "Error",
         `Failed to delete profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(500).json(
         STATUS_CODE[500]({
@@ -1381,6 +1387,8 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
     await logEvent(
       "Error",
       `Unexpected error deleting profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteUserProfilePhoto:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

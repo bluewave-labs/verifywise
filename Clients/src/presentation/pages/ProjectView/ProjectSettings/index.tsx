@@ -1370,15 +1370,19 @@ const ProjectSettings = React.memo(
           setIsOpen={setIsRiskModalOpen}
           projectId={projectId}
           setAlert={setAlert}
-          updateClassification={(classification: string) =>
+          updateClassification={(classification: string) => {
+            const match = riskClassificationItems.find(
+              (item) => item.name === classification,
+            ); 
+            if(!match) {
+              console.error(`Unknown classification: ${classification}`);
+              return;
+            }
             setValues({
               ...values,
-              riskClassification:
-                riskClassificationItems.find(
-                  (item) => item.name === classification,
-                )?._id || 1,
+              riskClassification: match._id,
             })
-          }
+          }}
         />
       </Stack>
     );

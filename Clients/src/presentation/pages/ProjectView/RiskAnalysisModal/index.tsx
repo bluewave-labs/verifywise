@@ -115,9 +115,16 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   // Calculate progress
   const progress = getProgress(currentQuestionId, answers);
 
-  const handleClose = () => {
-    setIsOpen(false);
+  const isQuestionAnswered = (id?: QuestionId): boolean => {
+    if (!id) return false;
+    const answer = answers[id];
+    if (Array.isArray(answer)) return answer.length > 0;
+    return Boolean(answer);
   };
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, [setIsOpen]);
 
   const handleAnsweSelect = (id: string, value: string | string[]) => {
     // Save answer
@@ -196,7 +203,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
           setAlert(null);
           handleClose();
           updateClassification(selectedRiskClass);
-        }, 2000);
+        }, 1000);
       } else if (response.status === 400) {
         setAlert({
           variant: "error",
@@ -212,13 +219,14 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     classification,
     clearSavedProgress,
     updateClassification,
+    handleClose
   ]);
 
   const handleSave = () => {
     handleSaveConfirm();
     setTimeout(() => {
       setAlert(null);
-    }, 1500);
+    }, 1000);
   };
 
   return (
@@ -264,7 +272,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
               </Typography>
             </Stack>
           </Stack>
-          <IconButton onClick={handleClose} size="small">
+          <IconButton onClick={handleClose} size="small" aria-label="Close risk analysis modal">
             <CloseIcon size={20} />
           </IconButton>
         </Stack>
@@ -320,9 +328,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
               <CustomizableButton
                 text={finalQuestion ? "View results" : "Next"}
                 onClick={finalQuestion ? handleShowResults : handleNextQuestion}
-                isDisabled={
-                  currentQuestionId ? !answers[currentQuestionId] : true
-                }
+                isDisabled={!isQuestionAnswered(currentQuestionId)}
                 endIcon={finalQuestion ? <Save /> : <ArrowRight />}
                 sx={{
                   fontWeight: 600,

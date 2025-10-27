@@ -20,6 +20,12 @@ module.exports = {
      */
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Remap 'Prohibited' to 'High risk' before changing enum (safest fallback for highest restriction level)
+      await queryInterface.sequelize.query(
+        `UPDATE "projects" SET "ai_risk_classification" = 'High risk' WHERE "ai_risk_classification" = 'Prohibited';`,
+        { transaction }
+      );
+
       // Create a temporary enum type with the original values (without 'Prohibited')
       await queryInterface.sequelize.query(
         `CREATE TYPE "enum_projects_ai_risk_classification_temp" AS ENUM ('High risk', 'Limited risk', 'Minimal risk');`,

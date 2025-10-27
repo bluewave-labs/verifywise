@@ -171,12 +171,6 @@ export default function ProfilePage() {
               disabled={isApiKeysDisabled}
             />
             <Tab label="Subscription" value="subscription" disableRipple sx={settingTabStyle} />
-            <Tab
-              label="Slack"
-              value="slack"
-              disableRipple
-              sx={settingTabStyle}
-            />
           </TabList>
         </Box>
 

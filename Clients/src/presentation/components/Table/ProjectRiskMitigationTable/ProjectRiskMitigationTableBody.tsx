@@ -88,7 +88,6 @@ export const ProjectRiskMitigationTableBody: React.FC<
       }
     }
   };
-  console.log("Rows in ProjectRiskMitigationTableBody:", rows);
 
   return (
     <>

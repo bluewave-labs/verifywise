@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { FileText } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const FileSteps: PageTourStep[] = [
+const FileSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="file-manager-title"]',
     content: {

@@ -14,18 +14,9 @@ import { X as CloseIcon } from "lucide-react";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { ICustomModalProps } from "../../../../domain/interfaces/i.customs";
 
-interface CustomModalProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  title: any;
-  content: any;
-  subControlTlts: string[];
-  onConfirm: () => void;
-  //Promise<{ status: number; data: any }>;
-}
-
-const CustomModal: React.FC<CustomModalProps> = ({
+const CustomModal: React.FC<ICustomModalProps> = ({
   isOpen,
   setIsOpen,
   title,
@@ -91,10 +82,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
   };
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
       }}
@@ -131,7 +122,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
             {title}
           </Typography>
 
-          <CloseIcon size={20} onClick={handleClose} style={{ cursor: "pointer" }} />
+          <CloseIcon
+            size={20}
+            onClick={handleClose}
+            style={{ cursor: "pointer" }}
+          />
         </Stack>
         <Typography fontSize={13}>{content}</Typography>
         <DropDowns />

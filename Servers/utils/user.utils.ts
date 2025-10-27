@@ -32,6 +32,7 @@ import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { QuestionModel } from "../domain.layer/models/question/question.model";
 import { deleteFileById } from "./fileUpload.utils";
+import { AutomationModel } from "../domain.layer/models/automation/automation.model";
 
 /**
  * Retrieves all users from the database.
@@ -368,6 +369,7 @@ export const deleteUserByIdQuery = async (
     },
     { table: "vendorrisks", model: VendorRiskModel, fields: ["action_owner"] },
     { table: "files", model: FileModel, fields: ["uploaded_by"] },
+    { table: "automations", model: AutomationModel, fields: ["created_by"] }
   ];
 
   for (let entry of usersFK) {

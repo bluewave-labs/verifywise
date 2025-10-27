@@ -8,6 +8,7 @@ import { ProjectRiskMitigation } from "../types/ProjectRisk";
 export interface IProjectListProps {
   projects: Project[];
   newProjectButton?: React.ReactNode;
+  onFilterChange?: (filteredProjects: Project[], filters: any) => void;
 }
 
 export interface IProjectTableViewProps {

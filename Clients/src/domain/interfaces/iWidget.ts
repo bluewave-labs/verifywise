@@ -98,6 +98,7 @@ export interface FieldProps {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
   width?: number | string;

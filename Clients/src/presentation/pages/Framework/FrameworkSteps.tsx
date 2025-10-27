@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { Layout } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const FrameworkSteps: PageTourStep[] = [
+const FrameworkSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="framework-main-tabs"]',
     content: {

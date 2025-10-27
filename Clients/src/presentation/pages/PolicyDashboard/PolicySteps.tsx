@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { BarChart3, Filter, Search, FilePlus } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const PolicySteps: PageTourStep[] = [
+const PolicySteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-policy-button"]',
     content: {

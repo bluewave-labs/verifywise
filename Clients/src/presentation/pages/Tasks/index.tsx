@@ -506,8 +506,7 @@ const Tasks: React.FC = () => {
             statusOptions={TASK_STATUS_OPTIONS.map(
               (status) => {
                 const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                console.log('Task status mapping:', status, '->', displayStatus);
-                return displayStatus;
+                  return displayStatus;
               }
             )}
             isUpdateDisabled={isCreatingDisabled}

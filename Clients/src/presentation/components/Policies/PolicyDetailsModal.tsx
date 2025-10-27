@@ -1,4 +1,5 @@
 import React, { CSSProperties, useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
@@ -424,7 +425,65 @@ const PolicyDetailModal: React.FC<Props> = ({
         typeof policy.content_html === "string"
           ? api.deserialize({
               element: Object.assign(document.createElement("div"), {
-                innerHTML: policy.content_html,
+                innerHTML: DOMPurify.sanitize(policy.content_html, {
+                  ALLOWED_TAGS: [
+                    "p",
+                    "br",
+                    "strong",
+                    "b",
+                    "em",
+                    "i",
+                    "u",
+                    "underline",
+                    "h1",
+                    "h2",
+                    "h3",
+                    "h4",
+                    "h5",
+                    "h6",
+                    "blockquote",
+                    "code",
+                    "pre",
+                    "ul",
+                    "ol",
+                    "li",
+                    "a",
+                    "img",
+                    "span",
+                    "div",
+                  ],
+                  ALLOWED_ATTR: [
+                    "href",
+                    "title",
+                    "alt",
+                    "src",
+                    "class",
+                    "id",
+                    "style",
+                    "target",
+                    "rel",
+                  ],
+                  ALLOWED_URI_REGEXP:
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+                  ADD_ATTR: ["target"],
+                  FORBID_TAGS: [
+                    "script",
+                    "object",
+                    "embed",
+                    "iframe",
+                    "form",
+                    "input",
+                    "button",
+                  ],
+                  FORBID_ATTR: [
+                    "onerror",
+                    "onload",
+                    "onclick",
+                    "onmouseover",
+                    "onfocus",
+                    "onblur",
+                  ],
+                }),
               }),
             })
           : policy.content_html || editor.children;

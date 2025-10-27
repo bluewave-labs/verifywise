@@ -294,7 +294,6 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (validateForm()) {
-            console.log("Response logging", values);
             onSuccess?.(values);
             handleClose();
         }

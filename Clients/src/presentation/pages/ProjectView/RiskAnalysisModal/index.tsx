@@ -159,6 +159,8 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
 
   const getRiskClassificationType = (level: string) => {
     switch (level) {
+      case "PROHIBITED":
+        return AiRiskClassification.PROHIBITED;
       case "HIGH_RISK":
         return AiRiskClassification.HIGH_RISK;
       case "LIMITED_RISK":

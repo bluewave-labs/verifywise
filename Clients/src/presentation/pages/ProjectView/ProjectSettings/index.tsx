@@ -52,9 +52,10 @@ import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 import RiskAnalysisModal from "../RiskAnalysisModal";
 
 const riskClassificationItems = [
-  { _id: 1, name: AiRiskClassification.HIGH_RISK },
-  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+  { _id: 1, name: AiRiskClassification.PROHIBITED },
+  { _id: 2, name: AiRiskClassification.HIGH_RISK },
+  { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
 const highRiskRoleItems = [
@@ -1209,7 +1210,7 @@ const ProjectSettings = React.memo(
               </Typography> */}
               <CustomizableButton
                 variant="contained"
-                text="Calculate Your AI Risk Classification"
+                text="Calculate your AI risk classification"
                 onClick={() => setIsRiskModalOpen(true)}
                 sx={{
                   width: "255px",

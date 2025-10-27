@@ -6,22 +6,34 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.addColumn('projects', 'geography', {
-        type: Sequelize.INTEGER,
-        allowNull: true, // Allow null initially for existing records
-        defaultValue: 1, // Default value for new records
-      }, { transaction });
+      const tableDefinition = await queryInterface.describeTable('projects', { transaction });
+      const columnExistsInPublic = 'geography' in tableDefinition;
 
-      await queryInterface.sequelize.query(
-        `UPDATE public.projects SET geography = 1 WHERE geography IS NULL;`,
-        { transaction }
-      );
+      if (!columnExistsInPublic) {
+        await queryInterface.addColumn('projects', 'geography', {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+          defaultValue: 1,
+        }, { transaction });
 
-      await queryInterface.changeColumn('projects', 'geography', {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 1,
-      }, { transaction });
+        await queryInterface.sequelize.query(
+          `UPDATE public.projects SET geography = 1 WHERE geography IS NULL;`,
+          { transaction }
+        );
+
+        await queryInterface.changeColumn('projects', 'geography', {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 1,
+        }, { transaction });
+      } else {
+        // This handles cases where the column might exist but was created with different properties.
+        await queryInterface.changeColumn('projects', 'geography', {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        }, { transaction });
+      }
 
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM public.organizations;`, { transaction }

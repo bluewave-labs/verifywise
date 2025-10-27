@@ -253,7 +253,7 @@ const MLFlowDataTable: React.FC = () => {
                       {model.version}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      <RiskChip label={model.lifecycle_stage} backgroundColor={getSeverityColorByText(model.lifecycle_stage)} />
+                      <RiskChip label={model.lifecycle_stage} />
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {formatDate(model.creation_timestamp)}

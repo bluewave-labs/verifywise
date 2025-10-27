@@ -100,7 +100,6 @@ const MLFlowManagement: React.FC = () => {
 
       return next;
     });
-  }, []);
 
   const buildPayload = useCallback(() => {
     const payload: Record<string, string | number | boolean | undefined> = {
@@ -120,13 +119,11 @@ const MLFlowManagement: React.FC = () => {
     }
 
     return payload;
-  }, [formData]);
 
   const handleToast = (variant: 'success' | 'info' | 'warning' | 'error', message: string, title?: string) => {
     setToast({ variant, title, body: message });
     setTimeout(() => {
       setToast(null);
-    }, 4000);
   };
 
   const loadConfiguration = useCallback(async () => {
@@ -235,11 +232,9 @@ const MLFlowManagement: React.FC = () => {
       setIsFetchingConfig(false);
       setTestStatus('idle');
     }
-  }, []);
 
   useEffect(() => {
     loadConfiguration();
-  }, [loadConfiguration]);
 
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
@@ -256,7 +251,6 @@ const MLFlowManagement: React.FC = () => {
     } finally {
       setIsConfiguring(false);
     }
-  }, [buildPayload, loadConfiguration]);
 
   const handleTestConnection = useCallback(async () => {
     if (!formData.trackingServerUrl.trim()) {
@@ -285,11 +279,9 @@ const MLFlowManagement: React.FC = () => {
           : 'Connection test failed. Please check your settings.';
       handleToast('error', message, 'Connection failed');
     }
-  }, [buildPayload, formData.trackingServerUrl, loadConfiguration]);
 
   useEffect(() => {
     setTestStatus('idle');
-  }, [
     formData.trackingServerUrl,
     formData.authMethod,
     formData.username,
@@ -304,7 +296,6 @@ const MLFlowManagement: React.FC = () => {
       (formData.authMethod === 'none' ||
         (formData.authMethod === 'basic' && formData.username && formData.password) ||
         (formData.authMethod === 'token' && formData.apiToken));
-  }, [formData]);
 
   const renderDateValue = useCallback((value?: string | null) => {
     if (!value) {
@@ -321,7 +312,6 @@ const MLFlowManagement: React.FC = () => {
         </Typography>
       </Box>
     );
-  }, [theme.palette.text.secondary]);
 
   const statusCards = useMemo(() => {
     if (!configMeta) {
@@ -361,24 +351,19 @@ const MLFlowManagement: React.FC = () => {
           </Typography>
         ),
         icon: <Activity size={16} color="#A9B3C5" />,
-      },
       {
         title: "Last successful test",
         count: renderDateValue(configMeta.lastSuccessfulTestAt || configMeta.lastTestedAt || null),
         icon: <Clock4 size={16} color="#A9B3C5" />,
-      },
       {
         title: "Last scheduled sync",
         count: renderDateValue(configMeta.lastSyncedAt || null),
         icon: <Clock4 size={16} color="#A9B3C5" />,
-      },
       {
         title: "Next scheduled sync",
         count: nextSyncNode,
         icon: <CalendarClock size={16} color="#A9B3C5" />,
-      },
     ];
-  }, [configMeta, renderDateValue, theme.palette.success.main, theme.palette.warning.main, theme.palette.text.secondary]);
 
   const handleResync = useCallback(async () => {
     setIsResyncing(true);
@@ -395,7 +380,6 @@ const MLFlowManagement: React.FC = () => {
     } finally {
       setIsResyncing(false);
     }
-  }, [loadConfiguration]);
 
   if (isFetchingConfig) {
     return (
@@ -446,7 +430,6 @@ const MLFlowManagement: React.FC = () => {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: 'repeat(1, minmax(0, 1fr))', md: 'repeat(2, minmax(0, 1fr))', lg: 'repeat(4, minmax(0, 1fr))' },
               gap: theme.spacing(2),
             }}
           >
@@ -467,7 +450,6 @@ const MLFlowManagement: React.FC = () => {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             gap: theme.spacing(2),
             maxWidth: 920,
           }}
@@ -585,14 +567,7 @@ const MLFlowManagement: React.FC = () => {
               onChange={(e) => handleInputChange('trackingServerUrl', e.target.value)}
               https={true}
               isRequired={true}
-              helperText="The URL of your MLFlow tracking server (e.g., https://mlflow.company.com:5000)"
-              formHelperTextProps={{
-                sx: {
-                  marginLeft: 0,
-                  whiteSpace: 'nowrap',
-                  color: theme.palette.text.secondary,
-                },
-              }}
+              error="The URL of your MLFlow tracking server (e.g., https://mlflow.company.com:5000)"
               sx={{ width: `${fieldWidth}px` }}
               disabled={isConfiguring}
             />
@@ -604,8 +579,6 @@ const MLFlowManagement: React.FC = () => {
                 value={formData.authMethod}
                 onChange={(event) => handleInputChange('authMethod', event.target.value)}
                 items={[
-                  { _id: 'none', name: 'No authentication' },
-                  { _id: 'basic', name: 'Basic auth (username/password)' },
                   { _id: 'token', name: 'API token' }
                 ]}
                 disabled={isConfiguring}
@@ -619,18 +592,7 @@ const MLFlowManagement: React.FC = () => {
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
                     isRequired={true}
-                    helperText={
-                      configMeta?.hasStoredUsername
-                        ? 'Leave blank to reuse the stored username'
-                        : undefined
-                    }
-                    formHelperTextProps={{
-                      sx: {
-                        marginLeft: 0,
-                        color: theme.palette.text.secondary,
-                      },
-                    }}
-                    disabled={isConfiguring}
+                                        disabled={isConfiguring}
                   />
                   <Field
                     id="password"
@@ -639,16 +601,13 @@ const MLFlowManagement: React.FC = () => {
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     isRequired={true}
-                    helperText={
                       configMeta?.hasStoredPassword
                         ? 'Leave blank to reuse the stored password'
                         : 'Enter your MLFlow password for authentication'
                     }
-                    formHelperTextProps={{
                       sx: {
                         marginLeft: 0,
                         color: theme.palette.text.secondary,
-                      },
                     }}
                     InputProps={{
                       endAdornment: (
@@ -660,7 +619,6 @@ const MLFlowManagement: React.FC = () => {
                             color: theme.palette.border.dark,
                             '&:hover': {
                               color: theme.palette.text.primary,
-                            },
                           }}
                         >
                           {showPassword ? <EyeOffIcon size={16} /> : <VisibilityIcon size={16} />}
@@ -680,16 +638,13 @@ const MLFlowManagement: React.FC = () => {
                   value={formData.apiToken}
                   onChange={(e) => handleInputChange('apiToken', e.target.value)}
                   isRequired={true}
-                  helperText={
                     configMeta?.hasStoredApiToken
                       ? 'Leave blank to reuse the stored API token'
                       : 'Enter your MLFlow API token for authentication'
                   }
-                  formHelperTextProps={{
                     sx: {
                       marginLeft: 0,
                       color: theme.palette.text.secondary,
-                    },
                   }}
                   InputProps={{
                     endAdornment: (
@@ -701,7 +656,6 @@ const MLFlowManagement: React.FC = () => {
                           color: theme.palette.border.dark,
                           '&:hover': {
                             color: theme.palette.text.primary,
-                          },
                         }}
                       >
                         {showApiToken ? <EyeOffIcon size={16} /> : <VisibilityIcon size={16} />}
@@ -723,13 +677,10 @@ const MLFlowManagement: React.FC = () => {
                 handleInputChange('timeout', Number.isNaN(nextValue) ? 30 : nextValue);
               }}
               isRequired={true}
-              helperText="How long VerifyWise waits before marking MLFlow requests as failed (default 30s)"
-              formHelperTextProps={{
                 sx: {
                   marginLeft: 0,
                   whiteSpace: 'nowrap',
                   color: theme.palette.text.secondary,
-                },
               }}
               sx={{ width: `${fieldWidth}px` }}
               disabled={isConfiguring}
@@ -741,8 +692,6 @@ const MLFlowManagement: React.FC = () => {
               value={formData.verifySsl ? 'true' : 'false'}
               onChange={(event) => handleInputChange('verifySsl', event.target.value === 'true')}
               items={[
-                { _id: 'true', name: 'Enabled (recommended)' },
-                { _id: 'false', name: 'Disabled (self-signed certs)' },
               ]}
               sx={{ width: `${fieldWidth}px` }}
               disabled={isConfiguring}
@@ -769,10 +718,8 @@ const MLFlowManagement: React.FC = () => {
                   boxShadow: 'none',
                   '&:hover': {
                     boxShadow: 'none',
-                  },
                   '&:active': {
                     boxShadow: 'none',
-                  },
                 }}
               />
               <CustomizableButton
@@ -795,10 +742,8 @@ const MLFlowManagement: React.FC = () => {
                   boxShadow: 'none',
                   '&:hover': {
                     boxShadow: 'none',
-                  },
                   '&:active': {
                     boxShadow: 'none',
-                  },
                 }}
               />
             </Box>

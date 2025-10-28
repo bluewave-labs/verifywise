@@ -37,6 +37,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
         goal character varying(255) NOT NULL,
+        geography integer NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,

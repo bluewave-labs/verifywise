@@ -43,6 +43,12 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   };
 
   const handleGenerateReport = async (input: IInputProps) => {
+    // Handle null project case
+    if (!input.project) {
+      handleToast("error", "Project not selected");
+      return;
+    }
+
     const currentProject = projects?.find(
       (project: { id: number | null }) => project.id === input.project
     );
@@ -55,28 +61,33 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     const owner = users.find((user: any) => user.id === currentProject.owner);
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
-    switch (input.report_type) {
-      case "Annexes report":
-        reportTypeLabel = "Annexes report";
-        break;
-      case "Clauses report":
-        reportTypeLabel = "Clauses report";
-        break;
-      case "Clauses and annexes report":
-        reportTypeLabel = "Clauses and annexes report";
-        break;
-      case "All reports combined in one file":
-        reportTypeLabel = "All reports";
-        break;
-      default:
-        break;
+    // Handle both string and string array cases for report_type
+    if (Array.isArray(input.report_type)) {
+      reportTypeLabel = input.report_type.join(', ');
+    } else {
+      switch (input.report_type) {
+        case "Annexes report":
+          reportTypeLabel = "Annexes report";
+          break;
+        case "Clauses report":
+          reportTypeLabel = "Clauses report";
+          break;
+        case "Clauses and annexes report":
+          reportTypeLabel = "Clauses and annexes report";
+          break;
+        case "All reports combined in one file":
+          reportTypeLabel = "All reports";
+          break;
+        default:
+          break;
+      }
     }
 
     const body = {
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: reportTypeLabel,
+      reportType: Array.isArray(reportTypeLabel) ? reportTypeLabel.join(', ') : reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework,
       projectFrameworkId: input.projectFrameworkId,

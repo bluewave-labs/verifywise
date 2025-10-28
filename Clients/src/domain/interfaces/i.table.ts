@@ -114,13 +114,13 @@ export interface IFileBasicTableProps {
   bodyData: FileData[];
   paginated?: boolean;
   table: string;
-  onFileDeleted?: () => void;
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IFileTableProps {
   cols: any[];
   files: FileData[];
-  onFileDeleted?: () => void;
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IProjectRiskTableBodyProps {

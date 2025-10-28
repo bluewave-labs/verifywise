@@ -142,5 +142,3 @@ export async function deleteFileFromManager({
   });
   return response.data;
 }
-
-

@@ -131,6 +131,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         const response = await uploadFileToManager({ file: fileList[i].file });
 
         // Validate server response structure
+        // Backend returns: { message: "Created", data: { id, filename, ... } }
         if (!response || !response.data) {
           throw new Error("Server failed to store the file. Please try again.");
         }

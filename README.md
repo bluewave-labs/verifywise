@@ -8,21 +8,12 @@
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
-[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security. 
 
-We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
-
-## VerifyWise product line
-
-VerifyWise also has additional products for end-to-end AI governance and management:
-
-- [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
-- [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues
-- [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
+We are democratizing AI best practices with a solution that can be hosted on-premises, giving you complete control over your AI governance.
 
 ## Quick links
 
-- The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
@@ -51,18 +42,6 @@ Policy manager
 <img width="1634" height="901" alt="image" src="https://github.com/user-attachments/assets/d2260c04-9ab9-4d5b-b0f7-e9a68487e9c0" />
 
 
-## Who is it for?
-
-The platform simplifies AI governance for organizations, helping them manage risks, ensure regulatory compliance, and promote responsible AI practices throughout their operations.
-
-VerifyWise is designed for:
-
-- **Businesses**: From those considering AI adoption to organizations developing proprietary AI at scale.
-- **Compliance officers**: Professionals ensuring adherence to EU AI Act regulations and internal policies.
-- **Risk management teams**: Groups tasked with identifying and mitigating AI-related risks.
-- **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
-- **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
-
 ## Features
 
 ![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
@@ -86,8 +65,11 @@ VerifyWise is designed for:
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001 and ISO 27001
-  - Detailed eports
+  - Detailed reports
   - Event logs (audits) for enterprise organizations
+  - AI incident management
+  - Integrations (currently Slack is supported, more on the way)
+  - Automations 
   - Google OAuth2 support for authentication
 
 ## Roadmap
@@ -96,8 +78,9 @@ VerifyWise is designed for:
 - Mappings between frameworks
 - Automated reports
 - Integration with 3rd party platforms
-- Slack notifications
 - Better email notifications
+- MLFlow integration
+- Confluence integration
 
 ## Installation
 
@@ -323,26 +306,18 @@ ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 
 **Note:** The nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
 
-### Integrating Resend (for email invitations)
+### Email configuration
 
-Ensure you have following things:
+VerifyWise supports multiple email service providers through a provider abstraction layer, enabling administrators to choose the most suitable email service for their organization. The system includes security enhancements such as TLS enforcement, input validation and credential rotation for supported providers.
 
-> 1. You have created an account on [resend](https://resend.com/)
->
-> 2. You have your app domain pointing to your server on DNS
+Below is a list of supported email providers. You can use [this documentation](https://docs.verifywise.ai/settings#email-services) to setup the email service of your choice.
 
-1. Create an [API Key](https://resend.com/api-keys) with `Sending Access`
+- **Exchange Online (Office 365)** - Microsoft's cloud email service
+- **On-Premises Exchange** - Self-hosted Exchange servers
+- **Amazon SES** - AWS Simple Email Service
+- **Resend** - Developer-focused email API
+- **Generic SMTP** - SMTP support for any provider
 
-2. Add the API Key to `RESEND_API_KEY` in the **.env.dev** or **.env.prod** based on your environment
-
-3. Add a [new domain](https://resend.com/domains) pointing to your doamin name
-
-4. Add the provided `DNS Records` on your DNS config on your DNS provider
-
-5. Verify the DNS Records on Resend
-   ![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
-
-6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
 
 ### Ports
 
@@ -351,3 +326,14 @@ You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the in
 ## Security
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
+
+
+## VerifyWise product line
+
+VerifyWise also has additional products for end-to-end AI governance and management:
+
+- [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
+- [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues
+- [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
+
+

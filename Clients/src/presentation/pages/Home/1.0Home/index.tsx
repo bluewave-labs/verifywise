@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
@@ -29,6 +30,8 @@ import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const Home = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     setDashboardValues,
     componentsVisible,
@@ -80,6 +83,16 @@ const Home = () => {
 
     fetchProgressData();
   }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
+
+  // Auto-open create modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsProjectFormModalOpen(true);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleProjectFormModalClose = () => {
     setIsProjectFormModalOpen(false);
@@ -223,7 +236,7 @@ const Home = () => {
             <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
               <CustomizableButton
                 variant="contained"
-                text="New project"
+                text="New use case"
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
@@ -237,7 +250,7 @@ const Home = () => {
             {allowedRoles.projects.create.includes(userRoleName) && (
               <CustomizableButton
                 variant="outlined"
-                text="Generate Demo Data"
+                text="Create Demo Data"
                 sx={{
                   borderColor: "#13715B",
                   color: "#13715B",

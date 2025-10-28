@@ -32,35 +32,39 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   return (
     <>
       <Stack sx={styles.container} direction="row" spacing={2}>
-        <CustomizableButton
-          sx={{
-            ...styles.buttonStyle,
-            width: "fit-content",
-            border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
-          }}
-          variant="contained"
-          text="Generate project report"
-          onClick={() => {
-            setSelectedReportType('project');
-            setIsModalOpen(true);
-          }}
-          isDisabled={isDisabled}
-        />
+        <span data-joyride-id="generate-project-report-button">
+          <CustomizableButton
+            sx={{
+              ...styles.buttonStyle,
+              width: "fit-content",
+              border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
+            }}
+            variant="contained"
+            text="Generate project report"
+            onClick={() => {
+              setSelectedReportType('project');
+              setIsModalOpen(true);
+            }}
+            isDisabled={isDisabled}
+          />
+        </span>
 
-        <CustomizableButton
-          sx={{
-            ...styles.buttonStyle,
-            width: "fit-content",
-            border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
-          }}
-          variant="contained"
-          text="Generate organization report"
-          onClick={() => {
-            setSelectedReportType('organization');
-            setIsModalOpen(true);
-          }}
-          isDisabled={isDisabled}
-        />
+        <span data-joyride-id="generate-organization-report-button">
+          <CustomizableButton
+            sx={{
+              ...styles.buttonStyle,
+              width: "fit-content",
+              border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
+            }}
+            variant="contained"
+            text="Generate organization report"
+            onClick={() => {
+              setSelectedReportType('organization');
+              setIsModalOpen(true);
+            }}
+            isDisabled={isDisabled}
+          />
+        </span>
         {/* Render generate report status */}
         <Suspense fallback={"loading..."}>
           <ReportStatus isDisabled={isDisabled} />

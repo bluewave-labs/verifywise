@@ -121,6 +121,12 @@ export class UserModel extends Model<UserModel> {
   })
   google_id?: string;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  profile_photo_id?: number;
+
   /**
    * Creates a new user with validation and password hashing
    *

@@ -33,6 +33,8 @@ import {
 } from "../Home/1.0Home/style";
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
+import PageTour from "../../components/PageTour";
+import TasksSteps from "./TasksSteps";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -332,7 +334,7 @@ const Tasks: React.FC = () => {
             />
           }
         />
-        <Stack sx={vwhomeBodyControls}>
+        <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
           <CustomizableButton
             variant="contained"
             text="Add new task"
@@ -349,7 +351,7 @@ const Tasks: React.FC = () => {
       </Stack>
 
       {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards}>
+      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
         <HeaderCard title="Tasks" count={summary.total} />
         <HeaderCard title="Overdue" count={summary.overdue} />
         <HeaderCard title="In progress" count={summary.inProgress} />
@@ -361,6 +363,7 @@ const Tasks: React.FC = () => {
       <Stack
         direction="row"
         spacing={4}
+        data-joyride-id="task-filters"
       >
                 <Select
                   id="status-filter"
@@ -434,7 +437,7 @@ const Tasks: React.FC = () => {
                   sx={{ width: 160 }}
                 />
 
-                <Stack direction="column" spacing={1} sx={{ width: 300 }}>
+                <Stack direction="column" spacing={1} sx={{ width: 300 }} data-joyride-id="task-search">
                   <Typography
                     component="p"
                     variant="body1"
@@ -453,7 +456,7 @@ const Tasks: React.FC = () => {
                   />
                 </Stack>
 
-                <Stack direction="column" spacing={1}>
+                <Stack direction="column" spacing={1} data-joyride-id="include-archived-toggle">
                   <Typography
                     component="p"
                     variant="body1"
@@ -503,8 +506,7 @@ const Tasks: React.FC = () => {
             statusOptions={TASK_STATUS_OPTIONS.map(
               (status) => {
                 const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                console.log('Task status mapping:', status, '->', displayStatus);
-                return displayStatus;
+                  return displayStatus;
               }
             )}
             isUpdateDisabled={isCreatingDisabled}
@@ -549,6 +551,9 @@ const Tasks: React.FC = () => {
         isOpen={deleteConfirmOpen}
         TitleFontSize={0}
       />
+
+      {/* Page Tour */}
+      <PageTour steps={TasksSteps} run={true} tourKey="tasks-tour" />
     </Stack>
   );
 };

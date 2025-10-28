@@ -62,6 +62,37 @@ export const sendEmail = async (
     return await provider.sendEmail(emailOptions);
 };
 
+export const sendAutomationEmail = async (
+    to: string[],
+    subject: string,
+    body: string
+) => {
+    // Initialize provider if not already done
+    const provider = initializeEmailProvider();
+
+    // Refresh credentials if needed before sending email
+    await refreshCredentialsIfNeeded(provider);
+
+    if (!process.env.EMAIL_ID) {
+        throw new Error("Email ID is not set in environment variables");
+    }
+
+    for (let recipient of to) {
+        const emailOptions = {
+            to: recipient,
+            subject,
+            html: body,
+            from: process.env.EMAIL_ID,
+        };
+
+        // Validate email options to prevent security issues
+        validateEmailOptions(emailOptions);
+
+        // Send email using the configured provider
+        const result = await provider.sendEmail(emailOptions);
+    }
+}
+
 /**
  * Force refresh credentials for the current email provider
  * Useful for manual credential rotation or when authentication errors occur

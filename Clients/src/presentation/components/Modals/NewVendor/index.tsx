@@ -267,14 +267,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (!vendorWebsite.accepted) {
       newErrors.website = vendorWebsite.message;
     }
-    const vendorReviewResult = checkStringValidation(
-      "Vendor review result",
-      values.vendorDetails.reviewResult,
-      1,
-      256
-    );
-    if (!vendorReviewResult.accepted) {
-      newErrors.reviewResult = vendorReviewResult.message;
+    // Review result is now optional
+    if (values.vendorDetails.reviewResult) {
+      const vendorReviewResult = checkStringValidation(
+        "Vendor review result",
+        values.vendorDetails.reviewResult,
+        1,
+        256
+      );
+      if (!vendorReviewResult.accepted) {
+        newErrors.reviewResult = vendorReviewResult.message;
+      }
     }
     if (
       !values.vendorDetails.projectIds ||
@@ -305,18 +308,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (!vendorContactPerson.accepted) {
       newErrors.vendorContactPerson = vendorContactPerson.message;
     }
-    if (
-      !values.vendorDetails.reviewStatus ||
-      Number(values.vendorDetails.reviewStatus) === 0
-    ) {
-      newErrors.reviewStatus = "Please select a status from the dropdown";
-    }
-    if (
-      !values.vendorDetails.reviewer ||
-      Number(values.vendorDetails.reviewer) === 0
-    ) {
-      newErrors.reviewer = "Please select a reviewer from the dropdown";
-    }
+    // Review status, reviewer, and review date are now optional
     if (
       !values.vendorDetails.assignee ||
       Number(values.vendorDetails.assignee) === 0
@@ -324,7 +316,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
 
-     // New validation: reviewer and assignee can't be the same
+     // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
       if (
         values.vendorDetails.reviewer &&
         values.vendorDetails.assignee &&
@@ -370,7 +362,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       )?._id,
       review_date: values.vendorDetails.reviewDate
     };
-     console.log("response", _vendorDetails)
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {
@@ -716,7 +707,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           error={errors.reviewStatus}
-          isRequired
           disabled={isEditingDisabled}
         />
         <Select // reviewer
@@ -731,7 +721,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           sx={{
             width: 220,
           }}
-          isRequired
           disabled={isEditingDisabled}
         />
         <DatePicker // reviewDate
@@ -745,7 +734,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               : dayjs(new Date())
           }
           handleDateChange={handleDateChange}
-          isRequired
           disabled={isEditingDisabled}
         />
       </Stack>
@@ -762,7 +750,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.reviewResult}
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
-          isRequired
           disabled={isEditingDisabled}
           placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
           rows={2}

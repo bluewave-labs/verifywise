@@ -38,6 +38,8 @@ export interface IModelRisk {
   model_id?: number | null;
   created_at?: Date;
   updated_at?: Date;
+  is_deleted?: boolean;
+  deleted_at?: Date;
 }
 
 export interface IModelRiskFormData {

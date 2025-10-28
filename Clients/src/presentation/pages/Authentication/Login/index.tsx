@@ -373,10 +373,18 @@ const Login: React.FC = () => {
                     });
 
                     setIsSubmitting(false);
-                    setAlert({
-                      variant: "error",
-                      body: error.message || "Google Sign-In failed. Please try again.",
-                    });
+                    if (error.message === "Not Found") {
+                      setAlert({
+                        variant: "error",
+                        body: "User not found. Please try again.",
+                      });
+                    }
+                    else {
+                      setAlert({
+                        variant: "error",
+                        body: error.message || "Google Sign-In failed. Please try again.",
+                      });
+                    }
                     setTimeout(() => setAlert(null), 3000);
                   }
                 }

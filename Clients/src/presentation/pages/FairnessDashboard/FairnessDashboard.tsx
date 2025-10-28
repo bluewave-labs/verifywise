@@ -11,15 +11,16 @@ import {
   Button,
   Typography,
   Stack,
-  Popover,
-  Backdrop,
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { CirclePlus as AddCircleOutlineIcon, X as CloseGreyIcon } from "lucide-react";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  X as CloseGreyIcon,
+} from "lucide-react";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import { styles } from "./styles";
@@ -35,7 +36,8 @@ import HelperIcon from "../../components/HelperIcon";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import PageHeader from "../../components/Layout/PageHeader";
-
+import PageTour from "../../components/PageTour";
+import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -55,9 +57,6 @@ export default function FairnessDashboard() {
     }
     return "uploads";
   });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showBackdrop, setShowBackdrop] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [datasetFile, setDatasetFile] = useState<File | null>(null);
@@ -85,12 +84,18 @@ export default function FairnessDashboard() {
         return; // Don't raise error
       }
 
-      const formatted = metrics.map((item: { metrics_id: number | string; model_filename: string; data_filename: string }) => ({
-        id: item.metrics_id, // use this for "ID" column
-        model: item.model_filename,
-        dataset: item.data_filename,
-        status: "Completed", // Assuming all fetched metrics are completed
-      }));
+      const formatted = metrics.map(
+        (item: {
+          metrics_id: number | string;
+          model_filename: string;
+          data_filename: string;
+        }) => ({
+          id: item.metrics_id, // use this for "ID" column
+          model: item.model_filename,
+          dataset: item.data_filename,
+          status: "Completed", // Assuming all fetched metrics are completed
+        })
+      );
       setUploadedModels(formatted);
     } catch {
       setAlert({
@@ -105,7 +110,6 @@ export default function FairnessDashboard() {
     fetchMetrics();
   }, []);
 
-  const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -152,13 +156,6 @@ export default function FairnessDashboard() {
     sensitiveColumn: false,
   });
 
-  const handleDotClick = () => {
-    if (hasInteracted) return;
-    setAnchorEl(buttonRef.current);
-    setShowBackdrop(true);
-    setHasInteracted(true);
-  };
-
   const handleShowDetails = useCallback(
     (model: FairnessModel) => {
       if (model?.id) {
@@ -173,11 +170,6 @@ export default function FairnessDashboard() {
     },
     [navigate]
   );
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-    setShowBackdrop(false);
-  };
 
   const resetForm = () => {
     setDialogOpen(false);
@@ -262,7 +254,7 @@ export default function FairnessDashboard() {
 
   return (
     <Stack className="vwhome" gap="20px">
-       <PageBreadcrumbs />
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -273,34 +265,36 @@ export default function FairnessDashboard() {
         quickActions={[
           {
             label: "Upload Model for Assessment",
-            description: "Submit a classification model with dataset for comprehensive bias evaluation",
-            primary: true
+            description:
+              "Submit a classification model with dataset for comprehensive bias evaluation",
+            primary: true,
           },
           {
             label: "Run Fairness Analysis",
-            description: "Execute advanced bias detection using the BiasAndFairnessModule"
-          }
+            description:
+              "Execute advanced bias detection using the BiasAndFairnessModule",
+          },
         ]}
         useCases={[
           "*Hiring and recruitment models* requiring *equal opportunity compliance*",
-          "*Credit scoring* and financial services models subject to *fair lending regulations*"
+          "*Credit scoring* and financial services models subject to *fair lending regulations*",
         ]}
         keyFeatures={[
           "**Multiple fairness metrics** including *demographic parity* and *equalized odds*",
           "*Support for classification models* with *sklearn Pipeline* compatibility",
-          "*Comprehensive bias reporting* with *actionable recommendations* for model improvement"
+          "*Comprehensive bias reporting* with *actionable recommendations* for model improvement",
         ]}
         tips={[
           "Test models with *diverse datasets* representing your *target population*",
           "Focus on *sensitive attributes* relevant to your specific use case and *regulatory requirements*",
-          "*Regular fairness audits* should be part of your *model maintenance lifecycle*"
+          "*Regular fairness audits* should be part of your *model maintenance lifecycle*",
         ]}
       />
       <Box>
         <PageHeader
           title="Bias & fairness dashboard"
           description={
-            tab === "uploads" 
+            tab === "uploads"
               ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
               : "Comprehensive AI model evaluation platform for bias detection, fairness assessment, and performance analysis. Configure evaluation parameters to analyze model behavior across protected attributes with multiple fairness metrics and bias detection methods."
           }
@@ -325,7 +319,10 @@ export default function FairnessDashboard() {
       )}
 
       <TabContext value={tab}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Box
+          sx={{ borderBottom: 1, borderColor: "divider" }}
+          data-joyride-id="fairness-tabs"
+        >
           <TabList
             onChange={(_, newVal) => setTab(newVal)}
             TabIndicatorProps={{
@@ -349,18 +346,13 @@ export default function FairnessDashboard() {
         </Box>
 
         <TabPanel value="uploads" sx={tabPanelStyle}>
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            mb={3}
-            position="relative"
-          >
+          <Box display="flex" justifyContent="flex-end" mb={3}>
             <Button
-              ref={buttonRef}
               variant="contained"
               startIcon={<AddCircleOutlineIcon size={16} />}
               disableRipple
               onClick={() => setDialogOpen(true)}
+              data-joyride-id="validate-fairness-button"
               sx={{
                 backgroundColor: "#13715B",
                 color: "white",
@@ -373,52 +365,10 @@ export default function FairnessDashboard() {
                   "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
                 lineHeight: 1.75,
                 minWidth: "64px",
-                position: "relative",
-                zIndex: 2,
               }}
             >
               Validate fairness
             </Button>
-            {!hasInteracted && (
-              <Box
-                onClick={handleDotClick}
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  backgroundColor: "#1976d2",
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  cursor: "pointer",
-                  zIndex: 3,
-                  animation: "pulse 1.5s infinite",
-                  "@keyframes pulse": {
-                    "0%": { transform: "scale(0.8)", opacity: 1 },
-                    "100%": { transform: "scale(2.4)", opacity: 0 },
-                  },
-                }}
-              />
-            )}
-            <Popover
-              open={Boolean(anchorEl)}
-              anchorEl={anchorEl}
-              onClose={handlePopoverClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              disableRestoreFocus
-            >
-              <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">
-                  Click "Validate fairness" to start a new fairness validation.
-                </Typography>
-              </Box>
-            </Popover>
-            <Backdrop
-              open={showBackdrop}
-              sx={{ zIndex: 1, backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-              onClick={handlePopoverClose}
-            />
           </Box>
 
           <FairnessTable
@@ -432,11 +382,16 @@ export default function FairnessDashboard() {
             }}
           />
 
-          <Dialog open={dialogOpen} onClose={(_event, reason) => {
-            if (reason !== 'backdropClick') {
-              resetForm();
-            }
-          }} maxWidth="sm" fullWidth>
+          <Dialog
+            open={dialogOpen}
+            onClose={(_event, reason) => {
+              if (reason !== "backdropClick") {
+                resetForm();
+              }
+            }}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>
               <Box
                 display="flex"
@@ -613,7 +568,7 @@ export default function FairnessDashboard() {
             </DialogContent>
           </Dialog>
         </TabPanel>
-        
+
         <TabPanel value="biasModule" sx={tabPanelStyle}>
           <BiasAndFairnessModule />
         </TabPanel>
@@ -621,6 +576,12 @@ export default function FairnessDashboard() {
       {showToastNotification && (
         <CustomizableToast title="Uploading the model. Please wait, this process may take some time..." />
       )}
+
+      <PageTour
+        steps={BiasAndFairnessSteps}
+        run={true}
+        tourKey="bias-fairness-tour"
+      />
     </Stack>
   );
 }

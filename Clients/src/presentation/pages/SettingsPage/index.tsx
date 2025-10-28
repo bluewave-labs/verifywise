@@ -14,13 +14,11 @@ import Organization from "./Organization";
 import Subscription from "./Subscription";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import Slack from "./Slack";
 import ApiKeys from "./ApiKeys";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
-import { ENV_VARs } from "../../../../env.vars";
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
@@ -28,22 +26,16 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
-  const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab") || "";
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-  const isSlackVisible = ENV_VARs.IS_SLACK_VISIBLE === "true";
 
   const validTabs = useMemo(() => {
-    const tabs = ["profile", "password", "team", "organization"];
-    if (isSlackVisible) {
-      tabs.push("slack")
-    }
-    tabs.push("apikeys");
+    const tabs = ["profile", "password", "team", "organization", "apikeys"];
     return tabs;
-  }, [isSlackVisible])
+  }, [])
 
   useEffect(() => {
     if (activeSetting && validTabs.includes(activeSetting)) {
@@ -95,15 +87,7 @@ export default function ProfilePage() {
 
   return (
     <Stack className="vwhome">
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ height: 45 }}
-      >
-        {" "}
-        <PageBreadcrumbs />{" "}
-      </Stack>
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -179,16 +163,6 @@ export default function ProfilePage() {
               disableRipple
               sx={settingTabStyle}
             />
-            <Tab label="Subscription" value="subscription" disableRipple sx={settingTabStyle} />
-            {isSlackVisible && (
-              <Tab
-                label="Slack"
-                value="slack"
-                disableRipple
-                sx={settingTabStyle}
-                disabled={isSlackTabDisabled}
-              />
-            )}
             <Tab
               label="API Keys"
               value="apikeys"
@@ -196,6 +170,7 @@ export default function ProfilePage() {
               sx={settingTabStyle}
               disabled={isApiKeysDisabled}
             />
+            <Tab label="Subscription" value="subscription" disableRipple sx={settingTabStyle} />
           </TabList>
         </Box>
 
@@ -218,12 +193,6 @@ export default function ProfilePage() {
         <TabPanel value="subscription">
           {activeTab === "subscription" && <Subscription />}
         </TabPanel>
-
-        {isSlackVisible && (
-          <TabPanel value="slack">
-            <Slack />
-          </TabPanel>
-        )}
 
         <TabPanel value="apikeys">
           <ApiKeys />

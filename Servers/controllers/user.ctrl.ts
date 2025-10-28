@@ -29,6 +29,7 @@ import {
   checkUserExistsQuery,
   createNewUserQuery,
   deleteUserByIdQuery,
+  deleteUserProfilePhotoQuery,
   getAllUsersQuery,
   getAssessmentsForProject,
   getControlCategoriesForProject,
@@ -39,9 +40,11 @@ import {
   getTopicsForAssessment,
   getUserByEmailQuery,
   getUserByIdQuery,
+  getUserProfilePhotoQuery,
   getUserProjects,
   resetPasswordQuery,
   updateUserByIdQuery,
+  uploadUserProfilePhotoQuery,
 } from "../utils/user.utils";
 import { sendMemberRoleChangedEditorToAdminNotification } from "../services/userNotification/projectNotifications";
 import { logFailure } from "../utils/logger/logHelper";
@@ -68,6 +71,7 @@ import { generateUserTokens } from "../utils/auth.utils";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -480,10 +484,10 @@ async function loginUser(req: Request, res: Response): Promise<any> {
 
         // Generate JWT tokens (access + refresh)
         const { accessToken } = generateUserTokens({
-          id: user.id!,
-          email: email,
-          roleName: (userData as any).role_name,
-          organizationId: (userData as any).organization_id,
+            id: user.id!,
+            email: email,
+            roleName: (userData as any).role_name,
+            organizationId: (userData as any).organization_id,
         }, res);
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
@@ -1150,6 +1154,247 @@ async function updateUserRole(req: Request, res: Response) {
     return res.status(500).json({ message: (error as Error).message });
   }
 }
+
+async function uploadUserProfilePhoto(req: any, res: Response) {
+  const transaction = await sequelize.transaction();
+  const userId = parseInt(req.params.id);
+  const attachment = req.file;
+
+  logStructured(
+    "processing",
+    `uploading profile photo for user ID ${userId}`,
+    "uploadUserProfilePhoto",
+    "user.ctrl.ts",
+  );
+  logger.debug(`📸 Uploading profile photo for user ID ${userId}`);
+
+  try {
+    if (!attachment) {
+      await transaction.rollback();
+      logStructured(
+        "error",
+        `no file provided for user ID ${userId}`,
+        "uploadUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "No file provided",
+        }),
+      );
+    }
+
+    // Upload file to tenant-specific files table
+    const file = await uploadFile(
+      attachment,
+      req.userId!,
+      null,
+      "AI trust center group",
+      req.tenantId!,
+      transaction,
+    );
+    const fileId = file?.id || undefined;
+
+    if (!fileId) {
+      await transaction.rollback();
+      logStructured(
+        "error",
+        `file upload failed for user ID ${userId}`,
+        "uploadUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "File upload failed",
+        }),
+      );
+    }
+
+    // Update user's profile_photo_id
+    const upload = await uploadUserProfilePhotoQuery(
+      userId,
+      fileId,
+      req.tenantId!,
+      transaction,
+    );
+
+    if (upload) {
+      await transaction.commit();
+      logStructured(
+        "successful",
+        `Profile photo uploaded for user ID ${userId}`,
+        "uploadUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      await logEvent("Create", `Profile photo uploaded for user ID ${userId}`, req.userId!, req.tenantId!);
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          message: "Profile photo uploaded successfully",
+          ...upload,
+        }),
+      );
+    } else {
+      await transaction.rollback();
+      logStructured(
+        "error",
+        `failed to upload profile photo for user ID ${userId}`,
+        "uploadUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      await logEvent(
+        "Error",
+        `Failed to upload profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
+      );
+      return res.status(500).json(
+        STATUS_CODE[500]({
+          message: "Failed to upload profile photo",
+        }),
+      );
+    }
+  } catch (error) {
+    await transaction.rollback();
+    logStructured(
+      "error",
+      `unexpected error uploading profile photo for user ID ${userId}`,
+      "uploadUserProfilePhoto",
+      "user.ctrl.ts",
+    );
+    await logEvent(
+      "Error",
+      `Unexpected error uploading profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
+    );
+    logger.error("❌ Error in uploadUserProfilePhoto:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function getUserProfilePhoto(req: Request, res: Response) {
+  const userId = parseInt(req.params.id);
+  logStructured(
+    "processing",
+    `fetching profile photo for user ID ${userId}`,
+    "getUserProfilePhoto",
+    "user.ctrl.ts",
+  );
+  logger.debug(`📸 Fetching profile photo for user ID ${userId}`);
+
+  try {
+    const photo = await getUserProfilePhotoQuery(userId, req.tenantId!);
+
+    if (!photo) {
+      logStructured(
+        "successful",
+        `profile photo not found for user ID ${userId}`,
+        "getUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      return res.status(404).json(
+        STATUS_CODE[404]({
+          message: "Profile photo not found",
+        }),
+      );
+    }
+
+    logStructured(
+      "successful",
+      `profile photo retrieved for user ID ${userId}`,
+      "getUserProfilePhoto",
+      "user.ctrl.ts",
+    );
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        message: "Profile photo retrieved successfully",
+        photo,
+      }),
+    );
+  } catch (error) {
+    logStructured(
+      "error",
+      `failed to retrieve profile photo for user ID ${userId}`,
+      "getUserProfilePhoto",
+      "user.ctrl.ts",
+    );
+    logger.error("❌ Error in getUserProfilePhoto:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function deleteUserProfilePhoto(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  const userId = parseInt(req.params.id);
+
+  logStructured(
+    "processing",
+    `deleting profile photo for user ID ${userId}`,
+    "deleteUserProfilePhoto",
+    "user.ctrl.ts",
+  );
+  logger.debug(`🗑️ Deleting profile photo for user ID ${userId}`);
+
+  try {
+    const isDeleted = await deleteUserProfilePhotoQuery(
+      userId,
+      req.tenantId!,
+      transaction,
+    );
+
+    if (isDeleted) {
+      await transaction.commit();
+      logStructured(
+        "successful",
+        `profile photo deleted for user ID ${userId}`,
+        "deleteUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      await logEvent("Delete", `Profile photo deleted for user ID ${userId}`, req.userId!, req.tenantId!);
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          message: "Profile photo deleted successfully",
+        }),
+      );
+    } else {
+      await transaction.rollback();
+      logStructured(
+        "error",
+        `failed to delete profile photo for user ID ${userId}`,
+        "deleteUserProfilePhoto",
+        "user.ctrl.ts",
+      );
+      await logEvent(
+        "Error",
+        `Failed to delete profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
+      );
+      return res.status(500).json(
+        STATUS_CODE[500]({
+          message: "Failed to delete profile photo",
+        }),
+      );
+    }
+  } catch (error) {
+    await transaction.rollback();
+    logStructured(
+      "error",
+      `unexpected error deleting profile photo for user ID ${userId}`,
+      "deleteUserProfilePhoto",
+      "user.ctrl.ts",
+    );
+    await logEvent(
+      "Error",
+      `Unexpected error deleting profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
+    );
+    logger.error("❌ Error in deleteUserProfilePhoto:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
@@ -1167,4 +1412,7 @@ export {
   ChangePassword,
   refreshAccessToken,
   updateUserRole,
+  uploadUserProfilePhoto,
+  getUserProfilePhoto,
+  deleteUserProfilePhoto,
 };

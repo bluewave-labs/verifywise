@@ -1,9 +1,9 @@
 /**
  * StatusDropdown Component
- * 
+ *
  * A colored dropdown component that replaces status chips with interactive dropdowns.
  * Maintains the same visual appearance as status chips but allows direct status updates.
- * 
+ *
  * Features:
  * - Colored background matching status colors
  * - Loading states during updates
@@ -23,57 +23,48 @@ import {
 } from "@mui/material";
 import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { getStatusColor } from "../../pages/ISO/style";
-
-interface StatusDropdownProps {
-  currentStatus: string;
-  onStatusChange: (newStatus: string) => Promise<boolean>;
-  disabled?: boolean;
-  size?: 'small' | 'medium';
-  allowedRoles?: string[];
-  userRole?: string;
-  statusOptions?: string[];
-}
+import { IStatusDropdownProps } from "../../../domain/interfaces/iWidget";
 
 const STATUS_OPTIONS = [
   "Not started",
-  "Draft", 
+  "Draft",
   "In progress",
   "Awaiting review",
   "Awaiting approval",
   "Implemented",
   // "Audited",
-  "Needs rework"
+  "Needs rework",
 ];
 
-const StatusDropdown: React.FC<StatusDropdownProps> = ({
+const StatusDropdown: React.FC<IStatusDropdownProps> = ({
   currentStatus,
   onStatusChange,
   disabled = false,
-  size = 'small',
+  size = "small",
   allowedRoles = [],
-  userRole = '',
+  userRole = "",
 }) => {
   const theme = useTheme();
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   // Normalize status for consistent handling
   const normalizedStatus = currentStatus || "Not started";
   const statusColor = getStatusColor(normalizedStatus);
-  
+
   // Check if user has permission to edit
   const canEdit = allowedRoles.length === 0 || allowedRoles.includes(userRole);
   const isDisabled = disabled || !canEdit;
-  
+
   const handleStatusChange = async (event: SelectChangeEvent<string>) => {
     const newStatus = event.target.value;
     if (newStatus === normalizedStatus || isUpdating) return;
-    
+
     setIsUpdating(true);
     try {
       await onStatusChange(newStatus);
       // Parent component handles success/error messaging
     } catch (error) {
-      console.error('Error in StatusDropdown:', error);
+      console.error("Error in StatusDropdown:", error);
     } finally {
       setIsUpdating(false);
     }
@@ -84,12 +75,12 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
     const displayText = selected
       ? selected.charAt(0).toUpperCase() + selected.slice(1).toLowerCase()
       : "Not started";
-    
+
     return (
       <Stack direction="row" alignItems="center" gap={0.5}>
         {isUpdating && (
-          <CircularProgress 
-            size={size === 'small' ? 10 : 12} 
+          <CircularProgress
+            size={size === "small" ? 10 : 12}
             sx={{ color: "#fff" }}
           />
         )}
@@ -111,10 +102,10 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
     );
   };
 
-  const dropdownHeight = size === 'small' ? 28 : 34;
-  const fontSize = size === 'small' ? 12 : 13;
-  const padding = size === 'small' ? "4px 4px 4px 8px" : "5px 5px 5px 10px";
-  const minWidth = size === 'small' ? '100px' : '120px';
+  const dropdownHeight = size === "small" ? 28 : 34;
+  const fontSize = size === "small" ? 12 : 13;
+  const padding = size === "small" ? "4px 4px 4px 8px" : "5px 5px 5px 10px";
+  const minWidth = size === "small" ? "100px" : "120px";
 
   const handleClick = (event: React.MouseEvent) => {
     // Prevent event bubbling to parent elements (e.g., drawer opening)
@@ -132,7 +123,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
       IconComponent={(props) => (
         <WhiteDownArrowIcon
           {...props}
-          size={size === 'small' ? 14 : 16}
+          size={size === "small" ? 14 : 16}
           strokeWidth={1.5}
         />
       )}
@@ -182,7 +173,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         },
         "& .MuiSelect-icon": {
           color: "#fff",
-          right: size === 'small' ? 4 : 6,
+          right: size === "small" ? 4 : 6,
           top: "50%",
           transform: "translateY(-50%)",
           position: "absolute",

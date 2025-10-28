@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * IconButton component that renders a custom-styled Material-UI IconButton with a settings icon.
  * It includes a dropdown menu with options to edit or remove a vendor, and modals for adding or removing vendors.
@@ -35,12 +36,16 @@ const IconButton: React.FC<IconButtonProps> = ({
   canDelete,
   checkForRisks,
   onDeleteWithRisks,
+  onView,
+  onSendTest,
+  onToggleEnable,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [actions, setActions] = useState({});
+  const [_, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
-  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] = useState(false);
+  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
+    useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
@@ -58,7 +63,6 @@ const IconButton: React.FC<IconButtonProps> = ({
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setActions({ id: id, url: url });
-    console.log(actions);
   };
 
   /**
@@ -122,6 +126,16 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleView = (e?: React.SyntheticEvent) => {
+    if (onView) {
+      onView();
+      if (e) {
+        closeDropDownMenu(e);
+        onMouseEvent?.(e); // optional chaining just in case
+      }
+    }
+  };
+
   const handleMakeVisible = (e?: React.SyntheticEvent) => {
     if (onMakeVisible) {
       onMakeVisible();
@@ -134,6 +148,24 @@ const IconButton: React.FC<IconButtonProps> = ({
   const handleDownload = async (e?: React.SyntheticEvent) => {
     if (onDownload) {
       await onDownload();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleSendTestNotification = async (e?: React.SyntheticEvent) => {
+    if (onSendTest) {
+      await onSendTest();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleToggleStatus = async (e?: React.SyntheticEvent) => {
+    if (onToggleEnable) {
+      await onToggleEnable();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -153,6 +185,7 @@ const IconButton: React.FC<IconButtonProps> = ({
    * - For type "evidence", the menu item will be "download".
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
+   * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
   const getListOfButtons = () => {
@@ -164,6 +197,11 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
+    } else if (type === "Incident") {
+      return ["edit", "view", "archive"];
+    } else if (type === "integration") {
+      // slack integration
+      return ["Send Test", "Activate/Deactivate", "remove"];
     } else {
       return ["edit", "remove"];
     }
@@ -180,6 +218,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
     if (item === "remove" && type === "Task") {
       return "Archive";
+    }
+    if (item === "archive" && type === "Incident") {
+      return "Archive incident";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -212,7 +253,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     >
       {listOfButtons.map((item) => {
         // For resources, disable edit, download, and remove when not visible
-        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isResourceAction =
+          (type === "Resource" || type === "resource") &&
+          item !== "make visible";
         const isDisabled = isResourceAction && !isVisible;
 
         return (
@@ -231,7 +274,13 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownload(e);
               } else if (item === "make visible") {
                 handleMakeVisible(e);
-              } else if (item === "remove") {
+              } else if (item === "view") {
+                handleView(e);
+              } else if (item === "Send Test") {
+                await handleSendTestNotification(e);
+              } else if (item === "Activate/Deactivate") {
+                await handleToggleStatus(e);
+              } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
@@ -246,7 +295,11 @@ const IconButton: React.FC<IconButtonProps> = ({
               }
             }}
             disabled={isDisabled}
-            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+            sx={
+              item === "remove" || item === "archive"
+                ? { color: "#d32f2f" }
+                : {}
+            }
           >
             {getMenuItemText(item)}
           </MenuItem>
@@ -294,7 +347,11 @@ const IconButton: React.FC<IconButtonProps> = ({
         <BasicModal
           isOpen={isOpenRemoveModal}
           setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) => checkForRisks && onDeleteWithRisks ? handleDeleteWithRiskCheck(e) : handleDelete(e)}
+          onDelete={(e) =>
+            checkForRisks && onDeleteWithRisks
+              ? handleDeleteWithRiskCheck(e)
+              : handleDelete(e)
+          }
           warningTitle={warningTitle}
           warningMessage={warningMessage}
           onCancel={(e) => handleCancle(e)}

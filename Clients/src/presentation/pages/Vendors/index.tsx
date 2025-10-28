@@ -45,6 +45,10 @@ import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMut
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
+import AuditTimeframe, { IAuditTimeframe, AuditTimeframeType } from "../../components/AuditTimeframe";
+import AuditTimeframeChart from "../../components/Charts/AuditTimeframeChart";
+import AuditRiskDetails from "../../components/AuditTimeframe/AuditRiskDetails";
+import { getAvailableTimeframeTypes } from "../../components/AuditTimeframe/utils";
 
 interface ExistingRisk {
   id?: number;
@@ -79,6 +83,15 @@ const Vendors = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+  
+  // State for audit timeframe
+  const [auditTimeframe, setAuditTimeframe] = useState<IAuditTimeframe>({
+    type: AuditTimeframeType.CREATED,
+    startDate: null,
+    endDate: null,
+  });
+  const [showAuditChart, setShowAuditChart] = useState(false);
+  const [isAuditDetailsExpanded, setIsAuditDetailsExpanded] = useState(false);
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -315,6 +328,15 @@ const Vendors = () => {
     setFilterStatus(status);
   };
 
+  const handleAuditTimeframeChange = (timeframe: IAuditTimeframe) => {
+    setAuditTimeframe(timeframe);
+    setShowAuditChart(timeframe.startDate !== null || timeframe.endDate !== null);
+  };
+
+  const availableTimeframeTypes = useMemo(() => {
+    return getAvailableTimeframeTypes('vendor');
+  }, []);
+
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
@@ -472,7 +494,39 @@ const Vendors = () => {
                 height={100}
               />
             ) : (
-              <RisksCard risksSummary={vendorRisksSummary} />
+              <Stack spacing={4}>
+                <RisksCard risksSummary={vendorRisksSummary} />
+                <Stack direction="row" spacing={4}>
+                  <Box flex={1}>
+                    <AuditTimeframe
+                      value={auditTimeframe}
+                      onChange={handleAuditTimeframeChange}
+                      availableTypes={availableTimeframeTypes}
+                      label="Vendor Risk Audit Timeframe"
+                    />
+                  </Box>
+                  {showAuditChart && (
+                    <Box flex={2}>
+                      <AuditTimeframeChart
+                        risks={vendorRisks}
+                        timeframe={auditTimeframe}
+                        chartType="bar"
+                        groupBy="month"
+                        title="Vendor Risk Activity Over Time"
+                        height={200}
+                      />
+                    </Box>
+                  )}
+                </Stack>
+                {(auditTimeframe.startDate || auditTimeframe.endDate) && (
+                  <AuditRiskDetails
+                    risks={vendorRisks}
+                    timeframe={auditTimeframe}
+                    isExpanded={isAuditDetailsExpanded}
+                    onToggleExpanded={() => setIsAuditDetailsExpanded(!isAuditDetailsExpanded)}
+                  />
+                )}
+              </Stack>
             ))}
           {isVendorsLoading && value === "1" ? (
             <CustomizableSkeleton

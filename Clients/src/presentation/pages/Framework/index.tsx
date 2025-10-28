@@ -208,6 +208,9 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
+    if (framework || frameworkName) {
+      setMainTabValue("controls");
+    }
     if (framework === "iso-42001" || frameworkName === "iso-42001") {
       // Find ISO 42001 framework in filtered frameworks
       const iso42001Index = filteredFrameworks.findIndex(fw =>
@@ -544,16 +547,16 @@ const Framework = () => {
       />
       <PageBreadcrumbs />
       <PageHeader
-               title="Frameworks"
-               description="This page provides an overview of available AI and data governance frameworks to your organization."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
+        title="Frameworks"
+        description="This page provides an overview of available AI and data governance frameworks to your organization."
+        rightContent={
+          <HelperIcon
+              onClick={() =>
+              setIsHelperDrawerOpen(!isHelperDrawerOpen)
+              }
+              size="small"
+            />
+          }
        />
 
       {/* Only show framework content if organizational project exists */}

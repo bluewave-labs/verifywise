@@ -107,7 +107,7 @@ export const uploadFileToManager = async (
     } catch (unlinkError: any) {
       // Ignore ENOENT (file already deleted), but log other errors
       if (unlinkError.code !== 'ENOENT') {
-        console.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
+        logger.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
       }
     }
     // Rethrow original database error

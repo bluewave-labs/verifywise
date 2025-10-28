@@ -18,7 +18,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { promisify } from "util";
 import { randomBytes } from "crypto";
-import { sanitizeFilename } from "./validations/fileManagerValidation.utils";
+import sanitizeFilename from "sanitize-filename"; // Industry-standard filename sanitization
 import logger from "./logger/fileLogger";
 
 const writeFile = promisify(fs.writeFile);
@@ -47,10 +47,14 @@ export const uploadFileToManager = async (
   await mkdir(uploadsDir, { recursive: true });
 
   // Generate unique filename with timestamp, random bytes, and sanitized original name
+  // Use industry-standard sanitize-filename to remove path traversal and dangerous characters
   const timestamp = Date.now();
   const rand = randomBytes(4).toString("hex");
-  const sanitized = sanitizeFilename(file.originalname);
-  const uniqueFilename = `${timestamp}_${rand}_${sanitized}`;
+  const sanitized = sanitizeFilename(file.originalname) || "file"; // Fallback if filename becomes empty
+
+  // Ensure filename is not empty and has reasonable length
+  const safeName = sanitized.substring(0, 200) || "file";
+  const uniqueFilename = `${timestamp}_${rand}_${safeName}`;
   const permanentFilePath = path.join(uploadsDir, uniqueFilename);
 
   // Validate that permanent file path is contained within the intended directory (defense-in-depth)
@@ -116,7 +120,7 @@ export const uploadFileToManager = async (
   try {
     const result = await sequelize.query(query, {
       replacements: {
-        filename: sanitized,
+        filename: safeName,
         size: file.size,
         mimetype: file.mimetype,
         file_path: relativeFilePath,

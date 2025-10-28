@@ -90,7 +90,9 @@ const FileManager: React.FC = (): JSX.Element => {
   const { userRoleName } = useAuth();
 
   // REQUIREMENT: "Upload allowed for all users except Auditors"
-  const isUploadAllowed = userRoleName !== AUDITOR_ROLE;
+  // SECURITY: Default-deny - require authenticated role that is not Auditor
+  // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
+  const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
 
   // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
   const refetch = useCallback(async () => {

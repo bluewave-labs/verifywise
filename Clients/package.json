@@ -83,7 +83,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "styled-components": "^6.1.13",
-    "validator": "^13.12.0",
+    "validator": "^13.15.20",
     "zustand": "4.5.5"
   },
   "devDependencies": {

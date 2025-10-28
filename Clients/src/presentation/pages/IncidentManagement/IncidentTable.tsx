@@ -131,9 +131,14 @@ const STORAGE_KEY = 'incident-table-rows-per-page';
 
 const TooltipCell: React.FC<{ value?: string | null }> = ({ value }) => {
     const displayValue = value || "-";
-    return displayValue.length > 24 ? (
+    const shouldTruncate = displayValue.length > 30;
+    const truncatedValue = shouldTruncate
+        ? `${displayValue.substring(0, 30)}...`
+        : displayValue;
+
+    return shouldTruncate ? (
         <Tooltip title={displayValue} arrow>
-            <span>{displayValue}</span>
+            <span style={{ cursor: 'help' }}>{truncatedValue}</span>
         </Tooltip>
     ) : (
         <span>{displayValue}</span>

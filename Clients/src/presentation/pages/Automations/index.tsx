@@ -251,7 +251,6 @@ const AutomationsPage: React.FC = () => {
         setSelectedItemType(null);
       }
 
-      console.log('Automation deleted successfully');
     } catch (error: any) {
       console.error('Error deleting automation:', error);
     }
@@ -319,8 +318,7 @@ const AutomationsPage: React.FC = () => {
         is_active: newIsActive
       });
 
-      console.log('Automation toggle status updated successfully');
-
+    
       // Show success toast
       setToast({
         variant: "success",
@@ -1078,6 +1076,22 @@ This notification was sent on {{date_and_time}}.`
       return;
     }
 
+    // Validate that send_email actions have recipients
+    const sendEmailActions = selectedAutomation.actions.filter(action => action.type === 'send_email');
+    for (const action of sendEmailActions) {
+      const recipients = action.configuration?.to;
+      const hasRecipients = Array.isArray(recipients) && recipients.length > 0;
+
+      if (!hasRecipients) {
+        setToast({
+          variant: "error",
+          body: "Please add at least one recipient to the Send Email action before saving.",
+          visible: true
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       // Check if this is an existing automation (has numeric ID from backend) or new (has generated string ID)
@@ -1183,8 +1197,7 @@ This notification was sent on {{date_and_time}}.`
 
         if (response.status === 200) {
           // Show success notification
-          console.log('Automation updated successfully!', response.data);
-
+  
           // Refresh the automations list, preserving the current selection
           await fetchAutomations(selectedAutomationId ?? undefined, false);
 
@@ -1208,8 +1221,7 @@ This notification was sent on {{date_and_time}}.`
 
         if (response.status === 201) {
           // Show success notification
-          console.log('Automation created successfully!', response.data);
-
+    
           // Get the newly created automation's ID from the response
           const newAutomationId = response.data.data?.id;
 

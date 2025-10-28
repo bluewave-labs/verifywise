@@ -150,8 +150,7 @@ const ProfileForm: React.FC = () => {
         actualUserData?.email || "",
       );
     } catch (error) {
-      console.log(error);
-      logEngine({
+        logEngine({
         type: "error",
         message: "Failed to fetch user data.",
       });
@@ -246,8 +245,7 @@ const ProfileForm: React.FC = () => {
         userData: updatedUser,
       });
 
-      console.log("Update response:", response);
-
+  
       // Validate response before proceeding with success path
       if (response && response.status >= 200 && response.status < 300) {
         // Update the initial state to reflect the new saved values

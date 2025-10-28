@@ -7,10 +7,10 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
-import { getUserFilesMetaData } from "../../../application/repository/file.repository";
-import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
@@ -100,7 +100,7 @@ const FileManager: React.FC = (): JSX.Element => {
       setFilesData(transformFilesData(response));
     } catch (error) {
       // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
-      // logEngine includes user ID/email/name which violates GDPR/compliance
+      //  includes user ID/email/name which violates GDPR/compliance
       secureLogError('Error refetching files', FILE_MANAGER_CONTEXT);
       setFilesData([]);
     } finally {

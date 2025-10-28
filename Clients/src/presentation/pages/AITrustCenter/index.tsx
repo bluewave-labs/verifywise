@@ -136,7 +136,7 @@ const AITrustCenter: React.FC = () => {
                 value="settings"
                 disableRipple
               />
-              <div data-joyride-id="preview-mode-button">
+              <div data-joyride-id="preview-mode-button" style={{ marginLeft: "auto" }}>
                 <CustomizableButton
                   variant="contained"
                   text="Preview mode"

@@ -53,6 +53,9 @@ const swaggerDoc = YAML.load("./swagger.yaml");
 
 const app = express();
 
+// Trust proxy to correctly interpret X-Forwarded-For headers for rate limiting
+app.set('trust proxy', 1);
+
 const DEFAULT_PORT = "3000";
 const DEFAULT_HOST = "localhost";
 

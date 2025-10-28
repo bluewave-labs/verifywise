@@ -53,11 +53,28 @@ export const uploadFileToManager = async (
   const uniqueFilename = `${timestamp}_${rand}_${sanitized}`;
   const permanentFilePath = path.join(uploadsDir, uniqueFilename);
 
+  // Validate that permanent file path is contained within the intended directory (defense-in-depth)
+  const uploadsDirResolved = path.resolve(uploadsDir);
+  const permanentFilePathResolved = path.resolve(permanentFilePath);
+
+  if (!permanentFilePathResolved.startsWith(uploadsDirResolved + path.sep) &&
+      permanentFilePathResolved !== uploadsDirResolved) {
+    throw new Error("Security violation: File path escapes intended directory");
+  }
+
   // Move file from temp directory to permanent location
   // file.path contains the temp file path from multer.diskStorage
   if (file.path) {
-    const readStream = fs.createReadStream(file.path);
-    const writeStream = fs.createWriteStream(permanentFilePath);
+    // Validate that the source file is within the temp directory (defense-in-depth)
+    const tempDirResolved = path.resolve(process.cwd(), "uploads", "temp");
+    const sourceFileResolved = path.resolve(file.path);
+
+    if (!sourceFileResolved.startsWith(tempDirResolved + path.sep)) {
+      throw new Error("Security violation: Source file path outside temp directory");
+    }
+
+    const readStream = fs.createReadStream(sourceFileResolved);
+    const writeStream = fs.createWriteStream(permanentFilePathResolved);
 
     await new Promise<void>((resolve, reject) => {
       readStream.pipe(writeStream);
@@ -65,10 +82,20 @@ export const uploadFileToManager = async (
       writeStream.on('error', reject);
       readStream.on('error', reject);
     });
+
+    // Clean up temp file after successful move
+    try {
+      await fs.promises.unlink(sourceFileResolved);
+    } catch (cleanupError: any) {
+      // Log but don't fail - temp file cleanup is non-critical
+      if (cleanupError.code !== 'ENOENT') {
+        logger.warn(`Failed to cleanup temp file: ${sourceFileResolved}`, cleanupError);
+      }
+    }
   } else {
     // Fallback for memory storage (if buffer exists)
     if (file.buffer) {
-      await writeFile(permanentFilePath, file.buffer);
+      await writeFile(permanentFilePathResolved, file.buffer);
     } else {
       throw new Error("No file data available (neither path nor buffer)");
     }
@@ -103,11 +130,11 @@ export const uploadFileToManager = async (
   } catch (dbError) {
     // Database insertion failed - cleanup orphaned file
     try {
-      await fs.promises.unlink(permanentFilePath);
+      await fs.promises.unlink(permanentFilePathResolved);
     } catch (unlinkError: any) {
       // Ignore ENOENT (file already deleted), but log other errors
       if (unlinkError.code !== 'ENOENT') {
-        logger.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
+        logger.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePathResolved}`, unlinkError);
       }
     }
     // Rethrow original database error

@@ -79,5 +79,10 @@
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "tsc-watch": "^6.2.0"
+  },
+  "overrides": {
+    "@fastify/reply-from": {
+      "undici": "5.29.0"
+    }
   }
 }

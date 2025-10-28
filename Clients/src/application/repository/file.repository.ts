@@ -30,7 +30,7 @@ export interface FileUploadResponse {
     size: number;
     mimetype: string;
     upload_date: string;
-    uploaded_by: string;
+    uploaded_by: number;
   };
 }
 
@@ -58,18 +58,27 @@ export async function getFileById({
  * @returns {Promise<FileMetadata[]>} Array of file metadata
  */
 export async function getUserFilesMetaData({
-  signal,
-}: {
-  signal?: AbortSignal;
+                                               signal,
+                                           }: {
+    signal?: AbortSignal;
 } = {}): Promise<FileMetadata[]> {
-  const response = await apiServices.get<FileManagerResponse>("/file-manager", {
-    signal,
-  });
+    const response = await apiServices.get<FileManagerResponse>("/file-manager", {
+        signal,
+    });
 
-  // Extract files array from API response wrapper (Clean Architecture)
-  // Server returns: { success: true, data: { files: [...], pagination: {...} } }
-  return (response.data?.data?.files as FileMetadata[]) || [];
+    // Extract and transform API file data (snake_case → camelCase)
+    const rawFiles = response.data?.data?.files ?? [];
+
+    return rawFiles.map((f: any) => ({
+        id: String(f.id),
+        filename: f.filename,
+        size: f.size,
+        mimeType: f.mimetype,        // map mimetype → mimeType
+        uploadedAt: f.upload_date,   // map upload_date → uploadedAt
+        uploadedBy: String(f.uploaded_by), // map uploaded_by → uploadedBy
+    })) as FileMetadata[];
 }
+
 
 
 /**

@@ -52,8 +52,8 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
 
   //Store timeout IDs to prevent race conditions and memory leaks
-  const removeSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const removeSuccessTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   //Cleanup timeouts on unmount (KISS: simple cleanup pattern)
   useEffect(() => {

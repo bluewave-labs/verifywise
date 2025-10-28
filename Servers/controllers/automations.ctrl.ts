@@ -86,6 +86,25 @@ export const createAutomation = async (
       return res.status(400).json(STATUS_CODE[400]({ message: "Missing required fields: triggerId, name, actions" }));
     }
 
+    // Fetch action types to validate send_email actions
+    // const actionTypes = await getAllAutomationActionsByTriggerIdQuery(triggerId);
+
+    // // Validate send_email actions have recipients
+    // for (const action of actions) {
+    //   const actionType = actionTypes.find((at: any) => at.id === action.action_type_id);
+    //   if (actionType && actionType.key === 'send_email') {
+    //     const actionParams = typeof action.params === 'string' ? JSON.parse(action.params) : action.params;
+    //     const recipients = actionParams?.to;
+
+    //     if (!Array.isArray(recipients) || recipients.length === 0) {
+    //       await transaction.rollback();
+    //       return res.status(400).json(STATUS_CODE[400]({
+    //         message: "Send email action must have at least one recipient"
+    //       }));
+    //     }
+    //   }
+    // }
+
     const automation = await createAutomationQuery(
       { name, trigger_id: triggerId, params },
       actions,
@@ -115,6 +134,28 @@ export const updateAutomation = async (
   const transaction = await sequelize.transaction();
   try {
     const actions = req.body.actions as Partial<ITenantAutomationAction>[];
+    // const triggerId = req.body.triggerId;
+
+    // // Validate send_email actions have recipients if actions are provided
+    // if (actions && actions.length > 0 && triggerId) {
+    //   // Fetch action types to validate send_email actions
+    //   const actionTypes = await getAllAutomationActionsByTriggerIdQuery(triggerId);
+
+    //   for (const action of actions) {
+    //     const actionType = actionTypes.find((at: any) => at.id === action.action_type_id);
+    //     if (actionType && actionType.key === 'send_email') {
+    //       const actionParams = typeof action.params === 'string' ? JSON.parse(action.params) : action.params;
+    //       const recipients = actionParams?.to;
+
+    //       if (!Array.isArray(recipients) || recipients.length === 0) {
+    //         await transaction.rollback();
+    //         return res.status(400).json(STATUS_CODE[400]({
+    //           message: "Send email action must have at least one recipient"
+    //         }));
+    //       }
+    //     }
+    //   }
+    // }
 
     const automation = await updateAutomationByIdQuery(
       id,

@@ -110,6 +110,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      geography: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       last_updated: {
         type: Sequelize.DATE,
         allowNull: false,

@@ -197,9 +197,9 @@ export interface IGenerateReportProps {
 }
 
 export interface IInputProps {
-  report_type: string;
+  report_type: string | string[];
   report_name: string;
-  project: number;
+  project: number | null;
   framework: number;
   projectFrameworkId: number;
   reportType?: "project" | "organization" | null;

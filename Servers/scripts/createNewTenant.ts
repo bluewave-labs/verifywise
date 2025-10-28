@@ -37,6 +37,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
         goal character varying(255) NOT NULL,
+        geography integer NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
@@ -858,6 +859,27 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       action_type_id INTEGER REFERENCES public.automation_actions(id) ON DELETE RESTRICT,
       params JSONB DEFAULT '{}',
       "order" INTEGER DEFAULT 1
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".file_manager (
+      id SERIAL PRIMARY KEY,
+      filename VARCHAR(255) NOT NULL,
+      size BIGINT NOT NULL,
+      mimetype VARCHAR(255) NOT NULL,
+      file_path VARCHAR(500) NOT NULL,
+      uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+      upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+      is_demo BOOLEAN NOT NULL DEFAULT FALSE
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".file_access_logs (
+      id SERIAL PRIMARY KEY,
+      file_id INTEGER NOT NULL REFERENCES "${tenantHash}".file_manager(id) ON DELETE CASCADE,
+      accessed_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+      access_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      action VARCHAR(20) NOT NULL CHECK (action IN ('download', 'view')),
+      org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE
     );`, { transaction });
   }
   catch (error) {

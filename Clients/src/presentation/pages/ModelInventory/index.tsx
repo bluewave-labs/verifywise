@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
@@ -31,6 +31,8 @@ import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import PageTour from "../../components/PageTour";
+import ModelInventorySteps from "./ModelInventorySteps";
 import {
   mainStackStyle,
   filterButtonRowStyle,
@@ -56,6 +58,8 @@ import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum"
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const ModelInventory: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [modelInventoryData, setModelInventoryData] = useState<
     IModelInventory[]
   >([]);
@@ -80,6 +84,7 @@ const ModelInventory: React.FC = () => {
   );
   const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
   const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
+  const [modelRiskStatusFilter, setModelRiskStatusFilter] = useState<'active' | 'deleted' | 'all'>('active');
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
@@ -178,12 +183,12 @@ const ModelInventory: React.FC = () => {
   };
 
   // Function to fetch model risks data
-  const fetchModelRisksData = async (showLoading = true) => {
+  const fetchModelRisksData = async (showLoading = true, filter = modelRiskStatusFilter) => {
     if (showLoading) {
       setIsModelRisksLoading(true);
     }
     try {
-      const response = await getAllEntities({ routeUrl: "/modelRisks" });
+      const response = await getAllEntities({ routeUrl: `/modelRisks?filter=${filter}` });
       // Handle both direct array and {message, data} format
       let modelRisksData = [];
       if (Array.isArray(response)) {
@@ -243,6 +248,11 @@ const ModelInventory: React.FC = () => {
     fetchUsersData();
   }, []);
 
+  // Refetch model risks when filter changes
+  useEffect(() => {
+    fetchModelRisksData(true, modelRiskStatusFilter);
+  }, [modelRiskStatusFilter]);
+
   // Initialize and sync status filter with URL parameters
   useEffect(() => {
     const urlStatusFilter = searchParams.get("statusFilter");
@@ -269,6 +279,18 @@ const ModelInventory: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Auto-open create model modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsNewModelInventoryModalOpen(true);
+      setSelectedModelInventory(null);
+      setSelectedModelInventoryId(null);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleNewModelInventoryClick = () => {
     setIsNewModelInventoryModalOpen(true);
@@ -612,6 +634,10 @@ const ModelInventory: React.FC = () => {
     setModelRiskLevelFilter(event.target.value);
   };
 
+  const handleModelRiskStatusFilterChange = (event: any) => {
+    setModelRiskStatusFilter(event.target.value);
+  };
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
   };
@@ -689,7 +715,11 @@ const ModelInventory: React.FC = () => {
         />
 
         {/* Summary Cards */}
-        {activeTab === "models" && <ModelInventorySummary summary={summary} />}
+        {activeTab === "models" && (
+          <div data-joyride-id="model-summary-cards">
+            <ModelInventorySummary summary={summary} />
+          </div>
+        )}
         {activeTab === "model-risks" && (
           <ModelRiskSummary modelRisks={modelRisksData} />
         )}
@@ -703,6 +733,7 @@ const ModelInventory: React.FC = () => {
               onChange={handleTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
               sx={aiTrustCenterTabListStyle}
+              data-joyride-id="model-tabs"
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
@@ -730,22 +761,24 @@ const ModelInventory: React.FC = () => {
             >
               {/* Left side: Status dropdown + Search */}
               <Stack direction="row" spacing={4} alignItems="center">
-                <SelectComponent
-                  id="status-filter"
-                  value={statusFilter}
-                  items={statusFilterOptions}
-                  onChange={handleStatusFilterChange}
-                  sx={statusFilterSelectStyle}
-                  customRenderValue={(value, selectedItem) => {
-                    if (value === "all") {
-                      return selectedItem.name;
-                    }
-                    return `Status: ${selectedItem.name.toLowerCase()}`;
-                  }}
-                />
+                <div data-joyride-id="model-status-filter">
+                  <SelectComponent
+                    id="status-filter"
+                    value={statusFilter}
+                    items={statusFilterOptions}
+                    onChange={handleStatusFilterChange}
+                    sx={statusFilterSelectStyle}
+                    customRenderValue={(value, selectedItem) => {
+                      if (value === "all") {
+                        return selectedItem.name;
+                      }
+                      return `Status: ${selectedItem.name.toLowerCase()}`;
+                    }}
+                  />
+                </div>
 
                 {/* Expandable Search */}
-                <Box sx={searchBoxStyle(isSearchBarVisible)}>
+                <Box sx={searchBoxStyle(isSearchBarVisible)} data-joyride-id="model-search">
                   <IconButton
                     disableRipple
                     disableFocusRipple
@@ -771,14 +804,16 @@ const ModelInventory: React.FC = () => {
               </Stack>
 
               {/* Right side: Add Model button */}
-              <CustomizableButton
-                variant="contained"
-                sx={addNewModelButtonStyle}
-                text="Add new model"
-                icon={<AddCircleOutlineIcon size={16} />}
-                onClick={handleNewModelInventoryClick}
-                isDisabled={isCreatingDisabled}
-              />
+              <div data-joyride-id="add-model-button">
+                <CustomizableButton
+                  variant="contained"
+                  sx={addNewModelButtonStyle}
+                  text="Add new model"
+                  icon={<AddCircleOutlineIcon size={16} />}
+                  onClick={handleNewModelInventoryClick}
+                  isDisabled={isCreatingDisabled}
+                />
+              </div>
             </Stack>
 
             <ModelInventoryTable
@@ -803,26 +838,28 @@ const ModelInventory: React.FC = () => {
               sx={filterButtonRowStyle}
             >
               <Stack direction="row" gap={2}>
-                <SelectComponent
-                  id="risk-category-filter"
-                  value={modelRiskCategoryFilter}
-                  items={[
-                    { _id: "all", name: "All categories" },
-                    { _id: "Performance", name: "Performance" },
-                    { _id: "Bias & Fairness", name: "Bias & Fairness" },
-                    { _id: "Security", name: "Security" },
-                    { _id: "Data Quality", name: "Data Quality" },
-                    { _id: "Compliance", name: "Compliance" },
-                  ]}
-                  onChange={handleModelRiskCategoryFilterChange}
-                  sx={statusFilterSelectStyle}
-                  customRenderValue={(value, selectedItem) => {
-                    if (value === "all") {
-                      return selectedItem.name;
-                    }
-                    return `Category: ${selectedItem.name.toLowerCase()}`;
-                  }}
-                />
+                <div data-joyride-id="risk-category-filter">
+                  <SelectComponent
+                    id="risk-category-filter"
+                    value={modelRiskCategoryFilter}
+                    items={[
+                      { _id: "all", name: "All categories" },
+                      { _id: "Performance", name: "Performance" },
+                      { _id: "Bias & Fairness", name: "Bias & Fairness" },
+                      { _id: "Security", name: "Security" },
+                      { _id: "Data Quality", name: "Data Quality" },
+                      { _id: "Compliance", name: "Compliance" },
+                    ]}
+                    onChange={handleModelRiskCategoryFilterChange}
+                    sx={statusFilterSelectStyle}
+                    customRenderValue={(value, selectedItem) => {
+                      if (value === "all") {
+                        return selectedItem.name;
+                      }
+                      return `Category: ${selectedItem.name.toLowerCase()}`;
+                    }}
+                  />
+                </div>
                 <SelectComponent
                   id="risk-level-filter"
                   value={modelRiskLevelFilter}
@@ -842,15 +879,34 @@ const ModelInventory: React.FC = () => {
                     return `Risk level: ${selectedItem.name.toLowerCase()}`;
                   }}
                 />
+                <SelectComponent
+                  id="risk-status-filter"
+                  value={modelRiskStatusFilter}
+                  items={[
+                    { _id: "active", name: "Active only" },
+                    { _id: "all", name: "Active + deleted" },
+                    { _id: "deleted", name: "Deleted only" },
+                  ]}
+                  onChange={handleModelRiskStatusFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "active") {
+                      return selectedItem.name;
+                    }
+                    return `Status: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
               </Stack>
-              <CustomizableButton
-                variant="contained"
-                sx={addNewModelButtonStyle}
-                text="Add model risk"
-                icon={<AddCircleOutlineIcon size={16} />}
-                onClick={handleNewModelRiskClick}
-                isDisabled={isCreatingDisabled}
-              />
+              <div data-joyride-id="add-model-risk-button">
+                <CustomizableButton
+                  variant="contained"
+                  sx={addNewModelButtonStyle}
+                  text="Add model risk"
+                  icon={<AddCircleOutlineIcon size={16} />}
+                  onClick={handleNewModelRiskClick}
+                  isDisabled={isCreatingDisabled}
+                />
+              </div>
             </Stack>
 
             <ModelRisksTable
@@ -860,6 +916,7 @@ const ModelInventory: React.FC = () => {
               onDelete={handleDeleteModelRisk}
               deletingId={deletingModelRiskId}
               users={users}
+              models={modelInventoryData}
             />
           </>
         )}
@@ -923,6 +980,8 @@ const ModelInventory: React.FC = () => {
         }
         isEdit={!!selectedModelRisk}
       />
+
+      <PageTour steps={ModelInventorySteps} run={true} tourKey="model-inventory-tour" />
     </Stack>
   );
 };

@@ -49,11 +49,13 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
+import RiskAnalysisModal from "../RiskAnalysisModal";
 
 const riskClassificationItems = [
-  { _id: 1, name: AiRiskClassification.HIGH_RISK },
-  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+  { _id: 1, name: AiRiskClassification.PROHIBITED },
+  { _id: 2, name: AiRiskClassification.HIGH_RISK },
+  { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
 const highRiskRoleItems = [
@@ -140,6 +142,7 @@ const ProjectSettings = React.memo(
     const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
     const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
     const [removedOwner, setRemovedOwner] = useState<User | null>(null);
+    const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
 
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
@@ -187,7 +190,7 @@ const ProjectSettings = React.memo(
         !isFrameworkOperationInProgress &&
         JSON.stringify(values.monitoredRegulationsAndStandards) !==
           JSON.stringify(
-            initialValuesRef.current.monitoredRegulationsAndStandards
+            initialValuesRef.current.monitoredRegulationsAndStandards,
           );
 
       return basicFieldsModified || frameworksModified;
@@ -199,7 +202,7 @@ const ProjectSettings = React.memo(
       if (!isModified) return true;
 
       const hasErrors = Object.values(errors).some(
-        (error) => error && error.length > 0
+        (error) => error && error.length > 0,
       );
 
       return hasErrors;
@@ -229,7 +232,7 @@ const ProjectSettings = React.memo(
     // Filter frameworks to only show non-organizational ones
     const nonOrganizationalFrameworks = useMemo(
       () => allFrameworks.filter((fw: Framework) => !fw.is_organizational),
-      [allFrameworks]
+      [allFrameworks],
     );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
@@ -237,7 +240,7 @@ const ProjectSettings = React.memo(
         const frameworksForProject = monitoredFrameworks.map(
           (fw: Framework) => {
             const projectFramework = project.framework?.find(
-              (pf) => Number(pf.framework_id) === Number(fw.id)
+              (pf) => Number(pf.framework_id) === Number(fw.id),
             );
             return {
               _id: Number(fw.id),
@@ -246,7 +249,7 @@ const ProjectSettings = React.memo(
                 projectFramework?.project_framework_id || Number(fw.id),
               framework_id: Number(fw.id),
             };
-          }
+          },
         );
 
         const returnedData: FormValues = {
@@ -257,7 +260,7 @@ const ProjectSettings = React.memo(
             projectStatusItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                (project.status || "Not started").toLowerCase()
+                (project.status || "Not started").toLowerCase(),
             )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
@@ -268,13 +271,13 @@ const ProjectSettings = React.memo(
             riskClassificationItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.ai_risk_classification.toLowerCase()
+                project.ai_risk_classification.toLowerCase(),
             )?._id || 0,
           typeOfHighRiskRole:
             highRiskRoleItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.type_of_high_risk_role.toLowerCase()
+                project.type_of_high_risk_role.toLowerCase(),
             )?._id || 0,
           monitoredRegulationsAndStandards: frameworksForProject,
         };
@@ -302,7 +305,7 @@ const ProjectSettings = React.memo(
             if (values.members.includes(selectedValue)) {
               let oldOwner = null;
               let newOwnerId = null;
-              for (let user of users) {
+              for (const user of users) {
                 if (user.id === selectedValue) {
                   newOwnerId = user;
                 }
@@ -319,7 +322,7 @@ const ProjectSettings = React.memo(
           setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      [users, values]
+      [users, values],
     );
 
     const handleOwnershipChangeAcknowledge = () => {
@@ -328,7 +331,7 @@ const ProjectSettings = React.memo(
         ...prevValues,
         owner: pendingOwnerId.id,
         members: values.members.filter(
-          (member) => member !== pendingOwnerId.id
+          (member) => member !== pendingOwnerId.id,
         ),
       }));
       setErrors((prevErrors) => ({ ...prevErrors, owner: "" }));
@@ -350,7 +353,7 @@ const ProjectSettings = React.memo(
           }));
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      []
+      [],
     );
 
     const handleOnMultiSelect = useCallback(
@@ -363,14 +366,14 @@ const ProjectSettings = React.memo(
             ) {
               const removedFramework =
                 values.monitoredRegulationsAndStandards.find(
-                  (fw) => !newValue.some((nv) => nv._id === fw._id)
+                  (fw) => !newValue.some((nv) => nv._id === fw._id),
                 );
               setRemovedFramework(prop === "monitoredRegulationsAndStandards");
               if (removedFramework) {
                 setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
                 setIsFrameworkRemoveModalOpen(
-                  values.monitoredRegulationsAndStandards.length > 1
+                  values.monitoredRegulationsAndStandards.length > 1,
                 );
                 // Don't update values state yet
                 return;
@@ -383,8 +386,8 @@ const ProjectSettings = React.memo(
               const addedFramework = newValue.find(
                 (nv) =>
                   !values.monitoredRegulationsAndStandards.some(
-                    (fw) => fw._id === nv._id
-                  )
+                    (fw) => fw._id === nv._id,
+                  ),
               );
 
               if (addedFramework) {
@@ -467,7 +470,7 @@ const ProjectSettings = React.memo(
             setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
-      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
+      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh],
     );
 
     const handleFrameworkRemoveConfirm = useCallback(async () => {
@@ -481,7 +484,7 @@ const ProjectSettings = React.memo(
 
         if (response.status === 200) {
           const newFrameworks = values.monitoredRegulationsAndStandards.filter(
-            (fw) => fw._id !== frameworkToRemove._id
+            (fw) => fw._id !== frameworkToRemove._id,
           );
 
           // Update both values and initialValuesRef
@@ -560,7 +563,7 @@ const ProjectSettings = React.memo(
         "Use case title",
         values.projectTitle,
         1,
-        64
+        64,
       );
       if (!projectTitle.accepted) {
         newErrors.projectTitle = projectTitle.message;
@@ -576,7 +579,7 @@ const ProjectSettings = React.memo(
       const startDate = checkStringValidation(
         "Start date",
         values.startDate,
-        1
+        1,
       );
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
@@ -588,14 +591,14 @@ const ProjectSettings = React.memo(
       }
       const riskClassification = selectValidation(
         "AI risk classification",
-        values.riskClassification
+        values.riskClassification,
       );
       if (!riskClassification.accepted) {
         newErrors.riskClassification = riskClassification.message;
       }
       const typeOfHighRiskRole = selectValidation(
         "Type of high risk role",
-        values.typeOfHighRiskRole
+        values.typeOfHighRiskRole,
       );
       if (!typeOfHighRiskRole.accepted) {
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
@@ -603,7 +606,7 @@ const ProjectSettings = React.memo(
 
       const monitoredRegulationsAndStandards = selectValidation(
         "Applicable regulations",
-        values.monitoredRegulationsAndStandards.length
+        values.monitoredRegulationsAndStandards.length,
       );
       if (!monitoredRegulationsAndStandards.accepted) {
         newErrors.monitoredRegulationsAndStandards =
@@ -638,7 +641,7 @@ const ProjectSettings = React.memo(
           padding: "0 14px",
         },
       }),
-      [theme.palette.background.main]
+      [theme.palette.background.main],
     );
 
     const handleOpenDeleteDialog = useCallback((): void => {
@@ -652,15 +655,16 @@ const ProjectSettings = React.memo(
     const handleSaveConfirm = useCallback(async () => {
       const selectedRiskClass =
         riskClassificationItems.find(
-          (item) => item._id === values.riskClassification
+          (item) => item._id === values.riskClassification,
         )?.name || "";
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
       const selectedStatus =
-        projectStatusItems.find((item) => item._id === values.status)?.name || "";
+        projectStatusItems.find((item) => item._id === values.status)?.name ||
+        "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
-        (reg) => reg.name
+        (reg) => reg.name,
       );
 
       await updateProject({
@@ -732,7 +736,7 @@ const ProjectSettings = React.memo(
         });
         if (!isError) {
           setProjects((prevProjects) =>
-            prevProjects.filter((project) => project.id !== Number(projectId))
+            prevProjects.filter((project) => project.id !== Number(projectId)),
           );
           navigate("/overview");
           setTimeout(() => {
@@ -887,7 +891,7 @@ const ProjectSettings = React.memo(
                     name: fw.name,
                   }))}
                   onChange={handleOnMultiSelect(
-                    "monitoredRegulationsAndStandards"
+                    "monitoredRegulationsAndStandards",
                   )}
                   getOptionLabel={(item: { _id: number; name: string }) =>
                     item.name
@@ -900,7 +904,7 @@ const ProjectSettings = React.memo(
                   }
                   renderOption={(
                     props: any,
-                    option: { _id: number; name: string }
+                    option: { _id: number; name: string },
                   ) => {
                     const isComingSoon = option.name.includes("coming soon");
                     return (
@@ -932,13 +936,18 @@ const ProjectSettings = React.memo(
                   }}
                   isOptionEqualToValue={(
                     option: { _id: number },
-                    value: { _id: number }
+                    value: { _id: number },
                   ) => option._id === value._id}
                   getOptionDisabled={(option: { name: string }) =>
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
+                  popupIcon={
+                    <ChevronDown
+                      size={16}
+                      color={theme.palette.text.tertiary}
+                    />
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -1061,14 +1070,14 @@ const ProjectSettings = React.memo(
               id="users-input"
               size="small"
               value={users.filter((user) =>
-                values.members.includes(Number(user.id))
+                values.members.includes(Number(user.id)),
               )}
               options={
                 users
                   ?.filter(
                     (user) =>
                       user.id !== values.owner &&
-                      !values.members.includes(Number(user.id))
+                      !values.members.includes(Number(user.id)),
                   )
                   .map((user) => ({
                     id: user.id,
@@ -1108,7 +1117,9 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
+              popupIcon={
+                <ChevronDown size={16} color={theme.palette.text.tertiary} />
+              }
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -1186,7 +1197,7 @@ const ProjectSettings = React.memo(
               >
                 AI risk classification
               </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
+              {/* <Typography sx={{ fontSize: theme.typography.fontSize }}>
                 To define the AI risk classification,&nbsp;
                 <Link
                   href="https://artificialintelligenceact.eu/high-level-summary/"
@@ -1196,7 +1207,20 @@ const ProjectSettings = React.memo(
                 >
                   please see this link
                 </Link>
-              </Typography>
+              </Typography> */}
+              <CustomizableButton
+                variant="contained"
+                text="Calculate your AI risk classification"
+                onClick={() => setIsRiskModalOpen(true)}
+                sx={{
+                  width: "255px",
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  "&:hover": {
+                    backgroundColor: "#0F5A48",
+                  },
+                }}
+              />
             </Stack>
             <Select
               id="risk-classification-input"
@@ -1339,9 +1363,30 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
+
+        {/* EU AI Act Risk Analysis Modal */}
+        <RiskAnalysisModal
+          isOpen={isRiskModalOpen}
+          setIsOpen={setIsRiskModalOpen}
+          projectId={projectId}
+          setAlert={setAlert}
+          updateClassification={(classification: string) => {
+            const match = riskClassificationItems.find(
+              (item) => item.name === classification,
+            ); 
+            if(!match) {
+              console.error(`Unknown classification: ${classification}`);
+              return;
+            }
+            setValues({
+              ...values,
+              riskClassification: match._id,
+            })
+          }}
+        />
       </Stack>
     );
-  }
+  },
 );
 
 export default ProjectSettings;

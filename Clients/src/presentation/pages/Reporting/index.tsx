@@ -7,6 +7,8 @@ const ReportingHeader = lazy(
   () => import("../../components/Reporting/ReportOverviewHeader")
 );
 import HelperDrawer from "../../components/HelperDrawer";
+import PageTour from "../../components/PageTour";
+import ReportingSteps from "./ReportingSteps";
 
 const Reporting = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -60,16 +62,20 @@ const Reporting = () => {
         />
       </Suspense>
 
-      <Stack>
+      <Stack data-joyride-id="reports-list">
         <Suspense fallback={"loading..."}>
-          <ReportLists 
+          <ReportLists
             refreshKey={refreshKey}
             generateReportButton={
-              <GenerateReport onReportGenerated={handleReportGenerated} />
+              <div data-joyride-id="generate-report-button">
+                <GenerateReport onReportGenerated={handleReportGenerated} />
+              </div>
             }
           />
         </Suspense>
       </Stack>
+
+      <PageTour steps={ReportingSteps} run={true} tourKey="reporting-tour" />
     </Stack>
   );
 };

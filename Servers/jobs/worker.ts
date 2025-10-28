@@ -1,11 +1,13 @@
 import { Worker } from "bullmq";
 import { createNotificationWorker } from "../services/slack/slackWorker";
+import { createAutomationWorker } from "../services/automations/automationWorker";
 import logger from "../utils/logger/fileLogger";
 
 const notificationWorker = createNotificationWorker();
+const automationWorker = createAutomationWorker();
 
 // Add workers here as you add on new workers within the application
-const workers: Worker[] = [notificationWorker];
+const workers: Worker[] = [notificationWorker, automationWorker];
 
 // Global error handler for all workers
 workers.forEach((worker) => {
@@ -22,5 +24,6 @@ process.on("SIGINT", async () => {
   await Promise.all(workers.map((worker) => worker.close()));
   logger.debug("All workers shut down successfully");
   notificationWorker.close();
+  automationWorker.close();
   process.exit(0);
 });

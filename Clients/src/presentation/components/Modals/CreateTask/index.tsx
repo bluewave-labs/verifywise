@@ -22,7 +22,11 @@ import SelectComponent from "../../Inputs/Select";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ITask } from "../../../../domain/interfaces/i.task";
+import {
+  ICreateTaskFormErrors,
+  ICreateTaskFormValues,
+  ICreateTaskProps,
+} from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -30,40 +34,7 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 
-interface CreateTaskProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: CreateTaskFormValues) => void;
-  initialData?: ITask;
-  mode?: "create" | "edit";
-}
-
-interface CreateTaskFormValues {
-  title: string;
-  description: string;
-  priority: TaskPriority;
-  status: TaskStatus;
-  due_date: string;
-  assignees: Array<{
-    id: number;
-    name: string;
-    surname: string;
-    email: string;
-  }>;
-  categories: string[];
-}
-
-interface CreateTaskFormErrors {
-  title?: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  due_date?: string;
-  assignees?: string;
-  categories?: string;
-}
-
-const initialState: CreateTaskFormValues = {
+const initialState: ICreateTaskFormValues = {
   title: "",
   description: "",
   priority: TaskPriority.MEDIUM,
@@ -85,7 +56,7 @@ const statusOptions = [
   { _id: TaskStatus.COMPLETED, name: "Completed" },
 ];
 
-const CreateTask: FC<CreateTaskProps> = ({
+const CreateTask: FC<ICreateTaskProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
@@ -94,8 +65,8 @@ const CreateTask: FC<CreateTaskProps> = ({
 }) => {
   const theme = useTheme();
   const { users } = useUsers();
-  const [values, setValues] = useState<CreateTaskFormValues>(initialState);
-  const [errors, setErrors] = useState<CreateTaskFormErrors>({});
+  const [values, setValues] = useState<ICreateTaskFormValues>(initialState);
+  const [errors, setErrors] = useState<ICreateTaskFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -115,10 +86,7 @@ const CreateTask: FC<CreateTaskProps> = ({
         assignees: (() => {
           if (!initialData.assignees || !users) return [];
 
-          // Debug: Log the actual data structure
-          console.log("Initial assignees data:", initialData.assignees);
-          console.log("Users data:", users);
-
+          
           // Handle both possible data structures
           return initialData.assignees
             .map((assignee) => {
@@ -176,7 +144,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   }, [isOpen, mode, initialData, users]);
 
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof CreateTaskFormValues) =>
+    (prop: keyof ICreateTaskFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setValues((prev) => ({ ...prev, [prop]: value }));
@@ -186,7 +154,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof CreateTaskFormValues) => (event: any) => {
+    (prop: keyof ICreateTaskFormValues) => (event: any) => {
       const value = event.target.value;
       setValues((prev) => ({ ...prev, [prop]: value }));
       setErrors((prev) => ({ ...prev, [prop]: "" }));
@@ -196,11 +164,21 @@ const CreateTask: FC<CreateTaskProps> = ({
 
   const handleAssigneesChange = useCallback(
     (_event: React.SyntheticEvent, newValue: any[]) => {
-      setValues((prevValues) => ({
-        ...prevValues,
-        assignees: newValue,
-      }));
-      setErrors((prev) => ({ ...prev, assignees: "" }));
+      // Use stable duplicate check with string-based IDs
+      const assigneeIds = newValue.map((a) => String(a.id));
+      const uniqueAssigneeIds = [...new Set(assigneeIds)];
+
+      // If duplicates were found, remove them automatically
+      const uniqueAssignees = uniqueAssigneeIds
+        .map((id) => newValue.find((assignee) => String(assignee.id) === id))
+        .filter(Boolean);
+
+      setValues((prev) => ({ ...prev, assignees: uniqueAssignees }));
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.assignees;
+        return next;
+      });
     },
     []
   );
@@ -216,7 +194,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   }, []);
 
   const validateForm = (): boolean => {
-    const newErrors: CreateTaskFormErrors = {};
+    const newErrors: ICreateTaskFormErrors = {};
 
     const title = checkStringValidation("Task title", values.title, 1, 64);
     if (!title.accepted) {
@@ -243,6 +221,15 @@ const CreateTask: FC<CreateTaskProps> = ({
 
     if (!values.due_date) {
       newErrors.due_date = "Due date is required.";
+    }
+
+    // Validate assignees for duplicates using stable duplicate check
+    if (values.assignees && values.assignees.length > 0) {
+      const assigneeIds = values.assignees.map((a) => String(a.id));
+      const uniqueAssigneeIds = [...new Set(assigneeIds)];
+      if (uniqueAssigneeIds.length !== assigneeIds.length) {
+        newErrors.assignees = "Assignees cannot contain duplicates.";
+      }
     }
 
     setErrors(newErrors);
@@ -281,6 +268,18 @@ const CreateTask: FC<CreateTaskProps> = ({
     isOpen,
     onClose: handleClose,
   });
+
+  // Memoize options computation to avoid remapping on every render
+  const assigneeOptions = useMemo(() => {
+    return (users ?? [])
+      .map((user) => ({
+        id: user.id,
+        name: user.name,
+        surname: user.surname ?? "",
+        email: user.email,
+      }))
+      .filter((u) => !values.assignees?.some((a) => a.id === u.id));
+  }, [users, values.assignees]);
 
   // Create consistent field style
   const fieldStyle = useMemo(
@@ -435,14 +434,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     id="assignees-input"
                     size="small"
                     value={values.assignees}
-                    options={
-                      users?.map((user) => ({
-                        id: user.id,
-                        name: user.name,
-                        surname: user.surname || "",
-                        email: user.email,
-                      })) || []
-                    }
+                    options={assigneeOptions}
                     onChange={handleAssigneesChange}
                     getOptionLabel={(user) =>
                       `${user.name} ${user.surname}`.trim()
@@ -472,17 +464,19 @@ const CreateTask: FC<CreateTaskProps> = ({
                       );
                     }}
                     noOptionsText={
-                      values.assignees.length === users?.length
+                      values.assignees.length === (users?.length ?? 0)
                         ? "All members selected"
                         : "No options"
                     }
-                    filterSelectedOptions
                     popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         placeholder="Select assignees"
                         error={!!errors.assignees}
+                        aria-describedby={
+                          errors.assignees ? "assignees-error" : undefined
+                        }
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             paddingTop: "3.8px !important",
@@ -534,6 +528,21 @@ const CreateTask: FC<CreateTaskProps> = ({
                       },
                     }}
                   />
+                  {errors.assignees && (
+                    <Typography
+                      id="assignees-error"
+                      color="error"
+                      variant="caption"
+                      sx={{
+                        mt: theme.spacing(1),
+                        ml: theme.spacing(1),
+                        color: theme.palette.error.main,
+                        fontSize: theme.typography.caption.fontSize,
+                      }}
+                    >
+                      {errors.assignees}
+                    </Typography>
+                  )}
                 </Stack>
               </Suspense>
 

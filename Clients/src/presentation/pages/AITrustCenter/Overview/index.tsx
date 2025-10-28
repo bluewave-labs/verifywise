@@ -186,8 +186,7 @@ const AITrustCenterOverview: React.FC = () => {
   // Handle save
   const handleSave = async () => {
     try {
-      console.log("Saving AI Trust Centre data:", localFormData);
-
+    
       if(validateForm()){
 
       // Prepare the data to send, ensuring all sections are included
@@ -212,8 +211,7 @@ const AITrustCenterOverview: React.FC = () => {
         setAlert,
       });
 
-      console.log("AI Trust Centre data saved successfully");
-    }
+        }
    } catch (error) {
       console.error("Save failed:", error);
     }

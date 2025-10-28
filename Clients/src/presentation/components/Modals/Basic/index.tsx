@@ -33,14 +33,14 @@ const BasicModal: React.FC<BasicModalProps> = ({
 
   useModalKeyHandling({
     isOpen,
-    onClose: () => setIsOpen(false)
+    onClose: () => setIsOpen(false),
   });
 
   return (
     <Modal
       open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           setIsOpen(false);
         }
       }}
@@ -69,11 +69,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography
-          id="modal-delete-vendor"
-          fontSize={16}
-          fontWeight={600}
-        >
+        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
           {warningTitle}
         </Typography>
         <Typography
@@ -109,7 +105,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             sx={BasicModalDeleteButtonStyle}
             onClick={(e) => onDelete(e)}
           >
-            {`Delete ${type}`}
+            {type === "Incident" ? "Archive incident" : `Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

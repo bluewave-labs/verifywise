@@ -4,6 +4,10 @@ import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
 import { IRisk } from "../domain.layer/interfaces/I.risk";
 import { IProjectFrameworks } from "../domain.layer/interfaces/i.projectFramework";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { buildRiskReplacements, buildRiskUpdateReplacements } from "./automation/risk.automation.utils";
 
 type Mitigation = { id: number, meta_id: number, parent_id: number, sup_id: string, title: string, sub_id: number, project_id: number };
 
@@ -39,10 +43,24 @@ export const validateRiskProjectsQuery = async (
 };
 
 export const getAllRisksQuery = async (
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[]> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".risks ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".risks ${whereClause} ORDER BY created_at DESC, id ASC`,
   ) as [IRisk[], number];
   const projectRisks = result[0]
 
@@ -161,8 +179,22 @@ export const getAllRisksQuery = async (
 
 export const getRisksByProjectQuery = async (
   projectId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[] | null> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE r.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE r.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+
   const result = await sequelize.query(
     `SELECT
       r.*,
@@ -180,6 +212,7 @@ export const getRisksByProjectQuery = async (
       LEFT JOIN "${tenant}".projects p ON pr.project_id = p.id
       LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
       LEFT JOIN public.frameworks f ON fr.framework_id = f.id
+      ${whereClause}
       GROUP BY r.id
       ORDER BY r.created_at DESC, r.id ASC`,
     { replacements: { projectId } }
@@ -189,8 +222,22 @@ export const getRisksByProjectQuery = async (
 
 export const getRisksByFrameworkQuery = async (
   frameworkId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[] | null> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE r.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE r.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+
   const result = await sequelize.query(
     `SELECT
       r.*,
@@ -208,6 +255,7 @@ export const getRisksByFrameworkQuery = async (
     LEFT JOIN "${tenant}".projects p ON pr.project_id = p.id
     LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
     LEFT JOIN public.frameworks f ON fr.framework_id = f.id
+    ${whereClause}
     GROUP BY r.id
     ORDER BY r.created_at DESC, r.id ASC;
     `,
@@ -218,14 +266,30 @@ export const getRisksByFrameworkQuery = async (
 
 export const getRiskByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  includeDeleted: boolean = false
 ): Promise<IRisk | null> => {
+  const whereClause = includeDeleted ? 'WHERE id = :id' : 'WHERE id = :id AND is_deleted = false';
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".risks WHERE id = :id`,
+    `SELECT * FROM "${tenant}".risks ${whereClause}`,
     { replacements: { id } }
   ) as [IRisk[], number];
   const projectRisk = result[0][0];
   if (!projectRisk) return null;
+  const owner_name = await sequelize.query(
+    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+    {
+      replacements: { owner_id: projectRisk.risk_owner }
+    }
+  ) as [{ full_name: string }[], number];
+  (projectRisk as any).owner_name = owner_name[0][0].full_name;
+  const approver_name = await sequelize.query(
+    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+    {
+      replacements: { approver_id: projectRisk.risk_approval }
+    }
+  ) as [{ full_name: string }[], number];
+  (projectRisk as any).approver_name = approver_name[0][0].full_name;
 
   (projectRisk as any).projects = [];
   (projectRisk as any).frameworks = [];
@@ -443,7 +507,54 @@ export const createRiskQuery = async (
   if (projectRisk.frameworks && projectRisk.frameworks.length > 0) {
     await createFrameworkRiskLink(projectRisk.frameworks, result[0].id!, tenant, transaction);
   }
-  return result[0];
+  const createdRisk = result[0];
+
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'risk_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "risk_added") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: createdRisk.dataValues.risk_owner }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const approver_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+        {
+          replacements: { approver_id: createdRisk.dataValues.risk_approval }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildRiskReplacements({
+        ...createdRisk.dataValues,
+        owner_name: owner_name[0][0].full_name,
+        approver_name: approver_name[0][0].full_name,
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return createdRisk;
 };
 
 export const updateRiskByIdQuery = async (
@@ -452,6 +563,7 @@ export const updateRiskByIdQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<RiskModel | null> => {
+  const existingRisk = await getRiskByIdQuery(id, tenant, true);
   const updateProjectRisk: Partial<Record<keyof RiskModel, any>> = {};
   const setClause = [
     "risk_name",
@@ -646,7 +758,53 @@ export const updateRiskByIdQuery = async (
       await createFrameworkRiskLink(projectRisk.frameworks, id, tenant, transaction);
     }
   }
-  return result[0];
+  const updatedRisk = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'risk_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "risk_updated") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: updatedRisk.dataValues.risk_owner }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const approver_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+        {
+          replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildRiskUpdateReplacements(existingRisk, {
+        ...updatedRisk.dataValues,
+        owner_name: owner_name[0][0].full_name,
+        approver_name: approver_name[0][0].full_name,
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return updatedRisk;
 };
 
 export const deleteRiskByIdQuery = async (
@@ -655,14 +813,60 @@ export const deleteRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".risks WHERE id = :id RETURNING *`,
+    `UPDATE "${tenant}".risks SET is_deleted = true, deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND is_deleted = false RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
-      model: RiskModel,
-      type: QueryTypes.DELETE,
+      // model: RiskModel,
+      // type: QueryTypes.UPDATE,
       transaction,
     }
-  );
-  return result.length > 0;
+  ) as [RiskModel[], number];
+  const deletedRisk = result[0][0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'risk_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "risk_deleted") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: deletedRisk.risk_owner }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const approver_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+        {
+          replacements: { approver_id: deletedRisk.risk_approval }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildRiskReplacements({
+        ...deletedRisk,
+        owner_name: owner_name[0][0].full_name,
+        approver_name: approver_name[0][0].full_name,
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return result[0].length > 0;
 };

@@ -31,10 +31,8 @@ import { AssessmentModel } from "../domain.layer/models/assessment/assessment.mo
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { QuestionModel } from "../domain.layer/models/question/question.model";
-import {
-  createOrganizationQuery,
-  getAllOrganizationsQuery,
-} from "./organization.utils";
+import { deleteFileById } from "./fileUpload.utils";
+import { AutomationModel } from "../domain.layer/models/automation/automation.model";
 
 /**
  * Retrieves all users from the database.
@@ -54,7 +52,7 @@ import {
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getAllUsersQuery = async (
-  organization_id: number
+  organization_id: number,
 ): Promise<UserModel[]> => {
   const users = await sequelize.query(
     "SELECT * FROM users WHERE organization_id = :organization_id ORDER BY created_at DESC, id ASC",
@@ -62,7 +60,7 @@ export const getAllUsersQuery = async (
       replacements: { organization_id }, // Assuming you want to fetch users without filtering by organization
       mapToModel: true,
       model: UserModel,
-    }
+    },
   );
   return users;
 };
@@ -80,7 +78,7 @@ export const getAllUsersQuery = async (
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getUserByEmailQuery = async (
-  email: string
+  email: string,
 ): Promise<(UserModel & { role_name: string | null }) | null> => {
   try {
     const [userObj] = await sequelize.query(
@@ -94,7 +92,7 @@ export const getUserByEmailQuery = async (
       {
         replacements: { email },
         type: QueryTypes.SELECT,
-      }
+      },
     );
 
     if (!userObj) {
@@ -135,19 +133,22 @@ export const getUserByEmailQuery = async (
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: number, transaction: Transaction | null = null): Promise<UserModel> => {
-    const users = await sequelize.query<UserModel>(
-        "SELECT * FROM public.users WHERE id = :id",
-        {
-            replacements: { id },
-            model: UserModel,
-            mapToModel: true, // converts results into UserModel instances
-            ...(transaction ? { transaction } : {}) // include transaction if provided
-        }
-    );
+export const getUserByIdQuery = async (
+  id: number,
+  transaction: Transaction | null = null,
+): Promise<UserModel> => {
+  const users = await sequelize.query<UserModel>(
+    "SELECT * FROM public.users WHERE id = :id",
+    {
+      replacements: { id },
+      model: UserModel,
+      mapToModel: true, // converts results into UserModel instances
+      ...(transaction ? { transaction } : {}), // include transaction if provided
+    },
+  );
 
-    // users will be an array. Return first element or null if not found
-    return users[0];
+  // users will be an array. Return first element or null if not found
+  return users[0];
 };
 
 /**
@@ -176,14 +177,14 @@ export const getUserByIdOrThrow = async (id: number): Promise<UserModel> => {
 
 export const doesUserBelongsToOrganizationQuery = async (
   userId: number,
-  organizationId: number
+  organizationId: number,
 ) => {
-  const result = await sequelize.query(
+  const result = (await sequelize.query(
     "SELECT COUNT(*) > 0 AS belongs FROM public.users WHERE id = :userId AND organization_id = :organizationId",
     {
-      replacements: { userId, organizationId }
-    }
-  ) as [{ belongs: boolean }[], number];
+      replacements: { userId, organizationId },
+    },
+  )) as [{ belongs: boolean }[], number];
   return result[0][0];
 };
 
@@ -210,9 +211,10 @@ export const doesUserBelongsToOrganizationQuery = async (
 export const createNewUserQuery = async (
   user: Omit<UserModel, "id">,
   transaction: Transaction,
-  is_demo: boolean = false
+  is_demo: boolean = false,
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id, organization_id } = user;
+  const { name, surname, email, password_hash, role_id, organization_id } =
+    user;
   const created_at = new Date();
   const last_login = new Date();
 
@@ -230,13 +232,13 @@ export const createNewUserQuery = async (
           created_at,
           last_login,
           is_demo,
-          organization_id
+          organization_id,
         },
         mapToModel: true,
         model: UserModel,
         // type: QueryTypes.INSERT
         transaction,
-      }
+      },
     );
 
     return result[0];
@@ -258,7 +260,7 @@ export const createNewUserQuery = async (
 export const resetPasswordQuery = async (
   email: string,
   newPassword: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<UserModel> => {
   const result = await sequelize.query(
     `UPDATE users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
@@ -271,7 +273,7 @@ export const resetPasswordQuery = async (
       model: UserModel,
       // type: QueryTypes.UPDATE
       transaction,
-    }
+    },
   );
   return result[0];
 };
@@ -296,7 +298,7 @@ export const resetPasswordQuery = async (
 export const updateUserByIdQuery = async (
   id: number,
   user: Partial<UserModel>,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<UserModel> => {
   const updateUser: Partial<Record<keyof UserModel, any>> = {};
   const setClause = ["name", "surname", "email", "role_id", "last_login"]
@@ -341,7 +343,7 @@ export const updateUserByIdQuery = async (
 export const deleteUserByIdQuery = async (
   id: number,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<Boolean> => {
   const usersFK = [
     {
@@ -367,6 +369,7 @@ export const deleteUserByIdQuery = async (
     },
     { table: "vendorrisks", model: VendorRiskModel, fields: ["action_owner"] },
     { table: "files", model: FileModel, fields: ["uploaded_by"] },
+    { table: "automations", model: AutomationModel, fields: ["created_by"] }
   ];
 
   for (let entry of usersFK) {
@@ -378,9 +381,9 @@ export const deleteUserByIdQuery = async (
             replacements: { x: null, id },
             // type: QueryTypes.UPDATE
             transaction,
-          }
+          },
         );
-      })
+      }),
     );
   }
 
@@ -390,7 +393,7 @@ export const deleteUserByIdQuery = async (
       replacements: { user_id: id },
       type: QueryTypes.DELETE,
       transaction,
-    }
+    },
   );
   const result = await sequelize.query(
     "DELETE FROM users WHERE id = :id RETURNING *",
@@ -400,7 +403,7 @@ export const deleteUserByIdQuery = async (
       model: UserModel,
       type: QueryTypes.DELETE,
       transaction,
-    }
+    },
   );
   return result.length > 0;
 };
@@ -424,7 +427,7 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
       "SELECT COUNT(*) FROM users",
       {
         type: QueryTypes.SELECT,
-      }
+      },
     );
     return result[0].count > 0;
   } catch (error) {
@@ -442,7 +445,7 @@ export const getUserProjects = async (userId: number, tenant: string) => {
       replacements: { user_id: userId },
       mapToModel: true,
       model: ProjectModel,
-    }
+    },
   );
   return result;
 };
@@ -454,7 +457,7 @@ export const getControlCategoriesForProject = async (id: number) => {
       replacements: { project_id: id },
       mapToModel: true,
       model: ControlCategoryModel,
-    }
+    },
   );
   return result;
 };
@@ -466,7 +469,7 @@ export const getControlForControlCategory = async (id: number) => {
       replacements: { control_category_id: id },
       mapToModel: true,
       model: ControlModel,
-    }
+    },
   );
   return result;
 };
@@ -478,7 +481,7 @@ export const getSubControlForControl = async (id: number) => {
       replacements: { control_id: id },
       mapToModel: true,
       model: SubcontrolModel,
-    }
+    },
   );
   return result;
 };
@@ -490,7 +493,7 @@ export const getAssessmentsForProject = async (id: number) => {
       replacements: { project_id: id },
       mapToModel: true,
       model: AssessmentModel,
-    }
+    },
   );
   return result;
 };
@@ -502,7 +505,7 @@ export const getTopicsForAssessment = async (id: number) => {
       replacements: { assessment_id: id },
       mapToModel: true,
       model: TopicModel,
-    }
+    },
   );
   return result;
 };
@@ -514,7 +517,7 @@ export const getSubTopicsForTopic = async (id: number) => {
       replacements: { topic_id: id },
       mapToModel: true,
       model: SubtopicModel,
-    }
+    },
   );
   return result;
 };
@@ -526,7 +529,80 @@ export const getQuestionsForSubTopic = async (id: number) => {
       replacements: { subtopic_id: id },
       mapToModel: true,
       model: QuestionModel,
-    }
+    },
   );
   return result;
+};
+
+export const uploadUserProfilePhotoQuery = async (
+  userId: number,
+  fileId: number,
+  tenant: string,
+  transaction: Transaction,
+) => {
+  // Get current profile photo ID if exists
+  const getPhotoQuery = `SELECT profile_photo_id FROM users WHERE id = :userId;`;
+  const currentPhoto = (await sequelize.query(getPhotoQuery, {
+    replacements: { userId },
+    transaction,
+  })) as [{ profile_photo_id: number | null }[], number];
+  const deleteFileId = currentPhoto[0][0]?.profile_photo_id;
+
+  // Update user's profile_photo_id
+  const updatePhotoQuery = `UPDATE users SET profile_photo_id = :fileId WHERE id = :userId RETURNING profile_photo_id;`;
+  const result = (await sequelize.query(updatePhotoQuery, {
+    replacements: { fileId, userId },
+    transaction,
+  })) as [{ profile_photo_id: number }[], number];
+
+  // Delete old file if it exists
+  if (deleteFileId) {
+    await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return result[0][0];
+};
+
+export const getUserProfilePhotoQuery = async (
+  userId: number,
+  tenant: string,
+) => {
+  const result = (await sequelize.query(
+    `SELECT f.content, f.type
+     FROM users u
+     INNER JOIN "${tenant}".files f ON u.profile_photo_id = f.id
+     WHERE u.id = :userId
+     LIMIT 1;`,
+    { replacements: { userId } },
+  )) as [{ content: Buffer; type: string }[], number];
+
+  return result[0][0] || null;
+};
+
+export const deleteUserProfilePhotoQuery = async (
+  userId: number,
+  tenant: string,
+  transaction: Transaction,
+) => {
+  // Get current profile photo ID
+  const currentPhoto = (await sequelize.query(
+    `SELECT profile_photo_id FROM users WHERE id = :userId;`,
+    { replacements: { userId }, transaction },
+  )) as [{ profile_photo_id: number | null }[], number];
+
+  const deleteFileId = currentPhoto[0][0]?.profile_photo_id;
+
+  // Set profile_photo_id to NULL
+  const result = (await sequelize.query(
+    `UPDATE users SET profile_photo_id = NULL WHERE id = :userId RETURNING profile_photo_id;`,
+    { replacements: { userId }, transaction },
+  )) as [{ profile_photo_id: number | null }[], number];
+
+  // Delete the file if it exists
+  let deleted = false;
+  if (deleteFileId) {
+    deleted = await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return deleted && result[0][0].profile_photo_id === null;
 };

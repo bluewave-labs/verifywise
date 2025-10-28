@@ -7,29 +7,28 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { Autocomplete, Stack, Typography, useTheme, SelectChangeEvent, TextField } from "@mui/material";
 import CustomizableButton from "../../../Button/CustomizableButton";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle, selectReportStyle } from "./styles";
+import { styles, fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
-const MultiSelect = lazy(() => import("../../../Inputs/Select/Multi"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 /**
  * Set form values
  */
 interface FormValues {
-  report_type: string | string[];
+  report_type: string[];
   report_name: string;
-  project: number;
+  project: number | null;
   framework: number;
   projectFrameworkId: number;
   reportType?: 'project' | 'organization' | null;
 }
 
 interface FormErrors {
-  report_type?: string | string[];
+  report_type?: string;
   report_name?: string;
   project?: string;
   framework?: string;
@@ -39,7 +38,7 @@ interface FormErrors {
 const initialState: FormValues = {
   report_type: ["Project risks report"],
   report_name: "",
-  project: 1,
+  project: null,
   framework: 1,
   projectFrameworkId: 1,
 };
@@ -68,7 +67,6 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({
     ...initialState,
-    project: dashboardValues.projects[0].id,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
@@ -77,15 +75,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     const availableTypes =
       values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
 
-    if (!availableTypes.includes(values.report_type as string)) {
+    if (!availableTypes.includes(values.report_type as unknown as string)) {
       setValues((prev) => ({
         ...prev,
-        report_type: [availableTypes[0]], // reset to the first valid type
+        report_type: [availableTypes[0]],
       }));
 
       setErrors((prev) => ({
         ...prev,
-        report_type: undefined, // clear any error
+        report_type: undefined,
       }));
     }
   }, [values.framework]);
@@ -100,7 +98,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number | (string | number)[]>) => {
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     },
@@ -119,6 +117,23 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
       : [initialFrameworkValue];
   }, [dashboardValues.projects, values.project]);
 
+  const organizationalProjects = useMemo(() => {
+    return (dashboardValues.projects || []).filter((p: any) => p.is_organizational === true);
+  }, [dashboardValues.projects]);
+
+  const organizationFrameworks = useMemo<FrameworkValues[]>(() => {
+    const allFrameworks: FrameworkValues[] = (dashboardValues.projects || [])
+      .flatMap((p: any) => Array.isArray(p.framework) ? p.framework : [])
+      .filter((f: any): f is FrameworkValues => typeof f?.framework_id === "number" && !!f?.name && f.framework_id !== 1);
+
+    const deduped = new Map<number, FrameworkValues>();
+    for (const f of allFrameworks) {
+      if (!deduped.has(f.framework_id)) deduped.set(f.framework_id, f);
+    }
+    const list = Array.from(deduped.values());
+    return list.length > 0 ? list : [initialFrameworkValue];
+  }, [dashboardValues.projects]);
+
   const projectFrameworkId = useMemo(() => {
     return (
       projectFrameworks.find((pf) => pf.framework_id === values.framework)
@@ -126,17 +141,17 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     );
   }, [projectFrameworks, values.framework]);
 
-  // Force EU AI Act framework for filtered projects
-  useEffect(() => {
-    setValues((prev) => ({ ...prev, framework: 1 }));
-  }, [values.project]);
-
   const handleFormSubmit = () => {
     const normalizedReportType = Array.isArray(values.report_type)
       ? values.report_type.length === 1
         ? values.report_type[0]
         : values.report_type
       : values.report_type;
+
+    
+    if (reportType === 'organization') {
+      values.project = organizationalProjects[0].id;
+    }
 
     const newValues = {
       ...values,
@@ -170,7 +185,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
                 id="project-input"
                 label="Project"
                 placeholder="Select project"
-                value={values.project}
+                value={values.project ?? ""}
                 onChange={handleOnSelectChange("project")}
                 items={
                   euActProjects?.map(
@@ -201,7 +216,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
               value={values.framework}
               onChange={handleOnSelectChange("framework")}
               items={
-                projectFrameworks?.map((framework) => ({
+                organizationFrameworks?.map((framework) => ({
                   _id: framework.framework_id,
                   name: framework.name,
                   projectFrameworkId: framework.project_framework_id,
@@ -220,21 +235,24 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <MultiSelect
-              label="Report Type"
-              placeholder="Select report type"
-              value={values.report_type}
-              onChange={handleOnSelectChange("report_type")}
-              items={(values.framework === 1
-                ? EUAI_REPORT_TYPES
-                : ISO_REPORT_TYPES
-              ).map((type) => ({
-                _id: type, // unique key / value
-                name: type, // display name
-              }))}
-              sx={selectReportStyle}
-              error={errors.report_type as string | undefined}
-              required={true}
+          <Typography sx={{ fontSize: "12px", fontWeight: 500, mb: 2 }}>
+            Report Type *
+          </Typography>
+            <Autocomplete
+              multiple
+              id="report-type"
+              options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+              value={Array.isArray(values.report_type) ? values.report_type : []}
+              onChange={(_event, newValue) => {
+                setValues({ ...values, report_type: newValue });
+                setErrors({ ...errors, report_type: "" });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  size="small"
+                />
+              )}
             />
           </Suspense>
         </Stack>

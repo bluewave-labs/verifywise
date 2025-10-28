@@ -3,6 +3,9 @@ export const EUAI_REPORT_TYPES = [
   "Compliance tracker report",
   "Assessment tracker report",
   "Vendors and risks report",
+  "Training registry report",
+  "Policy manager report",
+  "Models and risks report",
   "All reports combined in one file"
 ]
 

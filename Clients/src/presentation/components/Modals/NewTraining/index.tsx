@@ -179,7 +179,8 @@ const NewTraining: FC<NewTrainingProps> = ({
   }, [setIsOpen]);
 
   // Submit: With error boundary (Defensive Programming)
-  const handleSubmit = useCallback((event?: React.FormEvent) => {
+  // Await the onSuccess callback and only close modal on success
+  const handleSubmit = useCallback(async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
 
     if (!validateForm()) return;
@@ -192,20 +193,26 @@ const NewTraining: FC<NewTrainingProps> = ({
     }
 
     try {
-      // Call success callback with validated data
-      onSuccess({
+      // Call success callback with validated data and await result
+      const success = await onSuccess({
         ...values,
-        numberOfPeople: values.numberOfPeople,
-        duration: values.duration,
-        description: values.description,
       });
-      handleClose();
+
+      // Only close modal if save was successful
+      if (success) {
+        handleClose();
+      } else {
+        // Failed to save - keep modal open, show generic error if parent didn't set specific one
+        console.warn('[NewTraining] Save operation failed, keeping modal open');
+        // Parent handler is responsible for setting the specific error alert
+      }
     } catch (error) {
-      // Defensive: Catch errors from parent callback
+      // Defensive: Catch errors from parent callback (if they throw instead of returning false)
       console.error('[NewTraining] Error in onSuccess callback:', error);
       setErrors({
         training_name: 'An error occurred while saving. Please try again.',
       });
+      // Keep modal open to preserve user input
     }
   }, [values, onSuccess, handleClose]);
 

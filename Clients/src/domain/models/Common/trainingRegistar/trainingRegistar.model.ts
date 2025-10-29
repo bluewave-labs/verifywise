@@ -2,11 +2,12 @@ import { TrainingStatus } from "../../../enums/status.enum";
 
 /**
  * Props for the NewTraining component
+ * onSuccess: Returns Promise<boolean> - true on successful save, false on failure
  */
 export interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarModel>) => void;
+  onSuccess?: (data: Partial<TrainingRegistarModel>) => Promise<boolean>;
   initialData?: Partial<TrainingRegistarModel>;
   isEdit?: boolean;
 }

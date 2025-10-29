@@ -186,9 +186,10 @@ const Training: React.FC = () => {
 
   // Handler: Create/Update training with proper typing and defensive programming
   // ENTERPRISE: Handle response differences between create/update APIs
+  // Returns Promise<boolean>: true on success, false on failure
   const handleTrainingSuccess = useCallback(async (
     formData: Partial<TrainingRegistarModel>
-  ) => {
+  ): Promise<boolean> => {
     try {
       // DEFENSIVE: formData already has numberOfPeople from model
       // Server expects numberOfPeople (controller maps it to 'people' for DB)
@@ -200,7 +201,7 @@ const Training: React.FC = () => {
         if (!selectedTraining.id) {
           console.error('[Training] Cannot update training without ID:', selectedTraining);
           setAlert(createAlert('error', 'Cannot update training: Missing ID'));
-          return;
+          return false;
         }
 
         // Update existing training
@@ -224,6 +225,7 @@ const Training: React.FC = () => {
         setAlert(createAlert('success', successMessage));
         await fetchTrainingData();
         handleCloseModal();
+        return true;
       } else {
         // API returned but without data - unexpected state
         console.warn('[Training] API response missing data');
@@ -233,6 +235,7 @@ const Training: React.FC = () => {
             ? "Failed to update training. Please try again."
             : "Failed to create training. Please try again."
         ));
+        return false;
       }
     } catch (error) {
       console.error('[Training] Error saving training:', error);
@@ -246,6 +249,7 @@ const Training: React.FC = () => {
           ? "Failed to update training. Please try again."
           : "Failed to create training. Please try again."
       ));
+      return false;
     }
   }, [selectedTraining, fetchTrainingData]);
 

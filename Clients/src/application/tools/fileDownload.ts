@@ -1,5 +1,5 @@
 import { generateReport } from "../repository/entity.repository";
-import { getFileById } from "../repository/file.repository";
+import { downloadFileFromManager } from "../repository/file.repository";
 import { triggerBrowserDownload } from "../../presentation/utils/browserDownload.utils";
 
 interface GenerateReportProps {
@@ -21,9 +21,8 @@ interface GenerateReportProps {
  */
 export const handleDownload = async (fileId: string, fileName: string): Promise<void> => {
   try {
-   const response = await getFileById({
+   const response = await downloadFileFromManager({
       id: typeof fileId === 'string' ? fileId : String(fileId),
-      responseType: "blob",
     });
     const blob = new Blob([response], { type: response.type });
     const url = window.URL.createObjectURL(blob);

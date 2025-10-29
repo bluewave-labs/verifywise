@@ -29,6 +29,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
+import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 
 const titleOfTableColumns = [
   "name",
@@ -38,13 +39,6 @@ const titleOfTableColumns = [
   "review date",
   "",
 ];
-
-export interface ITableWithPlaceholderProps {
-  vendors: VendorModel[];
-  users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
-}
 
 const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   users,

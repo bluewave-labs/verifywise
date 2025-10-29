@@ -1,6 +1,8 @@
+import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { FileData } from "../types/File";
 import { ProjectRisk } from "../types/ProjectRisk";
 import { User } from "../types/User";
+import { VendorRisk } from "../types/VendorRisk";
 import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
@@ -174,6 +176,15 @@ export interface IReportTablePropsExtended {
   setCurrentPagingation: (pageNo: number) => void;
 }
 
+export interface IRiskTableProps {
+  users: User[];
+  vendors: VendorModel[];
+  vendorRisks: VendorRisk[];
+  onDelete: (riskId: number) => void;
+  onEdit: (riskId: number) => void;
+  isDeletingAllowed?: boolean;
+}
+
 export interface ITasksTableProps {
   tasks: ITask[];
   users: User[];
@@ -183,4 +194,11 @@ export interface ITasksTableProps {
   statusOptions: string[];
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
+}
+
+export interface ITableWithPlaceholderProps {
+  vendors: VendorModel[];
+  users: User[];
+  onDelete: (vendorId: number) => void;
+  onEdit: (vendorId: number) => void;
 }

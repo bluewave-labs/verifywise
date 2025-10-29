@@ -23,6 +23,7 @@ import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
+import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -38,15 +39,6 @@ const titleOfTableColumns = [
   "risk level",
   " ",
 ];
-
-export interface IRiskTableProps {
-  users: User[];
-  vendors: VendorModel[];
-  vendorRisks: VendorRisk[];
-  onDelete: (riskId: number) => void;
-  onEdit: (riskId: number) => void;
-  isDeletingAllowed?: boolean;
-}
 
 const RiskTable: React.FC<IRiskTableProps> = ({
   users,

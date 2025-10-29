@@ -46,6 +46,12 @@ export class TrainingRegistarModel {
   description!: string;
 
   constructor(data: Partial<TrainingRegistarModel>) {
+
+    if (!data.training_name || !data.duration || !data.provider || !data.department || !data.status) {
+        throw new Error('Missing required fields for TrainingRegistarModel');
+    }
+
+
     this.id = data.id;
     this.training_name = data.training_name!;
     this.duration = data.duration!;

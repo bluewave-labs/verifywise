@@ -28,7 +28,7 @@ import { UserPlus as GroupsIcon, ChevronsUpDown as SelectorVertical, Trash2 as D
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import { handleAlert } from "../../../../application/tools/alertUtils";
+import { handleAlertModel } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
@@ -38,6 +38,8 @@ import {
 } from "../../../../application/repository/user.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { UserModel } from "../../../../domain/models/Common/user/user.model";
+import { AlertModel } from "../../../../domain/models/Common/alert/alert.model";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -59,11 +61,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
   const { roles, loading: rolesLoading } = useRoles();
 
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertModel | null>(null);
 
   const roleItems = useMemo(
     () => roles.map((role) => ({ _id: role.id, name: role.name })),
@@ -93,26 +91,35 @@ const TeamManagement: React.FC = (): JSX.Element => {
           (user) => user.id.toString() === memberId
         );
         if (!member) {
-          setAlert({
-            variant: "error",
-            body: "User not found.",
-          });
+          const errorAlert = AlertModel.createErrorAlert(
+            "Error",
+            "User not found."
+          );
+          setAlert(errorAlert);
           setTimeout(() => setAlert(null), 3000);
           return;
         }
 
+        const updatedUser = UserModel.createNewUser({
+          id: parseInt(memberId),
+          name: member.name,
+          surname: member.surname,
+          email: member.email,
+          roleId: parseInt(newRole),
+        } as UserModel);
+
         const response = await updateUserById({
           userId: parseInt(memberId),
           userData: {
-            name: member.name,
-            surname: member.surname,
-            email: member.email,
-            roleId: parseInt(newRole),
+            name: updatedUser.name,
+            surname: updatedUser.surname,
+            email: updatedUser.email,
+            roleId: updatedUser.roleId,
           },
         });
 
         if (response.status === 202) {
-          handleAlert({
+          handleAlertModel({
             variant: "success",
             body: "User role updated successfully.",
             setAlert,
@@ -123,20 +130,21 @@ const TeamManagement: React.FC = (): JSX.Element => {
             refreshUsers();
           }, 500);
         } else {
-          setAlert({
-            variant: "error",
-            body: (response as any)?.data?.message || "An error occurred.",
-          });
+          const errorAlert = AlertModel.createErrorAlert(
+            "Error",
+            (response as any)?.data?.message || "An error occurred."
+          );
+          setAlert(errorAlert);
           setTimeout(() => setAlert(null), 3000);
         }
       } catch (error) {
-        setAlert({
-          variant: "error",
-          body: `An error occurred: ${
+        const errorAlert = AlertModel.createErrorAlert(
+          "Error",
+          `An error occurred: ${
             (error as Error).message || "Please try again."
-          }`,
-        });
-
+          }`
+        );
+        setAlert(errorAlert);
         setTimeout(() => setAlert(null), 3000);
       }
     },
@@ -159,21 +167,21 @@ const TeamManagement: React.FC = (): JSX.Element => {
       });
 
       if (response && response.status === 202) {
-        handleAlert({
+        handleAlertModel({
           variant: "success",
           body: "User deleted successfully",
           setAlert,
         });
         refreshUsers();
       } else {
-        handleAlert({
+        handleAlertModel({
           variant: "error",
           body: "User deletion failed",
           setAlert,
         });
       }
     } catch (error) {
-      handleAlert({
+      handleAlertModel({
         variant: "error",
         body: `An error occurred: ${
           (error as Error).message || "Please try again."
@@ -253,20 +261,20 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ) => {
   
     if (status === 200) {
-      handleAlert({
+      handleAlertModel({
         variant: "success",
         body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
         setAlert,
       });
     } else if (status === 206) {
-      handleAlert({
+      handleAlertModel({
         variant: "info",
         body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
         setAlert,
         alertTimeout: 20000,
       });
     } else {
-      handleAlert({
+      handleAlertModel({
         variant: "error",
         body: `Failed to send invitation to ${email}. Please try again.`,
         setAlert,

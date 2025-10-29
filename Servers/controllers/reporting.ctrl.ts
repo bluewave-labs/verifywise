@@ -23,7 +23,7 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
-function mapReportTypeToFileSource(
+export function mapReportTypeToFileSource(
   reportType: string | string[]
 ):
   | "Project risks report"

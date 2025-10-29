@@ -7,7 +7,8 @@ const sendEmail = async (data: Object) => {
   sendAutomationEmail(
     (data as any).to as string[],
     (data as any).subject,
-    htmlBody
+    htmlBody,
+    (data as any).attachments
   );
 }
 

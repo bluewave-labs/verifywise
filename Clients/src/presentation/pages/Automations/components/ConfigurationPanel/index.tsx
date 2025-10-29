@@ -18,6 +18,8 @@ import TemplateField from '../../../../components/Inputs/TemplateField';
 import CustomizableMultiSelect from '../../../../components/Inputs/Select/Multi';
 import { Trigger, Action, TriggerTemplate, ActionTemplate, ConfigurationField } from '../../../../../domain/types/Automation';
 import useUsers from '../../../../../application/hooks/useUsers';
+import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from '../../../../components/Reporting/GenerateReport/constants';
+import { Project, FrameworkValues } from '../../../../../application/interfaces/appStates';
 
 interface ConfigurationPanelProps {
   selectedItem: Trigger | Action | null;
@@ -28,6 +30,7 @@ interface ConfigurationPanelProps {
   onConfigurationChange: (configuration: Record<string, any>) => void;
   automationName?: string;
   onAutomationNameChange?: (newName: string) => void;
+  projects?: Project[];
 }
 
 const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
@@ -39,6 +42,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   onConfigurationChange,
   automationName,
   onAutomationNameChange,
+  projects = [],
 }) => {
   const theme = useTheme();
   const [configuration, setConfiguration] = useState<Record<string, any>>({});
@@ -52,11 +56,87 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
     if (!selectedItem) return null;
 
     if (selectedItemType === 'trigger') {
-      return triggerTemplates.find(t => t.type === selectedItem.type);
+      const triggerTemplate = triggerTemplates.find(t => t.type === selectedItem.type);
+      // If this is a scheduled_report trigger, populate project options dynamically
+      if (triggerTemplate && triggerTemplate.type === 'scheduled_report') {
+        const updatedTemplate = { ...triggerTemplate };
+        const reportLevel = configuration?.reportLevel || selectedItem.configuration?.reportLevel || 'project';
+        const selectedFramework = configuration?.framework || selectedItem.configuration?.framework || 1;
+
+        // Filter projects to only show EU AI Act projects (framework_id === 1)
+        const euActProjects = Array.isArray(projects)
+          ? projects.filter((project: Project) =>
+              project.framework?.some(f => f.framework_id === 1)
+            )
+          : [];
+
+        // Get ISO frameworks (framework_id !== 1) from all projects
+        const allFrameworks: FrameworkValues[] = Array.isArray(projects)
+          ? projects
+              .flatMap((p: Project) => Array.isArray(p.framework) ? p.framework : [])
+              .filter((f: FrameworkValues) =>
+                typeof f?.framework_id === "number" && !!f?.name && f.framework_id !== 1
+              )
+          : [];
+
+        // Deduplicate frameworks by framework_id
+        const frameworkMap = new Map<number, FrameworkValues>();
+        for (const f of allFrameworks) {
+          if (!frameworkMap.has(f.framework_id)) {
+            frameworkMap.set(f.framework_id, f);
+          }
+        }
+        const isoFrameworks = Array.from(frameworkMap.values());
+
+        updatedTemplate.configurationSchema = triggerTemplate.configurationSchema.map(field => {
+          // Populate project dropdown with EU AI Act projects only
+          if (field.key === 'projectId') {
+            return {
+              ...field,
+              options: euActProjects.map(project => ({
+                value: project.id.toString(),
+                label: project.project_title || `Project ${project.id}`,
+              })),
+            };
+          }
+
+          // Populate framework dropdown with ISO frameworks only
+          if (field.key === 'framework') {
+            return {
+              ...field,
+              options: isoFrameworks.map(framework => ({
+                value: framework.framework_id,
+                label: framework.name,
+              })),
+            };
+          }
+
+          // Filter report types based on framework selection
+          if (field.key === 'reportType') {
+            // For project level (always EU AI Act), use EUAI_REPORT_TYPES
+            // For organization level (ISO frameworks), use ISO_REPORT_TYPES
+            const reportTypes = reportLevel === 'organization' || selectedFramework !== 1
+              ? ISO_REPORT_TYPES
+              : EUAI_REPORT_TYPES;
+
+            return {
+              ...field,
+              options: reportTypes.map(type => ({
+                value: type,
+                label: type,
+              })),
+            };
+          }
+
+          return field;
+        });
+        return updatedTemplate;
+      }
+      return triggerTemplate;
     } else {
       return actionTemplates.find(a => a.type === selectedItem.type);
     }
-  }, [selectedItem, selectedItemType, triggerTemplates, actionTemplates]);
+  }, [selectedItem, selectedItemType, triggerTemplates, actionTemplates, projects, configuration]);
 
   // Initialize configuration when selectedItem changes
   useEffect(() => {
@@ -67,7 +147,18 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
   // Handle configuration field changes
   const handleFieldChange = (fieldKey: string, value: any) => {
-    const newConfiguration = { ...configuration, [fieldKey]: value };
+    let newConfiguration = { ...configuration, [fieldKey]: value };
+
+    // If report level changes, clear the report type selection
+    if (fieldKey === 'reportLevel' && trigger?.type === 'scheduled_report') {
+      newConfiguration = { ...newConfiguration, reportType: [] };
+    }
+
+    // If framework changes, clear the report type selection
+    if (fieldKey === 'framework' && trigger?.type === 'scheduled_report') {
+      newConfiguration = { ...newConfiguration, reportType: [] };
+    }
+
     setConfiguration(newConfiguration);
     onConfigurationChange(newConfiguration);
   };
@@ -113,6 +204,32 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   // Render different field types
   const renderField = (field: ConfigurationField) => {
     const value = configuration[field.key] ?? '';
+
+    // For scheduled_report trigger, conditionally show fields based on reportLevel
+    if (trigger?.type === 'scheduled_report') {
+      // Hide projectId field if reportLevel is 'organization'
+      if (field.key === 'projectId' && configuration['reportLevel'] === 'organization') {
+        return null;
+      }
+
+      // Hide framework field if reportLevel is 'project'
+      if (field.key === 'framework' && configuration['reportLevel'] === 'project') {
+        return null;
+      }
+
+      // Conditionally show day fields based on frequency
+      if (field.key === 'dayOfWeek' && configuration['frequency'] !== 'weekly') {
+        return null; // Only show dayOfWeek for weekly frequency
+      }
+      if (field.key === 'dayOfMonth' && configuration['frequency'] !== 'monthly') {
+        return null; // Only show dayOfMonth for monthly frequency
+      }
+      // Hide hour and minute for weekly and monthly frequencies
+      if ((field.key === 'hour' || field.key === 'minute') &&
+          (configuration['frequency'] === 'weekly' || configuration['frequency'] === 'monthly')) {
+        return null;
+      }
+    }
 
     switch (field.type) {
       case 'text':
@@ -512,6 +629,35 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           ...vendorVariables,
           { var: '{{vendor.review_date}}', desc: 'Scheduled review date' },
           { var: '{{vendor.reviewer}}', desc: 'Assigned reviewer' },
+          ...commonVariables,
+        ];
+
+      case 'scheduled_report':
+        // Base variables available for all reports
+        const baseReportVariables = [
+          { var: '{{report.type}}', desc: 'Type of report being generated' },
+          { var: '{{schedule.frequency}}', desc: 'Report frequency (daily/weekly/monthly)' },
+        ];
+
+        // Project-level variables (only if project-level report is selected)
+        const projectLevelVariables = trigger.configuration?.reportLevel !== 'organization' ? [
+          { var: '{{project.title}}', desc: 'Project title' },
+          { var: '{{project.owner}}', desc: 'Project owner' },
+          { var: '{{project.goal}}', desc: 'Project goal' },
+          { var: '{{project.start_date}}', desc: 'Project start date' },
+          { var: '{{project.ai_risk_classification}}', desc: 'AI risk classification' },
+          { var: '{{project.status}}', desc: 'Project status' },
+        ] : [];
+
+        // Organization-level variables
+        const orgVariables = [
+          { var: '{{organization.name}}', desc: 'Organization name' },
+        ];
+
+        return [
+          ...baseReportVariables,
+          ...projectLevelVariables,
+          ...orgVariables,
           ...commonVariables,
         ];
 

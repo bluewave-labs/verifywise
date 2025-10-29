@@ -1,6 +1,30 @@
 import { TrainingStatus } from "../../../enums/status.enum";
 
 /**
+ * Props for the NewTraining component
+ */
+export interface NewTrainingProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSuccess?: (data: Partial<TrainingRegistarModel>) => void;
+  initialData?: Partial<TrainingRegistarModel>;
+  isEdit?: boolean;
+}
+
+/**
+ * Form validation errors for training registrar form
+ */
+export interface NewTrainingFormErrors {
+  training_name?: string;
+  duration?: string;
+  provider?: string;
+  department?: string;
+  status?: string;
+  numberOfPeople?: string;
+  description?: string;
+}
+
+/**
  * TrainingRegistarModel - Client-side model for training registry
  *
  * ARCHITECTURE DECISION: Uses 'numberOfPeople' to match API contract

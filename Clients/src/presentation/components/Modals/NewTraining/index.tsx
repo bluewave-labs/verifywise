@@ -16,7 +16,11 @@ import Select from "../../Inputs/Select";
 import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-import { TrainingRegistarModel } from "../../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import {
+  TrainingRegistarModel,
+  NewTrainingProps,
+  NewTrainingFormErrors
+} from "../../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../../domain/enums/status.enum";
 
 // Constants for validation (DRY + Maintainability)
@@ -30,24 +34,6 @@ const ERROR_MESSAGES = {
   INVALID_DURATION: "Invalid duration format. Use formats like '2 hours, 3 days, 4 weeks'.",
   INVALID_PEOPLE_COUNT: "Number of people is required and must be a positive number.",
 } as const;
-
-interface NewTrainingProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarModel>) => void;
-  initialData?: Partial<TrainingRegistarModel>;
-  isEdit?: boolean;
-}
-
-interface NewTrainingFormErrors {
-  training_name?: string;
-  duration?: string;
-  provider?: string;
-  department?: string;
-  status?: string;
-  numberOfPeople?: string;
-  description?: string;
-}
 
 type FormField = keyof NewTrainingFormErrors;
 

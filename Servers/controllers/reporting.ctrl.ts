@@ -12,7 +12,7 @@ import {
 } from "../utils/reporting.utils";
 import { marked } from "marked";
 import { sequelize } from "../database/db";
-const htmlDocx = require("html-to-docx");
+const htmlDocx = require("html-to-docx-lite");
 import { getOrganizationByIdQuery } from "../utils/organization.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import {
@@ -124,7 +124,8 @@ export async function generateReports(
       req.tenantId!
     );
     const markdownDoc = await marked.parse(markdownData); // markdown file
-    const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
+    const docxBlob = await htmlDocx(markdownDoc); // convert markdown to docx
+    const generatedDoc = Buffer.from(await docxBlob.arrayBuffer()); // convert Blob to Buffer
 
     let defaultFileName = getFormattedReportName(reportName, reportType);
     const docFile = {
@@ -274,7 +275,6 @@ export async function deleteGeneratedReportById(
   logger.debug(`🗑️ Deleting generated report ID ${reportId}`);
 
   try {
-
     const report = await getReportByIdQuery(reportId, req.tenantId!); // get report detail
     if (!report) {
       await logFailure({

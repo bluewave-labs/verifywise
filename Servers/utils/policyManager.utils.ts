@@ -1,6 +1,11 @@
+import { Transaction } from "sequelize";
 import { sequelize } from "../database/db"
 import { IPolicy, PolicyTag, PolicyTagsSet } from "../domain.layer/interfaces/i.policy"
 import { PolicyManagerModel } from "../domain.layer/models/policy/policy.model"
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { buildPolicyReplacements, buildPolicyUpdateReplacements } from "./automation/policy.automation.utils";
 
 export const getAllPoliciesQuery = async (
   tenant: string
@@ -43,6 +48,13 @@ export const getPolicyByIdQuery = async (tenant: string, id: number) => {
       model: PolicyManagerModel
     }
   )
+  const reviewer_names = await sequelize.query(
+    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+    {
+      replacements: { reviewer_ids: result[0].dataValues.assigned_reviewer_ids }
+    }
+  ) as [{ full_name: string }[], number];
+  (result[0].dataValues as any)["reviewer_names"] = reviewer_names[0].map(r => r.full_name);
 
   return result
 }
@@ -58,7 +70,8 @@ const verifyPolicyTags = (policyTags: PolicyTag[]) => {
 export const createPolicyQuery = async (
   policy: IPolicy,
   tenant: string,
-  userId: number
+  userId: number,
+  transaction: Transaction
 ) => {
   verifyPolicyTags(policy.tags || []);
 
@@ -83,20 +96,64 @@ export const createPolicyQuery = async (
         last_updated_by: userId,
         last_updated_at: new Date()
       },
+      transaction,
       mapToModel: true,
       model: PolicyManagerModel
     }
   )
+  const createdPolicy = result[0];
 
-  return result[0]
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "policy_added") {
+      const reviewer_names = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        {
+          replacements: { reviewer_ids: createdPolicy.dataValues.assigned_reviewer_ids },
+          transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildPolicyReplacements({
+        ...createdPolicy.dataValues,
+        reviewer_names: reviewer_names[0].map(r => r.full_name).join(', ')
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+
+  return createdPolicy;
 }
 
 export const updatePolicyByIdQuery = async (
   id: number,
   policy: Partial<IPolicy>,
   tenant: string,
-  userId: number
+  userId: number,
+  transaction: Transaction
 ) => {
+  const existingPolicy = await getPolicyByIdQuery(tenant, id);
   const updatePolicy: Partial<Record<keyof IPolicy, any>> = {};
   const setClause = [
     "title",
@@ -143,23 +200,106 @@ export const updatePolicyByIdQuery = async (
     replacements: updatePolicy,
     mapToModel: true,
     model: PolicyManagerModel,
+    transaction,
     // type: QueryTypes.UPDATE,
   });
-  return result[0];
+  const updatedPolicy = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "policy_updated") {
+      const reviewer_names = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        {
+          replacements: { reviewer_ids: updatedPolicy.dataValues.assigned_reviewer_ids },
+          transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildPolicyUpdateReplacements(existingPolicy[0], {
+        ...updatedPolicy.dataValues,
+        reviewer_names: reviewer_names[0].map(r => r.full_name).join(', ')
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return updatedPolicy;
 }
 
 export const deletePolicyByIdQuery = async (
   tenant: string,
-  id: number
+  id: number,
+  transaction: Transaction
 ) => {
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".policy_manager WHERE id = :id RETURNING *`,
     {
       replacements: { tenant, id },
+      transaction,
       mapToModel: true,
       model: PolicyManagerModel
     }
   )
+  const deletedPolicy = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "policy_deleted") {
+      const reviewer_names = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        {
+          replacements: { reviewer_ids: deletedPolicy.dataValues.assigned_reviewer_ids },
+          transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildPolicyReplacements({
+        ...deletedPolicy.dataValues,
+        reviewer_names: reviewer_names[0].map(r => r.full_name).join(', ')
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
 
   return result.length > 0
 }

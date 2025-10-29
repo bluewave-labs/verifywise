@@ -362,7 +362,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       )?._id,
       review_date: values.vendorDetails.reviewDate
     };
-     console.log("response", _vendorDetails)
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {

@@ -26,8 +26,8 @@ interface BiasAndFairnessConfigPayload {
   };
   metrics: {
     // Accept either array or object shape
-    fairness: any;
-    performance: any;
+    fairness: string[] | { enabled: boolean; metrics: string[] };
+    performance: string[] | { enabled: boolean; metrics: string[] };
   };
   post_processing?: {
     binary_mapping?: {
@@ -58,7 +58,7 @@ interface EvaluationStatus {
   evaluationId: string;
   status: "pending" | "running" | "completed" | "failed";
   progress?: number;
-  results?: any;
+  results?: Record<string, unknown>;
   error?: string;
 }
 
@@ -107,7 +107,14 @@ export const biasAndFairnessService = {
   /**
    * Gets all bias and fairness evaluations
    */
-  async getAllBiasFairnessEvaluations(): Promise<any[]> {
+  async getAllBiasFairnessEvaluations(): Promise<Array<{
+    eval_id: string;
+    model_name: string;
+    dataset_name: string;
+    status: string;
+    created_at?: string;
+    [key: string]: unknown;
+  }>> {
     const response = await CustomAxios.get("/bias_and_fairness/evaluations", {
       timeout: 60000, // 1 minute timeout
     });
@@ -117,7 +124,7 @@ export const biasAndFairnessService = {
   /**
    * Gets a specific bias and fairness evaluation by eval_id
    */
-  async getBiasFairnessEvaluation(evalId: string): Promise<any> {
+  async getBiasFairnessEvaluation(evalId: string): Promise<Record<string, unknown>> {
     const response = await CustomAxios.get(`/bias_and_fairness/evaluations/${evalId}`);
     return response.data;
   },
@@ -142,7 +149,7 @@ export const biasAndFairnessService = {
   /**
    * Gets the results of a completed evaluation
    */
-  async getEvaluationResults(evaluationId: string): Promise<any> {
+  async getEvaluationResults(evaluationId: string): Promise<Record<string, unknown>> {
     const response = await CustomAxios.get(`/bias_and_fairness/evaluate/results/${evaluationId}`, {
       timeout: 60000, // 1 minute timeout
     });
@@ -216,5 +223,39 @@ export const biasAndFairnessService = {
     }
     
     throw new Error("Evaluation polling timed out");
+  },
+
+  /**
+   * Validates configuration YAML/JSON against the schema
+   */
+  async validateConfig(yamlText: string): Promise<{
+    valid: boolean;
+    errors: Array<{ path: string; msg: string }>;
+    normalized_yaml: string | null;
+    normalized: Record<string, unknown> | null;
+  }> {
+    const response = await CustomAxios.post("/bias_and_fairness/config/validate", {
+      yaml_text: yamlText
+    }, {
+      timeout: 30000, // 30 seconds timeout
+    });
+    return response.data;
+  },
+
+  /**
+   * Gets the JSON schema for configuration
+   */
+  async getConfigSchema(): Promise<Record<string, unknown>> {
+    const response = await CustomAxios.get("/bias_and_fairness/config/schema");
+    return response.data;
+  },
+
+  /**
+   * Updates the configuration for an existing evaluation
+   */
+  async updateEvaluationConfig(evalId: string, configData: Record<string, unknown>): Promise<void> {
+    await CustomAxios.put(`/bias_and_fairness/evaluations/${evalId}/config`, {
+      config_data: JSON.stringify(configData)
+    });
   }
 };

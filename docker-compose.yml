@@ -46,8 +46,7 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
       - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
   frontend:
     depends_on:
       - backend
@@ -69,8 +68,7 @@ services:
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
       - JWT_SECRET=$JWT_SECRET
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
     restart: unless-stopped
   bias_and_fairness_backend:
     depends_on:

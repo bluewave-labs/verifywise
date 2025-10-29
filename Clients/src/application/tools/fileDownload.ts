@@ -32,7 +32,7 @@ export const handleDownload = async (fileId: string, fileName: string) => {
   }
 };
 
-export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
+export const handleAutoDownload = async (requestBody: GenerateReportProps): Promise<number> => {
   try {
     const response = await generateReport({
       routeUrl: `/reporting/generate-report`,
@@ -40,18 +40,20 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     });
 
     if (response.status === 200) {
+      // Defensive: safely extract filename from Content-Disposition header
       const headerContent = response.headers.get('Content-Disposition');
-      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-      const fileName = fileAttachment.map(m => m[1]);
+      const fileName = headerContent
+        ? ([...headerContent.matchAll(/"([^"]+)"/g)].map(m => m[1])[0] || 'report')
+        : 'report';
 
       const blobFileContent = response.data;
       const responseType = response.headers.get('Content-Type');
 
-      const blob = new Blob([blobFileContent], { type: responseType });
+      const blob = new Blob([blobFileContent], { type: responseType || undefined });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName[0];
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -66,4 +68,3 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     return 500;
   }
 };
-

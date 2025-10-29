@@ -366,7 +366,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
       const currentRiskData: FormValues = {
         ...INITIAL_FORM_STATE,
         riskName: inputValues.risk_name || "",
-        reviewDate: inputValues.review_date
+        reviewDate: inputValues.review_date && (typeof inputValues.review_date === 'string' || inputValues.review_date instanceof Date)
           ? dayjs(inputValues.review_date).toISOString()
           : "",
         vendorName: parseInt(String(inputValues.vendor_name)) || 0,

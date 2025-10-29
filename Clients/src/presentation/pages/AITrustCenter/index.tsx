@@ -10,6 +10,8 @@ import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
 import AITrustCenterOverview from "./Overview";
+import PageTour from "../../components/PageTour";
+import AITrustCenterSteps from "./AITrustCenterSteps";
 import {
   aiTrustCenterTabStyle,
   aiTrustCenterTabPanelStyle,
@@ -22,11 +24,17 @@ import { useSelector } from "react-redux";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { useNavigate, useParams } from "react-router-dom";
 
 const AITrustCenter: React.FC = () => {
-  const [tabValue, setTabValue] = React.useState("overview");
+const params = useParams<{ tab?: string }>();
+const navigate = useNavigate();
+
+// active tab based on URL or default to "overview"
+const tabValue = params.tab || "overview";
+
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) =>
-    setTabValue(newValue);
+    navigate(`/ai-trust-center/${newValue}`);
   const authToken = useSelector(
     (state: { auth: { authToken: string } }) => state.auth.authToken
   );
@@ -108,6 +116,7 @@ const AITrustCenter: React.FC = () => {
               onChange={handleTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
               sx={aiTrustCenterTabListStyle}
+              data-joyride-id="trust-center-tabs"
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
@@ -133,21 +142,23 @@ const AITrustCenter: React.FC = () => {
                 value="settings"
                 disableRipple
               />
-              <CustomizableButton
-                variant="contained"
-                text="Preview mode"
-                sx={{
-                  ...aiTrustCenterPreviewButtonStyle,
-                  opacity: !tenantHash ? 0.5 : 1,
-                  cursor: !tenantHash ? "not-allowed" : "pointer",
-                }}
-                icon={<VisibilityIcon size={16} />}
-                onClick={handlePreviewMode}
-                isDisabled={!tenantHash}
-              />
+              <div data-joyride-id="preview-mode-button" style={{ marginLeft: "auto" }}>
+                <CustomizableButton
+                  variant="contained"
+                  text="Preview mode"
+                  sx={{
+                    ...aiTrustCenterPreviewButtonStyle,
+                    opacity: !tenantHash ? 0.5 : 1,
+                    cursor: !tenantHash ? "not-allowed" : "pointer",
+                  }}
+                  icon={<VisibilityIcon size={16} />}
+                  onClick={handlePreviewMode}
+                  isDisabled={!tenantHash}
+                />
+              </div>
             </TabList>
           </Box>
-          <TabPanel value="overview" sx={aiTrustCenterTabPanelStyle}>
+          <TabPanel value="overview" sx={aiTrustCenterTabPanelStyle} data-joyride-id="trust-center-overview">
             <AITrustCenterOverview />
           </TabPanel>
           <TabPanel value="resources" sx={aiTrustCenterTabPanelStyle}>
@@ -161,6 +172,8 @@ const AITrustCenter: React.FC = () => {
           </TabPanel>
         </TabContext>
       </Stack>
+
+      <PageTour steps={AITrustCenterSteps} run={true} tourKey="ai-trust-center-tour" />
     </Stack>
   );
 };

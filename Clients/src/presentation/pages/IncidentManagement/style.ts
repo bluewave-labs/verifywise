@@ -26,7 +26,7 @@ export const incidentStatusSelect = {
 export const addNewIncidentButton = {
     backgroundColor: "#13715B",
     border: "1px solid #13715B",
-    gap: "20px",
+    gap: "8px",
 };
 
 // Summary component styles (IncidentSummary.tsx)
@@ -94,7 +94,7 @@ export const incidentStatusBadge = (
         backgroundColor: style.bg,
         color: style.color,
         padding: "4px 8px",
-        borderRadius: 12,
+        borderRadius: 4,
         fontWeight: 500,
         fontSize: 11,
         textTransform: "uppercase" as const,
@@ -111,7 +111,7 @@ export const incidentSeverityBadge = (isCritical: boolean) => {
         backgroundColor: style.bg,
         color: style.color,
         padding: "4px 8px",
-        borderRadius: 12,
+        borderRadius: 4,
         fontWeight: 500,
         fontSize: 11,
         textTransform: "uppercase" as const,
@@ -128,7 +128,7 @@ export const incidentTag = {
     fontSize: 11,
     height: "20px",
     backgroundColor: "#f5f5f5",
-    borderRadius: 12,
+    borderRadius: 4,
     color: "#666",
     margin: 0,
     fontWeight: 500,
@@ -138,7 +138,7 @@ export const incidentTagExtra = {
     fontSize: 11,
     height: "20px",
     backgroundColor: "#e0e0e0",
-    borderRadius: 12,
+    borderRadius: 4,
     color: "#666",
     margin: 0,
     fontWeight: 500,
@@ -190,6 +190,8 @@ export const incidentShowingText = (theme: Theme) => ({
     fontSize: 11,
     opacity: 0.7,
     fontWeight: 400,
+    whiteSpace: 'nowrap' as const,
+    // Note: This will be replaced by singleTheme.tableStyles.primary.footer.cell in the future
 });
 
 export const incidentPaginationMenu = (theme: Theme) => ({

@@ -4,21 +4,14 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import "./index.css";
+import { IRichTextEditorProps } from "../../../domain/interfaces/i.editor";
 
 const FormatBold = () => <Bold size={20} />;
 const FormatItalic = () => <Italic size={20} />;
 const FormatListBulleted = () => <List size={20} />;
 const FormatListNumbered = () => <ListOrdered size={20} />;
 
-interface RichTextEditorProps {
-  onContentChange?: (content: string) => void;
-  headerSx?: object;
-  bodySx?: object;
-  initialContent?: string;
-  isEditable?: boolean;
-}
-
-const RichTextEditor: React.FC<RichTextEditorProps> = ({
+const RichTextEditor: React.FC<IRichTextEditorProps> = ({
   onContentChange,
   headerSx,
   initialContent = "",

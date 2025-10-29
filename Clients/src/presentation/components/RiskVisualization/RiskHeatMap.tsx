@@ -71,13 +71,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
 
         const riskLevel = likelihood * severity;
 
-        if (cellRisks.length > 0) {
-          console.log(
-            `Found ${cellRisks.length} risks for likelihood ${likelihood}, severity ${severity}:`,
-            cellRisks
-          );
-        }
-
+        
         row.push({
           likelihood,
           severity,

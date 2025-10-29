@@ -155,6 +155,8 @@ const AutomationList: React.FC<AutomationListProps> = ({
                 sx={{
                   borderRadius: 1,
                   mb: '8px',
+                  py: '8px', // Reduce vertical padding
+                  minHeight: '44px', // Reduced from default height
                   border: `1px solid rgba(0, 0, 0, 0.06)`,
                   background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%)',
                   '&:hover': {
@@ -186,35 +188,18 @@ const AutomationList: React.FC<AutomationListProps> = ({
                     </Typography>
                   }
                   secondary={
-                    <Box component="span" sx={{ display: 'block' }}>
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        component="span"
-                        sx={{
-                          fontSize: 11,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          mb: 1,
-                          display: 'block',
+                    <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 2 }}>
+                      <Toggle
+                        checked={automation.isActive}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          onToggleAutomation(automation.id);
                         }}
-                      >
-                        {automation.description}
+                        size="small"
+                      />
+                      <Typography variant="caption" color="textSecondary" component="span" sx={{ fontSize: 10 }}>
+                        {automation.isActive ? 'ON' : 'OFF'}
                       </Typography>
-                      <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1 }}>
-                        <Toggle
-                          checked={automation.isActive}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onToggleAutomation(automation.id);
-                          }}
-                          size="small"
-                        />
-                        <Typography variant="caption" color="textSecondary" component="span" sx={{ fontSize: 10 }}>
-                          {automation.isActive ? 'ON' : 'OFF'}
-                        </Typography>
-                      </Box>
                     </Box>
                   }
                 />

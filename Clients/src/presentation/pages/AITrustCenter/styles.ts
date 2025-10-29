@@ -38,6 +38,4 @@ export const aiTrustCenterPreviewButtonStyle = {
   backgroundColor: "#13715B",
   border: "1px solid #13715B",
   gap: 2,
-  marginLeft: "auto",
-  marginRight: "0",
 };

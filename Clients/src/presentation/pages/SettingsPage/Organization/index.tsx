@@ -126,7 +126,6 @@ const Organization = () => {
             }
           }
         } catch (error) {
-          console.log("No existing logo found or error fetching logo:", error);
           setLogoLoadError(true);
         } finally {
           setLogoLoading(false);
@@ -289,7 +288,9 @@ const Organization = () => {
   // Organization CRUD handlers
   const handleCreate = useCallback(async () => {
     if (!organizationName.trim() || organizationNameError) {
-      console.log("Validation error: Organization name is required or invalid");
+      console.error(
+        "Validation error: Organization name is required or invalid"
+      );
       return;
     }
 
@@ -321,7 +322,7 @@ const Organization = () => {
 
   const handleUpdate = useCallback(async () => {
     if (!organizationName.trim() || organizationNameError || !organizationId) {
-      console.log(
+      console.error(
         "Validation error: Organization name is required, invalid, or no organization ID"
       );
       return;
@@ -592,7 +593,8 @@ const Organization = () => {
                 lineHeight: 1.4,
               }}
             >
-              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
+              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF,
+              SVG
             </Typography>
           </Stack>
         </Box>

@@ -13,7 +13,10 @@ from controllers.bias_and_fairness import (
     create_config_and_run_evaluation as create_config_and_run_evaluation_controller,
     get_all_bias_fairness_evaluations_controller,
     get_bias_fairness_evaluation_by_id_controller,
-    delete_bias_fairness_evaluation_controller
+    delete_bias_fairness_evaluation_controller,
+    validate_config_controller,
+    get_config_schema_controller,
+    update_evaluation_config_controller
 )
 
 router = APIRouter()
@@ -146,3 +149,19 @@ async def get_available_bias_methods():
         "individual_fairness",
         "group_fairness"
     ]}
+
+# Configuration validation endpoints
+@router.post("/config/validate")
+async def validate_config(request: Request, payload: dict = Body(...)):
+    """Validate YAML/JSON configuration against the schema"""
+    return await validate_config_controller(payload)
+
+@router.get("/config/schema")
+async def get_config_schema():
+    """Get the JSON schema for configuration validation"""
+    return await get_config_schema_controller()
+
+@router.put("/evaluations/{eval_id}/config")
+async def update_evaluation_config(eval_id: str, request: Request, payload: dict = Body(...)):
+    """Update the configuration for an existing evaluation"""
+    return await update_evaluation_config_controller(eval_id, payload, request.headers["x-tenant-id"])

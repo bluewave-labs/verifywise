@@ -31,6 +31,13 @@ export class AutomationModel extends Model<AutomationModel> implements IAutomati
   })
   trigger_id!: number;
 
+  @Column({
+    type: DataType.JSONB,
+    allowNull: false,
+    defaultValue: {},
+  })
+  params?: object;
+
   @BelongsTo(() => AutomationTriggerModel)
   trigger?: AutomationTriggerModel;
 

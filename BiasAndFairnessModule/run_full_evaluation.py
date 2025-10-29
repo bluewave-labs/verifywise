@@ -25,7 +25,7 @@ sys.path.insert(0, str(src_dir))
 
 # Import all necessary components
 from src.core.config import ConfigManager
-from src.inference.inference import ModelInferencePipeline
+from src.inference.inference_pipeline import InferencePipeline
 from src.eval_engine.postprocessing import PostProcessor
 from src.eval_engine.metrics import (
     demographic_parity, equalized_odds, equalized_opportunity, predictive_equality,
@@ -55,7 +55,7 @@ def run_complete_pipeline():
     # Step 1: Run Model Inference
     print("\n📊 Step 1: Running Model Inference...")
     try:
-        inference_pipeline = ModelInferencePipeline()
+        inference_pipeline = InferencePipeline()
         
         # Run inference with config settings
         inference_results = inference_pipeline.run_batch_inference(

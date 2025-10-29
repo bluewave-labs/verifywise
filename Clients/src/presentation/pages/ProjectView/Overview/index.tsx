@@ -126,22 +126,24 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
           <Typography sx={styles.value}>{project.last_updated_by}</Typography>
         </Stack>
       </Stack>
-      <Stack direction="row" spacing={18} sx={{ pb: "56px" }}>
+      <Stack direction="row" spacing={18} sx={{ pb: "56px" }} data-joyride-id="framework-progress">
         {progressBarCardRender({
           progress: controlsProgress,
           label: "control",
           completed: controlsCompleted,
         })}
-        {progressBarCardRender({
-          progress: assessmentsProgress,
-          label: "assessment",
-          completed: requirementsCompleted,
-        })}
+        <Stack data-joyride-id="project-assessments">
+          {progressBarCardRender({
+            progress: assessmentsProgress,
+            label: "assessment",
+            completed: requirementsCompleted,
+          })}
+        </Stack>
         <Stack
           sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}
         ></Stack>
       </Stack>
-      <Stack sx={{ mb: "37px" }}>
+      <Stack sx={{ mb: "37px" }} data-joyride-id="risk-summary">
         <Typography
           sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
         >

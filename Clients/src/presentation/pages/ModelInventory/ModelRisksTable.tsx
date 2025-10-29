@@ -23,9 +23,11 @@ const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />
 import RiskChip from "../../components/RiskLevel/RiskChip";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { User } from "../../../domain/types/User";
+import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 
 const titleOfTableColumns = [
   "risk name",
+  "model name",
   "category",
   "risk level",
   "status",
@@ -41,6 +43,7 @@ interface ModelRisksTableProps {
   onDelete: (riskId: number) => void;
   deletingId?: number | null;
   users?: User[];
+  models?: IModelInventory[];
 }
 
 const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
@@ -50,6 +53,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
   onDelete,
   deletingId,
   users = [],
+  models = [],
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -102,6 +106,12 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
   const getOwnerName = (ownerId: string | number) => {
     const owner = formattedUsers.find((user) => user._id == ownerId);
     return owner?.name || "Unknown";
+  };
+
+  const getModelName = (modelId: number | null | undefined) => {
+    if (!modelId) return "N/A";
+    const model = models.find((m) => m.id == modelId);
+    return model?.model || "Unknown";
   };
 
   const tableHeader = useMemo(
@@ -160,6 +170,9 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
                   </Typography>
+                </TableCell>
+                <TableCell sx={getCellStyle(row)}>
+                  {getModelName(row.model_id)}
                 </TableCell>
                 <TableCell sx={getCellStyle(row)}>
                   {row.risk_category}
@@ -227,6 +240,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
       rowsPerPage,
       cellStyle,
       formattedUsers,
+      models,
       onEdit,
       onDelete,
       deletingId,

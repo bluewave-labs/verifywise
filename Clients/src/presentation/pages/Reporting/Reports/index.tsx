@@ -189,27 +189,29 @@ const Reports: React.FC<ReportsProps> = ({
             alignItems="flex-end"
             sx={{ marginBottom: "16px", marginTop: "0px !important" }}
           >
-            <Select
-              id="project-filter"
-              label="Filter by project"
-              value={selectedProject || "all"}
-              items={[
-                { _id: "all", name: "All" },
-                // Add organization entry if any project has framework_id !== 1
-                ...(projects.some(project => project.framework.some(f => f.framework_id !== 1))
-                  ? [{ _id: "org", name: organizationName }]
-                  : []),
-                // Add individual projects that don't have framework_id !== 1
-                ...projects
-                  .filter(project => !project.framework.some(f => f.framework_id !== 1))
-                  .map((project: Project) => ({
-                    _id: project.id.toString(),
-                    name: project.project_title,
-                  }))
-              ]}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              sx={{ minWidth: 200, maxWidth: 300 }}
-            />
+            <span data-joyride-id="report-filter">
+              <Select
+                id="project-filter"
+                label="Filter by project"
+                value={selectedProject || "all"}
+                items={[
+                  { _id: "all", name: "All" },
+                  // Add organization entry if any project has framework_id !== 1
+                  ...(projects.some(project => project.framework.some(f => f.framework_id !== 1))
+                    ? [{ _id: "org", name: organizationName }]
+                    : []),
+                  // Add individual projects that don't have framework_id !== 1
+                  ...projects
+                    .filter(project => !project.framework.some(f => f.framework_id !== 1))
+                    .map((project: Project) => ({
+                      _id: project.id.toString(),
+                      name: project.project_title,
+                    }))
+                ]}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                sx={{ minWidth: 200, maxWidth: 300 }}
+              />
+            </span>
             {generateReportButton}
           </Stack>
           <Suspense fallback={<div>Loading...</div>}>

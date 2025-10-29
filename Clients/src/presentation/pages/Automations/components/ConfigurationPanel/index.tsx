@@ -167,6 +167,11 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
         // Use TemplateField for subject and body with variable autocomplete
         if (isTemplateField && selectedItemType === 'action') {
+          // Check if this is the body field and trigger is set to "Updated" - if so, disable editing
+          const isUpdateTrigger = trigger?.configuration?.changeType === 'Updated';
+          const isBodyField = field.key === 'body';
+          const shouldDisableBody = isUpdateTrigger && isBodyField;
+
           return (
             <TemplateField
               key={field.key}
@@ -181,6 +186,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
               isRequired={field.required}
               variables={templateVariables}
               ref={inputRef}
+              disabled={shouldDisableBody}
             />
           );
         }
@@ -297,50 +303,215 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   const getTemplateVariables = () => {
     if (!trigger) return [];
 
+    // Check if this is an update trigger
+    const isUpdateTrigger = trigger.configuration?.changeType === 'Updated';
+
+    // Helper function to add old_* versions of variables for update triggers
+    const addOldVariables = (variables: Array<{ var: string; desc: string }>) => {
+      if (!isUpdateTrigger) return variables;
+
+      const withOldVariables: Array<{ var: string; desc: string }> = [];
+
+      variables.forEach(item => {
+        // Add the current/new variable
+        withOldVariables.push(item);
+
+        // Add the old_ version (skip date_and_time and other non-entity fields)
+        if (!item.var.includes('date_and_time')) {
+          const oldVar = item.var.replace('{{', '{{old_');
+          withOldVariables.push({
+            var: oldVar,
+            desc: `${item.desc} (before update)`
+          });
+        }
+      });
+
+      return withOldVariables;
+    };
+
+    // Common variables available for all triggers
     const commonVariables = [
       { var: '{{date_and_time}}', desc: 'Date and time of the event' },
     ];
 
+    // Add changes_summary for update triggers
+    const updateSpecificVariables = isUpdateTrigger
+      ? [{ var: '{{changes_summary}}', desc: 'Auto-generated summary of changed fields (shows old → new for changed fields, current value for unchanged)' }]
+      : [];
+
+    // Common vendor variables
+    const vendorVariables = [
+      { var: '{{vendor.name}}', desc: 'Name of the vendor' },
+      { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
+      { var: '{{vendor.website}}', desc: 'Vendor website URL' },
+      { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+    ];
+
+    // Common model variables
+    const modelVariables = [
+      { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
+      { var: '{{model.name}}', desc: 'Model name' },
+      { var: '{{model.version}}', desc: 'Model version' },
+      { var: '{{model.provider_model}}', desc: 'Full provider model string' },
+      { var: '{{model.approver}}', desc: 'Person who approved the model' },
+      { var: '{{model.capabilities}}', desc: 'Model capabilities' },
+      { var: '{{model.security_assessment}}', desc: 'Security assessment status (Yes/No)' },
+      { var: '{{model.status}}', desc: 'Model status (Pending/Approved/Restricted)' },
+      { var: '{{model.status_date}}', desc: 'Status date' },
+      { var: '{{model.reference_link}}', desc: 'Reference link' },
+      { var: '{{model.biases}}', desc: 'Known biases' },
+      { var: '{{model.limitations}}', desc: 'Model limitations' },
+      { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
+      { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
+      { var: '{{model.created_at}}', desc: 'Model creation date' },
+    ];
+
+    // Common project variables
+    const projectVariables = [
+      { var: '{{project.title}}', desc: 'Project title' },
+      { var: '{{project.goal}}', desc: 'Project goal' },
+      { var: '{{project.owner}}', desc: 'Project owner' },
+      { var: '{{project.start_date}}', desc: 'Project start date' },
+      { var: '{{project.ai_risk_classification}}', desc: 'AI risk classification' },
+      { var: '{{project.type_of_high_risk_role}}', desc: 'Type of high-risk role' },
+      { var: '{{project.status}}', desc: 'Project status' },
+    ];
+
+    // Common task variables
+    const taskVariables = [
+      { var: '{{task.title}}', desc: 'Task title' },
+      { var: '{{task.description}}', desc: 'Task description' },
+      { var: '{{task.creator}}', desc: 'Task creator' },
+      { var: '{{task.assignees}}', desc: 'Task assignees' },
+      { var: '{{task.due_date}}', desc: 'Task due date' },
+      { var: '{{task.priority}}', desc: 'Task priority' },
+      { var: '{{task.status}}', desc: 'Task status' },
+      { var: '{{task.categories}}', desc: 'Task categories' },
+    ];
+
+    // Common risk variables
+    const riskVariables = [
+      { var: '{{risk.name}}', desc: 'Risk name' },
+      { var: '{{risk.description}}', desc: 'Risk description' },
+      { var: '{{risk.owner}}', desc: 'Risk owner' },
+      { var: '{{risk.ai_lifecycle_phase}}', desc: 'AI lifecycle phase' },
+      { var: '{{risk.category}}', desc: 'Risk category' },
+      { var: '{{risk.likelihood}}', desc: 'Likelihood' },
+      { var: '{{risk.severity}}', desc: 'Severity' },
+      { var: '{{risk.risk_level}}', desc: 'Risk level (auto-calculated)' },
+      { var: '{{risk.current_risk_level}}', desc: 'Current risk level' },
+      { var: '{{risk.mitigation_status}}', desc: 'Mitigation status' },
+      { var: '{{risk.deadline}}', desc: 'Mitigation deadline' },
+      { var: '{{risk.approval_status}}', desc: 'Approval status' },
+    ];
+
+    // Common training variables
+    const trainingVariables = [
+      { var: '{{training.name}}', desc: 'Training name' },
+      { var: '{{training.description}}', desc: 'Training description' },
+      { var: '{{training.duration}}', desc: 'Training duration' },
+      { var: '{{training.provider}}', desc: 'Training provider' },
+      { var: '{{training.department}}', desc: 'Department' },
+      { var: '{{training.status}}', desc: 'Training status' },
+      { var: '{{training.number_of_people}}', desc: 'Number of people' },
+    ];
+
+    // Common policy variables
+    const policyVariables = [
+      { var: '{{policy.title}}', desc: 'Policy title' },
+      { var: '{{policy.content}}', desc: 'Policy content' },
+      { var: '{{policy.status}}', desc: 'Policy status' },
+      { var: '{{policy.tags}}', desc: 'Policy tags' },
+      { var: '{{policy.next_review_date}}', desc: 'Next review date' },
+      { var: '{{policy.author}}', desc: 'Policy author' },
+      { var: '{{policy.reviewers}}', desc: 'Assigned reviewers' },
+    ];
+
+    // Common incident variables
+    const incidentVariables = [
+      { var: '{{incident.ai_project}}', desc: 'AI Project' },
+      { var: '{{incident.type}}', desc: 'Incident type' },
+      { var: '{{incident.severity}}', desc: 'Severity level' },
+      { var: '{{incident.status}}', desc: 'Incident status' },
+      { var: '{{incident.occurred_date}}', desc: 'Date occurred' },
+      { var: '{{incident.date_detected}}', desc: 'Date detected' },
+      { var: '{{incident.reporter}}', desc: 'Reporter name' },
+      { var: '{{incident.categories_of_harm}}', desc: 'Categories of harm' },
+      { var: '{{incident.affected_persons_groups}}', desc: 'Affected persons/groups' },
+      { var: '{{incident.description}}', desc: 'Incident description' },
+      { var: '{{incident.relationship_causality}}', desc: 'Relationship/causality' },
+      { var: '{{incident.immediate_mitigations}}', desc: 'Immediate mitigations' },
+      { var: '{{incident.planned_corrective_actions}}', desc: 'Planned corrective actions' },
+      { var: '{{incident.model_system_version}}', desc: 'Model/system version' },
+      { var: '{{incident.approval_status}}', desc: 'Approval status' },
+      { var: '{{incident.approved_by}}', desc: 'Approved by' },
+      { var: '{{incident.approval_date}}', desc: 'Approval date' },
+      { var: '{{incident.approval_notes}}', desc: 'Approval notes' },
+      { var: '{{incident.interim_report}}', desc: 'Interim report flag' },
+    ];
+
     switch (trigger.type) {
-      case 'vendor_added':
+      case 'vendor_updated':
         return [
-          { var: '{{vendor.name}}', desc: 'Name of the vendor' },
-          { var: '{{vendor.id}}', desc: 'Vendor ID' },
-          { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
-          { var: '{{vendor.website}}', desc: 'Vendor website URL' },
-          { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+          ...updateSpecificVariables,
+          ...addOldVariables(vendorVariables),
           ...commonVariables,
         ];
 
-      case 'model_added':
+      case 'model_updated':
         return [
-          { var: '{{model.id}}', desc: 'Model ID' },
-          { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
-          { var: '{{model.name}}', desc: 'Model name' },
-          { var: '{{model.version}}', desc: 'Model version' },
-          { var: '{{model.provider_model}}', desc: 'Full provider model string' },
-          { var: '{{model.approver}}', desc: 'Person who approved the model' },
-          { var: '{{model.capabilities}}', desc: 'Model capabilities' },
-          { var: '{{model.security_assessment}}', desc: 'Security assessment status (Yes/No)' },
-          { var: '{{model.status}}', desc: 'Model status (Pending/Approved/Restricted)' },
-          { var: '{{model.status_date}}', desc: 'Status date' },
-          { var: '{{model.reference_link}}', desc: 'Reference link' },
-          { var: '{{model.biases}}', desc: 'Known biases' },
-          { var: '{{model.limitations}}', desc: 'Model limitations' },
-          { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
-          { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
-          { var: '{{model.created_at}}', desc: 'Model creation date' },
+          ...updateSpecificVariables,
+          ...addOldVariables(modelVariables),
+          ...commonVariables,
+        ];
+
+      case 'project_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(projectVariables),
+          ...commonVariables,
+        ];
+
+      case 'task_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(taskVariables),
+          ...commonVariables,
+        ];
+
+      case 'risk_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(riskVariables),
+          ...commonVariables,
+        ];
+
+      case 'training_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(trainingVariables),
+          ...commonVariables,
+        ];
+
+      case 'policy_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(policyVariables),
+          ...commonVariables,
+        ];
+
+      case 'incident_updated':
+        return [
+          ...updateSpecificVariables,
+          ...addOldVariables(incidentVariables),
           ...commonVariables,
         ];
 
       case 'vendor_review_date_approaching':
         return [
-          { var: '{{vendor_name}}', desc: 'Name of the vendor' },
-          { var: '{{vendor_id}}', desc: 'Vendor ID' },
-          { var: '{{review_date}}', desc: 'Scheduled review date' },
-          { var: '{{days_until_review}}', desc: 'Days remaining until review' },
-          { var: '{{last_review_date}}', desc: 'Date of last review' },
-          { var: '{{reviewer}}', desc: 'Assigned reviewer' },
+          ...vendorVariables,
+          { var: '{{vendor.review_date}}', desc: 'Scheduled review date' },
+          { var: '{{vendor.reviewer}}', desc: 'Assigned reviewer' },
           ...commonVariables,
         ];
 

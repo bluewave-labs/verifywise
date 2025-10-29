@@ -50,7 +50,7 @@ export const useProfilePhotoFetch = () => {
             }
           }
 
-          const blob = new Blob([bufferData], { type: mimeType });
+          const blob = new Blob([bufferData as BlobPart], { type: mimeType });
           const blobUrl = URL.createObjectURL(blob);
 
           // Validate image loading

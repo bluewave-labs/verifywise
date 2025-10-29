@@ -100,11 +100,7 @@ const AITrustCenterSettings: React.FC = () => {
               setOriginalData(overviewData);
             }
           } catch (error) {
-            console.log(
-              "No existing logo found or error fetching logo:",
-              error
-            );
-            setLogoLoadError(true);
+              setLogoLoadError(true);
             // Use the original data even if logo fetch fails
             setFormData(overviewData);
             setOriginalData(overviewData);
@@ -253,8 +249,7 @@ const AITrustCenterSettings: React.FC = () => {
             setLogoError("Failed to get tenant information");
           }
         } else {
-          console.log("No logo ID in response");
-        }
+          }
 
         // Clear the preview since we now have the uploaded URL
         if (selectedLogoPreview) {
@@ -347,8 +342,7 @@ const AITrustCenterSettings: React.FC = () => {
       }
 
     try {
-      console.log("Saving AI Trust Centre data from Settings", formData);
-      const dataToSave = {
+        const dataToSave = {
         intro: formData.intro,
         compliance_badges: formData.compliance_badges,
         company_description: formData.company_description,
@@ -363,8 +357,7 @@ const AITrustCenterSettings: React.FC = () => {
       setHasUnsavedChanges(false);
       setSaveSuccess(true);
 
-      console.log("AI Trust Centre data saved successfully");
-    } catch (error) {
+      } catch (error) {
       console.error("Save failed:", error);
     }
   };

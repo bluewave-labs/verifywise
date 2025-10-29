@@ -8,6 +8,7 @@ export interface IProjectAttributes {
   project_title: string;
   owner: number;
   start_date: Date;
+  geography: number;
   ai_risk_classification: AiRiskClassification;
   type_of_high_risk_role: HighRiskRole;
   goal: string;

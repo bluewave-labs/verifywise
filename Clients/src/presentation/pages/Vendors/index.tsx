@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
 import {
   Box,
@@ -6,6 +8,7 @@ import {
   Tab,
   useTheme,
 } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
@@ -69,10 +72,12 @@ export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [value, setValue] = useState("1");
+  // const [value, setValue] = useState("1");
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";
@@ -92,6 +97,11 @@ const Vendors = () => {
   });
   const [showAuditChart, setShowAuditChart] = useState(false);
   const [isAuditDetailsExpanded, setIsAuditDetailsExpanded] = useState(false);
+
+  const currentPath = location.pathname;
+  const isRisksTab = currentPath.includes("/vendors/risks");
+  const value = isRisksTab ? "2" : "1";
+
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -139,7 +149,11 @@ const Vendors = () => {
   };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
+    if (newValue === "1") {
+      navigate("/vendors");
+    } else if (newValue === "2") {
+      navigate("/vendors/risks");
+    }
   };
 
   useEffect(() => {
@@ -147,6 +161,17 @@ const Vendors = () => {
       setRunVendorTour(true);
     }
   }, [allVisible]);
+
+  // Auto-open create vendor modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsOpen(true);
+      setSelectedVendor(null);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);
@@ -477,6 +502,7 @@ const Vendors = () => {
             <TabList
               onChange={handleChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              data-joyride-id="vendor-list-tab"
               sx={{
                 minHeight: "20px",
                 "& .MuiTabs-flexContainer": { columnGap: "34px" },

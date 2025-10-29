@@ -2,6 +2,10 @@ import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/t
 import { sequelize } from "../database/db";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 import { ITrainingRegister } from "../domain.layer/interfaces/i.trainingRegister";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { buildTrainingReplacements, buildTrainingUpdateReplacements } from "./automation/training.automation.utils";
 
 /**
  *
@@ -33,6 +37,37 @@ export const createNewTrainingRegistarQuery = async (
       transaction,
     }
   );
+  const createdTrainingRegistar = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'training_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "training_added") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildTrainingReplacements({
+        ...createdTrainingRegistar.dataValues
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
   // Return the created TrainingRegistar instance
   return Array.isArray(result);
 };
@@ -89,6 +124,7 @@ export const updateTrainingRegistarByIdQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<TrainingRegistarModel> => {
+  const existingTrainingRegistar = await getTrainingRegistarByIdQuery(id, tenant);
   const updateTrainingRegistar: Partial<
     Record<keyof TrainingRegistarModel, any> & { people?: number }
   > = {};
@@ -125,10 +161,41 @@ export const updateTrainingRegistarByIdQuery = async (
     // type: QueryTypes.UPDATE,
     transaction,
   });
+  const updatedTrainingRegistar = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'training_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "training_updated") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildTrainingUpdateReplacements(existingTrainingRegistar, {
+        ...updatedTrainingRegistar.dataValues
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
 
   // Return the first updated training registar or null if none found
   return Array.isArray(result) && result.length > 0
-    ? (result[0] as TrainingRegistarModel)
+    ? (updatedTrainingRegistar as TrainingRegistarModel)
     : (null as any);
 };
 
@@ -142,7 +209,7 @@ export const deleteTrainingRegistarByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".trainingregistar WHERE id = :id RETURNING id`,
+    `DELETE FROM "${tenant}".trainingregistar WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -151,6 +218,35 @@ export const deleteTrainingRegistarByIdQuery = async (
       transaction,
     }
   );
+  const deletedTrainingRegistar = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'training_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "training_deleted") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildTrainingReplacements(deletedTrainingRegistar);
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
 
   // Check if any rows were affected
   return Array.isArray(result) && result.length > 0;

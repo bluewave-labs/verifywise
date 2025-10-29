@@ -1,3 +1,3 @@
-from ..evaluator import FairnessEvaluator
+from .evaluator import FairnessEvaluator
 
 __all__ = ['FairnessEvaluator']

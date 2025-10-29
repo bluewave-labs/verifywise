@@ -7,12 +7,9 @@ import { RequestParams } from "../../domain/interfaces/iRequestParams";
  * @returns {Promise<Event[]>} A promise that resolves to an array of events.
  * @throws Will throw an error if the request fails.
  */
-export async function getAllEvents({
-  routeUrl,
-}: RequestParams): Promise<any> {
+export async function getAllEvents({ routeUrl }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl);
-    console.log(response);
     return response;
   } catch (error) {
     console.error("Error fetching events:", error);

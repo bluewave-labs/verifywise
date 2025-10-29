@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   FC,
   useState,
@@ -341,7 +342,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "fit-content",
-          maxHeight: "80vh",
+          height: "fit-content",
           backgroundColor: "#FCFCFD",
           borderRadius: "4px",
           padding: 10,

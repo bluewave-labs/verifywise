@@ -19,12 +19,14 @@ import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import NoProject from "../../components/NoProject/NoProject";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
+import PageTour from "../../components/PageTour";
+import FrameworkSteps from "./FrameworkSteps";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -54,6 +56,8 @@ const tabListStyle = {
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -155,7 +159,8 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
-  const [mainTabValue, setMainTabValue] = useState("dashboard");
+  // Default to "dashboard" 
+  const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
@@ -206,6 +211,9 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
+    if (framework || frameworkName) {
+      setMainTabValue("controls");
+    }
     if (framework === "iso-42001" || frameworkName === "iso-42001") {
       // Find ISO 42001 framework in filtered frameworks
       const iso42001Index = filteredFrameworks.findIndex(fw =>
@@ -284,6 +292,11 @@ const Framework = () => {
     newValue: string
   ) => {
     setMainTabValue(newValue);
+     if (newValue === "dashboard") {
+      navigate("/framework");
+    } else {
+      navigate(`/framework/${newValue}`);
+    }
   };
 
   const renderFrameworkContent = () => {
@@ -347,6 +360,7 @@ const Framework = () => {
           <TabContext value={iso27001TabValue}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso27001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -414,6 +428,7 @@ const Framework = () => {
           <TabContext value={iso42001TabValue}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso42001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -540,22 +555,22 @@ const Framework = () => {
       />
       <PageBreadcrumbs />
       <PageHeader
-               title="Frameworks"
-               description="This page provides an overview of available AI and data governance frameworks to your organization."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
+        title="Frameworks"
+        description="This page provides an overview of available AI and data governance frameworks to your organization."
+        rightContent={
+          <HelperIcon
+              onClick={() =>
+              setIsHelperDrawerOpen(!isHelperDrawerOpen)
+              }
+              size="small"
+            />
+          }
        />
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <TabContext value={mainTabValue}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }} data-joyride-id="framework-main-tabs">
             <TabList
               onChange={handleMainTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -583,17 +598,19 @@ const Framework = () => {
           </Box>
 
           <TabPanel value="dashboard" sx={tabPanelStyle}>
-            <FrameworkDashboard
-              organizationalProject={organizationalProject}
-              filteredFrameworks={filteredFrameworks}
-            />
+            <Box data-joyride-id="framework-dashboard">
+              <FrameworkDashboard
+                organizationalProject={organizationalProject}
+                filteredFrameworks={filteredFrameworks}
+              />
+            </Box>
           </TabPanel>
 
           <TabPanel value="controls" sx={tabPanelStyle}>
             <Stack className="frameworks-switch" spacing={3}>
               {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
               {organizationalProject && filteredFrameworks.length > 0 && (
-                <Box>
+                <Box data-joyride-id="framework-toggle">
                   <ButtonToggle
                     options={filteredFrameworks.map((framework, index) => ({
                       value: index.toString(),
@@ -627,6 +644,9 @@ const Framework = () => {
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
       )}
+
+      {/* Page Tour */}
+      <PageTour steps={FrameworkSteps} run={true} tourKey="framework-tour" />
     </Stack>
   );
 };

@@ -2,15 +2,12 @@ import { Chip } from "@mui/material";
 import { useMemo } from "react";
 import React from "react";
 import { getSeverityColorByText, getRiskChipStyle } from "./constants";
+import { IRiskChipProps } from "../../../domain/interfaces/iRiskForm";
 
-interface RiskChipProps {
-  label?: string;
-}
-
-const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
+const RiskChip: React.FC<IRiskChipProps> = React.memo(({ label }) => {
   // Return chip if label is provided
   if (label) {
-    const normalizedLabel = label?.toLowerCase().trim() ?? '';
+    const normalizedLabel = label?.toLowerCase().trim() ?? "";
     const backgroundColor = useMemo(
       () => getSeverityColorByText(normalizedLabel),
       [normalizedLabel]
@@ -32,4 +29,4 @@ const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
   return <span>-</span>;
 });
 
-export default RiskChip; 
+export default RiskChip;

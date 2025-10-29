@@ -1,6 +1,10 @@
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
 import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { buildIncidentReplacements, buildIncidentUpdateReplacements } from "./automation/incident.automation.utils";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
 
 export const getAllIncidentsQuery = async (tenant: string) => {
     const incidents = await sequelize.query(
@@ -84,7 +88,53 @@ export const createNewIncidentQuery = async (
                 transaction,
             }
         );
-        return result[0];
+        const createdIncident = result[0];
+        const automations = await sequelize.query(
+            `SELECT
+              pat.key AS trigger_key,
+              paa.key AS action_key,
+              aa.*
+            FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+        ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+        if (automations[0].length > 0) {
+            const automation = automations[0][0];
+            if (automation["trigger_key"] === "incident_added") {
+                // const reporter_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reporter_id;`,
+                //     {
+                //         replacements: { reporter_id: createdIncident.dataValues.reporter }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
+                // const approver_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+                //     {
+                //         replacements: { approver_id: createdIncident.dataValues.approved_by }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
+
+                const params = automation.params!;
+
+                // Build replacements
+                const replacements = buildIncidentReplacements({
+                    ...createdIncident.dataValues,
+                    // reporter_name: reporter_name[0][0].full_name,
+                    // approver_name: approver_name[0][0].full_name
+                });
+
+                // Replace variables in subject and body
+                const processedParams = {
+                    ...params,
+                    subject: replaceTemplateVariables(params.subject || '', replacements),
+                    body: replaceTemplateVariables(params.body || '', replacements)
+                };
+
+                // Enqueue with processed params
+                await enqueueAutomationAction(automation.action_key, processedParams);
+            } else {
+                console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+            }
+        }
+        return createdIncident;
     } catch (error) {
         console.error("Error creating new incident:", error);
         throw error;
@@ -97,6 +147,7 @@ export const updateIncidentByIdQuery = async (
     tenant: string,
     transaction: Transaction
 ) => {
+    const existingIncident = await getIncidentByIdQuery(id, tenant);
     const updated_at = new Date();
     try {
         await sequelize.query(
@@ -162,8 +213,53 @@ export const updateIncidentByIdQuery = async (
                 transaction,
             }
         );
+        const updatedIncident = result[0];
+        const automations = await sequelize.query(
+            `SELECT
+              pat.key AS trigger_key,
+              paa.key AS action_key,
+              aa.*
+            FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+        ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+        if (automations[0].length > 0) {
+            const automation = automations[0][0];
+            if (automation["trigger_key"] === "incident_updated") {
+                // const reporter_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reporter_id;`,
+                //     {
+                //         replacements: { reporter_id: createdIncident.dataValues.reporter }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
+                // const approver_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+                //     {
+                //         replacements: { approver_id: createdIncident.dataValues.approved_by }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
 
-        return result[0];
+                const params = automation.params!;
+
+                // Build replacements
+                const replacements = buildIncidentUpdateReplacements(existingIncident, {
+                    ...updatedIncident.dataValues,
+                    // reporter_name: reporter_name[0][0].full_name,
+                    // approver_name: approver_name[0][0].full_name
+                });
+
+                // Replace variables in subject and body
+                const processedParams = {
+                    ...params,
+                    subject: replaceTemplateVariables(params.subject || '', replacements),
+                    body: replaceTemplateVariables(params.body || '', replacements)
+                };
+
+                // Enqueue with processed params
+                await enqueueAutomationAction(automation.action_key, processedParams);
+            } else {
+                console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+            }
+        }
+        return updatedIncident;
     } catch (error) {
         console.error("Error updating incident:", error);
         throw error;
@@ -177,13 +273,59 @@ export const deleteIncidentByIdQuery = async (
 ) => {
     try {
         const result = await sequelize.query(
-            `DELETE FROM "${tenant}".ai_incident_managements WHERE id = :id`,
+            `DELETE FROM "${tenant}".ai_incident_managements WHERE id = :id RETURNING *`,
             {
                 replacements: { id },
                 transaction,
             }
-        );
-        return result[0];
+        ) as [(AIIncidentManagementModel)[], number];
+        const deletedIncident = result[0][0];
+        const automations = await sequelize.query(
+            `SELECT
+              pat.key AS trigger_key,
+              paa.key AS action_key,
+              aa.*
+            FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+        ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+        if (automations[0].length > 0) {
+            const automation = automations[0][0];
+            if (automation["trigger_key"] === "incident_deleted") {
+                // const reporter_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reporter_id;`,
+                //     {
+                //         replacements: { reporter_id: createdIncident.dataValues.reporter }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
+                // const approver_name = await sequelize.query(
+                //     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+                //     {
+                //         replacements: { approver_id: createdIncident.dataValues.approved_by }, transaction
+                //     }
+                // ) as [{ full_name: string }[], number];
+
+                const params = automation.params!;
+
+                // Build replacements
+                const replacements = buildIncidentReplacements({
+                    ...deletedIncident,
+                    // reporter_name: reporter_name[0][0].full_name,
+                    // approver_name: approver_name[0][0].full_name
+                });
+
+                // Replace variables in subject and body
+                const processedParams = {
+                    ...params,
+                    subject: replaceTemplateVariables(params.subject || '', replacements),
+                    body: replaceTemplateVariables(params.body || '', replacements)
+                };
+
+                // Enqueue with processed params
+                await enqueueAutomationAction(automation.action_key, processedParams);
+            } else {
+                console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+            }
+        }
+        return deletedIncident;
     } catch (error) {
         console.error("Error deleting incident:", error);
         throw error;

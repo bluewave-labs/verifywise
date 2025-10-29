@@ -8,7 +8,10 @@ import {
   CircularProgress,
   Tooltip,
 } from "@mui/material";
-import { ArrowLeft as ArrowBackIcon, Info as GreyCircleInfoIcon } from "lucide-react";
+import {
+  ArrowLeft as ArrowBackIcon,
+  Info as GreyCircleInfoIcon,
+} from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import singleTheme from "../../themes/v1SingleTheme";

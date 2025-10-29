@@ -69,5 +69,12 @@ export const tableStyles = {
         },
       }
     },
+    footer: {
+      cell: {
+        fontSize: fontSizes.small,
+        whiteSpace: "nowrap",
+        opacity: 0.7,
+      },
+    },
   },
 };

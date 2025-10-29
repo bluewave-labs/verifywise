@@ -33,6 +33,7 @@ interface TemplateFieldProps {
   isRequired?: boolean;
   rows?: number;
   variables?: TemplateVariable[];
+  disabled?: boolean;
 }
 
 const TemplateField = forwardRef(
@@ -48,6 +49,7 @@ const TemplateField = forwardRef(
       isRequired,
       rows,
       variables = [],
+      disabled = false,
     }: TemplateFieldProps,
     ref: ForwardedRef<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -80,8 +82,8 @@ const TemplateField = forwardRef(
       const lastOpenBraces = textBeforeCursor.lastIndexOf('{{');
       const lastCloseBraces = textBeforeCursor.lastIndexOf('}}');
 
-      // Show dropdown if we have {{ without closing }}
-      if (lastOpenBraces > lastCloseBraces && lastOpenBraces !== -1) {
+      // Show dropdown if we have {{ without closing }} and field is not disabled
+      if (!disabled && lastOpenBraces > lastCloseBraces && lastOpenBraces !== -1) {
         const searchQuery = textBeforeCursor.slice(lastOpenBraces + 2).toLowerCase();
 
         // Filter variables based on search query
@@ -259,6 +261,7 @@ const TemplateField = forwardRef(
           placeholder={placeholder}
           multiline={type === 'description'}
           rows={type === 'description' ? (rows || 4) : 1}
+          disabled={disabled}
           inputRef={setRefs}
           inputProps={{
             sx: {

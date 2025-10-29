@@ -1,6 +1,4 @@
-
 import { apiServices } from "../../infrastructure/api/networkServices";
-
 
 export async function getQuestionById({
   id,
@@ -18,11 +16,7 @@ export async function getQuestionById({
   return response.data;
 }
 
-export async function createQuestion({
-  body,
-}: {
-  body: any;
-}): Promise<any> {
+export async function createQuestion({ body }: { body: any }): Promise<any> {
   const response = await apiServices.post("/questions", body);
   return response;
 }
@@ -38,26 +32,30 @@ export async function updateQuestion({
   return response;
 }
 
-export async function deleteQuestion({
-  id,
-}: {
-  id: number;
-}): Promise<any> {
+export async function deleteQuestion({ id }: { id: number }): Promise<any> {
   const response = await apiServices.delete(`/questions/${id}`);
   return response;
 }
 
-
-export async function updateEUAIActAnswerById ({ answerId, body }: { answerId: number, body: any }): Promise<any> {
+export async function updateEUAIActAnswerById({
+  answerId,
+  body,
+}: {
+  answerId: number;
+  body: any;
+}): Promise<any> {
   try {
-    const response = await apiServices.patch(`/eu-ai-act/saveAnswer/${answerId}`, body, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiServices.patch(
+      `/eu-ai-act/saveAnswer/${answerId}`,
+      body,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response;
   } catch (error: any) {
-    console.log("Error updating EU AI Act answer:", error);
     throw error;
   }
-};
+}

@@ -3,11 +3,11 @@ import { ENV_VARs } from "../../../../env.vars";
 import getStyles from "./styles";
 
 // URL constants
-const PRICING_URL = 'https://verifywise.ai/pricing/';
+const PRICING_URL = "https://verifywise.ai/pricing/";
 
 const ReadyToSubscribeBox = () => {
-    const theme = useTheme();
-    const styles = getStyles(theme);
+  const theme = useTheme();
+  const styles = getStyles(theme);
 
   // Early return if not in demo app mode
   if (!ENV_VARs.IS_DEMO_APP) {
@@ -15,7 +15,7 @@ const ReadyToSubscribeBox = () => {
   }
 
   const handleClick = () => {
-    window.open(PRICING_URL, '_blank');
+    window.open(PRICING_URL, "_blank");
   };
 
   return (
@@ -25,7 +25,8 @@ const ReadyToSubscribeBox = () => {
           Ready to subscribe?
         </Typography>
         <Typography variant="subtitle1" sx={styles.description}>
-          Unlock the full potential of VerifyWise AI governance with our premium features.
+          Unlock the full potential of VerifyWise AI governance with our premium
+          features.
         </Typography>
         <Button sx={styles.button} onClick={handleClick}>
           View plans

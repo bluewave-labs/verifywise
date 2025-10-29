@@ -38,7 +38,19 @@ export interface TriggerCondition {
 export type TriggerType =
   | 'vendor_added'
   | 'model_added'
-  | 'vendor_review_date_approaching';
+  | 'vendor_review_date_approaching'
+  | 'project_added'
+  | 'task_added'
+  | 'risk_added'
+  | 'training_added'
+  | 'vendor_updated'
+  | 'model_updated'
+  | 'project_updated'
+  | 'task_updated'
+  | 'risk_updated'
+  | 'training_updated'
+  | 'policy_updated'
+  | 'incident_updated';
 
 export type ActionType =
   | 'send_email';
@@ -47,7 +59,7 @@ export interface TriggerTemplate {
   type: TriggerType;
   name: string;
   description: string;
-  category: 'project' | 'risk' | 'control' | 'vendor' | 'user' | 'assessment';
+  category: 'project' | 'risk' | 'control' | 'vendor' | 'user' | 'assessment' | 'task' | 'training' | 'policy' | 'incident';
   icon: string;
   defaultConfiguration: Record<string, any>;
   configurationSchema: ConfigurationField[];

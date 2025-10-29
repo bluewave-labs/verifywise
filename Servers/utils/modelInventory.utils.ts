@@ -5,7 +5,7 @@ import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutoma
 import { buildVendorReplacements } from "./automation/vendor.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
-import { buildModelReplacements } from "./automation/modelInventory.automation.utils";
+import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";
 
 export const getAllModelInventoriesQuery = async (tenant: string) => {
   const modelInventories = await sequelize.query(
@@ -90,10 +90,10 @@ export const createNewModelInventoryQuery = async (
 
     const automations = await sequelize.query(
       `SELECT
-          pat.key AS trigger_key,
-          paa.key AS action_key,
-          aa.*
-        FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+        pat.key AS trigger_key,
+        paa.key AS action_key,
+        aa.*
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
     ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
@@ -131,6 +131,7 @@ export const updateModelInventoryByIdQuery = async (
   transaction: Transaction
 ) => {
   const updated_at = new Date();
+  const oldModel = await getModelInventoryByIdQuery(id, tenant);
 
   try {
     // First update the record
@@ -172,8 +173,38 @@ export const updateModelInventoryByIdQuery = async (
         transaction,
       }
     );
+    const updatedModel = result[0];
 
-    return result[0];
+    const automations = await sequelize.query(
+      `SELECT
+        pat.key AS trigger_key,
+        paa.key AS action_key,
+        aa.*
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    if (automations[0].length > 0) {
+      const automation = automations[0][0];
+      if (automation["trigger_key"] === "model_updated") {
+        const params = automation.params!;
+
+        // Build replacements
+        const replacements = buildModelUpdateReplacements(oldModel, updatedModel);
+
+        // Replace variables in subject and body
+        const processedParams = {
+          ...params,
+          subject: replaceTemplateVariables(params.subject || '', replacements),
+          body: replaceTemplateVariables(params.body || '', replacements)
+        };
+
+        // Enqueue with processed params
+        await enqueueAutomationAction(automation.action_key, processedParams);
+      } else {
+        console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      }
+    }
+
+    return updatedModel;
   } catch (error) {
     console.error("Error updating model inventory:", error);
     throw error;
@@ -199,14 +230,43 @@ export const deleteModelInventoryByIdQuery = async (
     }
 
     const result = await sequelize.query(
-      `DELETE FROM "${tenant}".model_inventories WHERE id = :id`,
+      `DELETE FROM "${tenant}".model_inventories WHERE id = :id RETURNING *`,
       {
         replacements: { id },
         transaction,
       }
-    );
+    ) as [(ModelInventoryModel)[], number];
+    const deletedModel = result[0][0];
+    const automations = await sequelize.query(
+      `SELECT
+        pat.key AS trigger_key,
+        paa.key AS action_key,
+        aa.*
+      FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    if (automations[0].length > 0) {
+      const automation = automations[0][0];
+      if (automation["trigger_key"] === "model_deleted") {
+        const params = automation.params!;
 
-    return result[0];
+        // Build replacements
+        const replacements = buildModelReplacements(deletedModel);
+
+        // Replace variables in subject and body
+        const processedParams = {
+          ...params,
+          subject: replaceTemplateVariables(params.subject || '', replacements),
+          body: replaceTemplateVariables(params.body || '', replacements)
+        };
+
+        // Enqueue with processed params
+        await enqueueAutomationAction(automation.action_key, processedParams);
+      } else {
+        console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      }
+    }
+
+    return deletedModel;
   } catch (error) {
     console.error("Error deleting model inventory:", error);
     throw error;

@@ -12,19 +12,17 @@ import {
   useTheme,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
-import { Project } from "../../../domain/types/Project";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import { ChevronsUpDown } from "lucide-react";
+import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
-interface ProjectTableViewProps {
-  projects: Project[];
-}
-
-const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
+const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const [page, setPage] = useState(0);
@@ -50,16 +48,16 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
     const style = (() => {
       switch (risk.toLowerCase()) {
         case "high risk":
-          return { bg: "#ffcdd2", color: "#c62828" };       // light red bg, dark red text
+          return { bg: "#ffcdd2", color: "#c62828" }; // light red bg, dark red text
         case "limited risk":
-          return { bg: "#fff3e0", color: "#b71c1c" };       // light orange bg, brown text
+          return { bg: "#fff3e0", color: "#b71c1c" }; // light orange bg, brown text
         case "minimal risk":
-          return { bg: "#c8e6c9", color: "#388e3c" };       // light green bg, dark green text
+          return { bg: "#c8e6c9", color: "#388e3c" }; // light green bg, dark green text
         default:
-          return { bg: "#f5f5f5", color: "#9e9e9e" };       // default grey
+          return { bg: "#f5f5f5", color: "#9e9e9e" }; // default grey
       }
     })();
-  
+
     return {
       backgroundColor: style.bg,
       color: style.color,
@@ -72,8 +70,6 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
       letterSpacing: "0.5px",
     };
   };
-  
-  
 
   const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -105,7 +101,12 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
     return (
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
-          <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+          <TableHead
+            sx={{
+              backgroundColor:
+                singleTheme.tableStyles.primary.header.backgroundColors,
+            }}
+          >
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
               {columns.map((column) => (
                 <TableCell
@@ -130,7 +131,9 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               >
                 <img src={placeholderImage} alt="No use cases" />
                 <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace.
+                  A use case is a real-world scenario describing how an AI
+                  system is applied within an organization. Currently you don't
+                  have any use cases in this workspace.
                 </Typography>
               </TableCell>
             </TableRow>
@@ -143,7 +146,12 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   return (
     <TableContainer>
       <Table sx={singleTheme.tableStyles.primary.frame}>
-        <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+        <TableHead
+          sx={{
+            backgroundColor:
+              singleTheme.tableStyles.primary.header.backgroundColors,
+          }}
+        >
           <TableRow sx={singleTheme.tableStyles.primary.header.row}>
             {columns.map((column) => (
               <TableCell
@@ -162,8 +170,8 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               key={project.id}
               onClick={() => handleRowClick(project.id)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  if (event.key === ' ') {
+                if (event.key === "Enter" || event.key === " ") {
+                  if (event.key === " ") {
                     event.preventDefault();
                   }
                   handleRowClick(project.id);
@@ -182,7 +190,13 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                 },
               }}
             >
-              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", fontWeight: 500 }}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  fontWeight: 500,
+                }}
+              >
                 {project.project_title}
               </TableCell>
 
@@ -192,27 +206,47 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                 </span>
               </TableCell>
 
-              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", textTransform: "capitalize" }}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  textTransform: "capitalize",
+                }}
+              >
                 {project.type_of_high_risk_role.replace(/_/g, " ")}
               </TableCell>
-              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", color: "#475467" }}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  color: "#475467",
+                }}
+              >
                 {formatDate(project.start_date)}
               </TableCell>
-              <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", color: "#475467" }}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  color: "#475467",
+                }}
+              >
                 {formatDate(project.last_updated)}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
         <TableFooter>
-          <TableRow sx={{
-            '& .MuiTableCell-root.MuiTableCell-footer': {
-              paddingX: theme.spacing(8),
-              paddingY: theme.spacing(4),
-            }
-          }}>
+          <TableRow
+            sx={{
+              "& .MuiTableCell-root.MuiTableCell-footer": {
+                paddingX: theme.spacing(8),
+                paddingY: theme.spacing(4),
+              },
+            }}
+          >
             <TableCell
-              sx={{ 
+              sx={{
                 paddingX: theme.spacing(2),
                 fontSize: 12,
                 opacity: 0.7,

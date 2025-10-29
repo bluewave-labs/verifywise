@@ -7,6 +7,8 @@ import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
 import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
+import PageTour from "../../components/PageTour";
+import ProjectViewSteps from "./ProjectViewSteps";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
@@ -131,7 +133,7 @@ const ProjectView = () => {
           </Typography>
           <Stack sx={tabContainerStyle}>
             <TabContext value={value}>
-              <Box sx={tabListContainerStyle}>
+              <Box sx={tabListContainerStyle} data-joyride-id="project-tabs">
                 <TabList
                   onChange={handleChange}
                   aria-label="project view tabs"
@@ -184,6 +186,9 @@ const ProjectView = () => {
           </Stack>
         </Stack>
       )}
+
+      {/* Page Tour */}
+      <PageTour steps={ProjectViewSteps} run={true} tourKey="project-view-tour" />
     </Stack>
   );
 };

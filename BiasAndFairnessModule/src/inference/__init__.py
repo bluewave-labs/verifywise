@@ -2,6 +2,6 @@
 Inference package for Bias and Fairness Module.
 """
 
-from .inference import ModelInferencePipeline
+from .inference_pipeline import InferencePipeline
 
-__all__ = ['ModelInferencePipeline']
+__all__ = ['InferencePipeline']

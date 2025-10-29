@@ -30,6 +30,8 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { Search as SearchIcon } from "lucide-react";
 import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
+import PageTour from "../../components/PageTour";
+import TrainingSteps from "./TrainingSteps";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -312,17 +314,19 @@ const Training: React.FC = () => {
             {/* Left side: Dropdown + Search together */}
             <Stack direction="row" spacing={6} alignItems="center">
               {/* Dropdown Filter */}
-              <Select
-                id="training-status"
-                value={statusFilter}
-                items={statusOptions}
-                onChange={(e: any) => setStatusFilter(e.target.value)}
-                sx={{
-                  minWidth: "180px",
-                  height: "34px",
-                  bgcolor: "#fff",
-                }}
-              />
+              <div data-joyride-id="training-status-filter">
+                <Select
+                  id="training-status"
+                  value={statusFilter}
+                  items={statusOptions}
+                  onChange={(e: any) => setStatusFilter(e.target.value)}
+                  sx={{
+                    minWidth: "180px",
+                    height: "34px",
+                    bgcolor: "#fff",
+                  }}
+                />
+              </div>
 
               {/* Expandable Search */}
               <Box sx={searchBoxStyle(isSearchBarVisible)}>
@@ -351,18 +355,20 @@ const Training: React.FC = () => {
             </Stack>
 
             {/* Right side: Customize Button */}
-            <CustomizableButton
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        gap: 2,
-                      }}
-                      text="New training"
-                      icon={<AddCircleOutlineIcon size={16} />}
-                      onClick={handleNewTrainingClick}
-                      isDisabled={isCreatingDisabled}
-                    />
+            <Box data-joyride-id="add-training-button">
+              <CustomizableButton
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 2,
+                        }}
+                        text="New training"
+                        icon={<AddCircleOutlineIcon size={16} />}
+                        onClick={handleNewTrainingClick}
+                        isDisabled={isCreatingDisabled}
+                      />
+            </Box>
           </Stack>
 
         {/* Table */}
@@ -395,6 +401,8 @@ const Training: React.FC = () => {
         }
         isEdit={!!selectedTraining}
       />
+
+      <PageTour steps={TrainingSteps} run={true} tourKey="training-tour" />
     </Stack>
   );
 };

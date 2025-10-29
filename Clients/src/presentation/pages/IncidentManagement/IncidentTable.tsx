@@ -20,7 +20,7 @@ import Placeholder from "../../assets/imgs/empty-state.svg";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
-import { IAIIncidentManagement } from "../../../domain/interfaces/i.incidentManagement";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import {
     AIIncidentManagementApprovalStatus,
     IncidentManagementStatus,
@@ -43,7 +43,7 @@ import CustomIconButton from "../../components/IconButton";
 dayjs.extend(utc);
 
 //  badge style generator
-export const getIncidentChipProps = (value: string) => {
+ const getIncidentChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
         // Severity
         [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" },
@@ -117,7 +117,7 @@ const TABLE_COLUMNS = [
 ];
 
 interface IncidentTableProps {
-    data: IAIIncidentManagement[];
+    data: AIIncidentManagementModel[];
     isLoading?: boolean;
     onEdit?: (id: string, mode: string) => void;
     onView?: (id: string, mode: string) => void;
@@ -126,13 +126,19 @@ interface IncidentTableProps {
     archivedId?: string | null;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
+const STORAGE_KEY = 'incident-table-rows-per-page';
 
 const TooltipCell: React.FC<{ value?: string | null }> = ({ value }) => {
     const displayValue = value || "-";
-    return displayValue.length > 24 ? (
+    const shouldTruncate = displayValue.length > 30;
+    const truncatedValue = shouldTruncate
+        ? `${displayValue.substring(0, 30)}...`
+        : displayValue;
+
+    return shouldTruncate ? (
         <Tooltip title={displayValue} arrow>
-            <span>{displayValue}</span>
+            <span style={{ cursor: 'help' }}>{truncatedValue}</span>
         </Tooltip>
     ) : (
         <span>{displayValue}</span>
@@ -150,7 +156,12 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
 }) => {
     const theme = useTheme();
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+
+    // Initialize rowsPerPage from localStorage or default
+    const [rowsPerPage, setRowsPerPage] = useState(() => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? parseInt(stored, 10) : DEFAULT_ROWS_PER_PAGE;
+    });
 
     const handleChangePage = useCallback(
         (_: unknown, newPage: number) => setPage(newPage),
@@ -158,7 +169,9 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     );
     const handleChangeRowsPerPage = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(event.target.value, 10));
+            const newRowsPerPage = parseInt(event.target.value, 10);
+            setRowsPerPage(newRowsPerPage);
+            localStorage.setItem(STORAGE_KEY, newRowsPerPage.toString());
             setPage(0);
         },
         []
@@ -189,6 +202,10 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                             key={column.id}
                             sx={{
                                 ...singleTheme.tableStyles.primary.header.cell,
+                                ...(column.id === "incident_id" && {
+                                    width: "110px",
+                                    maxWidth: "110px",
+                                }),
                                 ...(column.id === "actions" && {
                                     position: "sticky",
                                     right: 0,
@@ -233,7 +250,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell sx={cellStyle}>
+                                <TableCell sx={{ ...cellStyle, width: "110px", maxWidth: "110px" }}>
                                     {incident.incident_id}{" "}
                                 </TableCell>
                                 <TableCell sx={cellStyle}>
@@ -359,7 +376,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 {paginated && (
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
-                            <TableCell sx={incidentShowingText(theme)}>
+                            <TableCell colSpan={3} sx={incidentShowingText(theme)}>
                                 Showing {getRange} of {data?.length} incident(s)
                             </TableCell>
                             <TablePagination

@@ -169,7 +169,6 @@ export const useDashboardMetrics = () => {
   // Fetch risk metrics - using main dashboard endpoint
   const fetchRiskMetrics = useCallback(async () => {
     try {
-      console.log("Fetching risk metrics from main dashboard...");
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default risk metrics since dashboard doesn't provide risk-specific data
       setRiskMetrics({
@@ -177,9 +176,7 @@ export const useDashboardMetrics = () => {
         distribution: { high: 0, medium: 0, low: 0, resolved: 0 },
         recent: [],
       });
-      console.log("Risk metrics set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setRiskMetrics(null);
     }
   }, []);
@@ -213,9 +210,7 @@ export const useDashboardMetrics = () => {
       };
 
       setEvidenceMetrics(evidenceMetrics);
-      console.log("Evidence metrics from /files endpoint:", evidenceMetrics);
     } catch (err) {
-      console.log("API files endpoint not available:", err);
       setEvidenceMetrics(null);
     }
   }, []);
@@ -226,9 +221,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default assessment progress since dashboard doesn't provide assessment-specific data
       setAssessmentProgress([]);
-      console.log("Assessment progress set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setAssessmentProgress([]);
     }
   }, []);
@@ -239,9 +232,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default recent activity since dashboard doesn't provide activity-specific data
       setRecentActivity([]);
-      console.log("Recent activity set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setRecentActivity([]);
     }
   }, []);
@@ -252,9 +243,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default upcoming tasks since dashboard doesn't provide task-specific data
       setUpcomingTasks([]);
-      console.log("Upcoming tasks set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setUpcomingTasks([]);
     }
   }, []);
@@ -265,9 +254,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default compliance status since dashboard doesn't provide compliance-specific data
       setComplianceStatus(null);
-      console.log("Compliance status set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setComplianceStatus(null);
     }
   }, []);
@@ -278,9 +265,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default user activity since dashboard doesn't provide user activity-specific data
       setUserActivity(null);
-      console.log("User activity set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setUserActivity(null);
     }
   }, []);
@@ -291,9 +276,7 @@ export const useDashboardMetrics = () => {
       await getAllEntities({ routeUrl: "/dashboard" });
       // Set default AI Trust Center status since dashboard doesn't provide AI Trust Center-specific data
       setAiTrustCenter(null);
-      console.log("AI Trust Center status set to default values");
     } catch (err) {
-      console.log("Dashboard endpoint not available");
       setAiTrustCenter(null);
     }
   }, []);
@@ -301,14 +284,11 @@ export const useDashboardMetrics = () => {
   // Fetch vendor risk metrics - using vendorRisks endpoint
   const fetchVendorRiskMetrics = useCallback(async () => {
     try {
-      console.log("Fetching vendor risk metrics...");
       const response = await getAllEntities({ routeUrl: "/vendorRisks/all" });
-      console.log("Vendor risks response:", response);
 
       // Handle the API response structure: { message: "ok", data: [...] }
       const risksData = response.data || [];
       const risksArray = Array.isArray(risksData) ? risksData : [];
-      console.log("Parsed vendor risks data:", risksArray);
 
       const vendorRiskMetrics = {
         total: risksArray.length,
@@ -324,12 +304,7 @@ export const useDashboardMetrics = () => {
       };
 
       setVendorRiskMetrics(vendorRiskMetrics);
-      console.log(
-        "Vendor risk metrics fetched successfully:",
-        vendorRiskMetrics
-      );
     } catch (err) {
-      console.log("Vendor risk metrics endpoint not available:", err);
       setVendorRiskMetrics(null);
     }
   }, []);
@@ -337,14 +312,11 @@ export const useDashboardMetrics = () => {
   // Fetch vendor metrics
   const fetchVendorMetrics = useCallback(async () => {
     try {
-      console.log("Fetching vendor metrics...");
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log("Vendor metrics response:", response);
 
       // Handle the API response structure
       const vendorsData = response.data || response.vendors || response;
       const vendorsArray = Array.isArray(vendorsData) ? vendorsData : [];
-      console.log("Parsed vendor data:", vendorsArray);
 
       const vendorMetrics = {
         total: vendorsArray.length,
@@ -362,9 +334,7 @@ export const useDashboardMetrics = () => {
       };
 
       setVendorMetrics(vendorMetrics);
-      console.log("Vendor metrics fetched successfully:", vendorMetrics);
     } catch (err) {
-      console.log("Vendor metrics endpoint not available:", err);
       setVendorMetrics(null);
     }
   }, []);
@@ -372,14 +342,11 @@ export const useDashboardMetrics = () => {
   // Fetch users metrics
   const fetchUsersMetrics = useCallback(async () => {
     try {
-      console.log("Fetching users metrics...");
       const response = await getAllEntities({ routeUrl: "/users" });
-      console.log("Users metrics response:", response);
 
       // Handle the API response structure
       const usersData = response.data || response.users || response;
       const usersArray = Array.isArray(usersData) ? usersData : [];
-      console.log("Parsed users data:", usersArray);
 
       const usersMetrics = {
         total: usersArray.length,
@@ -400,9 +367,7 @@ export const useDashboardMetrics = () => {
       };
 
       setUsersMetrics(usersMetrics);
-      console.log("Users metrics fetched successfully:", usersMetrics);
     } catch (err) {
-      console.log("Users metrics endpoint not available:", err);
       setUsersMetrics(null);
     }
   }, []);
@@ -410,15 +375,12 @@ export const useDashboardMetrics = () => {
   // Fetch policy metrics
   const fetchPolicyMetrics = useCallback(async () => {
     try {
-      console.log("Fetching policy metrics...");
       const response = await getAllEntities({ routeUrl: "/policies" });
-      console.log("Policy metrics response:", response);
 
       // Handle the special API response structure: { data: { data: Policy[] } }
       const policiesData =
         response.data?.data || response.data || response.policies || response;
       const policiesArray = Array.isArray(policiesData) ? policiesData : [];
-      console.log("Parsed policy data:", policiesArray);
 
       const policyMetrics = {
         total: policiesArray.length,
@@ -432,16 +394,13 @@ export const useDashboardMetrics = () => {
       };
 
       setPolicyMetrics(policyMetrics);
-      console.log("Policy metrics fetched successfully:", policyMetrics);
     } catch (err) {
-      console.log("Policy metrics endpoint not available:", err);
       setPolicyMetrics(null);
     }
   }, []);
 
   // Fetch all dashboard metrics safely
   const fetchAllMetrics = useCallback(async () => {
-    console.log("fetchAllMetrics: Starting...");
     setLoading(true);
     setError(null);
 
@@ -481,8 +440,6 @@ export const useDashboardMetrics = () => {
 
         if (result.status === "rejected") {
           console.warn(`Failed to fetch ${metricNames[index]}:`, result.reason);
-        } else {
-          console.log(`Successfully fetched ${metricNames[index]}`);
         }
       });
     } catch (err) {
@@ -490,7 +447,6 @@ export const useDashboardMetrics = () => {
       console.error("Error fetching dashboard metrics:", err);
     } finally {
       setLoading(false);
-      console.log("fetchAllMetrics: Completed");
     }
   }, [
     fetchRiskMetrics,
@@ -509,7 +465,6 @@ export const useDashboardMetrics = () => {
 
   // Initialize data on mount
   useEffect(() => {
-    console.log("useDashboardMetrics: Fetching dashboard metrics...");
     fetchAllMetrics();
   }, [fetchAllMetrics]);
 

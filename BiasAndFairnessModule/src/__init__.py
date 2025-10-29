@@ -7,7 +7,7 @@ A comprehensive module for evaluating bias and fairness in machine learning mode
 # Import main components from subpackages
 from .core import ConfigManager, Config
 from .dataset_loader import DataLoader
-from .inference import ModelInferencePipeline
+from .inference import InferencePipeline
 from .eval_engine import (
     PostProcessor,
     summarize_results,
@@ -29,7 +29,7 @@ __all__ = [
     'DataLoader',
     
     # Inference
-    'ModelInferencePipeline',
+    'InferencePipeline',
     
     # Evaluation
     'PostProcessor',

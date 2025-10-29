@@ -58,6 +58,7 @@ const Field = forwardRef(
       onChange,
       onInput,
       onFocus,
+      onBlur,
       error,
       disabled,
       width,
@@ -143,6 +144,7 @@ const Field = forwardRef(
           onInput={onInput}
           onChange={onChange}
           onFocus={onFocus}
+          onBlur={onBlur}
           disabled={disabled}
           inputRef={ref}
           inputProps={{

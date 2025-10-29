@@ -11,6 +11,10 @@ services:
     env_file:
       - ./.env.prod
 
+  worker:
+    env_file:
+      - ./.env.prod
+
   frontend:
     ports:
       - $FRONTEND_PORT:80

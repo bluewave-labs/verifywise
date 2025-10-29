@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useCallback, lazy, Suspense, useMemo } from "react";
 import {
   Box,
@@ -13,10 +15,12 @@ import {
   Tooltip,
   alpha,
   useTheme,
+  MenuItem,
+  Select as MuiSelect,
+  SelectChangeEvent,
 } from "@mui/material";
 import {
   GripVertical,
-  RefreshCw,
   Lock,
   LockOpen,
   ChevronRight,
@@ -29,6 +33,8 @@ import {
   ShieldAlert,
   GraduationCap,
   ScrollText,
+  Plus,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -37,6 +43,7 @@ import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetr
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getUserById } from "../../../application/repository/user.repository";
+import VerifyWiseMultiSelect from "../../components/VerifyWiseMultiSelect";
 import StatusDonutChart from "../../components/Charts/StatusDonutChart";
 import { getDefaultStatusDistribution } from "../../utils/statusColors";
 import {
@@ -51,6 +58,8 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { IStatusData } from "../../../domain/interfaces/i.chart";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageTour from "../../components/PageTour";
+import DashboardSteps from "./DashboardSteps";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -62,14 +71,14 @@ const getTimeBasedGreeting = (userName?: string, userToken?: any): { icon: React
   const month = now.getMonth() + 1; // getMonth() returns 0-11
   const day = now.getDate();
 
-  // Get display name - prioritize fresh user data over token
+  // Get display name - prioritize token for consistency over API data
   let displayName = 'there';
-  if (userName) {
-    displayName = userName;
-  } else if (userToken?.name) {
-    displayName = userToken.name; // Only first name from token
+  if (userToken?.name) {
+    displayName = userToken.name; // Always use token name first (consistent)
+  } else if (userName) {
+    displayName = userName; // Fallback to API data if token name unavailable
   } else if (userToken?.email) {
-    displayName = userToken.email.split('@')[0];
+    displayName = userToken.email.split('@')[0]; // Last resort - email prefix
   }
 
   // Check for international special days
@@ -772,6 +781,71 @@ const IntegratedDashboard: React.FC = () => {
   // User name state
   const [userName, setUserName] = useState<string>("");
 
+  // Add New dropdown state
+  const [addNewValue, setAddNewValue] = useState("");
+
+  // Show/Hide selector state
+  const [showHideSelector, setShowHideSelector] = useState(false);
+
+  // Load visible cards from localStorage on initial render
+  const getInitialVisibleCards = (): Set<string> => {
+    if (typeof window !== 'undefined') {
+      const savedCards = localStorage.getItem('dashboard-visible-cards');
+      if (savedCards) {
+        try {
+          return new Set(JSON.parse(savedCards));
+        } catch (error) {
+          console.error('Error parsing saved visible cards:', error);
+        }
+      }
+    }
+    return new Set(["projects", "evidences", "reports", "users", "models", "vendors", "vendor-risks", "trainings", "policies"]);
+  };
+
+  const [visibleCards, setVisibleCards] = useState<Set<string>>(getInitialVisibleCards());
+
+  // Save visible cards to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('dashboard-visible-cards', JSON.stringify(Array.from(visibleCards)));
+      } catch (error) {
+        console.error('Error saving visible cards to localStorage:', error);
+      }
+    }
+  }, [visibleCards]);
+
+  // Handle Add New dropdown change
+  const handleAddNewChange = (event: SelectChangeEvent<string>) => {
+    const selectedValue = event.target.value;
+    setAddNewValue(selectedValue);
+
+    // Navigate based on selection with state to trigger modal opening
+    switch (selectedValue) {
+      case "use-case":
+        navigate("/overview", { state: { openCreateModal: true } });
+        break;
+      case "vendor":
+        navigate("/vendors", { state: { openCreateModal: true } });
+        break;
+      case "model":
+        navigate("/model-inventory", { state: { openCreateModal: true } });
+        break;
+      case "risk":
+        navigate("/risk-management", { state: { openCreateModal: true } });
+        break;
+      case "policy":
+        navigate("/policies", { state: { openCreateModal: true } });
+        break;
+      default:
+        break;
+    }
+
+    // Reset selection after navigation
+    setTimeout(() => setAddNewValue(""), 100);
+  };
+
+  
   // Generate time-based greeting
   const greeting = useMemo(() => {
     return getTimeBasedGreeting(userName, userToken);
@@ -780,58 +854,14 @@ const IntegratedDashboard: React.FC = () => {
   // Default layouts for the dashboard sections with 4-column constraint
   // Each widget takes exactly 1/4 of the width and cannot be smaller
   // Heights: Users/Reports/Projects/Evidence are always small (85px), others can be big (170px)
+  // Widgets are arranged from most important (top) to least important (bottom)
   const defaultLayouts: Layouts = {
     lg: [
-      // First row - Compliance score widget in top left, then 3 small widgets
-      {
-        i: "compliance-score",
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 8,
-        minW: 3,
-        maxW: 6,
-        minH: 8,
-        maxH: 12,
-      },
+      // Row 1 - Use cases (most important) + Models + Vendors (high importance)
       {
         i: "projects",
-        x: 3,
+        x: 0,
         y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "evidences",
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "reports",
-        x: 9,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      // Second row - users widget and 3 other widgets
-      {
-        i: "users",
-        x: 3,
-        y: 2,
         w: 3,
         h: 2,
         minW: 3,
@@ -841,8 +871,8 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "models",
-        x: 6,
-        y: 2,
+        x: 3,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -852,6 +882,17 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "vendors",
+        x: 6,
+        y: 0,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 4,
+      },
+      {
+        i: "vendor-risks",
         x: 9,
         y: 0,
         w: 3,
@@ -861,11 +902,11 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 3 widgets
+      // Row 2 - Policies and Trainings (medium importance)
       {
-        i: "vendor-risks",
-        x: 3,
-        y: 4,
+        i: "policies",
+        x: 0,
+        y: 2,
         w: 3,
         h: 4,
         minW: 3,
@@ -876,7 +917,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "trainings",
         x: 3,
-        y: 8,
+        y: 4,
         w: 3,
         h: 4,
         minW: 3,
@@ -884,69 +925,47 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
+      // Row 3 - Users, Evidence, Reports (lower importance, administrative)
       {
-        i: "policies",
+        i: "users",
         x: 6,
+        y: 4,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "evidences",
+        x: 9,
+        y: 4,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "reports",
+        x: 0,
         y: 6,
         w: 3,
-        h: 4,
+        h: 2,
         minW: 3,
-        maxW: 6,
+        maxW: 3,
         minH: 2,
-        maxH: 4,
+        maxH: 2,
       },
     ],
     md: [
-      // First row - Compliance score widget in top left, then 3 small widgets
-      {
-        i: "compliance-score",
-        x: 0,
-        y: 0,
-        w: 2.5,
-        h: 8,
-        minW: 2.5,
-        maxW: 5,
-        minH: 8,
-        maxH: 12,
-      },
+      // Row 1 - Use cases (most important) + Models + Vendors (high importance)
       {
         i: "projects",
-        x: 2.5,
+        x: 0,
         y: 0,
-        w: 2.5,
-        h: 2,
-        minW: 2.5,
-        maxW: 2.5,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "evidences",
-        x: 5,
-        y: 0,
-        w: 2.5,
-        h: 2,
-        minW: 2.5,
-        maxW: 2.5,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "reports",
-        x: 7.5,
-        y: 0,
-        w: 2.5,
-        h: 2,
-        minW: 2.5,
-        maxW: 2.5,
-        minH: 2,
-        maxH: 2,
-      },
-      // Second row - users widget and 3 other widgets
-      {
-        i: "users",
-        x: 2.5,
-        y: 2,
         w: 2.5,
         h: 2,
         minW: 2.5,
@@ -956,8 +975,8 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "models",
-        x: 5,
-        y: 2,
+        x: 2.5,
+        y: 0,
         w: 2.5,
         h: 4,
         minW: 2.5,
@@ -967,7 +986,30 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "vendors",
+        x: 5,
+        y: 0,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
+      },
+      {
+        i: "vendor-risks",
         x: 7.5,
+        y: 0,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
+      },
+      // Row 2 - Policies and Trainings (medium importance)
+      {
+        i: "policies",
+        x: 0,
         y: 2,
         w: 2.5,
         h: 4,
@@ -976,9 +1018,8 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 3 widgets
       {
-        i: "vendor-risks",
+        i: "trainings",
         x: 2.5,
         y: 4,
         w: 2.5,
@@ -988,46 +1029,118 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
+      // Row 3 - Users, Evidence, Reports (lower importance, administrative)
       {
-        i: "trainings",
-        x: 2.5,
-        y: 8,
+        i: "users",
+        x: 5,
+        y: 4,
         w: 2.5,
-        h: 4,
+        h: 2,
         minW: 2.5,
-        maxW: 5,
+        maxW: 2.5,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "evidences",
+        x: 7.5,
+        y: 4,
+        w: 2.5,
+        h: 2,
+        minW: 2.5,
+        maxW: 2.5,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "reports",
+        x: 0,
+        y: 6,
+        w: 2.5,
+        h: 2,
+        minW: 2.5,
+        maxW: 2.5,
+        minH: 2,
+        maxH: 2,
+      },
+    ],
+    sm: [
+      // For small screens - Widgets arranged by importance top to bottom
+      // Row 1 - Use cases (most important)
+      {
+        i: "projects",
+        x: 0,
+        y: 0,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      // Row 1-2 - Models and Vendors (high importance)
+      {
+        i: "models",
+        x: 3,
+        y: 0,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 4,
+      },
+      {
+        i: "vendors",
+        x: 0,
+        y: 2,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 4,
+      },
+      // Row 3-4 - Vendor Risks and Policies (medium-high importance)
+      {
+        i: "vendor-risks",
+        x: 3,
+        y: 4,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
         minH: 2,
         maxH: 4,
       },
       {
         i: "policies",
-        x: 5,
+        x: 0,
         y: 6,
-        w: 2.5,
+        w: 3,
         h: 4,
-        minW: 2.5,
-        maxW: 5,
+        minW: 3,
+        maxW: 3,
         minH: 2,
         maxH: 4,
       },
-    ],
-    sm: [
-      // For small screens, compliance score at top then 2 widgets per row
+      // Row 5 - Trainings (medium importance)
       {
-        i: "compliance-score",
-        x: 0,
-        y: 0,
-        w: 6,
-        h: 8,
-        minW: 3,
-        maxW: 6,
-        minH: 8,
-        maxH: 12,
-      },
-      {
-        i: "projects",
-        x: 0,
+        i: "trainings",
+        x: 3,
         y: 8,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 4,
+      },
+      // Row 6-7 - Users, Evidence, Reports (lower importance, administrative)
+      {
+        i: "users",
+        x: 0,
+        y: 10,
         w: 3,
         h: 2,
         minW: 3,
@@ -1038,7 +1151,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "evidences",
         x: 3,
-        y: 8,
+        y: 12,
         w: 3,
         h: 2,
         minW: 3,
@@ -1049,79 +1162,13 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "reports",
         x: 0,
-        y: 10,
+        y: 12,
         w: 3,
         h: 2,
         minW: 3,
         maxW: 3,
         minH: 2,
         maxH: 2,
-      },
-      {
-        i: "users",
-        x: 3,
-        y: 10,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "models",
-        x: 0,
-        y: 12,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "vendors",
-        x: 3,
-        y: 12,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "vendor-risks",
-        x: 0,
-        y: 16,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "trainings",
-        x: 3,
-        y: 16,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "policies",
-        x: 0,
-        y: 20,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 4,
       },
     ],
   };
@@ -1367,11 +1414,7 @@ const IntegratedDashboard: React.FC = () => {
     [enforceLayoutItemConstraints]
   );
 
-  const resetLayout = () => {
-    setLayouts(defaultLayouts);
-    localStorage.removeItem("verifywise_integrated_dashboard_layouts");
-  };
-
+  
   if (loading) {
     return (
       <Box
@@ -1486,7 +1529,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Vendor Risks"
           value={vendorRiskMetrics?.total || 0}
-          onClick={() => navigate("/vendors")}
+          onClick={() => navigate("/vendors/risks")}
           navigable={true}
           statusData={vendorRiskMetrics?.statusDistribution?.map((item) => ({
             ...item,
@@ -1602,11 +1645,22 @@ const IntegratedDashboard: React.FC = () => {
           )}
           <Tooltip
             title={
-              editMode ? "Lock layout (view mode)" : "Unlock layout (edit mode)"
+              editMode
+                ? "Lock layout (view mode)"
+                : "Unlock layout (edit mode) - Click again to show/hide cards"
             }
           >
             <IconButton
-              onClick={() => setEditMode(!editMode)}
+              data-joyride-id="edit-mode-toggle"
+              onClick={() => {
+                if (editMode) {
+                  setEditMode(false);
+                  setShowHideSelector(false);
+                } else {
+                  setEditMode(true);
+                  setShowHideSelector(true);
+                }
+              }}
               color="primary"
               size="medium"
             >
@@ -1625,13 +1679,112 @@ const IntegratedDashboard: React.FC = () => {
               )}
             </IconButton>
           </Tooltip>
-          {editMode && (
-            <Tooltip title="Reset Layout">
-              <IconButton onClick={resetLayout} size="small">
-                <RefreshCw size={20} />
-              </IconButton>
-            </Tooltip>
+
+          {/* Show/Hide Selector - appears when lock is clicked once */}
+          {showHideSelector && (
+            <VerifyWiseMultiSelect
+              options={widgets.map((widget) => ({
+                value: widget.id,
+                label: widget.title,
+              }))}
+              selectedValues={Array.from(visibleCards)}
+              onChange={(values) => setVisibleCards(new Set(values))}
+              placeholder="Show/hide cards"
+              minWidth={120}
+              height={32}
+            />
           )}
+
+  
+          {/* Add New Dropdown */}
+          <MuiSelect
+            data-joyride-id="add-new-dropdown"
+            value={addNewValue}
+            onChange={handleAddNewChange}
+            displayEmpty
+            renderValue={() => (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Plus size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                  Add new...
+                </Typography>
+              </Box>
+            )}
+            IconComponent={(props) => (
+              <ChevronDown
+                {...props}
+                size={16}
+                strokeWidth={1.5}
+              />
+            )}
+            MenuProps={{
+              disableScrollLock: true,
+              PaperProps: {
+                sx: {
+                  borderRadius: theme.shape.borderRadius || 4,
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                  mt: 0.5,
+                  "& .MuiMenuItem-root": {
+                    fontSize: 13,
+                    color: theme.palette.text?.primary || "#000",
+                    py: 1.5,
+                    px: 2,
+                    "&:hover": {
+                      backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                    },
+                    "&.Mui-selected": {
+                      backgroundColor: "transparent",
+                      "&:hover": {
+                        backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                      },
+                    },
+                  },
+                },
+              },
+            }}
+            sx={{
+              minWidth: 140,
+              height: 32, // Standardized medium height
+              fontSize: 13,
+              backgroundColor: "#13715B",
+              color: "#fff",
+              borderRadius: "4px",
+              "& .MuiSelect-select": {
+                padding: "8px 16px", // Standardized padding
+                display: "flex",
+                alignItems: "center",
+                minHeight: "32px",
+                fontSize: 13,
+                fontWeight: 500,
+              },
+              "& fieldset": {
+                border: "none",
+              },
+              "&:hover": {
+                backgroundColor: "#0f604d", // Darker shade on hover
+                boxShadow: "0px 2px 4px rgba(19, 113, 91, 0.2)",
+              },
+              "&:hover fieldset": {
+                border: "none",
+              },
+              "&.Mui-focused fieldset": {
+                border: "none",
+              },
+              "& .MuiSelect-icon": {
+                color: "#fff",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                position: "absolute",
+              },
+            }}
+          >
+            <MenuItem value="use-case">Use case</MenuItem>
+            <MenuItem value="vendor">Vendor</MenuItem>
+            <MenuItem value="model">Model</MenuItem>
+            <MenuItem value="risk">Risk</MenuItem>
+            <MenuItem value="policy">Policy</MenuItem>
+          </MuiSelect>
         </Box>
       </Stack>
 
@@ -1812,9 +1965,10 @@ const IntegratedDashboard: React.FC = () => {
       `}</style>
 
       {/* Grid Layout */}
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
+      <Box data-joyride-id="dashboard-widgets">
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={layouts}
         onLayoutChange={handleLayoutChange}
         onResize={handleResize}
         onResizeStop={handleResizeStop}
@@ -1833,55 +1987,62 @@ const IntegratedDashboard: React.FC = () => {
         autoSize={true}
         isBounded={true}
       >
-        {widgets.map((widget) => (
-          <Card
-            key={widget.id}
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              boxShadow: "none",
-              border: `1px solid #DCDFE3`,
-              backgroundColor: "inherit",
-              "& .MuiCard-root": {
+        {widgets
+          .filter((widget) => visibleCards.has(widget.id))
+          .map((widget) => (
+            <Card
+              key={widget.id}
+              data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
+              sx={{
                 height: "100%",
-                margin: 0,
-              },
-            }}
-          >
-            {editMode && (
-              <CardHeader
-                className="widget-card-header"
-                sx={{
-                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                  py: 1,
-                  px: 2,
-                  "& .MuiCardHeader-title": {
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                  },
-                }}
-                avatar={
-                  <GripVertical
-                    size={16}
-                    color={alpha(theme.palette.text.secondary, 0.6)}
-                  />
-                }
-                title={widget.title}
-              />
-            )}
-            <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
-              <WidgetErrorBoundary
-                widgetId={widget.id}
-                widgetTitle={widget.title}
-              >
-                {widget.content}
-              </WidgetErrorBoundary>
-            </Box>
-          </Card>
-        ))}
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                boxShadow: "none",
+                border: `1px solid #DCDFE3`,
+                backgroundColor: "inherit",
+                "& .MuiCard-root": {
+                  height: "100%",
+                  margin: 0,
+                },
+              }}
+            >
+              {editMode && (
+                <CardHeader
+                  className="widget-card-header"
+                  sx={{
+                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    py: 1,
+                    px: 2,
+                    "& .MuiCardHeader-title": {
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    },
+                  }}
+                  avatar={
+                    <GripVertical
+                      size={16}
+                      color={alpha(theme.palette.text.secondary, 0.6)}
+                    />
+                  }
+                  title={widget.title}
+                />
+              )}
+              <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
+                <WidgetErrorBoundary
+                  widgetId={widget.id}
+                  widgetTitle={widget.title}
+                >
+                  {widget.content}
+                </WidgetErrorBoundary>
+              </Box>
+            </Card>
+          ))}
       </ResponsiveGridLayout>
+      </Box>
+
+      {/* Page Tour */}
+      <PageTour steps={DashboardSteps} run={true} tourKey="dashboard-tour" />
     </Box>
   );
 };

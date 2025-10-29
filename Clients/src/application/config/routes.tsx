@@ -53,7 +53,11 @@ export const createRoutes = (
       path="/test"
       element={<Home onProjectUpdate={triggerSidebarReload} />}
     />
-    <Route path="/vendors" element={<Vendors />} />
+    <Route path="/vendors" element={<Vendors />}>
+      <Route index element={<Vendors />} /> {/* Default tab */}
+      <Route path="risks" element={<Vendors />} /> {/* Risks tab */}
+    </Route>
+
     <Route path="/integrations" element={<Integrations />} />
     <Route path="/settings" element={<Setting />} />
     <Route path="/integrations/slack" element={<SlackManagement />} />
@@ -63,7 +67,7 @@ export const createRoutes = (
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
-    <Route path="/framework" element={<Framework />} />
+    <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
@@ -71,9 +75,11 @@ export const createRoutes = (
     <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
+    <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />

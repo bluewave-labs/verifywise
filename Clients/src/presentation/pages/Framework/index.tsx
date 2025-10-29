@@ -19,7 +19,7 @@ import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import NoProject from "../../components/NoProject/NoProject";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
@@ -56,6 +56,8 @@ const tabListStyle = {
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -157,7 +159,8 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
-  const [mainTabValue, setMainTabValue] = useState("dashboard");
+  // Default to "dashboard" 
+  const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
@@ -286,6 +289,11 @@ const Framework = () => {
     newValue: string
   ) => {
     setMainTabValue(newValue);
+     if (newValue === "dashboard") {
+      navigate("/framework");
+    } else {
+      navigate(`/framework/${newValue}`);
+    }
   };
 
   const renderFrameworkContent = () => {

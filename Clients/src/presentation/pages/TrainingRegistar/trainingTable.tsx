@@ -173,7 +173,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.row,
                     "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
                   }}
-                  onClick={(e: React.MouseEvent) => {
+                  onClick={() => {
                     onEdit?.(trainingIdStr);
                   }}
                 >
@@ -217,7 +217,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     cursor: "pointer",
                     textTransform: "none !important",
                   }}>
-                    {training.people}
+                    {training.numberOfPeople}
                   </TableCell>
                   <TableCell
                     sx={{
@@ -239,7 +239,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                           e?.stopPropagation();
                           onEdit?.(trainingIdStr);
                         }}
-                        onMouseEvent={(e: React.MouseEvent) => e.stopPropagation()}
+                        onMouseEvent={(e: any) => e.stopPropagation()}
                         warningTitle="Delete this training?"
                         warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
                         type="Training"

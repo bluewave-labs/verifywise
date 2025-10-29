@@ -34,8 +34,8 @@ const ERROR_MESSAGES = {
 interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarModel> & { numberOfPeople?: number }) => void;
-  initialData?: Partial<TrainingRegistarModel> & { numberOfPeople?: number };
+  onSuccess?: (data: Partial<TrainingRegistarModel>) => void;
+  initialData?: Partial<TrainingRegistarModel>;
   isEdit?: boolean;
 }
 
@@ -51,14 +51,13 @@ interface NewTrainingFormErrors {
 
 type FormField = keyof NewTrainingFormErrors;
 
-const initialState: Partial<TrainingRegistarModel> & { numberOfPeople?: number } = {
+const initialState: Partial<TrainingRegistarModel> = {
   training_name: "",
   duration: "",
   provider: "",
   department: "",
   status: TrainingStatus.Planned,
-  people: undefined, // Defensive: Don't default to 0
-  numberOfPeople: undefined,
+  numberOfPeople: undefined, // Defensive: Don't default to 0
   description: "",
 };
 
@@ -131,14 +130,13 @@ const NewTraining: FC<NewTrainingProps> = ({
         const value = event.target.value;
 
         // Defensive: Handle number fields explicitly
-        if (prop === "numberOfPeople" || prop === "people") {
+        if (prop === "numberOfPeople") {
           // Don't default to 0 - let validation catch empty values
           const numValue = value === "" ? undefined : Number(value);
           if (numValue === undefined || (!isNaN(numValue) && numValue >= 0)) {
             setValues((prev) => ({
               ...prev,
               numberOfPeople: numValue,
-              people: numValue
             }));
           }
         } else {

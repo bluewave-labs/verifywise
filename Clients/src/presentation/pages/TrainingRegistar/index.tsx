@@ -48,22 +48,18 @@ interface AlertState {
   body: string;
 }
 
-interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
 
 // Utility: Map TrainingRegistarModel to form data (DRY)
 const mapTrainingToFormData = (
   training: TrainingRegistarModel
-): Partial<TrainingRegistarModel> & { numberOfPeople?: number } => {
+): Partial<TrainingRegistarModel> => {
   return {
     training_name: training.training_name,
     duration: String(training.duration || ""),
     provider: training.provider,
     department: training.department,
     status: training.status,
-    numberOfPeople: training.people,
+    numberOfPeople: training.numberOfPeople,
     description: training.description,
   };
 };
@@ -189,21 +185,13 @@ const Training: React.FC = () => {
   };
 
   // Handler: Create/Update training with proper typing and defensive programming
-  // ENTERPRISE: Normalize API payload and handle response differences between create/update
+  // ENTERPRISE: Handle response differences between create/update APIs
   const handleTrainingSuccess = useCallback(async (
-    formData: Partial<TrainingRegistarModel> & { numberOfPeople?: number }
+    formData: Partial<TrainingRegistarModel>
   ) => {
     try {
-      // DEFENSIVE: Normalize payload for API (numberOfPeople → people)
-      // This ensures consistent field naming between UI and backend
-      const apiPayload: Partial<TrainingRegistarModel> = {
-        ...formData,
-        people: formData.people ?? formData.numberOfPeople,
-      };
-
-      // Clean up UI-only field to prevent backend confusion
-      delete (apiPayload as any).numberOfPeople;
-
+      // DEFENSIVE: formData already has numberOfPeople from model
+      // Server expects numberOfPeople (controller maps it to 'people' for DB)
       let payload: TrainingRegistarModel | undefined;
       let successMessage: string;
 
@@ -218,7 +206,7 @@ const Training: React.FC = () => {
         // Update existing training
         const res = await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
-          body: apiPayload,
+          body: formData,
         });
         // DEFENSIVE: updateEntityById returns AxiosResponse, extract data
         payload = res?.data;
@@ -226,7 +214,7 @@ const Training: React.FC = () => {
       } else {
         // Create new training
         // DEFENSIVE: createTraining returns response.data directly
-        const created = await createTraining("/training", apiPayload);
+        const created = await createTraining("/training", formData);
         payload = created;
         successMessage = "Training created successfully!";
       }

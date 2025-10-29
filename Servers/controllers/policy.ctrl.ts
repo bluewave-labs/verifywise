@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { IPolicy, POLICY_TAGS } from '../domain.layer/interfaces/i.policy';
 import { STATUS_CODE } from '../utils/statusCode.utils';
 import { createPolicyQuery, deletePolicyByIdQuery, getAllPoliciesQuery, getPolicyByIdQuery, updatePolicyByIdQuery } from '../utils/policyManager.utils';
+import { sequelize } from '../database/db';
 
 export class PolicyController {
   // Get all policies
@@ -33,6 +34,7 @@ export class PolicyController {
 
   // Create new policy
   static async createPolicy(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
     try {
       const userId = req.userId!;
       const policyData = {
@@ -41,19 +43,23 @@ export class PolicyController {
         last_updated_by: userId
       } as IPolicy;
 
-      const policy = await createPolicyQuery(policyData, req.tenantId!, userId);
+      const policy = await createPolicyQuery(policyData, req.tenantId!, userId, transaction);
 
       if (policy) {
+        await transaction.commit();
         return res.status(201).json(STATUS_CODE[201](policy));
       }
+      await transaction.rollback();
       return res.status(503).json(STATUS_CODE[503]({}));
     } catch (error) {
+      await transaction.rollback();
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
 
   // Update policy
   static async updatePolicy(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
     try {
       const policyId = parseInt(req.params.id);
       const userId = req.userId!;
@@ -70,13 +76,16 @@ export class PolicyController {
         last_updated_by: userId
       } as Partial<IPolicy>;
 
-      const policy = await updatePolicyByIdQuery(policyId, policyData, req.tenantId!, userId);
+      const policy = await updatePolicyByIdQuery(policyId, policyData, req.tenantId!, userId, transaction);
 
       if (policy) {
+        await transaction.commit();
         return res.status(202).json(STATUS_CODE[202](policy));
       }
+      await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
+      await transaction.rollback();
       console.error('Error updating policy:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -93,17 +102,21 @@ export class PolicyController {
 
   // In PolicyController
   static async deletePolicyById(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
     try {
       const policyId = parseInt(req.params.id);
 
-      const deleted = await deletePolicyByIdQuery(req.tenantId!, policyId);
+      const deleted = await deletePolicyByIdQuery(req.tenantId!, policyId, transaction);
 
       if (deleted) {
+        await transaction.commit();
         return res.status(202).json(STATUS_CODE[202](deleted));
       }
 
+      await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
+      await transaction.rollback();
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

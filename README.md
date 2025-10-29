@@ -306,26 +306,18 @@ ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 
 **Note:** The nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
 
-### Integrating Resend (for email invitations)
+### Email configuration
 
-Ensure you have following things:
+VerifyWise supports multiple email service providers through a provider abstraction layer, enabling administrators to choose the most suitable email service for their organization. The system includes security enhancements such as TLS enforcement, input validation and credential rotation for supported providers.
 
-> 1. You have created an account on [resend](https://resend.com/)
->
-> 2. You have your app domain pointing to your server on DNS
+Below is a list of supported email providers. You can use [this documentation](https://docs.verifywise.ai/settings#email-services) to setup the email service of your choice.
 
-1. Create an [API Key](https://resend.com/api-keys) with `Sending Access`
+- **Exchange Online (Office 365)** - Microsoft's cloud email service
+- **On-Premises Exchange** - Self-hosted Exchange servers
+- **Amazon SES** - AWS Simple Email Service
+- **Resend** - Developer-focused email API
+- **Generic SMTP** - SMTP support for any provider
 
-2. Add the API Key to `RESEND_API_KEY` in the **.env.dev** or **.env.prod** based on your environment
-
-3. Add a [new domain](https://resend.com/domains) pointing to your doamin name
-
-4. Add the provided `DNS Records` on your DNS config on your DNS provider
-
-5. Verify the DNS Records on Resend
-   ![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
-
-6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
 
 ### Ports
 

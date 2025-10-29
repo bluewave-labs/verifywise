@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { Plus, Lock, LayoutGrid, BarChart3 } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const DashboardSteps: PageTourStep[] = [
+const DashboardSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="dashboard-widgets"]',
     content: {

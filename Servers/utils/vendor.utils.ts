@@ -10,7 +10,7 @@ import {
 import { IVendor } from "../domain.layer/interfaces/i.vendor";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
-import { buildVendorReplacements } from "./automation/vendor.automation.utils";
+import { buildVendorReplacements, buildVendorUpdateReplacements } from "./automation/vendor.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 
 export const getAllVendorsQuery = async (
@@ -284,6 +284,8 @@ export const updateVendorByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
+  const oldVendor = await getVendorByIdQuery(id, tenant);
+
   const query = `UPDATE "${tenant}".vendors SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateVendor.id = id;
@@ -327,7 +329,36 @@ export const updateVendorByIdQuery = async (
     result[0]["projects"] = projects.map((p) => p.project_id);
   }
   await updateProjectUpdatedByIdQuery(id, "vendors", tenant, transaction);
-  return result[0];
+  const updatedVendor = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "vendor_updated") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildVendorUpdateReplacements(oldVendor, updatedVendor);
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return updatedVendor;
 };
 
 export const deleteVendorByIdQuery = async (
@@ -348,7 +379,7 @@ export const deleteVendorByIdQuery = async (
     }
   );
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".vendors WHERE id = :id RETURNING id`,
+    `DELETE FROM "${tenant}".vendors WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -357,6 +388,35 @@ export const deleteVendorByIdQuery = async (
       transaction,
     }
   );
+  const deletedVendor = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "vendor_deleted") {
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildVendorReplacements(deletedVendor);
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
   return result.length > 0;
 };
 

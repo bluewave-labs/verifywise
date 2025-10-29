@@ -34,7 +34,7 @@ const ERROR_MESSAGES = {
 interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarModel>) => void;
+  onSuccess?: (data: Partial<TrainingRegistarModel> & { numberOfPeople?: number }) => void;
   initialData?: Partial<TrainingRegistarModel> & { numberOfPeople?: number };
   isEdit?: boolean;
 }
@@ -152,10 +152,11 @@ const NewTraining: FC<NewTrainingProps> = ({
   );
 
   // Handler: Select change with proper typing (Type Safety)
+  // DEFENSIVE: Cast value to TrainingStatus to ensure type safety end-to-end
   const handleOnSelectChange = useCallback(
     (prop: keyof TrainingRegistarModel) =>
       (event: SelectChangeEvent<string | number>) => {
-        const value = event.target.value;
+        const value = event.target.value as TrainingStatus;
         setValues((prev) => ({ ...prev, [prop]: value }));
         setErrors((prev) => ({ ...prev, [prop as FormField]: "" }));
       },

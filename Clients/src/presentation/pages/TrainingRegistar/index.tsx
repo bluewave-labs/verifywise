@@ -189,11 +189,22 @@ const Training: React.FC = () => {
   };
 
   // Handler: Create/Update training with proper typing and defensive programming
+  // ENTERPRISE: Normalize API payload and handle response differences between create/update
   const handleTrainingSuccess = useCallback(async (
-    formData: Partial<TrainingRegistarModel>
+    formData: Partial<TrainingRegistarModel> & { numberOfPeople?: number }
   ) => {
     try {
-      let response: ApiResponse<TrainingRegistarModel>;
+      // DEFENSIVE: Normalize payload for API (numberOfPeople → people)
+      // This ensures consistent field naming between UI and backend
+      const apiPayload: Partial<TrainingRegistarModel> = {
+        ...formData,
+        people: formData.people ?? formData.numberOfPeople,
+      };
+
+      // Clean up UI-only field to prevent backend confusion
+      delete (apiPayload as any).numberOfPeople;
+
+      let payload: TrainingRegistarModel | undefined;
       let successMessage: string;
 
       if (selectedTraining) {
@@ -205,25 +216,29 @@ const Training: React.FC = () => {
         }
 
         // Update existing training
-        response = await updateEntityById({
+        const res = await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
-          body: formData,
+          body: apiPayload,
         });
+        // DEFENSIVE: updateEntityById returns AxiosResponse, extract data
+        payload = res?.data;
         successMessage = "Training updated successfully!";
       } else {
         // Create new training
-        response = await createTraining("/training", formData);
-        successMessage = "Training created successfully!"; // FIX: Correct message
+        // DEFENSIVE: createTraining returns response.data directly
+        const created = await createTraining("/training", apiPayload);
+        payload = created;
+        successMessage = "Training created successfully!";
       }
 
       // Defensive: Check response validity
-      if (response?.data) {
+      if (payload) {
         setAlert(createAlert('success', successMessage));
         await fetchTrainingData();
         handleCloseModal();
       } else {
         // API returned but without data - unexpected state
-        console.warn('[Training] API response missing data:', response);
+        console.warn('[Training] API response missing data');
         setAlert(createAlert(
           'error',
           selectedTraining

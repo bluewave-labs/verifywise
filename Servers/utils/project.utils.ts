@@ -246,13 +246,32 @@ export const createNewProjectQuery = async (
     }
   }
 
+  // Generate the next use case ID for non-demo projects
+  let use_case_id = null;
+  if (!isDemo) {
+    const maxUcResult = (await sequelize.query(
+      `SELECT use_case_id FROM "${tenant}".projects
+       WHERE use_case_id IS NOT NULL
+       ORDER BY CAST(SUBSTRING(use_case_id FROM 4) AS INTEGER) DESC
+       LIMIT 1;`,
+      { transaction }
+    )) as [{ use_case_id: string }[], number];
+
+    let nextUcNumber = 1;
+    if (maxUcResult[0].length > 0 && maxUcResult[0][0].use_case_id) {
+      const currentMaxNumber = parseInt(maxUcResult[0][0].use_case_id.replace('UC-', ''));
+      nextUcNumber = currentMaxNumber + 1;
+    }
+    use_case_id = `UC-${nextUcNumber}`;
+  }
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
-      project_title, owner, start_date, geography, ai_risk_classification, 
-      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
+      project_title, owner, start_date, geography, ai_risk_classification,
+      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational, use_case_id
     ) VALUES (
-      :project_title, :owner, :start_date, :geography, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
+      :project_title, :owner, :start_date, :geography, :ai_risk_classification,
+      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational, :use_case_id
     ) RETURNING *`,
     {
       replacements: {
@@ -268,6 +287,7 @@ export const createNewProjectQuery = async (
         last_updated_by: userId,
         is_demo: isDemo,
         is_organizational: project.is_organizational || false,
+        use_case_id: use_case_id,
       },
       mapToModel: true,
       model: ProjectModel,

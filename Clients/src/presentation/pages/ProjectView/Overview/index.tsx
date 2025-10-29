@@ -112,6 +112,10 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
       )}
       <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
         <Stack sx={styles.block}>
+          <Typography sx={styles.title}>Use Case ID</Typography>
+          <Typography sx={styles.value}>{project.use_case_id || "N/A"}</Typography>
+        </Stack>
+        <Stack sx={styles.block}>
           <Typography sx={styles.title}>Owner</Typography>
           <Typography sx={styles.value}>{projectOwner}</Typography>
         </Stack>

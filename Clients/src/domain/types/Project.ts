@@ -2,6 +2,7 @@
 
 export type Project = {
   id: number;
+  use_case_id?: string;
   project_title: string;
   owner: number;
   members: string[];

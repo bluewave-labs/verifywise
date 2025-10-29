@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,11 @@ import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "luci
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
 import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB, validateFile } from "../../../../application/constants/fileManager";
 import { formatBytes } from "../../../../application/tools/fileUtil";
+import { getFileErrorMessage } from "../../../../application/utils/fileErrorHandler.utils";
+import { secureLogError } from "../../../../application/utils/secureLogger.utils"; // SECURITY: No PII
+
+// Constants (DRY + Maintainability)
+const UPLOAD_CONTEXT = 'FileManagerUpload';
 
 interface FileManagerUploadModalProps {
   open: boolean;
@@ -25,9 +30,11 @@ interface FileManagerUploadModalProps {
   onSuccess?: () => void;
 }
 
+type UploadStatus = "pending" | "uploading" | "success" | "error";
+
 interface UploadedFileInfo {
   file: File;
-  status: "pending" | "uploading" | "success" | "error";
+  status: UploadStatus;
   progress: number;
   error?: string;
 }
@@ -43,6 +50,25 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  //Store timeout IDs to prevent race conditions and memory leaks
+  const removeSuccessTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  //Cleanup timeouts on unmount (KISS: simple cleanup pattern)
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts when component unmounts
+      if (removeSuccessTimeoutRef.current) {
+        clearTimeout(removeSuccessTimeoutRef.current);
+        removeSuccessTimeoutRef.current = null;
+      }
+      if (autoCloseTimeoutRef.current) {
+        clearTimeout(autoCloseTimeoutRef.current);
+        autoCloseTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -123,27 +149,15 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         );
 
         successCount++;
-      } catch (error: any) {
-        // Extract user-friendly error message
-        // Check HTTP status codes first (most specific), then fallback to generic message
-        let errorMessage = "Upload failed";
+      } catch (error: unknown) {
+        // Use centralized error handler (DRY principle)
+        const errorMessage = getFileErrorMessage(error, "upload");
 
-        // Get status code from CustomException (error.status) or axios (error.response?.status)
-        const statusCode = error?.status || error?.response?.status;
+        // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
+        // logEngine includes user ID/email/name which violates GDPR/compliance
+        secureLogError('File upload failed', UPLOAD_CONTEXT);
 
-        if (statusCode === 413) {
-          errorMessage = `File too large (max ${MAX_FILE_SIZE_MB}MB)`;
-        } else if (statusCode === 415) {
-          errorMessage = "Unsupported file type";
-        } else if (statusCode === 403) {
-          errorMessage = "Permission denied";
-        } else if (statusCode === 500) {
-          errorMessage = "Server error. Please try again.";
-        } else if (error?.message) {
-          errorMessage = error.message;
-        }
-
-        // Update status to error
+        // Update status to error with user-facing message
         setFileList((prev) =>
           prev.map((item, idx) =>
             idx === i
@@ -166,14 +180,23 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
       onSuccess();
     }
 
+    // DEFENSIVE: Clear any existing timeouts before scheduling new ones
+    if (removeSuccessTimeoutRef.current) {
+      clearTimeout(removeSuccessTimeoutRef.current);
+    }
+    if (autoCloseTimeoutRef.current) {
+      clearTimeout(autoCloseTimeoutRef.current);
+    }
+
     // Remove successfully uploaded files after a short delay
-    setTimeout(() => {
+    removeSuccessTimeoutRef.current = setTimeout(() => {
       setFileList((prev) => {
         const filtered = prev.filter((item) => item.status !== "success");
 
         // If no files remain (all were successful), close the modal
         if (filtered.length === 0 && successCount > 0) {
-          setTimeout(() => handleClose(), 300);
+          // DEFENSIVE: Store nested timeout ID to prevent race condition
+          autoCloseTimeoutRef.current = setTimeout(() => handleClose(), 300);
         }
 
         return filtered;

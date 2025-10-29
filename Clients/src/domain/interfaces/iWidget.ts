@@ -98,6 +98,7 @@ export interface FieldProps {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
   width?: number | string;
@@ -196,9 +197,9 @@ export interface IGenerateReportProps {
 }
 
 export interface IInputProps {
-  report_type: string;
+  report_type: string | string[];
   report_name: string;
-  project: number;
+  project: number | null;
   framework: number;
   projectFrameworkId: number;
   reportType?: "project" | "organization" | null;

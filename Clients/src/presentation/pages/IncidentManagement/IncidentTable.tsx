@@ -20,7 +20,7 @@ import Placeholder from "../../assets/imgs/empty-state.svg";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
-import { IAIIncidentManagement } from "../../../domain/interfaces/i.incidentManagement";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import {
     AIIncidentManagementApprovalStatus,
     IncidentManagementStatus,
@@ -43,7 +43,7 @@ import CustomIconButton from "../../components/IconButton";
 dayjs.extend(utc);
 
 //  badge style generator
-export const getIncidentChipProps = (value: string) => {
+ const getIncidentChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
         // Severity
         [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" },
@@ -117,7 +117,7 @@ const TABLE_COLUMNS = [
 ];
 
 interface IncidentTableProps {
-    data: IAIIncidentManagement[];
+    data: AIIncidentManagementModel[];
     isLoading?: boolean;
     onEdit?: (id: string, mode: string) => void;
     onView?: (id: string, mode: string) => void;
@@ -131,9 +131,14 @@ const STORAGE_KEY = 'incident-table-rows-per-page';
 
 const TooltipCell: React.FC<{ value?: string | null }> = ({ value }) => {
     const displayValue = value || "-";
-    return displayValue.length > 24 ? (
+    const shouldTruncate = displayValue.length > 30;
+    const truncatedValue = shouldTruncate
+        ? `${displayValue.substring(0, 30)}...`
+        : displayValue;
+
+    return shouldTruncate ? (
         <Tooltip title={displayValue} arrow>
-            <span>{displayValue}</span>
+            <span style={{ cursor: 'help' }}>{truncatedValue}</span>
         </Tooltip>
     ) : (
         <span>{displayValue}</span>

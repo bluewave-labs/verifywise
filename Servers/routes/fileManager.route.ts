@@ -7,24 +7,27 @@
  * - POST   /file-manager       - Upload file (Admin, Reviewer, Editor only)
  * - GET    /file-manager       - List all files (All authenticated users)
  * - GET    /file-manager/:id   - Download file (All authenticated users)
+ * - DELETE /file-manager/:id   - Delete file (Admin, Reviewer, Editor only)
  *
  * Access Control:
  * - All routes require JWT authentication
- * - Upload restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
+ * - Upload and Delete restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
  * - List and Download available to all authenticated users
  *
  * @module routes/fileManager
  */
 
 import express, { Request, Response, NextFunction } from "express";
-import { uploadFile, listFiles, downloadFile } from "../controllers/fileManager.ctrl";
+import { uploadFile, listFiles, downloadFile, removeFile } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
+import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
 import multer from "multer";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import * as path from "path";
 import * as fs from "fs";
 import { ALLOWED_MIME_TYPES } from "../utils/validations/fileManagerValidation.utils";
+import logger from "../utils/logger/fileLogger";
 
 const router = express.Router();
 
@@ -81,12 +84,34 @@ const upload = multer({
  * Catches file size limit errors and file type rejection errors
  */
 const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // Clean up temporary file if it exists
+  // Clean up temporary file if it exists (async, non-blocking)
   if (req.file?.path) {
+    // Secure containment validation using realpathSync to resolve symlinks
+    let resolvedPath: string;
+    let resolvedTempDir: string;
+
     try {
-      fs.unlinkSync(req.file.path);
-    } catch (cleanupError) {
-      console.error("Failed to clean up temporary file:", cleanupError);
+      // Resolve real paths (follows symlinks) to prevent directory traversal via symlinks
+      resolvedTempDir = fs.realpathSync(tempDir);
+      resolvedPath = fs.realpathSync(req.file.path);
+
+      // Only clean up if the file is strictly within the temp directory
+      if (resolvedPath.startsWith(resolvedTempDir + path.sep)) {
+        // Fire-and-forget async cleanup to avoid blocking
+        fs.promises.unlink(resolvedPath).catch((cleanupError) => {
+          // Ignore ENOENT (file already deleted), but log other errors
+          if (cleanupError.code !== 'ENOENT') {
+            logger.error("Failed to clean up temporary file:", cleanupError);
+          }
+        });
+      } else {
+        // Log security violation attempt
+        logger.warn(`Security: Blocked cleanup attempt outside temp directory. Path: ${resolvedPath}, Allowed: ${resolvedTempDir}`);
+      }
+    } catch (e) {
+      // Unable to resolve file/directory (file may not exist), skip cleanup and continue
+      logger.warn(`Failed to resolve path for cleanup: ${req.file.path}`, e);
+      // Do not return - continue to error handling below
     }
   }
 
@@ -121,10 +146,12 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
  * @returns {403} Access denied (unauthorized role)
  * @returns {413} File size exceeds maximum allowed size
  * @returns {415} Unsupported file type
+ * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
 router.post(
   "/",
+  fileOperationsLimiter,
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   upload.single("file"),
@@ -139,9 +166,10 @@ router.post(
  * @query   page - Page number (optional)
  * @query   pageSize - Items per page (optional)
  * @returns {200} List of files with metadata and pagination
+ * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
-router.get("/", authenticateJWT, listFiles);
+router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
 
 /**
  * @route   GET /file-manager/:id
@@ -151,8 +179,28 @@ router.get("/", authenticateJWT, listFiles);
  * @returns {200} File content with download headers
  * @returns {403} Access denied (file from different organization)
  * @returns {404} File not found
+ * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
-router.get("/:id", authenticateJWT, downloadFile);
+router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
+
+/**
+ * @route   DELETE /file-manager/:id
+ * @desc    Delete a file by ID
+ * @access  Admin, Reviewer, Editor only
+ * @param   id - File ID
+ * @returns {200} File deleted successfully
+ * @returns {403} Access denied (file from different organization or unauthorized role)
+ * @returns {404} File not found
+ * @returns {429} Too many requests - rate limit exceeded
+ * @returns {500} Server error
+ */
+router.delete(
+  "/:id",
+  fileOperationsLimiter,
+  authenticateJWT,
+  authorize(["Admin", "Reviewer", "Editor"]),
+  removeFile
+);
 
 export default router;

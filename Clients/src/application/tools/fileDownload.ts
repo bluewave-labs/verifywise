@@ -21,12 +21,19 @@ interface GenerateReportProps {
  */
 export const handleDownload = async (fileId: string, fileName: string): Promise<void> => {
   try {
-    const response = await getFileById({
+   const response = await getFileById({
       id: typeof fileId === 'string' ? fileId : String(fileId),
       responseType: "blob",
     });
     const blob = new Blob([response], { type: response.type });
-    triggerBrowserDownload(blob, fileName);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
     throw error;
@@ -49,12 +56,15 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
     if (response.status === 200) {
       // Extract filename from Content-Disposition header
       const headerContent = response.headers.get('Content-Disposition');
-      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-      const fileName = fileAttachment.map(m => m[1]);
+      // Defensive: safely extract filename from Content-Disposition header
+      const fileName = headerContent
+        ? ([...headerContent.matchAll(/"([^"]+)"/g)].map(m => m[1])[0] || 'report')
+        : 'report';
 
       // Get blob content and content type
       const blobFileContent = response.data;
       const responseType = response.headers.get('Content-Type');
+
 
       // Create blob and trigger download (DRY: using shared utility)
       const blob = new Blob([blobFileContent], { type: responseType || undefined });
@@ -70,3 +80,35 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
     return 500;
   }
 };
+
+/**
+ * Deletes a file from the file manager
+ *
+ * @param {string} fileId - The file identifier
+ * @param {Function} [onSuccess] - Callback to execute on successful deletion
+ * @throws {Error} If deletion fails
+ */
+/*
+export const handleFileDelete = async (
+  fileId: string,
+  onSuccess?: () => void
+) => {
+  try {
+    const response = await deleteFileFromManager({
+      id: typeof fileId === "string" ? fileId : String(fileId),
+    });
+
+    console.log("File deleted successfully:", response);
+
+    // Call onSuccess callback if provided (e.g., to refresh the file list)
+    if (onSuccess) {
+      onSuccess();
+    }
+  } catch (error: any) {
+    const errorMessage = getFileErrorMessage(error, "delete");
+    console.error("Error deleting file from file manager:", error);
+    alert(errorMessage);
+    throw error;
+  }
+};
+*/

@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { Building2, CirclePlus } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const VendorsSteps: PageTourStep[] = [
+const VendorsSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-new-vendor"]',
     content: {

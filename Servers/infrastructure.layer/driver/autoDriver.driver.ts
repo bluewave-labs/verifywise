@@ -72,6 +72,7 @@ export async function insertMockData(
           project_title: "AI Compliance Checker",
           owner: owner,
           start_date: new Date(Date.now()),
+          geography: 1,
           ai_risk_classification: AiRiskClassification.HIGH_RISK,
           type_of_high_risk_role: HighRiskRole.DEPLOYER,
           goal: "To ensure compliance with AI governance standards",

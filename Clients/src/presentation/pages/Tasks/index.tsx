@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   Box,
@@ -35,6 +36,7 @@ import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
+import { TaskModel } from "../../../domain/models/Common/task/task.model";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -55,7 +57,7 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
 // Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
-  const [tasks, setTasks] = useState<ITask[]>([]);
+  const [tasks, setTasks] = useState<TaskModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
@@ -506,8 +508,7 @@ const Tasks: React.FC = () => {
             statusOptions={TASK_STATUS_OPTIONS.map(
               (status) => {
                 const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                console.log('Task status mapping:', status, '->', displayStatus);
-                return displayStatus;
+                  return displayStatus;
               }
             )}
             isUpdateDisabled={isCreatingDisabled}

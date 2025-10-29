@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { DashboardState, User, InputValues } from "../../../application/interfaces/appStates";
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
@@ -20,25 +21,39 @@ import { getAllVendors } from "../../../application/repository/vendor.repository
 const DEFAULT_ROWS_PER_PAGE = 10;
 const RISKS_ROWS_PER_PAGE_KEY = 'verifywise_risks_rows_per_page';
 
+// Define proper interfaces for type safety
+interface TableColumn {
+  id: string;
+  name: string;
+}
+
+interface TableRow {
+  id: string | number;
+  risk_name?: string;
+  impact?: string;
+  risk_owner?: string | number;
+  risk_level_autocalculated?: string;
+  likelihood?: string;
+  mitigation_status?: string;
+  final_risk_level?: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
 interface TableProps {
   data: {
-    rows: any[];
-    cols: { id: string; name: string }[];
+    rows: TableRow[];
+    cols: TableColumn[];
   };
-  bodyData: any[];
+  bodyData: TableRow[];
   paginated?: boolean;
   reversed?: boolean;
   table: string;
-  onRowClick?: (id: string) => void;
+  onRowClick?: (id: string | number) => void;
   label?: string;
-  setSelectedRow: (row: any) => void;
+  setSelectedRow: (row: TableRow) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
 }
 
-interface DashboardValues {
-  vendors: any[];
-  users: any[];
-}
 
 const CustomizableBasicTable = ({
   data,
@@ -81,7 +96,7 @@ const CustomizableBasicTable = ({
   const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllVendors();
-      setDashboardValues((prev: DashboardValues) => ({
+      setDashboardValues((prev: DashboardState) => ({
         ...prev,
         vendors: response.data,
       }));
@@ -96,15 +111,16 @@ const CustomizableBasicTable = ({
 
   const onRowClickHandler = (
     event: React.MouseEvent<HTMLTableRowElement>,
-    rowData: any
+    rowData: TableRow
   ) => {
     setSelectedRow(rowData);
-    setInputValues(rowData);
+    setInputValues(rowData as InputValues);
     setAnchorEl(event.currentTarget);
     onRowClick?.(rowData.id);
   };
 
-  const riskLevelChecker = (score: string) => {
+  const riskLevelChecker = (score: string | undefined) => {
+    if (!score) return '';
     const parsedScore = parseInt(score, 10);
     if (!isNaN(parsedScore)) {
       if (parsedScore <= 3) return RISK_LABELS.low.text;
@@ -148,19 +164,19 @@ const CustomizableBasicTable = ({
                 onClick={(event) => onRowClickHandler(event, row)}
               >
                 <TableCell>
-                  {row.risk_name?.length > 30
+                  {row.risk_name && row.risk_name.length > 30
                     ? `${row.risk_name.slice(0, 30)}...`
-                    : row.risk_name}
+                    : row.risk_name || ''}
                 </TableCell>
                 <TableCell>
-                  {row.impact?.length > 30
+                  {row.impact && row.impact.length > 30
                     ? `${row.impact.slice(0, 30)}...`
-                    : row.impact}
+                    : row.impact || ''}
                 </TableCell>
                 <TableCell>
-                  {dashboardValues.users.find(
-                    (user: any) => user.id === parseInt(row.risk_owner)
-                  )?.name || row.risk_owner}
+                  {(dashboardValues.users as User[])?.find(
+                    (user: User) => user.id === parseInt(String(row.risk_owner))
+                  )?.name || (typeof row.risk_owner === 'string' ? row.risk_owner : String(row.risk_owner))}
                 </TableCell>
                 <TableCell>
                   {riskLevelChecker(row.risk_level_autocalculated)}
@@ -197,9 +213,7 @@ const CustomizableBasicTable = ({
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5, 10, 15, 25]}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={
-              TablePaginationActions as React.ComponentType<any>
-            }
+            ActionsComponent={TablePaginationActions as any}
             labelRowsPerPage="Rows per page"
             sx={{ mt: theme.spacing(6) }}
           />

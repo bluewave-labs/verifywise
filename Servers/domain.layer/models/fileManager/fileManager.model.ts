@@ -55,6 +55,7 @@ export interface FileManagerMetadata {
   uploaded_by: number;
   uploader_name?: string;
   uploader_surname?: string;
+  existsOnDisk?: boolean;
 }
 
 @Table({

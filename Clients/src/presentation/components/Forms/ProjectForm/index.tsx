@@ -86,6 +86,7 @@ const ProjectForm = ({
         framework_type: projectToEdit.is_organizational
           ? FrameworkTypeEnum.OrganizationWide
           : FrameworkTypeEnum.ProjectBased,
+        geography: projectToEdit.geography || 1,
       };
     }
     return {
@@ -187,6 +188,18 @@ const ProjectForm = ({
     []
   );
 
+  const geographyItems = useMemo(
+    () => [
+      { _id: 1, name: "Global" },
+      { _id: 2, name: "Europe" },
+      { _id: 3, name: "North America" },
+      { _id: 4, name: "South America" },
+      { _id: 5, name: "Asia" },
+      { _id: 6, name: "Africa" },
+    ],
+    []
+  );
+
   const projectStatusItems = useMemo(
     () => [
       { _id: 1, name: "Not started" },
@@ -269,10 +282,6 @@ const ProjectForm = ({
     }
     setCurrentStep(2);
   }, [values.framework_type, errors]);
-
-  // const handleBack = useCallback(() => {
-  //   setCurrentStep(1);
-  // }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -765,22 +774,42 @@ const ProjectForm = ({
                 slotProps={teamMembersSlotProps}
               />
             </Stack>
-            <DatePicker
-              label="Start date"
-              date={
-                values.start_date ? dayjs(values.start_date) : dayjs(new Date())
-              }
-              handleDateChange={handleDateChange}
-              sx={{
-                ...datePickerStyle,
-                ...(projectToEdit && {
-                  width: "350px",
-                  "& input": { width: "300px" },
-                }),
-              }}
-              isRequired
-              error={errors.startDate}
-            />
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
+              <DatePicker
+                label="Start date"
+                date={
+                  values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+                }
+                handleDateChange={handleDateChange}
+                sx={{
+                  ...datePickerStyle,
+                  ...(projectToEdit && {
+                    width: "350px",
+                    "& input": { width: "300px" },
+                  }),
+                }}
+                isRequired
+                error={errors.startDate}
+              />
+              <Select
+                id="geography-type-input"
+                label="Geography"
+                placeholder="Select an option"
+                value={
+                  values.geography === 0
+                    ? ""
+                    : values.geography
+                }
+                onChange={handleOnSelectChange("geography")}
+                items={geographyItems}
+                sx={{
+                  width: "150px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                isRequired
+                error={errors.geography}
+              />
+            </Stack>
             {!projectToEdit &&
               values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
                 <Stack>

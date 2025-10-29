@@ -119,6 +119,7 @@ export interface IFileBasicTableProps {
 export interface IFileTableProps {
   cols: any[];
   files: FileData[];
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IProjectRiskTableBodyProps {

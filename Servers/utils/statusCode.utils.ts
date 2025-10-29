@@ -78,6 +78,9 @@ export class STATUS_CODE {
   static 415 = (data: any) => {
     return { message: "Unsupported Media Type", data };
   };
+  static 429 = (data: any) => {
+    return { message: "Too Many Requests", data };
+  };
 
   // 5XX server errors
   static 500 = (error: any) => {

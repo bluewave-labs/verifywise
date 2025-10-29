@@ -155,11 +155,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   },
                   outline: "none",
                 }}
-                onClick={() => onEdit(row.id!)}
+                onClick={() => onEdit(row.id)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onEdit(row.id!);
+                    onEdit(row.id);
                   }
                 }}
                 tabIndex={0}
@@ -186,7 +186,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       text="View risks"
                       onClick={(e: React.MouseEvent<HTMLElement>) => {
                         e.stopPropagation();
-                        openVendorRisksDialog(row.id!, row.vendor_name);
+                        openVendorRisksDialog(row.id, row.vendor_name);
                       }}
                     />
                   </Box>
@@ -205,9 +205,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <IconButton
-                    id={row.id!}
-                    onDelete={() => onDelete(row.id!)}
-                    onEdit={() => onEdit(row.id!)}
+                    id={row.id}
+                    onDelete={() => onDelete(row.id)}
+                    onEdit={() => onEdit(row.id)}
                     onMouseEvent={() => {}}
                     warningTitle="Delete this vendor?"
                     warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."

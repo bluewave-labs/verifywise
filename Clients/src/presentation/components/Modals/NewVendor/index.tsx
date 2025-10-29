@@ -46,6 +46,7 @@ import {
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { User } from "../../../../domain/types/User";
 
 interface FormErrors {
   vendorName?: string;
@@ -66,9 +67,9 @@ const initialState = {
   vendorProvides: "",
   vendorContactPerson: "",
   reviewStatus: "",
-  reviewer: "",
+  reviewer: null as number | null,
   reviewResult: "",
-  assignee: "",
+  assignee: null as number | null,
   reviewDate: new Date().toISOString(),
 };
 
@@ -119,7 +120,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
-  const formattedUsers = users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
@@ -163,16 +164,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           REVIEW_STATUS_OPTIONS?.find(
             (s) => s.name === existingVendor.review_status
           )?._id || "",
-        reviewer:
-          formattedUsers?.find(
-            (user: any) => user._id === existingVendor.reviewer
-          )?._id || "",
+        reviewer: existingVendor.reviewer || null,
         reviewResult: existingVendor.review_result,
-        assignee:
-          formattedUsers?.find(
-            (user: any) => user._id === existingVendor.assignee
-          )?._id || "",
-        reviewDate: existingVendor.review_date.toLocaleString(),
+        assignee: existingVendor.assignee || null,
+        reviewDate: dayjs(existingVendor.review_date).toISOString(),
       }));
     }
   }, [existingVendor]);
@@ -200,7 +195,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
-        reviewDate: newDate ? newDate.toISOString() : "",
+        reviewDate: newDate && newDate.isValid() ? newDate.toISOString() : "",
       }));
     }
   };
@@ -285,19 +280,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.vendorContactPerson = vendorContactPerson.message;
     }
     // Review status, reviewer, and review date are now optional
-    if (
-      !values.assignee ||
-      Number(values.assignee) === 0
-    ) {
+    if (values.assignee === null) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
 
      // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
-      if (
-        values.reviewer &&
-        values.assignee &&
-        Number(values.reviewer) === Number(values.assignee)
-      ) {
+      if (values.reviewer != null && values.assignee != null && values.reviewer === values.assignee) {
         newErrors.reviewer = "Reviewer and assignee cannot be the same";
         newErrors.assignee = "Reviewer and assignee cannot be the same";
       }
@@ -322,9 +310,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     const _vendorDetails = {
       projects: values.projectIds,
       vendor_name: values.vendorName,
-      assignee: formattedUsers?.find(
-        (user: any) => user._id === values.assignee
-      )?._id,
+      assignee: values.assignee ?? undefined,
       vendor_provides: values.vendorProvides,
       website: formattedWebsite,
       vendor_contact_person: values.vendorContactPerson,
@@ -333,9 +319,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         REVIEW_STATUS_OPTIONS?.find(
           (s) => s._id === values.reviewStatus
         )?.name || "",
-      reviewer: formattedUsers?.find(
-        (user: any) => user._id === values.reviewer
-      )?._id,
+      reviewer: values.reviewer ?? undefined,
       review_date: values.reviewDate
     };
     if (existingVendor) {
@@ -638,8 +622,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               placeholder="Select person"
               isHidden={false}
               id=""
-              onChange={(e) => handleOnChange("assignee", e.target.value)}
-              value={values.assignee}
+              onChange={(e) => handleOnChange("assignee", Number(e.target.value))}
+              value={`${values.assignee}`}
               sx={{
                 width: 220,
               }}
@@ -689,8 +673,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select reviewer"
           isHidden={false}
           id=""
-          onChange={(e) => handleOnChange("reviewer", e.target.value)}
-          value={values.reviewer}
+          onChange={(e) => handleOnChange("reviewer", Number(e.target.value))}
+          value={`${values.reviewer}`}
           error={errors.reviewer}
           sx={{
             width: 220,

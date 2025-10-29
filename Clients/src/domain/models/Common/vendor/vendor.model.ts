@@ -1,7 +1,7 @@
 import { ReviewStatus } from "../../../enums/status.enum";
 
 export class VendorModel {
-  id?: number;
+  id: number;
   order_no?: number;
   vendor_name!: string;
   vendor_provides!: string;

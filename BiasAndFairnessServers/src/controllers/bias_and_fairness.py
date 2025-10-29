@@ -790,15 +790,37 @@ async def update_evaluation_config_controller(eval_id: str, payload: dict, tenan
             # Trigger re-evaluation with updated config
             try:
                 # Update status to running
-                await update_bias_fairness_evaluation_status(eval_id, "running", db, tenant)
+                await update_bias_fairness_evaluation_status(eval_id, "running", None, db, tenant)
                 await db.commit()
                 
-                # Start background evaluation
+                # Create a new config file with updated config_data
+                import yaml
+                import json
+                from pathlib import Path
+                
+                # Parse the updated config
+                updated_config = json.loads(config_data)
+                
+                # Create config directory
+                repo_root = Path(__file__).resolve().parents[3]
+                config_dir = repo_root / "BiasAndFairnessModule" / "configs"
+                config_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Update the existing config.yaml file for re-evaluation
+                config_path = config_dir / "config.yaml"
+                with open(config_path, 'w') as f:
+                    yaml.dump(updated_config, f, default_flow_style=False, indent=2)
+                
+                # Get next job ID for tracking
+                job_id = await get_next_job_id()
+                
+                # Start background evaluation using the correct function
                 import asyncio
-                asyncio.create_task(process_evaluation(eval_id, tenant))
+                asyncio.create_task(run_bias_fairness_evaluation(job_id, str(config_path), eval_id, tenant))
                 
             except Exception as re_eval_error:
-                # Don't fail the config update if re-evaluation fails
+                # Log the error but don't fail the config update
+                print(f"Failed to start re-evaluation: {str(re_eval_error)}")
                 pass
             
             return JSONResponse(

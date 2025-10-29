@@ -528,7 +528,7 @@ export default function BiasAndFairnessResultsPage() {
       setAlert({
         variant: "success",
         title: "Configuration Updated",
-        body: "Configuration updated successfully and re-evaluation has started! 🔄"
+        body: "Configuration updated successfully and re-evaluation has started!"
       });
       
       // Hide alert after 5 seconds

@@ -32,7 +32,7 @@
     "express-rate-limit": "^8.1.0",
     "express-validator": "^7.2.1",
     "helmet": "^8.0.0",
-    "html-to-docx": "^1.8.0",
+    "html-to-docx-lite": "^2.0.1",
     "http-proxy-middleware": "^3.0.5",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",

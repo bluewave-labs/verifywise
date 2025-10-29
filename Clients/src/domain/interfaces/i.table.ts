@@ -114,6 +114,7 @@ export interface IFileBasicTableProps {
   bodyData: FileData[];
   paginated?: boolean;
   table: string;
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IFileTableProps {

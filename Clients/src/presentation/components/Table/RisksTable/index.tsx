@@ -20,9 +20,9 @@ import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import RiskChip from "../../RiskLevel/RiskChip";
-import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
-import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { User } from "../../../../domain/types/User";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -38,6 +38,15 @@ const titleOfTableColumns = [
   "risk level",
   " ",
 ];
+
+export interface IRiskTableProps {
+  users: User[];
+  vendors: VendorModel[];
+  vendorRisks: VendorRisk[];
+  onDelete: (riskId: number) => void;
+  onEdit: (riskId: number) => void;
+  isDeletingAllowed?: boolean;
+}
 
 const RiskTable: React.FC<IRiskTableProps> = ({
   users,
@@ -61,14 +70,14 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       textDecoration: 'line-through',
     })
   });
-  const formattedUsers = users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
 
   const formattedVendors = useMemo(() => {
-    return vendors.map((vendor: VendorDetails) => ({
-      _id: vendor.id,
+    return vendors.map((vendor: VendorModel) => ({
+      _id: vendor.id!,
       name: vendor.vendor_name,
     }));
   }, [vendors]);
@@ -96,7 +105,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       vendorRisks?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, vendorRisks?.length ?? 0]);
+  }, [page, rowsPerPage, vendorRisks?.length]);
 
   // Group risks by id so each risk appears only once, and collect all project titles
   const groupedRisks: Record<
@@ -176,7 +185,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell sx={getCellStyle(row)}>
                   {
                     formattedVendors?.find(
-                      (vendor: any) => vendor._id === row.vendor_id
+                      (vendor: {_id: number; name: string;}) => vendor._id === row.vendor_id
                     )?.name
                   }
                 </TableCell>
@@ -277,7 +286,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell sx={getCellStyle(row)}>
                   {
                     formattedUsers?.find(
-                      (user: any) => user._id === row.action_owner
+                      (user: {_id: number; name: string;}) => user._id === row.action_owner
                     )?.name
                   }
                 </TableCell>

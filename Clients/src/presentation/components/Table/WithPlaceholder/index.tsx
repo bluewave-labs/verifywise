@@ -27,7 +27,8 @@ const SelectorVertical = (props: any) => (
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { User } from "../../../../domain/types/User";
 
 const titleOfTableColumns = [
   "name",
@@ -37,6 +38,13 @@ const titleOfTableColumns = [
   "review date",
   "",
 ];
+
+export interface ITableWithPlaceholderProps {
+  vendors: VendorModel[];
+  users: User[];
+  onDelete: (vendorId: number) => void;
+  onEdit: (vendorId: number) => void;
+}
 
 const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   users,
@@ -48,15 +56,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
-    null
-  );
   const [showVendorRisks, setShowVendorRisks] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<{
     id: number;
     name: string;
   } | null>(null);
-  const formattedUsers = users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
@@ -76,10 +81,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     },
     []
   );
-
-  const handleDropdownClose = useCallback(() => {
-    setDropdownAnchor(null);
-  }, []);
 
   const openVendorRisksDialog = useCallback(
     (vendorId: number, vendorName: string) => {
@@ -101,7 +102,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       vendors?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, vendors?.length ?? 0]);
+  }, [page, rowsPerPage, vendors?.length]);
 
   const tableHeader = useMemo(
     () => (
@@ -143,7 +144,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         {vendors &&
           vendors
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: any, index: number) => (
+            .map((row: VendorModel, index: number) => (
               <TableRow
                 key={index}
                 sx={{
@@ -154,11 +155,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   },
                   outline: "none",
                 }}
-                onClick={() => onEdit(row.id)}
+                onClick={() => onEdit(row.id!)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onEdit(row.id);
+                    onEdit(row.id!);
                   }
                 }}
                 tabIndex={0}
@@ -171,7 +172,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell sx={cellStyle}>
                   {row.assignee
                     ? formattedUsers?.find(
-                        (user: any) => user._id === row.assignee
+                        (user: {_id: number; name: string;}) => user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
                 </TableCell>
@@ -185,7 +186,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       text="View risks"
                       onClick={(e: React.MouseEvent<HTMLElement>) => {
                         e.stopPropagation();
-                        openVendorRisksDialog(row.id, row.vendor_name);
+                        openVendorRisksDialog(row.id!, row.vendor_name);
                       }}
                     />
                   </Box>
@@ -204,9 +205,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <IconButton
-                    id={row.id}
-                    onDelete={() => onDelete(row.id)}
-                    onEdit={() => onEdit(row.id)}
+                    id={row.id!}
+                    onDelete={() => onDelete(row.id!)}
+                    onEdit={() => onEdit(row.id!)}
                     onMouseEvent={() => {}}
                     warningTitle="Delete this vendor?"
                     warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
@@ -223,8 +224,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       page,
       rowsPerPage,
       cellStyle,
-      dropdownAnchor,
-      handleDropdownClose,
       openVendorRisksDialog,
       formattedUsers,
       onEdit,

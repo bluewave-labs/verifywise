@@ -5,20 +5,6 @@ import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
 
-export interface VendorDetails {
-  id?: number;
-  projects: number[];
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  risk_status: string;
-  review_date: string;
-  assignee: string;
-}
 export interface IAITrustCenterTableColumn {
   id: string;
   label: string;
@@ -186,15 +172,6 @@ export interface IReportTablePropsExtended {
   setCurrentPagingation: (pageNo: number) => void;
 }
 
-export interface IRiskTableProps {
-  users: any;
-  vendors: VendorDetails[];
-  vendorRisks: any;
-  onDelete: (riskId: number) => void;
-  onEdit: (riskId: number) => void;
-  isDeletingAllowed?: boolean;
-}
-
 export interface ITasksTableProps {
   tasks: ITask[];
   users: User[];
@@ -204,11 +181,4 @@ export interface ITasksTableProps {
   statusOptions: string[];
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
-}
-
-export interface ITableWithPlaceholderProps {
-  vendors: VendorDetails[];
-  users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
 }

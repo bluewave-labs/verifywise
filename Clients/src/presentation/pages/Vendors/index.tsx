@@ -45,6 +45,7 @@ import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMut
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
+import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 
 interface ExistingRisk {
   id?: number;
@@ -73,7 +74,7 @@ const Vendors = () => {
   const userRoleName = userToken?.roleName || "";
   const { users } = useUsers();
 
-  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorModel| null>(null);
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");

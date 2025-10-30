@@ -305,18 +305,19 @@ const NewTraining: FC<NewTrainingProps> = ({
         </Stack>
         <Stack direction="row" spacing={6}>
           <Box sx={{ width: "350px" }}>
-
-            <Select
-              items={statusOptions}
-              value={values.status}
-              error={errors.status}
-              sx={{ width: "100%" }}
-              id="status"
-              label="Status"
-              isRequired
-              onChange={handleOnSelectChange("status")}
-              placeholder="Select status"
-            />
+              <Suspense fallback={<div>Loading...</div>}>
+                <Select
+                    items={statusOptions}
+                    value={values.status}
+                    error={errors.status}
+                    sx={{ width: "100%" }}
+                    id="status"
+                    label="Status"
+                    isRequired
+                    onChange={handleOnSelectChange("status")}
+                    placeholder="Select status"
+                />
+              </Suspense>
           </Box>
           <Box sx={{ width: "350px" }}>
             <Suspense fallback={<div>Loading...</div>}>

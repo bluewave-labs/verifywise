@@ -1706,7 +1706,7 @@ const IntegratedDashboard: React.FC = () => {
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Plus size={16} strokeWidth={1.5} />
                 <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                  Add new...
+                  Add new
                 </Typography>
               </Box>
             )}

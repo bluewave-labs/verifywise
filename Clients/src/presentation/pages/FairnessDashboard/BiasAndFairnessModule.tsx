@@ -33,18 +33,30 @@ interface BiasAndFairnessConfig {
     source: string;
     split: string;
     platform: string;
+    protectedAttributes: string[];
   };
   model: {
     modelId: string;
     modelTask: string;
     labelBehavior: string;
+    enabled: boolean;
+    device: string;
+    temperature: number;
+    topP: number;
+    maxNewTokens: number;
   };
   targetColumn: string;
   metrics: {
+    fairnessEnabled: boolean;
     fairness: string[];
+    performanceEnabled: boolean;
     performance: string[];
   };
   postProcessing: {
+    binaryMapping: {
+      favorable: string;
+      unfavorable: string;
+    };
     attributeGroups: {
       sex: {
         privileged: string[];
@@ -72,27 +84,44 @@ interface BiasAndFairnessConfig {
       };
     };
   };
+  sampling: {
+    enabled: boolean;
+    nSamples: number;
+    randomSeed: number;
+  };
 }
 
 export default function BiasAndFairnessModule() {
   const [config, setConfig] = useState<BiasAndFairnessConfig>({
     dataset: {
-      name: "",
-      source: "",
+      name: "adult-census-income",
+      source: "scikit-learn/adult-census-income",
       split: "train",
       platform: "huggingface",
+      protectedAttributes: ["sex", "race"],
     },
     model: {
       modelId: "",
       modelTask: "binary_classification",
       labelBehavior: "binary",
+      enabled: true,
+      device: "cpu",
+      temperature: 0.7,
+      topP: 0.9,
+      maxNewTokens: 30,
     },
     targetColumn: "",
     metrics: {
+      fairnessEnabled: true,
       fairness: ["demographic_parity", "equalized_odds"],
+      performanceEnabled: true,
       performance: ["accuracy"],
     },
     postProcessing: {
+      binaryMapping: {
+        favorable: ">50K",
+        unfavorable: "<=50K",
+      },
       attributeGroups: {
         sex: {
           privileged: ["Male"],
@@ -123,6 +152,7 @@ export default function BiasAndFairnessModule() {
         },
       },
     },
+    sampling: { enabled: true, nSamples: 50, randomSeed: 42 },
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -226,22 +256,34 @@ export default function BiasAndFairnessModule() {
   const resetForm = () => {
     setConfig({
       dataset: {
-        name: "",
-        source: "",
+        name: "adult-census-income",
+        source: "scikit-learn/adult-census-income",
         split: "train",
         platform: "huggingface",
+        protectedAttributes: ["sex", "race"],
       },
       model: {
         modelId: "",
         modelTask: "binary_classification",
         labelBehavior: "binary",
+        enabled: true,
+        device: "cpu",
+        temperature: 0.7,
+        topP: 0.9,
+        maxNewTokens: 30,
       },
       targetColumn: "",
       metrics: {
+        fairnessEnabled: true,
         fairness: ["demographic_parity", "equalized_odds"],
+        performanceEnabled: true,
         performance: ["accuracy"],
       },
       postProcessing: {
+        binaryMapping: {
+          favorable: ">50K",
+          unfavorable: "<=50K",
+        },
         attributeGroups: {
           sex: {
             privileged: ["Male"],
@@ -271,6 +313,11 @@ export default function BiasAndFairnessModule() {
               "You are an ML assistant helping with fairness evaluation. Return STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra text.",
           },
         },
+      },
+      sampling: {
+        enabled: true,
+        nSamples: 50,
+        randomSeed: 42,
       },
     });
     setShowAdvancedSettings(false);
@@ -315,22 +362,37 @@ export default function BiasAndFairnessModule() {
           source: config.dataset.source,
           split: config.dataset.split,
           platform: config.dataset.platform,
-          protected_attributes: ["sex", "race"],
+          protected_attributes: config.dataset.protectedAttributes,
           target_column: config.targetColumn || "income",
         },
         model: {
           model_id: config.model.modelId,
           model_task: config.model.modelTask,
           label_behavior: config.model.labelBehavior,
+          huggingface: {
+            enabled: config.model.enabled,
+            device: config.model.device,
+            temperature: config.model.temperature,
+            top_p: config.model.topP,
+            max_new_tokens: config.model.maxNewTokens,
+            model_id: config.model.modelId,
+            system_prompt:
+              config.prompting.formatter === "tinyllama-chat"
+                ? config.prompting.formatters.tinyllamaChat.systemPrompt
+                : undefined,
+          },
         },
         metrics: {
-          fairness: config.metrics.fairness,
-          performance: config.metrics.performance,
+          fairness: config.metrics.fairnessEnabled ? config.metrics.fairness : [],
+          performance: config.metrics.performanceEnabled
+            ? config.metrics.performance
+            : [],
         },
         post_processing: {
           binary_mapping: {
-            favorable_outcome: ">50K",
-            unfavorable_outcome: "<=50K",
+            favorable_outcome: config.postProcessing.binaryMapping.favorable,
+            unfavorable_outcome:
+              config.postProcessing.binaryMapping.unfavorable,
           },
           attribute_groups: config.postProcessing?.attributeGroups,
         },
@@ -354,9 +416,9 @@ export default function BiasAndFairnessModule() {
           },
         },
         sampling: {
-          enabled: true,
-          n_samples: 50,
-          random_seed: 42,
+          enabled: config.sampling.enabled,
+          n_samples: config.sampling.nSamples,
+          random_seed: config.sampling.randomSeed,
         },
       };
 
@@ -582,6 +644,193 @@ export default function BiasAndFairnessModule() {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={6} sx={{ mt: 3 }}>
+            {/* Model Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Model Configuration
+              </Typography>
+              <Box sx={S.gridAutoFit250}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Model ID
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+                    value={config.model.modelId}
+                    onChange={(e) =>
+                      handleModelChange("modelId", e.target.value)
+                    }
+                    size="small"
+                    sx={S.inputSmall}
+                  />
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Model Task Type
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.model.modelTask}
+                      onChange={(e) => handleModelTaskChange(e.target.value)}
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="binary_classification">
+                        Binary Classification
+                      </MenuItem>
+                      <MenuItem value="multiclass_classification">
+                        Multiclass Classification
+                      </MenuItem>
+                      <MenuItem value="regression">Regression</MenuItem>
+                      <MenuItem value="generation">Generation (LLM)</MenuItem>
+                      <MenuItem value="ranking">Ranking</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                {/* Label behavior and target column */}
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Label Behavior
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.model.labelBehavior}
+                      onChange={(e) =>
+                        handleModelChange("labelBehavior", e.target.value)
+                      }
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="binary">Binary</MenuItem>
+                      <MenuItem value="categorical">Categorical</MenuItem>
+                      <MenuItem value="continuous">Continuous</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                {/* Target Column - Only show for binary classification */}
+                {config.model.modelTask === "binary_classification" ? (
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Target Column
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="e.g., income"
+                      value={config.targetColumn}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          targetColumn: e.target.value,
+                        }))
+                      }
+                      size="small"
+                      sx={S.inputSmall}
+                    />
+                  </Box>
+                ) : (
+                  <Box>
+                    {/* Empty box to maintain alignment when target column is hidden */}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Model Runtime Settings (maps to model.huggingface in config) */}
+              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                <Box>
+                  <Typography variant="body2" sx={{ mb: 1, color: "#374151", fontSize: "0.875rem", fontWeight: 500 }}>
+                    Device
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.model.device}
+                      onChange={(e) => handleModelChange("device", e.target.value as string)}
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="cpu">CPU</MenuItem>
+                      <MenuItem value="cuda">CUDA</MenuItem>
+                      <MenuItem value="mps">MPS (Apple)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ mb: 1, color: "#374151", fontSize: "0.875rem", fontWeight: 500 }}>
+                    Temperature
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    inputProps={{ step: 0.1, min: 0, max: 1 }}
+                    value={config.model.temperature}
+                    onChange={(e) => setConfig((p) => ({ ...p, model: { ...p.model, temperature: Number(e.target.value) } }))}
+                    size="small"
+                    sx={S.inputSmall}
+                  />
+                </Box>
+              </Box>
+              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                <Box>
+                  <Typography variant="body2" sx={{ mb: 1, color: "#374151", fontSize: "0.875rem", fontWeight: 500 }}>
+                    Top P
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    inputProps={{ step: 0.05, min: 0, max: 1 }}
+                    value={config.model.topP}
+                    onChange={(e) => setConfig((p) => ({ ...p, model: { ...p.model, topP: Number(e.target.value) } }))}
+                    size="small"
+                    sx={S.inputSmall}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ mb: 1, color: "#374151", fontSize: "0.875rem", fontWeight: 500 }}>
+                    Max New Tokens
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    value={config.model.maxNewTokens}
+                    onChange={(e) => setConfig((p) => ({ ...p, model: { ...p.model, maxNewTokens: Number(e.target.value) } }))}
+                    size="small"
+                    sx={S.inputSmall}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
             {/* Dataset Configuration */}
             <Box>
               <Typography variant="body1" sx={S.sectionTitle}>
@@ -688,129 +937,6 @@ export default function BiasAndFairnessModule() {
                     </Select>
                   </FormControl>
                 </Box>
-              </Box>
-            </Box>
-
-            {/* Model Configuration */}
-            <Box>
-              <Typography variant="body1" sx={S.sectionTitle}>
-                Model Configuration
-              </Typography>
-              <Box sx={S.gridAutoFit250}>
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      color: "#374151",
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Model ID
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    placeholder="e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-                    value={config.model.modelId}
-                    onChange={(e) =>
-                      handleModelChange("modelId", e.target.value)
-                    }
-                    size="small"
-                    sx={S.inputSmall}
-                  />
-                </Box>
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      color: "#374151",
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Model Task Type
-                  </Typography>
-                  <FormControl fullWidth size="small">
-                    <Select
-                      value={config.model.modelTask}
-                      onChange={(e) => handleModelTaskChange(e.target.value)}
-                      sx={S.inputSmall}
-                    >
-                      <MenuItem value="binary_classification">
-                        Binary Classification
-                      </MenuItem>
-                      <MenuItem value="multiclass_classification">
-                        Multiclass Classification
-                      </MenuItem>
-                      <MenuItem value="regression">Regression</MenuItem>
-                      <MenuItem value="generation">Generation (LLM)</MenuItem>
-                      <MenuItem value="ranking">Ranking</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Box>
-              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      color: "#374151",
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Label Behavior
-                  </Typography>
-                  <FormControl fullWidth size="small">
-                    <Select
-                      value={config.model.labelBehavior}
-                      onChange={(e) =>
-                        handleModelChange("labelBehavior", e.target.value)
-                      }
-                      sx={S.inputSmall}
-                    >
-                      <MenuItem value="binary">Binary</MenuItem>
-                      <MenuItem value="categorical">Categorical</MenuItem>
-                      <MenuItem value="continuous">Continuous</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-                {/* Target Column - Only show for binary classification */}
-                {config.model.modelTask === "binary_classification" ? (
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        mb: 1,
-                        color: "#374151",
-                        fontSize: "0.875rem",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Target Column
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      placeholder="e.g., income"
-                      value={config.targetColumn}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          targetColumn: e.target.value,
-                        }))
-                      }
-                      size="small"
-                      sx={S.inputSmall}
-                    />
-                  </Box>
-                ) : (
-                  <Box>
-                    {/* Empty box to maintain alignment when target column is hidden */}
-                  </Box>
-                )}
               </Box>
             </Box>
 
@@ -1063,6 +1189,18 @@ export default function BiasAndFairnessModule() {
               <Typography variant="body1" sx={S.sectionTitle}>
                 Metrics Configuration
               </Typography>
+              <Box sx={{ mt: 1, mb: 1 }}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={String(config.metrics.fairnessEnabled)}
+                    onChange={(e) => setConfig((p) => ({ ...p, metrics: { ...p.metrics, fairnessEnabled: e.target.value === "true" } }))}
+                    sx={S.inputSmall}
+                  >
+                    <MenuItem value="true">Fairness Metrics Enabled</MenuItem>
+                    <MenuItem value="false">Fairness Metrics Disabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
               <Typography
                 variant="body2"
                 sx={{
@@ -1124,6 +1262,34 @@ export default function BiasAndFairnessModule() {
                 attributes to analyze fairness across different demographic
                 groups.
               </Typography>
+
+              {/* Protected attributes - user-defined */}
+              <Box sx={{ mt: 2, mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1, color: "#374151", fontSize: "0.875rem", fontWeight: 500 }}>
+                  Protected Attributes
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="e.g., sex, race, age"
+                  helperText="Enter comma-separated attribute names"
+                  value={config.dataset.protectedAttributes.join(", ")}
+                  onChange={(e) => {
+                    const attributes = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter((s) => s);
+                    setConfig((p) => ({
+                      ...p,
+                      dataset: {
+                        ...p.dataset,
+                        protectedAttributes: attributes,
+                      },
+                    }));
+                  }}
+                  size="small"
+                  sx={S.inputSmall}
+                />
+              </Box>
 
               {/* Sex Attribute Groups */}
               <Box sx={{ mb: 3 }}>
@@ -1334,44 +1500,74 @@ export default function BiasAndFairnessModule() {
                   Advanced Settings
                 </Typography>
 
-                <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        mb: 1,
-                        color: "#374151",
-                        fontSize: "0.75rem",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Performance Metrics
-                    </Typography>
+                {/* Performance Metrics Section */}
+                <Box sx={{ mt: 2, mb: 3 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Performance Metrics Configuration
+                  </Typography>
+                  <Box sx={{ ...S.gridAutoFit250, gap: 2 }}>
                     <FormControl fullWidth size="small">
                       <Select
-                        multiple
-                        value={config.metrics.performance}
+                        value={String(config.metrics.performanceEnabled)}
                         onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
+                          setConfig((p) => ({
+                            ...p,
                             metrics: {
-                              ...prev.metrics,
-                              performance:
-                                typeof e.target.value === "string"
-                                  ? [e.target.value]
-                                  : e.target.value,
+                              ...p.metrics,
+                              performanceEnabled: e.target.value === "true",
                             },
                           }))
                         }
                         sx={S.inputSmall}
                       >
-                        <MenuItem value="accuracy">Accuracy</MenuItem>
-                        <MenuItem value="precision">Precision</MenuItem>
-                        <MenuItem value="recall">Recall</MenuItem>
-                        <MenuItem value="f1_score">F1 Score</MenuItem>
+                        <MenuItem value="true">
+                          Performance Metrics Enabled
+                        </MenuItem>
+                        <MenuItem value="false">
+                          Performance Metrics Disabled
+                        </MenuItem>
                       </Select>
                     </FormControl>
+                    <Box>
+                      <FormControl fullWidth size="small">
+                        <Select
+                          multiple
+                          value={config.metrics.performance}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                performance:
+                                  typeof e.target.value === "string"
+                                    ? [e.target.value]
+                                    : e.target.value,
+                              },
+                            }))
+                          }
+                          sx={S.inputSmall}
+                          disabled={!config.metrics.performanceEnabled}
+                        >
+                          <MenuItem value="accuracy">Accuracy</MenuItem>
+                          <MenuItem value="precision">Precision</MenuItem>
+                          <MenuItem value="recall">Recall</MenuItem>
+                          <MenuItem value="f1_score">F1 Score</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
                   </Box>
+                </Box>
+
+                {/* Binary Mapping and Sampling */}
+                <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
                   <Box>
                     <Typography
                       variant="body2"
@@ -1387,12 +1583,12 @@ export default function BiasAndFairnessModule() {
                     <TextField
                       fullWidth
                       placeholder="e.g., >50K"
+                      value={config.postProcessing.binaryMapping.favorable}
+                      onChange={(e) => setConfig((p) => ({ ...p, postProcessing: { ...p.postProcessing, binaryMapping: { ...p.postProcessing.binaryMapping, favorable: e.target.value } } }))}
                       size="small"
                       sx={S.inputSmall}
                     />
                   </Box>
-                </Box>
-                <Box sx={{ ...S.gridAutoFit200, mt: 2 }}>
                   <Box>
                     <Typography
                       variant="body2"
@@ -1408,6 +1604,8 @@ export default function BiasAndFairnessModule() {
                     <TextField
                       fullWidth
                       placeholder="e.g., <=50K"
+                      value={config.postProcessing.binaryMapping.unfavorable}
+                      onChange={(e) => setConfig((p) => ({ ...p, postProcessing: { ...p.postProcessing, binaryMapping: { ...p.postProcessing.binaryMapping, unfavorable: e.target.value } } }))}
                       size="small"
                       sx={S.inputSmall}
                     />
@@ -1427,12 +1625,14 @@ export default function BiasAndFairnessModule() {
                     <TextField
                       fullWidth
                       type="number"
-                      defaultValue={50}
+                      value={config.sampling.nSamples}
+                      onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, nSamples: Number(e.target.value) } }))}
                       size="small"
                       sx={S.inputSmall}
                     />
                   </Box>
                 </Box>
+                
                 <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
                   <Box>
                     <Typography
@@ -1449,7 +1649,8 @@ export default function BiasAndFairnessModule() {
                     <TextField
                       fullWidth
                       type="number"
-                      defaultValue={42}
+                      value={config.sampling.randomSeed}
+                      onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, randomSeed: Number(e.target.value) } }))}
                       size="small"
                       sx={S.inputSmall}
                     />
@@ -1467,7 +1668,11 @@ export default function BiasAndFairnessModule() {
                       Sampling Enabled
                     </Typography>
                     <FormControl fullWidth size="small">
-                      <Select defaultValue="true" sx={S.inputSmall}>
+                      <Select
+                        value={String(config.sampling.enabled)}
+                        onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, enabled: e.target.value === "true" } }))}
+                        sx={S.inputSmall}
+                      >
                         <MenuItem value="true">Yes</MenuItem>
                         <MenuItem value="false">No</MenuItem>
                       </Select>

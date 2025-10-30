@@ -473,7 +473,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
         gap={theme.spacing(8)}
       >
         <Stack>
@@ -486,7 +486,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             isRequired
             disabled={isEditingDisabled}
           />
-          <Box mt={theme.spacing(8)}>
+          <Box mt={theme.spacing(4)}>
             <Field // website
               label="Website"
               width={220}
@@ -645,7 +645,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             direction={"row"}
             justifyContent={"space-between"}
             gap={theme.spacing(8)}
-            mt={theme.spacing(8)}
+            mt={theme.spacing(4)}
           >
             <Field // vendorContactPerson
               label="Vendor contact person"
@@ -676,7 +676,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           </Stack>
         </Stack>
       </Stack>
-      <Stack marginBottom={theme.spacing(8)}>
+      <Stack marginBottom={theme.spacing(4)}>
         <Field // vendorProvides
           label="What does the vendor provide?"
           width={"100%"}
@@ -692,8 +692,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        gap={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
       >
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -739,8 +739,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
         flexDirection={"row"}
       >
         <Field // reviewResult

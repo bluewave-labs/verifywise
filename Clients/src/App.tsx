@@ -29,7 +29,6 @@ import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import { initializePostHog, identifyUser, resetUser, trackPageView } from "./application/utils/posthog";
-import PostHogTest from "./presentation/components/PostHogTest";
 import { initializeAllPerformanceMonitoring } from "./application/utils/performance-monitoring";
 import { initializeAPIPerformanceTracking } from "./application/utils/api-performance-interceptor";
 import { useNavigationPerformance } from "./application/hooks/usePerformanceMonitoring";
@@ -240,9 +239,6 @@ function App() {
                 <Routes>
                   {createRoutes(triggerSidebar, triggerSidebarReload)}
                 </Routes>
-
-                {/* PostHog Test Component - Only in development */}
-                {import.meta.env.DEV && <PostHogTest />}
               </ConditionalThemeWrapper>
             </VerifyWiseContext.Provider>
           </PersistGate>

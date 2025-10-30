@@ -361,11 +361,20 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography
-              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-            >
-              {isEdit ? "Edit Model Risk" : "Add a new model risk"}
-            </Typography>
+            <Stack>
+              <Typography
+                sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+              >
+                {isEdit ? "Edit Model Risk" : "Add a new model risk"}
+              </Typography>
+              <Typography
+                sx={{ fontSize: 13, color: "#667085", fontWeight: 400, marginTop: "4px" }}
+              >
+                {isEdit
+                  ? "Update risk details, mitigation plan, and tracking information"
+                  : "Document and track potential risks associated with AI models"}
+              </Typography>
+            </Stack>
             <Box
               component="span"
               role="button"

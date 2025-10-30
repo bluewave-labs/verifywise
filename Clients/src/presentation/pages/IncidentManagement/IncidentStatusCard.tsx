@@ -1,10 +1,10 @@
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import { IAIIncidentManagement } from "../../../domain/interfaces/i.incidentManagement";
 import { IncidentManagementStatus } from "../../../domain/enums/aiIncidentManagement.enum";
 import { incidentManagementCard, incidentManagementCardKey, incidentManagementCardValue, incidentManagementTileCard } from "./style";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 
 interface IncidentStatusCardProps {
-  incidents: IAIIncidentManagement[];
+  incidents: AIIncidentManagementModel[];
 }
 
 const IncidentStatusCard: React.FC<IncidentStatusCardProps> = ({ incidents }) => {

@@ -14,7 +14,7 @@ import { marked } from "marked";
 import { uploadFile } from "../../utils/fileUpload.utils";
 import { mapReportTypeToFileSource } from "../../controllers/reporting.ctrl";
 import { buildReportingReplacements } from "../../utils/automation/reporting.automation.utils";
-const htmlDocx = require("html-to-docx");
+const htmlDocx = require("html-to-docx-lite");
 
 const handlers = {
   "send_email": sendEmail,

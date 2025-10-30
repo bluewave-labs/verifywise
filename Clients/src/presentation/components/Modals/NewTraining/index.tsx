@@ -18,6 +18,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import {
   TrainingRegistarModel,
+  TrainingRegistarDTO,
   NewTrainingProps,
   NewTrainingFormErrors
 } from "../../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
@@ -37,7 +38,7 @@ const ERROR_MESSAGES = {
 
 type FormField = keyof NewTrainingFormErrors;
 
-const initialState: Partial<TrainingRegistarModel> = {
+const initialState: Partial<TrainingRegistarDTO> = {
   training_name: "",
   duration: "",
   provider: "",
@@ -89,7 +90,7 @@ const NewTraining: FC<NewTrainingProps> = ({
   isEdit = false,
 }) => {
   const theme = useTheme();
-  const [values, setValues] = useState<Partial<TrainingRegistarModel> & { numberOfPeople?: number }>(
+  const [values, setValues] = useState<Partial<TrainingRegistarDTO> & { numberOfPeople?: number }>(
     initialData || initialState
   );
   const [errors, setErrors] = useState<NewTrainingFormErrors>({});
@@ -111,7 +112,7 @@ const NewTraining: FC<NewTrainingProps> = ({
 
   // Handler: Text field change with proper typing (Type Safety)
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof (TrainingRegistarModel & { numberOfPeople: number })) =>
+    (prop: keyof (TrainingRegistarDTO & { numberOfPeople: number })) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
 
@@ -138,7 +139,7 @@ const NewTraining: FC<NewTrainingProps> = ({
   // Handler: Select change with proper typing (Type Safety)
   // DEFENSIVE: Cast value to TrainingStatus to ensure type safety end-to-end
   const handleOnSelectChange = useCallback(
-    (prop: keyof TrainingRegistarModel) =>
+    (prop: keyof TrainingRegistarDTO) =>
       (event: SelectChangeEvent<string | number>) => {
         const value = event.target.value as TrainingStatus;
         setValues((prev) => ({ ...prev, [prop]: value }));

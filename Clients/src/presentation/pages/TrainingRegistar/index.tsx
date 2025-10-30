@@ -33,7 +33,10 @@ import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
-import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import {
+  TrainingRegistarModel,
+  TrainingRegistarDTO
+} from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -49,10 +52,10 @@ interface AlertState {
 }
 
 
-// Utility: Map TrainingRegistarModel to form data (DRY)
+// Utility: Map TrainingRegistarModel to form data DTO (DRY)
 const mapTrainingToFormData = (
   training: TrainingRegistarModel
-): Partial<TrainingRegistarModel> => {
+): Partial<TrainingRegistarDTO> => {
   return {
     training_name: training.training_name,
     duration: String(training.duration || ""),
@@ -187,8 +190,9 @@ const Training: React.FC = () => {
   // Handler: Create/Update training with proper typing and defensive programming
   // ENTERPRISE: Handle response differences between create/update APIs
   // Returns Promise<boolean>: true on success, false on failure
+  // Uses DTO for data transfer (plain object), not Model (class instance)
   const handleTrainingSuccess = useCallback(async (
-    formData: Partial<TrainingRegistarModel>
+    formData: Partial<TrainingRegistarDTO>
   ): Promise<boolean> => {
     try {
       // DEFENSIVE: formData already has numberOfPeople from model

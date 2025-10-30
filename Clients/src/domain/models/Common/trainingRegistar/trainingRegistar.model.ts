@@ -3,12 +3,18 @@ import { TrainingStatus } from "../../../enums/status.enum";
 /**
  * Props for the NewTraining component
  * onSuccess: Returns Promise<boolean> - true on successful save, false on failure
+ *
+ * Uses Partial<TrainingRegistarDTO> for flexibility:
+ * - initialData: May be incomplete when loading from API
+ * - onSuccess data: Form validation ensures all required fields exist before submission
+ *
+ * ARCHITECTURE: Uses DTO (plain object) not Model (class instance)
  */
 export interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarModel>) => Promise<boolean>;
-  initialData?: Partial<TrainingRegistarModel>;
+  onSuccess?: (data: Partial<TrainingRegistarDTO>) => Promise<boolean>;
+  initialData?: Partial<TrainingRegistarDTO>;
   isEdit?: boolean;
 }
 
@@ -26,7 +32,27 @@ export interface NewTrainingFormErrors {
 }
 
 /**
- * TrainingRegistarModel - Client-side model for training registry
+ * Data Transfer Object (DTO) for training registry
+ * Used for API requests/responses and component data transfer
+ *
+ * ARCHITECTURE: Plain object interface for data transfer between layers
+ * - Form submits DTO
+ * - API returns DTO
+ * - Model class can be instantiated from DTO
+ */
+export interface TrainingRegistarDTO {
+  id?: number;
+  training_name: string;
+  duration: string;
+  provider: string;
+  department: string;
+  status: TrainingStatus;
+  numberOfPeople: number;
+  description: string;
+}
+
+/**
+ * TrainingRegistarModel - Client-side model for training registry (OOP)
  *
  * ARCHITECTURE DECISION: Uses 'numberOfPeople' to match API contract
  * - API expects: numberOfPeople
@@ -34,37 +60,37 @@ export interface NewTrainingFormErrors {
  * - Database column: 'people' (mapped by ORM on server side)
  *
  * This ensures consistency across client-server communication.
+ *
+ * VALIDATION: All required fields are validated at the form level.
+ * Form prevents submission unless all required fields are provided.
+ *
+ * OOP PATTERN: Accepts DTO in constructor, can contain business logic methods
  */
 export class TrainingRegistarModel {
-  id?: number;
-  training_name!: string;
-  duration!: string;
-  provider!: string;
-  department!: string;
-  status!: TrainingStatus;
-  numberOfPeople!: number;
-  description!: string;
+    id?: number;
+    training_name: string;
+    duration: string;
+    provider: string;
+    department: string;
+    status: TrainingStatus;
+    numberOfPeople: number;
+    description: string;
 
-  constructor(data: Partial<TrainingRegistarModel>) {
-
-    if (!data.training_name || !data.duration || !data.provider || !data.department || !data.status) {
-        throw new Error('Missing required fields for TrainingRegistarModel');
+    constructor(data: TrainingRegistarDTO) {
+        this.id = data.id;
+        this.training_name = data.training_name;
+        this.duration = data.duration;
+        this.provider = data.provider;
+        this.department = data.department;
+        this.status = data.status;
+        this.numberOfPeople = data.numberOfPeople;
+        this.description = data.description;
     }
 
+    static create(data: TrainingRegistarDTO): TrainingRegistarModel {
+        return new TrainingRegistarModel(data);
+    }
 
-    this.id = data.id;
-    this.training_name = data.training_name!;
-    this.duration = data.duration!;
-    this.provider = data.provider!;
-    this.department = data.department!;
-    this.status = data.status!;
-    this.numberOfPeople = data.numberOfPeople ?? 0;
-    this.description = data.description ?? "";
-  }
-
-  static createTrainingRegistar(
-    data: Partial<TrainingRegistarModel>
-  ): TrainingRegistarModel {
-    return new TrainingRegistarModel(data);
-  }
+    // Future: Add business logic methods here
+    // Example: isEditable(), validate(), toJSON(), etc.
 }

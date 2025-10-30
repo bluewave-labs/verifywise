@@ -1,9 +1,7 @@
 import { Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
-import { useSelector } from "react-redux";
 import light from "./presentation/themes/light";
-import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useCallback, useMemo, useState, useEffect } from "react";
@@ -29,10 +27,10 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 
 // Component to conditionally apply theme based on route
-const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
+const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
-  
+
   // For aiTrustCentre routes, don't apply theme (like /public route)
   if (isAITrustCentreRoute) {
     return (
@@ -42,10 +40,10 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
       </>
     );
   }
-  
-  // For other routes, apply theme normally
+
+  // For other routes, apply light theme
   return (
-    <ThemeProvider theme={mode === "light" ? light : dark}>
+    <ThemeProvider theme={light}>
       <CssBaseline />
       {children}
     </ThemeProvider>
@@ -53,7 +51,6 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
 };
 
 function App() {
-  const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
@@ -171,7 +168,7 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper mode={mode}>
+            <ConditionalThemeWrapper>
               {alert && (
                 <Alert
                   variant={alert.variant}

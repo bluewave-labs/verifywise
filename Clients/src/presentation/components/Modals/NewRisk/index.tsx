@@ -117,7 +117,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   onSuccess = () => {},
   vendors,
 }) => {
-  const theme = useTheme();
   const { userRoleName } = useAuth();
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =

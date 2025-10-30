@@ -399,6 +399,8 @@ const AutomationsPage: React.FC = () => {
           return 'Incident change automation';
         case 'vendor_review_date_approaching':
           return 'Vendor review automation';
+        case 'scheduled_report':
+          return 'Scheduled report automation';
         default:
           return 'New automation';
       }

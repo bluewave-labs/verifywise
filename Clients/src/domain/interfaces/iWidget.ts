@@ -103,6 +103,8 @@ export interface FieldProps {
   disabled?: boolean;
   width?: number | string;
   sx?: SxProps<Theme>;
+  min?: number;
+  max?: number;
 }
 
 export interface ImageFieldProps {

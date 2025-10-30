@@ -28,6 +28,7 @@ import {
   FolderTree,
   Building,
   CheckSquare,
+  BarChart3,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
@@ -54,6 +55,8 @@ const getTriggerIcon = (triggerType: string) => {
       return AlertCircle;
     case 'vendor_review_date_approaching':
       return Clock;
+    case 'scheduled_report':
+      return BarChart3;
     default:
       return Settings;
   }
@@ -97,7 +100,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
   const formatTriggerName = (template: TriggerTemplate) => {
     // Check if it's a time-based trigger
     if (template.type.includes('scheduled') || template.type.includes('time') || template.name.toLowerCase().includes('schedule')) {
-      return `At a scheduled time - ${template.name}`;
+      return template.name;
     }
 
     // For event-based triggers, format as "When..."

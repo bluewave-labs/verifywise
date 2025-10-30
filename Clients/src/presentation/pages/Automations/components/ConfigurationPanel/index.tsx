@@ -365,6 +365,9 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                     color: Array.isArray(value) && value.includes(option.value)
                       ? theme.palette.primary.contrastText
                       : theme.palette.text.primary,
+                    borderRadius: '4px',
+                    padding: '4px 4px',
+                    height: 'auto',
                   }}
                 />
               ))}
@@ -388,6 +391,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             onChange={(e) => handleFieldChange(field.key, Number(e.target.value))}
             placeholder={field.placeholder}
             isRequired={field.required}
+            min={field.validation?.min}
+            max={field.validation?.max}
           />
         );
 
@@ -787,16 +792,29 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                 Settings
               </Typography>
 
-              {template.configurationSchema.map((field) => (
-                <Stack key={field.key} spacing={1}>
-                  {renderField(field)}
-                  {field.helpText && field.type !== 'boolean' && field.type !== 'multiselect' && (
-                    <Typography variant="caption" color="textSecondary">
-                      {field.helpText}
-                    </Typography>
-                  )}
-                </Stack>
-              ))}
+              {template.configurationSchema.map((field) => {
+                const renderedField = renderField(field);
+                // Only render the Stack if the field is actually visible
+                if (!renderedField) return null;
+
+                // For scheduled_report trigger, add dividers before Report Type(s) and Frequency fields
+                const shouldAddDividerBefore = trigger?.type === 'scheduled_report' &&
+                  (field.key === 'reportType' || field.key === 'frequency');
+
+                return (
+                  <React.Fragment key={field.key}>
+                    {shouldAddDividerBefore && <Divider sx={{ my: 1 }} />}
+                    <Stack spacing={1}>
+                      {renderedField}
+                      {field.helpText && field.type !== 'boolean' && field.type !== 'multiselect' && (
+                        <Typography variant="caption" color="textSecondary">
+                          {field.helpText}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </React.Fragment>
+                );
+              })}
             </Stack>
           ) : (
             <Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic' }}>

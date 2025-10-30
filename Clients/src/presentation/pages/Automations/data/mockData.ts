@@ -221,10 +221,10 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
   },
   {
     type: 'scheduled_report',
-    name: 'On a Schedule (for Reports)',
+    name: 'Schedule a Report',
     description: 'Generate and email reports on a recurring schedule',
     category: 'reporting',
-    icon: 'FileText',
+    icon: 'BarChart3',
     defaultConfiguration: {
       reportLevel: 'project',
       projectId: '',
@@ -322,7 +322,11 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
         type: 'number',
         required: false,
         placeholder: '1',
-        helpText: 'Day of the month for monthly reports (1-31, only used if frequency is Monthly)',
+        validation: {
+          min: 1,
+          max: 30,
+        },
+        helpText: 'Day of the month for monthly reports (1-30, only used if frequency is Monthly)',
       },
     ],
   },

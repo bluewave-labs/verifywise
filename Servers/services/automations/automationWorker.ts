@@ -166,6 +166,9 @@ async function sendReportNotification() {
         });
         continue;
       } else if (frequency === 'monthly') {
+        const currentMonth = today.getMonth();
+        // if (currentMonth === 1 && params.dayOfMonth! > 28 && today.getDate() === 28) {
+        // }
         if (today.getMonth() !== params.dayOfMonth! - 1) {
           continue;
         }

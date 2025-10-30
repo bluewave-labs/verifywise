@@ -10,11 +10,9 @@ import {
   SelectChangeEvent,
   Alert,
 } from '@mui/material';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { isValidDate, parseDate } from './utils';
+import DatePicker from '../Inputs/Datepicker';
 
 export enum AuditTimeframeType {
   CREATED = 'created',
@@ -144,149 +142,108 @@ const AuditTimeframe: React.FC<IAuditTimeframeProps> = ({
   }, [value.endDate]);
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box
+    <Box
+      sx={{
+        border: `1px solid ${theme.palette.border.light}`,
+        borderRadius: theme.shape.borderRadius,
+        padding: theme.spacing(6),
+        backgroundColor: theme.palette.background.paper,
+      }}
+    >
+      <Typography
+        variant="h6"
         sx={{
-          border: `1px solid ${theme.palette.border.light}`,
-          borderRadius: theme.shape.borderRadius,
-          padding: theme.spacing(6),
-          backgroundColor: theme.palette.background.paper,
+          fontSize: 14,
+          fontWeight: 600,
+          color: theme.palette.text.primary,
+          mb: theme.spacing(4),
         }}
       >
-        <Typography
-          variant="h6"
-          sx={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: theme.palette.text.primary,
+        {label}
+      </Typography>
+
+      {validationError && (
+        <Alert 
+          severity="error" 
+          sx={{ 
             mb: theme.spacing(4),
+            fontSize: 12,
           }}
         >
-          {label}
-        </Typography>
+          {validationError}
+        </Alert>
+      )}
 
-        {validationError && (
-          <Alert 
-            severity="error" 
-            sx={{ 
-              mb: theme.spacing(4),
-              fontSize: 12,
+      <Stack spacing={theme.spacing(4)}>
+        <FormControl fullWidth size="small" disabled={disabled}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: theme.palette.text.secondary,
+              mb: theme.spacing(2),
             }}
           >
-            {validationError}
-          </Alert>
-        )}
+            Date Type
+          </Typography>
+          <Select
+            value={value.type}
+            onChange={handleTypeChange}
+            sx={{
+              fontSize: 13,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.border.light,
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.border.dark,
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.primary.main,
+              },
+            }}
+          >
+            {availableTypes.map((type) => (
+              <MenuItem key={type} value={type} sx={{ fontSize: 13 }}>
+                {TIMEFRAME_LABELS[type]}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        <Stack spacing={theme.spacing(4)}>
-          <FormControl fullWidth size="small" disabled={disabled}>
-            <Typography
-              variant="body2"
+        <Stack direction="row" spacing={theme.spacing(4)}>
+          <Box flex={1}>
+            <DatePicker
+              label="Start Date"
+              date={startDateValue}
+              handleDateChange={handleStartDateChange}
+              disabled={disabled}
               sx={{
                 fontSize: 13,
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                mb: theme.spacing(2),
+                '& input': {
+                  fontSize: 13,
+                },
               }}
-            >
-              Date Type
-            </Typography>
-            <Select
-              value={value.type}
-              onChange={handleTypeChange}
+            />
+          </Box>
+
+          <Box flex={1}>
+            <DatePicker
+              label="End Date"
+              date={endDateValue}
+              handleDateChange={handleEndDateChange}
+              disabled={disabled}
               sx={{
                 fontSize: 13,
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.border.light,
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.border.dark,
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.primary.main,
+                '& input': {
+                  fontSize: 13,
                 },
               }}
-            >
-              {availableTypes.map((type) => (
-                <MenuItem key={type} value={type} sx={{ fontSize: 13 }}>
-                  {TIMEFRAME_LABELS[type]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Stack direction="row" spacing={theme.spacing(4)}>
-            <Box flex={1}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: theme.palette.text.secondary,
-                  mb: theme.spacing(2),
-                }}
-              >
-                Start Date
-              </Typography>
-              <DatePicker
-                value={startDateValue}
-                onChange={handleStartDateChange}
-                disabled={disabled}
-                format="MM/DD/YYYY"
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    sx: {
-                      fontSize: 13,
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.border.light,
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.border.dark,
-                      },
-                    },
-                  },
-                }}
-              />
-            </Box>
-
-            <Box flex={1}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: theme.palette.text.secondary,
-                  mb: theme.spacing(2),
-                }}
-              >
-                End Date
-              </Typography>
-              <DatePicker
-                value={endDateValue}
-                onChange={handleEndDateChange}
-                disabled={disabled}
-                format="MM/DD/YYYY"
-                minDate={startDateValue || undefined}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    sx: {
-                      fontSize: 13,
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.border.light,
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.border.dark,
-                      },
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </Stack>
+            />
+          </Box>
         </Stack>
-      </Box>
-    </LocalizationProvider>
+      </Stack>
+    </Box>
   );
 };
 

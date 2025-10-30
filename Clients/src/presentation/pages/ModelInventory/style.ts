@@ -26,7 +26,6 @@ export const statusFilterSelectStyle = {
 export const addNewModelButtonStyle = {
   backgroundColor: "#13715B",
   border: "1px solid #13715B",
-  gap: "20px",
 };
 
 // Summary component styles (ModelInventorySummary.tsx)

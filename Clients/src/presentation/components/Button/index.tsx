@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import {
   Button as MUIButton,
   ButtonProps as MUIButtonProps,
@@ -6,7 +6,6 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
-import { usePostHog } from "../../../application/hooks/usePostHog";
 
 /**
  * Extended props interface for the Button component
@@ -60,31 +59,9 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
   sx,
   testId,
   className,
-  onClick,
   ...rest
 }, ref) => {
   const theme = useTheme();
-  const { trackButtonClick } = usePostHog();
-
-  // Enhanced click handler with analytics tracking
-  const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    // Track button click
-    const buttonText = typeof children === 'string' ? children : 'unknown';
-    const buttonIdentifier = testId || buttonText || 'unknown_button';
-
-    trackButtonClick(buttonIdentifier, {
-      button_text: buttonText,
-      test_id: testId,
-      variant: rest.variant,
-      disabled: rest.disabled,
-      url: window.location.pathname,
-    });
-
-    // Call original onClick handler if provided
-    if (onClick) {
-      onClick(event);
-    }
-  }, [onClick, children, testId, rest.variant, rest.disabled, trackButtonClick]);
   
   // Define default styles using theme values
   const defaultStyles: SxProps<Theme> = {
@@ -151,7 +128,6 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
       data-testid={testId}
       sx={{ ...defaultStyles, ...sx }}
       aria-label={typeof children === 'string' ? children : undefined}
-      onClick={handleClick}
       {...rest}
     >
       {children}

@@ -28,7 +28,6 @@ import AssessmentSteps from "./AssessmentSteps";
 import { Project } from "../../../../domain/types/Project";
 import { Question } from "../../../../domain/types/Question";
 import { useSearchParams } from "react-router-dom";
-import { usePostHog } from "../../../../application/hooks/usePostHog";
 
 const AssessmentTracker = ({
   project,
@@ -38,7 +37,6 @@ const AssessmentTracker = ({
   statusFilter?: string;
 }) => {
   const theme = useTheme();
-  const { trackAssessment, trackJourney } = usePostHog();
   const [refreshKey, setRefreshKey] = useState(false);
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
@@ -78,30 +76,6 @@ const AssessmentTracker = ({
     setRefreshKey((prev) => !prev); // Force refresh when project changes
   }, [currentProjectId]);
 
-  // Track assessment page load and initial topic
-  useEffect(() => {
-    if (assessmentTopics && assessmentTopics.length > 0) {
-      const initialTopic = assessmentTopics[activeTab] || assessmentTopics[0];
-
-      trackAssessment('assessment_started', 'assessment_workflow', {
-        project_id: currentProjectId,
-        project_title: project?.project_title || 'unknown',
-        framework_id: currentProjectFramework,
-        initial_topic: initialTopic?.title || 'unknown',
-        initial_topic_id: initialTopic?.id || 'unknown',
-        total_topics: assessmentTopics.length,
-        url_has_topic_id: !!topicId,
-      });
-
-      trackJourney('assessment_workflow', 'page_loaded', {
-        project_id: currentProjectId,
-        project_title: project?.project_title || 'unknown',
-        total_topics: assessmentTopics.length,
-        framework_id: currentProjectFramework,
-      });
-    }
-  }, [assessmentTopics, currentProjectId, project?.project_title, currentProjectFramework, activeTab, topicId, trackAssessment, trackJourney]);
-
   // Handle topicId from URL to set active tab
   useEffect(() => {
     if (topicId && assessmentTopics && assessmentTopics.length > 0) {
@@ -116,19 +90,6 @@ const AssessmentTracker = ({
 
   const handleListItemClick = useCallback(
     (index: number) => {
-      const currentTopic = assessmentTopics?.[index];
-      const previousTopic = assessmentTopics?.[activeTab];
-
-      // Track topic navigation
-      trackAssessment('topic_navigated', 'assessment_workflow', {
-        from_topic: previousTopic?.title || 'unknown',
-        to_topic: currentTopic?.title || 'unknown',
-        from_topic_id: previousTopic?.id || 'unknown',
-        to_topic_id: currentTopic?.id || 'unknown',
-        project_id: currentProjectId,
-        navigation_method: 'sidebar_click',
-      });
-
       if (topicId) {
         searchParams.delete("topicId");
         searchParams.delete("questionId");
@@ -136,7 +97,7 @@ const AssessmentTracker = ({
       }
       setActiveTab(index);
     },
-    [topicId, searchParams, setSearchParams, assessmentTopics, activeTab, currentProjectId, trackAssessment]
+    [topicId, searchParams, setSearchParams]
   );
 
   // Filter subtopics based on the statusFilter, if provided

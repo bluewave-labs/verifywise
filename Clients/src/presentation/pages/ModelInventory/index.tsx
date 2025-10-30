@@ -17,7 +17,6 @@ import {
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { usePostHog } from "../../../application/hooks/usePostHog";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -98,7 +97,6 @@ const ModelInventory: React.FC = () => {
   );
 
   const { userRoleName } = useAuth();
-  const { trackDashboard, trackFilter, trackFeature, trackAIModel } = usePostHog();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -245,17 +243,10 @@ const ModelInventory: React.FC = () => {
   };
 
   useEffect(() => {
-    // Track model inventory page load
-    trackDashboard('model_inventory', {
-      user_role: userRoleName,
-      page_type: 'ai_model_registry',
-      has_url_filters: !!searchParams.toString(),
-    });
-
     fetchModelInventoryData();
     fetchModelRisksData();
     fetchUsersData();
-  }, [trackDashboard, userRoleName, searchParams]);
+  }, []);
 
   // Refetch model risks when filter changes
   useEffect(() => {
@@ -302,18 +293,6 @@ const ModelInventory: React.FC = () => {
   }, [location.state, navigate, location.pathname]);
 
   const handleNewModelInventoryClick = () => {
-    // Track AI model creation start
-    trackAIModel('new_model_creation', 'start', {
-      user_role: userRoleName,
-      total_existing_models: modelInventoryData.length,
-      source: 'model_inventory_page',
-    });
-
-    trackFeature('model_creation', 'started', {
-      form_type: 'ai_model_registration',
-      user_role: userRoleName,
-    });
-
     setIsNewModelInventoryModalOpen(true);
   };
 
@@ -524,15 +503,6 @@ const ModelInventory: React.FC = () => {
 
   const handleStatusFilterChange = (event: any) => {
     const newStatusFilter = event.target.value;
-
-    // Track filter usage
-    trackFilter('model_status', newStatusFilter, {
-      filter_type: 'model_inventory_status',
-      previous_filter: statusFilter,
-      user_role: userRoleName,
-      total_models: modelInventoryData.length,
-    });
-
     dispatch(setModelInventoryStatusFilter(newStatusFilter));
 
     // Update URL search params to persist the filter

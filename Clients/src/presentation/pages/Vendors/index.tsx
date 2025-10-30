@@ -143,7 +143,19 @@ const Vendors = () => {
     }
   }, [location.state, navigate, location.pathname]);
 
-  const handleDeleteVendor = async (vendorId: number) => {
+  const handleDeleteVendor = async (vendorId?: number) => {
+    if (!vendorId) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -279,7 +291,19 @@ const Vendors = () => {
     }
   };
 
-  const handleEditVendor = async (id: number) => {
+  const handleEditVendor = async (id?: number) => {
+    if (!id) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     try {
       const response = await getVendorById({
         id: Number(id),

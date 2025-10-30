@@ -197,8 +197,8 @@ export interface ITasksTableProps {
 }
 
 export interface ITableWithPlaceholderProps {
-  vendors: Array<VendorModel & { id: number }>;
+  vendors: VendorModel[];
   users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
+  onDelete: (vendorId?: number) => void;
+  onEdit: (vendorId?: number) => void;
 }

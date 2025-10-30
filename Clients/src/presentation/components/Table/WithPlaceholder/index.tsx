@@ -138,7 +138,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         {vendors &&
           vendors
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: VendorModel & {id: number}, index: number) => (
+            .map((row: VendorModel, index: number) => (
               <TableRow
                 key={index}
                 sx={{
@@ -180,7 +180,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       text="View risks"
                       onClick={(e: React.MouseEvent<HTMLElement>) => {
                         e.stopPropagation();
-                        openVendorRisksDialog(row.id, row.vendor_name);
+                        openVendorRisksDialog(row.id!, row.vendor_name);
                       }}
                     />
                   </Box>
@@ -199,7 +199,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <IconButton
-                    id={row.id}
+                    id={row.id!}
                     onDelete={() => onDelete(row.id)}
                     onEdit={() => onEdit(row.id)}
                     onMouseEvent={() => {}}

@@ -26,7 +26,7 @@ const pricingUrlMap = {
 const FEATURE_TOOLTIPS: Record<string, string> = {
   // Core Features
   'Seats': 'Number of team members who can access and use the VerifyWise platform simultaneously.',
-  'Projects': 'Maximum number of AI projects you can manage and track within the platform at any given time.',
+  'Use cases': 'Maximum number of AI use cases you can manage and track within the platform at any given time.',
   'Frameworks': 'Access to different AI governance frameworks like EU AI Act, ISO 42001, NIST AI RMF, and custom frameworks.',
 
   // AI Governance Features
@@ -42,6 +42,9 @@ const FEATURE_TOOLTIPS: Record<string, string> = {
   'AI trust center': 'Public-facing portal to showcase your AI governance practices and build stakeholder confidence.',
   'Audit logs': 'Comprehensive activity tracking and logging system for compliance audits and regulatory requirements.',
   'AI training register': 'Documentation and tracking system for internal staff training activities, AI governance education, and compliance training records.',
+  'AI Incident Management': 'Track, investigate, and resolve AI-related incidents with structured workflows, root cause analysis, and remediation tracking.',
+  'Automations': 'Create automated workflows triggered by changes to vendors, models, projects, tasks, risks, policies, incidents, and more. Automatically send notifications, update records, and streamline governance processes.',
+  'Integrations': 'Connect VerifyWise with your existing tools and systems through pre-built integrations and APIs.',
 
   // Enterprise Features
   'Secure authentication with OpenID Connect': 'Secure authentication with OpenID Connect integration for streamlined access management.',
@@ -63,7 +66,7 @@ const ENHANCED_PLAN_FEATURES = {
     features: {
       'Core Features': {
         'Seats': '1 seat',
-        'Projects': '1 project',
+        'Use cases': '1 use case',
         'Frameworks': '1 framework'
       },
       'AI Governance Features': {
@@ -78,7 +81,10 @@ const ENHANCED_PLAN_FEATURES = {
         'MIT AI risk inventory': true,
         'AI trust center': true,
         'Audit logs': true,
-        'AI training register': true
+        'AI training register': true,
+        'AI Incident Management': true,
+        'Automations': true,
+        'Integrations': true
       },
       'Support & Training': {
         'Support': 'Email support',
@@ -94,7 +100,7 @@ const ENHANCED_PLAN_FEATURES = {
     features: {
       'Core Features': {
         'Seats': 'Unlimited seats',
-        'Projects': '5 projects',
+        'Use cases': '5 use cases',
         'Frameworks': '2 frameworks'
       },
       'AI Governance Features': {
@@ -109,7 +115,10 @@ const ENHANCED_PLAN_FEATURES = {
         'MIT AI risk inventory': true,
         'AI trust center': true,
         'Audit logs': true,
-        'AI training register': true
+        'AI training register': true,
+        'AI Incident Management': true,
+        'Automations': true,
+        'Integrations': true
       },
       'Support & Training': {
         'Support': 'Email support',
@@ -125,7 +134,7 @@ const ENHANCED_PLAN_FEATURES = {
     features: {
       'Core Features': {
         'Seats': 'Unlimited seats',
-        'Projects': 'Unlimited projects',
+        'Use cases': 'Unlimited use cases',
         'Frameworks': 'All frameworks'
       },
       'AI Governance Features': {
@@ -141,6 +150,9 @@ const ENHANCED_PLAN_FEATURES = {
         'AI trust center': true,
         'Audit logs': true,
         'AI training register': true,
+        'AI Incident Management': true,
+        'Automations': true,
+        'Integrations': true,
         'Secure authentication with OpenID Connect': true
       },
       'Support & Training': {
@@ -234,17 +246,17 @@ const Subscription: React.FC = () => {
                   selectedTier.name === 'Business' ? 'Growth' :
                   selectedTier.name;
     const enhancedPlan = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
-    const projectLimitStr = enhancedPlan?.features['Core Features']?.['Projects'] as string;
+    const projectLimitStr = enhancedPlan?.features['Core Features']?.['Use cases'] as string;
 
-    // Parse project limit (handle "Unlimited projects", "5 projects", etc.)
+    // Parse project limit (handle "Unlimited use cases", "5 use cases", etc.)
     let projectLimit = 0;
     if (projectLimitStr && !projectLimitStr.toLowerCase().includes('unlimited')) {
       const match = projectLimitStr.match(/\d+/);
       projectLimit = match ? parseInt(match[0]) : 0;
     }
 
-    // If project limit is 0, it means unlimited projects (Enterprise tier)
-    // Only show warning if tier has a project limit > 0 and current projects exceed that limit
+    // If project limit is 0, it means unlimited use cases (Enterprise tier)
+    // Only show warning if tier has a use case limit > 0 and current projects exceed that limit
     if (projectLimit > 0 && ((dashboard?.projects ?? 0) >= projectLimit)) {
       setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
       return;

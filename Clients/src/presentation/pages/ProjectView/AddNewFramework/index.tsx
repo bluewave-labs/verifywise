@@ -11,14 +11,9 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
-  modalContainerStyle,
-  modalHeaderStyle,
-  modalCloseButtonStyle,
-  modalDescriptionStyle,
   frameworkCardStyle,
   frameworkCardTitleStyle,
   frameworkCardDescriptionStyle,
-  modalDoneButtonStyle,
 } from "./styles";
 import {
   assignFrameworkToProject,

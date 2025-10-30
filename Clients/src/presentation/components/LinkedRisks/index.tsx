@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";

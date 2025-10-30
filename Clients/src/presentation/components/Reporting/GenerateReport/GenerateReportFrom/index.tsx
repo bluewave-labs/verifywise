@@ -8,9 +8,8 @@ import React, {
   useEffect,
 } from "react";
 import { Autocomplete, Stack, Typography, useTheme, SelectChangeEvent, TextField } from "@mui/material";
-import CustomizableButton from "../../../Button/CustomizableButton";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle } from "./styles";
+import { fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";

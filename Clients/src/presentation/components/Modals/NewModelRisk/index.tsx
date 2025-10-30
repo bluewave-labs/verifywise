@@ -175,7 +175,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const userOptions = useMemo(() => {
     return users.map((user) => ({
       _id: String(user.id),
-      name: `${user.firstName} ${user.lastName}`.trim() || user.email,
+      name: `${user.name} ${user.surname}`.trim() || user.email,
     }));
   }, [users]);
 

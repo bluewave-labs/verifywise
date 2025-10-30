@@ -472,211 +472,203 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 8 }}>
       <Stack
         direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
         gap={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
       >
-        <Stack>
-          <Field // vendorName
-            label="Vendor name"
-            width={220}
-            value={values?.vendorDetails?.vendorName}
-            onChange={(e) => handleOnChange("vendorName", e.target.value)}
-            error={errors.vendorName}
-            isRequired
-            disabled={isEditingDisabled}
-          />
-          <Box mt={theme.spacing(8)}>
-            <Field // website
-              label="Website"
-              width={220}
-              value={values.vendorDetails.website}
-              onChange={(e) => handleOnChange("website", e.target.value)}
-              error={errors.website}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-          </Box>
-        </Stack>
+        <Field // vendorName
+          label="Vendor name"
+          width={220}
+          value={values?.vendorDetails?.vendorName}
+          onChange={(e) => handleOnChange("vendorName", e.target.value)}
+          error={errors.vendorName}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+        <Field // website
+          label="Website"
+          width={220}
+          value={values.vendorDetails.website}
+          onChange={(e) => handleOnChange("website", e.target.value)}
+          error={errors.website}
+          isRequired
+          disabled={isEditingDisabled}
+        />
         <Stack sx={{ flex: 1 }}>
-          <Stack>
-            <Typography
-              sx={{
-                fontSize: theme.typography.fontSize,
-                fontWeight: 500,
-                mb: 2,
-              }}
-            >
-              Use cases*
-            </Typography>
-            <Autocomplete
-              multiple
-              id="projects-input"
-              size="small"
-              disabled={isEditingDisabled}
-              value={
-                projectOptions?.filter((project) =>
-                  values.vendorDetails.projectIds?.includes(project._id)
-                ) || []
-              }
-              options={projectOptions || []}
-              noOptionsText={
-                values?.vendorDetails?.projectIds?.length ===
-                projectOptions?.length
-                  ? "All use cases are selected"
-                  : "No options"
-              }
-              onChange={(_event, newValue: { _id: number; name: string }[]) => {
-                handleOnChange(
-                  "projectIds",
-                  newValue.map((project) => project._id)
-                );
-              }}
-              getOptionLabel={(project: { _id: number; name: string }) =>
-                project.name
-              }
-              renderOption={(props, option: { _id: number; name: string }) => {
-                const { key, ...optionProps } = props;
-                return (
-                  <Box key={option._id} component="li" {...optionProps}>
-                    <Typography sx={{ fontSize: "13px" }}>
-                      {option.name}
-                    </Typography>
-                  </Box>
-                );
-              }}
-              filterSelectedOptions
-              popupIcon={<ChevronDown size={16} />}
-              renderInput={(params: AutocompleteRenderInputParams) => (
-                <TextField
-                  {...params}
-                  placeholder="Select use cases"
-                  required
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      minHeight: "34px",
-                      height: "auto",
-                      alignItems: "flex-start",
-                      paddingY: "3px !important",
-                      flexWrap: "wrap",
-                      gap: "2px",
-                    },
-                    "& ::placeholder": {
-                      fontSize: "13px",
-                    },
-                  }}
-                />
-              )}
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "3px",
-                  overflowY: "auto",
-                  flexWrap: "wrap",
-                  maxHeight: "115px",
-                  alignItems: "flex-start",
-                  "&:hover": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
+          <Typography
+            sx={{
+              fontSize: theme.typography.fontSize,
+              fontWeight: 500,
+              mb: 2,
+            }}
+          >
+            Use cases*
+          </Typography>
+          <Autocomplete
+            multiple
+            id="projects-input"
+            size="small"
+            disabled={isEditingDisabled}
+            value={
+              projectOptions?.filter((project) =>
+                values.vendorDetails.projectIds?.includes(project._id)
+              ) || []
+            }
+            options={projectOptions || []}
+            noOptionsText={
+              values?.vendorDetails?.projectIds?.length ===
+              projectOptions?.length
+                ? "All use cases are selected"
+                : "No options"
+            }
+            onChange={(_event, newValue: { _id: number; name: string }[]) => {
+              handleOnChange(
+                "projectIds",
+                newValue.map((project) => project._id)
+              );
+            }}
+            getOptionLabel={(project: { _id: number; name: string }) =>
+              project.name
+            }
+            renderOption={(props, option: { _id: number; name: string }) => {
+              const { key, ...optionProps } = props;
+              return (
+                <Box key={option._id} component="li" {...optionProps}>
+                  <Typography sx={{ fontSize: "13px" }}>
+                    {option.name}
+                  </Typography>
+                </Box>
+              );
+            }}
+            filterSelectedOptions
+            popupIcon={<ChevronDown size={16} />}
+            renderInput={(params: AutocompleteRenderInputParams) => (
+              <TextField
+                {...params}
+                placeholder="Select use cases"
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    minHeight: "34px",
+                    height: "auto",
+                    alignItems: "flex-start",
+                    paddingY: "3px !important",
+                    flexWrap: "wrap",
+                    gap: "2px",
                   },
+                  "& ::placeholder": {
+                    fontSize: "13px",
+                  },
+                }}
+              />
+            )}
+            sx={{
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "3px",
+                overflowY: "auto",
+                flexWrap: "wrap",
+                maxHeight: "115px",
+                alignItems: "flex-start",
+                "&:hover": {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
                   },
-                  "&.Mui-focused": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  border: "none",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
                   },
                 },
-                "& .MuiAutocomplete-tag": {
-                  margin: "2px",
-                  maxWidth: "calc(100% - 25px)",
-                  "& .MuiChip-label": {
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  },
+              },
+              "& .MuiAutocomplete-tag": {
+                margin: "2px",
+                maxWidth: "calc(100% - 25px)",
+                "& .MuiChip-label": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 },
-                "& .MuiChip-root": {
-                  borderRadius: "4px",
-                },
-                border: errors.projectIds
-                  ? `1px solid #f04438`
-                  : `1px solid ${theme.palette.border.dark}`,
-                borderRadius: "3px",
-                opacity: errors.projectIds ? 0.8 : 1,
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    "& .MuiAutocomplete-listbox": {
-                      "& .MuiAutocomplete-option": {
-                        fontSize: "13px",
-                        color: "#1c2130",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                      "& .MuiAutocomplete-option.Mui-focused": {
-                        background: "#f9fafb",
-                      },
-                    },
-                    "& .MuiAutocomplete-noOptions": {
+              },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
+              },
+              border: errors.projectIds
+                ? `1px solid #f04438`
+                : `1px solid ${theme.palette.border.dark}`,
+              borderRadius: "3px",
+              opacity: errors.projectIds ? 0.8 : 1,
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
                       fontSize: "13px",
+                      color: "#1c2130",
                       paddingLeft: "9px",
                       paddingRight: "9px",
                     },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    },
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
+                    paddingLeft: "9px",
+                    paddingRight: "9px",
                   },
                 },
-              }}
-            />
-            {errors.projectIds && (
-              <Typography
-                color="error"
-                variant="caption"
-                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-              >
-                {errors.projectIds}
-              </Typography>
-            )}
-          </Stack>
-          <Stack
-            direction={"row"}
-            justifyContent={"space-between"}
-            gap={theme.spacing(8)}
-            mt={theme.spacing(8)}
-          >
-            <Field // vendorContactPerson
-              label="Vendor contact person"
-              width={220}
-              value={values.vendorDetails.vendorContactPerson}
-              onChange={(e) =>
-                handleOnChange("vendorContactPerson", e.target.value)
-              }
-              error={errors.vendorContactPerson}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-            <Select // assignee (not in the server model!)
-              items={formattedUsers}
-              label="Assignee"
-              placeholder="Select person"
-              isHidden={false}
-              id=""
-              onChange={(e) => handleOnChange("assignee", e.target.value)}
-              value={values.vendorDetails.assignee}
-              sx={{
-                width: 220,
-              }}
-              error={errors.assignee}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-          </Stack>
+              },
+            }}
+          />
+          {errors.projectIds && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+            >
+              {errors.projectIds}
+            </Typography>
+          )}
         </Stack>
       </Stack>
-      <Stack marginBottom={theme.spacing(8)}>
+      <Stack
+        direction={"row"}
+        gap={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
+      >
+        <Field // vendorContactPerson
+          label="Vendor contact person"
+          width={220}
+          value={values.vendorDetails.vendorContactPerson}
+          onChange={(e) =>
+            handleOnChange("vendorContactPerson", e.target.value)
+          }
+          error={errors.vendorContactPerson}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+        <Select // assignee (not in the server model!)
+          items={formattedUsers}
+          label="Assignee"
+          placeholder="Select person"
+          isHidden={false}
+          id=""
+          onChange={(e) => handleOnChange("assignee", e.target.value)}
+          value={values.vendorDetails.assignee}
+          sx={{
+            width: 220,
+          }}
+          error={errors.assignee}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+      </Stack>
+      <Stack marginBottom={theme.spacing(4)}>
         <Field // vendorProvides
           label="What does the vendor provide?"
           width={"100%"}
@@ -692,8 +684,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        gap={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
       >
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -723,24 +715,25 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           disabled={isEditingDisabled}
         />
-        <DatePicker // reviewDate
-          label="Review date"
-          sx={{
-            width: 220,
-          }}
-          date={
-            values.vendorDetails.reviewDate
-              ? dayjs(values.vendorDetails.reviewDate)
-              : dayjs(new Date())
-          }
-          handleDateChange={handleDateChange}
-          disabled={isEditingDisabled}
-        />
+        <Stack sx={{ flex: 1 }}>
+          <DatePicker // reviewDate
+            label="Review date"
+            sx={{
+              width: "100%",
+            }}
+            date={
+              values.vendorDetails.reviewDate
+                ? dayjs(values.vendorDetails.reviewDate)
+                : dayjs(new Date())
+            }
+            handleDateChange={handleDateChange}
+            disabled={isEditingDisabled}
+          />
+        </Stack>
       </Stack>
       <Stack
         display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
+        marginBottom={theme.spacing(4)}
         flexDirection={"row"}
       >
         <Field // reviewResult

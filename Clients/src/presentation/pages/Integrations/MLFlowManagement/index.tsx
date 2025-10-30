@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Box,
   CircularProgress,
+  IconButton,
   Stack,
   Typography,
 } from '@mui/material';
@@ -12,6 +13,7 @@ import {
   Activity,
   Clock4,
   CalendarClock,
+  RefreshCw,
 } from 'lucide-react';
 import Alert from '../../../components/Alert';
 import CustomizableButton from '../../../components/Button/CustomizableButton';
@@ -241,8 +243,10 @@ const MLFlowManagement: React.FC = () => {
     loadConfiguration();
   }, [loadConfiguration]);
 
-  const refreshMetadata = useCallback(async () => {
-    setIsLoadingSyncStatus(true);
+  const refreshMetadata = useCallback(async (silent: boolean = false) => {
+    if (!silent) {
+      setIsLoadingSyncStatus(true);
+    }
     try {
       const { data } = await apiServices.get<{
         success: boolean;
@@ -277,9 +281,22 @@ const MLFlowManagement: React.FC = () => {
     } catch (error) {
       console.error('Failed to refresh metadata:', error);
     } finally {
-      setIsLoadingSyncStatus(false);
+      if (!silent) {
+        setIsLoadingSyncStatus(false);
+      }
     }
   }, [configMeta]);
+
+  // Auto-refresh metadata every 15 minutes to pick up background sync updates
+  useEffect(() => {
+    if (!configMeta) return;
+
+    const intervalId = setInterval(() => {
+      refreshMetadata(true); // silent refresh - no loading spinner
+    }, 900000); // 15 minutes
+
+    return () => clearInterval(intervalId);
+  }, [configMeta, refreshMetadata]);
 
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
@@ -465,8 +482,17 @@ const MLFlowManagement: React.FC = () => {
   }
 
   return (
-    <Stack className="vwhome" gap={theme.spacing(4)} sx={{ pt: theme.spacing(2) }}>
-      <PageBreadcrumbs />
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      <Stack className="vwhome" gap={theme.spacing(4)} sx={{ pt: theme.spacing(2) }}>
+        <PageBreadcrumbs />
 
       <Box sx={{ mb: theme.spacing(2) }}>
         <Typography variant="h4" sx={{ fontWeight: 600, mb: theme.spacing(1), fontSize: '15px' }}>
@@ -589,6 +615,15 @@ const MLFlowManagement: React.FC = () => {
                 }
                 sx={{ height: 22, fontSize: '11px', textTransform: 'capitalize', borderRadius: '4px' }}
               />
+              <IconButton
+                size="small"
+                onClick={() => refreshMetadata(false)}
+                disabled={isLoadingSyncStatus}
+                sx={{ ml: 'auto', p: 0.5 }}
+                title="Refresh sync status"
+              >
+                <RefreshCw size={14} style={{ animation: isLoadingSyncStatus ? 'spin 1s linear infinite' : 'none' }} />
+              </IconButton>
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {configMeta.lastSyncedAt
@@ -864,6 +899,7 @@ const MLFlowManagement: React.FC = () => {
         />
       )}
     </Stack>
+    </>
   );
 };
 

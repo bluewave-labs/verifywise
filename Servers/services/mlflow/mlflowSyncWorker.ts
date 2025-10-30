@@ -6,6 +6,8 @@ import { MLFlowIntegrationModel } from "../../domain.layer/models/mlflowIntegrat
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
 import { getTenantHash } from "../../tools/getTenantHash";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
+import { sequelize } from "../../database/db";
+import { IMLFlowIntegration } from "../../domain.layer/interfaces/i.mlflowIntegration";
 
 type SyncJobResult = {
   organizationId: number;
@@ -96,9 +98,8 @@ export const createMlflowSyncWorker = () => {
       const organizations = await getAllOrganizationsQuery();
       for (let org of organizations) {
         const tenantHash = getTenantHash(org.id!);
-        const integrations = await MLFlowIntegrationModel.findAll({
-          attributes: ["organization_id", "last_test_status"],
-        });
+        const result = await sequelize.query(`SELECT * FROM "${tenantHash}".mlflow_integrations;`) as [IMLFlowIntegration[], number];
+        const integrations = result[0];
 
         if (!integrations.length) {
           logger.info("No MLFlow integrations configured. Skipping sync.");
@@ -125,6 +126,7 @@ export const createMlflowSyncWorker = () => {
             continue;
           }
           const result = await syncOrganization(org.id!, tenantHash);
+          logger.info(`MLFlow sync result for org ${org.id!}: ${result.success ? "Success" : "Failure"}`);
           const syncMessage = result.success
             ? `Synced ${result.modelCount} model(s) via scheduled job`
             : result.error || "Failed to sync MLFlow models via scheduled job";

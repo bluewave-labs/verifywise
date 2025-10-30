@@ -308,14 +308,17 @@ class MLFlowService {
   }> {
     try {
       const trackingServerUrl = config.trackingServerUrl.replace(/\/$/, "");
-      const response = await axios.get(`${trackingServerUrl}/health`, {
-        timeout: config.timeout * 1000,
-        httpsAgent:
-          config.verifySsl === false
-            ? new https.Agent({ rejectUnauthorized: false })
-            : undefined,
-        validateStatus: () => true,
-      });
+      const axiosConfig = this.buildAxiosConfig(config);
+
+      // Try to fetch experiments as a health check - this is a standard MLFlow endpoint
+      const response = await axios.get(
+        `${trackingServerUrl}/api/2.0/mlflow/experiments/search`,
+        {
+          ...axiosConfig,
+          params: { max_results: 1 },
+          validateStatus: () => true,
+        }
+      );
 
       if (response.status === 200) {
         return {
@@ -330,8 +333,15 @@ class MLFlowService {
         };
       }
 
+      if (response.status === 401 || response.status === 403) {
+        return {
+          success: false,
+          message: "Authentication failed - check your credentials",
+        };
+      }
+
       throw new Error(
-        `MLFlow server not reachable at ${config.trackingServerUrl}`,
+        `MLFlow server returned status ${response.status}: ${response.statusText || 'Unknown error'}`,
       );
     } catch (error: any) {
       console.error("MLFlow connection test error:", error);
@@ -345,6 +355,12 @@ class MLFlowService {
         return {
           success: false,
           message: "MLFlow server not found - check the server URL",
+        };
+      }
+      if (error.code === "ETIMEDOUT") {
+        return {
+          success: false,
+          message: "Connection timeout - MLFlow server is not responding",
         };
       }
       return {

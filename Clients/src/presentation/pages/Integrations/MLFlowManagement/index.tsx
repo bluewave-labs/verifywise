@@ -272,7 +272,6 @@ const MLFlowManagement: React.FC = () => {
       if (data?.success) {
         setTestStatus('success');
         handleToast('success', data?.message || 'Successfully connected to MLFlow server!', 'Connection successful');
-        await loadConfiguration();
       } else {
         setTestStatus('error');
         handleToast('error', data?.error || 'Connection test failed', 'Connection failed');
@@ -285,7 +284,7 @@ const MLFlowManagement: React.FC = () => {
           : 'Connection test failed. Please check your settings.';
       handleToast('error', message, 'Connection failed');
     }
-  }, [buildPayload, formData.trackingServerUrl, loadConfiguration]);
+  }, [buildPayload, formData.trackingServerUrl]);
 
   useEffect(() => {
     setTestStatus('idle');
@@ -474,13 +473,10 @@ const MLFlowManagement: React.FC = () => {
         >
           <Box
             sx={{
-              border: `1px solid ${
-                configMeta.lastTestStatus === 'success'
-                  ? theme.palette.status.success.border
-                  : theme.palette.status.warning.border
-              }`,
-              borderRadius: theme.shape.borderRadius,
-              p: theme.spacing(2),
+              border: "1px solid #eaecf0",
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              padding: "14px",
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -492,7 +488,7 @@ const MLFlowManagement: React.FC = () => {
                 sx={{ height: 22, fontSize: '11px', textTransform: 'capitalize', borderRadius: '4px' }}
               />
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {configMeta.lastTestedAt
                 ? `Ran on ${new Date(configMeta.lastTestedAt).toLocaleDateString()} ${new Date(configMeta.lastTestedAt).toLocaleTimeString()}`
                 : 'No successful tests recorded yet.'}
@@ -519,15 +515,10 @@ const MLFlowManagement: React.FC = () => {
           </Box>
           <Box
             sx={{
-              border: `1px solid ${
-                configMeta.lastSyncStatus === 'success'
-                  ? theme.palette.status.success.border
-                  : configMeta.lastSyncStatus
-                    ? theme.palette.status.warning.border
-                    : theme.palette.border.dark
-              }`,
-              borderRadius: theme.shape.borderRadius,
-              p: theme.spacing(2),
+              border: "1px solid #eaecf0",
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              padding: "14px",
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -553,11 +544,20 @@ const MLFlowManagement: React.FC = () => {
                 sx={{ height: 22, fontSize: '11px', textTransform: 'capitalize', borderRadius: '4px' }}
               />
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {configMeta.lastSyncedAt
                 ? `Ran on ${new Date(configMeta.lastSyncedAt).toLocaleDateString()} ${new Date(configMeta.lastSyncedAt).toLocaleTimeString()}`
                 : 'No scheduled syncs have completed yet.'}
             </Typography>
+            {configMeta.lastSyncedAt && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 500 }}>
+                Next run at: {(() => {
+                  const nextRun = new Date(configMeta.lastSyncedAt);
+                  nextRun.setHours(nextRun.getHours() + 1);
+                  return `${nextRun.toLocaleDateString()} ${nextRun.toLocaleTimeString()}`;
+                })()}
+              </Typography>
+            )}
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {isLoadingSyncStatus
                 ? 'Checking latest sync status...'
@@ -573,11 +573,14 @@ const MLFlowManagement: React.FC = () => {
 
       <Box
         sx={{
+          mt: theme.spacing(6),
+          pt: theme.spacing(4),
+          borderTop: `1px solid ${theme.palette.divider}`,
           maxWidth: 560,
           width: '100%',
         }}
       >
-          <Stack spacing={theme.spacing(3)} sx={{ marginTop: theme.spacing(2), alignItems: 'flex-start' }}>
+          <Stack spacing={theme.spacing(3)} sx={{ alignItems: 'flex-start' }}>
             <Field
               id="tracking-server-url"
               label="Tracking server URL"

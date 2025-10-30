@@ -1,9 +1,7 @@
 import { Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
-import { useSelector } from "react-redux";
 import light from "./presentation/themes/light";
-import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useCallback, useMemo, useState, useEffect } from "react";
@@ -15,8 +13,7 @@ import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
-import { DashboardState } from "./application/interfaces/appStates";
-import { AppState } from "./application/interfaces/appStates";
+import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
@@ -31,10 +28,10 @@ import useCommandPalette from "./application/hooks/useCommandPalette";
 import { initializePostHog, identifyUser, resetUser } from "./application/utils/posthog";
 
 // Component to conditionally apply theme based on route
-const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
+const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
-  
+
   // For aiTrustCentre routes, don't apply theme (like /public route)
   if (isAITrustCentreRoute) {
     return (
@@ -44,10 +41,10 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
       </>
     );
   }
-  
-  // For other routes, apply theme normally
+
+  // For other routes, apply light theme
   return (
-    <ThemeProvider theme={mode === "light" ? light : dark}>
+    <ThemeProvider theme={light}>
       <CssBaseline />
       {children}
     </ThemeProvider>
@@ -55,7 +52,6 @@ const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode
 };
 
 function App() {
-  const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
@@ -95,16 +91,17 @@ function App() {
     }
   }, [token, userId, userRoleName, organizationId, users]);
 
-  const [uiValues, setUiValues] = useState<unknown | undefined>({});
-  const [authValues, setAuthValues] = useState<unknown | undefined>({});
+  const [uiValues, setUiValues] = useState<UIValues>({});
+  const [authValues, setAuthValues] = useState<AuthValues>({});
   const [dashboardValues, setDashboardValues] = useState<DashboardState>({
     dashboard: {},
     projects: {},
     compliance: {},
     assessments: {},
     vendors: [],
+    users: [],
   });
-  const [inputValues, setInputValues] = useState<unknown | undefined>({});
+  const [inputValues, setInputValues] = useState<InputValues>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
@@ -194,7 +191,7 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper mode={mode}>
+            <ConditionalThemeWrapper>
               {alert && (
                 <Alert
                   variant={alert.variant}

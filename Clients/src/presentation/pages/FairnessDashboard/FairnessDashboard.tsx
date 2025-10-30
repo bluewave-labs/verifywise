@@ -38,15 +38,7 @@ import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandl
 import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
-
-export type FairnessModel = {
-  id: number | string; // Use number or string based on your backend response
-  model: string;
-  dataset: string;
-  status: string;
-  report?: string;
-  action?: string; // Optional if you're not storing a real value
-};
+import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState(() => {
@@ -89,13 +81,14 @@ export default function FairnessDashboard() {
           metrics_id: number | string;
           model_filename: string;
           data_filename: string;
-        }) => ({
-          id: item.metrics_id, // use this for "ID" column
-          model: item.model_filename,
-          dataset: item.data_filename,
-          status: "Completed", // Assuming all fetched metrics are completed
-        })
-      );
+        }) =>
+          FairnessModel.createFairnessModel({
+            id: item.metrics_id,
+            model: item.model_filename,
+            dataset: item.data_filename,
+            status: "Completed", // Assuming all fetched metrics are completed
+          })
+      );      
       setUploadedModels(formatted);
     } catch {
       setAlert({

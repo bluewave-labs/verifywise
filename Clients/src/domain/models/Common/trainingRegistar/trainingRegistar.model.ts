@@ -4,17 +4,17 @@ import { TrainingStatus } from "../../../enums/status.enum";
  * Props for the NewTraining component
  * onSuccess: Returns Promise<boolean> - true on successful save, false on failure
  *
- * Uses Partial<TrainingRegistarDTO> for flexibility:
- * - initialData: May be incomplete when loading from API
- * - onSuccess data: Form validation ensures all required fields exist before submission
+ * Type usage:
+ * - initialData: Optional but complete when present (from API). undefined when creating new.
+ * - onSuccess data: Complete DTO after form validation (all required fields validated)
  *
  * ARCHITECTURE: Uses DTO (plain object) not Model (class instance)
  */
 export interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: Partial<TrainingRegistarDTO>) => Promise<boolean>;
-  initialData?: Partial<TrainingRegistarDTO>;
+  onSuccess?: (data: TrainingRegistarDTO) => Promise<boolean>;
+  initialData?: TrainingRegistarDTO;
   isEdit?: boolean;
 }
 
@@ -48,7 +48,7 @@ export interface TrainingRegistarDTO {
   department: string;
   status: TrainingStatus;
   numberOfPeople: number;
-  description: string;
+  description?: string;  // Optional field (not validated by form)
 }
 
 /**
@@ -74,7 +74,7 @@ export class TrainingRegistarModel {
     department: string;
     status: TrainingStatus;
     numberOfPeople: number;
-    description: string;
+    description?: string;
 
     constructor(data: TrainingRegistarDTO) {
         this.id = data.id;
@@ -84,7 +84,7 @@ export class TrainingRegistarModel {
         this.department = data.department;
         this.status = data.status;
         this.numberOfPeople = data.numberOfPeople;
-        this.description = data.description;
+        this.description = data.description ?? "";
     }
 
     static create(data: TrainingRegistarDTO): TrainingRegistarModel {

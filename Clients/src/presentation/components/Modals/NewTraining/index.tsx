@@ -17,7 +17,6 @@ import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import {
-  TrainingRegistarModel,
   TrainingRegistarDTO,
   NewTrainingProps,
   NewTrainingFormErrors
@@ -90,7 +89,7 @@ const NewTraining: FC<NewTrainingProps> = ({
   isEdit = false,
 }) => {
   const theme = useTheme();
-  const [values, setValues] = useState<Partial<TrainingRegistarDTO> & { numberOfPeople?: number }>(
+  const [values, setValues] = useState<Partial<TrainingRegistarDTO>>(
     initialData || initialState
   );
   const [errors, setErrors] = useState<NewTrainingFormErrors>({});
@@ -112,7 +111,7 @@ const NewTraining: FC<NewTrainingProps> = ({
 
   // Handler: Text field change with proper typing (Type Safety)
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof (TrainingRegistarDTO & { numberOfPeople: number })) =>
+    (prop: keyof TrainingRegistarDTO) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
 
@@ -195,9 +194,8 @@ const NewTraining: FC<NewTrainingProps> = ({
 
     try {
       // Call success callback with validated data and await result
-      const success = await onSuccess({
-        ...values,
-      });
+      // Type assertion: After validation, all required fields are guaranteed to exist
+      const success = await onSuccess(values as TrainingRegistarDTO);
 
       // Only close modal if save was successful
       if (success) {

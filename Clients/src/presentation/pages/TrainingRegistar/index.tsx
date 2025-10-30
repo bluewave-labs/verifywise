@@ -53,9 +53,10 @@ interface AlertState {
 
 
 // Utility: Map TrainingRegistarModel to form data DTO (DRY)
+// Returns complete DTO (id is already optional in DTO definition)
 const mapTrainingToFormData = (
   training: TrainingRegistarModel
-): Partial<TrainingRegistarDTO> => {
+): TrainingRegistarDTO => {
   return {
     training_name: training.training_name,
     duration: String(training.duration || ""),
@@ -191,8 +192,9 @@ const Training: React.FC = () => {
   // ENTERPRISE: Handle response differences between create/update APIs
   // Returns Promise<boolean>: true on success, false on failure
   // Uses DTO for data transfer (plain object), not Model (class instance)
+  // Receives complete DTO after form validation (all required fields validated)
   const handleTrainingSuccess = useCallback(async (
-    formData: Partial<TrainingRegistarDTO>
+    formData: TrainingRegistarDTO
   ): Promise<boolean> => {
     try {
       // DEFENSIVE: formData already has numberOfPeople from model

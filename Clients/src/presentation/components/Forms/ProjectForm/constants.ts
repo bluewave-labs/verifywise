@@ -62,6 +62,8 @@ export interface ProjectFormProps {
   sx?: SxProps<Theme> | undefined;
   defaultFrameworkType?: FrameworkTypeEnum;
   projectToEdit?: any; // Add optional prop for editing
+  useStandardModal?: boolean; // When true, renders without internal header/footer for use inside StandardModal
+  onSubmitRef?: React.MutableRefObject<(() => void) | undefined>; // Ref to expose handleSubmit when useStandardModal is true
 }
 
 export interface FrameworkOption {

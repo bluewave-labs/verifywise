@@ -12,7 +12,7 @@ import { IQuestion, IQuestionnaireAnswers } from "./iQuestion";
 
 const radioOptionStyle = {
   width: "100%",
-  padding: "4px",
+  padding: "0px 4px",
   border: "1px solid #E4E7EC",
   borderRadius: "4px",
   backgroundColor: "#FFFFFF",

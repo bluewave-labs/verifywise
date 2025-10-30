@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
 import {
   Box,
@@ -71,7 +73,7 @@ const Vendors = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [value, setValue] = useState("1");
+  // const [value, setValue] = useState("1");
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";
@@ -82,6 +84,11 @@ const Vendors = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+
+  const currentPath = location.pathname;
+  const isRisksTab = currentPath.includes("/vendors/risks");
+  const value = isRisksTab ? "2" : "1";
+
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -129,7 +136,11 @@ const Vendors = () => {
   };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
+    if (newValue === "1") {
+      navigate("/vendors");
+    } else if (newValue === "2") {
+      navigate("/vendors/risks");
+    }
   };
 
   useEffect(() => {

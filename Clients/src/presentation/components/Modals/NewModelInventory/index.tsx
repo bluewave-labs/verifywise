@@ -484,9 +484,16 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             alignItems={"center"}
             marginBottom={theme.spacing(5)}
           >
-            <Typography fontSize={16} fontWeight={600}>
-              {isEdit ? "Edit Model" : "Add a new model"}
-            </Typography>
+            <Stack>
+              <Typography fontSize={16} fontWeight={600}>
+                {isEdit ? "Edit Model" : "Add a new model"}
+              </Typography>
+              <Typography fontSize={13} color="#667085" fontWeight={400} marginTop={"4px"}>
+                {isEdit
+                  ? "Update model details, approval status, and metadata"
+                  : "Register a new AI model with comprehensive metadata and approval tracking"}
+              </Typography>
+            </Stack>
             <Box
               component="span"
               role="button"

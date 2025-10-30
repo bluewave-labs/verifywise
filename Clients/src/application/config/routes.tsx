@@ -60,6 +60,7 @@ export const createRoutes = (
 
     <Route path="/integrations" element={<Integrations />} />
     <Route path="/settings" element={<Setting />} />
+    <Route path="/settings/:tab" element={<Setting />} />
     <Route path="/integrations/slack" element={<SlackManagement />} />
     <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
@@ -78,6 +79,7 @@ export const createRoutes = (
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
+    <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />

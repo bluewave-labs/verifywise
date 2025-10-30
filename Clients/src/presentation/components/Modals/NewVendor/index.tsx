@@ -18,7 +18,6 @@ import {
   Autocomplete,
   AutocompleteRenderInputParams,
   Box,
-  Modal,
   Stack,
   TextField,
   Typography,
@@ -27,7 +26,7 @@ import {
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { X as Close, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -37,8 +36,7 @@ import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../Button/CustomizableButton";
-import { Save as SaveIcon } from "lucide-react";
+import StandardModal from "../StandardModal";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
@@ -469,11 +467,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const vendorDetailsPanel = (
-    <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 8 }}>
+    <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
+      <Stack spacing={6}>
       <Stack
         direction={"row"}
-        gap={theme.spacing(8)}
-        marginBottom={theme.spacing(4)}
+        spacing={6}
       >
         <Field // vendorName
           label="Vendor name"
@@ -638,8 +636,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         direction={"row"}
-        gap={theme.spacing(8)}
-        marginBottom={theme.spacing(4)}
+        spacing={6}
       >
         <Field // vendorContactPerson
           label="Vendor contact person"
@@ -668,7 +665,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           disabled={isEditingDisabled}
         />
       </Stack>
-      <Stack marginBottom={theme.spacing(4)}>
+      <Stack>
         <Field // vendorProvides
           label="What does the vendor provide?"
           width={"100%"}
@@ -684,8 +681,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         direction={"row"}
-        gap={theme.spacing(8)}
-        marginBottom={theme.spacing(4)}
+        spacing={6}
       >
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -731,11 +727,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           />
         </Stack>
       </Stack>
-      <Stack
-        display={"flex"}
-        marginBottom={theme.spacing(4)}
-        flexDirection={"row"}
-      >
+      <Stack>
         <Field // reviewResult
           label="Review result"
           width={"100%"}
@@ -747,6 +739,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
           rows={2}
         />
+      </Stack>
       </Stack>
     </TabPanel>
   );
@@ -767,98 +760,25 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-      <Modal
-        open={isOpen}
-        onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
-            setValues(initialState);
-            setIsOpen(false);
-          }
+      <StandardModal
+        isOpen={isOpen}
+        onClose={() => {
+          setValues(initialState);
+          setIsOpen(false);
         }}
-        sx={{ overflowY: "scroll" }}
+        title={existingVendor ? "Edit vendor" : "Add new vendor"}
+        description={
+          existingVendor
+            ? "Update vendor details including products/services provided, contact information, and review status."
+            : "Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements."
+        }
+        onSubmit={handleSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting || isEditingDisabled}
+        maxWidth="800px"
       >
-        <Stack
-          gap={theme.spacing(2)}
-          color={theme.palette.text.secondary}
-          onClick={(e) => e.stopPropagation()}
-          sx={{
-            backgroundColor: "#D9D9D9",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            maxHeight: "80vh",
-            display: "flex",
-            flexDirection: "column",
-            bgcolor: theme.palette.background.modal,
-            border: 1,
-            borderColor: theme.palette.border,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            p: theme.spacing(8),
-            "&:focus": {
-              outline: "none",
-            },
-          }}
-        >
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            sx={{ paddingX: theme.spacing(8) }}
-          >
-            <Typography
-              fontSize={16}
-              fontWeight={600}
-              marginBottom={theme.spacing(5)}
-            >
-              {existingVendor ? "Edit vendor" : "Add new vendor"}
-            </Typography>
-            <Close size={20} style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
-          </Stack>
-          <Typography
-            fontSize={13}
-            color={theme.palette.text.secondary}
-            marginBottom="16px"
-            sx={{
-              lineHeight: 1.4,
-              paddingX: theme.spacing(8)
-            }}
-          >
-            {existingVendor
-              ? "Update vendor details including products/services provided, contact information, and review status."
-              : "Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements."
-            }
-          </Typography>
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(2) }}
-          >
-            <TabContext value={value}>{vendorDetailsPanel}</TabContext>
-          </Box>
-          <Stack
-            sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
-              paddingX: theme.spacing(8),
-            }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text="Save"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleSave}
-              icon={<SaveIcon size={16} />}
-              isDisabled={isEditingDisabled}
-            />
-          </Stack>
-        </Stack>
-      </Modal>
+        <TabContext value={value}>{vendorDetailsPanel}</TabContext>
+      </StandardModal>
     </Stack>
   );
 };

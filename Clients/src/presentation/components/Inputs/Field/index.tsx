@@ -32,10 +32,11 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useCallback } from "react";
 import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ForwardedRef } from "react";
 import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
+import { usePostHog } from "../../../../application/hooks/usePostHog";
 
 // Extend FieldProps to add optional rows
 interface FieldProps extends OriginalFieldProps {
@@ -68,8 +69,42 @@ const Field = forwardRef(
     ref: ForwardedRef<HTMLInputElement>
   ) => {
     const theme = useTheme();
+    const { trackForm } = usePostHog();
 
     const [isVisible, setVisible] = useState(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
+
+    // Track field focus and interaction
+    const handleFocus = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+      if (!hasInteracted) {
+        setHasInteracted(true);
+        trackForm('field_interaction', 'start', {
+          field_id: id,
+          field_label: label,
+          field_type: type,
+          url: window.location.pathname,
+        });
+      }
+
+      if (onFocus) {
+        onFocus(event);
+      }
+    }, [id, label, type, onFocus, hasInteracted, trackForm]);
+
+    // Track field changes
+    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+      trackForm('field_interaction', 'input', {
+        field_id: id,
+        field_label: label,
+        field_type: type,
+        has_value: !!event.target.value,
+        url: window.location.pathname,
+      });
+
+      if (onChange) {
+        onChange(event);
+      }
+    }, [id, label, type, onChange, trackForm]);
 
     return (
       <Stack
@@ -142,8 +177,8 @@ const Field = forwardRef(
           rows={type === "description" ? (rows || 4) : 1}
           value={value}
           onInput={onInput}
-          onChange={onChange}
-          onFocus={onFocus}
+          onChange={handleChange}
+          onFocus={handleFocus}
           onBlur={onBlur}
           disabled={disabled}
           inputRef={ref}

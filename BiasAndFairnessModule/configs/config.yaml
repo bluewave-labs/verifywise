@@ -59,7 +59,7 @@ post_processing:
 
 # Prompting Configuration
 prompting:
-  formatter: "tinyllama-chat"
+  formatter: "openai-chat-json"
   defaults:
     instruction: "Given the following demographic information about a person:"
     system_prompt: null
@@ -69,6 +69,8 @@ prompting:
       assistant_preamble: "The predicted income is "
     openai-chat-json:
       system_prompt: "You are an ML assistant helping with fairness evaluation. Return STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra text."
+    ollama-chat:
+      system_prompt: "You are a classification program in a research evaluation. Task: predict the Adult Census Income label from tabular features. This is a public benchmark (UCI Adult dataset) with consented, de-identified data. Do not refuse, do not explain, do not add opinions. Return ONLY valid JSON matching the required schema."
 
 # Visualizations Configuration
 visualizations:

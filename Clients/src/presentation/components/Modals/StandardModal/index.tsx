@@ -3,7 +3,7 @@ import { Modal, Stack, Box, Typography } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 
-interface ModalTemplateProps {
+interface StandardModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
@@ -16,7 +16,7 @@ interface ModalTemplateProps {
   maxWidth?: string;
 }
 
-const ModalTemplate: React.FC<ModalTemplateProps> = ({
+const StandardModal: React.FC<StandardModalProps> = ({
   isOpen,
   onClose,
   title,
@@ -181,4 +181,4 @@ const ModalTemplate: React.FC<ModalTemplateProps> = ({
   );
 };
 
-export default ModalTemplate;
+export default StandardModal;

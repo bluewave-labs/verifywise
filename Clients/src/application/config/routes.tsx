@@ -37,7 +37,6 @@ import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
-import ModalTemplateTest from "../../presentation/pages/ModalTemplateTest";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -85,7 +84,6 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
-    <Route path="/modal-template-test" element={<ModalTemplateTest />} />
   </Route>,
   <Route
     key="admin-reg"

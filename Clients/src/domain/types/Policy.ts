@@ -1,16 +1,15 @@
 // src/domain/types/policy.types.ts
 
-export interface Policy {
-  id: string;
-  title: string;
-  content_html: string;
-  status: string;
-  tags?: string[];
-  next_review_date?: string; // ISO date string
-  author_id: number;
-  assigned_reviewer_ids?: number[];
-  last_updated_by: number;
-  last_updated_at?: string; // ISO date string
+import { PolicyManagerModel } from "../models/Common/policy/policyManager.model";
+import { User } from "./User";
+
+export interface PolicyTableProps {
+  data: PolicyManagerModel[];
+  onOpen: (id: number) => void;
+  onDelete: (id: number) => void;
+  onRefresh?: () => void;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 export interface PolicyInput {
@@ -20,4 +19,41 @@ export interface PolicyInput {
   content_html: string;
   next_review_date?: Date | undefined; // ISO date string
   assigned_reviewer_ids?: number[];
+}
+
+export interface PolicyStatusCardProps {
+  policies: PolicyManagerModel[];
+}
+
+export interface PolicyFormData {
+  title: string;
+  status: string;
+  tags: string[];
+  nextReviewDate?: string;
+  assignedReviewers: User[];
+  content: string;
+}
+
+export interface PolicyDetailModalProps {
+  policy: PolicyManagerModel | null;
+  tags: string[];
+  onClose: () => void;
+  onSaved: (successMessage?: string) => void;
+}
+
+export interface PolicyFormErrors {
+  title?: string;
+  status?: string;
+  tags?: string;
+  nextReviewDate?: string;
+  assignedReviewers?: string;
+  content?: string;
+}
+
+export interface PolicyFormProps {
+  formData: PolicyFormData;
+  setFormData: React.Dispatch<React.SetStateAction<PolicyFormData>>;
+  tags: string[];
+  errors: PolicyFormErrors;
+  setErrors: React.Dispatch<React.SetStateAction<PolicyFormErrors>>;
 }

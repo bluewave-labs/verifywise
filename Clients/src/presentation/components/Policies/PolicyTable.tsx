@@ -1,19 +1,10 @@
 import React from "react";
-import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
 import { TableRow, TableCell, Chip } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
-
-interface Props {
-  data: Policy[];
-  onOpen: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRefresh?: () => void;
-  isLoading?: boolean;
-  error?: Error | null;
-}
+import { PolicyTableProps } from "../../../domain/types/Policy";
 
 const tableHeaders = [
   { id: "title", name: "Title" },
@@ -57,7 +48,7 @@ const getStatusChipProps = (status: string) => {
   };
 };
 
-const PolicyTable: React.FC<Props> = ({
+const PolicyTable: React.FC<PolicyTableProps> = ({
   data,
   onOpen,
   onDelete,
@@ -103,7 +94,7 @@ const PolicyTable: React.FC<Props> = ({
         paginated
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
-        onRowClick={onOpen}
+        onRowClick={(id: string) => onOpen(Number(id))}
         renderRow={(policy) => (
           <TableRow
             key={policy.id}

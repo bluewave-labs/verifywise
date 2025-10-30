@@ -10,30 +10,13 @@ import Field from "../Inputs/Field";
 import Select from "../Inputs/Select";
 import DatePicker from "../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
-import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
-import { FormErrors } from "./PolicyDetailsModal";
+import { PolicyFormData, PolicyFormProps } from "../../../domain/types/Policy";
 
-export interface FormData {
-  title: string;
-  status: string;
-  tags: string[];
-  nextReviewDate?: string;
-  assignedReviewers: User[];
-  content: any;
-}
 
-interface Props {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  tags: string[];
-  errors: FormErrors;
-  setErrors: React.Dispatch<React.SetStateAction<FormErrors>>;
-}
-
-const statuses: FormData["status"][] = [
+const statuses: PolicyFormData["status"][] = [
   "Draft",
   "Under Review",
   "Approved",
@@ -42,7 +25,7 @@ const statuses: FormData["status"][] = [
   "Deprecated",
 ];
 
-const PolicyForm: React.FC<Props> = ({
+const PolicyForm: React.FC<PolicyFormProps> = ({
   formData,
   setFormData,
   tags,
@@ -52,7 +35,7 @@ const PolicyForm: React.FC<Props> = ({
   const { users } = useUsers();
 
   const handleOnMultiSelect = useCallback(
-    (prop: keyof FormData) =>
+    (prop: keyof PolicyFormData) =>
       (_event: React.SyntheticEvent, newValue: any[]) => {
         setFormData((prevValues) => ({
           ...prevValues,

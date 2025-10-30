@@ -676,7 +676,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           </Stack>
         </Stack>
       </Stack>
-      <Stack marginBottom={theme.spacing(2)}>
+      <Stack marginBottom={theme.spacing(4)}>
         <Field // vendorProvides
           label="What does the vendor provide?"
           width={"100%"}
@@ -739,7 +739,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack
         display={"flex"}
-        marginBottom={theme.spacing(2)}
+        marginBottom={theme.spacing(4)}
         flexDirection={"row"}
       >
         <Field // reviewResult

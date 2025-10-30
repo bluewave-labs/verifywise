@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { 
-  Card, Button, Typography, Stack, CircularProgress, 
-  Box, Alert, Tooltip, Table, TableBody, TableCell, TableContainer, 
-  TableRow
+import {
+  Card, Button, Typography, Stack, CircularProgress,
+  Box, Alert, Tooltip, Table, TableBody, TableCell, TableContainer,
+  TableRow, Chip
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
@@ -403,24 +403,12 @@ const Subscription: React.FC = () => {
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 3, justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 4 }}>
-          <Box
-            sx={{
-              backgroundColor: '#EAF3EC',
-              border: '1px solid #A3B18A',
-              borderRadius: 2,
-              width: 'fit-content',
-              px: 2,
-              py: 1.5,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1.5,
-            }}
-          >
-            <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography sx={{ fontWeight: 600, color: '#344E41', fontSize: '15px' }}>
               Current Plan:
             </Typography>
-            <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
-              {(() => {
+            <Chip
+              label={(() => {
                 const currentTier = allTiers.find(tier => tier.id === organizationTierId);
                 if (!currentTier) return '—';
                 // Map tier name for display
@@ -429,7 +417,18 @@ const Subscription: React.FC = () => {
                        currentTier.name === 'Business' ? 'Growth' :
                        currentTier.name;
               })()}
-            </Typography>
+              sx={{
+                backgroundColor: '#E8E8E8',
+                color: '#344E41',
+                fontWeight: 600,
+                borderRadius: '4px',
+                height: 28,
+                fontSize: '14px',
+                '& .MuiChip-label': {
+                  px: 2,
+                }
+              }}
+            />
           </Box>
 
           <Box sx={{ display: 'flex', gap: 6 }}>
@@ -540,7 +539,7 @@ const Subscription: React.FC = () => {
                           <Tooltip
                             title={
                               organizationTierId === tier.id
-                                ? 'To cancel your subscription head over to stripe'
+                                ? 'To cancel your subscription click on "Manage Subscription" link'
                                 : ''
                             }
                             arrow

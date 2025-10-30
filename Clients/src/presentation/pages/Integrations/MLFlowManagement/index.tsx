@@ -241,6 +241,46 @@ const MLFlowManagement: React.FC = () => {
     loadConfiguration();
   }, [loadConfiguration]);
 
+  const refreshMetadata = useCallback(async () => {
+    setIsLoadingSyncStatus(true);
+    try {
+      const { data } = await apiServices.get<{
+        success: boolean;
+        data: {
+          configured: boolean;
+          lastSyncedAt: string | null;
+          lastSyncStatus: 'success' | 'partial' | 'error' | null;
+          lastSyncMessage: string | null;
+          lastTestedAt: string | null;
+          lastTestStatus: 'success' | 'error' | null;
+          lastTestMessage: string | null;
+          lastSuccessfulTestAt: string | null;
+          lastFailedTestAt: string | null;
+          lastFailedTestMessage: string | null;
+        };
+      }>("/integrations/mlflow/sync-status");
+
+      if (data?.data && configMeta) {
+        setConfigMeta({
+          ...configMeta,
+          lastTestedAt: data.data.lastTestedAt || configMeta.lastTestedAt,
+          lastTestStatus: data.data.lastTestStatus || configMeta.lastTestStatus,
+          lastTestMessage: data.data.lastTestMessage || configMeta.lastTestMessage,
+          lastSyncedAt: data.data.lastSyncedAt ?? configMeta.lastSyncedAt,
+          lastSyncStatus: data.data.lastSyncStatus ?? configMeta.lastSyncStatus,
+          lastSyncMessage: data.data.lastSyncMessage ?? configMeta.lastSyncMessage,
+          lastSuccessfulTestAt: data.data.lastSuccessfulTestAt || configMeta.lastSuccessfulTestAt,
+          lastFailedTestAt: data.data.lastFailedTestAt || configMeta.lastFailedTestAt,
+          lastFailedTestMessage: data.data.lastFailedTestMessage || configMeta.lastFailedTestMessage,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to refresh metadata:', error);
+    } finally {
+      setIsLoadingSyncStatus(false);
+    }
+  }, [configMeta]);
+
   const handleSaveConfiguration = useCallback(async () => {
     setIsConfiguring(true);
     try {
@@ -272,9 +312,13 @@ const MLFlowManagement: React.FC = () => {
       if (data?.success) {
         setTestStatus('success');
         handleToast('success', data?.message || 'Successfully connected to MLFlow server!', 'Connection successful');
+        // Refresh metadata to show updated test status
+        await refreshMetadata();
       } else {
         setTestStatus('error');
         handleToast('error', data?.error || 'Connection test failed', 'Connection failed');
+        // Refresh metadata to show updated test status
+        await refreshMetadata();
       }
     } catch (error) {
       setTestStatus('error');
@@ -283,8 +327,10 @@ const MLFlowManagement: React.FC = () => {
           ? error.message
           : 'Connection test failed. Please check your settings.';
       handleToast('error', message, 'Connection failed');
+      // Refresh metadata to show updated test status
+      await refreshMetadata();
     }
-  }, [buildPayload, formData.trackingServerUrl]);
+  }, [buildPayload, formData.trackingServerUrl, refreshMetadata]);
 
   useEffect(() => {
     setTestStatus('idle');

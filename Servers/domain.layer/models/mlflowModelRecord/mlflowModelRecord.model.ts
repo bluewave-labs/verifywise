@@ -25,14 +25,6 @@ export class MLFlowModelRecordModel
   })
   id?: number;
 
-  @ForeignKey(() => OrganizationModel)
-  @Index("mlflow_model_records_org_model_version")
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-  })
-  organization_id!: number;
-
   @Column({
     type: DataType.STRING,
     allowNull: false,

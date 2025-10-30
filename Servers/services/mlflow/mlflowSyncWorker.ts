@@ -4,6 +4,8 @@ import logger from "../../utils/logger/fileLogger";
 import { MLFlowService } from "../../src/services/mlflow.service";
 import { MLFlowIntegrationModel } from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
+import { getTenantHash } from "../../tools/getTenantHash";
+import { getAllOrganizationsQuery } from "../../utils/organization.utils";
 
 type SyncJobResult = {
   organizationId: number;
@@ -25,13 +27,14 @@ export const createMlflowSyncWorker = () => {
 
   const syncOrganization = async (
     organizationId: number,
+    tenant: string,
   ): Promise<SyncJobResult> => {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
       try {
-        const models = await service.getModels(organizationId);
+        const models = await service.getModels(tenant);
         const modelCount = models.length;
         logger.info(
-          `Synced ${modelCount} MLFlow model(s) for organization ${organizationId}`,
+          `Synced ${modelCount} MLFlow model(s) for organization ${tenant}`,
         );
         return {
           organizationId,
@@ -87,51 +90,54 @@ export const createMlflowSyncWorker = () => {
 
   return new Worker(
     "mlflow-sync",
-    async (job: Job): Promise<SyncJobResult[]> => {
+    // async (job: Job): Promise<SyncJobResult[]> => {
+    async (job: Job) => {
       logger.debug(`Processing MLFlow sync job ${job.id}...`);
+      const organizations = await getAllOrganizationsQuery();
+      for (let org of organizations) {
+        const tenantHash = getTenantHash(org.id!);
+        const integrations = await MLFlowIntegrationModel.findAll({
+          attributes: ["organization_id", "last_test_status"],
+        });
 
-      const integrations = await MLFlowIntegrationModel.findAll({
-        attributes: ["organization_id", "last_test_status"],
-      });
-
-      if (!integrations.length) {
-        logger.info("No MLFlow integrations configured. Skipping sync.");
-        return [];
-      }
-
-      const results: SyncJobResult[] = [];
-      for (const integration of integrations) {
-        const organizationId = integration.organization_id;
-        if (integration.last_test_status !== "success") {
-          const reason =
-            integration.last_test_status === "error"
-              ? "Scheduled sync skipped: last connection test failed"
-              : "Scheduled sync skipped: run a successful connection test.";
-          logger.info(
-            `Skipping MLFlow sync for org ${organizationId} until a successful connection test is recorded.`,
-          );
-          await service.recordSyncResult(organizationId, "error", reason);
-          results.push({
-            organizationId,
-            modelCount: 0,
-            success: false,
-            error: reason,
-          });
-          continue;
+        if (!integrations.length) {
+          logger.info("No MLFlow integrations configured. Skipping sync.");
+          return [];
         }
-        const result = await syncOrganization(organizationId);
-        const syncMessage = result.success
-          ? `Synced ${result.modelCount} model(s) via scheduled job`
-          : result.error || "Failed to sync MLFlow models via scheduled job";
-        await service.recordSyncResult(
-          organizationId,
-          result.success ? "success" : "error",
-          syncMessage,
-        );
-        results.push(result);
-      }
 
-      return results;
+        const results: SyncJobResult[] = [];
+        for (const integration of integrations) {
+          if (integration.last_test_status !== "success") {
+            const reason =
+              integration.last_test_status === "error"
+                ? "Scheduled sync skipped: last connection test failed"
+                : "Scheduled sync skipped: run a successful connection test.";
+            logger.info(
+              `Skipping MLFlow sync for org ${org.id!} until a successful connection test is recorded.`,
+            );
+            await service.recordSyncResult("error", tenantHash, reason);
+            results.push({
+              organizationId: org.id!,
+              modelCount: 0,
+              success: false,
+              error: reason,
+            });
+            continue;
+          }
+          const result = await syncOrganization(org.id!, tenantHash);
+          const syncMessage = result.success
+            ? `Synced ${result.modelCount} model(s) via scheduled job`
+            : result.error || "Failed to sync MLFlow models via scheduled job";
+          await service.recordSyncResult(
+            result.success ? "success" : "error",
+            tenantHash,
+            syncMessage,
+          );
+          results.push(result);
+        }
+
+        // return results;
+      }
     },
     {
       connection: redisClient,

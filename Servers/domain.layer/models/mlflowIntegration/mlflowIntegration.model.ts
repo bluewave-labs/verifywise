@@ -11,7 +11,6 @@ import {
   MLFlowAuthMethod,
   MLFlowTestStatus,
 } from "../../interfaces/i.mlflowIntegration";
-import { OrganizationModel } from "../organization/organization.model";
 import { UserModel } from "../user/user.model";
 
 @Table({
@@ -29,17 +28,6 @@ export class MLFlowIntegrationModel
     primaryKey: true,
   })
   id?: number;
-
-  @ForeignKey(() => OrganizationModel)
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    unique: true,
-  })
-  organization_id!: number;
-
-  @BelongsTo(() => OrganizationModel)
-  organization?: OrganizationModel;
 
   @Column({
     type: DataType.STRING,

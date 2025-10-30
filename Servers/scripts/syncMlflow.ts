@@ -2,6 +2,7 @@
 import dotenv from "dotenv";
 import { sequelize } from "../database/db";
 import { MLFlowService, MLFlowModel } from "../src/services/mlflow.service";
+import { getTenantHash } from "../tools/getTenantHash";
 
 dotenv.config();
 
@@ -27,13 +28,14 @@ const parseOrganizationId = (): number => {
 
 (async () => {
   const organizationId = parseOrganizationId();
+  const tenantHash = getTenantHash(organizationId);
   const service = new MLFlowService();
   try {
     await sequelize.authenticate();
-    const models: SyncedModel[] = await service.getModels(organizationId);
+    const models: SyncedModel[] = await service.getModels(tenantHash);
     await service.recordSyncResult(
-      organizationId,
       "success",
+      tenantHash,
       `Synced ${models.length} model(s) via CLI`,
     );
     console.table(
@@ -54,7 +56,7 @@ const parseOrganizationId = (): number => {
   } catch (error) {
     console.error("❌ Failed to sync MLFlow models:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    await service.recordSyncResult(organizationId, "error", message);
+    await service.recordSyncResult("error", tenantHash, message);
     process.exitCode = 1;
   } finally {
     await sequelize.close();

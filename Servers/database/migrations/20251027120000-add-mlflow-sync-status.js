@@ -1,38 +1,54 @@
 "use strict";
+const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addColumn("mlflow_integrations", "last_synced_at", {
-      type: Sequelize.DATE,
-      allowNull: true,
-    });
-    await queryInterface.addColumn(
-      "mlflow_integrations",
-      "last_sync_status",
-      {
-        type: Sequelize.ENUM("success", "partial", "error"),
-        allowNull: true,
-      },
-    );
-    await queryInterface.addColumn(
-      "mlflow_integrations",
-      "last_sync_message",
-      {
-        type: Sequelize.TEXT,
-        allowNull: true,
-      },
-    );
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      const organizations = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`,
+        { transaction }
+      );
+
+      for (let organization of organizations[0]) {
+        const tenantHash = getTenantHash(organization.id);
+        await queryInterface.sequelize.query(
+          `ALTER TABLE "${tenantHash}".mlflow_integrations 
+           ADD COLUMN last_synced_at TIMESTAMP,
+           ADD COLUMN last_sync_status VARCHAR(10) CHECK (last_sync_status IN ('success', 'partial', 'error')),
+           ADD COLUMN last_sync_message TEXT;`,
+          { transaction }
+        );
+      }
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeColumn(
-      "mlflow_integrations",
-      "last_sync_message",
-    );
-    await queryInterface.removeColumn("mlflow_integrations", "last_sync_status");
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_mlflow_integrations_last_sync_status";',
-    );
-    await queryInterface.removeColumn("mlflow_integrations", "last_synced_at");
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      const organizations = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`,
+        { transaction }
+      );
+
+      for (let organization of organizations[0]) {
+        const tenantHash = getTenantHash(organization.id);
+        await queryInterface.sequelize.query(
+          `ALTER TABLE "${tenantHash}".mlflow_integrations 
+           DROP COLUMN IF EXISTS last_synced_at,
+           DROP COLUMN IF EXISTS last_sync_status,
+           DROP COLUMN IF EXISTS last_sync_message;`,
+          { transaction }
+        );
+      }
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   },
 };

@@ -1,20 +1,22 @@
 import axios, { AxiosRequestConfig } from "axios";
 import https from "https";
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
-import {
-  MLFlowIntegrationModel,
-} from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
-import { MLFlowModelRecordModel } from "../../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
+// import {
+//   MLFlowIntegrationModel,
+// } from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
+// import { MLFlowModelRecordModel } from "../../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
 import {
   MLFlowAuthMethod,
   MLFlowTestStatus,
   MLFlowSyncStatus,
+  IMLFlowIntegration,
 } from "../../domain.layer/interfaces/i.mlflowIntegration";
 import {
   decryptText,
   encryptText,
   EncryptedResult,
 } from "../../tools/createSecureValue";
+import { sequelize } from "../../database/db";
 
 export interface MLFlowModel {
   id: string;
@@ -166,9 +168,9 @@ class MLFlowService {
   }
 
   async saveConfiguration(
-    organizationId: number,
     userId: number | undefined,
     payload: SaveConfigurationPayload,
+    tenant: string
   ) {
     const normalizedUrl = payload.trackingServerUrl?.trim();
     if (!normalizedUrl) {
@@ -183,7 +185,7 @@ class MLFlowService {
     const timeout = payload.timeout ?? 30;
     const verifySsl = payload.verifySsl ?? true;
 
-    const existingRecord = await this.getIntegrationRecord(organizationId);
+    const existingRecord = await this.getIntegrationRecord(tenant);
     const existingSecrets = existingRecord
       ? this.decryptIntegration(existingRecord)
       : undefined;
@@ -218,7 +220,6 @@ class MLFlowService {
     }
 
     const attributes: any = {
-      organization_id: organizationId,
       tracking_server_url: normalizedUrl.replace(/\/$/, ""),
       auth_method: authMethod,
       verify_ssl: verifySsl,
@@ -252,22 +253,49 @@ class MLFlowService {
     assignEncryptedValue(apiToken, "api_token", "api_token_iv");
 
     if (existingRecord) {
-      await existingRecord.update(attributes);
+      const setClause = Object.keys(attributes)
+        .map(key => `"${key}" = :${key}`)
+        .join(", ");
+      await sequelize.query(`UPDATE "${tenant}".mlflow_integrations SET ${setClause} WHERE id = :id;`, {
+        replacements: {
+          ...attributes,
+          id: existingRecord.id
+        }
+      });
     } else {
-      await MLFlowIntegrationModel.create(attributes);
+      await sequelize.query(`
+        INSERT INTO "${tenant}".mlflow_integrations (
+          tracking_server_url, auth_method, username, username_iv, password, password_iv, api_token, api_token_iv, verify_ssl, timeout, updated_by
+        ) VALUES (
+          :tracking_server_url, :auth_method, :username, :username_iv, :password, :password_iv, :api_token, :api_token_iv, :verify_ssl, :timeout, :updated_by
+        );`, {
+        replacements: {
+          tracking_server_url: attributes.tracking_server_url,
+          auth_method: attributes.auth_method,
+          username: attributes.username,
+          username_iv: attributes.username_iv,
+          password: attributes.password,
+          password_iv: attributes.password_iv,
+          api_token: attributes.api_token,
+          api_token_iv: attributes.api_token_iv,
+          verify_ssl: attributes.verify_ssl,
+          timeout: attributes.timeout,
+          updated_by: attributes.updated_by,
+        }
+      });
     }
 
     return {
       success: true,
       message: "MLFlow integration configured successfully!",
-      config: await this.getConfigurationSummary(organizationId),
+      config: await this.getConfigurationSummary(tenant),
     };
   }
 
   async getConfigurationSummary(
-    organizationId: number,
+    tenant: string
   ): Promise<SanitizedConfigResponse> {
-    const record = await this.getIntegrationRecord(organizationId);
+    const record = await this.getIntegrationRecord(tenant);
 
     if (!record) {
       return {
@@ -371,8 +399,8 @@ class MLFlowService {
   }
 
   async recordTestResult(
-    organizationId: number,
     result: { success: boolean; message?: string },
+    tenant: string
   ) {
     const now = new Date();
     const updatePayload: Record<string, unknown> = {
@@ -387,29 +415,40 @@ class MLFlowService {
       updatePayload.last_failed_test_at = now;
       updatePayload.last_failed_test_message = result.message?.slice(0, 1000) ?? null;
     }
-
-    await MLFlowIntegrationModel.update(updatePayload, {
-      where: { organization_id: organizationId },
+    await sequelize.query(`
+      UPDATE "${tenant}".mlflow_integrations SET
+        last_tested_at = :last_tested_at,
+        last_test_status = :last_test_status,
+        last_test_message = :last_test_message;`, {
+      replacements: {
+        last_tested_at: updatePayload.last_tested_at,
+        last_test_status: updatePayload.last_test_status,
+        last_test_message: updatePayload.last_test_message,
+      }
     });
   }
 
   async recordSyncResult(
-    organizationId: number,
     status: MLFlowSyncStatus,
+    tenant: string,
     message?: string | null,
   ) {
-    await MLFlowIntegrationModel.update(
-      {
+    await sequelize.query(`
+      UPDATE "${tenant}".mlflow_integrations SET
+        last_synced_at = :last_synced_at,
+        last_sync_status = :last_sync_status,
+        last_sync_message = :last_sync_message
+      RETURNING *;`, {
+      replacements: {
         last_synced_at: new Date(),
         last_sync_status: status,
         last_sync_message: message ? message.slice(0, 1000) : null,
-      },
-      { where: { organization_id: organizationId } },
-    );
+      }
+    });
   }
 
-  async getSyncStatus(organizationId: number) {
-    const record = await this.getIntegrationRecord(organizationId);
+  async getSyncStatus(tenant: string) {
+    const record = await this.getIntegrationRecord(tenant);
     if (!record) {
       return {
         configured: false,
@@ -438,10 +477,10 @@ class MLFlowService {
   }
 
   async resolveRuntimeConfig(
-    organizationId: number,
+    tenant: string,
     overrides?: Partial<SaveConfigurationPayload>,
   ): Promise<RuntimeMLFlowConfig> {
-    const existingRecord = await this.getIntegrationRecord(organizationId);
+    const existingRecord = await this.getIntegrationRecord(tenant);
     const existingSecrets = existingRecord
       ? this.decryptIntegration(existingRecord)
       : undefined;
@@ -495,8 +534,8 @@ class MLFlowService {
     return config;
   }
 
-  async getModels(organizationId: number): Promise<MLFlowModel[]> {
-    const config = await this.resolveRuntimeConfig(organizationId);
+  async getModels(tenant: string): Promise<MLFlowModel[]> {
+    const config = await this.resolveRuntimeConfig(tenant);
 
     try {
       const experimentsResponse =
@@ -573,7 +612,7 @@ class MLFlowService {
         throw new Error("MLFlow returned no runs");
       }
 
-      await this.persistModelRecords(organizationId, models);
+      await this.persistModelRecords(models, tenant);
 
       return models;
     } catch (error) {
@@ -583,8 +622,8 @@ class MLFlowService {
   }
 
   private async persistModelRecords(
-    organizationId: number,
     models: MLFlowModel[],
+    tenant: string,
   ) {
     if (!models.length) {
       return;
@@ -601,7 +640,6 @@ class MLFlowService {
       );
 
       return {
-        organization_id: organizationId,
         model_name: model.name,
         version: model.version,
         lifecycle_stage: model.lifecycle_stage || null,
@@ -617,15 +655,15 @@ class MLFlowService {
         artifact_location: model.experiment_info?.artifact_location || null,
         training_status: model.training_status || null,
         training_started_at: model.training_started_at
-        ? new Date(model.training_started_at)
-        : null,
-      training_ended_at: model.training_ended_at
-        ? new Date(model.training_ended_at)
-        : null,
-      source_version: model.source_version || null,
-      model_created_at: model.creation_timestamp
-        ? new Date(model.creation_timestamp)
-        : null,
+          ? new Date(model.training_started_at)
+          : null,
+        training_ended_at: model.training_ended_at
+          ? new Date(model.training_ended_at)
+          : null,
+        source_version: model.source_version || null,
+        model_created_at: model.creation_timestamp
+          ? new Date(model.creation_timestamp)
+          : null,
         model_updated_at: model.last_updated_timestamp
           ? new Date(model.last_updated_timestamp)
           : null,
@@ -633,38 +671,77 @@ class MLFlowService {
       };
     });
 
-    await MLFlowModelRecordModel.bulkCreate(records as any, {
-      updateOnDuplicate: [
-        "lifecycle_stage",
-        "run_id",
-        "description",
-        "source",
-        "status",
-        "tags",
-        "metrics",
-        "parameters",
-        "experiment_id",
-        "experiment_name",
-        "artifact_location",
-        "training_status",
-        "training_started_at",
-        "training_ended_at",
-        "source_version",
-        "model_created_at",
-        "model_updated_at",
-        "last_synced_at",
-      ],
-      conflictAttributes: ["organization_id", "model_name", "version"],
+    let keys = [
+      "model_name", "version", "lifecycle_stage", "run_id", "description",
+      "source", "status", "tags", "metrics", "parameters",
+      "experiment_id", "experiment_name", "artifact_location",
+      "training_status", "training_started_at", "training_ended_at",
+      "source_version", "model_created_at", "model_updated_at", "last_synced_at",
+    ];
+
+    let values: Record<string, any> = {};
+    let attributes: string[] = [];
+
+    records.forEach((record, index) => {
+      const rowPlaceholders = keys.map(key => {
+        const paramKey = `${key}_${index}`;
+        if (["tags", "metrics", "parameters"].includes(key)) {
+          values[paramKey] = JSON.stringify(record[key as keyof typeof record]);
+        } else {
+          values[paramKey] = record[key as keyof typeof record];
+        }
+        return `:${paramKey}`;
+      });
+      attributes.push(`(${rowPlaceholders.join(", ")})`);
     });
+
+    // Columns to update on conflict
+    const updateColumns = keys.filter(k => k !== "model_name" && k !== "version");
+
+    // Build query
+    const query = `
+      INSERT INTO "${tenant}".mlflow_model_records (${keys.join(", ")})
+      VALUES ${attributes.join(", ")}
+      ON CONFLICT (model_name, version) DO UPDATE
+      SET ${updateColumns.map(k => `${k} = EXCLUDED.${k}`).join(", ")}
+    `;
+
+    // Execute
+    await sequelize.query(query, { replacements: values });
+
+    // await MLFlowModelRecordModel.bulkCreate(records as any, {
+    //   updateOnDuplicate: [
+    //     "lifecycle_stage",
+    //     "run_id",
+    //     "description",
+    //     "source",
+    //     "status",
+    //     "tags",
+    //     "metrics",
+    //     "parameters",
+    //     "experiment_id",
+    //     "experiment_name",
+    //     "artifact_location",
+    //     "training_status",
+    //     "training_started_at",
+    //     "training_ended_at",
+    //     "source_version",
+    //     "model_created_at",
+    //     "model_updated_at",
+    //     "last_synced_at",
+    //   ],
+    //   conflictAttributes: ["model_name", "version"],
+    // });
   }
 
-  private async getIntegrationRecord(organizationId: number) {
-    return MLFlowIntegrationModel.findOne({
-      where: { organization_id: organizationId },
-    });
+  private async getIntegrationRecord(tenant: string) {
+    const record = await sequelize.query(`
+      SELECT * FROM "${tenant}".mlflow_integrations LIMIT 1
+    `) as [IMLFlowIntegration[], number];
+    return record[0][0];
   }
 
-  private decryptIntegration(record: MLFlowIntegrationModel): RuntimeMLFlowConfig {
+  private decryptIntegration(record: IMLFlowIntegration): RuntimeMLFlowConfig {
     const decryptField = (value?: string | null, iv?: string | null) => {
       if (!value || !iv) {
         return undefined;
@@ -792,10 +869,10 @@ class MLFlowService {
 
       let experiment:
         | {
-            experiment_id: string;
-            experiment_name: string;
-            artifact_location: string;
-          }
+          experiment_id: string;
+          experiment_name: string;
+          artifact_location: string;
+        }
         | undefined;
 
       const experimentId = runResponse.run?.info?.experiment_id;
@@ -935,11 +1012,11 @@ class MLFlowService {
           precision: 0.82,
           recall: 0.88,
         },
-      parameters: {
-        n_estimators: "100",
-        max_depth: "6",
-        learning_rate: "0.1",
-      },
+        parameters: {
+          n_estimators: "100",
+          max_depth: "6",
+          learning_rate: "0.1",
+        },
         experiment_info: {
           experiment_id: "demo_exp_1",
           experiment_name: "Customer Churn Prediction Q4 2023",
@@ -967,11 +1044,11 @@ class MLFlowService {
           accuracy: 0.81,
           precision: 0.78,
         },
-      parameters: {
-        max_length: "512",
-        batch_size: "16",
-        learning_rate: "0.0001",
-      },
+        parameters: {
+          max_length: "512",
+          batch_size: "16",
+          learning_rate: "0.0001",
+        },
         experiment_info: {
           experiment_id: "demo_exp_2",
           experiment_name: "Sentiment Analysis R&D",

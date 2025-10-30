@@ -1,6 +1,5 @@
 export interface IMLFlowModelRecord {
   id?: number;
-  organization_id: number;
   model_name: string;
   version: string;
   lifecycle_stage?: string | null;

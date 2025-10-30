@@ -4,7 +4,6 @@ export type MLFlowSyncStatus = "success" | "partial" | "error";
 
 export interface IMLFlowIntegration {
   id?: number;
-  organization_id: number;
   tracking_server_url: string;
   auth_method: MLFlowAuthMethod;
   username?: string | null;

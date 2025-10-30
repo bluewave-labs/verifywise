@@ -12,17 +12,9 @@ router.use(authenticateJWT);
 // POST /api/integrations/mlflow/test - Test MLFlow connection
 router.post('/test', async (req: Request, res: Response) => {
   try {
-    const organizationId = req.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Organization context is required',
-      });
-    }
-
-    const runtimeConfig = await mlflowService.resolveRuntimeConfig(organizationId, req.body);
+    const runtimeConfig = await mlflowService.resolveRuntimeConfig(req.tenantId!, req.body);
     const connectionResult = await mlflowService.testConnection(runtimeConfig);
-    await mlflowService.recordTestResult(organizationId, connectionResult);
+    await mlflowService.recordTestResult(connectionResult, req.tenantId!);
     return res.status(connectionResult.success ? 200 : 400).json(connectionResult);
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -42,15 +34,7 @@ router.post('/test', async (req: Request, res: Response) => {
 // GET /api/integrations/mlflow/config - Get stored configuration
 router.get('/config', async (req: Request, res: Response) => {
   try {
-    const organizationId = req.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Organization context is required',
-      });
-    }
-
-    const config = await mlflowService.getConfigurationSummary(organizationId);
+    const config = await mlflowService.getConfigurationSummary(req.tenantId!);
     return res.status(200).json(config);
   } catch (error) {
     return res.status(500).json({
@@ -63,14 +47,6 @@ router.get('/config', async (req: Request, res: Response) => {
 // POST /api/integrations/mlflow/configure - Configure MLFlow
 router.post('/configure', async (req: Request, res: Response) => {
   try {
-    const organizationId = req.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Organization context is required',
-      });
-    }
-
     const config = req.body;
 
     // Basic validation
@@ -81,7 +57,7 @@ router.post('/configure', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await mlflowService.saveConfiguration(organizationId, req.userId, config);
+    const result = await mlflowService.saveConfiguration(req.userId, config, req.tenantId!);
 
     return res.status(200).json(result);
   } catch (error) {
@@ -101,19 +77,11 @@ router.post('/configure', async (req: Request, res: Response) => {
 
 // GET /api/integrations/mlflow/models - Get MLFlow models
 router.get('/models', async (req: Request, res: Response) => {
-  const organizationId = req.organizationId;
-  if (!organizationId) {
-    return res.status(400).json({
-      success: false,
-      error: 'Organization context is required',
-    });
-  }
-
   try {
-    const models = await mlflowService.getModels(organizationId);
+    const models = await mlflowService.getModels(req.tenantId!);
     await mlflowService.recordSyncResult(
-      organizationId,
       "success",
+      req.tenantId!,
       `Synced ${models.length} model(s) via manual request`,
     );
     return res.status(200).json(models);
@@ -125,7 +93,7 @@ router.get('/models', async (req: Request, res: Response) => {
         ? error.message
         : 'Failed to fetch MLFlow models';
 
-    await mlflowService.recordSyncResult(organizationId, "error", message);
+    await mlflowService.recordSyncResult("error", req.tenantId!, message);
 
     if (error instanceof Error && error.message.includes('not configured')) {
       return res.status(400).json({
@@ -143,16 +111,8 @@ router.get('/models', async (req: Request, res: Response) => {
 
 // GET /api/integrations/mlflow/sync-status - Get last sync info
 router.get('/sync-status', async (req: Request, res: Response) => {
-  const organizationId = req.organizationId;
-  if (!organizationId) {
-    return res.status(400).json({
-      success: false,
-      error: 'Organization context is required',
-    });
-  }
-
   try {
-    const status = await mlflowService.getSyncStatus(organizationId);
+    const status = await mlflowService.getSyncStatus(req.tenantId!);
     return res.status(200).json({
       success: true,
       data: status,

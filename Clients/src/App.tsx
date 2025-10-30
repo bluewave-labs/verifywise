@@ -28,6 +28,12 @@ import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
+import { initializePostHog, identifyUser, resetUser, trackPageView } from "./application/utils/posthog";
+import { initializeAllPerformanceMonitoring } from "./application/utils/performance-monitoring";
+import { initializeAPIPerformanceTracking } from "./application/utils/api-performance-interceptor";
+import { useNavigationPerformance } from "./application/hooks/usePerformanceMonitoring";
+import { initializeErrorTracking } from "./application/utils/error-tracking";
+import ErrorBoundary from "./presentation/components/ErrorBoundary";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
@@ -59,8 +65,22 @@ function App() {
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
   const commandPalette = useCommandPalette();
+  const location = useLocation();
+  const { endNavigation } = useNavigationPerformance();
 
   useEffect(() => {
+    // Initialize PostHog
+    initializePostHog();
+
+    // Initialize comprehensive performance monitoring
+    initializeAllPerformanceMonitoring();
+
+    // Initialize API performance tracking
+    initializeAPIPerformanceTracking();
+
+    // Initialize error tracking
+    initializeErrorTracking();
+
     setShowAlertCallback((alertProps: AlertProps) => {
       setAlert(alertProps);
       setTimeout(() => setAlert(null), 5000);
@@ -71,6 +91,34 @@ function App() {
 
     return () => setShowAlertCallback(() => {});
   }, []);
+
+  // Track page views and navigation performance when location changes
+  useEffect(() => {
+    // Track page view in PostHog
+    trackPageView(location.pathname, document.title);
+
+    // End navigation performance measurement
+    endNavigation(location.pathname);
+  }, [location.pathname, endNavigation]);
+
+  // Track user identification when user data changes
+  useEffect(() => {
+    if (token && userId && userRoleName) {
+      // Find user email from users array
+      const currentUser = users.find(user => user.id === userId);
+      const userEmail = currentUser?.email || 'unknown@example.com';
+
+      identifyUser(
+        userId.toString(),
+        userEmail,
+        userRoleName,
+        organizationId?.toString()
+      );
+    } else {
+      // Reset user identification when logged out
+      resetUser();
+    }
+  }, [token, userId, userRoleName, organizationId, users]);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -167,39 +215,41 @@ function App() {
   };
 
   return (
-    <CookiesProvider>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper mode={mode}>
-              {alert && (
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              )}
-              <CommandPaletteErrorBoundary>
-                <CommandPalette
-                  open={commandPalette.isOpen}
-                  onOpenChange={commandPalette.close}
-                />
-              </CommandPaletteErrorBoundary>
-              <Routes>
-                {createRoutes(triggerSidebar, triggerSidebarReload)}
-              </Routes>
-            </ConditionalThemeWrapper>
-          </VerifyWiseContext.Provider>
-        </PersistGate>
-      </Provider>
+    <ErrorBoundary showDetails={import.meta.env.DEV}>
+      <CookiesProvider>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <VerifyWiseContext.Provider value={contextValues}>
+              <ConditionalThemeWrapper mode={mode}>
+                {alert && (
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => setAlert(null)}
+                  />
+                )}
+                <CommandPaletteErrorBoundary>
+                  <CommandPalette
+                    open={commandPalette.isOpen}
+                    onOpenChange={commandPalette.close}
+                  />
+                </CommandPaletteErrorBoundary>
+                <Routes>
+                  {createRoutes(triggerSidebar, triggerSidebarReload)}
+                </Routes>
+              </ConditionalThemeWrapper>
+            </VerifyWiseContext.Provider>
+          </PersistGate>
+        </Provider>
 
-      {/* React Query DevTools - Only in development */}
-      {import.meta.env.DEV && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
-    </CookiesProvider>
+        {/* React Query DevTools - Only in development */}
+        {import.meta.env.DEV && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
+      </CookiesProvider>
+    </ErrorBoundary>
   );
 }
 

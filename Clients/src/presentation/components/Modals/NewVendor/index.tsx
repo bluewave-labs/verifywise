@@ -43,20 +43,8 @@ import {
   useUpdateVendor,
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
-
-interface FormErrors {
-  vendorName?: string;
-  vendorProvides?: string;
-  website?: string;
-  projectIds?: string;
-  vendorContactPerson?: string;
-  reviewStatus?: string;
-  assignee?: string;
-  reviewer?: string;
-  reviewResult?: string;
-}
+import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
 
 const initialState = {
   vendorName: "",
@@ -70,15 +58,6 @@ const initialState = {
   assignee: null as number | null,
   reviewDate: new Date().toISOString(),
 };
-
-interface AddNewVendorProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  value: string;
-  onSuccess: () => void;
-  existingVendor?: VendorModel | null;
-  onChange?: () => void;
-}
 
 const REVIEW_STATUS_OPTIONS = [
   { _id: "notStarted", name: "Not started" },
@@ -97,7 +76,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<VendorFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
   const [alert, setAlert] = useState<{
@@ -135,7 +114,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
-      setErrors({} as FormErrors);
+      setErrors({} as VendorFormErrors);
     }
   }, [isOpen]);
 
@@ -217,7 +196,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @returns boolean indicating if form is valid
    */
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: VendorFormErrors = {};
     const vendorName = checkStringValidation(
       "Vendor Name",
       values.vendorName,
@@ -618,7 +597,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("assignee", Number(e.target.value))}
-          value={`${values.assignee}`}
+          value={values.assignee !== null ? values.assignee : ""}
           sx={{
             width: 220,
           }}
@@ -666,7 +645,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("reviewer", Number(e.target.value))}
-          value={`${values.reviewer}`}
+          value={values.reviewer !== null ? values.reviewer : ""}
           error={errors.reviewer}
           sx={{
             width: 220,

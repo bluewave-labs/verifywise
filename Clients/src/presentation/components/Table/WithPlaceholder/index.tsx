@@ -138,7 +138,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         {vendors &&
           vendors
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: VendorModel, index: number) => (
+            .map((row: VendorModel & {id: number}, index: number) => (
               <TableRow
                 key={index}
                 sx={{

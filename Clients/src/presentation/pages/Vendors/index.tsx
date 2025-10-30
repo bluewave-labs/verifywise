@@ -48,20 +48,7 @@ import { getVendorById } from "../../../application/repository/vendor.repository
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
-
-interface ExistingRisk {
-  id?: number;
-  risk_description: string;
-  impact_description: string;
-  project_name?: string;
-  impact: string;
-  action_owner: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_level: string;
-  action_plan: string;
-  vendor_id: string;
-}
+import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -70,7 +57,6 @@ const Vendors = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [value, setValue] = useState("1");
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";

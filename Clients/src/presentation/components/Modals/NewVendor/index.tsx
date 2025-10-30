@@ -715,19 +715,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           disabled={isEditingDisabled}
         />
-        <DatePicker // reviewDate
-          label="Review date"
-          sx={{
-            width: 220,
-          }}
-          date={
-            values.vendorDetails.reviewDate
-              ? dayjs(values.vendorDetails.reviewDate)
-              : dayjs(new Date())
-          }
-          handleDateChange={handleDateChange}
-          disabled={isEditingDisabled}
-        />
+        <Stack sx={{ flex: 1 }}>
+          <DatePicker // reviewDate
+            label="Review date"
+            sx={{
+              width: "100%",
+            }}
+            date={
+              values.vendorDetails.reviewDate
+                ? dayjs(values.vendorDetails.reviewDate)
+                : dayjs(new Date())
+            }
+            handleDateChange={handleDateChange}
+            disabled={isEditingDisabled}
+          />
+        </Stack>
       </Stack>
       <Stack
         display={"flex"}

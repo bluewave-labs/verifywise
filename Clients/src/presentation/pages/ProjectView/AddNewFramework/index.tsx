@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import {
-  Modal,
   Box,
   Typography,
   Stack,
-  IconButton,
   Button,
 } from "@mui/material";
-import { X as CloseGreyIcon, Check as CheckGreenIcon } from "lucide-react";
+import { Check as CheckGreenIcon } from "lucide-react";
+import StandardModal from "../../../components/Modals/StandardModal";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
@@ -153,34 +153,43 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
   });
 
   return (
-    <Modal 
-      open={open} 
-      onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
-          onClose();
-        }
-      }}
-    >
-      <Box sx={modalContainerStyle}>
-        {/* Header */}
-        <Box sx={modalHeaderStyle}>
-          <Typography sx={{ fontSize: 20, fontWeight: 600, color: "#232B3A" }}>
-            AI Frameworks
-          </Typography>
-          <IconButton
-            aria-label="Close modal"
+    <StandardModal
+      isOpen={open}
+      onClose={onClose}
+      title="AI Frameworks"
+      description="Add or remove AI frameworks or regulations to your platform. Those selected will be integrated into your use case."
+      maxWidth="800px"
+      customFooter={
+        <>
+          <Box />
+          <CustomizableButton
+            variant="contained"
+            text="Done"
             onClick={onClose}
-            sx={modalCloseButtonStyle}
-          >
-            <CloseGreyIcon size={16}/>
-          </IconButton>
-        </Box>
-        {/* Description */}
-        <Box sx={{ p: 2, pt: 0 }}>
-          <Typography sx={modalDescriptionStyle}>
-            Add or remove AI frameworks or regulations to your platform. Those selected will be integrated into your use case.
-          </Typography>
-          <Stack spacing={6}>
+            sx={{
+              minWidth: "80px",
+              height: "34px",
+              backgroundColor: "#13715B",
+              "&:hover": {
+                backgroundColor: "#0F5A47",
+              },
+            }}
+          />
+        </>
+      }
+    >
+      <Stack spacing={6}>
+        {alert && alert.visible && (
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        )}
+        {isLoading && <CustomizableToast title="Processing..." />}
+        <Stack spacing={6}>
             {frameworks.map((fw) => {
               const isAdded = isFrameworkAdded(fw);
               const onlyOneFramework =
@@ -255,37 +264,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                 </Box>
               );
             })}
-          </Stack>
-        </Box>
-        {/* Done Button */}
-        <Box
-          sx={{
-            p: 2,
-            pt: 0,
-            display: "flex",
-            justifyContent: "flex-end",
-            paddingTop: "20px",
-          }}
-        >
-          <Button
-            onClick={onClose}
-            color="primary"
-            variant="contained"
-            sx={modalDoneButtonStyle}
-          >
-            Done
-          </Button>
-        </Box>
-        {alert && alert.visible && (
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        )}
-        {isLoading && <CustomizableToast title="Processing..." />}
+        </Stack>
         {isRemoveModalOpen && frameworkToRemove && (
           <DualButtonModal
             title="Confirm Framework Removal"
@@ -307,8 +286,8 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             TitleFontSize={0}
           />
         )}
-      </Box>
-    </Modal>
+      </Stack>
+    </StandardModal>
   );
 };
 

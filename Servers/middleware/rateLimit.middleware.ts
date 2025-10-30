@@ -21,30 +21,30 @@ import logger from '../utils/logger/fileLogger';
  * Rate limit configuration with time window and request limits
  */
 interface RateLimitConfig {
-  windowMinutes: number;
-  maxRequests: number;
-  message: string;
+    windowMinutes: number;
+    maxRequests: number;
+    message: string;
 }
 
 /**
  * Predefined rate limit configurations for different endpoint types
  */
 const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
-  fileOperations: {
-    windowMinutes: 15,
-    maxRequests: 15,
-    message: 'Too many file operation requests from this IP, please try again after 15 minutes',
-  },
-  generalApi: {
-    windowMinutes: 15,
-    maxRequests: 100,
-    message: 'Too many requests from this IP, please try again after 15 minutes',
-  },
-  auth: {
-    windowMinutes: 15,
-    maxRequests: 5,
-    message: 'Too many authentication attempts from this IP, please try again after 15 minutes',
-  },
+    fileOperations: {
+        windowMinutes: 15,
+        maxRequests: 15,
+        message: 'Too many file operation requests from this IP, please try again after 15 minutes',
+    },
+    generalApi: {
+        windowMinutes: 15,
+        maxRequests: 100,
+        message: 'Too many requests from this IP, please try again after 15 minutes',
+    },
+    auth: {
+        windowMinutes: 15,
+        maxRequests: 5,
+        message: 'Too many authentication attempts from this IP, please try again after 15 minutes',
+    },
 };
 
 /**
@@ -52,11 +52,11 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
  * Returns consistent error format using STATUS_CODE utility
  */
 const createRateLimitHandler = (message: string) => {
-  return (req: Request, res: Response) => {
-    const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
-    logger.warn(`Rate limit exceeded for IP ${clientIp} on ${req.path}: ${message}`);
-    res.status(429).json(STATUS_CODE[429](message));
-  };
+    return (req: Request, res: Response) => {
+        const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
+        logger.warn(`Rate limit exceeded for IP ${clientIp} on ${req.path}: ${message}`);
+        res.status(429).json(STATUS_CODE[429](message));
+    };
 };
 
 /**
@@ -64,17 +64,17 @@ const createRateLimitHandler = (message: string) => {
  * Uses express-rate-limit's built-in IP extraction and IPv6 normalization
  */
 const createRateLimiter = (config: RateLimitConfig) => {
-  const options: Partial<Options> = {
-    windowMs: config.windowMinutes * 60 * 1000,
-    max: config.maxRequests,
-    standardHeaders: true, // Send rate limit info in RateLimit-* headers
-    legacyHeaders: false, // Disable X-RateLimit-* headers
-    handler: createRateLimitHandler(config.message),
-    // Let express-rate-limit handle IP extraction with IPv6 support
-    // This automatically uses req.ip with proper IPv6 normalization
-  };
+    const options: Partial<Options> = {
+        windowMs: config.windowMinutes * 60 * 1000,
+        max: config.maxRequests,
+        standardHeaders: true, // Send rate limit info in RateLimit-* headers
+        legacyHeaders: false, // Disable X-RateLimit-* headers
+        handler: createRateLimitHandler(config.message),
+        // Let express-rate-limit handle IP extraction with IPv6 support
+        // This automatically uses req.ip with proper IPv6 normalization
+    };
 
-  return rateLimit(options);
+    return rateLimit(options);
 };
 
 /**

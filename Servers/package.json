@@ -32,7 +32,7 @@
     "express-rate-limit": "^8.1.0",
     "express-validator": "^7.2.1",
     "helmet": "^8.0.0",
-    "html-to-docx": "^1.8.0",
+    "html-to-docx-lite": "^2.0.1",
     "http-proxy-middleware": "^3.0.5",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
@@ -46,6 +46,7 @@
     "pg-pool": "^3.7.0",
     "redis": "^5.8.2",
     "resend": "^4.6.0",
+    "sanitize-filename": "^1.6.3",
     "sequelize": "^6.37.6",
     "sequelize-typescript": "^2.1.6",
     "tslib": "^2.8.1",
@@ -68,6 +69,7 @@
     "@types/node": "^22.15.33",
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.10",
+    "@types/sanitize-filename": "^1.1.28",
     "@types/swagger-ui-express": "^4.1.6",
     "@types/winston": "^2.4.4",
     "@types/yamljs": "^0.2.34",
@@ -81,6 +83,9 @@
     "tsc-watch": "^6.2.0"
   },
   "overrides": {
+    "@awaismirza/bypass-cors": {
+      "@fastify/reply-from": "9.8.0"
+    },
     "@fastify/reply-from": {
       "undici": "5.29.0"
     }

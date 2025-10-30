@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Table,
   TableBody,
@@ -18,13 +19,13 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
 import { ChevronsUpDown } from "lucide-react";
-import { ITask } from "../../../../domain/interfaces/i.task";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
+import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -101,7 +102,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, tasks?.length ?? 0);
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, tasks?.length ?? 0]);
+  }, [page, rowsPerPage, tasks?.length]);
 
   const tableBody = useMemo(
     () => (
@@ -109,7 +110,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
         {tasks &&
           tasks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((task: ITask) => (
+            .map((task: TaskModel) => (
               <TableRow
                 key={task.id}
                 sx={{
@@ -305,18 +306,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
             ))}
       </TableBody>
     ),
-    [
-      tasks,
-      page,
-      rowsPerPage,
-      cellStyle,
-      users,
-      onEdit,
-      onArchive,
-      onStatusChange,
-      statusOptions,
-      isUpdateDisabled,
-    ]
+    [tasks, page, rowsPerPage, cellStyle, statusOptions, isUpdateDisabled, onRowClick, onStatusChange, users, onArchive, onEdit]
   );
 
   return (

@@ -359,6 +359,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
+              marginBottom: "16px",
             }}
           >
             <Stack>

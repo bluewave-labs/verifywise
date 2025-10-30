@@ -64,6 +64,11 @@ export class OrganizationModel
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.INTEGER,
+  })
+  subscription_id!: number;
+
   /**
    * Creates a new organization with validation
    *
@@ -209,6 +214,7 @@ export class OrganizationModel
   async updateOrganization(updateData: {
     name?: string;
     logo?: string;
+    subscription_id?: number;
     members?: number[];
     projects?: number[];
   }): Promise<void> {
@@ -265,6 +271,10 @@ export class OrganizationModel
       }
 
       this.logo = updateData.logo || "";
+    }
+
+    if (updateData.subscription_id !== undefined) {
+      this.subscription_id = updateData.subscription_id;
     }
   }
 
@@ -363,7 +373,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
-      ageInDays: this.getAgeInDays(),
+      subscription_id: this.subscription_id,
     };
   }
 

@@ -8,6 +8,8 @@ export async function getDashboardData(req: Request, res: Response) {
     description: "starting getDashboardData",
     functionName: "getDashboardData",
     fileName: "dashboard.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -18,6 +20,8 @@ export async function getDashboardData(req: Request, res: Response) {
       description: "Retrieved dashboard data successfully",
       functionName: "getDashboardData",
       fileName: "dashboard.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res
@@ -30,6 +34,8 @@ export async function getDashboardData(req: Request, res: Response) {
       functionName: "getDashboardData",
       fileName: "dashboard.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

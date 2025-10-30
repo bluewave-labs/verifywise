@@ -18,6 +18,7 @@
   "description": "",
   "dependencies": {
     "@awaismirza/bypass-cors": "^1.1.2",
+    "@aws-sdk/client-s3": "^3.886.0",
     "@aws-sdk/client-ses": "^3.901.0",
     "@slack/web-api": "^7.10.0",
     "@smithy/node-http-handler": "^4.3.0",
@@ -30,6 +31,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "google-auth-library": "^10.2.1",
     "helmet": "^8.0.0",
     "html-to-docx": "^1.8.0",
     "http-proxy-middleware": "^3.0.5",

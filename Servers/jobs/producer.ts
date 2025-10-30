@@ -17,13 +17,15 @@ if (require.main === module) {
       process.exit();
     })
     .catch((error) => {
-      logFailure({
-        eventType: "Update",
-        description: "Added Jobs to the Queue",
-        functionName: "addAllJobs",
-        fileName: "producer.ts",
-        error: error,
-      });
+      // logFailure({
+      //   eventType: "Update",
+      //   description: "Added Jobs to the Queue",
+      //   functionName: "addAllJobs",
+      //   fileName: "producer.ts",
+      //   error: error,
+      //   userId: req.userId!,
+      //   tenantId: req.tenantId!,
+      // });
       process.exit(1);
     });
 }

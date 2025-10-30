@@ -230,6 +230,7 @@ export async function createNewSlackWebhook(
       await logEvent(
         "Create",
         `slackWebhook created: ID ${newSlackWebhook.id}, title: ${slackWebhookData.title}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(201).json(STATUS_CODE[201](newSlackWebhook));
     }
@@ -243,6 +244,7 @@ export async function createNewSlackWebhook(
     await logEvent(
       "Error",
       `slackWebhook creation failed: ${slackWebhookData.title}`,
+      req.userId!, req.tenantId!,
     );
     await transaction.rollback();
     return res
@@ -261,6 +263,7 @@ export async function createNewSlackWebhook(
       await logEvent(
         "Error",
         `Validation error during slackWebhook creation: ${error.message}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -275,6 +278,7 @@ export async function createNewSlackWebhook(
       await logEvent(
         "Error",
         `Business logic error during slackWebhook creation: ${error.message}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -288,6 +292,7 @@ export async function createNewSlackWebhook(
     await logEvent(
       "Error",
       `Unexpected error during slackWebhook creation: ${(error as Error).message}`,
+      req.userId!, req.tenantId!,
     );
     logger.error("❌ Error in createNewslackWebhook:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -326,6 +331,7 @@ export async function updateSlackWebhookById(
       await logEvent(
         "Error",
         `Update failed — slackWebhook not found: ID ${slackWebhookId}`,
+        req.userId!, req.tenantId!,
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("SlackWebhook not found"));
@@ -354,7 +360,7 @@ export async function updateSlackWebhookById(
         functionName,
         fileName,
       );
-      await logEvent("Update", `SlackWebhook updated: ID ${slackWebhookId}`);
+      await logEvent("Update", `SlackWebhook updated: ID ${slackWebhookId}`, req.userId!, req.tenantId!,);
       return res.status(202).json(STATUS_CODE[202](updatedSlackWebhook));
     }
 
@@ -364,7 +370,7 @@ export async function updateSlackWebhookById(
       functionName,
       fileName,
     );
-    await logEvent("Error", `SlackWebhook update failed: ID ${slackWebhookId}`);
+    await logEvent("Error", `SlackWebhook update failed: ID ${slackWebhookId}`, req.userId!, req.tenantId!,);
     await transaction.rollback();
     return res
       .status(400)
@@ -382,6 +388,7 @@ export async function updateSlackWebhookById(
       await logEvent(
         "Error",
         `Validation error during slackWebhook update: ${error.message}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -396,6 +403,7 @@ export async function updateSlackWebhookById(
       await logEvent(
         "Error",
         `Business logic error during slackWebhook update: ${error.message}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -410,6 +418,7 @@ export async function updateSlackWebhookById(
       await logEvent(
         "Error",
         `Update failed — slackWebhook not found: ID ${slackWebhookId}`,
+        req.userId!, req.tenantId!,
       );
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
@@ -423,6 +432,7 @@ export async function updateSlackWebhookById(
     await logEvent(
       "Error",
       `Unexpected error during slackWebhook update for ID ${slackWebhookId}: ${(error as Error).message}`,
+      req.userId!, req.tenantId!,
     );
     logger.error("❌ Error in updateSlackWebhookById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -550,6 +560,7 @@ export async function deleteSlackWebhookById(
       await logEvent(
         "Error",
         `Update failed — slackWebhook not found: ID ${slackWebhookId}`,
+        userId, req.tenantId!,
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("SlackWebhook not found"));
@@ -565,6 +576,7 @@ export async function deleteSlackWebhookById(
       await logEvent(
         "Error",
         `Unauthorized delete attempt by user ID ${userId} for slackWebhook ID ${slackWebhookId}`,
+        userId, req.tenantId!,
       );
       await transaction.rollback();
       return res.status(403).json(STATUS_CODE[403]("Unauthorized"));
@@ -583,7 +595,7 @@ export async function deleteSlackWebhookById(
         functionName,
         fileName,
       );
-      await logEvent("Delete", `slackWebhook deleted: ID ${slackWebhookId}`);
+      await logEvent("Delete", `slackWebhook deleted: ID ${slackWebhookId}`, userId, req.tenantId!);
     } 
 
     return res.status(204).json(STATUS_CODE[204](deleted));
@@ -594,7 +606,7 @@ export async function deleteSlackWebhookById(
       functionName,
       fileName,
     );
-    await logEvent("Error", `slackWebhook deletion failed: ID ${id}`);
+    await logEvent("Error", `slackWebhook deletion failed: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

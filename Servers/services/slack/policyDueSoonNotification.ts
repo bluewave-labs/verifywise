@@ -15,23 +15,23 @@ import { getAllUsersQuery } from "../../utils/user.utils";
 export const sendPolicyDueSoonNotification = async (): Promise<number> => {
   const functionName = "sendPolicyDueSoonNotification";
   const fileName = "policyDueSoonNotification.ts";
-  logProcessing({
-    description: `Sending Slack Notification for Policies due soon across all organizations.`,
-    functionName,
-    fileName,
-  });
+  // logProcessing({
+  //   description: `Sending Slack Notification for Policies due soon across all organizations.`,
+  //   functionName,
+  //   fileName,
+  // });
 
   try {
     // Get all organizations
     const organizations = await getAllOrganizationsQuery();
 
     if (!organizations || organizations.length === 0) {
-      await logSuccess({
-        eventType: "Read",
-        description: `No organizations found to check for policies due soon.`,
-        functionName,
-        fileName,
-      });
+      // await logSuccess({
+      //   eventType: "Read",
+      //   description: `No organizations found to check for policies due soon.`,
+      //   functionName,
+      //   fileName,
+      // });
       return 0;
     }
 
@@ -115,20 +115,20 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
       }
     }
 
-    await logSuccess({
-      eventType: "Read",
-      description: `Processed ${totalPoliciesProcessed} policies across ${organizations.length} organizations.`,
-      functionName,
-      fileName,
-    });
+    // await logSuccess({
+    //   eventType: "Read",
+    //   description: `Processed ${totalPoliciesProcessed} policies across ${organizations.length} organizations.`,
+    //   functionName,
+    //   fileName,
+    // });
   } catch (error) {
-    await logFailure({
-      eventType: "Read",
-      description: `Failed to send Slack Notifications for Policies due soon.`,
-      functionName,
-      fileName,
-      error: error as Error,
-    });
+    // await logFailure({
+    //   eventType: "Read",
+    //   description: `Failed to send Slack Notifications for Policies due soon.`,
+    //   functionName,
+    //   fileName,
+    //   error: error as Error,
+    // });
     throw error;
   }
   return 0;

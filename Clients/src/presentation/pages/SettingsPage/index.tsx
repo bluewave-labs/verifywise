@@ -11,6 +11,7 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
+import Subscription from "./Subscription";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
@@ -73,6 +74,16 @@ export default function ProfilePage() {
     }
     setActiveTab(newValue);
   };
+
+  // Handle payment redirect - navigate to subscription tab if session_id and tierId are present
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    const tierId = searchParams.get('tierId');
+    
+    if (sessionId && tierId) {
+      setActiveTab("subscription");
+    }
+  }, [searchParams]);
 
   return (
     <Stack className="vwhome">
@@ -159,6 +170,7 @@ export default function ProfilePage() {
               sx={settingTabStyle}
               disabled={isApiKeysDisabled}
             />
+            <Tab label="Subscription" value="subscription" disableRipple sx={settingTabStyle} />
           </TabList>
         </Box>
 
@@ -175,7 +187,11 @@ export default function ProfilePage() {
         </TabPanel>
 
         <TabPanel value="organization">
-          <Organization />
+          {activeTab === "organization" && <Organization />}
+        </TabPanel>
+
+        <TabPanel value="subscription">
+          {activeTab === "subscription" && <Subscription />}
         </TabPanel>
 
         <TabPanel value="apikeys">

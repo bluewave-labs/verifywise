@@ -44,6 +44,19 @@ export async function CreateMyOrganization({
   }
 }
 
+export async function createNewOrganizationWithGoogle({
+  googleToken,
+  body,
+}: {
+  googleToken: string;
+  body: any;
+}): Promise<any> {
+  const response = await apiServices.post(`/organizations/with-google`, {
+    token: googleToken, organizationData: body
+  });
+  return response;
+}
+
 /**
  * Updates the current user's organization details.
  *

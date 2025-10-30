@@ -97,11 +97,11 @@ async function sendProjectNotification(
   functionName: string,
   fileName: string
 ): Promise<void> {
-  logProcessing({
-    description: `Sending ${data.type} notification for project: ${data.projectName}`,
-    functionName,
-    fileName,
-  });
+  // logProcessing({
+  //   description: `Sending ${data.type} notification for project: ${data.projectName}`,
+  //   functionName,
+  //   fileName,
+  // });
 
   try {
     let actorUser;
@@ -176,20 +176,20 @@ async function sendProjectNotification(
       templateData
     );
 
-    await logSuccess({
-      eventType: "Create",
-      description: logMessage,
-      functionName,
-      fileName,
-    });
+    // await logSuccess({
+    //   eventType: "Create",
+    //   description: logMessage,
+    //   functionName,
+    //   fileName,
+    // });
   } catch (error) {
-    await logFailure({
-      eventType: "Create",
-      description: `Failed to send ${data.type} notification`,
-      functionName,
-      fileName,
-      error: error as Error,
-    });
+    // await logFailure({
+    //   eventType: "Create",
+    //   description: `Failed to send ${data.type} notification`,
+    //   functionName,
+    //   fileName,
+    //   error: error as Error,
+    // });
     throw error;
   }
 }

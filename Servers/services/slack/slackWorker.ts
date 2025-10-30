@@ -20,23 +20,23 @@ export const createNotificationWorker = () => {
 
   worker.on("completed", (job) => {
     const userId = job.returnvalue?.userId;
-    logSuccess({
-      eventType: "Update",
-      description: "Completed Job Processing",
-      functionName: "createNotificationWorker",
-      fileName: "slackWorker.ts",
-      userId,
-    });
+    // logSuccess({
+    //   eventType: "Update",
+    //   description: "Completed Job Processing",
+    //   functionName: "createNotificationWorker",
+    //   fileName: "slackWorker.ts",
+    //   userId,
+    // });
   });
 
   worker.on("failed", (job, err) => {
-    logFailure({
-      eventType: "Update",
-      description: "Processed Jobs",
-      functionName: "createNotificationWorker",
-      fileName: "slackWorker.ts",
-      error: err,
-    });
+    // logFailure({
+    //   eventType: "Update",
+    //   description: "Processed Jobs",
+    //   functionName: "createNotificationWorker",
+    //   fileName: "slackWorker.ts",
+    //   error: err,
+    // });
   });
 
   return worker;

@@ -360,7 +360,8 @@ export async function createAITrustResource(
       await logEvent(
         "Create",
         `AI Trust Centre resource created: ${body.name}`,
-        resource.id
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(
         STATUS_CODE[201]({
@@ -378,7 +379,9 @@ export async function createAITrustResource(
       );
       await logEvent(
         "Error",
-        `Failed to create AI Trust Centre resource: ${body.name}`
+        `Failed to create AI Trust Centre resource: ${body.name}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -396,7 +399,9 @@ export async function createAITrustResource(
     );
     await logEvent(
       "Error",
-      `Unexpected error creating AI Trust Centre resource: ${(error as Error).message}`
+      `Unexpected error creating AI Trust Centre resource: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createAITrustResource:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -439,7 +444,8 @@ export async function createAITrustSubprocessor(req: Request, res: Response) {
       await logEvent(
         "Create",
         `AI Trust Centre subprocessor created: ${body.name}`,
-        subprocessor.id
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(
         STATUS_CODE[201]({
@@ -457,7 +463,9 @@ export async function createAITrustSubprocessor(req: Request, res: Response) {
       );
       await logEvent(
         "Error",
-        `Failed to create AI Trust Centre subprocessor: ${body.name}`
+        `Failed to create AI Trust Centre subprocessor: ${body.name}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -475,7 +483,9 @@ export async function createAITrustSubprocessor(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error creating AI Trust Centre subprocessor: ${(error as Error).message}`
+      `Unexpected error creating AI Trust Centre subprocessor: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createAITrustSubprocessor:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -535,7 +545,7 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
         "uploadCompanyLogo",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Create", "Company logo uploaded successfully");
+      await logEvent("Create", "Company logo uploaded successfully", req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Company logo uploaded successfully",
@@ -550,7 +560,7 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
         "uploadCompanyLogo",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Error", "Failed to upload company logo");
+      await logEvent("Error", "Failed to upload company logo", req.userId!, req.tenantId!);
       return res.status(503).json(
         STATUS_CODE[503]({
           message: "Failed to upload company logo",
@@ -567,7 +577,9 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error uploading company logo: ${(error as Error).message}`
+      `Unexpected error uploading company logo: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in uploadCompanyLogo:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -601,7 +613,7 @@ export async function updateAITrustOverview(req: Request, res: Response) {
         "updateAITrustOverview",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Update", "AI Trust Centre overview updated successfully");
+      await logEvent("Update", "AI Trust Centre overview updated successfully", req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "AI Trust Centre overview updated successfully",
@@ -616,7 +628,7 @@ export async function updateAITrustOverview(req: Request, res: Response) {
         "updateAITrustOverview",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Error", "Failed to update AI Trust Centre overview");
+      await logEvent("Error", "Failed to update AI Trust Centre overview", req.userId!, req.tenantId!);
       return res.status(503).json(
         STATUS_CODE[503]({
           message: "Failed to update AI Trust Centre overview",
@@ -633,7 +645,9 @@ export async function updateAITrustOverview(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error updating AI Trust Centre overview: ${(error as Error).message}`
+      `Unexpected error updating AI Trust Centre overview: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateAITrustOverview:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -717,7 +731,9 @@ export async function updateAITrustResource(
       );
       await logEvent(
         "Update",
-        `AI Trust Centre resource updated ID: ${resourceId}`
+        `AI Trust Centre resource updated ID: ${resourceId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(
         STATUS_CODE[200]({
@@ -735,7 +751,9 @@ export async function updateAITrustResource(
       );
       await logEvent(
         "Error",
-        `Failed to update AI Trust Centre resource ID: ${resourceId}`
+        `Failed to update AI Trust Centre resource ID: ${resourceId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -753,7 +771,9 @@ export async function updateAITrustResource(
     );
     await logEvent(
       "Error",
-      `Unexpected error updating AI Trust Centre resource ID ${resourceId}: ${(error as Error).message}`
+      `Unexpected error updating AI Trust Centre resource ID ${resourceId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateAITrustResource:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -798,7 +818,9 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
       );
       await logEvent(
         "Update",
-        `AI Trust Centre subprocessor updated ID: ${subprocessorId}`
+        `AI Trust Centre subprocessor updated ID: ${subprocessorId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(
         STATUS_CODE[200]({
@@ -816,7 +838,9 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
       );
       await logEvent(
         "Error",
-        `Failed to update AI Trust Centre subprocessor ID: ${subprocessorId}`
+        `Failed to update AI Trust Centre subprocessor ID: ${subprocessorId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -834,7 +858,9 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error updating AI Trust Centre subprocessor ID ${subprocessorId}: ${(error as Error).message}`
+      `Unexpected error updating AI Trust Centre subprocessor ID ${subprocessorId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateAITrustSubprocessor:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -869,7 +895,9 @@ export async function deleteAITrustResource(req: Request, res: Response) {
       );
       await logEvent(
         "Delete",
-        `AI Trust Centre resource deleted ID: ${resourceId}`
+        `AI Trust Centre resource deleted ID: ${resourceId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(
         STATUS_CODE[200]({
@@ -886,7 +914,9 @@ export async function deleteAITrustResource(req: Request, res: Response) {
       );
       await logEvent(
         "Error",
-        `Failed to delete AI Trust Centre resource ID: ${resourceId}`
+        `Failed to delete AI Trust Centre resource ID: ${resourceId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -904,7 +934,9 @@ export async function deleteAITrustResource(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error deleting AI Trust Centre resource ID ${resourceId}: ${(error as Error).message}`
+      `Unexpected error deleting AI Trust Centre resource ID ${resourceId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteAITrustResource:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -941,7 +973,9 @@ export async function deleteAITrustSubprocessor(req: Request, res: Response) {
       );
       await logEvent(
         "Delete",
-        `AI Trust Centre subprocessor deleted ID: ${subprocessorId}`
+        `AI Trust Centre subprocessor deleted ID: ${subprocessorId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(
         STATUS_CODE[200]({
@@ -958,7 +992,9 @@ export async function deleteAITrustSubprocessor(req: Request, res: Response) {
       );
       await logEvent(
         "Error",
-        `Failed to delete AI Trust Centre subprocessor ID: ${subprocessorId}`
+        `Failed to delete AI Trust Centre subprocessor ID: ${subprocessorId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(503).json(
         STATUS_CODE[503]({
@@ -976,7 +1012,9 @@ export async function deleteAITrustSubprocessor(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error deleting AI Trust Centre subprocessor ID ${subprocessorId}: ${(error as Error).message}`
+      `Unexpected error deleting AI Trust Centre subprocessor ID ${subprocessorId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteAITrustSubprocessor:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1005,7 +1043,7 @@ export async function deleteCompanyLogo(req: Request, res: Response) {
         "deleteCompanyLogo",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Delete", "Company logo deleted successfully");
+      await logEvent("Delete", "Company logo deleted successfully", req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Company logo deleted successfully",
@@ -1019,7 +1057,7 @@ export async function deleteCompanyLogo(req: Request, res: Response) {
         "deleteCompanyLogo",
         "aiTrustCentre.ctrl.ts"
       );
-      await logEvent("Error", "Failed to delete company logo");
+      await logEvent("Error", "Failed to delete company logo", req.userId!, req.tenantId!);
       return res.status(503).json(
         STATUS_CODE[503]({
           message: "Failed to delete company logo",
@@ -1036,7 +1074,9 @@ export async function deleteCompanyLogo(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Unexpected error deleting company logo: ${(error as Error).message}`
+      `Unexpected error deleting company logo: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteCompanyLogo:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

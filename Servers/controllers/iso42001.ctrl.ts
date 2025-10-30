@@ -44,6 +44,8 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
     description: "starting getAllClauses",
     functionName: "getAllClauses",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("🔍 Fetching all clauses");
 
@@ -55,6 +57,8 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
       description: "Retrieved all clauses",
       functionName: "getAllClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(clauses);
@@ -64,6 +68,8 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve clauses",
       functionName: "getAllClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -80,6 +86,8 @@ export async function getAllClausesStructForProject(
     description: `starting getAllClausesStructForProject for project framework ID ${projectFrameworkId}`,
     functionName: "getAllClausesStructForProject",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching clauses structure for project framework ID ${projectFrameworkId}`
@@ -96,6 +104,8 @@ export async function getAllClausesStructForProject(
       description: `Retrieved clauses structure for project framework ID ${projectFrameworkId}`,
       functionName: "getAllClausesStructForProject",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(clauses);
@@ -105,6 +115,8 @@ export async function getAllClausesStructForProject(
       description: `Failed to retrieve clauses structure for project framework ID ${projectFrameworkId}`,
       functionName: "getAllClausesStructForProject",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -121,6 +133,8 @@ export async function getAllAnnexesStructForProject(
     description: `starting getAllAnnexesStructForProject for project framework ID ${projectFrameworkId}`,
     functionName: "getAllAnnexesStructForProject",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching annexes structure for project framework ID ${projectFrameworkId}`
@@ -137,6 +151,8 @@ export async function getAllAnnexesStructForProject(
       description: `Retrieved annexes structure for project framework ID ${projectFrameworkId}`,
       functionName: "getAllAnnexesStructForProject",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(annexes);
@@ -146,6 +162,8 @@ export async function getAllAnnexesStructForProject(
       description: `Failed to retrieve annexes structure for project framework ID ${projectFrameworkId}`,
       functionName: "getAllAnnexesStructForProject",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -157,6 +175,8 @@ export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
     description: "starting getAllAnnexes",
     functionName: "getAllAnnexes",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("🔍 Fetching all annexes");
 
@@ -168,6 +188,8 @@ export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
       description: "Retrieved all annexes",
       functionName: "getAllAnnexes",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(annexes);
@@ -177,6 +199,8 @@ export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve annexes",
       functionName: "getAllAnnexes",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -193,6 +217,8 @@ export async function getSubClausesByClauseId(
     description: `starting getSubClausesByClauseId for clause ID ${clauseId}`,
     functionName: "getSubClausesByClauseId",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`🔍 Fetching sub-clauses for clause ID ${clauseId}`);
 
@@ -207,6 +233,8 @@ export async function getSubClausesByClauseId(
         description: `Retrieved sub-clauses for clause ID ${clauseId}`,
         functionName: "getSubClausesByClauseId",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](subClauses));
     }
@@ -216,6 +244,8 @@ export async function getSubClausesByClauseId(
       description: `No sub-clauses found for clause ID ${clauseId}`,
       functionName: "getSubClausesByClauseId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
   } catch (error) {
@@ -224,6 +254,8 @@ export async function getSubClausesByClauseId(
       description: `Failed to retrieve sub-clauses for clause ID ${clauseId}`,
       functionName: "getSubClausesByClauseId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -240,6 +272,8 @@ export async function getAnnexCategoriesByAnnexId(
     description: `starting getAnnexCategoriesByAnnexId for annex ID ${annexId}`,
     functionName: "getAnnexCategoriesByAnnexId",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`🔍 Fetching annex categories for annex ID ${annexId}`);
 
@@ -254,6 +288,8 @@ export async function getAnnexCategoriesByAnnexId(
         description: `Retrieved annex categories for annex ID ${annexId}`,
         functionName: "getAnnexCategoriesByAnnexId",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](annexCategories));
     }
@@ -263,6 +299,8 @@ export async function getAnnexCategoriesByAnnexId(
       description: `No annex categories found for annex ID ${annexId}`,
       functionName: "getAnnexCategoriesByAnnexId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No annex categories found"));
   } catch (error) {
@@ -271,6 +309,8 @@ export async function getAnnexCategoriesByAnnexId(
       description: `Failed to retrieve annex categories for annex ID ${annexId}`,
       functionName: "getAnnexCategoriesByAnnexId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -288,6 +328,8 @@ export async function getSubClauseById(
     description: `starting getSubClauseById for sub-clause ID ${subClauseId} and project framework ID ${projectFrameworkId}`,
     functionName: "getSubClauseById",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Looking up sub-clause ID ${subClauseId} for project framework ID ${projectFrameworkId}`
@@ -305,6 +347,8 @@ export async function getSubClauseById(
         description: `Retrieved sub-clause ID ${subClauseId} for project framework ID ${projectFrameworkId}`,
         functionName: "getSubClauseById",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](subClause));
     }
@@ -314,6 +358,8 @@ export async function getSubClauseById(
       description: `No sub-clause found: ID ${subClauseId} for project framework ID ${projectFrameworkId}`,
       functionName: "getSubClauseById",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No sub clause found"));
   } catch (error) {
@@ -322,6 +368,8 @@ export async function getSubClauseById(
       description: `Failed to retrieve sub-clause ID ${subClauseId} for project framework ID ${projectFrameworkId}`,
       functionName: "getSubClauseById",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -339,6 +387,8 @@ export async function getAnnexCategoryById(
     description: `starting getAnnexCategoryById for annex category ID ${annexCategoryId} and project framework ID ${projectFrameworkId}`,
     functionName: "getAnnexCategoryById",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Looking up annex category ID ${annexCategoryId} for project framework ID ${projectFrameworkId}`
@@ -356,6 +406,8 @@ export async function getAnnexCategoryById(
         description: `Retrieved annex category ID ${annexCategoryId} for project framework ID ${projectFrameworkId}`,
         functionName: "getAnnexCategoryById",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](annexCategory));
     }
@@ -365,6 +417,8 @@ export async function getAnnexCategoryById(
       description: `No annex category found: ID ${annexCategoryId} for project framework ID ${projectFrameworkId}`,
       functionName: "getAnnexCategoryById",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No annex category found"));
   } catch (error) {
@@ -373,6 +427,8 @@ export async function getAnnexCategoryById(
       description: `Failed to retrieve annex category ID ${annexCategoryId} for project framework ID ${projectFrameworkId}`,
       functionName: "getAnnexCategoryById",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -389,6 +445,8 @@ export async function getClausesByProjectId(
     description: `starting getClausesByProjectId for project framework ID ${projectFrameworkId}`,
     functionName: "getClausesByProjectId",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching clauses for project framework ID ${projectFrameworkId}`
@@ -405,6 +463,8 @@ export async function getClausesByProjectId(
         description: `Retrieved clauses for project framework ID ${projectFrameworkId}`,
         functionName: "getClausesByProjectId",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](subClauses));
     }
@@ -414,6 +474,8 @@ export async function getClausesByProjectId(
       description: `No clauses found for project framework ID ${projectFrameworkId}`,
       functionName: "getClausesByProjectId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
   } catch (error) {
@@ -422,6 +484,8 @@ export async function getClausesByProjectId(
       description: `Failed to retrieve clauses for project framework ID ${projectFrameworkId}`,
       functionName: "getClausesByProjectId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -438,6 +502,8 @@ export async function getAnnexesByProjectId(
     description: `starting getAnnexesByProjectId for project framework ID ${projectFrameworkId}`,
     functionName: "getAnnexesByProjectId",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🔍 Fetching annexes for project framework ID ${projectFrameworkId}`
@@ -454,6 +520,8 @@ export async function getAnnexesByProjectId(
         description: `Retrieved annexes for project framework ID ${projectFrameworkId}`,
         functionName: "getAnnexesByProjectId",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](annexCategories));
     }
@@ -463,6 +531,8 @@ export async function getAnnexesByProjectId(
       description: `No annexes found for project framework ID ${projectFrameworkId}`,
       functionName: "getAnnexesByProjectId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(400).json(STATUS_CODE[400]("No annex categories found"));
   } catch (error) {
@@ -471,6 +541,8 @@ export async function getAnnexesByProjectId(
       description: `Failed to retrieve annexes for project framework ID ${projectFrameworkId}`,
       functionName: "getAnnexesByProjectId",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -536,6 +608,8 @@ export async function saveClauses(
     description: `starting saveClauses for sub-clause ID ${subClauseId}`,
     functionName: "saveClauses",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`💾 Saving clauses for sub-clause ID ${subClauseId}`);
 
@@ -599,6 +673,8 @@ export async function saveClauses(
       description: `Successfully saved clauses for sub-clause ID ${subClauseId}`,
       functionName: "saveClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](updatedSubClause));
@@ -609,6 +685,8 @@ export async function saveClauses(
       description: `Failed to save clauses for sub-clause ID ${subClauseId}`,
       functionName: "saveClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -626,6 +704,8 @@ export async function saveAnnexes(
     description: `starting saveAnnexes for annex category ID ${annexCategoryId}`,
     functionName: "saveAnnexes",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`💾 Saving annexes for annex category ID ${annexCategoryId}`);
 
@@ -674,6 +754,8 @@ export async function saveAnnexes(
       description: `Successfully saved annexes for annex category ID ${annexCategoryId}`,
       functionName: "saveAnnexes",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](updatedAnnexCategory));
@@ -684,6 +766,8 @@ export async function saveAnnexes(
       description: `Failed to save annexes for annex category ID ${annexCategoryId}`,
       functionName: "saveAnnexes",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -701,6 +785,8 @@ export async function deleteManagementSystemClauses(
     description: `starting deleteManagementSystemClauses for project framework ID ${projectFrameworkId}`,
     functionName: "deleteManagementSystemClauses",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🗑️ Deleting management system clauses for project framework ID ${projectFrameworkId}`
@@ -721,6 +807,8 @@ export async function deleteManagementSystemClauses(
         description: `Successfully deleted management system clauses for project framework ID ${projectFrameworkId}`,
         functionName: "deleteManagementSystemClauses",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -731,6 +819,8 @@ export async function deleteManagementSystemClauses(
       description: `Failed to delete management system clauses for project framework ID ${projectFrameworkId}`,
       functionName: "deleteManagementSystemClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: new Error("Delete operation failed"),
     });
     return res.status(400).json(STATUS_CODE[400](result));
@@ -741,6 +831,8 @@ export async function deleteManagementSystemClauses(
       description: `Failed to delete management system clauses for project framework ID ${projectFrameworkId}`,
       functionName: "deleteManagementSystemClauses",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -758,6 +850,8 @@ export async function deleteReferenceControls(
     description: `starting deleteReferenceControls for project framework ID ${projectFrameworkId}`,
     functionName: "deleteReferenceControls",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `🗑️ Deleting reference controls for project framework ID ${projectFrameworkId}`
@@ -778,6 +872,8 @@ export async function deleteReferenceControls(
         description: `Successfully deleted reference controls for project framework ID ${projectFrameworkId}`,
         functionName: "deleteReferenceControls",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -788,6 +884,8 @@ export async function deleteReferenceControls(
       description: `Failed to delete reference controls for project framework ID ${projectFrameworkId}`,
       functionName: "deleteReferenceControls",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: new Error("Delete operation failed"),
     });
     return res.status(400).json(STATUS_CODE[400](result));
@@ -798,6 +896,8 @@ export async function deleteReferenceControls(
       description: `Failed to delete reference controls for project framework ID ${projectFrameworkId}`,
       functionName: "deleteReferenceControls",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -814,6 +914,8 @@ export async function getProjectClausesProgress(
     description: `starting getProjectClausesProgress for project framework ID ${projectFrameworkId}`,
     functionName: "getProjectClausesProgress",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating clauses progress for project framework ID ${projectFrameworkId}`
@@ -828,6 +930,8 @@ export async function getProjectClausesProgress(
       description: `Retrieved clauses progress for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectClausesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -842,6 +946,8 @@ export async function getProjectClausesProgress(
       description: `Failed to get clauses progress for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectClausesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -858,6 +964,8 @@ export async function getProjectAnnxesProgress(
     description: `starting getProjectAnnxesProgress for project framework ID ${projectFrameworkId}`,
     functionName: "getProjectAnnxesProgress",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating annexes progress for project framework ID ${projectFrameworkId}`
@@ -875,6 +983,8 @@ export async function getProjectAnnxesProgress(
       description: `Retrieved annexes progress for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectAnnxesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -889,6 +999,8 @@ export async function getProjectAnnxesProgress(
       description: `Failed to get annexes progress for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectAnnxesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -906,6 +1018,8 @@ export async function getAllProjectsClausesProgress(
     description: "starting getAllProjectsClausesProgress",
     functionName: "getAllProjectsClausesProgress",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📊 Calculating clauses progress across all projects");
 
@@ -918,6 +1032,8 @@ export async function getAllProjectsClausesProgress(
           "Unauthorized access attempt for getAllProjectsClausesProgress",
         functionName: "getAllProjectsClausesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
       });
       return res.status(401).json({ message: "Unauthorized" });
@@ -950,6 +1066,8 @@ export async function getAllProjectsClausesProgress(
         description: `Retrieved clauses progress across ${projects.length} projects`,
         functionName: "getAllProjectsClausesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res
@@ -961,6 +1079,8 @@ export async function getAllProjectsClausesProgress(
         description: "No projects found for clauses progress calculation",
         functionName: "getAllProjectsClausesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404](projects));
     }
@@ -970,6 +1090,8 @@ export async function getAllProjectsClausesProgress(
       description: "Failed to get clauses progress across all projects",
       functionName: "getAllProjectsClausesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -987,6 +1109,8 @@ export async function getAllProjectsAnnxesProgress(
     description: "starting getAllProjectsAnnxesProgress",
     functionName: "getAllProjectsAnnxesProgress",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📊 Calculating annexes progress across all projects");
 
@@ -999,6 +1123,8 @@ export async function getAllProjectsAnnxesProgress(
           "Unauthorized access attempt for getAllProjectsAnnxesProgress",
         functionName: "getAllProjectsAnnxesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
       });
       return res.status(401).json({ message: "Unauthorized" });
@@ -1031,6 +1157,8 @@ export async function getAllProjectsAnnxesProgress(
         description: `Retrieved annexes progress across ${projects.length} projects`,
         functionName: "getAllProjectsAnnxesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res
@@ -1042,6 +1170,8 @@ export async function getAllProjectsAnnxesProgress(
         description: "No projects found for annexes progress calculation",
         functionName: "getAllProjectsAnnxesProgress",
         fileName: "iso42001.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404](projects));
     }
@@ -1051,6 +1181,8 @@ export async function getAllProjectsAnnxesProgress(
       description: "Failed to get annexes progress across all projects",
       functionName: "getAllProjectsAnnxesProgress",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1076,6 +1208,8 @@ export async function getProjectClausesAssignments(
     description: `starting getProjectClausesAssignments for project framework ID ${projectFrameworkId}`,
     functionName: "getProjectClausesAssignments",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating clauses assignments for project framework ID ${projectFrameworkId}`
@@ -1090,6 +1224,8 @@ export async function getProjectClausesAssignments(
       description: `Retrieved clauses assignments for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectClausesAssignments",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -1105,6 +1241,8 @@ export async function getProjectClausesAssignments(
       functionName: "getProjectClausesAssignments",
       fileName: "iso42001.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -1129,6 +1267,8 @@ export async function getProjectAnnexesAssignments(
     description: `starting getProjectAnnexesAssignments for project framework ID ${projectFrameworkId}`,
     functionName: "getProjectAnnexesAssignments",
     fileName: "iso42001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📊 Calculating annexes assignments for project framework ID ${projectFrameworkId}`
@@ -1146,6 +1286,8 @@ export async function getProjectAnnexesAssignments(
       description: `Retrieved annexes assignments for project framework ID ${projectFrameworkId}`,
       functionName: "getProjectAnnexesAssignments",
       fileName: "iso42001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(
@@ -1161,6 +1303,8 @@ export async function getProjectAnnexesAssignments(
       functionName: "getProjectAnnexesAssignments",
       fileName: "iso42001.ctrl.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

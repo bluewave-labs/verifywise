@@ -20,6 +20,7 @@ import HelperIcon from "../../../components/HelperIcon";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
+import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -98,6 +99,19 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
+  const { tierFeatures } = useSubscriptionData();
+
+  const isDisabledLogic = () => {    
+    if (dashboard?.projects && tierFeatures?.projects) {
+      // If tierFeatures.projects is 0, it means unlimited projects
+      if (tierFeatures.projects === 0) {
+        return !allowedRoles.projects.create.includes(userRoleName);
+      }
+      // Otherwise, check if current projects count has reached the limit
+      return dashboard.projects >= tierFeatures.projects || !allowedRoles.projects.create.includes(userRoleName);
+    }
+    return !allowedRoles.projects.create.includes(userRoleName);
+  }
 
   const handleGenerateDemoDataClick = async () => {
     setShowToastNotification(true);
@@ -230,9 +244,7 @@ const Home = () => {
                 }}
                 icon={<AddCircleOutlineIcon size={16} />}
                 onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
+                isDisabled={isDisabledLogic()}
               />
             </div>
             {allowedRoles.projects.create.includes(userRoleName) && (

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
@@ -6,6 +6,7 @@ import { generateToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import logger from "../utils/logger/fileLogger";
 
 const router = express.Router();
 
@@ -13,14 +14,17 @@ router.post("/invite", async (req, res) => {
   await invite(req, res, req.body);
 });
 
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", async (req: Request, res: Response) => {
   const { to, name, email } = req.body;
 
   logProcessing({
     description: `starting password reset email for user: ${to}`,
     functionName: "reset-password",
     fileName: "vwmailer.route.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
+  logger.debug(`📧 Sending password reset email to ${to} for user ${name}`);
 
   try {
     // Read the MJML template file
@@ -58,6 +62,8 @@ router.post("/reset-password", async (req, res) => {
       description: `Successfully sent password reset email to ${to}`,
       functionName: "reset-password",
       fileName: "vwmailer.route.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json({ message: "Email sent successfully" });
@@ -70,6 +76,8 @@ router.post("/reset-password", async (req, res) => {
       functionName: "reset-password",
       fileName: "vwmailer.route.ts",
       error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(500).json({ error: "Failed to send email", details: (error as Error).message });

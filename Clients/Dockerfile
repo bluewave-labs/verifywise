@@ -13,16 +13,20 @@ RUN npm install
 # Step 5: Copy the rest of the application files
 COPY . .
 
+# Step 6: Accept env variables for Vite
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 ARG VITE_SLACK_CLIENT_ID
 ENV VITE_SLACK_CLIENT_ID=$VITE_SLACK_CLIENT_ID
 
-# Step 6: Build the application
+# Step 7: Build the application
 RUN npm run build
 
-# Step 7: Use a lightweight web server for production
+# Step 8: Use a lightweight web server for production
 FROM nginx:1.25-alpine
 
-# Step 8: Copy the build output to NGINX's default public directory
+# Step 9: Copy the build output to NGINX's default public directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Step 9: Copy the custom error page

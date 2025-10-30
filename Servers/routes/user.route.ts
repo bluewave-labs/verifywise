@@ -45,6 +45,8 @@ import {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  loginUserWithGoogle,
+  createNewUserWithGoogle,
   uploadUserProfilePhoto,
   getUserProfilePhoto,
   deleteUserProfilePhoto,
@@ -107,6 +109,8 @@ router.get("/:id", authenticateJWT, getUserById);
  */
 router.post("/register", createNewUser);
 
+router.post("/register-google", createNewUserWithGoogle);
+
 /**
  * POST /users/login
  *
@@ -120,6 +124,8 @@ router.post("/register", createNewUser);
  * @param {express.Response} res - Express response object
  */
 router.post("/login", loginUser);
+
+router.post("/login-google", loginUserWithGoogle);
 
 router.post("/refresh-token", refreshAccessToken);
 

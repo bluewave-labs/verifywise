@@ -66,11 +66,14 @@ import { getTenantHash } from "../tools/getTenantHash";
 import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { OAuth2Client } from "google-auth-library";
 import { generateUserTokens } from "../utils/auth.utils";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * Retrieves all users within the authenticated user's organization
@@ -134,14 +137,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -156,14 +159,14 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -193,9 +196,9 @@ async function createNewUserWrapper(
     name,
     surname,
     email,
-    password,
     roleId,
-    organizationId
+    organizationId,
+    password
   );
 
   // Validate user data before saving
@@ -272,7 +275,7 @@ async function createNewUser(req: Request, res: Response) {
     const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
       logStructured('error', `user already exists: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Attempted to create duplicate user: ${email}`);
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res
         .status(409)
@@ -287,7 +290,7 @@ async function createNewUser(req: Request, res: Response) {
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
     if (!isEmailUnique) {
       logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Email not unique during creation: ${email}`);
+      await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(409).json(STATUS_CODE[409]('Email already exists'));
     }
@@ -297,12 +300,12 @@ async function createNewUser(req: Request, res: Response) {
     if (user) {
       await transaction.commit();
       logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Create', `User created: ${email}`);
+      await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
     logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `User creation failed: ${email}`);
+    await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
@@ -314,18 +317,100 @@ async function createNewUser(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during user creation: ${error.message}`);
+      await logEvent('Error', `Validation error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during user creation: ${error.message}`);
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error: ${email}`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
+    logger.error('❌ Error in createNewUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function createNewUserWithGoogle(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  const { token, userData: { roleId, organizationId } } = req.body;
+
+  // logStructured('processing', `starting user creation for ${email}`, 'createNewUserWithGoogle', 'user.ctrl.ts');
+  // logger.debug(`🛠️ Creating user: ${email}`);
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      logger.error(`❌ Google login failed`);
+      return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
+    }
+
+    const { email, given_name, family_name, sub } = payload;
+
+    const existingUser = await getUserByEmailQuery(email!);
+    if (existingUser) {
+      logStructured('error', `user already exists: ${email}`, 'createNewUserWithGoogle', 'user.ctrl.ts');
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`, req.userId!, req.tenantId!);
+      await transaction.rollback();
+      return res
+        .status(409)
+        .json(STATUS_CODE[409]('User with this email already exists'));
+    }
+
+    // const user = await createNewUserWrapper(req.body, transaction);
+    const userModel = await UserModel.createNewUser(given_name!, family_name!, email!, roleId, organizationId, null, sub);
+    await userModel.validateUserData();
+
+    const isEmailUnique = await UserModel.validateEmailUniqueness(email!);
+    if (!isEmailUnique) {
+      logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
+      await transaction.rollback();
+      return res.status(409).json(STATUS_CODE[409]('Email already exists'));
+    }
+
+    const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
+
+    if (user) {
+      await transaction.commit();
+      logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+    }
+
+    logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
+    await transaction.rollback();
+    return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ConflictException) {
+      return res.status(409).json(STATUS_CODE[409](error.message));
+    }
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during user creation: ${error.message}`, req.userId!, req.tenantId!);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`, req.userId!, req.tenantId!);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in createNewUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -391,7 +476,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       try {
         passwordIsMatched = await user.comparePassword(password);
       } catch (modelError) {
-        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+        passwordIsMatched = await bcrypt.compare(password, userData.password_hash!);
       }
 
       if (passwordIsMatched) {
@@ -406,7 +491,6 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         }, res);
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-
 
         return res.status(202).json(
           STATUS_CODE[202]({
@@ -424,6 +508,69 @@ async function loginUser(req: Request, res: Response): Promise<any> {
   } catch (error) {
     logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function loginUserWithGoogle(req: Request, res: Response): Promise<any> {
+  const { token } = req.body;
+
+  logStructured('processing', `attempting Google login`, 'loginWithGoogle', 'user.ctrl.ts');
+  logger.debug(`🔐 Google login attempt`);
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      logger.error(`❌ Google login failed`);
+      return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
+    }
+
+    const { email } = payload;
+
+    const userData = await getUserByEmailQuery(email!);
+
+    if (userData) {
+      let user: UserModel;
+      if (userData instanceof UserModel) {
+        user = userData;
+      } else {
+        user = new UserModel();
+        Object.assign(user, userData);
+      }
+      user.updateLastLogin();
+
+      if (!userData.google_id) {
+        await updateUserByIdQuery(userData.id!, {
+          google_id: payload.sub
+        })
+      }
+
+      const { accessToken } = generateUserTokens({
+        id: user.id!,
+        email: email!,
+        roleName: (userData as any).role_name,
+        organizationId: (userData as any).organization_id,
+      }, res);
+
+      logStructured('successful', `login successful for ${email}`, 'loginWithGoogle', 'user.ctrl.ts');
+
+      return res.status(202).json(
+        STATUS_CODE[202]({
+          token: accessToken,
+        })
+      );
+    }
+
+    logStructured('error', `user not found: ${email}`, 'loginWithGoogle', 'user.ctrl.ts');
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    logStructured('error', `unexpected error during login`, 'loginWithGoogle', 'user.ctrl.ts');
+    logger.error('❌ Error in loginWithGoogle:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -516,26 +663,26 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.role_id, _user.organization_id!, _user.password_hash);
 
     if (user) {
       await user.updatePassword(newPassword);
 
       const updatedUser = (await resetPasswordQuery(
         email,
-        user.password_hash,
+        user.password_hash!,
         transaction
       )) as UserModel;
 
       await transaction.commit();
       logStructured('successful', `password reset for ${email}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Update', `Password reset for user: ${email}`);
+      await logEvent('Update', `Password reset for user: ${email}`, req.userId!, req.tenantId!);
 
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
     logStructured('error', `user not found: ${email}`, 'resetPassword', 'user.ctrl.ts');
-    await logEvent('Error', `Password reset failed — user not found: ${email}`);
+    await logEvent('Error', `Password reset failed — user not found: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
@@ -543,18 +690,18 @@ async function resetPassword(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during password reset: ${error.message}`);
+      await logEvent('Error', `Validation error during password reset: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during password reset: ${error.message}`);
+      await logEvent('Error', `Business logic error during password reset: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error for ${email}`, 'resetPassword', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during password reset for ${email}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during password reset for ${email}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in resetPassword:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -610,8 +757,7 @@ async function updateUserById(req: Request, res: Response) {
       );
 
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
-
+      await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`, req.userId!, req.tenantId!);
 
       // Convert to numbers explicitly for comparison
       const oldRoleIdNum = Number(oldRoleId);
@@ -637,6 +783,8 @@ async function updateUserById(req: Request, res: Response) {
                 functionName: "updateUserById",
                 fileName: "user.ctrl.ts",
                 error: emailError as Error,
+                userId: req.userId!,
+                tenantId: req.tenantId!,
               });
             });
           }
@@ -648,6 +796,8 @@ async function updateUserById(req: Request, res: Response) {
             functionName: "updateUserById",
             fileName: "user.ctrl.ts",
             error: projectError as Error,
+            userId: req.userId!,
+            tenantId: req.tenantId!,
           });
         }
       }
@@ -656,7 +806,7 @@ async function updateUserById(req: Request, res: Response) {
     }
 
     logStructured('error', `user not found: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Update failed — user not found: ID ${id}`);
+    await logEvent('Error', `Update failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
@@ -664,18 +814,18 @@ async function updateUserById(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during update: ${error.message}`);
+      await logEvent('Error', `Validation error during update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during update: ${error.message}`);
+      await logEvent('Error', `Business logic error during update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during update for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during update for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in updateUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -694,7 +844,7 @@ async function deleteUserById(req: Request, res: Response) {
     if (user) {
       if (user.isDemoUser()) {
         logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-        await logEvent('Error', `Blocked deletion of demo user ID ${id}`);
+        await logEvent('Error', `Blocked deletion of demo user ID ${id}`, req.userId!, req.tenantId!);
         await transaction.rollback();
         return res.status(403).json(STATUS_CODE[403]('Demo users cannot be deleted'));
       }
@@ -703,19 +853,19 @@ async function deleteUserById(req: Request, res: Response) {
       await transaction.commit();
 
       logStructured('successful', `user deleted: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-      await logEvent('Delete', `User deleted: ID ${id}, email: ${user.email}`);
+      await logEvent('Delete', `User deleted: ID ${id}, email: ${user.email}`, req.userId!, req.tenantId!);
 
       return res.status(202).json(STATUS_CODE[202](deletedUser));
     }
 
     logStructured('error', `user not found: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Delete failed — user not found: ID ${id}`);
+    await logEvent('Error', `Delete failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
     await transaction.rollback();
     logStructured('error', `unexpected error deleting user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during delete for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during delete for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in deleteUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -818,7 +968,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -829,7 +979,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -847,22 +997,25 @@ async function ChangePassword(req: Request, res: Response) {
 
     if (!user) {
       logStructured('error', `user not found: ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Password change failed — user not found: ID ${id}`);
+      await logEvent('Error', `Password change failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await user.updatePassword(newPassword, currentPassword);
+    await user.updatePassword(
+      newPassword,
+      (user.google_id && !user.password_hash) ? null : currentPassword
+    );
 
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      user.password_hash,
+      user.password_hash!,
       transaction
     )) as UserModel;
 
     await transaction.commit();
     logStructured('successful', `password changed for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-    await logEvent('Update', `Password changed for user ID ${id}`);
+    await logEvent('Update', `Password changed for user ID ${id}`, req.userId!, req.tenantId!);
 
     return res.status(202).json({
       message: 'Password updated successfully',
@@ -873,18 +1026,18 @@ async function ChangePassword(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during password change: ${error.message}`);
+      await logEvent('Error', `Validation error during password change: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json({ message: error.message });
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during password change: ${error.message}`);
+      await logEvent('Error', `Business logic error during password change: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json({ message: error.message });
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during password change for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during password change for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in ChangePassword:', error);
     return res.status(500).json({ message: (error as Error).message });
   }
@@ -908,7 +1061,7 @@ async function updateUserRole(req: Request, res: Response) {
     const targetUser = await getUserByIdQuery(parseInt(id));
     if (!targetUser) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
+      await logEvent('Error', `Role update failed — target user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
     }
@@ -917,7 +1070,7 @@ async function updateUserRole(req: Request, res: Response) {
     const currentUser = await getUserByIdQuery(currentUserId);
     if (!currentUser) {
       logStructured('error', `admin user not found: ID ${currentUserId}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`);
+      await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'Current user not found' });
     }
@@ -935,7 +1088,7 @@ async function updateUserRole(req: Request, res: Response) {
 
     await transaction.commit();
     logStructured('successful', `role updated for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-    await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`);
+    await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`, req.userId!, req.tenantId!);
 
     // Send email notifications for role change from Editor (3) to Admin (1)
     if (oldRoleId === 3 && newRoleId === 1) {
@@ -957,6 +1110,8 @@ async function updateUserRole(req: Request, res: Response) {
               functionName: "updateUserRole",
               fileName: "user.ctrl.ts",
               error: emailError as Error,
+              userId: req.userId!,
+              tenantId: req.tenantId!,
             });
           });
         }
@@ -968,6 +1123,8 @@ async function updateUserRole(req: Request, res: Response) {
           functionName: "updateUserRole",
           fileName: "user.ctrl.ts",
           error: projectError as Error,
+          userId: req.userId!,
+          tenantId: req.tenantId!,
         });
       }
     }
@@ -981,18 +1138,18 @@ async function updateUserRole(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during role update: ${error.message}`);
+      await logEvent('Error', `Validation error during role update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json({ message: error.message });
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during role update: ${error.message}`);
+      await logEvent('Error', `Business logic error during role update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json({ message: error.message });
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during role update for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during role update for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in updateUserRole:', error);
     return res.status(500).json({ message: (error as Error).message });
   }
@@ -1069,7 +1226,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
         "uploadUserProfilePhoto",
         "user.ctrl.ts",
       );
-      await logEvent("Create", `Profile photo uploaded for user ID ${userId}`);
+      await logEvent("Create", `Profile photo uploaded for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo uploaded successfully",
@@ -1087,6 +1244,8 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
       await logEvent(
         "Error",
         `Failed to upload profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(500).json(
         STATUS_CODE[500]({
@@ -1105,6 +1264,8 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
     await logEvent(
       "Error",
       `Unexpected error uploading profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in uploadUserProfilePhoto:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1189,7 +1350,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
         "deleteUserProfilePhoto",
         "user.ctrl.ts",
       );
-      await logEvent("Delete", `Profile photo deleted for user ID ${userId}`);
+      await logEvent("Delete", `Profile photo deleted for user ID ${userId}`, req.userId!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           message: "Profile photo deleted successfully",
@@ -1206,6 +1367,8 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
       await logEvent(
         "Error",
         `Failed to delete profile photo for user ID ${userId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(500).json(
         STATUS_CODE[500]({
@@ -1224,6 +1387,8 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
     await logEvent(
       "Error",
       `Unexpected error deleting profile photo for user ID ${userId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteUserProfilePhoto:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -1236,7 +1401,9 @@ export {
   getUserById,
   createNewUserWrapper,
   createNewUser,
+  createNewUserWithGoogle,
   loginUser,
+  loginUserWithGoogle,
   resetPassword,
   updateUserById,
   deleteUserById,

@@ -160,8 +160,12 @@ const authenticateJWT = async (
     req.tenantId = decoded.tenantId;
     req.organizationId = decoded.organizationId;
 
-    // Initialize AsyncLocalStorage context for request tracing
-    asyncLocalStorage.run({ userId: decoded.id }, () => {
+    // Initialize AsyncLocalStorage context with tenant information
+    asyncLocalStorage.run({
+      userId: decoded.id,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId
+    }, () => {
       next();
     });
   } catch (error) {

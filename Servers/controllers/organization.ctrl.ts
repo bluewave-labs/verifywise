@@ -43,7 +43,7 @@ import {
 } from "../utils/organization.utils";
 import { invite } from "./vwmailer.ctrl";
 import { createNewTenant } from "../scripts/createNewTenant";
-import { createNewUserQuery } from "../utils/user.utils";
+import { createNewUserQuery, getUserByEmailQuery } from "../utils/user.utils";
 import { createNewUserWrapper } from "./user.ctrl";
 import {
   ValidationException,
@@ -51,6 +51,10 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { UserModel } from "../domain.layer/models/user/user.model";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import { generateUserTokens } from "../utils/auth.utils";
 
 /**
@@ -116,7 +120,9 @@ export async function getAllOrganizations(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve organizations: ${(error as Error).message}`
+      `Failed to retrieve organizations: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllOrganizations:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -220,7 +226,9 @@ export async function getOrganizationById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve organization by ID: ${organizationId}`
+      `Failed to retrieve organization by ID: ${organizationId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -344,7 +352,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Create",
-        `Organization created: ${createdOrganization.name}`
+        `Organization created: ${createdOrganization.name}`,
+        user.id!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201]({
         user: user.toSafeJSON(),
@@ -358,7 +368,7 @@ export async function createOrganization(
       "createOrganization",
       "organization.ctrl.ts"
     );
-    await logEvent("Error", "Organization creation failed");
+    await logEvent("Error", "Organization creation failed", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -376,7 +386,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Error",
-        `Validation error during organization creation: ${error.message}`
+        `Validation error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -390,7 +402,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Error",
-        `Business logic error during organization creation: ${error.message}`
+        `Business logic error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -404,7 +418,179 @@ export async function createOrganization(
     await logEvent(
       "Error",
       `Unexpected error during organization creation: ${(error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
+    );
+    logger.error("❌ Error in createOrganization:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function createOrganizationWithGoogle(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  logStructured(
+    "processing",
+    "starting createOrganizationWithGoogle",
+    "createOrganizationWithGoogle",
+    "organization.ctrl.ts"
+  );
+  logger.debug("🛠️ Creating new organization");
+  try {
+    const body = req.body as {
+      token: string;
+      organizationData: {
+        name: string;
+        logo: string;
+      }
+    };
+
+    if (!body.organizationData.name) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Organization name is required"));
+    }
+
+    // Use the OrganizationModel's createNewOrganization method with validation
+    const organizationModel = await OrganizationModel.createNewOrganization(
+      body.organizationData.name,
+      body.organizationData.logo
+    );
+
+    // Validate the organization data before saving
+    await organizationModel.validateOrganizationData();
+
+    // Use the utility query function for database operation
+    const createdOrganization = await createOrganizationQuery(
+      organizationModel,
+      transaction
+    );
+
+    if (createdOrganization) {
+      const organization_id = createdOrganization.id!;
+      await createNewTenant(organization_id, transaction);
+
+      const ticket = await client.verifyIdToken({
+        idToken: body.token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        logger.error(`❌ Google login failed`);
+        return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
+      }
+
+      const { email, given_name, family_name, sub } = payload;
+      const existingUser = await getUserByEmailQuery(email!);
+      if (existingUser) {
+        logStructured('error', `user already exists: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
+        await logEvent('Error', `Attempted to create duplicate user: ${email}`, req.userId!, req.tenantId!);
+        await transaction.rollback();
+        return res
+          .status(409)
+          .json(STATUS_CODE[409]('User with this email already exists'));
+      }
+      // const user = await createNewUserWrapper(req.body, transaction);
+      const userModel = await UserModel.createNewUser(given_name!, family_name!, email!, 1, organization_id, null, sub);
+      await userModel.validateUserData();
+
+      const isEmailUnique = await UserModel.validateEmailUniqueness(email!);
+      if (!isEmailUnique) {
+        logStructured('error', `email not unique: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
+        await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
+        await transaction.rollback();
+        return res.status(409).json(STATUS_CODE[409]('Email already exists'));
+      }
+
+      const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
+
+      if (user) {
+        // Generate tokens for the newly created user
+        const { accessToken } = generateUserTokens({
+          id: user.id!,
+          email: email!,
+          roleName: "Admin", // roleId 1 corresponds to Admin
+          organizationId: organization_id,
+        }, res);
+
+        await transaction.commit();
+        logStructured('successful', `user created: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
+        await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
+        return res.status(201).json(STATUS_CODE[201]({
+          user: user.toSafeJSON(),
+          token: accessToken
+        }));
+      }
+      logStructured('error', `failed to create user: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
+      await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]('Unable to create user'));
+    }
+
+    logStructured(
+      "error",
+      "failed to create organization",
+      "createOrganization",
+      "organization.ctrl.ts"
+    );
+    await logEvent("Error", "Organization creation failed", req.userId!, req.tenantId!);
+    await transaction.rollback();
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Unable to create organization"));
+  } catch (error) {
+    await transaction.rollback();
+
+    // Handle specific validation errors
+    if (error instanceof ValidationException) {
+      logStructured(
+        "error",
+        `validation failed: ${error.message}`,
+        "createOrganization",
+        "organization.ctrl.ts"
+      );
+      await logEvent(
+        "Error",
+        `Validation error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
+      );
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured(
+        "error",
+        `business logic error: ${error.message}`,
+        "createOrganization",
+        "organization.ctrl.ts"
+      );
+      await logEvent(
+        "Error",
+        `Business logic error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
+      );
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured(
+      "error",
+      "unexpected error during organization creation",
+      "createOrganization",
+      "organization.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Unexpected error during organization creation: ${(error as Error).message
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createOrganization:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -492,7 +678,7 @@ export async function updateOrganizationById(
         "updateOrganizationById",
         "organization.ctrl.ts"
       );
-      await logEvent("Update", `Organization updated: ID ${organizationId}`);
+      await logEvent("Update", `Organization updated: ID ${organizationId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedOrganization));
     }
 
@@ -504,7 +690,9 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      "Organization not found for updateOrganizationById"
+      "Organization not found for updateOrganizationById",
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Organization not found"));
@@ -521,7 +709,9 @@ export async function updateOrganizationById(
       );
       await logEvent(
         "Error",
-        `Validation error during organization update: ${error.message}`
+        `Validation error during organization update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -535,7 +725,9 @@ export async function updateOrganizationById(
       );
       await logEvent(
         "Error",
-        `Business logic error during organization update: ${error.message}`
+        `Business logic error during organization update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -549,7 +741,9 @@ export async function updateOrganizationById(
     await logEvent(
       "Error",
       `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -616,7 +810,9 @@ export async function deleteOrganizationById(
       );
       await logEvent(
         "Error",
-        `Delete failed — organization not found: ID ${organizationId}`
+        `Delete failed — organization not found: ID ${organizationId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Organization not found"));
@@ -635,7 +831,7 @@ export async function deleteOrganizationById(
         "deleteOrganizationById",
         "organization.ctrl.ts"
       );
-      await logEvent("Delete", `Organization deleted: ID ${organizationId}`);
+      await logEvent("Delete", `Organization deleted: ID ${organizationId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](organization));
     }
 
@@ -645,7 +841,7 @@ export async function deleteOrganizationById(
       "deleteOrganizationById",
       "organization.ctrl.ts"
     );
-    await logEvent("Error", "Unable to delete organization");
+    await logEvent("Error", "Unable to delete organization", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -661,7 +857,9 @@ export async function deleteOrganizationById(
     await logEvent(
       "Error",
       `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

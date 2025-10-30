@@ -393,6 +393,20 @@ const buttons = {
       },
     },
   },
+  google: {
+    contained: {},
+    outlined: {
+      height: 34,
+      fontSize: fontSizes.medium,
+      backgroundColor: "#fff",
+      color: "#344054",
+      boxShadow: "none",
+      textTransform: "Inherit",
+      borderRadius: "4px",
+      border: `1px solid #E4E7EC`,
+    },
+    text: {},
+  },
 };
 
 const textStyles = {

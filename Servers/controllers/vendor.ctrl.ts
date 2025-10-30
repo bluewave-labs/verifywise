@@ -26,6 +26,8 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
     description: "starting getAllVendors",
     functionName: "getAllVendors",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -37,6 +39,8 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
         description: `Retrieved ${vendors.length} vendors`,
         functionName: "getAllVendors",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendors));
     }
@@ -46,6 +50,8 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
       description: "No vendors found",
       functionName: "getAllVendors",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(204).json(STATUS_CODE[204](vendors));
   } catch (error) {
@@ -54,6 +60,8 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve vendors",
       functionName: "getAllVendors",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -67,6 +75,8 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
     description: `starting getVendorById for ID ${vendorId}`,
     functionName: "getVendorById",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -78,6 +88,8 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
         description: `Retrieved vendor ID ${vendorId}`,
         functionName: "getVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendor));
     }
@@ -87,6 +99,8 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
       description: `Vendor not found: ID ${vendorId}`,
       functionName: "getVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404](vendor));
   } catch (error) {
@@ -95,6 +109,8 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve vendor by ID",
       functionName: "getVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -111,6 +127,8 @@ export async function getVendorByProjectId(
     description: `starting getVendorByProjectId for ID ${projectId}`,
     functionName: "getVendorByProjectId",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -122,6 +140,8 @@ export async function getVendorByProjectId(
         description: `Retrieved vendor by project ID ${projectId}`,
         functionName: "getVendorByProjectId",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendor));
     }
@@ -131,6 +151,8 @@ export async function getVendorByProjectId(
       description: `Vendor not found for project ID ${projectId}`,
       functionName: "getVendorByProjectId",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]([]));
   } catch (error) {
@@ -139,6 +161,8 @@ export async function getVendorByProjectId(
       description: "Failed to retrieve vendor by project ID",
       functionName: "getVendorByProjectId",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -153,6 +177,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
     description: "starting createVendor",
     functionName: "createVendor",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -191,6 +217,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         description: `Created vendor: ${createdVendor.vendor_name}`,
         functionName: "createVendor",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(201).json(STATUS_CODE[201](createdVendor));
     }
@@ -200,6 +228,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       description: "Vendor creation returned null",
       functionName: "createVendor",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
@@ -211,6 +241,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         description: `Validation failed: ${error.message}`,
         functionName: "createVendor",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: error as Error,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
@@ -222,6 +254,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         description: `Business logic error: ${error.message}`,
         functionName: "createVendor",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: error as Error,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
@@ -232,6 +266,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       description: "Failed to create vendor",
       functionName: "createVendor",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -250,6 +286,8 @@ export async function updateVendorById(
     description: `starting updateVendorById for ID ${vendorId}`,
     functionName: "updateVendorById",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -260,6 +298,8 @@ export async function updateVendorById(
         description: "Unauthorized access attempt to update vendor",
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: new Error("Unauthorized"),
       });
       return res.status(401).json({ message: "Unauthorized" });
@@ -274,6 +314,8 @@ export async function updateVendorById(
         description: `Vendor not found for update: ID ${vendorId}`,
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(404).json(STATUS_CODE[404]({}));
     }
@@ -317,6 +359,8 @@ export async function updateVendorById(
         description: `Updated vendor ID ${vendorId}`,
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](vendor));
     }
@@ -326,6 +370,8 @@ export async function updateVendorById(
       description: `Vendor not found for update: ID ${vendorId}`,
       functionName: "updateVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -337,6 +383,8 @@ export async function updateVendorById(
         description: `Validation failed: ${error.message}`,
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: error as Error,
       });
       return res.status(400).json(STATUS_CODE[400](error.message));
@@ -348,6 +396,8 @@ export async function updateVendorById(
         description: `Business logic error: ${error.message}`,
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: error as Error,
       });
       return res.status(403).json(STATUS_CODE[403](error.message));
@@ -358,6 +408,8 @@ export async function updateVendorById(
       description: "Failed to update vendor",
       functionName: "updateVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -375,6 +427,8 @@ export async function deleteVendorById(
     description: `starting deleteVendorById for ID ${vendorId}`,
     functionName: "deleteVendorById",
     fileName: "vendor.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -391,6 +445,8 @@ export async function deleteVendorById(
         description: `Deleted vendor ID ${vendorId}`,
         functionName: "deleteVendorById",
         fileName: "vendor.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](deletedVendor));
     }
@@ -400,6 +456,8 @@ export async function deleteVendorById(
       description: `Vendor not found for deletion: ID ${vendorId}`,
       functionName: "deleteVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -409,6 +467,8 @@ export async function deleteVendorById(
       description: "Failed to delete vendor",
       functionName: "deleteVendorById",
       fileName: "vendor.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

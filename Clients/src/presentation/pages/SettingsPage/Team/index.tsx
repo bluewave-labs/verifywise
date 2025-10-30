@@ -32,10 +32,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
-import {
-  deleteUserById,
-  updateUserById,
-} from "../../../../application/repository/user.repository";
+import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
+import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
+
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 const Alert = lazy(() => import("../../../components/Alert"));
@@ -276,6 +275,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(false);
   };
 
+  const { tierFeatures } = useSubscriptionData();
+
+  const canAddTeamMembers =
+    tierFeatures?.seats === 0 || (tierFeatures?.seats && tierFeatures?.seats > teamUsers.length);
+
   return (
     <Stack sx={{ mt: 3 }}>
       {alert && (
@@ -349,6 +353,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
               <CustomizableButton
                 variant="contained"
                 text="Invite team member"
+                isDisabled={!canAddTeamMembers}
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",

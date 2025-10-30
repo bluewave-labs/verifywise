@@ -265,12 +265,6 @@ export class NotificationService {
     templateFileName: string,
     templateData: Record<string, string>
   ): Promise<void> {
-    logProcessing({
-      description: `Sending email with template: ${templateFileName}`,
-      functionName: "sendEmailWithTemplate",
-      fileName: "NotificationService.ts",
-    });
-
     try {
       // Read the template file
       const templatePath = path.join(TEMPLATES_DIR, path.basename(templateFileName));
@@ -288,12 +282,6 @@ export class NotificationService {
         throw new Error(`${result.error.name}: ${result.error.message}`);
       }
 
-      await logSuccess({
-        eventType: "Create",
-        description: `Email sent successfully to ${maskEmail(recipientEmail)}`,
-        functionName: "sendEmailWithTemplate",
-        fileName: "NotificationService.ts",
-      });
     } catch (error) {
 
       // Sanitize the error to remove any email addresses
@@ -304,15 +292,7 @@ export class NotificationService {
         )
       );
 
-      await logFailure({
-        eventType: "Create",
-        description: `Failed to send email to ${maskEmail(recipientEmail)}`,
-        functionName: "sendEmailWithTemplate",
-        fileName: "NotificationService.ts",
-        error: sanitized,
-      });
-      (sanitized as any).cause = error;
-      throw sanitized;
+      throw error;
     }
   }
 }

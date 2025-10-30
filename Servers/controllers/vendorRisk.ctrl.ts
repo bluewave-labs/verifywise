@@ -22,7 +22,9 @@ export async function getAllVendorRisksAllProjects(
   logProcessing({
     description: `starting getAllVendorRisksAllProjects with filter: ${filter}`,
     functionName: 'getAllVendorRisksAllProjects',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -31,7 +33,9 @@ export async function getAllVendorRisksAllProjects(
       eventType: 'Read',
       description: 'Retrieved all vendor risks across all projects',
       functionName: 'getAllVendorRisksAllProjects',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(200).json(STATUS_CODE[200](risks));
   } catch (error) {
@@ -40,6 +44,8 @@ export async function getAllVendorRisksAllProjects(
       description: 'Failed to retrieve vendor risks',
       functionName: 'getAllVendorRisksAllProjects',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -56,7 +62,9 @@ export async function getAllVendorRisks(
   logProcessing({
     description: `starting getAllVendorRisks for project ID ${projectId} with filter: ${filter}`,
     functionName: 'getAllVendorRisks',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -67,7 +75,9 @@ export async function getAllVendorRisks(
         eventType: 'Read',
         description: `Retrieved vendor risks for project ID ${projectId} with filter: ${filter}`,
         functionName: 'getAllVendorRisks',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendorRisks));
     }
@@ -76,7 +86,9 @@ export async function getAllVendorRisks(
       eventType: 'Read',
       description: `No vendor risks found for project ID ${projectId} with filter: ${filter}`,
       functionName: 'getAllVendorRisks',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(204).json(STATUS_CODE[204](vendorRisks));
   } catch (error) {
@@ -85,6 +97,8 @@ export async function getAllVendorRisks(
       description: 'Failed to retrieve vendor risks by project',
       functionName: 'getAllVendorRisks',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -101,7 +115,9 @@ export async function getAllVendorRisksByVendorId(
   logProcessing({
     description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId} with filter: ${filter}`,
     functionName: 'getAllVendorRisksByVendorId',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -112,7 +128,9 @@ export async function getAllVendorRisksByVendorId(
         eventType: 'Read',
         description: `Retrieved vendor risks for vendor ID ${vendorId} with filter: ${filter}`,
         functionName: 'getAllVendorRisksByVendorId',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendorRisks));
     }
@@ -121,7 +139,9 @@ export async function getAllVendorRisksByVendorId(
       eventType: 'Read',
       description: `No vendor risks found for vendor ID ${vendorId} with filter: ${filter}`,
       functionName: 'getAllVendorRisksByVendorId',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(204).json(STATUS_CODE[204](vendorRisks));
   } catch (error) {
@@ -130,7 +150,9 @@ export async function getAllVendorRisksByVendorId(
       description: 'Failed to retrieve vendor risks by vendor ID',
       functionName: 'getAllVendorRisksByVendorId',
       fileName: 'vendorRisk.ctrl.ts',
-      error: error as Error
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -145,7 +167,9 @@ export async function getVendorRiskById(
   logProcessing({
     description: `starting getVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'getVendorRiskById',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -156,7 +180,9 @@ export async function getVendorRiskById(
         eventType: 'Read',
         description: `Retrieved vendor risk ID ${vendorRiskId}`,
         functionName: 'getVendorRiskById',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](vendorRisk));
     }
@@ -165,7 +191,9 @@ export async function getVendorRiskById(
       eventType: 'Read',
       description: `Vendor risk not found: ID ${vendorRiskId}`,
       functionName: 'getVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404](vendorRisk));
   } catch (error) {
@@ -174,6 +202,8 @@ export async function getVendorRiskById(
       description: 'Failed to retrieve vendor risk by ID',
       functionName: 'getVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -189,7 +219,9 @@ export async function createVendorRisk(
   logProcessing({
     description: 'starting createVendorRisk',
     functionName: 'createVendorRisk',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -208,7 +240,9 @@ export async function createVendorRisk(
         eventType: 'Create',
         description: 'Created new vendor risk',
         functionName: 'createVendorRisk',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
     }
@@ -217,7 +251,9 @@ export async function createVendorRisk(
       eventType: 'Create',
       description: 'Vendor risk creation returned null',
       functionName: 'createVendorRisk',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
@@ -227,6 +263,8 @@ export async function createVendorRisk(
       description: 'Failed to create vendor risk',
       functionName: 'createVendorRisk',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -244,7 +282,9 @@ export async function updateVendorRiskById(
   logProcessing({
     description: `starting updateVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'updateVendorRiskById',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -264,7 +304,9 @@ export async function updateVendorRiskById(
         eventType: 'Update',
         description: `Updated vendor risk ID ${vendorRiskId}`,
         functionName: 'updateVendorRiskById',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](vendorRisk));
     }
@@ -273,7 +315,9 @@ export async function updateVendorRiskById(
       eventType: 'Update',
       description: `Vendor risk not found for update: ID ${vendorRiskId}`,
       functionName: 'updateVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -283,6 +327,8 @@ export async function updateVendorRiskById(
       description: 'Failed to update vendor risk',
       functionName: 'updateVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -299,7 +345,9 @@ export async function deleteVendorRiskById(
   logProcessing({
     description: `starting deleteVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'deleteVendorRiskById',
-    fileName: 'vendorRisk.ctrl.ts'
+    fileName: 'vendorRisk.ctrl.ts',
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -315,7 +363,9 @@ export async function deleteVendorRiskById(
         eventType: 'Delete',
         description: `Deleted vendor risk ID ${vendorRiskId}`,
         functionName: 'deleteVendorRiskById',
-        fileName: 'vendorRisk.ctrl.ts'
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
     }
@@ -324,7 +374,9 @@ export async function deleteVendorRiskById(
       eventType: 'Delete',
       description: `Deleted vendor risk ID ${vendorRiskId}`,
       functionName: 'deleteVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts'
+      fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -334,6 +386,8 @@ export async function deleteVendorRiskById(
       description: 'Failed to delete vendor risk',
       functionName: 'deleteVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

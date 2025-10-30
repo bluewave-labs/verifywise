@@ -1,3 +1,4 @@
+
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { ApiResponse, User } from "../../domain/types/User";
 
@@ -89,6 +90,36 @@ export async function loginUser({ body }: { body: any }): Promise<any> {
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);
+    throw error;
+  }
+}
+
+export async function createNewUserWithGoogle({
+  googleToken,
+  userData,
+}: {
+  googleToken: string;
+  userData: any;
+  authToken?: string;
+}): Promise<any> {
+  const response = await apiServices.post(`/users/register-google`, {
+    token: googleToken, userData
+  });
+  return response;
+}
+
+export async function loginWithGoogle({
+  googleToken,
+}: {
+  googleToken: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(`/users/login-google`, {
+      token: googleToken
+    });
+    return response;
+  } catch (error) {
+    console.error("Error logging in with Google:", error);
     throw error;
   }
 }

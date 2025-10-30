@@ -27,6 +27,8 @@ export async function getFileContentById(
     description: `starting getFileContentById for ID ${fileId}`,
     functionName: "getFileContentById",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -37,6 +39,8 @@ export async function getFileContentById(
         description: `Retrieved file content for ID ${req.params.id}`,
         functionName: "getFileContentById",
         fileName: "file.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       res.setHeader("Content-Type", file.type);
@@ -49,6 +53,8 @@ export async function getFileContentById(
       description: `File not found: ID ${req.params.id}`,
       functionName: "getFileContentById",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -58,6 +64,8 @@ export async function getFileContentById(
       description: "Failed to retrieve file content",
       functionName: "getFileContentById",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -75,6 +83,8 @@ export async function getFileMetaByProjectId(
     description: `starting getFileMetaByProjectId for project ID ${projectId}`,
     functionName: "getFileMetaByProjectId",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -84,6 +94,8 @@ export async function getFileMetaByProjectId(
       description: `Retrieved file metadata for project ID ${projectId}`,
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (files && files.length > 0) {
@@ -96,6 +108,8 @@ export async function getFileMetaByProjectId(
       description: "Failed to retrieve file metadata",
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -114,6 +128,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
     description: `starting getUserFilesMetaData for user ID ${userId}`,
     functionName: "getUserFilesMetaData",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -134,6 +150,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
       description: `Retrieved user files metadata for user ID ${userId}`,
       functionName: "getUserFilesMetaData",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).send(files);
@@ -143,6 +161,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
       description: "Failed to retrieve user files metadata",
       functionName: "getUserFilesMetaData",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -160,6 +180,8 @@ export async function postFileContent(
     description: "starting postFileContent",
     functionName: "postFileContent",
     fileName: "file.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -212,6 +234,8 @@ export async function postFileContent(
       description: "Posted file content and updated answer evidence",
       functionName: "postFileContent",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](question.evidence_files));
@@ -223,6 +247,8 @@ export async function postFileContent(
       description: "Failed to upload and associate file content",
       functionName: "postFileContent",
       fileName: "file.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 

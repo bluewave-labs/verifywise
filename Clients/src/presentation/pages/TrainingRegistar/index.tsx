@@ -59,7 +59,7 @@ const mapTrainingToFormData = (
 ): TrainingRegistarDTO => {
   return {
     training_name: training.training_name,
-    duration: String(training.duration || ""),
+    duration: training.duration,
     provider: training.provider,
     department: training.department,
     status: training.status,

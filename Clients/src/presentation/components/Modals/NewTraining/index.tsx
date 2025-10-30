@@ -18,6 +18,7 @@ import {
 } from "../../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../../domain/enums/status.enum";
 import StandardModal from "../StandardModal";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 // Constants for validation (DRY + Maintainability)
 const VALIDATION_RULES = {
@@ -188,7 +189,10 @@ const NewTraining: FC<NewTrainingProps> = ({
 
     // Defensive: Guard against undefined callback
     if (!onSuccess) {
-      console.warn('[NewTraining] onSuccess callback not provided');
+      logEngine({
+        type: "error",
+        message: 'onSuccess callback not provided',
+      });
       handleClose();
       return;
     }
@@ -203,12 +207,18 @@ const NewTraining: FC<NewTrainingProps> = ({
         handleClose();
       } else {
         // Failed to save - keep modal open, show generic error if parent didn't set specific one
-        console.warn('[NewTraining] Save operation failed, keeping modal open');
+        logEngine({
+          type: "error",
+          message: 'Save operation failed, keeping modal open',
+        });
         // Parent handler is responsible for setting the specific error alert
       }
     } catch (error) {
       // Defensive: Catch errors from parent callback (if they throw instead of returning false)
-      console.error('[NewTraining] Error in onSuccess callback:', error);
+      logEngine({
+        type: "error",
+        message: `Error in onSuccess callback: ${error}`,
+      });
       setErrors({
         training_name: 'An error occurred while saving. Please try again.',
       });

@@ -120,7 +120,6 @@ const Training: React.FC = () => {
         setTrainingData(response.data);
       }
     } catch (error) {
-      console.error("Error fetching training data:", error);
       logEngine({
         type: "error",
         message: `Failed to fetch training data: ${error}`,
@@ -170,7 +169,10 @@ const Training: React.FC = () => {
             setSelectedTraining(response.data);
           }
         } catch (error) {
-          console.error("Error fetching training details:", error);
+          logEngine({
+            type: "error",
+            message: `Failed to fetch training details: ${error}`,
+          });
           setAlert({
             variant: "error",
             body: "Failed to load training details. Please try again.",
@@ -205,7 +207,10 @@ const Training: React.FC = () => {
       if (selectedTraining) {
         // Defensive: Ensure training has an ID before updating
         if (!selectedTraining.id) {
-          console.error('[Training] Cannot update training without ID:', selectedTraining);
+          logEngine({
+            type: "error",
+            message: 'Cannot update training without ID',
+          });
           setAlert(createAlert('error', 'Cannot update training: Missing ID'));
           return false;
         }
@@ -234,7 +239,10 @@ const Training: React.FC = () => {
         return true;
       } else {
         // API returned but without data - unexpected state
-        console.warn('[Training] API response missing data');
+        logEngine({
+          type: "error",
+          message: 'API response missing data',
+        });
         setAlert(createAlert(
           'error',
           selectedTraining
@@ -244,7 +252,6 @@ const Training: React.FC = () => {
         return false;
       }
     } catch (error) {
-      console.error('[Training] Error saving training:', error);
       logEngine({
         type: "error",
         message: `Failed to ${selectedTraining ? 'update' : 'create'} training: ${error}`,
@@ -268,7 +275,10 @@ const Training: React.FC = () => {
         body: "Training deleted successfully!",
       });
     } catch (error) {
-      console.error("Error deleting training:", error);
+      logEngine({
+        type: "error",
+        message: `Failed to delete training: ${error}`,
+      });
       setAlert({
         variant: "error",
         body: "Failed to delete training. Please try again.",

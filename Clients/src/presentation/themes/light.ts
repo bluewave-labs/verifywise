@@ -318,13 +318,6 @@ const light = createTheme({
         },
       },
     },
-    MuiTooltip: {
-      styleOverrides: {
-        tooltip: {
-          fontSize: '13px',
-        },
-      },
-    },
 
     MuiButtonBase: {
       defaultProps: {

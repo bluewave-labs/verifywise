@@ -28,6 +28,7 @@ import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
+import { initializePostHog, identifyUser, resetUser } from "./application/utils/posthog";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
@@ -61,6 +62,9 @@ function App() {
   const commandPalette = useCommandPalette();
 
   useEffect(() => {
+    // Initialize PostHog analytics
+    initializePostHog();
+
     setShowAlertCallback((alertProps: AlertProps) => {
       setAlert(alertProps);
       setTimeout(() => setAlert(null), 5000);
@@ -71,6 +75,25 @@ function App() {
 
     return () => setShowAlertCallback(() => {});
   }, []);
+
+  // Track user identification when user data changes
+  useEffect(() => {
+    if (token && userId && userRoleName) {
+      // Find user email from users array
+      const currentUser = users.find(user => user.id === userId);
+      const userEmail = currentUser?.email || 'unknown@example.com';
+
+      identifyUser(
+        userId.toString(),
+        userEmail,
+        userRoleName,
+        organizationId?.toString()
+      );
+    } else {
+      // Reset user identification when logged out
+      resetUser();
+    }
+  }, [token, userId, userRoleName, organizationId, users]);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});

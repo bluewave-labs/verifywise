@@ -15,23 +15,19 @@ import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import {
   Box,
-  Modal,
   Stack,
   Typography,
-  useTheme,
   Divider,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../Button/CustomizableButton";
-import { Save as SaveIcon } from "lucide-react";
+import StandardModal from "../StandardModal";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -121,7 +117,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   onSuccess = () => {},
   vendors,
 }) => {
-  const theme = useTheme();
   const { userRoleName } = useAuth();
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
@@ -418,9 +413,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: "16px", paddingX: 8 }}>
-      <Stack direction="row" spacing={12}>
-        <Stack flex={1} spacing={12}>
+    <TabPanel value="2" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
+      <Stack spacing={6}>
+      <Stack direction="row" spacing={6}>
+        <Stack flex={1} spacing={6}>
           <Stack direction="row" spacing={6}>
             <Box flex={1}>
               <Select
@@ -470,7 +466,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             />
           </Box>
         </Stack>
-        <Stack flex={1} spacing={12}>
+        <Stack flex={1} spacing={6}>
           <Box>
             <Field
               label="Action plan"
@@ -503,8 +499,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           </Box>
         </Stack>
       </Stack>
-      <Divider sx={{ my: 6 }} />
-      <Box mt={4} mb={2}>
+      <Stack>
+      <Divider sx={{ mb: 4 }} />
+      <Box>
         <Typography fontWeight={600} fontSize={16} mb={2}>
           Calculate risk level
         </Typography>
@@ -513,7 +510,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           Severity scores. By assigning these scores, the risk level will be
           determined based on your inputs.
         </Typography>
-        <Stack direction="row" spacing={12}>
+        <Stack direction="row" spacing={6}>
           <Suspense fallback={<div>Loading...</div>}>
             <RiskLevel
               likelihood={Number(values.likelihood) || 1}
@@ -524,6 +521,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           </Suspense>
         </Stack>
       </Box>
+      </Stack>
+      </Stack>
     </TabPanel>
   );
 
@@ -543,94 +542,25 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-      <Modal
-        open={isOpen}
-        onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
-            setValues(initialState);
-            setIsOpen();
-          }
+      <StandardModal
+        isOpen={isOpen}
+        onClose={() => {
+          setValues(initialState);
+          setIsOpen();
         }}
-        sx={{ overflowY: "scroll" }}
+        title={existingRisk ? "Edit risk" : "Add a new vendor risk"}
+        description={
+          existingRisk
+            ? "Update risk details including description, impact assessment, and mitigation plan."
+            : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
+        }
+        onSubmit={handleSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting || isEditingDisabled}
+        maxWidth="1000px"
       >
-        <Stack
-          gap={theme.spacing(2)}
-          color={theme.palette.text.secondary}
-          sx={{
-            backgroundColor: "#D9D9D9",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 1000,
-            bgcolor: theme.palette.background.modal,
-            border: 1,
-            borderColor: theme.palette.border,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            p: theme.spacing(8),
-            "&:focus": {
-              outline: "none",
-            },
-            mt: 5,
-            mb: 5,
-          }}
-        >
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            sx={{ paddingX: theme.spacing(8) }}
-          >
-            <Typography
-              fontSize={16}
-              fontWeight={600}
-              marginBottom={theme.spacing(5)}
-            >
-              {existingRisk ? "Edit risk" : "Add a new vendor risk"}
-            </Typography>
-            <Close size={20} style={{ cursor: "pointer" }} onClick={setIsOpen} />
-          </Stack>
-          <Typography
-            fontSize={13}
-            color={theme.palette.text.secondary}
-            marginBottom={theme.spacing(1)}
-            sx={{
-              lineHeight: 1.4,
-              paddingX: theme.spacing(8)
-            }}
-          >
-            {existingRisk
-              ? "Update risk details including description, impact assessment, and mitigation plan."
-              : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
-            }
-          </Typography>
-          <TabContext value={value}>
-            {risksPanel}
-            <Stack
-              sx={{
-                alignItems: "flex-end",
-                paddingX: theme.spacing(8),
-                marginTop: theme.spacing(2),
-              }}
-            >
-              <CustomizableButton
-                variant="contained"
-                text="Save"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                onClick={handleSave}
-                icon={<SaveIcon size={16} />}
-                isDisabled={isEditingDisabled}
-              />
-            </Stack>
-          </TabContext>
-        </Stack>
-      </Modal>
+        <TabContext value={value}>{risksPanel}</TabContext>
+      </StandardModal>
     </Stack>
   );
 };

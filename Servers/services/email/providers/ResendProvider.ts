@@ -27,12 +27,20 @@ export class ResendProvider implements EmailProvider {
 
   async sendEmail(options: EmailOptions): Promise<EmailResult> {
     try {
-      const mailOptions = {
+      const mailOptions: any = {
         from: options.from || process.env.EMAIL_ID!,
         to: options.to,
         subject: options.subject,
         html: options.html,
       };
+
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        mailOptions.attachments = options.attachments.map(att => ({
+          filename: att.filename,
+          content: att.content,
+        }));
+      }
 
       const result = await this.resend.emails.send(mailOptions);
 

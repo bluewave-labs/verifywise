@@ -1,5 +1,5 @@
 import { generateReport } from "../repository/entity.repository";
-import { getFileById, downloadFileFromManager, deleteFileFromManager } from "../repository/file.repository";
+import { downloadFileFromManager } from "../repository/file.repository";
 import { triggerBrowserDownload, extractFilenameFromHeaders } from "../../presentation/utils/browserDownload.utils";
 
 interface GenerateReportProps {
@@ -21,59 +21,20 @@ interface GenerateReportProps {
  */
 export const handleDownload = async (fileId: string, fileName: string): Promise<void> => {
   try {
-    const response = await getFileById({
+   const response = await downloadFileFromManager({
       id: typeof fileId === 'string' ? fileId : String(fileId),
-      responseType: "blob",
     });
     const blob = new Blob([response], { type: response.type });
-    triggerBrowserDownload(blob, fileName);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
-    throw error;
-  }
-};
-
-/**
- * Downloads a file from the file manager and triggers browser download
- * (Added for feature/file-manager-tables compatibility)
- *
- * @param fileId - The file ID to download from file manager
- * @param fileName - The name to save the file as
- * @throws Error if download fails
- */
-export const handleFileManagerDownload = async (fileId: string, fileName: string): Promise<void> => {
-  try {
-    const blob = await downloadFileFromManager({
-      id: typeof fileId === 'string' ? fileId : String(fileId),
-    });
-    triggerBrowserDownload(blob, fileName);
-  } catch (error) {
-    console.error("Error downloading file from file manager:", error);
-    throw error;
-  }
-};
-
-/**
- * Deletes a file from the file manager
- * (Added for feature/file-manager-tables compatibility)
- *
- * @param fileId - The file ID to delete
- * @param onSuccess - Optional callback to trigger after successful deletion
- * @throws Error if deletion fails
- */
-export const handleFileDelete = async (
-  fileId: string,
-  onSuccess?: () => void | Promise<void>
-): Promise<void> => {
-  try {
-    await deleteFileFromManager({
-      id: typeof fileId === 'string' ? fileId : String(fileId),
-    });
-    if (onSuccess) {
-      await onSuccess();
-    }
-  } catch (error) {
-    console.error("Error deleting file from file manager:", error);
     throw error;
   }
 };
@@ -93,7 +54,7 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
 
     if (response.status === 200) {
       // Extract filename from Content-Disposition header (DRY: using shared utility)
-      const filename = extractFilenameFromHeaders(response.headers, 'report');
+      const fileName = extractFilenameFromHeaders(response.headers, 'report');
 
       // Get blob content and content type
       const blobFileContent = response.data;
@@ -101,7 +62,8 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
 
       // Create blob and trigger download
       const blob = new Blob([blobFileContent], { type: responseType || undefined });
-      triggerBrowserDownload(blob, filename);
+      triggerBrowserDownload(blob, fileName);
+
 
       return response.status;
     } else {

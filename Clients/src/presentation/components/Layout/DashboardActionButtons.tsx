@@ -2,6 +2,7 @@ import React, { useMemo, memo } from 'react';
 import { Stack, Button } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Puzzle, Zap } from 'lucide-react';
+import { useAuth } from '../../../application/hooks/useAuth';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -12,6 +13,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRoleName } = useAuth();
+  const isAdmin = userRoleName === "Admin";
 
   // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
@@ -37,7 +40,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         variant="contained"
         size="small"
         startIcon={<Puzzle size={14} />}
-        onClick={() => navigate('/integrations')}
+        onClick={isAdmin ? () => navigate('/integrations') : undefined}
+        disabled={!isAdmin}
         sx={{
           background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
           color: 'white',
@@ -53,6 +57,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
             background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
             boxShadow: '0 4px 8px rgba(139, 92, 246, 0.3)',
           },
+          opacity: isAdmin ? 1 : 0.5,
+          pointerEvents: isAdmin ? 'auto' : 'none',
           transition: 'all 0.2s ease',
         }}
       >

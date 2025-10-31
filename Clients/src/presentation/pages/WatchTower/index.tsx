@@ -1,6 +1,6 @@
 import { Stack, Box } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -10,8 +10,8 @@ import WatchTowerLogs from "./Loggings";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { useLocation, useNavigate } from "react-router-dom";
 
-// Tab styles similar to Vendors page
 const tabStyle = {
   textTransform: "none",
   fontWeight: 400,
@@ -30,11 +30,24 @@ const tabPanelStyle = {
 };
 
 const WatchTower = () => {
-  const [value, setValue] = useState("1");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  //tab from URL
+  const isLogsPage = location.pathname.includes("/logs");
+  const [value, setValue] = useState(isLogsPage ? "2" : "1");
+
+  // Keep state in sync with URL
+  useEffect(() => {
+    setValue(isLogsPage ? "2" : "1");
+  }, [isLogsPage, location.pathname]);
+
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
+    if (newValue === "1") navigate("/event-tracker");
+    else if (newValue === "2") navigate("/event-tracker/logs");
   };
 
   return (

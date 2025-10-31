@@ -42,9 +42,10 @@ const IconButton: React.FC<IconButtonProps> = ({
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [actions, setActions] = useState({});
+  const [_, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
-  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] = useState(false);
+  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
+    useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
@@ -62,7 +63,6 @@ const IconButton: React.FC<IconButtonProps> = ({
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setActions({ id: id, url: url });
-    console.log(actions);
   };
 
   /**
@@ -135,7 +135,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       }
     }
   };
-  
+
   const handleMakeVisible = (e?: React.SyntheticEvent) => {
     if (onMakeVisible) {
       onMakeVisible();
@@ -192,15 +192,16 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (type === "report") {
       return ["download", "remove"];
     } else if (type === "evidence") {
-      return ["download", "remove"];
+      return ["download"];
     } else if (type === "Resource") {
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
-    } else if(type === "Incident") {
+    } else if (type === "Incident") {
       return ["edit", "view", "archive"];
-    } else if (type === "integration") { // slack integration
-      return ["Send Test", "Activate/Deactivate", "remove"]
+    } else if (type === "integration") {
+      // slack integration
+      return ["Send Test", "Activate/Deactivate", "remove"];
     } else {
       return ["edit", "remove"];
     }
@@ -252,7 +253,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     >
       {listOfButtons.map((item) => {
         // For resources, disable edit, download, and remove when not visible
-        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isResourceAction =
+          (type === "Resource" || type === "resource") &&
+          item !== "make visible";
         const isDisabled = isResourceAction && !isVisible;
 
         return (
@@ -271,13 +274,13 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownload(e);
               } else if (item === "make visible") {
                 handleMakeVisible(e);
-              } else if(item === "view"){
+              } else if (item === "view") {
                 handleView(e);
               } else if (item === "Send Test") {
                 await handleSendTestNotification(e);
               } else if (item === "Activate/Deactivate") {
                 await handleToggleStatus(e);
-              } else if (item === "remove"  || item === "archive") {
+              } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
@@ -292,7 +295,11 @@ const IconButton: React.FC<IconButtonProps> = ({
               }
             }}
             disabled={isDisabled}
-            sx={item === "remove" || item === "archive" ? { color: "#d32f2f" } : {}}
+            sx={
+              item === "remove" || item === "archive"
+                ? { color: "#d32f2f" }
+                : {}
+            }
           >
             {getMenuItemText(item)}
           </MenuItem>
@@ -340,7 +347,11 @@ const IconButton: React.FC<IconButtonProps> = ({
         <BasicModal
           isOpen={isOpenRemoveModal}
           setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) => checkForRisks && onDeleteWithRisks ? handleDeleteWithRiskCheck(e) : handleDelete(e)}
+          onDelete={(e) =>
+            checkForRisks && onDeleteWithRisks
+              ? handleDeleteWithRiskCheck(e)
+              : handleDelete(e)
+          }
           warningTitle={warningTitle}
           warningMessage={warningMessage}
           onCancel={(e) => handleCancle(e)}

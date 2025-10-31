@@ -5,6 +5,7 @@ from ..core.config import PromptingConfig
 from .engine import InferenceEngine
 from .clients.openai_chat import OpenAIChatClient
 from .clients.hf_local import HFLocalClient
+from .clients.ollama_chat import OllamaChatClient
 
 
 def build_engine(
@@ -37,6 +38,10 @@ def build_engine(
 
     if provider == "huggingface":
         client = HFLocalClient(model_id=model_cfg.model_id, device=model_cfg.device)
+        return InferenceEngine(client=client, gen_params=gen_params, prompting_config=prompting_cfg)
+
+    if provider == "ollama":
+        client = OllamaChatClient(model_id=model_cfg.model_id, host=model_cfg.base_url)
         return InferenceEngine(client=client, gen_params=gen_params, prompting_config=prompting_cfg)
 
     # Placeholder for future providers

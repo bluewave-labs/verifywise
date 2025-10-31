@@ -1,11 +1,15 @@
 /**
- * Custom hook to fetch files data from the server based on project ID.
+ * Custom hook to fetch and manage user files metadata
  *
- * @param {string} projectID - The ID of the project to fetch files for.
- * @returns {{ filesData: FileData[], loading: boolean, error: Error | null }} - An object containing the files data, loading state, and error.
+ * @returns {{
+ *   filesData: FileData[],
+ *   loading: boolean,
+ *   error: Error | null,
+ *   refetch: () => void
+ * }} - An object containing the files data, loading state, error, and refetch function
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileData } from "../../domain/types/File";
 import { getUserFilesMetaData } from "../repository/file.repository";
 
@@ -13,6 +17,7 @@ export const useUserFilesMetaData = () => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     // Create an AbortController for request cancellation
@@ -67,11 +72,19 @@ export const useUserFilesMetaData = () => {
 
     fetchFilesData();
 
-    // Cleanup function to abort the request when component unmounts or projectID changes
+    // Cleanup function to abort the request when component unmounts or refetch is triggered
     return () => {
       abortController.abort();
     };
+  }, [refetchTrigger]);
+
+  /**
+   * Trigger a refetch of the files data
+   * Useful after file uploads, deletions, or other mutations
+   */
+  const refetch = useCallback(() => {
+    setRefetchTrigger((prev) => prev + 1);
   }, []);
 
-  return { filesData, loading, error };
+  return { filesData, loading, error, refetch };
 };

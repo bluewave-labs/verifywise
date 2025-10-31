@@ -9,6 +9,9 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
 import {
@@ -100,13 +103,6 @@ const ProjectForm = ({
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
-
-  // Auto-advance to step 2 if a default framework type is provided or if editing a project
-  useEffect(() => {
-    if (defaultFrameworkType || projectToEdit) {
-      setCurrentStep(2);
-    }
-  }, [defaultFrameworkType, projectToEdit]);
 
   // Transform member IDs to User objects when editing a project
   useEffect(() => {
@@ -426,55 +422,63 @@ const ProjectForm = ({
     }
   }
 
+  const steps = [
+    "Details",
+    "Team & Compliance",
+  ];
+
   const renderStep1 = () => (
-    <Stack
-      sx={{
-        width: "fit-content",
-        backgroundColor: "#FCFCFD",
-        padding: 10,
-        borderRadius: "4px",
-        gap: 10,
-        ...sx,
-        maxWidth: "760px",
-      }}
-    >
+    <Stack sx={{ gap: 6 }}>
+      <Stepper activeStep={currentStep - 1} orientation="horizontal">
+        {steps.map((step) => (
+          <Step key={step}>
+            <StepLabel>{step}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
       <Stack
-        className="vwproject-form-header"
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
+          width: "fit-content",
+          backgroundColor: "#FCFCFD",
+          padding: 10,
+          borderRadius: "4px",
+          gap: 8,
+          ...sx,
+          maxWidth: "760px",
         }}
       >
-        <Stack className="vwproject-form-header-text">
-          <Typography
-            sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-          >
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
-              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
-            }
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
-              : defaultFrameworkType
-              ? `Creating a ${
-                  defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
-                    ? "organization-wide"
-                    : "project-based"
-                } ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? "framework" : "use case"}`
-              : "Please select the type of frameworks you need"}
-          </Typography>
+        <Stack
+          className="vwproject-form-header"
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack className="vwproject-form-header-text">
+            <Typography
+              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+            >
+              {projectToEdit
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+                : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+              }
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#344054" }}>
+              {projectToEdit
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
+                : values.framework_type === FrameworkTypeEnum.ProjectBased
+                ? "Create a new use case from scratch by filling in the following."
+                : "Set up ISO 27001 or 42001 (Organization ISMS)"}
+            </Typography>
+          </Stack>
+          <ClearIcon
+            size={20}
+            style={{ color: "#98A2B3", cursor: "pointer" }}
+            onClick={onClose}
+          />
         </Stack>
-        <ClearIcon
-          size={20}
-          style={{ color: "#98A2B3", cursor: "pointer" }}
-          onClick={onClose}
-        />
-      </Stack>
 
-      <Stack sx={{ gap: 4 }}>
         {!defaultFrameworkType && (
           <>
             <RadioGroup
@@ -489,9 +493,7 @@ const ProjectForm = ({
                   control={<Radio />}
                   label={
                     <Stack sx={{ gap: 1 }}>
-                      <Typography
-                        sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
-                      >
+                      <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}>
                         {option.title}
                       </Typography>
                       <Typography sx={{ fontSize: 13, color: "#667085" }}>
@@ -511,17 +513,131 @@ const ProjectForm = ({
                 />
               ))}
             </RadioGroup>
-
             {errors.frameworkType && (
-              <Typography
-                variant="caption"
-                sx={{ color: "#f04438", fontWeight: 300 }}
-              >
+              <Typography variant="caption" sx={{ color: "#f04438", fontWeight: 300 }}>
                 {errors.frameworkType}
               </Typography>
             )}
           </>
         )}
+
+        <Stack className="vwproject-form-body" sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
+          <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
+            <Field
+              id="project-title-input"
+              label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
+              width="350px"
+              value={values.project_title}
+              onChange={handleOnTextFieldChange("project_title")}
+              error={errors.projectTitle}
+              sx={textfieldStyle}
+              isRequired
+            />
+            <Select
+              id="owner-input"
+              label="Owner"
+              placeholder="Select owner"
+              value={values.owner || ""}
+              onChange={handleOnSelectChange("owner")}
+              items={
+                users?.map((user: any) => ({
+                  _id: user.id,
+                  name: `${user.name} ${user.surname}`,
+                  email: user.email,
+                })) || []
+              }
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.owner}
+              isRequired
+            />
+            <Select
+              id="project-status-input"
+              label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
+              placeholder="Select status"
+              value={values.status || ""}
+              onChange={handleOnSelectChange("status")}
+              items={projectStatusItems}
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
+            />
+            {values.framework_type === FrameworkTypeEnum.ProjectBased && (
+              <>
+                <Select
+                  id="risk-classification-input"
+                  label="AI risk classification"
+                  placeholder="Select an option"
+                  value={values.ai_risk_classification || ""}
+                  onChange={handleOnSelectChange("ai_risk_classification")}
+                  items={riskClassificationItems}
+                  sx={{
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  error={errors.riskClassification}
+                  isRequired
+                />
+                <Select
+                  id="type-of-high-risk-role-input"
+                  label="Type of high risk role"
+                  placeholder="Select an option"
+                  value={values.type_of_high_risk_role || ""}
+                  onChange={handleOnSelectChange("type_of_high_risk_role")}
+                  items={highRiskRoleItems}
+                  sx={{
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.typeOfHighRiskRole}
+                />
+              </>
+            )}
+          </Stack>
+          <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
+              <DatePicker
+                label="Start date"
+                date={
+                  values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+                }
+                handleDateChange={handleDateChange}
+                sx={{
+                  ...datePickerStyle,
+                  ...(projectToEdit && {
+                    width: "150px",
+                    "& input": { width: "300px" },
+                  }),
+                }}
+                isRequired
+                error={errors.startDate}
+              />
+              <Select
+                id="geography-type-input"
+                label="Geography"
+                placeholder="Select an option"
+                value={
+                  values.geography === 0
+                    ? ""
+                    : values.geography
+                }
+                onChange={handleOnSelectChange("geography")}
+                items={geographyItems}
+                sx={{
+                  width: "150px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                isRequired
+                error={errors.geography}
+              />
+            </Stack>
+          </Stack>
+        </Stack>
 
         <Stack
           sx={{
@@ -531,7 +647,7 @@ const ProjectForm = ({
           }}
         >
           <CustomizableButton
-            text="Continue"
+            text="Next"
             sx={continueButtonStyle}
             onClick={handleContinue}
           />
@@ -541,19 +657,27 @@ const ProjectForm = ({
   );
 
   const renderStep2 = () => (
-    <Stack
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        width: "fit-content",
-        backgroundColor: "#FCFCFD",
-        padding: 10,
-        borderRadius: "4px",
-        gap: 8,
-        ...sx,
-        maxWidth: "760px",
-      }}
-    >
+    <Stack sx={{ gap: 6 }}>
+      <Stepper activeStep={currentStep - 1} orientation="horizontal">
+        {steps.map((step) => (
+          <Step key={step}>
+            <StepLabel>{step}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+      <Stack
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          width: "fit-content",
+          backgroundColor: "#FCFCFD",
+          padding: 10,
+          borderRadius: "4px",
+          gap: 8,
+          ...sx,
+          maxWidth: "760px",
+        }}
+      >
       {isSubmitting && (
         <Stack
           sx={{
@@ -607,87 +731,7 @@ const ProjectForm = ({
           onClick={onClose}
         />
       </Stack>
-      <Stack
-        className="vwproject-form-body"
-        sx={{ display: "flex", flexDirection: "row", gap: 8 }}
-      >
-        <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
-          <Field
-            id="project-title-input"
-            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
-            width="350px"
-            value={values.project_title}
-            onChange={handleOnTextFieldChange("project_title")}
-            error={errors.projectTitle}
-            sx={textfieldStyle}
-            isRequired
-          />
-          <Select
-            id="owner-input"
-            label="Owner"
-            placeholder="Select owner"
-            value={values.owner || ""}
-            onChange={handleOnSelectChange("owner")}
-            items={
-              users?.map((user: any) => ({
-                _id: user.id,
-                name: `${user.name} ${user.surname}`,
-                email: user.email,
-              })) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.owner}
-            isRequired
-          />
-          <Select
-            id="project-status-input"
-            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
-            placeholder="Select status"
-            value={values.status || ""}
-            onChange={handleOnSelectChange("status")}
-            items={projectStatusItems}
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.status}
-          />
-          {values.framework_type === FrameworkTypeEnum.ProjectBased && (
-            <>
-              <Select
-                id="risk-classification-input"
-                label="AI risk classification"
-                placeholder="Select an option"
-                value={values.ai_risk_classification || ""}
-                onChange={handleOnSelectChange("ai_risk_classification")}
-                items={riskClassificationItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                error={errors.riskClassification}
-                isRequired
-              />
-              <Select
-                id="type-of-high-risk-role-input"
-                label="Type of high risk role"
-                placeholder="Select an option"
-                value={values.type_of_high_risk_role || ""}
-                onChange={handleOnSelectChange("type_of_high_risk_role")}
-                items={highRiskRoleItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                isRequired
-                error={errors.typeOfHighRiskRole}
-              />
-            </>
-          )}
-        </Stack>
+      <Stack className="vwproject-form-body" sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Stack>
@@ -774,42 +818,7 @@ const ProjectForm = ({
                 slotProps={teamMembersSlotProps}
               />
             </Stack>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
-              <DatePicker
-                label="Start date"
-                date={
-                  values.start_date ? dayjs(values.start_date) : dayjs(new Date())
-                }
-                handleDateChange={handleDateChange}
-                sx={{
-                  ...datePickerStyle,
-                  ...(projectToEdit && {
-                    width: "350px",
-                    "& input": { width: "300px" },
-                  }),
-                }}
-                isRequired
-                error={errors.startDate}
-              />
-              <Select
-                id="geography-type-input"
-                label="Geography"
-                placeholder="Select an option"
-                value={
-                  values.geography === 0
-                    ? ""
-                    : values.geography
-                }
-                onChange={handleOnSelectChange("geography")}
-                items={geographyItems}
-                sx={{
-                  width: "150px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                isRequired
-                error={errors.geography}
-              />
-            </Stack>
+            {/* moved date/geography to step 1 */}
             {!projectToEdit &&
               values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
                 <Stack>
@@ -911,7 +920,7 @@ const ProjectForm = ({
               sx={{
                 backgroundColor: theme.palette.background.main,
                 marginTop: "4px",
-                ...(projectToEdit && { width: "350px" }), // Fix width when editing
+                ...(projectToEdit && { width: "350px" }),
               }}
               isRequired
               error={errors.goal}
@@ -1044,10 +1053,15 @@ const ProjectForm = ({
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "center",
         }}
       >
+        <CustomizableButton
+          text="Back"
+          sx={createProjectButtonStyle}
+          onClick={() => setCurrentStep(1)}
+        />
         <CustomizableButton
           text={projectToEdit
             ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update framework" : "Update use case")
@@ -1057,6 +1071,7 @@ const ProjectForm = ({
           icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}
         />
+      </Stack>
       </Stack>
     </Stack>
   );

@@ -242,6 +242,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               isDisabled={!allowedRoles.projects.edit.includes(userRoleName)}
               sx={{
                 borderColor: "#D1D5DB",
+                width: 170,
                 color: "#374151",
                 "&:hover": {
                   borderColor: "#9CA3AF",
@@ -259,6 +260,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               sx={{
                 borderColor: "#F87171",
                 color: "#DC2626",
+                width: 170,
                 "&:hover": {
                   borderColor: "#EF4444",
                   backgroundColor: "#FEF2F2",

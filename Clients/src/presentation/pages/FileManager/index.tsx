@@ -207,7 +207,7 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <Select
               id="project-filter"
               value={selectedProject || "all"}

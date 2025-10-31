@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Table,
@@ -18,39 +18,135 @@ import {
 import { Eye, RefreshCw } from 'lucide-react';
 import CustomizableButton from '../../components/Button/CustomizableButton';
 import {
-  MOCK_EVIDENTLY_MODELS,
   EvidentlyModel,
   getStatusColor,
   getStatusLabel
 } from '../Integrations/EvidentlyManagement/mockData/mockEvidentlyData';
+import {
+  getMonitoredModels,
+  getEvidentlyConfig,
+  bulkSyncMetrics
+} from '../../../infrastructure/api/evidentlyService';
+import Alert from '../../components/Alert';
 
 interface EvidentlyDataTableProps {
-  onViewMetrics?: (modelId: string) => void;
+  onViewMetrics?: (projectId: string, modelName: string) => void;
 }
 
 const EvidentlyDataTable: React.FC<EvidentlyDataTableProps> = ({ onViewMetrics }) => {
-  const [models] = useState<EvidentlyModel[]>(MOCK_EVIDENTLY_MODELS);
+  const [models, setModels] = useState<EvidentlyModel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncingModelId, setSyncingModelId] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{
+    variant: 'success' | 'info' | 'warning' | 'error';
+    title: string;
+    body: string;
+    visible: boolean;
+  }>({
+    variant: 'info',
+    title: '',
+    body: '',
+    visible: false
+  });
+
+  /**
+   * Show alert with auto-hide
+   */
+  const showAlert = useCallback((
+    variant: 'success' | 'info' | 'warning' | 'error',
+    title: string,
+    body: string
+  ) => {
+    setAlert({ variant, title, body, visible: true });
+    setTimeout(() => {
+      setAlert(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  }, []);
+
+  /**
+   * Load models from API
+   */
+  const loadModels = useCallback(async () => {
+    try {
+      const data = await getMonitoredModels();
+      setModels(data);
+    } catch (error: any) {
+      console.error('Failed to load models:', error);
+      showAlert('error', 'Load Failed', 'Failed to load monitored models');
+    }
+  }, [showAlert]);
+
+  /**
+   * Check if Evidently is configured
+   */
+  useEffect(() => {
+    const checkConfiguration = async () => {
+      try {
+        const config = await getEvidentlyConfig();
+        setIsConfigured(config !== null && config.is_configured);
+
+        if (config !== null && config.is_configured) {
+          await loadModels();
+        }
+      } catch (error) {
+        console.error('Failed to check configuration:', error);
+        setIsConfigured(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkConfiguration();
+  }, [loadModels]);
 
   /**
    * Handle bulk sync all models
    */
   const handleBulkSync = async () => {
+    if (models.length === 0) return;
+
     setIsSyncing(true);
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSyncing(false);
+    try {
+      // Sync all projects
+      await Promise.all(
+        models.map(model => bulkSyncMetrics(model.projectId))
+      );
+
+      showAlert('success', 'Sync Successful', 'All models synced successfully');
+
+      // Reload models after sync
+      await loadModels();
+    } catch (error: any) {
+      console.error('Bulk sync failed:', error);
+      showAlert('error', 'Sync Failed', 'Failed to sync all models');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   /**
    * Handle sync single model
    */
   const handleSyncModel = async (modelId: string) => {
+    const model = models.find(m => m.id === modelId);
+    if (!model) return;
+
     setSyncingModelId(modelId);
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSyncingModelId(null);
+    try {
+      await bulkSyncMetrics(model.projectId);
+
+      showAlert('success', 'Sync Successful', `Synced ${model.modelName} successfully`);
+
+      // Reload models after sync
+      await loadModels();
+    } catch (error: any) {
+      console.error('Model sync failed:', error);
+      showAlert('error', 'Sync Failed', `Failed to sync ${model.modelName}`);
+    } finally {
+      setSyncingModelId(null);
+    }
   };
 
   /**
@@ -93,10 +189,17 @@ const EvidentlyDataTable: React.FC<EvidentlyDataTableProps> = ({ onViewMetrics }
     );
   };
 
-  // Check if Evidently is configured
-  const isConfigured = localStorage.getItem('evidently_configured') === 'true';
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+        <CircularProgress size={40} />
+      </Box>
+    );
+  }
 
-  if (!isConfigured) {
+  // Not configured state
+  if (isConfigured === false) {
     return (
       <Box
         sx={{
@@ -134,6 +237,19 @@ const EvidentlyDataTable: React.FC<EvidentlyDataTableProps> = ({ onViewMetrics }
 
   return (
     <Box>
+      {/* Alert */}
+      {alert.visible && (
+        <Box sx={{ mb: 2 }}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(prev => ({ ...prev, visible: false }))}
+          />
+        </Box>
+      )}
+
       {/* Header with Bulk Sync Button */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h6" sx={{ fontSize: '14px', fontWeight: 600 }}>
@@ -257,7 +373,7 @@ const EvidentlyDataTable: React.FC<EvidentlyDataTableProps> = ({ onViewMetrics }
                     <Tooltip title="View metrics">
                       <IconButton
                         size="small"
-                        onClick={() => onViewMetrics?.(model.id)}
+                        onClick={() => onViewMetrics?.(model.projectId, model.modelName)}
                         sx={{
                           color: '#13715B',
                           '&:hover': {

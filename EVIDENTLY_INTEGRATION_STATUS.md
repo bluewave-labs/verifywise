@@ -164,40 +164,54 @@ Files created:
 
 ## 🚧 Backend Integration (To Be Implemented)
 
-### Priority 1: Debug Python Service
-- Fix Evidently SDK dependency issues in `/EvidentlyService/`
-- Resolve `CloudWorkspace` import error
-- Consider alternative: Direct HTTP API calls instead of SDK
-- Test connection with actual Evidently Cloud API
+### Priority 1: Debug Python Service ✅ **COMPLETED (HTTP API Approach)**
+- ✅ Fixed import issues by switching to direct HTTP API calls via `httpx`
+- ✅ Removed Evidently SDK dependency (had litestar/multipart conflicts)
+- ✅ Refactored `evidently_client.py` to use REST API calls
+- ⚠️ **Note**: Evidently Cloud doesn't document REST API publicly - designed for SDK use
+- 🔄 **Next**: Need to investigate actual API endpoints or consider SDK dependency fix
 
-### Priority 2: Node.js Backend Endpoints
-Create proxy endpoints in Node.js backend (port 3000) to call Python service (port 8001):
+### Priority 2: Node.js Backend Endpoints ✅ **COMPLETED**
+- ✅ Created `controllers/evidently.ctrl.ts` with 7 proxy functions
+- ✅ Created `routes/evidently.route.ts` with all endpoints
+- ✅ Registered routes in `index.ts` at `/api/evidently`
+- ✅ All endpoints properly authenticated with JWT middleware
+- ✅ Server running successfully on port 3000
+
+**Available Endpoints:**
 - `POST /api/evidently/test-connection` - Test Evidently connection
-- `GET /api/evidently/projects` - List all projects
-- `GET /api/evidently/projects/:id` - Get project details
-- `GET /api/evidently/metrics/drift/:projectId` - Get drift metrics
-- `GET /api/evidently/metrics/performance/:projectId` - Get performance metrics
-- `GET /api/evidently/metrics/fairness/:projectId` - Get fairness metrics
-- `POST /api/evidently/sync` - Bulk sync all metrics
+- `POST /api/evidently/projects` - List all projects
+- `POST /api/evidently/projects/:id` - Get project details
+- `POST /api/evidently/metrics/drift/:projectId` - Get drift metrics
+- `POST /api/evidently/metrics/performance/:projectId` - Get performance metrics
+- `POST /api/evidently/metrics/fairness/:projectId` - Get fairness metrics
+- `POST /api/evidently/sync/:projectId` - Bulk sync all metrics
 
-### Priority 3: Database Schema
-Add tables to store:
-1. **evidently_config**:
-   - `id`, `user_id`, `organization_id`
-   - `evidently_url`, `api_token_encrypted`
-   - `is_configured`, `last_test_date`
-   - `created_at`, `updated_at`
+### Priority 3: Database Schema ✅ **COMPLETED**
+- ✅ Created migration `20251031000000-create-evidently-tables.js`
+- ✅ Migration ran successfully - all 3 tables created
+- ✅ Created Sequelize model definitions:
+  - `evidentlyConfig.model.ts`
+  - `evidentlyModel.model.ts`
+  - `evidentlyMetrics.model.ts`
+
+**Tables Created:**
+1. **evidently_configs**:
+   - Stores Evidently Cloud configuration per organization
+   - Encrypted API token storage
+   - Unique constraint on organization_id
+   - Foreign keys to users and organizations
 
 2. **evidently_models**:
-   - `id`, `organization_id`, `project_id`, `project_name`
-   - `model_name`, `last_sync_at`
-   - `drift_status`, `performance_status`, `fairness_status`
-   - `metrics_count`, `created_at`, `updated_at`
+   - Stores monitored models from Evidently
+   - Status tracking (drift, performance, fairness)
+   - Last sync timestamp
+   - Unique constraint on organization_id + project_id
 
-3. **evidently_metrics** (optional - for caching):
-   - `id`, `model_id`, `metric_type` (drift/performance/fairness)
-   - `metric_data` (JSONB), `captured_at`
-   - `created_at`
+3. **evidently_metrics**:
+   - Caches metrics data (JSONB)
+   - Supports drift, performance, fairness types
+   - Indexed by model_id, metric_type, captured_at
 
 ### Priority 4: Replace Mock Data with API Calls
 Update frontend components to:

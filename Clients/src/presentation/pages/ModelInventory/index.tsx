@@ -119,7 +119,8 @@ const ModelInventory: React.FC = () => {
 
   // Evidently state
   const [isEvidentlyMetricsModalOpen, setIsEvidentlyMetricsModalOpen] = useState(false);
-  const [selectedEvidentlyModelId, setSelectedEvidentlyModelId] = useState<string | null>(null);
+  const [selectedEvidentlyProjectId, setSelectedEvidentlyProjectId] = useState<string | null>(null);
+  const [selectedEvidentlyModelName, setSelectedEvidentlyModelName] = useState<string | null>(null);
 
    // Determine the active tab based on the URL
    const currentPath = location.pathname;
@@ -654,14 +655,16 @@ const ModelInventory: React.FC = () => {
   };
 
   // Evidently handlers
-  const handleViewEvidentlyMetrics = (modelId: string) => {
-    setSelectedEvidentlyModelId(modelId);
+  const handleViewEvidentlyMetrics = (projectId: string, modelName: string) => {
+    setSelectedEvidentlyProjectId(projectId);
+    setSelectedEvidentlyModelName(modelName);
     setIsEvidentlyMetricsModalOpen(true);
   };
 
   const handleCloseEvidentlyMetricsModal = () => {
     setIsEvidentlyMetricsModalOpen(false);
-    setSelectedEvidentlyModelId(null);
+    setSelectedEvidentlyProjectId(null);
+    setSelectedEvidentlyModelName(null);
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -1028,7 +1031,8 @@ const ModelInventory: React.FC = () => {
       <EvidentlyMetricsModal
         isOpen={isEvidentlyMetricsModalOpen}
         onClose={handleCloseEvidentlyMetricsModal}
-        modelId={selectedEvidentlyModelId}
+        projectId={selectedEvidentlyProjectId}
+        modelName={selectedEvidentlyModelName || undefined}
       />
 
       <PageTour steps={ModelInventorySteps} run={true} tourKey="model-inventory-tour" />

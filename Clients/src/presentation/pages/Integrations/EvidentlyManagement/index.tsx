@@ -1,9 +1,10 @@
 import { Box, CircularProgress, Typography, Stack, Button, TextField } from "@mui/material";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Workflow, Plug } from "lucide-react";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import Alert from "../../../components/Alert";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { testEvidentlyConnection, saveEvidentlyConfig, getEvidentlyConfig } from "../../../../infrastructure/api/evidentlyService";
 
 /**
  * Helper function to format error messages consistently
@@ -18,14 +19,11 @@ const formatErrorMessage = (error: unknown): string => {
 const EvidentlyManagement = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTesting, setIsTesting] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
 
   // Form state
-  const [evidentlyUrl, setEvidentlyUrl] = useState<string>(
-    localStorage.getItem("evidently_url") || "https://app.evidently.cloud"
-  );
-  const [apiToken, setApiToken] = useState<string>(
-    localStorage.getItem("evidently_api_token") || ""
-  );
+  const [evidentlyUrl, setEvidentlyUrl] = useState<string>("https://app.evidently.cloud");
+  const [apiToken, setApiToken] = useState<string>("");
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -66,6 +64,27 @@ const EvidentlyManagement = () => {
   );
 
   /**
+   * Load existing configuration on mount
+   */
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const config = await getEvidentlyConfig();
+        if (config) {
+          setEvidentlyUrl(config.evidently_url);
+          // Don't load the API token for security (it's encrypted in backend)
+        }
+      } catch (error) {
+        console.error("Failed to load configuration:", error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadConfig();
+  }, []);
+
+  /**
    * Test connection to Evidently Cloud
    */
   const handleTestConnection = async () => {
@@ -77,21 +96,19 @@ const EvidentlyManagement = () => {
     setIsTesting(true);
 
     try {
-      // TODO: Replace with actual API call to Python service
-      // Simulating API call for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await testEvidentlyConnection(evidentlyUrl, apiToken);
 
-      // Mock success response
       showAlert(
         "success",
         "Connection Successful",
-        "Successfully connected to Evidently Cloud!"
+        result.message || "Successfully connected to Evidently Cloud!"
       );
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || formatErrorMessage(error);
       showAlert(
         "error",
         "Connection Failed",
-        `Failed to connect to Evidently Cloud: ${formatErrorMessage(error)}`,
+        `Failed to connect to Evidently Cloud: ${errorMsg}`,
       );
     } finally {
       setIsTesting(false);
@@ -110,21 +127,19 @@ const EvidentlyManagement = () => {
     setIsLoading(true);
 
     try {
-      // Save to localStorage (temporary - will be database later)
-      localStorage.setItem("evidently_url", evidentlyUrl);
-      localStorage.setItem("evidently_api_token", apiToken);
-      localStorage.setItem("evidently_configured", "true");
+      await saveEvidentlyConfig(evidentlyUrl, apiToken);
 
       showAlert(
         "success",
         "Configuration Saved",
         "Evidently configuration saved successfully!"
       );
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || formatErrorMessage(error);
       showAlert(
         "error",
         "Save Failed",
-        `Failed to save configuration: ${formatErrorMessage(error)}`,
+        `Failed to save configuration: ${errorMsg}`,
       );
     } finally {
       setIsLoading(false);
@@ -143,6 +158,19 @@ const EvidentlyManagement = () => {
     }
   ];
 
+  // Initial loading state
+  if (isInitialLoading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <PageBreadcrumbs items={breadcrumbItems} autoGenerate={false} />
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
+          <CircularProgress size={40} />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Saving state
   if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>

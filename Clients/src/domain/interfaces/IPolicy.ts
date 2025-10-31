@@ -1,7 +1,5 @@
-// src/domain/types/policy.types.ts
-
 import { PolicyManagerModel } from "../models/Common/policy/policyManager.model";
-import { User } from "./User";
+import { User } from "../types/User";
 
 export interface PolicyTableProps {
   data: PolicyManagerModel[];

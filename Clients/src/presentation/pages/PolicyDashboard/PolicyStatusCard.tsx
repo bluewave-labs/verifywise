@@ -5,7 +5,7 @@ import {
   projectRisksTileCardKey,
   projectRisksTileCardvalue,
 } from "../../components/Cards/RisksCard/style"; // ✅ reuse same styles as ProjectRiskView Cards
-import { PolicyStatusCardProps } from "../../../domain/types/Policy";
+import { PolicyStatusCardProps } from "../../../domain/interfaces/IPolicy";
 
 
 const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {

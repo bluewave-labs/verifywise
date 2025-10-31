@@ -13,7 +13,7 @@ import dayjs, { Dayjs } from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
-import { PolicyFormData, PolicyFormProps } from "../../../domain/types/Policy";
+import { PolicyFormData, PolicyFormProps } from "../../../domain/interfaces/IPolicy";
 
 
 const statuses: PolicyFormData["status"][] = [

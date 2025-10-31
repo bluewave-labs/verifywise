@@ -1,9 +1,9 @@
 // src/repositories/policies.repository.ts
 
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { PolicyInput } from "../../domain/types/Policy";
 import { APIError } from "../tools/error";
 import { PolicyManagerModel } from "../../domain/models/Common/policy/policyManager.model";
+import { PolicyInput } from "../../domain/interfaces/IPolicy";
 
 function extractData<T>(response: { data: { data: T } }): T {
   return response.data.data;

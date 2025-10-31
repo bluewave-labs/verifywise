@@ -2,11 +2,19 @@
  * Email service provider types and interfaces
  */
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+  path?: string;
+}
+
 export interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   from?: string;
+  attachments?: EmailAttachment[];
 }
 
 /**

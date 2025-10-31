@@ -62,6 +62,7 @@ const Field = forwardRef(
       onChange,
       onInput,
       onFocus,
+      onBlur,
       error,
       disabled,
       width,
@@ -70,6 +71,8 @@ const Field = forwardRef(
       helperText,
       InputProps: inputPropsOverride,
       formHelperTextProps,
+      min,
+      max,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -150,9 +153,12 @@ const Field = forwardRef(
           onInput={onInput}
           onChange={onChange}
           onFocus={onFocus}
+          onBlur={onBlur}
           disabled={disabled}
           inputRef={ref}
           inputProps={{
+            min: min,
+            max: max,
             sx: {
               color: theme.palette.text.secondary,
               "&:-webkit-autofill": {

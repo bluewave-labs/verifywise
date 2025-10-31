@@ -63,6 +63,8 @@ const ProjectForm = ({
   onClose,
   defaultFrameworkType,
   projectToEdit,
+  useStandardModal = false,
+  onSubmitRef,
 }: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
@@ -86,6 +88,7 @@ const ProjectForm = ({
         framework_type: projectToEdit.is_organizational
           ? FrameworkTypeEnum.OrganizationWide
           : FrameworkTypeEnum.ProjectBased,
+        geography: projectToEdit.geography || 1,
       };
     }
     return {
@@ -133,6 +136,13 @@ const ProjectForm = ({
     }
   }, [projectToEdit, users]);
 
+  // Expose handleSubmit through ref when useStandardModal is true
+  useEffect(() => {
+    if (useStandardModal && onSubmitRef) {
+      onSubmitRef.current = handleSubmit;
+    }
+  }, [useStandardModal, onSubmitRef]);
+
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
     if (!allFrameworks) return [];
@@ -167,9 +177,10 @@ const ProjectForm = ({
 
   const riskClassificationItems = useMemo(
     () => [
-      { _id: 1, name: AiRiskClassification.HIGH_RISK },
-      { _id: 2, name: AiRiskClassification.LIMITED_RISK },
-      { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
+      { _id: 1, name: AiRiskClassification.PROHIBITED },
+      { _id: 2, name: AiRiskClassification.HIGH_RISK },
+      { _id: 3, name: AiRiskClassification.LIMITED_RISK },
+      { _id: 4, name: AiRiskClassification.MINIMAL_RISK },
     ],
     []
   );
@@ -182,6 +193,18 @@ const ProjectForm = ({
       { _id: 4, name: HighRiskRole.IMPORTER },
       { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
       { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
+    ],
+    []
+  );
+
+  const geographyItems = useMemo(
+    () => [
+      { _id: 1, name: "Global" },
+      { _id: 2, name: "Europe" },
+      { _id: 3, name: "North America" },
+      { _id: 4, name: "South America" },
+      { _id: 5, name: "Asia" },
+      { _id: 6, name: "Africa" },
     ],
     []
   );
@@ -268,10 +291,6 @@ const ProjectForm = ({
     }
     setCurrentStep(2);
   }, [values.framework_type, errors]);
-
-  // const handleBack = useCallback(() => {
-  //   setCurrentStep(1);
-  // }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -536,10 +555,10 @@ const ProjectForm = ({
       onSubmit={handleSubmit}
       sx={{
         width: "fit-content",
-        backgroundColor: "#FCFCFD",
-        padding: 10,
+        backgroundColor: useStandardModal ? "transparent" : "#FCFCFD",
+        padding: useStandardModal ? 0 : 10,
         borderRadius: "4px",
-        gap: 8,
+        gap: useStandardModal ? 6 : 8,
         ...sx,
         maxWidth: "760px",
       }}
@@ -566,42 +585,44 @@ const ProjectForm = ({
         </Stack>
       )}
 
-      <Stack
-        className="vwproject-form-header"
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        <Stack className="vwproject-form-header-text">
-          <Typography
-            sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-          >
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
-              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
-            }
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
-              : values.framework_type === FrameworkTypeEnum.ProjectBased
-              ? "Create a new use case from scratch by filling in the following."
-              : "Set up ISO 27001 or 42001 (Organization ISMS)"}
-          </Typography>
+      {!useStandardModal && (
+        <Stack
+          className="vwproject-form-header"
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack className="vwproject-form-header-text">
+            <Typography
+              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+            >
+              {projectToEdit
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+                : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+              }
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#344054" }}>
+              {projectToEdit
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
+                : values.framework_type === FrameworkTypeEnum.ProjectBased
+                ? "Create a new use case from scratch by filling in the following."
+                : "Set up ISO 27001 or 42001 (Organization ISMS)"}
+            </Typography>
+          </Stack>
+          <ClearIcon
+            size={20}
+            style={{ color: "#98A2B3", cursor: "pointer" }}
+            onClick={onClose}
+          />
         </Stack>
-        <ClearIcon
-          size={20}
-          style={{ color: "#98A2B3", cursor: "pointer" }}
-          onClick={onClose}
-        />
-      </Stack>
+      )}
       <Stack
         className="vwproject-form-body"
-        sx={{ display: "flex", flexDirection: "row", gap: 8 }}
+        sx={{ display: "flex", flexDirection: "row", gap: 6 }}
       >
-        <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
+        <Stack className="vwproject-form-body-start" sx={{ gap: 6 }}>
           <Field
             id="project-title-input"
             label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
@@ -678,14 +699,20 @@ const ProjectForm = ({
             </>
           )}
         </Stack>
-        <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
+        <Stack className="vwproject-form-body-end" sx={{ gap: 6 }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Stack>
+            <Stack gap={theme.spacing(2)}>
               <Typography
+                component="p"
+                variant="body1"
+                color={theme.palette.text.secondary}
+                fontWeight={500}
+                fontSize={"13px"}
                 sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 500,
-                  mb: 2,
+                  margin: 0,
+                  height: '22px',
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
                 Team members
@@ -779,6 +806,24 @@ const ProjectForm = ({
               }}
               isRequired
               error={errors.startDate}
+            />
+            <Select
+              id="geography-type-input"
+              label="Geography"
+              placeholder="Select an option"
+              value={
+                values.geography === 0
+                  ? ""
+                  : values.geography
+              }
+              onChange={handleOnSelectChange("geography")}
+              items={geographyItems}
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              isRequired
+              error={errors.geography}
             />
             {!projectToEdit &&
               values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
@@ -1010,24 +1055,26 @@ const ProjectForm = ({
             />
           </Stack>
         )}
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-        }}
-      >
-        <CustomizableButton
-          text={projectToEdit
-            ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update framework" : "Update use case")
-            : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create framework" : "Create use case")
-          }
-          sx={createProjectButtonStyle}
-          icon={<AddCircleOutlineIcon size={20} />}
-          onClick={() => handleSubmit()}
-        />
-      </Stack>
+      {!useStandardModal && (
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <CustomizableButton
+            text={projectToEdit
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update framework" : "Update use case")
+              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create framework" : "Create use case")
+            }
+            sx={createProjectButtonStyle}
+            icon={<AddCircleOutlineIcon size={20} />}
+            onClick={() => handleSubmit()}
+          />
+        </Stack>
+      )}
     </Stack>
   );
 

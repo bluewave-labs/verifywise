@@ -251,8 +251,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     status: number | string,
     link: string | undefined = undefined
   ) => {
-    console.log("Invitation to ", email, "is ", status);
-
+  
     if (status === 200) {
       handleAlert({
         variant: "success",

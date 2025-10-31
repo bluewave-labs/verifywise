@@ -351,7 +351,6 @@ const NewControlPane = ({
       });
 
       if (response.status === 200) {
-        console.log("Controls updated successfully:", response);
         setIsSubmitting(false);
 
         // Clear upload files after successful save

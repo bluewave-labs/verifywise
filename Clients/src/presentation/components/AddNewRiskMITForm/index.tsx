@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  Modal,
   Stack,
   Typography,
   useTheme,
@@ -13,10 +12,9 @@ import {
   Radio,
   TextField,
 } from "@mui/material";
-import { X as GreyCloseIconSVG } from "lucide-react";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
-import CustomizableButton from "../Button/CustomizableButton";
+import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
 
@@ -225,51 +223,21 @@ const AddNewRiskMITModal = ({
   }, [selectedId, onRiskSelected, handleClose]);
 
   return (
-    <Modal 
-      open={isOpen} 
-      onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
-          handleClose();
-        }
-      }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add a new risk from risk database"
+      description="Search and select a risk from the MIT AI Risk Database"
+      onSubmit={handleUseSelectedRisk}
+      submitButtonText="Use selected risk and edit"
+      isSubmitting={selectedId === null}
+      maxWidth="1000px"
     >
-      <Stack
-        gap={theme.spacing(4)}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: { xs: "90vw", sm: "80vw", md: MODAL_CONFIG.MAX_WIDTH },
-          maxWidth: MODAL_CONFIG.MAX_WIDTH,
-          bgcolor: theme.palette.background.paper,
-          p: { xs: 4, sm: 6, md: 10 },
-          borderRadius: theme.spacing(1),
-          boxShadow: theme.shadows[24],
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography
-            component="h2"
-            sx={{
-              fontSize: { xs: 14, md: 15 },
-              fontWeight: 700,
-              color: theme.palette.text.primary,
-            }}
-          >
-            Add a new risk from risk database
-          </Typography>
-          <GreyCloseIconSVG size={16} onClick={handleClose} style={{ cursor: "pointer" }} />
-        </Stack>
+      <Stack spacing={6}>
         <Stack
           direction="row"
           alignItems="center"
           gap={2}
-          sx={{ mb: theme.spacing(4) }}
         >
           <Typography
             component="label"
@@ -478,38 +446,8 @@ const AddNewRiskMITModal = ({
             </Table>
           </TableContainer>
         </Stack>
-        <Stack direction="row" justifyContent="flex-end" gap={2} mt={4}>
-          <CustomizableButton
-            variant="outlined"
-            text="Cancel"
-            onClick={handleClose}
-            sx={{
-              fontWeight: 400,
-              fontSize: 13,
-              minWidth: 120,
-            }}
-          />
-          <CustomizableButton
-            variant="contained"
-            text="Use selected risk and edit"
-            onClick={handleUseSelectedRisk}
-            isDisabled={selectedId === null}
-            sx={{
-              fontWeight: 400,
-              fontSize: 13,
-              bgcolor: theme.palette.primary.main,
-              minWidth: 200,
-              "&:hover": {
-                bgcolor: theme.palette.primary.dark,
-              },
-              "&:disabled": {
-                bgcolor: theme.palette.action.disabledBackground,
-              },
-            }}
-          />
-        </Stack>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

@@ -12,7 +12,7 @@ import {
 } from "../utils/reporting.utils";
 import { marked } from "marked";
 import { sequelize } from "../database/db";
-const htmlDocx = require("html-to-docx");
+const htmlDocx = require("html-to-docx-lite");
 import { getOrganizationByIdQuery } from "../utils/organization.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import {
@@ -23,7 +23,7 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
-function mapReportTypeToFileSource(
+export function mapReportTypeToFileSource(
   reportType: string | string[]
 ):
   | "Project risks report"
@@ -127,7 +127,8 @@ export async function generateReports(
       req.tenantId!
     );
     const markdownDoc = await marked.parse(markdownData); // markdown file
-    const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
+    const docxBlob = await htmlDocx(markdownDoc); // convert markdown to docx
+    const generatedDoc = Buffer.from(await docxBlob.arrayBuffer()); // convert Blob to Buffer
 
     let defaultFileName = getFormattedReportName(reportName, reportType);
     const docFile = {

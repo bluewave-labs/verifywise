@@ -71,9 +71,9 @@ async function resetDatabase() {
         "VerifyWise",
         "Admin",
         "verifywise@email.com",
-        "MyJH4rTm!@.45L0wm",
         1,
-        1
+        1,
+        "MyJH4rTm!@.45L0wm",
       ),
       transaction,
       true

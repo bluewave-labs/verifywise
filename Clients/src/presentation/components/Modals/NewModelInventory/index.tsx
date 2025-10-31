@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import {
   useTheme,
-  Modal,
   Stack,
   Box,
   Switch,
@@ -21,8 +20,8 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { Save as SaveIcon, X as CloseIcon, ChevronDown } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { ChevronDown } from "lucide-react";
+import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
@@ -129,20 +128,27 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const [values, setValues] = useState<NewModelInventoryFormValues>(
     initialData || initialState
   );
+  const [initialValues, setInitialValues] = useState<NewModelInventoryFormValues>(
+    initialData || initialState
+  );
   const [errors, setErrors] = useState<NewModelInventoryFormErrors>({});
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData && users.length > 0) {
       // If we have initialData and users are loaded, set the values
       setValues(initialData);
+      setInitialValues(initialData);
     } else if (initialData && !isEdit) {
       // If we have initialData but no users yet, set values temporarily
       setValues(initialData);
+      setInitialValues(initialData);
     } else if (!isEdit) {
       // If not editing, set initial state
       setValues(initialState);
+      setInitialValues(initialState);
     }
   }, [initialData, isEdit, users]);
 
@@ -202,10 +208,20 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       // Get enabled framework names for this project
       const enabledFrameworks = project.framework?.map((f) => f.name) || [];
 
-      // Only include target frameworks that are enabled
-      return targetFrameworks
-        .filter((fw) => enabledFrameworks.includes(fw))
-        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+      // Filter to only target frameworks that are enabled for this project
+      const matchingFrameworks = targetFrameworks.filter((fw) =>
+        enabledFrameworks.includes(fw)
+      );
+
+      // If the project has matching frameworks, return project-framework combinations
+      if (matchingFrameworks.length > 0) {
+        return matchingFrameworks.map(
+          (fw) => `${project.project_title.trim()} - ${fw}`
+        );
+      }
+
+      // If no matching frameworks, still include the project without a framework suffix
+      return [project.project_title.trim()];
     });
   }, [projectList]);
 
@@ -228,6 +244,14 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       })
     );
   }, []);
+
+  // Detect if form has changes (for edit mode)
+  const hasFormChanges = useMemo(() => {
+    if (!isEdit) return true; // Always allow save for new items
+
+    // Deep comparison of values vs initialValues
+    return JSON.stringify(values) !== JSON.stringify(initialValues);
+  }, [values, initialValues, isEdit]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -327,6 +351,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
+      setIsSubmitting(true);
       try {
         if (onSuccess) {
           await onSuccess({
@@ -337,6 +362,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         }
         handleClose();
       } catch (error: any) {
+        setIsSubmitting(false);
         // Handle server-side validation errors
         let errorData = null;
         
@@ -443,82 +469,27 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (reason !== "backdropClick") {
-          handleClose();
-        }
-      }}
-      sx={{ overflowY: "scroll" }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={isEdit ? "Edit Model" : "Add a new model"}
+      description={
+        isEdit
+          ? "Update model details, approval status, and metadata"
+          : "Register a new AI model with comprehensive metadata and approval tracking"
+      }
+      onSubmit={handleSubmit}
+      submitButtonText={isEdit ? "Update Model" : "Save"}
+      isSubmitting={isSubmitting || !hasFormChanges}
+      maxWidth="760px"
     >
-      <Stack
-        gap={theme.spacing(2)}
-        color={theme.palette.text.secondary}
-        sx={{
-          backgroundColor: "#D9D9D9",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "fit-content",
-          maxHeight: "fit-content",
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: theme.palette.background.modal,
-          border: 1,
-          borderColor: theme.palette.border,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: theme.spacing(15),
-          "&:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        <form onSubmit={handleSubmit}>
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            marginBottom={theme.spacing(5)}
-          >
-            <Typography fontSize={16} fontWeight={600}>
-              {isEdit ? "Edit Model" : "Add a new model"}
-            </Typography>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <CloseIcon size={20} />
-            </Box>
-          </Stack>
-
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
-          >
-            <Stack gap={theme.spacing(8)}>
-              {/* First Row: Provider, Model, Version */}
-              <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                gap={theme.spacing(8)}
-              >
+      <Stack spacing={6}>
+        {/* First Row: Provider, Model, Version */}
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          spacing={6}
+        >
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="provider"
@@ -660,15 +631,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="e.g., 4.0, 1.5"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Second Row: Approver, Status, Status Date */}
-              <Stack
-                direction={"row"}
-                justifyContent={"flex-start"}
-                gap={theme.spacing(8)}
-              >
+        {/* Second Row: Approver, Status, Status Date */}
+        <Stack
+          direction={"row"}
+          justifyContent={"flex-start"}
+          spacing={6}
+        >
                 <SelectComponent
                   id="approver"
                   label="Approver"
@@ -708,11 +679,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     isRequired
                     error={errors.status_date}
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Capabilities Section */}
-              <Stack>
+        {/* Capabilities Section */}
+        <Stack>
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -772,12 +743,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontSize: 11,
                     }}
                   >
-                    {errors.capabilities}
-                  </Typography>
-                )}
-              </Stack>
+              {errors.capabilities}
+            </Typography>
+          )}
+        </Stack>
 
-              <Stack>
+        <Stack>
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -837,12 +808,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontSize: 11,
                     }}
                   >
-                    {errors.used_in_projects}
-                  </Typography>
-                )}
-              </Stack>
+              {errors.used_in_projects}
+            </Typography>
+          )}
+        </Stack>
 
-              <Stack direction={"row"} gap={theme.spacing(8)}>
+        <Stack direction={"row"} spacing={6}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="reference_link"
@@ -864,10 +835,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="Biases"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              <Stack direction={"row"} gap={theme.spacing(8)}>
+        <Stack direction={"row"} spacing={6}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="hosting_provider"
@@ -889,11 +860,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="Limitation"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Security Assessment Section */}
-              <Stack>
+        {/* Security Assessment Section */}
+        <Stack>
                 <FormControlLabel
                   control={
                     <Switch
@@ -917,33 +888,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontWeight: 400,
                       color: theme.palette.text.primary,
                     },
-                  }}
-                />
-              </Stack>
-            </Stack>
-          </Box>
-
-          <Stack
-            sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
             }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text={isEdit ? "Update Model" : "Save"}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleSubmit}
-              icon={<SaveIcon size={16} />}
-            />
-          </Stack>
-        </form>
+          />
+        </Stack>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

@@ -7,21 +7,22 @@ import {
   Fade,
   IconButton,
   InputBase,
+  SelectChangeEvent,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
+import { logEngine } from "../../../application/tools/log.engine";
 import {
   getAllEntities,
   deleteEntityById,
   getEntityById,
   updateEntityById,
-} from "../../../application/repository/entity.repository"; // Assuming this path is correct for data fetching
+} from "../../../application/repository/entity.repository";
 
 // Import the table and modal components specific to Training
-import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
-import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
+import TrainingTable from "./trainingTable";
+import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
@@ -32,19 +33,56 @@ import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
+import {
+  TrainingRegistarModel,
+  TrainingRegistarDTO
+} from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
 );
 
+// Types (Type Safety)
+type AlertVariant = "success" | "info" | "warning" | "error";
+
+interface AlertState {
+  variant: AlertVariant;
+  title?: string;
+  body: string;
+}
+
+
+// Utility: Map TrainingRegistarModel to form data DTO (DRY)
+// Returns complete DTO (id is already optional in DTO definition)
+const mapTrainingToFormData = (
+  training: TrainingRegistarModel
+): TrainingRegistarDTO => {
+  return {
+    training_name: training.training_name,
+    duration: training.duration,
+    provider: training.provider,
+    department: training.department,
+    status: training.status,
+    numberOfPeople: training.numberOfPeople,
+    description: training.description,
+  };
+};
+
+// Utility: Show alert with auto-dismiss (DRY)
+const createAlert = (variant: AlertVariant, body: string, title?: string): AlertState => ({
+  variant,
+  body,
+  title,
+});
+
 const Training: React.FC = () => {
-  const [trainingData, setTrainingData] = useState<IAITraining[]>([]);
+  const [trainingData, setTrainingData] = useState<TrainingRegistarModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false);
   const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(
     null
   );
-  const [selectedTraining, setSelectedTraining] = useState<IAITraining | null>(
+  const [selectedTraining, setSelectedTraining] = useState<TrainingRegistarModel | null>(
     null
   );
   const [showAlert, setShowAlert] = useState(false);
@@ -82,7 +120,6 @@ const Training: React.FC = () => {
         setTrainingData(response.data);
       }
     } catch (error) {
-      console.error("Error fetching training data:", error);
       logEngine({
         type: "error",
         message: `Failed to fetch training data: ${error}`,
@@ -132,7 +169,10 @@ const Training: React.FC = () => {
             setSelectedTraining(response.data);
           }
         } catch (error) {
-          console.error("Error fetching training details:", error);
+          logEngine({
+            type: "error",
+            message: `Failed to fetch training details: ${error}`,
+          });
           setAlert({
             variant: "error",
             body: "Failed to load training details. Please try again.",
@@ -150,51 +190,81 @@ const Training: React.FC = () => {
     setSelectedTrainingId(null);
   };
 
-  const handleTrainingSuccess = async (formData: any) => {
+  // Handler: Create/Update training with proper typing and defensive programming
+  // ENTERPRISE: Handle response differences between create/update APIs
+  // Returns Promise<boolean>: true on success, false on failure
+  // Uses DTO for data transfer (plain object), not Model (class instance)
+  // Receives complete DTO after form validation (all required fields validated)
+  const handleTrainingSuccess = useCallback(async (
+    formData: TrainingRegistarDTO
+  ): Promise<boolean> => {
     try {
+      // DEFENSIVE: formData already has numberOfPeople from model
+      // Server expects numberOfPeople (controller maps it to 'people' for DB)
+      let payload: TrainingRegistarModel | undefined;
+      let successMessage: string;
+
       if (selectedTraining) {
+        // Defensive: Ensure training has an ID before updating
+        if (!selectedTraining.id) {
+          logEngine({
+            type: "error",
+            message: 'Cannot update training without ID',
+          });
+          setAlert(createAlert('error', 'Cannot update training: Missing ID'));
+          return false;
+        }
+
         // Update existing training
-        const response = await updateEntityById({
+        const res = await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
           body: formData,
         });
-        if (response.data) {
-          setAlert({
-            variant: "success",
-            body: "Training updated successfully!",
-          });
-        } else {
-          setAlert({
-            variant: "error",
-            body: "Failed to update training. Please try again.",
-          });
-        }
+        // DEFENSIVE: updateEntityById returns AxiosResponse, extract data
+        payload = res?.data;
+        successMessage = "Training updated successfully!";
       } else {
         // Create new training
-        const response = await createTraining("/training", formData);
-        if (response.data) {
-          setAlert({
-            variant: "success",
-            body: "Training updated successfully!",
-          });
-        } else {
-          setAlert({
-            variant: "error",
-            body: "Failed to add training. Please try again.",
-          });
-        }
+        // DEFENSIVE: createTraining returns response.data directly
+        const created = await createTraining("/training", formData);
+        payload = created;
+        successMessage = "Training created successfully!";
       }
-      await fetchTrainingData();
-      handleCloseModal();
+
+      // Defensive: Check response validity
+      if (payload) {
+        setAlert(createAlert('success', successMessage));
+        await fetchTrainingData();
+        handleCloseModal();
+        return true;
+      } else {
+        // API returned but without data - unexpected state
+        logEngine({
+          type: "error",
+          message: 'API response missing data',
+        });
+        setAlert(createAlert(
+          'error',
+          selectedTraining
+            ? "Failed to update training. Please try again."
+            : "Failed to create training. Please try again."
+        ));
+        return false;
+      }
     } catch (error) {
-      setAlert({
-        variant: "error",
-        body: selectedTraining
-          ? "Failed to update training. Please try again."
-          : "Failed to add training. Please try again.",
+      logEngine({
+        type: "error",
+        message: `Failed to ${selectedTraining ? 'update' : 'create'} training: ${error}`,
       });
+      setAlert(createAlert(
+        'error',
+        selectedTraining
+          ? "Failed to update training. Please try again."
+          : "Failed to create training. Please try again."
+      ));
+      return false;
     }
-  };
+  }, [selectedTraining, fetchTrainingData]);
 
   const handleDeleteTraining = async (id: string) => {
     try {
@@ -205,7 +275,10 @@ const Training: React.FC = () => {
         body: "Training deleted successfully!",
       });
     } catch (error) {
-      console.error("Error deleting training:", error);
+      logEngine({
+        type: "error",
+        message: `Failed to delete training: ${error}`,
+      });
       setAlert({
         variant: "error",
         body: "Failed to delete training. Please try again.",
@@ -213,13 +286,17 @@ const Training: React.FC = () => {
     }
   };
 
-  // Filtered trainings
+  // Filtered trainings (KISS: Simplified logic)
   const filteredTraining = useMemo(() => {
-    return trainingData.filter((t) => {
-      const matchesStatus = statusFilter === "all" ? true : t.status === statusFilter;
-      const matchesSearch = t.training_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
+    return trainingData.filter((training) => {
+      // Defensive: Handle missing training name
+      const trainingName = training.training_name?.toLowerCase() ?? '';
+      const search = searchTerm.toLowerCase();
+
+      // Simple, readable conditions
+      const matchesStatus = statusFilter === "all" || training.status === statusFilter;
+      const matchesSearch = !searchTerm || trainingName.includes(search);
+
       return matchesStatus && matchesSearch;
     });
   }, [trainingData, statusFilter, searchTerm]);
@@ -319,7 +396,7 @@ const Training: React.FC = () => {
                   id="training-status"
                   value={statusFilter}
                   items={statusOptions}
-                  onChange={(e: any) => setStatusFilter(e.target.value)}
+                  onChange={(e: SelectChangeEvent<string | number>) => setStatusFilter(e.target.value as string)}
                   sx={{
                     minWidth: "180px",
                     height: "34px",
@@ -386,19 +463,7 @@ const Training: React.FC = () => {
         isOpen={isNewTrainingModalOpen}
         setIsOpen={handleCloseModal}
         onSuccess={handleTrainingSuccess}
-        initialData={
-          selectedTraining
-            ? {
-                training_name: selectedTraining.training_name,
-                duration: String(selectedTraining.duration || ""),
-                provider: selectedTraining.provider,
-                department: selectedTraining.department,
-                status: selectedTraining.status,
-                numberOfPeople: selectedTraining.people,
-                description: selectedTraining.description,
-              }
-            : undefined
-        }
+        initialData={selectedTraining ? mapTrainingToFormData(selectedTraining) : undefined}
         isEdit={!!selectedTraining}
       />
 

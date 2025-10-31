@@ -64,6 +64,7 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
       const blob = new Blob([blobFileContent], { type: responseType || undefined });
       triggerBrowserDownload(blob, fileName);
 
+
       return response.status;
     } else {
       console.error("--- Error downloading report");
@@ -74,35 +75,3 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
     return 500;
   }
 };
-
-/**
- * Deletes a file from the file manager
- *
- * @param {string} fileId - The file identifier
- * @param {Function} [onSuccess] - Callback to execute on successful deletion
- * @throws {Error} If deletion fails
- */
-/*
-export const handleFileDelete = async (
-  fileId: string,
-  onSuccess?: () => void
-) => {
-  try {
-    const response = await deleteFileFromManager({
-      id: typeof fileId === "string" ? fileId : String(fileId),
-    });
-
-    console.log("File deleted successfully:", response);
-
-    // Call onSuccess callback if provided (e.g., to refresh the file list)
-    if (onSuccess) {
-      onSuccess();
-    }
-  } catch (error: any) {
-    const errorMessage = getFileErrorMessage(error, "delete");
-    console.error("Error deleting file from file manager:", error);
-    alert(errorMessage);
-    throw error;
-  }
-};
-*/

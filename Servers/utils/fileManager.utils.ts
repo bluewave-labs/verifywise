@@ -187,7 +187,7 @@ export const getFilesByOrganization = async (
 
   const { limit, offset } = options;
 
-  // Get files with uploader info and file_path
+  // Get files with uploader info
   let query = `
     SELECT
       fm.id,
@@ -196,7 +196,6 @@ export const getFilesByOrganization = async (
       fm.mimetype,
       fm.upload_date,
       fm.uploaded_by,
-      fm.file_path,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM "${tenant}".file_manager fm

@@ -7,18 +7,17 @@
  * - POST   /file-manager       - Upload file (Admin, Reviewer, Editor only)
  * - GET    /file-manager       - List all files (All authenticated users)
  * - GET    /file-manager/:id   - Download file (All authenticated users)
- * - DELETE /file-manager/:id   - Delete file (Admin, Reviewer, Editor only)
  *
  * Access Control:
  * - All routes require JWT authentication
- * - Upload and Delete restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
+ * - Upload restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
  * - List and Download available to all authenticated users
  *
  * @module routes/fileManager
  */
 
 import express, { Request, Response, NextFunction } from "express";
-import { uploadFile, listFiles, downloadFile, removeFile } from "../controllers/fileManager.ctrl";
+import { uploadFile, listFiles, downloadFile } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
 import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
@@ -146,12 +145,10 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
  * @returns {403} Access denied (unauthorized role)
  * @returns {413} File size exceeds maximum allowed size
  * @returns {415} Unsupported file type
- * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
 router.post(
   "/",
-  fileOperationsLimiter,
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   upload.single("file"),
@@ -179,28 +176,8 @@ router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
  * @returns {200} File content with download headers
  * @returns {403} Access denied (file from different organization)
  * @returns {404} File not found
- * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
-router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
-
-/**
- * @route   DELETE /file-manager/:id
- * @desc    Delete a file by ID
- * @access  Admin, Reviewer, Editor only
- * @param   id - File ID
- * @returns {200} File deleted successfully
- * @returns {403} Access denied (file from different organization or unauthorized role)
- * @returns {404} File not found
- * @returns {429} Too many requests - rate limit exceeded
- * @returns {500} Server error
- */
-router.delete(
-  "/:id",
-  fileOperationsLimiter,
-  authenticateJWT,
-  authorize(["Admin", "Reviewer", "Editor"]),
-  removeFile
-);
+router.get("/:id", authenticateJWT, downloadFile);
 
 export default router;

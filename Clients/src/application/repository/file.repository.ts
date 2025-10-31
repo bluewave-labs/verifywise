@@ -58,13 +58,13 @@ export async function getFileById({
  * @returns {Promise<FileMetadata[]>} Array of file metadata
  */
 export async function getUserFilesMetaData({
-                                               signal,
-                                           }: {
-    signal?: AbortSignal;
+  signal,
+}: {
+  signal?: AbortSignal;
 } = {}): Promise<FileMetadata[]> {
-    const response = await apiServices.get<FileManagerResponse>("/file-manager", {
-        signal,
-    });
+  const response = await apiServices.get<FileManagerResponse>("/file-manager", {
+    signal,
+  });
 
     // Extract and transform API file data (snake_case → camelCase)
     const rawFiles = response.data?.data?.files ?? [];

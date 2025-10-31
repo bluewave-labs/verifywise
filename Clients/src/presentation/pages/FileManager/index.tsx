@@ -63,7 +63,6 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch projects for the dropdown
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -79,6 +78,7 @@ const FileManager: React.FC = (): JSX.Element => {
   // Local state to manage files (allows manual refresh)
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Sync initial data from hook to local state (always sync, even if empty)
   useEffect(() => {
@@ -160,11 +160,6 @@ const FileManager: React.FC = (): JSX.Element => {
         }}
         tourKey="file-tour"
       />
-      <FileManagerUploadModal
-        open={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onSuccess={handleUploadSuccess}
-      />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -212,7 +207,7 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
             <Select
               id="project-filter"
               value={selectedProject || "all"}
@@ -245,9 +240,17 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={refetch} />
+            <FileTable cols={COLUMNS} files={filteredFiles} />
           </Box>
         </Stack>
+      )}
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <FileManagerUploadModal
+          open={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onSuccess={handleUploadSuccess}
+        />
       )}
     </Stack>
   );

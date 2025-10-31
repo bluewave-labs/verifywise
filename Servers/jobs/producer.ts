@@ -3,11 +3,12 @@ import { logFailure } from "../utils/logger/logHelper";
 
 import { scheduleDailyNotification } from "../services/slack/slackProducer";
 import logger from "../utils/logger/fileLogger";
-import { scheduleVendorReviewDateNotification } from "../services/automations/automationProducer";
+import { scheduleReportNotification, scheduleVendorReviewDateNotification } from "../services/automations/automationProducer";
 
 export async function addAllJobs(): Promise<void> {
   await scheduleDailyNotification();
   await scheduleVendorReviewDateNotification();
+  await scheduleReportNotification();
 }
 
 if (require.main === module) {

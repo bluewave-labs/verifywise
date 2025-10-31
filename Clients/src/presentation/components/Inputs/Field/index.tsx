@@ -64,6 +64,8 @@ const Field = forwardRef(
       width,
       sx,
       rows,
+      min,
+      max,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -148,6 +150,8 @@ const Field = forwardRef(
           disabled={disabled}
           inputRef={ref}
           inputProps={{
+            min: min,
+            max: max,
             sx: {
               color: theme.palette.text.secondary,
               "&:-webkit-autofill": {

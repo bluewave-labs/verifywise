@@ -110,6 +110,14 @@ export class AmazonSESProvider implements EmailProvider, RefreshableCredentials 
         await this.refreshCredentials();
       }
 
+      // Note: Attachments with SES require using SendRawEmailCommand
+      // For simplicity, we'll log a warning if attachments are provided
+      // In production, consider using nodemailer with SES transport for attachment support
+      if (options.attachments && options.attachments.length > 0) {
+        console.warn('Amazon SES provider currently does not support attachments with SendEmailCommand. ' +
+                    'Consider using nodemailer with SES transport or implement SendRawEmailCommand.');
+      }
+
       const command = new SendEmailCommand({
         Source: options.from || process.env.EMAIL_ID!,
         Destination: {

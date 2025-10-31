@@ -51,8 +51,8 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     if (loading) return;
 
     try {
-      // For Slack, always navigate to management page
-      if (integration.id === 'slack') {
+      // For Slack and MLFlow, always navigate to management page
+      if (integration.id === 'slack' || integration.id === 'mlflow') {
         if (onManage) onManage(integration);
         return;
       }
@@ -168,17 +168,38 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
         {/* Content Section: Description and Tags */}
         <Box sx={{ backgroundColor: "transparent", mx: 3, mb: 4, px: 2, flexGrow: 1 }}>
-          {/* Integration Description */}
-          <Typography
-            variant="body2"
-            sx={(theme) => ({
-              color: theme.palette.text.secondary,
-              fontSize: "13px",
-              mb: 0.5, // Reduced gap below description to 4px
-            })}
-          >
-            {integration.description}
-          </Typography>
+        {/* Integration Description */}
+        <Typography
+          variant="body2"
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
+            fontSize: "13px",
+            mb: 0.5, // Reduced gap below description to 4px
+          })}
+        >
+          {integration.description}
+        </Typography>
+
+        {(integration.lastSyncAt || integration.lastTestedAt) && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 2 }}>
+            {integration.lastSyncAt && (
+              <Typography variant="caption" color="text.secondary">
+                Last sync: {new Date(integration.lastSyncAt).toLocaleString()}{" "}
+                {integration.lastSyncStatus
+                  ? `(${integration.lastSyncStatus})`
+                  : ""}
+              </Typography>
+            )}
+            {integration.lastTestedAt && (
+              <Typography variant="caption" color="text.secondary">
+                Last test: {new Date(integration.lastTestedAt).toLocaleString()}{" "}
+                {integration.lastTestStatus
+                  ? `(${integration.lastTestStatus})`
+                  : ""}
+              </Typography>
+            )}
+          </Box>
+        )}
 
           {/* Integration Tags */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 3 }}>
@@ -223,7 +244,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                   mr: isHovered ? 1 : 0,
                 }}
               >
-                {integration.id === 'slack' ? "Manage" :
+                {(integration.id === 'slack' || integration.id === 'mlflow') ? "Manage" :
                  integration.status === IntegrationStatus.CONFIGURED ? "Manage" :
                  integration.status === IntegrationStatus.CONFIGURING ? "Configuring..." :
                  integration.status === IntegrationStatus.ERROR ? "Retry" : "Configure"}

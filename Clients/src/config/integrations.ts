@@ -29,60 +29,11 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'models',
-      'model registry'
+      'experiment tracking',
+      'model lifecycle management'
     ],
     documentationUrl: 'https://docs.example.com/integrations/mlflow',
     setupRequired: true,
-  },
-  {
-    id: 'github',
-    name: 'github',
-    displayName: 'GitHub',
-    description: 'Connect your repositories to monitor AI models, track code changes, and automate governance workflows.',
-    logo: '/assets/github_logo.svg',
-    category: IntegrationCategory.VERSION_CONTROL,
-    status: IntegrationStatus.NOT_CONFIGURED,
-    features: [
-      'issue tracking'
-    ],
-    documentationUrl: 'https://docs.example.com/integrations/github',
-    setupRequired: false,
-  },
-  {
-    id: 'datadog',
-    name: 'datadog',
-    displayName: 'Datadog',
-    description: 'Monitor AI model performance, track system metrics, and get insights into your ML infrastructure.',
-    logo: '/assets/datadog_logo.svg',
-    category: IntegrationCategory.MONITORING,
-    status: IntegrationStatus.NOT_CONFIGURED,
-    features: [
-      'Performance monitoring',
-      'Custom metrics dashboards',
-      'Alert management',
-      'Infrastructure monitoring',
-      'Log aggregation'
-    ],
-    documentationUrl: 'https://docs.example.com/integrations/datadog',
-    setupRequired: true,
-  },
-  {
-    id: 'jira',
-    name: 'jira',
-    displayName: 'Jira',
-    description: 'Integrate with Jira to track AI model issues, manage governance tasks, and streamline workflows.',
-    logo: '/assets/jira_logo.svg',
-    category: IntegrationCategory.COMMUNICATION,
-    status: IntegrationStatus.NOT_CONFIGURED,
-    features: [
-      'Issue tracking',
-      'Task management',
-      'Workflow automation',
-      'Custom field mapping',
-      'Sprint planning integration'
-    ],
-    documentationUrl: 'https://docs.example.com/integrations/jira',
-    setupRequired: false,
   },
 ];
 

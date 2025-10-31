@@ -50,7 +50,8 @@ export type TriggerType =
   | 'risk_updated'
   | 'training_updated'
   | 'policy_updated'
-  | 'incident_updated';
+  | 'incident_updated'
+  | 'scheduled_report';
 
 export type ActionType =
   | 'send_email';
@@ -59,7 +60,7 @@ export interface TriggerTemplate {
   type: TriggerType;
   name: string;
   description: string;
-  category: 'project' | 'risk' | 'control' | 'vendor' | 'user' | 'assessment' | 'task' | 'training' | 'policy' | 'incident';
+  category: 'project' | 'risk' | 'control' | 'vendor' | 'user' | 'assessment' | 'task' | 'training' | 'policy' | 'incident' | 'reporting';
   icon: string;
   defaultConfiguration: Record<string, any>;
   configurationSchema: ConfigurationField[];

@@ -5,6 +5,7 @@ import React, {
   useCallback,
   Suspense,
   lazy,
+  useEffect,
 } from "react";
 import {
   Button,
@@ -30,6 +31,8 @@ import {
 import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { usePostHog } from "../../../application/hooks/usePostHog";
+import { useComponentPerformance, useFormPerformance } from "../../../application/hooks/usePerformanceMonitoring";
 import { createProject } from "../../../application/repository/project.repository";
 import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
@@ -80,13 +83,38 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
+  const { trackForm, trackJourney, trackFeature } = usePostHog();
+  const { trackFormStart, trackFormSubmit } = useFormPerformance('create_project');
+
   const [values, setValues] = useState<CreateProjectFormValues>(initialState);
   const [errors, setErrors] = useState<CreateProjectFormErrors>({});
   const { users } = useUsers();
+
+  // Track component render performance (after state declarations)
+  useComponentPerformance('CreateProjectForm', [values, errors]);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
+
+  // Track when form opens
+  useEffect(() => {
+    // Track form start for analytics
+    trackForm('create_project', 'start', {
+      user_role: userRoleName,
+      available_users: users.length,
+      form_type: 'ai_governance_project',
+    });
+
+    trackJourney('project_creation', 'form_opened', {
+      user_role: userRoleName,
+      total_available_users: users.length,
+    });
+
+    // Start performance tracking for form
+    trackFormStart();
+  }, [userRoleName, users.length, trackForm, trackJourney, trackFormStart]);
+
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
       setValues((prevValues) => ({
@@ -173,8 +201,23 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Track form submission attempt
+    trackForm('create_project', 'submit', {
+      form_fields_completed: Object.keys(values).filter(key => values[key as keyof CreateProjectFormValues]).length,
+      total_fields: Object.keys(initialState).length,
+      has_errors: Object.keys(errors).length > 0,
+    });
+
     if (validateForm()) {
       confirmSubmit();
+    } else {
+      // Track validation errors
+      trackForm('create_project', 'error', {
+        error_fields: Object.keys(errors),
+        total_errors: Object.keys(errors).length,
+        form_data: values,
+      });
     }
   };
 
@@ -182,16 +225,30 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     try {
       const userInfo = extractUserToken(authState.authToken);
 
+      // Track project creation attempt
+      const aiRiskLevel = riskClassificationItems.find(
+        (item) => item._id === values.ai_risk_classification
+      )?.name || 'unknown';
+
+      const highRiskRole = highRiskRoleItems.find(
+        (item) => item._id === values.type_of_high_risk_role
+      )?.name || 'unknown';
+
+      trackJourney('project_creation', 'api_call_started', {
+        project_title: values.project_title,
+        ai_risk_classification: aiRiskLevel,
+        high_risk_role: highRiskRole,
+        team_size: values.members.length,
+        has_goal: !!values.goal,
+        user_role: userRoleName,
+      });
+
       const teamMember = values.members.map((user) => String(user._id));
       const response: ProjectResponse = await createProject({
         body: {
           ...values,
-          type_of_high_risk_role: highRiskRoleItems.find(
-            (item) => item._id === values.type_of_high_risk_role
-          )?.name,
-          ai_risk_classification: riskClassificationItems.find(
-            (item) => item._id === values.ai_risk_classification
-          )?.name,
+          type_of_high_risk_role: highRiskRole,
+          ai_risk_classification: aiRiskLevel,
           last_updated: values.start_date,
           last_updated_by: userInfo?.id,
           members: teamMember,
@@ -203,12 +260,46 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
       closePopup();
 
       if (response.status === 201) {
+        // Track successful project creation
+        trackJourney('project_creation', 'completed', {
+          project_title: values.project_title,
+          project_id: response.data.data.project.id,
+          ai_risk_classification: aiRiskLevel,
+          high_risk_role: highRiskRole,
+          team_size: values.members.length,
+          user_role: userRoleName,
+        });
+
+        // Track feature usage
+        trackFeature('project_creation', 'success', {
+          project_type: 'ai_governance',
+          risk_level: aiRiskLevel,
+        });
+
+        // Track form submission performance
+        trackFormSubmit(true, 0);
+
         onNewProject({
           isNewProject: true,
           project: response.data.data.project,
         });
       }
     } catch (error) {
+      // Track API failure
+      trackJourney('project_creation', 'api_error', {
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        project_title: values.project_title,
+        user_role: userRoleName,
+      });
+
+      trackForm('create_project', 'error', {
+        error_type: 'network_error',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      // Track form submission performance (failed)
+      trackFormSubmit(false, 0);
+
       console.error("Error creating use case:", error);
     }
   };

@@ -1,5 +1,4 @@
 import {
-  Dialog,
   Table,
   TableBody,
   TableCell,
@@ -17,7 +16,7 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import React from "react";
-import { X as ClearIcon } from "lucide-react";
+import StandardModal from "../Modals/StandardModal";
 import {
   getSeverityColorByText,
   getRiskChipStyle,
@@ -121,56 +120,15 @@ const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
 
   return (
     <>
-      <Dialog
-        open={open}
+      <StandardModal
+        isOpen={open}
         onClose={onClose}
-        PaperProps={{
-          sx: {
-            width: "800px",
-            maxWidth: "800px",
-            maxHeight: "500px",
-          },
-        }}
+        title={`Vendor Risks ${vendorName ? `- ${vendorName}` : ""} (${vendorRisks.length})`}
+        description="View all risks associated with this vendor"
+        maxWidth="800px"
+        hideFooter={true}
       >
-        <Stack
-          sx={{
-            width: "100%",
-            backgroundColor: "#FCFCFD",
-            padding: 10,
-            borderRadius: "4px",
-            height: "100%",
-            overflow: "hidden",
-          }}
-        >
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              width: "100%",
-              marginBottom: "20px",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 16,
-                color: "#344054",
-                fontWeight: "bold",
-              }}
-            >
-              Vendor Risks {vendorName ? `- ${vendorName}` : ""} (
-              {vendorRisks.length})
-            </Typography>
-            <ClearIcon
-              size={20}
-              style={{
-                color: "#98A2B3",
-                cursor: "pointer",
-              }}
-              onClick={onClose}
-            />
-          </Stack>
-          {loading ? (
+        {loading ? (
             <Stack
               sx={{
                 display: "flex",
@@ -396,8 +354,7 @@ const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
               </Table>
             </TableContainer>
           )}
-        </Stack>
-      </Dialog>
+      </StandardModal>
 
       {/* Edit Risk Modal */}
       {isEditModalOpen && selectedRisk && (

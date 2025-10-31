@@ -347,6 +347,7 @@ export class TrainingRegistarModel
 
   /**
    * Convert training register model to JSON representation
+   * ARCHITECTURE: Returns 'numberOfPeople' to match API contract with frontend
    */
   toJSON(): any {
     return {
@@ -356,7 +357,7 @@ export class TrainingRegistarModel
       provider: this.provider,
       department: this.department,
       status: this.status,
-      people: this.numberOfPeople,
+      numberOfPeople: this.numberOfPeople,
       description: this.description,
       progressPercentage: this.getProgressPercentage(),
     };

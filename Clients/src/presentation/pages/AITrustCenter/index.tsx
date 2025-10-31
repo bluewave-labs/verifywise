@@ -24,11 +24,17 @@ import { useSelector } from "react-redux";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { useNavigate, useParams } from "react-router-dom";
 
 const AITrustCenter: React.FC = () => {
-  const [tabValue, setTabValue] = React.useState("overview");
+const params = useParams<{ tab?: string }>();
+const navigate = useNavigate();
+
+// active tab based on URL or default to "overview"
+const tabValue = params.tab || "overview";
+
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) =>
-    setTabValue(newValue);
+    navigate(`/ai-trust-center/${newValue}`);
   const authToken = useSelector(
     (state: { auth: { authToken: string } }) => state.auth.authToken
   );

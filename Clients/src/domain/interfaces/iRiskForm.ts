@@ -93,4 +93,5 @@ export interface IRiskLevelProps {
 
 export interface IRiskChipProps {
   label?: string;
+  backgroundColor?: string;
 }

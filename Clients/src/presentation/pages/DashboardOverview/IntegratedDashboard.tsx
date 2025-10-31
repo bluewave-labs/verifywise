@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useCallback, lazy, Suspense, useMemo } from "react";
 import {
   Box,
@@ -1527,7 +1529,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Vendor Risks"
           value={vendorRiskMetrics?.total || 0}
-          onClick={() => navigate("/vendors")}
+          onClick={() => navigate("/vendors/risks")}
           navigable={true}
           statusData={vendorRiskMetrics?.statusDistribution?.map((item) => ({
             ...item,

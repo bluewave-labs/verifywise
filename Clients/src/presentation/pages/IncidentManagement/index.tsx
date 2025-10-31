@@ -28,7 +28,6 @@ import {
 } from "./style";
 import IncidentTable from "./IncidentTable";
 import NewIncident from "../../components/Modals/NewIncident";
-import { IAIIncidentManagement } from "../../../domain/interfaces/i.incidentManagement";
 import {
     AIIncidentManagementApprovalStatus,
     IncidentManagementStatus,
@@ -40,19 +39,18 @@ import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const IncidentManagement: React.FC = () => {
     const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-    const [incidentsData, setIncidentsData] = useState<IAIIncidentManagement[]>(
-        []
-    );
+    const [incidentsData, setIncidentsData] = useState<AIIncidentManagementModel[]>([]);
+    const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isNewIncidentModalOpen, setIsNewIncidentModalOpen] = useState(false);
     const [, setSelectedIncidentId] = useState<string | null>(null);
-    const [selectedIncident, setSelectedIncident] =
-        useState<IAIIncidentManagement | null>(null);
     const [, setUsers] = useState<any[]>([]);
     const [alert, setAlert] = useState<{
         variant: "success" | "info" | "warning" | "error";
@@ -135,7 +133,13 @@ const IncidentManagement: React.FC = () => {
             const response = await getAllEntities({
                 routeUrl: "/ai-incident-managements",
             });
-            if (response?.data) setIncidentsData(response.data);
+            // if (response?.data) setIncidentsData(response.data);
+            if (response?.data) {
+                const formatted = response.data.map(
+                  (item: AIIncidentManagementModel) => new AIIncidentManagementModel(item)
+                );
+                setIncidentsData(formatted);
+              }              
         } catch (error) {
             logEngine({
                 type: "error",
@@ -209,8 +213,9 @@ const IncidentManagement: React.FC = () => {
                 routeUrl: `/ai-incident-managements/${id}`,
             });
             if (response?.data) {
-                setSelectedIncident(response.data);
-                return response.data;
+                const incident = new AIIncidentManagementModel(response.data);
+                setSelectedIncident(incident);
+                return incident;
             } else {
                 setAlert({
                     variant: "error",

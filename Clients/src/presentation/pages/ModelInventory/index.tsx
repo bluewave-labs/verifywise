@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -17,6 +19,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { usePostHog } from "../../../application/hooks/usePostHog";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -29,6 +32,7 @@ import {
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
+import MLFlowDataTable from "./MLFlowDataTable";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -97,6 +101,7 @@ const ModelInventory: React.FC = () => {
   );
 
   const { userRoleName } = useAuth();
+  const { trackDashboard, trackFilter, trackFeature, trackAIModel } = usePostHog();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -109,10 +114,27 @@ const ModelInventory: React.FC = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Determine the active tab based on the URL
+  const getInitialTab = () => {
+    const currentPath = location.pathname;
+    if (currentPath.includes("model-risks")) return "model-risks";
+    if (currentPath.includes("mlflow")) return "mlflow";
+    return "models";
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab()); // "models" = Models, "model-risks" = Model Risks, "mlflow" = MLFlow Data
+
+  // Sync activeTab with URL changes (for browser back/forward navigation)
+  useEffect(() => {
+    const newTab = getInitialTab();
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname]);
 
   // Calculate summary from data
   const summary: Summary = {
@@ -243,10 +265,17 @@ const ModelInventory: React.FC = () => {
   };
 
   useEffect(() => {
+    // Track model inventory page load
+    trackDashboard('model_inventory', {
+      user_role: userRoleName,
+      page_type: 'ai_model_registry',
+      has_url_filters: !!searchParams.toString(),
+    });
+
     fetchModelInventoryData();
     fetchModelRisksData();
     fetchUsersData();
-  }, []);
+  }, [trackDashboard, userRoleName, searchParams]);
 
   // Refetch model risks when filter changes
   useEffect(() => {
@@ -293,6 +322,18 @@ const ModelInventory: React.FC = () => {
   }, [location.state, navigate, location.pathname]);
 
   const handleNewModelInventoryClick = () => {
+    // Track AI model creation start
+    trackAIModel('new_model_creation', 'start', {
+      user_role: userRoleName,
+      total_existing_models: modelInventoryData.length,
+      source: 'model_inventory_page',
+    });
+
+    trackFeature('model_creation', 'started', {
+      form_type: 'ai_model_registration',
+      user_role: userRoleName,
+    });
+
     setIsNewModelInventoryModalOpen(true);
   };
 
@@ -503,6 +544,15 @@ const ModelInventory: React.FC = () => {
 
   const handleStatusFilterChange = (event: any) => {
     const newStatusFilter = event.target.value;
+
+    // Track filter usage
+    trackFilter('model_status', newStatusFilter, {
+      filter_type: 'model_inventory_status',
+      previous_filter: statusFilter,
+      user_role: userRoleName,
+      total_models: modelInventoryData.length,
+    });
+
     dispatch(setModelInventoryStatusFilter(newStatusFilter));
 
     // Update URL search params to persist the filter
@@ -639,7 +689,14 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
+    setActiveTab(newValue); // Immediate UI update for better UX
+    if (newValue === "models") {
+      navigate("/model-inventory");
+    } else if (newValue === "model-risks") {
+      navigate("/model-inventory/model-risks");
+    } else if (newValue === "mlflow") {
+      navigate("/model-inventory/mlflow");
+    }
   };
 
   return (
@@ -745,6 +802,12 @@ const ModelInventory: React.FC = () => {
                 sx={aiTrustCenterTabStyle}
                 label="Model risks"
                 value="model-risks"
+                disableRipple
+              />
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="MLFlow data"
+                value="mlflow"
                 disableRipple
               />
             </TabList>
@@ -919,6 +982,10 @@ const ModelInventory: React.FC = () => {
               models={modelInventoryData}
             />
           </>
+        )}
+
+        {activeTab === "mlflow" && (
+          <MLFlowDataTable />
         )}
       </Stack>
 

@@ -6,16 +6,14 @@ import {
   TableCell,
   Stack,
   CircularProgress,
-  SxProps,
-  Theme,
 } from "@mui/material";
 import Toggle from "../../../components/Inputs/Toggle";
 import IconButtonComponent from "../../../components/IconButton";
 import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { Modal, IconButton } from "@mui/material";
-import { X as CloseGreyIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import StandardModal from "../../../components/Modals/StandardModal";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
@@ -31,7 +29,6 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
-import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 
@@ -263,17 +260,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
     if (!formData?.info?.subprocessor_visible) return;
     setNewSubprocessor((prev) => ({ ...prev, [field]: value }));
   };
-
-  // Add modal key handling for ESC key support
-  useModalKeyHandling({
-    isOpen: addModalOpen,
-    onClose: handleCloseAddModal,
-  });
-
-  useModalKeyHandling({
-    isOpen: editModalOpen,
-    onClose: handleCloseEditModal,
-  });
 
   // Subprocessor operations
   const handleAddSubprocessor = async () => {
@@ -508,142 +494,96 @@ const AITrustCenterSubprocessors: React.FC = () => {
         </Box>
 
         {/* Edit Subprocessor Modal */}
-        <Modal
-          open={editModalOpen}
-          onClose={(_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseEditModal();
-          }}
+        <StandardModal
+          isOpen={editModalOpen}
+          onClose={handleCloseEditModal}
+          title="Edit subprocessor"
+          description="Update subprocessor company details"
+          onSubmit={handleEditSave}
+          submitButtonText="Save"
+          isSubmitting={
+            !formData?.info?.subprocessor_visible ||
+            !form.name ||
+            !form.purpose ||
+            !form.url ||
+            !form.location
+          }
         >
-          <Box sx={styles.modal}>
-            <Box sx={styles.modalHeader}>
-              <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
-              <IconButton onClick={handleCloseEditModal} sx={{ p: 0 }}>
-                <CloseGreyIcon size={16} />
-              </IconButton>
-            </Box>
-            <Stack spacing={3}>
-              <ModalField
-                label="Company name"
-                value={form.name}
-                onChange={(value) => handleFormChange("name", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Purpose"
-                value={form.purpose}
-                onChange={(value) => handleFormChange("purpose", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="URL"
-                value={form.url}
-                onChange={(value) => handleFormChange("url", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Location"
-                value={form.location}
-                onChange={(value) => handleFormChange("location", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <CustomizableButton
-                sx={
-                  {
-                    ...styles.modalButton,
-                    ...(formData?.info?.subprocessor_visible
-                      ? {}
-                      : styles.modalButtonDisabled),
-                  } as SxProps<Theme>
-                }
-                variant="contained"
-                onClick={handleEditSave}
-                isDisabled={
-                  !formData?.info?.subprocessor_visible ||
-                  !form.name ||
-                  !form.purpose ||
-                  !form.url ||
-                  !form.location
-                }
-                text="Edit subprocessor"
-              />
-            </Stack>
-          </Box>
-        </Modal>
+          <Stack spacing={6}>
+            <ModalField
+              label="Company name"
+              value={form.name}
+              onChange={(value) => handleFormChange("name", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Purpose"
+              value={form.purpose}
+              onChange={(value) => handleFormChange("purpose", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="URL"
+              value={form.url}
+              onChange={(value) => handleFormChange("url", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Location"
+              value={form.location}
+              onChange={(value) => handleFormChange("location", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+          </Stack>
+        </StandardModal>
 
         {/* Add Subprocessor Modal */}
-        <Modal
-          open={addModalOpen}
-          onClose={(_event, reason) => {
-            if (reason === "backdropClick") {
-              return; // block closing on backdrop click
-            }
-            handleCloseAddModal();
-          }}
+        <StandardModal
+          isOpen={addModalOpen}
+          onClose={handleCloseAddModal}
+          title="Add new subprocessor"
+          description="Add a new subprocessor company to your AI Trust Center"
+          onSubmit={handleAddSubprocessor}
+          submitButtonText="Add subprocessor"
+          isSubmitting={
+            !formData?.info?.subprocessor_visible ||
+            !newSubprocessor.name ||
+            !newSubprocessor.purpose ||
+            !newSubprocessor.url ||
+            !newSubprocessor.location
+          }
         >
-          <Box sx={styles.modal}>
-            <Box sx={styles.modalHeader}>
-              <Typography sx={styles.modalTitle}>
-                Add new subprocessor
-              </Typography>
-              <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                <CloseGreyIcon size={16} />
-              </IconButton>
-            </Box>
-            <Stack spacing={3}>
-              <ModalField
-                label="Company name"
-                value={newSubprocessor.name}
-                onChange={(value) => handleNewSubprocessorChange("name", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Purpose"
-                value={newSubprocessor.purpose}
-                onChange={(value) =>
-                  handleNewSubprocessorChange("purpose", value)
-                }
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="URL"
-                value={newSubprocessor.url}
-                onChange={(value) => handleNewSubprocessorChange("url", value)}
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <ModalField
-                label="Location"
-                value={newSubprocessor.location}
-                onChange={(value) =>
-                  handleNewSubprocessorChange("location", value)
-                }
-                enabled={!!formData?.info?.subprocessor_visible}
-              />
-              <CustomizableButton
-                sx={
-                  {
-                    ...styles.modalButton,
-                    ...(formData?.info?.subprocessor_visible
-                      ? {}
-                      : styles.modalButtonDisabled),
-                  } as SxProps<Theme>
-                }
-                variant="contained"
-                onClick={handleAddSubprocessor}
-                isDisabled={
-                  !formData?.info?.subprocessor_visible ||
-                  !newSubprocessor.name ||
-                  !newSubprocessor.purpose ||
-                  !newSubprocessor.url ||
-                  !newSubprocessor.location
-                }
-                text="Add subprocessor"
-              />
-            </Stack>
-          </Box>
-        </Modal>
+          <Stack spacing={6}>
+            <ModalField
+              label="Company name"
+              value={newSubprocessor.name}
+              onChange={(value) => handleNewSubprocessorChange("name", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Purpose"
+              value={newSubprocessor.purpose}
+              onChange={(value) =>
+                handleNewSubprocessorChange("purpose", value)
+              }
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="URL"
+              value={newSubprocessor.url}
+              onChange={(value) => handleNewSubprocessorChange("url", value)}
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+            <ModalField
+              label="Location"
+              value={newSubprocessor.location}
+              onChange={(value) =>
+                handleNewSubprocessorChange("location", value)
+              }
+              enabled={!!formData?.info?.subprocessor_visible}
+            />
+          </Stack>
+        </StandardModal>
       </Box>
 
       {alert && (

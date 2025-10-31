@@ -24,6 +24,8 @@ const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import { TrainingStatus } from "../../../domain/enums/status.enum";
 
 //const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -38,19 +40,8 @@ const TABLE_COLUMNS = [
   { id: "actions", label: "" },
 ];
 
-export interface IAITraining {
-  id: number;
-  training_name: string;
-  duration: string;
-  provider: string;
-  department: string;
-  status: "Planned" | "In Progress" | "Completed";
-  people: number;
-  description: string;
-}
-
 interface TrainingTableProps {
-  data: IAITraining[];
+  data: TrainingRegistarModel[];
   isLoading?: boolean;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
@@ -59,7 +50,7 @@ interface TrainingTableProps {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const StatusBadge: React.FC<{ status: IAITraining["status"] }> = ({
+const StatusBadge: React.FC<{ status: TrainingStatus }> = ({
   status,
 }) => {
   const statusStyles = {
@@ -162,85 +153,102 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
         {data?.length > 0 ? (
           data
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((training) => (
-              <TableRow
-                key={training.id}
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit?.(training.id.toString());
-                }}
-              > 
-                <TableCell  sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                cursor: "pointer",
-                textTransform: "none !important",
-              }}>
-                  {training.training_name}
-                </TableCell>
-                <TableCell  sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                cursor: "pointer",
-                textTransform: "none !important",
-              }}>
-                  {training.duration}
-                </TableCell>
-                <TableCell  sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                cursor: "pointer",
-                textTransform: "none !important",
-              }}>
-                  {training.provider}
-                </TableCell>
-                <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                }}>
-                  {training.department}
-                </TableCell>
-                <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                }}>
-                  <StatusBadge status={training.status} />
-                </TableCell>
-                <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                }}>
-                  {training.people}
-                </TableCell>
-                <TableCell
+            // Defensive: Filter out invalid records early (fail fast)
+            .filter((training) => {
+              const isValid = training.id !== undefined && training.id !== null;
+              if (!isValid) {
+                console.error('[TrainingTable] Invalid training record without ID:', training);
+              }
+              return isValid;
+            })
+            .map((training) => {
+              // Type guard: After filter, we know id exists
+              const trainingId = training.id as number;
+              const trainingIdStr = trainingId.toString();
+
+              return (
+                <TableRow
+                  key={trainingId}
                   sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    minWidth: "50px",
+                    ...singleTheme.tableStyles.primary.body.row,
+                    "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  }}
+                  onClick={() => {
+                    onEdit?.(trainingIdStr);
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <CustomIconButton
-                      id={training.id}
-                      onDelete={() => onDelete?.(training.id.toString())}
-                      onEdit={() => {
-                        onEdit?.(training.id.toString());
-                      }}
-                      onMouseEvent={() => {}}
-                      warningTitle="Delete this training?"
-                      warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
-                      type="Training"
-                    />
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
+                  <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
+                    {training.training_name}
+                  </TableCell>
+                  <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
+                    {training.duration}
+                  </TableCell>
+                  <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
+                    {training.provider}
+                  </TableCell>
+                  <TableCell  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    cursor: "pointer",
+                    textTransform: "none !important",
+                  }}>
+                    {training.department}
+                  </TableCell>
+                  <TableCell  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    cursor: "pointer",
+                    textTransform: "none !important",
+                  }}>
+                    <StatusBadge status={training.status} />
+                  </TableCell>
+                  <TableCell  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    cursor: "pointer",
+                    textTransform: "none !important",
+                  }}>
+                    {training.numberOfPeople}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      position: "sticky",
+                      right: 0,
+                      zIndex: 10,
+                      minWidth: "50px",
+                    }}
+                  >
+                    {isDeletingAllowed && (
+                      <CustomIconButton
+                        id={trainingId}
+                        onDelete={(e?: React.MouseEvent) => {
+                          e?.stopPropagation();
+                          onDelete?.(trainingIdStr);
+                        }}
+                        onEdit={(e?: React.MouseEvent) => {
+                          e?.stopPropagation();
+                          onEdit?.(trainingIdStr);
+                        }}
+                        onMouseEvent={(e: any) => e.stopPropagation()}
+                        warningTitle="Delete this training?"
+                        warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
+                        type="Training"
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })
         ) : (
           <TableRow>
             <TableCell

@@ -2,11 +2,10 @@ import {
   Stack,
   Typography,
   useTheme,
-  Modal,
-  IconButton,
   Box,
 } from "@mui/material";
-import { ArrowLeft, ArrowRight, X as CloseIcon, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
+import StandardModal from "../../../components/Modals/StandardModal";
 import {
   getNextQuestion,
   getPreviousQuestion,
@@ -230,53 +229,44 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={() => {
-        handleClose();
-      }}
-      sx={{ overflowY: "scroll" }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="EU AI Act risk classification"
+      description="Determine your AI system's regulatory classification."
+      maxWidth="900px"
+      customFooter={
+        !showResults ? (
+          <>
+            <Box>
+              {currentQuestionId !== "Q1" && (
+                <CustomizableButton
+                  text="Back"
+                  icon={<ArrowLeft />}
+                  onClick={handlePreviousQuestion}
+                  sx={{
+                    fontWeight: 600,
+                    height: "34px",
+                  }}
+                />
+              )}
+            </Box>
+            <CustomizableButton
+              text={finalQuestion ? "View results" : "Next"}
+              onClick={finalQuestion ? handleShowResults : handleNextQuestion}
+              isDisabled={!isQuestionAnswered(currentQuestionId)}
+              endIcon={finalQuestion ? <Save /> : <ArrowRight />}
+              sx={{
+                fontWeight: 600,
+                height: "34px",
+                "&:disabled": { borderColor: theme.palette.grey[200] },
+              }}
+            />
+          </>
+        ) : undefined
+      }
     >
-      <Stack
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: Math.min(900, window.innerWidth - 40),
-          maxHeight: "90vh",
-          overflowY: "auto",
-          bgcolor: theme.palette.background.modal,
-          border: "none",
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: { xs: 4, sm: 8, md: 16 },
-          outline: "none",
-          color: theme.palette.text.primary,
-        }}
-      >
-        {/* Header */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={4}
-        >
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Stack>
-              <Typography fontSize={15} fontWeight={700} sx={{color: theme.palette.text.primary}}>
-                EU AI Act risk classification
-              </Typography>
-              <Typography fontSize={13}>
-                Determine your AI system's regulatory classification.
-              </Typography>
-            </Stack>
-          </Stack>
-          <IconButton onClick={handleClose} size="small" aria-label="Close risk analysis modal">
-            <CloseIcon size={20} />
-          </IconButton>
-        </Stack>
-
+      <Stack spacing={6}>
         {showResults && classification ? (
           <Result
             classification={classification}
@@ -304,42 +294,10 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
                 <Typography>No more questions.</Typography>
               )}
             </Stack>
-
-            {/* Footer */}
-            <Box
-              sx={{
-                mt: 5,
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box>
-                {currentQuestionId !== "Q1" && (
-                  <CustomizableButton
-                    text="Back"
-                    icon={<ArrowLeft />}
-                    onClick={handlePreviousQuestion}
-                    sx={{
-                      fontWeight: 600,
-                    }}
-                  />
-                )}
-              </Box>
-              <CustomizableButton
-                text={finalQuestion ? "View results" : "Next"}
-                onClick={finalQuestion ? handleShowResults : handleNextQuestion}
-                isDisabled={!isQuestionAnswered(currentQuestionId)}
-                endIcon={finalQuestion ? <Save /> : <ArrowRight />}
-                sx={{
-                  fontWeight: 600,
-                  "&:disabled": { borderColor: theme.palette.grey[200] },
-                }}
-              />
-            </Box>
           </>
         )}
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

@@ -34,6 +34,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
+  onFileDeleted,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -161,12 +162,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell>
                   <IconButton
                     id={Number(row.id)}
-                    type="evidence"
+                    type="report"
                     onEdit={() => {}}
                     onDownload={() => handleDownload(row.id, row.fileName)}
-                    onDelete={() => {}}
-                    warningTitle="Are you sure you want to download this file?"
-                    warningMessage="This action will download the file to your local machine."
+                    onDelete={onFileDeleted}
+                    warningTitle="Delete this file?"
+                    warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}
                   />
                 </TableCell>

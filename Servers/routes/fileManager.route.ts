@@ -17,7 +17,7 @@
  */
 
 import express, { Request, Response, NextFunction } from "express";
-import { uploadFile, listFiles, downloadFile } from "../controllers/fileManager.ctrl";
+import { uploadFile, listFiles, downloadFile, removeFile } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
 import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
@@ -179,5 +179,22 @@ router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
  * @returns {500} Server error
  */
 router.get("/:id", authenticateJWT, downloadFile);
+
+/**
+ * @route   DELETE /file-manager/:id
+ * @desc    Delete a file by ID
+ * @access  Admin, Reviewer, Editor only
+ * @param   id - File ID
+ * @returns {200} File deleted successfully
+ * @returns {403} Access denied (unauthorized role or wrong organization)
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.delete(
+  "/:id",
+  authenticateJWT,
+  authorize(["Admin", "Reviewer", "Editor"]),
+  removeFile
+);
 
 export default router;

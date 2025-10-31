@@ -31,6 +31,8 @@ import {
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
+import EvidentlyDataTable from "./EvidentlyDataTable";
+import EvidentlyMetricsModal from "../../components/Modals/EvidentlyMetricsModal";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -115,9 +117,17 @@ const ModelInventory: React.FC = () => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Evidently state
+  const [isEvidentlyMetricsModalOpen, setIsEvidentlyMetricsModalOpen] = useState(false);
+  const [selectedEvidentlyModelId, setSelectedEvidentlyModelId] = useState<string | null>(null);
+
    // Determine the active tab based on the URL
    const currentPath = location.pathname;
-   const activeTab = currentPath.includes("model-risks") ? "model-risks" : "models";
+   const activeTab = currentPath.includes("model-risks")
+     ? "model-risks"
+     : currentPath.includes("evidently-data")
+     ? "evidently-data"
+     : "models";
 
   // Calculate summary from data
   const summary: Summary = {
@@ -643,11 +653,24 @@ const ModelInventory: React.FC = () => {
     setModelRiskStatusFilter(event.target.value);
   };
 
+  // Evidently handlers
+  const handleViewEvidentlyMetrics = (modelId: string) => {
+    setSelectedEvidentlyModelId(modelId);
+    setIsEvidentlyMetricsModalOpen(true);
+  };
+
+  const handleCloseEvidentlyMetricsModal = () => {
+    setIsEvidentlyMetricsModalOpen(false);
+    setSelectedEvidentlyModelId(null);
+  };
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     if (newValue === "models") {
       navigate("/model-inventory");
     } else if (newValue === "model-risks") {
       navigate("/model-inventory/model-risks");
+    } else if (newValue === "evidently-data") {
+      navigate("/model-inventory/evidently-data");
     }
   };
 
@@ -754,6 +777,12 @@ const ModelInventory: React.FC = () => {
                 sx={aiTrustCenterTabStyle}
                 label="Model risks"
                 value="model-risks"
+                disableRipple
+              />
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="Evidently Data"
+                value="evidently-data"
                 disableRipple
               />
             </TabList>
@@ -929,6 +958,12 @@ const ModelInventory: React.FC = () => {
             />
           </>
         )}
+
+        {activeTab === "evidently-data" && (
+          <>
+            <EvidentlyDataTable onViewMetrics={handleViewEvidentlyMetrics} />
+          </>
+        )}
       </Stack>
 
       <NewModelInventory
@@ -988,6 +1023,12 @@ const ModelInventory: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedModelRisk}
+      />
+
+      <EvidentlyMetricsModal
+        isOpen={isEvidentlyMetricsModalOpen}
+        onClose={handleCloseEvidentlyMetricsModal}
+        modelId={selectedEvidentlyModelId}
       />
 
       <PageTour steps={ModelInventorySteps} run={true} tourKey="model-inventory-tour" />

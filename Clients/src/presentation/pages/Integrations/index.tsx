@@ -18,7 +18,7 @@ const Integrations: React.FC = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const { slackIntegrations } = useSlackIntegrations(userId);
-  const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS.slice(0, 3)); // Only show first 3 integrations
+  const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS.slice(0, 4)); // Only show first 4 integrations
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -94,6 +94,8 @@ const Integrations: React.FC = () => {
     // Navigate to integration-specific management page
     if (integration.id === 'slack') {
       navigate('/integrations/slack');
+    } else if (integration.id === 'evidently') {
+      navigate('/integrations/evidently');
     }
     // TODO: Add navigation for other integration management pages
   }, [navigate]);

@@ -35,6 +35,24 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     setupRequired: true,
   },
   {
+    id: 'evidently',
+    name: 'evidently',
+    displayName: 'Evidently AI',
+    description: 'Monitor ML model performance in production with comprehensive drift detection, data quality checks, and fairness metrics.',
+    logo: '/assets/evidently_logo.svg',
+    category: IntegrationCategory.ML_OPS,
+    status: IntegrationStatus.NOT_CONFIGURED,
+    features: [
+      'Data drift detection',
+      'Model performance monitoring',
+      'Fairness & bias metrics',
+      'Data quality checks',
+      'Real-time dashboards'
+    ],
+    documentationUrl: 'https://docs.evidentlyai.com',
+    setupRequired: true,
+  },
+  {
     id: 'github',
     name: 'github',
     displayName: 'GitHub',

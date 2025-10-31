@@ -40,7 +40,8 @@ import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
 import tokenRoutes from "./routes/tokens.route";
-import automation from "./routes/automation.route"
+import automation from "./routes/automation.route.js";
+import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -135,6 +136,7 @@ try {
   app.use("/api/tokens", tokenRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
+  app.use("/api/integrations/mlflow", integrationsRoutes);
 
   // Adding background jobs in the Queue
   (async () => {

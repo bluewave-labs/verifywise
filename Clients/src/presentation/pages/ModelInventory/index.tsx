@@ -31,6 +31,7 @@ import {
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
+import MLFlowDataTable from "./MLFlowDataTable";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -115,9 +116,23 @@ const ModelInventory: React.FC = () => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-   // Determine the active tab based on the URL
-   const currentPath = location.pathname;
-   const activeTab = currentPath.includes("model-risks") ? "model-risks" : "models";
+  // Determine the active tab based on the URL
+  const getInitialTab = () => {
+    const currentPath = location.pathname;
+    if (currentPath.includes("model-risks")) return "model-risks";
+    if (currentPath.includes("mlflow")) return "mlflow";
+    return "models";
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab()); // "models" = Models, "model-risks" = Model Risks, "mlflow" = MLFlow Data
+
+  // Sync activeTab with URL changes (for browser back/forward navigation)
+  useEffect(() => {
+    const newTab = getInitialTab();
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname]);
 
   // Calculate summary from data
   const summary: Summary = {
@@ -644,10 +659,13 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue); // Immediate UI update for better UX
     if (newValue === "models") {
       navigate("/model-inventory");
     } else if (newValue === "model-risks") {
       navigate("/model-inventory/model-risks");
+    } else if (newValue === "mlflow") {
+      navigate("/model-inventory/mlflow");
     }
   };
 
@@ -754,6 +772,12 @@ const ModelInventory: React.FC = () => {
                 sx={aiTrustCenterTabStyle}
                 label="Model risks"
                 value="model-risks"
+                disableRipple
+              />
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="MLFlow data"
+                value="mlflow"
                 disableRipple
               />
             </TabList>
@@ -928,6 +952,10 @@ const ModelInventory: React.FC = () => {
               models={modelInventoryData}
             />
           </>
+        )}
+
+        {activeTab === "mlflow" && (
+          <MLFlowDataTable />
         )}
       </Stack>
 

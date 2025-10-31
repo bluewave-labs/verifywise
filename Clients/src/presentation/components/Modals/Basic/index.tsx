@@ -69,7 +69,11 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+        <Typography
+          id="modal-delete-vendor"
+          fontSize={16}
+          fontWeight={600}
+        >
           {warningTitle}
         </Typography>
         <Typography

@@ -78,6 +78,7 @@ const FileManager: React.FC = (): JSX.Element => {
   // Local state to manage files (allows manual refresh)
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Sync initial data from hook to local state (always sync, even if empty)
   useEffect(() => {
@@ -248,7 +249,7 @@ const FileManager: React.FC = (): JSX.Element => {
         <FileManagerUploadModal
           open={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
-          onUploadSuccess={handleUploadSuccess}
+          onSuccess={handleUploadSuccess}
         />
       )}
     </Stack>

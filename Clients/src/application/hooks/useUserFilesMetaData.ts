@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FileData } from "../../domain/types/File";
 import { getUserFilesMetaData } from "../repository/file.repository";
+import { transformFilesData } from "../utils/fileTransform.utils";
 
 export const useUserFilesMetaData = () => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
@@ -32,26 +33,7 @@ export const useUserFilesMetaData = () => {
         });
 
         if (filesResponse && Array.isArray(filesResponse)) {
-          setFilesData(
-            filesResponse.map((file) => ({
-              id: file.id,
-              fileName: file.filename,
-              uploadDate: file.uploaded_time
-                ? new Date(file.uploaded_time).toLocaleDateString()
-                : "Invalid Date",
-              uploader:
-                `${file.uploader_name ?? ""} ${
-                  file.uploader_surname ?? ""
-                }`.trim() || "N/A",
-              source: file.source,
-              projectTitle: file.project_title,
-              projectId: file.project_id.toString(),
-              parentId: file.parent_id,
-              subId: file.sub_id,
-              metaId: file.meta_id,
-              isEvidence: file.is_evidence,
-            })),
-          );
+          setFilesData(transformFilesData(filesResponse));
         } else {
           setFilesData([]);
         }

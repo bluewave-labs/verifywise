@@ -128,6 +128,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const [values, setValues] = useState<NewModelInventoryFormValues>(
     initialData || initialState
   );
+  const [initialValues, setInitialValues] = useState<NewModelInventoryFormValues>(
+    initialData || initialState
+  );
   const [errors, setErrors] = useState<NewModelInventoryFormErrors>({});
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -137,12 +140,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     if (initialData && users.length > 0) {
       // If we have initialData and users are loaded, set the values
       setValues(initialData);
+      setInitialValues(initialData);
     } else if (initialData && !isEdit) {
       // If we have initialData but no users yet, set values temporarily
       setValues(initialData);
+      setInitialValues(initialData);
     } else if (!isEdit) {
       // If not editing, set initial state
       setValues(initialState);
+      setInitialValues(initialState);
     }
   }, [initialData, isEdit, users]);
 
@@ -202,10 +208,20 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       // Get enabled framework names for this project
       const enabledFrameworks = project.framework?.map((f) => f.name) || [];
 
-      // Only include target frameworks that are enabled
-      return targetFrameworks
-        .filter((fw) => enabledFrameworks.includes(fw))
-        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+      // Filter to only target frameworks that are enabled for this project
+      const matchingFrameworks = targetFrameworks.filter((fw) =>
+        enabledFrameworks.includes(fw)
+      );
+
+      // If the project has matching frameworks, return project-framework combinations
+      if (matchingFrameworks.length > 0) {
+        return matchingFrameworks.map(
+          (fw) => `${project.project_title.trim()} - ${fw}`
+        );
+      }
+
+      // If no matching frameworks, still include the project without a framework suffix
+      return [project.project_title.trim()];
     });
   }, [projectList]);
 
@@ -228,6 +244,14 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       })
     );
   }, []);
+
+  // Detect if form has changes (for edit mode)
+  const hasFormChanges = useMemo(() => {
+    if (!isEdit) return true; // Always allow save for new items
+
+    // Deep comparison of values vs initialValues
+    return JSON.stringify(values) !== JSON.stringify(initialValues);
+  }, [values, initialValues, isEdit]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -456,7 +480,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       }
       onSubmit={handleSubmit}
       submitButtonText={isEdit ? "Update Model" : "Save"}
-      isSubmitting={isSubmitting}
+      isSubmitting={isSubmitting || !hasFormChanges}
       maxWidth="760px"
     >
       <Stack spacing={6}>

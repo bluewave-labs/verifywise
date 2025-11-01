@@ -861,6 +861,59 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       "order" INTEGER DEFAULT 1
     );`, { transaction });
 
+    await sequelize.query(`CREATE TABLE "${tenantHash}".mlflow_integrations (
+      id SERIAL PRIMARY KEY,
+      tracking_server_url VARCHAR(255) NOT NULL,
+      auth_method VARCHAR(10) NOT NULL DEFAULT 'none' CHECK (auth_method IN ('none', 'basic', 'token')),
+      username VARCHAR(255),
+      username_iv VARCHAR(255),
+      password VARCHAR(255),
+      password_iv VARCHAR(255),
+      api_token VARCHAR(255),
+      api_token_iv VARCHAR(255),
+      verify_ssl BOOLEAN NOT NULL DEFAULT TRUE,
+      timeout INTEGER NOT NULL DEFAULT 30,
+      last_tested_at TIMESTAMP,
+      last_test_status VARCHAR(10) CHECK (last_test_status IN ('success', 'error')),
+      last_test_message TEXT,
+      last_synced_at TIMESTAMP,
+      last_sync_status VARCHAR(10) CHECK (last_sync_status IN ('success', 'partial', 'error')),
+      last_sync_message TEXT,
+      last_successful_test_at TIMESTAMP,
+      last_failed_test_at TIMESTAMP,
+      last_failed_test_message TEXT,
+      updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".mlflow_model_records (
+      id SERIAL PRIMARY KEY,
+      model_name VARCHAR(255) NOT NULL,
+      version VARCHAR(255) NOT NULL,
+      lifecycle_stage VARCHAR(255),
+      run_id VARCHAR(255),
+      description TEXT,
+      source VARCHAR(255),
+      status VARCHAR(255),
+      tags JSONB NOT NULL DEFAULT '{}'::jsonb,
+      metrics JSONB NOT NULL DEFAULT '{}'::jsonb,
+      parameters JSONB NOT NULL DEFAULT '{}'::jsonb,
+      experiment_id VARCHAR(255),
+      experiment_name VARCHAR(255),
+      artifact_location TEXT,
+      training_status VARCHAR(255),
+      training_started_at TIMESTAMP,
+      training_ended_at TIMESTAMP,
+      source_version VARCHAR(255),
+      model_created_at TIMESTAMP,
+      model_updated_at TIMESTAMP,
+      last_synced_at TIMESTAMP,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT mlflow_model_records_org_model_version_unique UNIQUE (model_name, version)
+    );`, { transaction });
+
     await sequelize.query(`CREATE TABLE "${tenantHash}".file_manager (
       id SERIAL PRIMARY KEY,
       filename VARCHAR(255) NOT NULL,

@@ -145,12 +145,10 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
  * @returns {403} Access denied (unauthorized role)
  * @returns {413} File size exceeds maximum allowed size
  * @returns {415} Unsupported file type
- * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
 router.post(
   "/",
-  fileOperationsLimiter,
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   upload.single("file"),
@@ -178,9 +176,8 @@ router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
  * @returns {200} File content with download headers
  * @returns {403} Access denied (file from different organization)
  * @returns {404} File not found
- * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
-router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
+router.get("/:id", authenticateJWT, downloadFile);
 
 export default router;

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { 
   getAllVendors, 
   getVendorById, 
@@ -7,21 +7,8 @@ import {
   update as updateVendor, 
   deleteVendor 
 } from '../repository/vendor.repository';
+import { VendorModel } from '../../domain/models/Common/vendor/vendor.model';
 
-export interface VendorDetails {
-  id?: number;
-  projects: number[];
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  risk_status: string;
-  review_date: string;
-  assignee: string;
-}
 
 // Query keys for vendors
 export const vendorQueryKeys = {
@@ -33,7 +20,7 @@ export const vendorQueryKeys = {
 };
 
 // Hook to fetch all vendors
-export const useVendors = (filters: { projectId?: string | number } = {}) => {
+export const useVendors = (filters: { projectId?: string | number } = {}): UseQueryResult<VendorModel[], Error> => {
   return useQuery({
     queryKey: vendorQueryKeys.list(filters),
     queryFn: async () => {
@@ -71,7 +58,7 @@ export const useCreateVendor = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (vendorData: Partial<VendorDetails>) => {
+    mutationFn: async (vendorData: Partial<VendorModel>) => {
       const response = await createNewVendor({ body: vendorData });
       return response;
     },
@@ -87,7 +74,7 @@ export const useUpdateVendor = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<VendorDetails> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<VendorModel> }) => {
       const response = await updateVendor({ id, body: data });
       return response;
     },

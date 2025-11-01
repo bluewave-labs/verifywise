@@ -8,7 +8,7 @@ export async function getAllVendors({
   const response = await apiServices.get("/vendors", {
     signal,
   });
-  return  response.data
+  return response.data;
 }
 
 export async function getVendorById({
@@ -34,7 +34,7 @@ export async function getVendorsByProjectId({
   const response = await apiServices.get(`/vendors/project-id/${projectId}`, {
     signal,
   });
-  return response.data
+  return response.data;
 }
 
 export async function createNewVendor({
@@ -43,7 +43,7 @@ export async function createNewVendor({
   body: any;
 }): Promise<any> {
   const response = await apiServices.post("/vendors", body);
-  return response
+  return response;
 }
 
 export async function update({

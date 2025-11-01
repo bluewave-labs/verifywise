@@ -41,30 +41,14 @@ import HelperIcon from "../../components/HelperIcon";
 import {
   useVendors,
   useDeleteVendor,
-  VendorDetails,
 } from "../../../application/hooks/useVendors";
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
-
-interface ExistingRisk {
-  id?: number;
-  risk_description: string;
-  impact_description: string;
-  project_name?: string;
-  impact: string;
-  action_owner: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_level: string;
-  action_plan: string;
-  vendor_id: string;
-}
-
-// Export VendorDetails interface for use in other components
-export type { VendorDetails };
+import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
+import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -76,13 +60,12 @@ const Vendors = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [value, setValue] = useState("1");
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";
   const { users } = useUsers();
 
-  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorModel| null>(null);
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
@@ -186,7 +169,19 @@ const Vendors = () => {
     // isRisksTab, vendors.length, isVendorsLoading determine which modal to open or if validation is needed
   }, [location.state, navigate, location.pathname, isRisksTab, vendors.length, isVendorsLoading]);
 
-  const handleDeleteVendor = async (vendorId: number) => {
+  const handleDeleteVendor = async (vendorId?: number) => {
+    if (!vendorId) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -322,7 +317,19 @@ const Vendors = () => {
     }
   };
 
-  const handleEditVendor = async (id: number) => {
+  const handleEditVendor = async (id?: number) => {
+    if (!id) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     try {
       const response = await getVendorById({
         id: Number(id),

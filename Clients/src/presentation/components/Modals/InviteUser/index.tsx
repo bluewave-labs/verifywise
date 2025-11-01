@@ -14,24 +14,20 @@
  */
 
 import {
-  Button,
-  Modal,
   Stack,
-  Typography,
-  useTheme,
   SelectChangeEvent,
   Box,
+  Typography,
 } from "@mui/material";
 import React, { useState, useMemo, useEffect } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { Mail as ForwardToInboxIcon } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import StandardModal from "../StandardModal";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -65,7 +61,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   setIsOpen,
   onSendInvite,
 }) => {
-  const theme = useTheme();
   const { roles } = useRoles();
   const { organizationId } = useAuth();
 
@@ -157,127 +152,69 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (reason !== "backdropClick") {
-          setIsOpen(false);
-        }
-      }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      title="Invite new team member"
+      description="Add a new member to give them access to the VerifyWise dashboard"
+      submitButtonText="Send Invite"
+      onSubmit={handleSendInvitation}
     >
-      <Stack
-        gap={theme.spacing(2)}
-        color={theme.palette.text.secondary}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 450,
-          bgcolor: theme.palette.background.paper,
-          border: 1,
-          borderColor: theme.palette.border.dark,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: theme.spacing(4),
-          padding: theme.spacing(18),
-          "&:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        <Typography id="modal-invite-user" fontSize={16} fontWeight={600}>
-          Invite new team member
-        </Typography>
-        <Typography
-          id="invite-user-instructions"
-          fontSize={13}
-          textAlign={"justify"}
-          paddingBottom={theme.spacing(8)}
-        >
-          When you add a new team member, they will get access to all monitors.
-        </Typography>
-        <Stack gap={theme.spacing(12)}>
+      <Stack gap="16px">
+        <Stack gap="8px">
+          <Typography variant="body2" sx={{ fontWeight: 500, color: "rgba(0, 0, 0, 0.87)" }}>
+            Name *
+          </Typography>
           <Field
-            placeholder="Name"
+            placeholder="Enter name"
             type="name"
             value={values.name}
             onChange={handleFormFieldChange("name")}
             isRequired
             error={errors.name}
           />
+        </Stack>
+        <Stack gap="8px">
+          <Typography variant="body2" sx={{ fontWeight: 500, color: "rgba(0, 0, 0, 0.87)" }}>
+            Surname *
+          </Typography>
           <Field
-            placeholder="Surname"
+            placeholder="Enter surname"
             type="surname"
             value={values.surname}
             onChange={handleFormFieldChange("surname")}
             isRequired
             error={errors.surname}
           />
+        </Stack>
+        <Stack gap="8px">
+          <Typography variant="body2" sx={{ fontWeight: 500, color: "rgba(0, 0, 0, 0.87)" }}>
+            Email *
+          </Typography>
           <Field
-            placeholder="Email"
+            placeholder="Enter email address"
             type="email"
             value={values.email}
             onChange={handleFormFieldChange("email")}
             isRequired
             error={errors.email}
           />
-          <Stack direction="row" alignItems="center" spacing={2} width="100%">
-            <Box flexGrow={1}>
-              <Select
-                id="role-select"
-                value={values.roleId}
-                onChange={handleOnSelectChange("roleId")}
-                items={roleItems}
-                error={errors.roleId}
-                isRequired
-              />
-            </Box>
-          </Stack>
         </Stack>
-        <Stack
-          direction="row"
-          gap={theme.spacing(4)}
-          mt={theme.spacing(4)}
-          justifyContent="flex-end"
-          paddingTop={theme.spacing(8)}
-          paddingBottom={theme.spacing(4)}
-        >
-          <Button
-            disableRipple
-            disableFocusRipple
-            disableTouchRipple
-            variant="text"
-            color="inherit"
-            onClick={() => setIsOpen(false)}
-            sx={{
-              width: 100,
-              textTransform: "capitalize",
-              fontSize: 13,
-              borderRadius: "4px",
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            Cancel
-          </Button>
-
-          <CustomizableButton
-            variant="contained"
-            text="Send Invite"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<ForwardToInboxIcon size={16} />}
-            onClick={() => handleSendInvitation()}
+        <Stack gap="8px">
+          <Typography variant="body2" sx={{ fontWeight: 500, color: "rgba(0, 0, 0, 0.87)" }}>
+            Role *
+          </Typography>
+          <Select
+            id="role-select"
+            value={values.roleId}
+            onChange={handleOnSelectChange("roleId")}
+            items={roleItems}
+            error={errors.roleId}
+            isRequired
           />
         </Stack>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

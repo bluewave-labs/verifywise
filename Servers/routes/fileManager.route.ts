@@ -145,6 +145,7 @@ router.get("/:id", authenticateJWT, downloadFile);
  */
 router.delete(
   "/:id",
+  fileOperationsLimiter,
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   removeFile

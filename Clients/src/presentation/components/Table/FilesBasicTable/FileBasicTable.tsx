@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
 import { ExternalLink as LinkExternalIcon } from "lucide-react";
 import { handleDownload } from "../../../../application/tools/fileDownload";
+import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileData } from "../../../../domain/types/File";
 import {
   getPaginationRowCount,
@@ -101,6 +102,23 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     }
   };
 
+  // Create delete handler for a specific file
+  const createDeleteHandler = useCallback(
+    (fileId: string) => async () => {
+      try {
+        await deleteFileFromManager({ id: fileId });
+        // After successful delete, refresh the list
+        if (onFileDeleted) {
+          onFileDeleted();
+        }
+      } catch (error) {
+        console.error("Failed to delete file:", error);
+        throw error; // Re-throw so IconButton can show error
+      }
+    },
+    [onFileDeleted]
+  );
+
   return (
     <>
       <TableContainer id={table}>
@@ -165,7 +183,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     type="report"
                     onEdit={() => {}}
                     onDownload={() => handleDownload(row.id, row.fileName)}
-                    onDelete={onFileDeleted}
+                    onDelete={createDeleteHandler(row.id)}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}

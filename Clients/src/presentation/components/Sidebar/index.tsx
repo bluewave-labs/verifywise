@@ -507,7 +507,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     stroke:
@@ -515,7 +516,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     transition: "color 0.2s ease, stroke 0.2s ease",
@@ -526,7 +528,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                   },
@@ -563,7 +566,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#f8fafc"
                         : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
@@ -642,7 +646,8 @@ const Sidebar = () => {
                     item.highlightPaths?.some((p: string) =>
                       location.pathname.startsWith(p)
                     ) ||
-                    customMenuHandler() === item.path
+                    customMenuHandler() === item.path ||
+                    location.pathname.startsWith(`${item.path}/`)
                       ? "selected-path"
                       : "unselected"
                   }
@@ -657,7 +662,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                         : "transparent",
                     border:
@@ -675,7 +681,8 @@ const Sidebar = () => {
                         item.highlightPaths?.some((p: string) =>
                           location.pathname.startsWith(p)
                         ) ||
-                        customMenuHandler() === item.path
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                           ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                           : "#F9F9F9",
                       border:
@@ -683,7 +690,8 @@ const Sidebar = () => {
                         item.highlightPaths?.some((p: string) =>
                           location.pathname.startsWith(p)
                         ) ||
-                        customMenuHandler() === item.path
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                           ? "1px solid #D8D8D8"
                           : "1px solid transparent",
                     },
@@ -710,7 +718,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         stroke:
@@ -718,7 +727,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         transition: "color 0.2s ease, stroke 0.2s ease",
@@ -729,7 +739,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                       },
@@ -798,17 +809,17 @@ const Sidebar = () => {
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
-              background: managementItems.some(item => location.pathname.includes(item.path))
+              background: managementItems.some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                 : "transparent",
-              border: managementItems.some(item => location.pathname.includes(item.path))
+              border: managementItems.some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                 ? "1px solid #D8D8D8"
                 : "1px solid transparent",
               "&:hover": {
-                background: managementItems.some(item => location.pathname.includes(item.path))
+                background: managementItems.some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: managementItems.some(item => location.pathname.includes(item.path))
+                border: managementItems.some(item =>location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "1px solid #D8D8D8"
                   : "1px solid transparent",
               },

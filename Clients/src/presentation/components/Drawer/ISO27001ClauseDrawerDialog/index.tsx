@@ -668,16 +668,7 @@ const VWISO27001ClauseDrawerDialog = ({
             </Suspense>
           </Dialog>
 
-          <Dialog
-            open={isLinkedRisksModalOpen}
-            onClose={() => setIsLinkedRisksModalOpen(false)}
-            PaperProps={{
-              sx: {
-                width: "1500px",
-                maxWidth: "1500px",
-              },
-            }}
-          >
+          {isLinkedRisksModalOpen && (
             <Suspense fallback={"loading..."}>
               <LinkedRisksPopup
                 onClose={() => setIsLinkedRisksModalOpen(false)}
@@ -690,7 +681,7 @@ const VWISO27001ClauseDrawerDialog = ({
                 isOrganizational={true}
               />
             </Suspense>
-          </Dialog>
+          )}
         </Stack>
         <Divider />
         <Stack

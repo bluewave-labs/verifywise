@@ -43,6 +43,11 @@ export class ProjectModel
   start_date!: Date;
 
   @Column({
+    type: DataType.INTEGER,
+  })
+  geography!: number;
+
+  @Column({
     type: DataType.ENUM(...Object.values(AiRiskClassification)),
   })
   ai_risk_classification!: AiRiskClassification;

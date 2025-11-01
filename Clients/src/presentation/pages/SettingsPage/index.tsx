@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -14,7 +14,6 @@ import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
-import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -26,25 +25,26 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
-  const [activeTab, setActiveTab] = useState("profile");
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeSetting = searchParams.get("activeTab") || "";
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  const { tab } = useParams<{ tab?: string }>();
+
+  const [activeTab, setActiveTab] = useState(tab || "profile");
 
   const validTabs = useMemo(() => {
     const tabs = ["profile", "password", "team", "organization", "apikeys"];
     return tabs;
   }, [])
 
+  // keep state synced with URL
   useEffect(() => {
-    if (activeSetting && validTabs.includes(activeSetting)) {
-      setActiveTab(activeSetting);
+    if (tab && validTabs.includes(tab)) {
+      setActiveTab(tab);
     } else {
-      searchParams.delete("activeTab");
-      setSearchParams(searchParams);
+      navigate("/settings", { replace: true });
       setActiveTab("profile");
     }
-  }, [activeSetting]);
+  }, [tab, validTabs, navigate]);
 
   // Handle navigation state from command palette
   useEffect(() => {
@@ -64,14 +64,13 @@ export default function ProfilePage() {
       // Clear the navigation state to prevent stale state issues
       navigate(location.pathname, { replace: true });
     }
-  }, [location.state, isTeamManagementDisabled, navigate, location.pathname]);
+  }, [location.state, isTeamManagementDisabled, navigate, location.pathname, validTabs]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    if (activeSetting) {
-      searchParams.set("activeTab", newValue);
-      setSearchParams(searchParams);
-    }
     setActiveTab(newValue);
+
+    if (newValue === "profile") navigate("/settings");
+    else navigate(`/settings/${newValue}`);
   };
 
   return (

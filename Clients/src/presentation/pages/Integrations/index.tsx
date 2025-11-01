@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import {
   Box,
   Stack,
@@ -13,18 +13,21 @@ import { Integration, IntegrationStatus, IntegrationConnectionHandler } from '..
 import Alert from '../../components/Alert';
 import useSlackIntegrations from '../../../application/hooks/useSlackIntegrations';
 import { useAuth } from '../../../application/hooks/useAuth';
+import { apiServices } from '../../../infrastructure/api/networkServices';
 
 const Integrations: React.FC = () => {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, userRoleName } = useAuth();
   const { slackIntegrations } = useSlackIntegrations(userId);
-  const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS.slice(0, 3)); // Only show first 3 integrations
+  const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
     body: string;
     visible: boolean;
   } | null>(null);
+
+  const isAdmin = userRoleName === "Admin";
 
   // Update Slack integration status based on actual data
   useEffect(() => {
@@ -47,6 +50,75 @@ const Integrations: React.FC = () => {
     }
   }, [slackIntegrations]);
 
+  useEffect(() => {
+    const fetchMlflowStatus = async () => {
+      try {
+        const [configResponse, statusResponse] = await Promise.all([
+          apiServices.get<{
+            configured: boolean;
+            config?: {
+              lastTestStatus?: 'success' | 'error';
+              lastTestedAt?: string;
+            };
+          }>("/integrations/mlflow/config"),
+          apiServices.get<{
+            success: boolean;
+            data: {
+              configured: boolean;
+              lastSyncedAt: string | null;
+              lastSyncStatus: 'success' | 'partial' | 'error' | null;
+              lastTestStatus: 'success' | 'error' | null;
+              lastTestedAt: string | null;
+            };
+          }>("/integrations/mlflow/sync-status"),
+        ]);
+
+        const configured = configResponse.data?.configured;
+        const syncData = statusResponse.data?.data;
+
+        setIntegrations(prev =>
+          prev.map(int =>
+            int.id === 'mlflow'
+              ? {
+                  ...int,
+                  status: configured
+                    ? IntegrationStatus.CONFIGURED
+                    : IntegrationStatus.NOT_CONFIGURED,
+                  lastSyncAt: syncData?.lastSyncedAt ?? null,
+                  lastSyncStatus: syncData?.lastSyncStatus ?? null,
+                  lastTestStatus:
+                    syncData?.lastTestStatus ??
+                    configResponse.data?.config?.lastTestStatus ??
+                    null,
+                  lastTestedAt:
+                    syncData?.lastTestedAt ??
+                    configResponse.data?.config?.lastTestedAt ??
+                    null,
+                }
+              : int,
+          ),
+        );
+      } catch (error) {
+        setIntegrations(prev =>
+          prev.map(int =>
+            int.id === 'mlflow'
+              ? {
+                  ...int,
+                  status: IntegrationStatus.NOT_CONFIGURED,
+                  lastSyncAt: null,
+                  lastSyncStatus: null,
+                  lastTestStatus: null,
+                  lastTestedAt: null,
+                }
+              : int,
+          ),
+        );
+      }
+    };
+
+    fetchMlflowStatus();
+  }, []);
+
   // Handle integration connection
   const handleConnect: IntegrationConnectionHandler = useCallback(async (integration: Integration) => {
     setLoadingStates(prev => ({ ...prev, [integration.id]: true }));
@@ -59,7 +131,11 @@ const Integrations: React.FC = () => {
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integration.id
-            ? { ...int, status: IntegrationStatus.CONFIGURED, lastSyncAt: new Date() }
+            ? {
+                ...int,
+                status: IntegrationStatus.CONFIGURED,
+                lastSyncAt: new Date().toISOString(),
+              }
             : int
         )
       );
@@ -94,6 +170,8 @@ const Integrations: React.FC = () => {
     // Navigate to integration-specific management page
     if (integration.id === 'slack') {
       navigate('/integrations/slack');
+    } else if (integration.id === 'mlflow') {
+      navigate('/integrations/mlflow');
     }
     // TODO: Add navigation for other integration management pages
   }, [navigate]);
@@ -112,6 +190,10 @@ const Integrations: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Stack className="vwhome" gap={"16px"}>

@@ -640,16 +640,7 @@ const VWISO27001AnnexDrawerDialog = ({
             </Suspense>
           </Dialog>
 
-          <Dialog
-            open={isLinkedRisksModalOpen}
-            onClose={() => setIsLinkedRisksModalOpen(false)}
-            PaperProps={{
-              sx: {
-                width: "1500px",
-                maxWidth: "1500px",
-              },
-            }}
-          >
+          {isLinkedRisksModalOpen && (
             <Suspense fallback={"loading..."}>
               <LinkedRisksPopup
                 onClose={() => setIsLinkedRisksModalOpen(false)}
@@ -662,7 +653,7 @@ const VWISO27001AnnexDrawerDialog = ({
                 isOrganizational={true}
               />
             </Suspense>
-          </Dialog>
+          )}
         </Stack>
         <Divider />
         <Stack

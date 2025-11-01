@@ -50,12 +50,22 @@ export class SMTPProvider implements EmailProvider {
 
   async sendEmail(options: EmailOptions): Promise<EmailResult> {
     try {
-      const mailOptions = {
+      const mailOptions: any = {
         from: options.from || this.config.auth.user,
         to: options.to,
         subject: options.subject,
         html: options.html,
       };
+
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        mailOptions.attachments = options.attachments.map(att => ({
+          filename: att.filename,
+          content: att.content,
+          contentType: att.contentType,
+          path: att.path
+        }));
+      }
 
       const result = await this.transporter.sendMail(mailOptions);
 

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Stack, Box, Typography } from "@mui/material";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Stack, Box, Typography, SelectChangeEvent } from "@mui/material";
+import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -8,12 +9,23 @@ import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
+import { FileData } from "../../../domain/types/File";
 import PageHeader from "../../components/Layout/PageHeader";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
+import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
+import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+
+// Constants (DRY + Maintainability)
+const FILE_MANAGER_CONTEXT = 'FileManager';
+const AUDITOR_ROLE = 'Auditor'; // Role that cannot upload files
 
 const COLUMN_NAMES = [
   "File",
@@ -60,8 +72,58 @@ const FileManager: React.FC = (): JSX.Element => {
     string | number | null
   >("all");
 
-  // Fetch files based on selected project
-  const { filesData, loading: loadingFiles } = useUserFilesMetaData();
+  // Use hook for initial data load (keeps hook unchanged as requested)
+  const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
+
+  // Local state to manage files (allows manual refresh)
+  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Sync initial data from hook to local state (always sync, even if empty)
+  useEffect(() => {
+    setFilesData(initialFilesData);
+    setLoadingFiles(initialLoading);
+  }, [initialFilesData, initialLoading]);
+
+  // RBAC: Get user role for permission checks
+  const { userRoleName } = useAuth();
+
+  // REQUIREMENT: "Upload allowed for all users except Auditors"
+  // SECURITY: Default-deny - require authenticated role that is not Auditor
+  // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
+  const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+
+  // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
+  const refetch = useCallback(async () => {
+    try {
+      setLoadingFiles(true);
+      const response = await getUserFilesMetaData();
+      setFilesData(transformFilesData(response));
+    } catch (error) {
+      // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
+      //  includes user ID/email/name which violates GDPR/compliance
+      secureLogError('Error refetching files', FILE_MANAGER_CONTEXT);
+      setFilesData([]);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, []);
+
+  // Handle upload button click (Defensive: Check permissions)
+  const handleUploadClick = useCallback(() => {
+    // Defensive: Double-check permission before opening modal
+    if (!isUploadAllowed) {
+      console.warn('[FileManager] Upload attempt by unauthorized role:', userRoleName);
+      return;
+    }
+    setIsUploadModalOpen(true);
+  }, [isUploadAllowed, userRoleName]);
+
+  // Handle upload success - refetch files
+  const handleUploadSuccess = useCallback(() => {
+    refetch();
+  }, [refetch]);
   const filteredFiles = useMemo(() => {
     if (selectedProject === "all" || selectedProject === null) {
       return filesData;
@@ -156,7 +218,7 @@ const FileManager: React.FC = (): JSX.Element => {
                   name: project.project_title,
                 }))
               ]}
-              onChange={(e) => setSelectedProject(e.target.value)}
+              onChange={(e: SelectChangeEvent<string | number>) => setSelectedProject(e.target.value)}
               sx={{
                 width: "fit-content",
                 minWidth: "200px",
@@ -164,11 +226,31 @@ const FileManager: React.FC = (): JSX.Element => {
                 bgcolor: "#fff",
               }}
             />
+            {/* RBAC: Only show upload button for non-Auditors */}
+            {isUploadAllowed && (
+              <CustomizableButton
+                variant="contained"
+                text="Upload new file"
+                sx={{
+                  gap: 2,
+                }}
+                icon={<UploadIcon size={16} />}
+                onClick={handleUploadClick}
+              />
+            )}
           </Box>
           <Box sx={boxStyles}>
             <FileTable cols={COLUMNS} files={filteredFiles} />
           </Box>
         </Stack>
+      )}
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <FileManagerUploadModal
+          open={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onSuccess={handleUploadSuccess}
+        />
       )}
     </Stack>
   );

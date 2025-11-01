@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
 import {
   Box,
@@ -39,30 +41,17 @@ import HelperIcon from "../../components/HelperIcon";
 import {
   useVendors,
   useDeleteVendor,
-  VendorDetails,
 } from "../../../application/hooks/useVendors";
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
+import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
+import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 
-interface ExistingRisk {
-  id?: number;
-  risk_description: string;
-  impact_description: string;
-  project_name?: string;
-  impact: string;
-  action_owner: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_level: string;
-  action_plan: string;
-  vendor_id: string;
-}
-
-// Export VendorDetails interface for use in other components
-export type { VendorDetails };
+// Constants
+const REDIRECT_DELAY_MS = 2000;
 
 const Vendors = () => {
   const theme = useTheme();
@@ -71,17 +60,21 @@ const Vendors = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [value, setValue] = useState("1");
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";
   const { users } = useUsers();
 
-  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorModel| null>(null);
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+
+  const currentPath = location.pathname;
+  const isRisksTab = currentPath.includes("/vendors/risks");
+  const value = isRisksTab ? "2" : "1";
+
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -129,7 +122,11 @@ const Vendors = () => {
   };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
+    if (newValue === "1") {
+      navigate("/vendors");
+    } else if (newValue === "2") {
+      navigate("/vendors/risks");
+    }
   };
 
   useEffect(() => {
@@ -140,16 +137,51 @@ const Vendors = () => {
 
   // Auto-open create vendor modal when navigating from "Add new..." dropdown
   useEffect(() => {
-    if (location.state?.openCreateModal) {
-      setIsOpen(true);
-      setSelectedVendor(null);
+    if (location.state?.openCreateModal && !isVendorsLoading) {
+      // Check if we're on the risks tab
+      if (isRisksTab) {
+        // Check if there are any vendors
+        if (vendors.length === 0) {
+          setAlert({
+            variant: "info",
+            title: "No vendors available",
+            body: "Please create a vendor first before adding vendor risks. Redirecting to vendors tab...",
+          });
+          // Redirect to vendors tab
+          setTimeout(() => {
+            navigate("/vendors");
+            setIsOpen(true);
+            setSelectedVendor(null);
+          }, REDIRECT_DELAY_MS);
+        } else {
+          setIsRiskModalOpen(true);
+        }
+      } else {
+        setIsOpen(true);
+        setSelectedVendor(null);
+      }
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+    // Dependencies: location.state triggers the effect when openCreateModal is passed via navigation
+    // navigate, location.pathname are needed for state clearing
+    // isRisksTab, vendors.length, isVendorsLoading determine which modal to open or if validation is needed
+  }, [location.state, navigate, location.pathname, isRisksTab, vendors.length, isVendorsLoading]);
 
-  const handleDeleteVendor = async (vendorId: number) => {
+  const handleDeleteVendor = async (vendorId?: number) => {
+    if (!vendorId) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -285,7 +317,19 @@ const Vendors = () => {
     }
   };
 
-  const handleEditVendor = async (id: number) => {
+  const handleEditVendor = async (id?: number) => {
+    if (!id) {
+      logEngine({
+        type: "error",
+        message: "No ID provided for fetching vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "No ID provided for fetching vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     try {
       const response = await getVendorById({
         id: Number(id),

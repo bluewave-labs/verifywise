@@ -54,7 +54,7 @@ const RiskLevel: FC<IRiskLevelProps> = ({
         value={likelihood}
         onChange={handleOnSelectChange("likelihood")}
         items={likelihoodItems}
-        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        sx={{ width: 220, backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
       <Select
@@ -64,7 +64,7 @@ const RiskLevel: FC<IRiskLevelProps> = ({
         value={riskSeverity}
         onChange={handleOnSelectChange("riskSeverity")}
         items={riskSeverityItems}
-        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        sx={{ width: 220, backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
       <Stack rowGap={2}>

@@ -65,7 +65,8 @@ export const sendEmail = async (
 export const sendAutomationEmail = async (
     to: string[],
     subject: string,
-    body: string
+    body: string,
+    attachments?: { filename: string; content: Buffer | string; contentType?: string; path?: string }[]
 ) => {
     // Initialize provider if not already done
     const provider = initializeEmailProvider();
@@ -83,6 +84,7 @@ export const sendAutomationEmail = async (
             subject,
             html: body,
             from: process.env.EMAIL_ID,
+            attachments: attachments || [],
         };
 
         // Validate email options to prevent security issues

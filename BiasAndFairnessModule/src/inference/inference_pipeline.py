@@ -1,4 +1,5 @@
 from typing import Optional, Any, Dict, List
+import json
 
 import os
 import pandas as pd
@@ -94,6 +95,17 @@ class InferencePipeline:
             conf_value = float(parsed["confidence"])
         elif provider_lower == "huggingface":
             pred_value = prediction
+            conf_value = None
+        elif provider_lower == "ollama":
+            # Expecting JSON: {"label": "<=50K or >50K"}
+            text = (prediction or "").strip()
+            try:
+                parsed = json.loads(text)
+                label = parsed.get("label") if isinstance(parsed, dict) else None
+                pred_value = label if isinstance(label, str) else text
+            except json.JSONDecodeError:
+                # Fall back to raw text if not valid JSON
+                pred_value = text
             conf_value = None
         else:
             raise NotImplementedError(

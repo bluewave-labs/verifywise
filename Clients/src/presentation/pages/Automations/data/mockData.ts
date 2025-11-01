@@ -219,6 +219,117 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
       },
     ],
   },
+  {
+    type: 'scheduled_report',
+    name: 'Schedule a Report',
+    description: 'Generate and email reports on a recurring schedule',
+    category: 'reporting',
+    icon: 'BarChart3',
+    defaultConfiguration: {
+      reportLevel: 'project',
+      projectId: '',
+      framework: 1,
+      reportType: [],
+      frequency: 'weekly',
+      hour: 9,
+      minute: 0,
+      dayOfWeek: 1,
+      dayOfMonth: 1,
+    },
+    configurationSchema: [
+      {
+        key: 'reportLevel',
+        label: 'Report Level',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'project', label: 'Project-Level Reports (EU AI Act)' },
+          { value: 'organization', label: 'Organization-Level Reports (ISO)' },
+        ],
+        helpText: 'Choose whether to generate EU AI Act project reports or ISO organization reports',
+      },
+      {
+        key: 'projectId',
+        label: 'Project',
+        type: 'select',
+        required: true,
+        options: [], // Will be populated dynamically from EU AI Act projects
+        helpText: 'Select the EU AI Act project to generate reports for',
+      },
+      {
+        key: 'framework',
+        label: 'Framework',
+        type: 'select',
+        required: true,
+        options: [], // Will be populated dynamically from ISO frameworks
+        helpText: 'Select the ISO framework to generate reports for',
+      },
+      {
+        key: 'reportType',
+        label: 'Report Type(s)',
+        type: 'multiselect',
+        required: true,
+        options: [], // Will be populated dynamically based on framework selection
+        helpText: 'Select one or more report types to generate',
+      },
+      {
+        key: 'frequency',
+        label: 'Frequency',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'daily', label: 'Daily' },
+          { value: 'weekly', label: 'Weekly' },
+          { value: 'monthly', label: 'Monthly' },
+        ],
+        helpText: 'How often should the report be generated and sent',
+      },
+      {
+        key: 'hour',
+        label: 'Hour (24-hour format)',
+        type: 'number',
+        required: true,
+        placeholder: '9',
+        helpText: 'Hour of the day to send the report (0-23)',
+      },
+      {
+        key: 'minute',
+        label: 'Minute',
+        type: 'number',
+        required: true,
+        placeholder: '0',
+        helpText: 'Minute of the hour to send the report (0-59)',
+      },
+      {
+        key: 'dayOfWeek',
+        label: 'Day of Week (for Weekly)',
+        type: 'select',
+        required: false,
+        options: [
+          { value: 0, label: 'Sunday' },
+          { value: 1, label: 'Monday' },
+          { value: 2, label: 'Tuesday' },
+          { value: 3, label: 'Wednesday' },
+          { value: 4, label: 'Thursday' },
+          { value: 5, label: 'Friday' },
+          { value: 6, label: 'Saturday' },
+        ],
+        helpText: 'Day of the week for weekly reports (only used if frequency is Weekly)',
+      },
+      {
+        key: 'dayOfMonth',
+        label: 'Day of Month (for Monthly)',
+        type: 'number',
+        required: false,
+        placeholder: '1',
+        validation: {
+          min: 1,
+          max: 30,
+        },
+        helpText: 'Day of the month for monthly reports (1-30, only used if frequency is Monthly)',
+      },
+    ],
+  },
 ];
 
 export const mockActionTemplates: ActionTemplate[] = [
@@ -260,6 +371,6 @@ export const mockActionTemplates: ActionTemplate[] = [
         helpText: 'Use {{variable_name}} for dynamic content. Available variables depend on the trigger.',
       },
     ],
-    compatibleTriggers: ['vendor_updated', 'model_updated', 'project_updated', 'task_updated', 'risk_updated', 'training_updated', 'policy_updated', 'incident_updated', 'vendor_review_date_approaching'],
+    compatibleTriggers: ['vendor_updated', 'model_updated', 'project_updated', 'task_updated', 'risk_updated', 'training_updated', 'policy_updated', 'incident_updated', 'vendor_review_date_approaching', 'scheduled_report'],
   },
 ];

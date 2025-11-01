@@ -146,7 +146,6 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       framework: number[];
       enable_ai_data_insertion: boolean;
     } = projectData;
-    console.log("New Project Data:", newProject); // Debug log
 
     const createdProject = await createNewProjectQuery(
       newProject,

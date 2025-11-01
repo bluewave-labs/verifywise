@@ -14,7 +14,6 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
-import { ExternalLink as LinkExternalIcon } from "lucide-react";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileData } from "../../../../domain/types/File";
@@ -173,7 +172,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     onClick={(event) => handleRowClick(row, event)}
                   >
                     {row.source}
-                    <LinkExternalIcon size={16} />
+
                   </Box>
                 </TableCell>
                 {/* Add any additional cells here */}

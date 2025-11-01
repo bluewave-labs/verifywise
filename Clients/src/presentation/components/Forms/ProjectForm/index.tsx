@@ -6,9 +6,6 @@ import {
   TextField,
   Typography,
   useTheme,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
 } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
 import {
@@ -29,9 +26,6 @@ import {
   teamMembersSlotProps,
   teamMembersSxStyle,
   textfieldStyle,
-  radioGroupStyle,
-  radioOptionStyle,
-  continueButtonStyle,
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -47,7 +41,7 @@ import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import { Project } from "../../../../domain/types/Project";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { FormErrors, FrameworkTypeEnum, frameworkOptions } from "./constants";
+import { FormErrors, FrameworkTypeEnum } from "./constants";
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
@@ -97,18 +91,10 @@ const ProjectForm = ({
     };
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [currentStep, setCurrentStep] = useState<number>(1);
   const { users } = useUsers();
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
-
-  // Auto-advance to step 2 if a default framework type is provided or if editing a project
-  useEffect(() => {
-    if (defaultFrameworkType || projectToEdit) {
-      setCurrentStep(2);
-    }
-  }, [defaultFrameworkType, projectToEdit]);
 
   // Transform member IDs to User objects when editing a project
   useEffect(() => {
@@ -272,26 +258,6 @@ const ProjectForm = ({
     [values]
   );
 
-  const handleFrameworkTypeChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({
-        ...values,
-        framework_type: event.target.value as FrameworkTypeEnum,
-        monitored_regulations_and_standards: [], // Clear selected frameworks when type changes
-      });
-      setErrors({ ...errors, frameworkType: "" });
-    },
-    [values, errors]
-  );
-
-  const handleContinue = useCallback(() => {
-    if (!values.framework_type) {
-      setErrors({ ...errors, frameworkType: "Please select a framework type" });
-      return;
-    }
-    setCurrentStep(2);
-  }, [values.framework_type, errors]);
-
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -435,121 +401,7 @@ const ProjectForm = ({
     }
   }
 
-  const renderStep1 = () => (
-    <Stack
-      sx={{
-        width: "fit-content",
-        backgroundColor: "#FCFCFD",
-        padding: 10,
-        borderRadius: "4px",
-        gap: 10,
-        ...sx,
-        maxWidth: "760px",
-      }}
-    >
-      <Stack
-        className="vwproject-form-header"
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        <Stack className="vwproject-form-header-text">
-          <Typography
-            sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-          >
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
-              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
-            }
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {projectToEdit
-              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
-              : defaultFrameworkType
-              ? `Creating a ${
-                  defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
-                    ? "organization-wide"
-                    : "project-based"
-                } ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? "framework" : "use case"}`
-              : "Please select the type of frameworks you need"}
-          </Typography>
-        </Stack>
-        <ClearIcon
-          size={20}
-          style={{ color: "#98A2B3", cursor: "pointer" }}
-          onClick={onClose}
-        />
-      </Stack>
-
-      <Stack sx={{ gap: 4 }}>
-        {!defaultFrameworkType && (
-          <>
-            <RadioGroup
-              value={values.framework_type || ""}
-              onChange={handleFrameworkTypeChange}
-              sx={radioGroupStyle}
-            >
-              {frameworkOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio />}
-                  label={
-                    <Stack sx={{ gap: 1 }}>
-                      <Typography
-                        sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
-                      >
-                        {option.title}
-                      </Typography>
-                      <Typography sx={{ fontSize: 13, color: "#667085" }}>
-                        {option.description}
-                      </Typography>
-                    </Stack>
-                  }
-                  sx={{
-                    ...radioOptionStyle,
-                    "&.Mui-checked": {
-                      ...radioOptionStyle["&.selected"],
-                    },
-                    "& .MuiFormControlLabel-label": {
-                      width: "100%",
-                    },
-                  }}
-                />
-              ))}
-            </RadioGroup>
-
-            {errors.frameworkType && (
-              <Typography
-                variant="caption"
-                sx={{ color: "#f04438", fontWeight: 300 }}
-              >
-                {errors.frameworkType}
-              </Typography>
-            )}
-          </>
-        )}
-
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-end",
-          }}
-        >
-          <CustomizableButton
-            text="Continue"
-            sx={continueButtonStyle}
-            onClick={handleContinue}
-          />
-        </Stack>
-      </Stack>
-    </Stack>
-  );
-
-  const renderStep2 = () => (
+  const renderForm = () => (
     <Stack
       component="form"
       onSubmit={handleSubmit}
@@ -1078,7 +930,7 @@ const ProjectForm = ({
     </Stack>
   );
 
-  return currentStep === 1 ? renderStep1() : renderStep2();
+  return renderForm();
 };
 
 export default ProjectForm;

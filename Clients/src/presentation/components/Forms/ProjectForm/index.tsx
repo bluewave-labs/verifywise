@@ -52,6 +52,25 @@ import {
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
+const PROJECT_STATUS_ITEMS = [
+  { _id: 1, name: "Not started" },
+  { _id: 2, name: "In progress" },
+  { _id: 3, name: "Under review" },
+  { _id: 4, name: "Completed" },
+  { _id: 5, name: "Closed" },
+  { _id: 6, name: "On hold" },
+  { _id: 7, name: "Rejected" },
+];
+
+// Helper function to convert status string to _id
+const getStatusIdFromName = (statusName: string | undefined): number => {
+  if (!statusName) return 1;
+  const statusItem = PROJECT_STATUS_ITEMS.find(
+    (item) => item.name === statusName
+  );
+  return statusItem?._id || 1;
+};
+
 const ProjectForm = ({
   sx,
   onClose,
@@ -72,7 +91,7 @@ const ProjectForm = ({
         members: [], // Will be populated in useEffect when users data is available
         start_date: projectToEdit.start_date || "",
         ai_risk_classification: projectToEdit.ai_risk_classification || 0,
-        status: projectToEdit.status || 1,
+        status: getStatusIdFromName(projectToEdit.status),
         type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
         goal: projectToEdit.goal || "",
         enable_ai_data_insertion:
@@ -121,13 +140,6 @@ const ProjectForm = ({
       }));
     }
   }, [projectToEdit, users]);
-
-  // Expose handleSubmit through ref when useStandardModal is true
-  useEffect(() => {
-    if (useStandardModal && onSubmitRef) {
-      onSubmitRef.current = handleSubmit;
-    }
-  }, [useStandardModal, onSubmitRef]);
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -195,18 +207,7 @@ const ProjectForm = ({
     []
   );
 
-  const projectStatusItems = useMemo(
-    () => [
-      { _id: 1, name: "Not started" },
-      { _id: 2, name: "In progress" },
-      { _id: 3, name: "Under review" },
-      { _id: 4, name: "Completed" },
-      { _id: 5, name: "Closed" },
-      { _id: 6, name: "On hold" },
-      { _id: 7, name: "Rejected" },
-    ],
-    []
-  );
+  const projectStatusItems = useMemo(() => PROJECT_STATUS_ITEMS, []);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -258,7 +259,7 @@ const ProjectForm = ({
     [values]
   );
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
     const projectTitle = checkStringValidation(
@@ -281,6 +282,11 @@ const ProjectForm = ({
     const owner = selectValidation("Owner", values.owner);
     if (!owner.accepted) {
       newErrors.owner = owner.message;
+    }
+
+    const geography = selectValidation("Geography", values.geography);
+    if (!geography.accepted) {
+      newErrors.geography = geography.message;
     }
 
     // Only validate AI-specific fields for project-based frameworks
@@ -313,9 +319,9 @@ const ProjectForm = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [values, projectToEdit]);
 
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     const userInfo = extractUserToken(authState.authToken);
     const teamMember = values.members.map((user) => String(user._id));
 
@@ -399,12 +405,32 @@ const ProjectForm = ({
         }, 1000);
       }
     }
-  }
+  }, [
+    values,
+    projectToEdit,
+    authState.authToken,
+    validateForm,
+    projectStatusItems,
+    riskClassificationItems,
+    highRiskRoleItems,
+    setProjects,
+    onClose,
+  ]);
+
+  // Expose handleSubmit through ref when useStandardModal is true
+  useEffect(() => {
+    if (useStandardModal && onSubmitRef) {
+      onSubmitRef.current = handleSubmit;
+    }
+  }, [useStandardModal, onSubmitRef, handleSubmit]);
 
   const renderForm = () => (
     <Stack
       component="form"
-      onSubmit={handleSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
       sx={{
         width: "fit-content",
         backgroundColor: useStandardModal ? "transparent" : "#FCFCFD",

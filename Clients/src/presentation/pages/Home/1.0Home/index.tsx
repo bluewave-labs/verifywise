@@ -276,6 +276,7 @@ const Home = () => {
         <ProjectForm
           defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
           useStandardModal={true}
+          onSubmitRef={submitFormRef}
           onClose={handleProjectFormModalClose}
         />
       </StandardModal>

@@ -643,6 +643,7 @@ const ProjectForm = ({
                 slotProps={teamMembersSlotProps}
               />
             </Stack>
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 6 }}>
             <DatePicker
               label="Start date"
               date={
@@ -655,6 +656,7 @@ const ProjectForm = ({
                   width: "350px",
                   "& input": { width: "300px" },
                 }),
+                width: "170px",
               }}
               isRequired
               error={errors.startDate}
@@ -671,12 +673,13 @@ const ProjectForm = ({
               onChange={handleOnSelectChange("geography")}
               items={geographyItems}
               sx={{
-                width: "350px",
+                width: "170px",
                 backgroundColor: theme.palette.background.main,
               }}
               isRequired
               error={errors.geography}
             />
+            </Stack>
             {!projectToEdit &&
               values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
                 <Stack>

@@ -26,6 +26,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
+import StandardModal from "../../../components/Modals/StandardModal";
 
 
 const Home = () => {
@@ -82,6 +83,8 @@ const Home = () => {
 
     fetchProgressData();
   }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
+
+  const submitFormRef = useRef<(() => void) | undefined>();
 
   // Auto-open create modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -255,24 +258,28 @@ const Home = () => {
           </Stack>
         }
       />
-
-      <Modal
-        open={isProjectFormModalOpen}
-        onClose={(_event, reason) => {
-          if (reason !== 'backdropClick') {
-            handleProjectFormModalClose();
+      <StandardModal
+        isOpen={isProjectFormModalOpen}
+        onClose={async () => {
+          setIsProjectFormModalOpen(false);
+          setRefreshProjectsFlag((prev) => !prev);
+        }}
+        title="Create new use case"
+        description="Create a new use case by filling in the following details"
+        onSubmit={() => {
+          if (submitFormRef.current) {
+            submitFormRef.current();
           }
         }}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
+        submitButtonText="Create use case"
+        maxWidth="900px"
       >
-        <Box sx={vwhomeCreateModalFrame}>
-          <ProjectForm
-            defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
-            onClose={handleProjectFormModalClose}
-          />
-        </Box>
-      </Modal>
+        <ProjectForm
+          defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
+          useStandardModal={true}
+          onClose={handleProjectFormModalClose}
+        />
+      </StandardModal>
       <PageTour
         steps={HomeSteps}
         run={runHomeTour}

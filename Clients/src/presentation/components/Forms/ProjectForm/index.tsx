@@ -534,26 +534,6 @@ const ProjectForm = ({
               isRequired
             />
             <Select
-              id="owner-input"
-              label="Owner"
-              placeholder="Select owner"
-              value={values.owner || ""}
-              onChange={handleOnSelectChange("owner")}
-              items={
-                users?.map((user: any) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                  email: user.email,
-                })) || []
-              }
-              sx={{
-                width: "350px",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.owner}
-              isRequired
-            />
-            <Select
               id="project-status-input"
               label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
               placeholder="Select status"
@@ -598,8 +578,6 @@ const ProjectForm = ({
                 />
               </>
             )}
-          </Stack>
-          <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
             <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
               <DatePicker
                 label="Start date"
@@ -613,6 +591,7 @@ const ProjectForm = ({
                     width: "150px",
                     "& input": { width: "300px" },
                   }),
+                  width: "165px",
                 }}
                 isRequired
                 error={errors.startDate}
@@ -629,7 +608,7 @@ const ProjectForm = ({
                 onChange={handleOnSelectChange("geography")}
                 items={geographyItems}
                 sx={{
-                  width: "150px",
+                  width: "170px",
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired
@@ -734,6 +713,26 @@ const ProjectForm = ({
       <Stack className="vwproject-form-body" sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
           <Suspense fallback={<div>Loading...</div>}>
+          <Select
+              id="owner-input"
+              label="Owner"
+              placeholder="Select owner"
+              value={values.owner || ""}
+              onChange={handleOnSelectChange("owner")}
+              items={
+                users?.map((user: any) => ({
+                  _id: user.id,
+                  name: `${user.name} ${user.surname}`,
+                  email: user.email,
+                })) || []
+              }
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.owner}
+              isRequired
+            />
             <Stack>
               <Typography
                 sx={{

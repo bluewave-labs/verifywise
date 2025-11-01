@@ -8,6 +8,7 @@ import {
   IconButton,
   InputBase,
 } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -38,6 +39,8 @@ const Alert = React.lazy(
 );
 
 const Training: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [trainingData, setTrainingData] = useState<IAITraining[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false);
@@ -111,6 +114,17 @@ const Training: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Check for openCreateModal state from navigation
+  useEffect(() => {
+    const state = location.state as { openCreateModal?: boolean } | null;
+    if (state?.openCreateModal) {
+      setIsNewTrainingModalOpen(true);
+      // Clear the state to prevent modal from opening again on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // Dependencies: location contains state from mega dropdown navigation, navigate used for state clearing
+  }, [location, navigate]);
 
   const handleNewTrainingClick = () => {
     setIsNewTrainingModalOpen(true);

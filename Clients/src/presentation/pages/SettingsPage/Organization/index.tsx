@@ -27,13 +27,9 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
+import { OrganizationModel } from "../../../../domain/models/Common/organization/organization.model";
+import { AlertModel } from "../../../../domain/models/Common/alert/alert.model";
 
-interface AlertState {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-  isToast?: boolean;
-}
 
 const Organization = () => {
   const { userRoleName, organizationId } = useAuth();
@@ -67,12 +63,19 @@ const Organization = () => {
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
-  const [alert, setAlert] = useState<AlertState | null>(null);
+  const [alert, setAlert] = useState<AlertModel | null>(null);
 
   // Utility function to show alerts
   const showAlert = useCallback(
-    (variant: AlertState["variant"], title: string, body: string) => {
-      setAlert({ variant, title, body, isToast: false });
+    (variant: "success" | "info" | "warning" | "error", title: string, body: string) => {
+      const alertInstance = AlertModel.createAlert({
+        variant,
+        title,
+        body,
+        isToast: false,
+        visible: true
+      } as AlertModel);
+      setAlert(alertInstance);
     },
     []
   );
@@ -296,9 +299,14 @@ const Organization = () => {
 
     setIsLoading(true);
     try {
+      const organizationData = OrganizationModel.createNewOrganization({
+        name: organizationName,
+        logo: ""
+      } as OrganizationModel);
+
       const response = await CreateMyOrganization({
         routeUrl: "/organizations",
-        body: { name: organizationName },
+        body: { name: organizationData.name },
       });
 
       showAlert(
@@ -330,9 +338,15 @@ const Organization = () => {
 
     setIsLoading(true);
     try {
+      const organizationData = OrganizationModel.createNewOrganization({
+        id: organizationId,
+        name: organizationName,
+        logo: ""
+      } as OrganizationModel);
+
       const response = await UpdateMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
-        body: { name: organizationName },
+        body: { name: organizationData.name },
       });
 
       showAlert(

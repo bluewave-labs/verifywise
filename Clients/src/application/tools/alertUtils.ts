@@ -10,13 +10,25 @@
  * @returns {() => void} A function to clear the timeout for the alert.
  */
 import { AlertProps } from "../../domain/interfaces/iAlert";
+import { AlertModel } from "../../domain/models/Common/alert/alert.model";
 
+// Legacy interface for backward compatibility
 interface HandleAlertProps extends AlertProps {
   setAlert: React.Dispatch<React.SetStateAction<AlertProps | null>>;
 }
 
+// New interface for AlertModel
+interface HandleAlertModelProps {
+  variant: "success" | "info" | "warning" | "error";
+  body: string;
+  title?: string;
+  alertTimeout?: number;
+  setAlert: React.Dispatch<React.SetStateAction<AlertModel | null>>;
+}
+
 const ALERT_TIMEOUT = 2500;
 
+// Legacy function for backward compatibility
 const handleAlert = ({ variant, body, title, setAlert, alertTimeout = ALERT_TIMEOUT }: HandleAlertProps) => {
   setAlert({
     variant,
@@ -29,4 +41,21 @@ const handleAlert = ({ variant, body, title, setAlert, alertTimeout = ALERT_TIME
   return () => clearTimeout(timeoutId);
 };
 
-export { handleAlert };
+// New function for AlertModel
+const handleAlertModel = ({ variant, body, title, setAlert, alertTimeout = ALERT_TIMEOUT }: HandleAlertModelProps) => {
+  const alertInstance = AlertModel.createAlert({
+    variant,
+    title,
+    body,
+    isToast: false,
+    visible: true
+  } as AlertModel);
+  
+  setAlert(alertInstance);
+  const timeoutId = setTimeout(() => {
+    setAlert(null);
+  }, alertTimeout);
+  return () => clearTimeout(timeoutId);
+};
+
+export { handleAlert, handleAlertModel };

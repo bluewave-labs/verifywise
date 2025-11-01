@@ -1,9 +1,8 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Stack, Typography, Modal, Box } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import {
   vwhomeBody,
-  vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";

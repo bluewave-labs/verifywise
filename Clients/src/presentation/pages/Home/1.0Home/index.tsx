@@ -129,12 +129,14 @@ const Home = () => {
       />
       {/* Use Cases Header */}
       <Stack spacing={2}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
-          <Typography sx={vwhomeHeading}>Use cases</Typography>
-          <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
+        <Stack sx={vwhomeBody}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={vwhomeHeading}>Use cases</Typography>
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.

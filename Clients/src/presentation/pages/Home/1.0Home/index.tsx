@@ -20,8 +20,6 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../../../components/Modals/StandardModal";
 
 

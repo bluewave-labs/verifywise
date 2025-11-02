@@ -65,7 +65,6 @@ import { User } from "../../../domain/types/User";
 import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
-import { useDashboard } from "../../../application/hooks/useDashboard";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -872,16 +871,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                 width: "16px",
                 mr: 0,
                 "& svg": {
-                  color: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.includes(item.path))
+                  color: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.includes(item.path))
+                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                   transition: "color 0.2s ease, stroke 0.2s ease",
                 },
                 "& svg path": {
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.includes(item.path))
+                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                 },

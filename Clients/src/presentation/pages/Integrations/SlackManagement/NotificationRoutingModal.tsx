@@ -39,7 +39,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
 }) => {
   const theme = useTheme();
   const { userId } = useAuth();
-  const { refreshSlackIntegrations, routingData: slackRoutingTypes } =
+  const { routingData: slackRoutingTypes } =
     useSlackIntegrations(userId);
   const [routingData, setRoutingData] =
     useState<SlackRoutingType[]>([...slackRoutingTypes]);

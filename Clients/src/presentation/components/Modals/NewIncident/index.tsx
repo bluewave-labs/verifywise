@@ -563,7 +563,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             >
                                 Categories of harm
                             </FormLabel>
-                            <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
+                            <Stack direction="row" spacing={3} sx={{ flexWrap: 'nowrap' }}>
                                 {harmCategories.map((category) => (
                                     <Checkbox
                                         key={category}
@@ -582,7 +582,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         isDisabled={isViewMode}
                                     />
                                 ))}
-                            </FormGroup>
+                            </Stack>
 
                             {errors.categories_of_harm && (
                                 <Typography

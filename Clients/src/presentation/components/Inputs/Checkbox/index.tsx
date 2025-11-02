@@ -82,10 +82,8 @@ const Checkbox: FC<CheckboxProps> = ({
       disabled={isDisabled}
       sx={{
         borderRadius: theme.shape.borderRadius,
-        p: theme.spacing(2.5),
-        m: theme.spacing(-2.5),
+        m: 0,
         "& .MuiButtonBase-root": {
-          width: theme.spacing(10),
           p: 0,
           mr: theme.spacing(3),
         },

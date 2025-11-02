@@ -565,32 +565,23 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </FormLabel>
                             <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
                                 {harmCategories.map((category) => (
-                                    <FormControlLabel
-                                        key={category}
-                                        control={
-                                            <Checkbox
-                                                checked={values.categories_of_harm.includes(
+                                    <Box key={category} sx={{ flex: 1 }}>
+                                        <Checkbox
+                                            id={`harm-category-${category}`}
+                                            label={category}
+                                            size="small"
+                                            isChecked={values.categories_of_harm.includes(
+                                                category
+                                            )}
+                                            value={category}
+                                            onChange={() =>
+                                                handleHarmCategoryChange(
                                                     category
-                                                )}
-                                                onChange={() =>
-                                                    handleHarmCategoryChange(
-                                                        category
-                                                    )
-                                                }
-                                            />
-                                        }
-                                        label={category}
-                                        sx={{
-                                            flex: 1,
-                                            mr: 0,
-                                            "& .MuiFormControlLabel-label": {
-                                                fontSize: 13,
-                                                color: theme.palette.text.primary,
-                                            },
-                                            checkbox,
-                                        }}
-                                        disabled={isViewMode}
-                                    />
+                                                )
+                                            }
+                                            isDisabled={isViewMode}
+                                        />
+                                    </Box>
                                 ))}
                             </FormGroup>
 

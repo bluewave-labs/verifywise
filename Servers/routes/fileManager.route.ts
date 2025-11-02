@@ -149,6 +149,7 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
  */
 router.post(
   "/",
+  fileOperationsLimiter,
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   upload.single("file"),

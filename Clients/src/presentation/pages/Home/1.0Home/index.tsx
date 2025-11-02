@@ -1,9 +1,8 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Stack, Typography, Modal, Box } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import {
   vwhomeBody,
-  vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -21,6 +20,9 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { postAutoDrivers } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import StandardModal from "../../../components/Modals/StandardModal";
 
 
 const Home = () => {
@@ -75,6 +77,8 @@ const Home = () => {
 
     fetchProgressData();
   }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
+
+  const submitFormRef = useRef<(() => void) | undefined>();
 
   // Auto-open create modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -165,25 +169,29 @@ const Home = () => {
           </div>
         }
       />
-
-      <Modal
-        open={isProjectFormModalOpen}
-        onClose={(_event, reason) => {
-          if (reason !== 'backdropClick') {
-            handleProjectFormModalClose();
+      <StandardModal
+        isOpen={isProjectFormModalOpen}
+        onClose={async () => {
+          setIsProjectFormModalOpen(false);
+          setRefreshProjectsFlag((prev) => !prev);
+        }}
+        title="Create new use case"
+        description="Create a new use case by filling in the following details"
+        onSubmit={() => {
+          if (submitFormRef.current) {
+            submitFormRef.current();
           }
         }}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
+        submitButtonText="Create use case"
+        maxWidth="900px"
       >
-        <Box sx={vwhomeCreateModalFrame}>
-          <ProjectForm
-            defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
-            onClose={handleProjectFormModalClose}
-          />
-        </Box>
-      </Modal>
-
+        <ProjectForm
+          defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
+          useStandardModal={true}
+          onSubmitRef={submitFormRef}
+          onClose={handleProjectFormModalClose}
+        />
+      </StandardModal>
       <PageTour
         steps={HomeSteps}
         run={runHomeTour}

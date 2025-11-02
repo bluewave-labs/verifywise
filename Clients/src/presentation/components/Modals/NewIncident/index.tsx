@@ -124,18 +124,6 @@ const approvalStatusOptions = [
     },
 ];
 
-const checkbox = {
-    "& .MuiCheckbox-root": {
-        color: "#13715B",
-        "&.Mui-checked": {
-            color: "#13715B",
-        },
-        "&:hover": {
-            backgroundColor: "rgba(19, 113, 91, 0.04)",
-        },
-    },
-};
-
 const incidentTypes = Object.values(IncidentType);
 const harmCategories = Object.values(HarmCategory);
 

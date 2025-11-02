@@ -10,10 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ChevronDown as ExpandMoreIcon } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import {
-  sendSlackMessage,
-  updateSlackIntegration,
-} from "../../../../application/repository/slack.integration.repository";
+import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useSlackIntegrations, {
   SlackRoutingType,
@@ -24,23 +21,25 @@ import { NotificationRoutingTypes } from "./constants";
 type IntegrationList = { channel: string; teamName: string; id: number };
 
 interface NotificationRoutingModalProps {
-  setIsOpen: (value: null | HTMLElement) => void;
   integrations: IntegrationList[];
   showAlert: (
     variant: "success" | "info" | "warning" | "error",
     title: string,
     body: string,
   ) => void;
+  onSave: (routingData: any[], originalIds: number[]) => Promise<void>;
+  onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
 }
 
 const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
-  setIsOpen,
   integrations,
   showAlert,
+  onSave,
+  onSaveRef,
 }) => {
   const theme = useTheme();
   const { userId } = useAuth();
-  const { refreshSlackIntegrations, routingData: slackRoutingTypes } =
+  const { routingData: slackRoutingTypes } =
     useSlackIntegrations(userId);
   const [routingData, setRoutingData] =
     useState<SlackRoutingType[]>([...slackRoutingTypes]);
@@ -68,52 +67,15 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
   };
 
   const handleNotificationRouting = async () => {
-    const transformedData = routingData.reduce(
-      (acc: { id: number; routingType: string[] }[], item) => {
-        item.id.forEach((id) => {
-          const existing = acc.find(
-            (entry: { id: number; routingType: string[] }) => entry.id === id,
-          );
-          if (existing) {
-            existing.routingType.push(item.routingType);
-          } else {
-            acc.push({ id, routingType: [item.routingType] });
-          }
-        });
-        return acc;
-      },
-      [],
-    );
-
-    // Handling the removed slack integration IDs
-    const transformedIds = [...new Set(routingData.flatMap(item => item.id))];
-    const missingIds = originalIds.filter(item => !transformedIds.includes(item));
-    missingIds.forEach(id => transformedData.push({id, routingType: []}));
-    try {
-      await Promise.all(
-        transformedData.map((item: { routingType: string[]; id: number }) =>
-          updateSlackIntegration({
-            id: item.id,
-            body: { routing_type: item.routingType },
-          }),
-        ),
-      );
-      showAlert(
-        "success",
-        "Success",
-        "Notification Routing type updated successfully to the Slack channel.",
-      );
-      refreshSlackIntegrations();
-    } catch (error) {
-      showAlert(
-        "error",
-        "Error",
-        `Error updating routing types to Slack.: ${error}`,
-      );
-    } finally {
-      setIsOpen(null);
-    }
+    await onSave(routingData, originalIds);
   };
+
+  // Expose save handler to parent via ref
+  useEffect(() => {
+    if (onSaveRef) {
+      onSaveRef.current = handleNotificationRouting;
+    }
+  }, [onSaveRef, routingData, originalIds]);
 
   const handleSendTestNotification = async (
     type: SlackNotificationRoutingType,
@@ -323,16 +285,6 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
           </Stack>
         </Stack>
       ))}
-
-      <Stack>
-        <CustomizableButton
-          variant="contained"
-          onClick={handleNotificationRouting}
-          size="medium"
-          text="Save Changes"
-          sx={{ alignSelf: "flex-end" }}
-        />
-      </Stack>
     </Stack>
   );
 };

@@ -7,11 +7,8 @@ import {
   vwhomeHeading,
 } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import CustomizableToast from "../../../components/Toast";
-import Alert from "../../../components/Alert";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../components/Forms/ProjectForm";
-import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
@@ -24,8 +21,6 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const Home = () => {
@@ -38,12 +33,10 @@ const Home = () => {
     refreshUsers,
     userRoleName,
   } = useContext(VerifyWiseContext);
-  const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, setShowToastNotification] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
@@ -98,60 +91,6 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
-
-  const handleGenerateDemoDataClick = async () => {
-    setShowToastNotification(true);
-    try {
-      const response = await postAutoDrivers();
-      if (response.status === 201) {
-        logEngine({
-          type: "info",
-          message: "Demo data generated successfully.",
-        });
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
-
-        await fetchDashboard();
-        setShowToastNotification(false);
-        window.location.reload();
-      } else {
-        logEngine({
-          type: "error",
-          message: "Failed to generate demo data.",
-        });
-        setAlertState({
-          variant: "error",
-          body: "Failed to generate demo data.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
-      }
-      setShowToastNotification(false);
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      logEngine({
-        type: "error",
-        message: `An error occurred: ${errorMessage}`,
-      });
-      setAlertState({
-        variant: "error",
-        body: `An error occurred: ${errorMessage}`,
-      });
-      setTimeout(() => {
-        setAlertState(undefined);
-      }, 3000);
-    } finally {
-      setShowToastNotification(false);
-      setRefreshProjectsFlag((prev) => !prev);
-    }
-  };
-
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -188,18 +127,6 @@ const Home = () => {
           "Set up *dashboard alerts* for *critical compliance thresholds*"
         ]}
       />
-      {alertState && (
-        <Alert
-          variant={alertState.variant}
-          title={alertState.title}
-          body={alertState.body}
-          isToast={true}
-          onClick={() => setAlertState(undefined)}
-        />
-      )}
-      {showToastNotification && (
-        <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
-      )}
       {/* Use Cases Header */}
       <Stack spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
@@ -218,41 +145,22 @@ const Home = () => {
       <ProjectList
         projects={projects}
         newProjectButton={
-          <Stack direction="row" spacing={2}>
-            <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
-              <CustomizableButton
-                variant="contained"
-                text="New use case"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<AddCircleOutlineIcon size={16} />}
-                onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
-              />
-            </div>
-            {allowedRoles.projects.create.includes(userRoleName) && (
-              <CustomizableButton
-                variant="outlined"
-                text="Create Demo Data"
-                sx={{
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                  gap: 2,
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.04)",
-                  },
-                }}
-                onClick={handleGenerateDemoDataClick}
-                isDisabled={showToastNotification}
-              />
-            )}
-          </Stack>
+          <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+            <CustomizableButton
+              variant="contained"
+              text="New use case"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={() => setIsProjectFormModalOpen(true)}
+              isDisabled={
+                !allowedRoles.projects.create.includes(userRoleName)
+              }
+            />
+          </div>
         }
       />
 
@@ -273,6 +181,7 @@ const Home = () => {
           />
         </Box>
       </Modal>
+
       <PageTour
         steps={HomeSteps}
         run={runHomeTour}

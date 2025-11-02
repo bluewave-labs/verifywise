@@ -115,14 +115,8 @@ const tabValue = params.tab || "overview";
             <TabList
               onChange={handleTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={{
-                ...aiTrustCenterTabListStyle,
-                '& .MuiTabs-root': {
-                  minHeight: '20px',
-                },
-              }}
+              sx={aiTrustCenterTabListStyle}
               data-joyride-id="trust-center-tabs"
-              component="div"
             >
               <Tab
                 sx={aiTrustCenterTabStyle}

@@ -6,13 +6,13 @@ import {
     Box,
     Typography,
     FormControlLabel,
-    Checkbox,
     FormGroup,
     FormLabel,
     useTheme,
     Divider,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
+import Checkbox from "../../Inputs/Checkbox";
 import dayjs, { Dayjs } from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";

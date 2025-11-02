@@ -6,13 +6,13 @@ import {
     Box,
     Typography,
     FormControlLabel,
+    Checkbox,
     FormGroup,
     FormLabel,
     useTheme,
     Divider,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
-import Checkbox from "../../Inputs/Checkbox";
 import dayjs, { Dayjs } from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -565,21 +565,31 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </FormLabel>
                             <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
                                 {harmCategories.map((category) => (
-                                    <Checkbox
+                                    <FormControlLabel
                                         key={category}
-                                        id={`harm-category-${category}`}
-                                        label={category}
-                                        size="small"
-                                        isChecked={values.categories_of_harm.includes(
-                                            category
-                                        )}
-                                        value={category}
-                                        onChange={() =>
-                                            handleHarmCategoryChange(
-                                                category
-                                            )
+                                        control={
+                                            <Checkbox
+                                                checked={values.categories_of_harm.includes(
+                                                    category
+                                                )}
+                                                onChange={() =>
+                                                    handleHarmCategoryChange(
+                                                        category
+                                                    )
+                                                }
+                                            />
                                         }
-                                        isDisabled={isViewMode}
+                                        label={category}
+                                        sx={{
+                                            flex: 1,
+                                            mr: 0,
+                                            "& .MuiFormControlLabel-label": {
+                                                fontSize: 13,
+                                                color: theme.palette.text.primary,
+                                            },
+                                            checkbox,
+                                        }}
+                                        disabled={isViewMode}
                                     />
                                 ))}
                             </FormGroup>

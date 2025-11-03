@@ -5,7 +5,7 @@ import TableHeader from "../TableHead";
 import { AuditRiskTableBody } from "./AuditRiskTableBody";
 import { useEffect, useState } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
+import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import {
   IAuditRiskTableProps,
   ITypeRisk,
@@ -40,7 +40,7 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
           if (response.status === 200) {
             const responseData = (
               response.data as {
-                data: ProjectRisk;
+                data: RiskModel;
                 message: string;
                 status: number;
               }
@@ -48,7 +48,7 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
             setRiskDetails((prev) => [
               ...prev,
               {
-                id: responseData.id,
+                id: responseData.id!,
                 title: responseData.risk_name,
                 status: responseData.approval_status,
                 severity: responseData.severity,

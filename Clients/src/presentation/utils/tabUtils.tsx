@@ -1,4 +1,4 @@
-import { Box, Chip } from "@mui/material";
+import { Box } from "@mui/material";
 import { ReactNode } from "react";
 
 export interface TabLabelWithCountOptions {

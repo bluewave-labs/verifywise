@@ -19,7 +19,13 @@ import { createApiToken, deleteApiToken, getApiTokens } from "../../../../applic
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
-import { AlertModel } from "../../../../domain/models/Common/alert/alert.model";
+
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
 
 
 const ApiKeys = () => {
@@ -35,21 +41,14 @@ const ApiKeys = () => {
   const [newTokenName, setNewTokenName] = useState("");
   const [newTokenNameError, setNewTokenNameError] = useState<string | null>(null);
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
-  const [alert, setAlert] = useState<AlertModel | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
   const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null);
   const [hoveredTokenId, setHoveredTokenId] = useState<number | null>(null);
   const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
 
   const showAlert = useCallback(
-    (variant: "success" | "info" | "warning" | "error", title: string, body: string) => {
-      const alertInstance = AlertModel.createAlert({
-        variant,
-        title,
-        body,
-        isToast: false,
-        visible: true
-      } as AlertModel);
-      setAlert(alertInstance);
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
     },
     []
   );

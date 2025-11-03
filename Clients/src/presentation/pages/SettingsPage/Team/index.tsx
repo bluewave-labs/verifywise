@@ -28,7 +28,6 @@ import { UserPlus as GroupsIcon, ChevronsUpDown as SelectorVertical, Trash2 as D
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import { handleAlertModel } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
@@ -39,7 +38,13 @@ import {
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { UserModel } from "../../../../domain/models/Common/user/user.model";
-import { AlertModel } from "../../../../domain/models/Common/alert/alert.model";
+
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -61,7 +66,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
   const { roles, loading: rolesLoading } = useRoles();
 
-  const [alert, setAlert] = useState<AlertModel | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
+  const showAlert = useCallback(
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
+    },
+    []
+  );
+
+  // Auto-hide alert after 3 seconds
+  React.useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const roleItems = useMemo(
     () => roles.map((role) => ({ _id: role.id, name: role.name })),
@@ -91,12 +111,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           (user) => user.id.toString() === memberId
         );
         if (!member) {
-          const errorAlert = AlertModel.createErrorAlert(
-            "Error",
-            "User not found."
-          );
-          setAlert(errorAlert);
-          setTimeout(() => setAlert(null), 3000);
+          showAlert("error", "Error", "User not found.");
           return;
         }
 
@@ -119,36 +134,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
         });
 
         if (response.status === 202) {
-          handleAlertModel({
-            variant: "success",
-            body: "User role updated successfully.",
-            setAlert,
-          });
+          showAlert("success", "Success", "User role updated successfully.");
 
           // Add a small delay to ensure the server has processed the update
           setTimeout(() => {
             refreshUsers();
           }, 500);
         } else {
-          const errorAlert = AlertModel.createErrorAlert(
-            "Error",
-            (response as any)?.data?.message || "An error occurred."
-          );
-          setAlert(errorAlert);
-          setTimeout(() => setAlert(null), 3000);
+          showAlert("error", "Error", (response as any)?.data?.message || "An error occurred.");
         }
       } catch (error) {
-        const errorAlert = AlertModel.createErrorAlert(
-          "Error",
-          `An error occurred: ${
-            (error as Error).message || "Please try again."
-          }`
-        );
-        setAlert(errorAlert);
-        setTimeout(() => setAlert(null), 3000);
+        showAlert("error", "Error", `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`);
       }
     },
-    [teamUsers, refreshUsers]
+    [teamUsers, refreshUsers, showAlert]
   );
 
   const handleClose = () => {
@@ -167,27 +168,15 @@ const TeamManagement: React.FC = (): JSX.Element => {
       });
 
       if (response && response.status === 202) {
-        handleAlertModel({
-          variant: "success",
-          body: "User deleted successfully",
-          setAlert,
-        });
+        showAlert("success", "Success", "User deleted successfully");
         refreshUsers();
       } else {
-        handleAlertModel({
-          variant: "error",
-          body: "User deletion failed",
-          setAlert,
-        });
+        showAlert("error", "Error", "User deletion failed");
       }
     } catch (error) {
-      handleAlertModel({
-        variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
-        setAlert,
-      });
+      showAlert("error", "Error", `An error occurred: ${
+        (error as Error).message || "Please try again."
+      }`);
     }
 
     handleClose();
@@ -261,24 +250,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ) => {
   
     if (status === 200) {
-      handleAlertModel({
-        variant: "success",
-        body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
-        setAlert,
-      });
+      showAlert("success", "Success", `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`);
     } else if (status === 206) {
-      handleAlertModel({
-        variant: "info",
-        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
-        setAlert,
-        alertTimeout: 20000,
-      });
+      showAlert("info", "Info", `Invitation sent to ${email}. Please use this link: ${link} to create an account.`);
     } else {
-      handleAlertModel({
-        variant: "error",
-        body: `Failed to send invitation to ${email}. Please try again.`,
-        setAlert,
-      });
+      showAlert("error", "Error", `Failed to send invitation to ${email}. Please try again.`);
     }
 
     setInviteUserModalOpen(false);

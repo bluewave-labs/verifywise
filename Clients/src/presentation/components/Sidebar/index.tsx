@@ -922,16 +922,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClose={() => setManagementAnchorEl(null)}
           anchorOrigin={{
             vertical: "top",
-            horizontal: "left",
+            horizontal: collapsed ? "right" : "left",
           }}
           transformOrigin={{
             vertical: "bottom",
-            horizontal: "left",
+            horizontal: collapsed ? "left" : "left",
           }}
           slotProps={{
             paper: {
               sx: {
                 width: managementAnchorEl ? managementAnchorEl.offsetWidth : "auto",
+                minWidth: collapsed ? "180px" : "auto",
                 borderRadius: theme.shape.borderRadius,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 border: `1px solid ${theme.palette.divider}`,

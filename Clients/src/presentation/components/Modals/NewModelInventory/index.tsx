@@ -504,7 +504,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           : "Register a new AI model with comprehensive metadata and approval tracking"
       }
       onSubmit={handleSubmit}
-      submitButtonText={isEdit ? "Update Model" : "Save"}
+      submitButtonText={isEdit ? "Update model" : "Save"}
       isSubmitting={isButtonDisabled}
       maxWidth="760px"
     >
@@ -783,7 +783,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Used in projects
+                  Used in use cases
                 </Typography>
                 <Autocomplete
                   multiple

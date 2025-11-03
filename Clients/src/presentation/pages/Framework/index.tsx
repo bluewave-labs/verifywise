@@ -25,6 +25,8 @@ import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
+import FrameworkRisks from "./FrameworkRisks";
+import FrameworkLinkedModels from "./FrameworkLinkedModels";
 import PageTour from "../../components/PageTour";
 import FrameworkSteps from "./FrameworkSteps";
 
@@ -292,7 +294,7 @@ const Framework = () => {
     newValue: string
   ) => {
     setMainTabValue(newValue);
-     if (newValue === "dashboard") {
+    if (newValue === "dashboard") {
       navigate("/framework");
     } else {
       navigate(`/framework/${newValue}`);
@@ -583,6 +585,18 @@ const Framework = () => {
                 disableRipple
               />
               <Tab
+                label="Framework risks"
+                value="framework-risks"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label="Linked models"
+                value="linked-models"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
                 label="Controls and Requirements"
                 value="controls"
                 sx={tabStyle}
@@ -625,6 +639,24 @@ const Framework = () => {
               {/* Content that changes based on selected framework */}
               {renderFrameworkContent()}
             </Stack>
+          </TabPanel>
+
+          <TabPanel value="framework-risks" sx={tabPanelStyle}>
+            <FrameworkRisks
+              organizationalProject={organizationalProject}
+              filteredFrameworks={filteredFrameworks}
+              selectedFramework={selectedFramework}
+              onFrameworkSelect={handleFrameworkSelect}
+            />
+          </TabPanel>
+
+          <TabPanel value="linked-models" sx={tabPanelStyle}>
+            <FrameworkLinkedModels
+              organizationalProject={organizationalProject}
+              filteredFrameworks={filteredFrameworks}
+              selectedFramework={selectedFramework}
+              onFrameworkSelect={handleFrameworkSelect}
+            />
           </TabPanel>
 
           <TabPanel value="settings" sx={tabPanelStyle}>

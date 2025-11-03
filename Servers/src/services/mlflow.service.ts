@@ -433,18 +433,23 @@ class MLFlowService {
     tenant: string,
     message?: string | null,
   ) {
-    await sequelize.query(`
-      UPDATE "${tenant}".mlflow_integrations SET
-        last_synced_at = :last_synced_at,
-        last_sync_status = :last_sync_status,
-        last_sync_message = :last_sync_message
-      RETURNING *;`, {
-      replacements: {
-        last_synced_at: new Date(),
-        last_sync_status: status,
-        last_sync_message: message ? message.slice(0, 1000) : null,
-      }
-    });
+    try {
+      await sequelize.query(`
+        UPDATE "${tenant}".mlflow_integrations SET
+          last_synced_at = :last_synced_at,
+          last_sync_status = :last_sync_status,
+          last_sync_message = :last_sync_message
+        RETURNING *;`, {
+        replacements: {
+          last_synced_at: new Date(),
+          last_sync_status: status,
+          last_sync_message: message ? message.slice(0, 1000) : null,
+        }
+      });
+    } catch (error) {
+      // Silently fail if sync status columns don't exist (migration not run)
+      console.warn('Unable to record MLFlow sync status:', error instanceof Error ? error.message : error);
+    }
   }
 
   async getSyncStatus(tenant: string) {

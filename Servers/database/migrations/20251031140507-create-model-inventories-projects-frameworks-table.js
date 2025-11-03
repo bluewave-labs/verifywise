@@ -18,10 +18,12 @@ module.exports = {
         // Create the junction table in tenant schema
         await queryInterface.sequelize.query(
           `CREATE TABLE "${tenantHash}".model_inventories_projects_frameworks (
+            id SERIAL PRIMARY KEY,
             model_inventory_id INTEGER NOT NULL,
             project_id INTEGER,
             framework_id INTEGER,
-            PRIMARY KEY (model_inventory_id, project_id, framework_id),
+            CONSTRAINT unique_model_project_framework
+              UNIQUE (model_inventory_id, project_id, framework_id),
             CONSTRAINT fk_model_inventory
               FOREIGN KEY (model_inventory_id)
               REFERENCES "${tenantHash}".model_inventories(id)

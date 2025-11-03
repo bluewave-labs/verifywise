@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { RiskModel } from "../models/Common/risks/risk.model";
 import { IFilterState } from "./i.filter";
+import { Project } from "../types/Project";
+import { Framework } from "../types/Framework";
 
 export interface IRisk {
   id: number;
@@ -75,4 +77,11 @@ export interface IRisksViewProps {
 export interface IRiskLoadingStatus {
   loading: boolean;
   message: string;
+}
+
+export interface IFrameworkRisksProps {
+  organizationalProject: Project;
+  filteredFrameworks: Framework[];
+  selectedFramework: number;
+  onFrameworkSelect: (index: number) => void;
 }

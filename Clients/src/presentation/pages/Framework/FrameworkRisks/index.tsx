@@ -1,25 +1,17 @@
 import { useCallback, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
-import { Project } from "../../../../domain/types/Project";
-import { Framework } from "../../../../domain/types/Framework";
-import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import ButtonToggle from "../../../components/ButtonToggle";
 import RisksView from "../../../components/RisksView";
-
-interface FrameworkRisksProps {
-  organizationalProject: Project;
-  filteredFrameworks: Framework[];
-  selectedFramework: number;
-  onFrameworkSelect: (index: number) => void;
-}
+import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
+import { IFrameworkRisksProps } from "../../../../domain/interfaces/i.risk";
 
 const FrameworkRisks = ({
   organizationalProject,
   filteredFrameworks,
   selectedFramework,
   onFrameworkSelect,
-}: FrameworkRisksProps) => {
+}: IFrameworkRisksProps) => {
   // Get current framework ID
   const getFrameworkId = useCallback(() => {
     if (filteredFrameworks.length === 0) return null;
@@ -30,7 +22,7 @@ const FrameworkRisks = ({
 
   // Create fetch function for framework risks
   const fetchFrameworkRisks = useCallback(
-    async (_filter = "active"): Promise<ProjectRisk[]> => {
+    async (_filter = "active"): Promise<RiskModel[]> => {
       const frameworkId = getFrameworkId();
       if (!frameworkId) {
         return [];

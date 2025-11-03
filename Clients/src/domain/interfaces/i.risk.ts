@@ -1,4 +1,4 @@
-import { ProjectRisk } from "../types/ProjectRisk";
+import { RiskModel } from "../models/Common/risks/risk.model";
 import { IFilterState } from "./i.filter";
 
 export interface IRisk {
@@ -9,33 +9,53 @@ export interface IRisk {
 }
 
 export interface IRiskCategoriesProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
+  risks: RiskModel[];
+  selectedRisk?: RiskModel | null;
+  onRiskSelect?: (risk: RiskModel) => void;
 }
 
 export interface IRiskFiltersProps {
-  risks: ProjectRisk[];
+  risks: RiskModel[];
   onFilterChange: (
-    filteredRisks: ProjectRisk[],
+    filteredRisks: RiskModel[],
     activeFilters: IFilterState
   ) => void;
 }
 
 export interface IRiskHeatMapProps {
-  risks: ProjectRisk[];
-  onRiskSelect?: (risk: ProjectRisk) => void;
-  selectedRisk?: ProjectRisk | null;
+  risks: RiskModel[];
+  onRiskSelect?: (risk: RiskModel) => void;
+  selectedRisk?: RiskModel | null;
 }
 
 export interface IRiskTimelineProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
+  risks: RiskModel[];
+  selectedRisk?: RiskModel | null;
+  onRiskSelect?: (risk: RiskModel) => void;
 }
 
 export interface IRiskVisualizationTabsProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
+  risks: RiskModel[];
+  selectedRisk?: RiskModel | null;
+  onRiskSelect?: (risk: RiskModel) => void;
+}
+
+export interface IVWProjectRisksTable {
+  rows: RiskModel[];
+  setSelectedRow: (risk: RiskModel) => void;
+  setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
+  deleteRisk: (id: number) => void;
+  setPage: (pageNo: number) => void;
+  page: number;
+  flashRow: number | null;
+}
+
+export interface IVWProjectRisksTableRow {
+  rows: RiskModel[];
+  page: number;
+  rowsPerPage: number;
+  setSelectedRow: (risk: RiskModel) => void;
+  setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
+  onDeleteRisk: (id: number) => void;
+  flashRow: number | null;
 }

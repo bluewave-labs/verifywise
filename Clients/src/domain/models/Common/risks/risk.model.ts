@@ -34,6 +34,9 @@ export class RiskModel {
   date_of_assessment!: Date;
   is_demo?: boolean;
   created_at?: Date;
+  updated_at?: Date;
+  is_deleted?: boolean;
+  deleted_at?: Date;
 
   constructor(data: RiskModel) {
     this.id = data.id;
@@ -63,6 +66,9 @@ export class RiskModel {
     this.date_of_assessment = data.date_of_assessment;
     this.is_demo = data.is_demo;
     this.created_at = data.created_at;
+    this.updated_at = data.updated_at;
+    this.is_deleted = data.is_deleted;
+    this.deleted_at = data.deleted_at;
   }
 
   static createNewRisk(data: RiskModel): RiskModel {

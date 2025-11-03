@@ -7,7 +7,6 @@ import RiskVisualizationTabs from "../../../../components/RiskVisualization/Risk
 import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
 import VWProjectRisksTable from "../../../../components/Table/VWProjectRisksTable";
-import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
 import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
@@ -17,18 +16,8 @@ import CustomizableToast from "../../../../components/Toast";
 import CustomizableSkeleton from "../../../../components/Skeletons";
 import useUsers from "../../../../../application/hooks/useUsers";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
-
-const TITLE_OF_COLUMNS = [
-  "RISK NAME", // value from risk tab
-  "OWNER", // value from risk tab
-  "SEVERITY", // value from risk tab
-  "LIKELIHOOD", // value from risk tab
-  "MITIGATION STATUS", // mitigation status
-  "RISK LEVEL", // risk auto calculated value from risk tab
-  "TARGET DATE", // start date (deadline) value from mitigation tab
-  "Linked controls",
-  "",
-];
+import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model";
+import { IFilterState } from "../../../../../domain/interfaces/i.filter";
 
 /**
  * Set initial loading status for all CRUD process
@@ -49,8 +38,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const projectId =
     parseInt(searchParams.get("projectId") ?? "0") || project!.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
-  const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
+  const [projectRisks, setProjectRisks] = useState<RiskModel[]>([]);
+  const [selectedRow, setSelectedRow] = useState<RiskModel[]>([]);
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -64,9 +53,9 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     useState<boolean>(false);
 
   // New state for enhanced risk visualization
-  const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
-  const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const [selectedRisk, setSelectedRisk] = useState<RiskModel | null>(null);
+  const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
+  const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -148,12 +137,12 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setAnchor(null); // Close the popup
   };
 
-  const handleError = (errorMessage: any) => {
+  const handleError = (errorMessage: string) => {
     setIsLoading(initialLoadingState);
     handleToast("error", errorMessage);
   };
 
-  const handleToast = (type: any, message: string) => {
+  const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
     handleAlert({
       variant: type,
       body: message,
@@ -173,8 +162,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       });
       if (response.status === 200) {
         // Set current pagination number after deleting the risk
-        let rowsPerPage = 5;
-        let rowCount = projectRisks.slice(
+        const rowsPerPage = 5;
+        const rowCount = projectRisks.slice(
           currentPage * rowsPerPage,
           currentPage * rowsPerPage + rowsPerPage
         );
@@ -206,11 +195,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setCurrentPage(page);
   };
 
-  const handleRiskSelect = (risk: ProjectRisk) => {
+  const handleRiskSelect = (risk: RiskModel) => {
     setSelectedRisk(risk);
   };
 
-  const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
+  const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
     
@@ -276,11 +265,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
         ) : (
           <VWProjectRisksTable
-            columns={TITLE_OF_COLUMNS}
             rows={projectRisks}
             setPage={setCurrentPagingation}
             page={currentPage}
-            setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+            setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
             setAnchor={setAnchor}
             deleteRisk={handleDelete}
             flashRow={null}

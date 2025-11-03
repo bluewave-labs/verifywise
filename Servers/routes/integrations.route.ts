@@ -79,11 +79,11 @@ router.post('/configure', async (req: Request, res: Response) => {
 router.get('/models', async (req: Request, res: Response) => {
   try {
     const models = await mlflowService.getModels(req.tenantId!);
-    await mlflowService.recordSyncResult(
-      "success",
-      req.tenantId!,
-      `Synced ${models.length} model(s) via manual request`,
-    );
+    // await mlflowService.recordSyncResult(
+    //   "success",
+    //   req.tenantId!,
+    //   `Synced ${models.length} model(s) via manual request`,
+    // );
     return res.status(200).json(models);
   } catch (error) {
     console.error('Error fetching MLFlow models:', error);
@@ -93,7 +93,7 @@ router.get('/models', async (req: Request, res: Response) => {
         ? error.message
         : 'Failed to fetch MLFlow models';
 
-    await mlflowService.recordSyncResult("error", req.tenantId!, message);
+    // await mlflowService.recordSyncResult("error", req.tenantId!, message);
 
     if (error instanceof Error && error.message.includes('not configured')) {
       return res.status(400).json({

@@ -25,6 +25,9 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import { useNavigate, useParams } from "react-router-dom";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
+import { useAITrustCentreResourcesQuery } from "../../../application/hooks/useAITrustCentreResourcesQuery";
+import { useAITrustCentreSubprocessorsQuery } from "../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 
 const AITrustCenter: React.FC = () => {
 const params = useParams<{ tab?: string }>();
@@ -42,6 +45,10 @@ const tabValue = params.tab || "overview";
   const tenantHash = userToken?.tenantId;
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  // Fetch data for tab counts
+  const { data: resources, isLoading: resourcesLoading } = useAITrustCentreResourcesQuery();
+  const { data: subprocessors, isLoading: subprocessorsLoading } = useAITrustCentreSubprocessorsQuery();
 
   const handlePreviewMode = () => {
     try {
@@ -126,13 +133,21 @@ const tabValue = params.tab || "overview";
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Resources"
+                label={createTabLabelWithCount({
+                  label: "Resources",
+                  count: resources?.length,
+                  isLoading: resourcesLoading,
+                })}
                 value="resources"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Subprocessors"
+                label={createTabLabelWithCount({
+                  label: "Subprocessors",
+                  count: subprocessors?.length,
+                  isLoading: subprocessorsLoading,
+                })}
                 value="subprocessors"
                 disableRipple
               />

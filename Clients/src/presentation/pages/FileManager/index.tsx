@@ -124,6 +124,12 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleUploadSuccess = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Handle file deleted - refetch files
+  const handleFileDeleted = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   const filteredFiles = useMemo(() => {
     if (selectedProject === "all" || selectedProject === null) {
       return filesData;
@@ -207,7 +213,7 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <Select
               id="project-filter"
               value={selectedProject || "all"}
@@ -240,7 +246,7 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} />
+            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={handleFileDeleted} />
           </Box>
         </Stack>
       )}

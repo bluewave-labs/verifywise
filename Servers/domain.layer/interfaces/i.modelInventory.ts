@@ -15,7 +15,6 @@ export interface IModelInventory {
   biases?: string;
   limitations?: string;
   hosting_provider?: string;
-  used_in_projects: string;
   is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;

@@ -1,9 +1,10 @@
 export interface IMenuItem {
   name: string;
   icon: React.ReactNode;
-  path: string;
+  path?: string;
   highlightPaths?: string[];
   taskCount?: number;
+  action?: () => void;
 }
 
 export interface IMenuGroup {

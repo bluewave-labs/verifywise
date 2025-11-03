@@ -33,7 +33,7 @@
     "express": "^4.21.2",
     "express-rate-limit": "^8.2.0",
     "express-validator": "^7.2.1",
-    "google-auth-library": "^10.2.1",
+    "google-auth-library": "^10.5.0",
     "helmet": "^8.0.0",
     "html-to-docx-lite": "^2.0.1",
     "http-proxy-middleware": "^3.0.5",
@@ -88,7 +88,8 @@
   },
   "overrides": {
     "@awaismirza/bypass-cors": {
-      "@fastify/reply-from": "9.8.0"
+      "@fastify/reply-from": "9.8.0",
+      "pino": "10.1.0"
     },
     "@fastify/reply-from": {
       "undici": "5.29.0"

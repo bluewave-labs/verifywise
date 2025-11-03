@@ -688,7 +688,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         biases VARCHAR(255) NOT NULL,
         limitations VARCHAR(255) NOT NULL,
         hosting_provider VARCHAR(255) NOT NULL,
-        used_in_projects TEXT NOT NULL,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -932,7 +931,8 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       filename VARCHAR(255) NOT NULL,
       size BIGINT NOT NULL,
       mimetype VARCHAR(255) NOT NULL,
-      file_path VARCHAR(500) NOT NULL,
+      file_path VARCHAR(500),
+      content BYTEA,
       uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
       upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -946,6 +946,31 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       access_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       action VARCHAR(20) NOT NULL CHECK (action IN ('download', 'view')),
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".model_inventories_projects_frameworks (
+      model_inventory_id INTEGER NOT NULL,
+      project_id INTEGER,
+      framework_id INTEGER,
+      PRIMARY KEY (model_inventory_id, project_id, framework_id),
+      CONSTRAINT fk_model_inventory
+        FOREIGN KEY (model_inventory_id)
+        REFERENCES "${tenantHash}".model_inventories(id)
+        ON DELETE CASCADE,
+      CONSTRAINT fk_project
+        FOREIGN KEY (project_id)
+        REFERENCES "${tenantHash}".projects(id)
+        ON DELETE CASCADE,
+      CONSTRAINT fk_framework
+        FOREIGN KEY (framework_id)
+        REFERENCES public.frameworks(id)
+        ON DELETE CASCADE,
+      CONSTRAINT check_project_or_framework
+        CHECK (
+          (project_id IS NOT NULL AND framework_id IS NULL) OR
+          (project_id IS NULL AND framework_id IS NOT NULL) OR
+          (project_id IS NOT NULL AND framework_id IS NOT NULL)
+        )
     );`, { transaction });
   }
   catch (error) {

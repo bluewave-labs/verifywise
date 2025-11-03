@@ -23,13 +23,18 @@ export const transformFileData = (file: any): FileData => {
     // Server sends 'upload_date' not 'uploaded_time'
     const uploadDate = file.upload_date || file.uploaded_time;
 
+    // Construct uploader name from uploader_name and uploader_surname fields
+    const uploaderName = file.uploader_name && file.uploader_surname
+        ? `${file.uploader_name} ${file.uploader_surname}`
+        : file.uploader_name || file.uploader_surname || "Unknown";
+
     return {
         id: file.id ?? "",
         fileName: file.filename ?? "Unknown",
         uploadDate: uploadDate
             ? new Date(uploadDate).toLocaleDateString()
             : "Invalid Date",
-        uploader: `${file.uploader_name ?? ""} ${file.uploader_surname ?? ""}`.trim() || "N/A",
+        uploader: uploaderName,
         source: file.source ?? "File Manager",
         projectTitle: file.project_title ?? "N/A",
         projectId: file.project_id != null ? String(file.project_id) : "0",

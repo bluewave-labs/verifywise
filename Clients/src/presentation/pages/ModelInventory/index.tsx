@@ -20,6 +20,7 @@ import {
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { usePostHog } from "../../../application/hooks/usePostHog";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -48,6 +49,7 @@ import {
   aiTrustCenterTabStyle,
   aiTrustCenterTabListStyle,
 } from "../AITrustCenter/styles";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -61,6 +63,9 @@ import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum"
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
+// Constants
+const REDIRECT_DELAY_MS = 2000;
+
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,9 +75,9 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
-  const [selectedModelInventoryId, setSelectedModelInventoryId] = useState<
-    string | null
-  >(null);
+  // const [selectedModelInventoryId, setSelectedModelInventoryId] = useState<
+  //   string | null
+  // >(null);
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
 
@@ -95,6 +100,10 @@ const ModelInventory: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // MLFlow data state
+  const [mlflowData, setMlflowData] = useState<any[]>([]);
+  const [isMlflowLoading, setIsMlflowLoading] = useState(false);
   const dispatch = useDispatch();
   const statusFilter = useSelector(
     (state: any) => state.ui?.modelInventory?.statusFilter || "all"
@@ -264,6 +273,24 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  // Function to fetch MLFlow data
+  const fetchMLFlowData = async () => {
+    setIsMlflowLoading(true);
+    try {
+      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
+      if (response.data && Array.isArray(response.data)) {
+        setMlflowData(response.data);
+      } else {
+        setMlflowData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching MLFlow data:", error);
+      setMlflowData([]);
+    } finally {
+      setIsMlflowLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Track model inventory page load
     trackDashboard('model_inventory', {
@@ -274,6 +301,7 @@ const ModelInventory: React.FC = () => {
 
     fetchModelInventoryData();
     fetchModelRisksData();
+    fetchMLFlowData();
     fetchUsersData();
   }, [trackDashboard, userRoleName, searchParams]);
 
@@ -311,15 +339,42 @@ const ModelInventory: React.FC = () => {
 
   // Auto-open create model modal when navigating from "Add new..." dropdown
   useEffect(() => {
-    if (location.state?.openCreateModal) {
-      setIsNewModelInventoryModalOpen(true);
-      setSelectedModelInventory(null);
-      setSelectedModelInventoryId(null);
+    // if (location.state?.openCreateModal) {
+    //   setIsNewModelInventoryModalOpen(true);
+    //   setSelectedModelInventory(null);
+    if (location.state?.openCreateModal && !isLoading) {
+      // Check if we're on the model-risks tab
+      if (activeTab === "model-risks") {
+        // Check if there are any models
+        if (modelInventoryData.length === 0) {
+          setAlert({
+            variant: "info",
+            title: "No models available",
+            body: "Please create a model first before adding model risks. Redirecting to models tab...",
+          });
+          // Redirect to models tab
+          setTimeout(() => {
+            navigate("/model-inventory");
+            setIsNewModelInventoryModalOpen(true);
+            setSelectedModelInventory(null);
+            // setSelectedModelInventoryId(null);
+          }, REDIRECT_DELAY_MS);
+        } else {
+          setIsNewModelRiskModalOpen(true);
+        }
+      } else {
+        setIsNewModelInventoryModalOpen(true);
+        setSelectedModelInventory(null);
+        // setSelectedModelInventoryId(null);
+      }
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+    // Dependencies: location.state triggers the effect when openCreateModal is passed via navigation
+    // navigate, location.pathname are needed for state clearing
+    // activeTab, modelInventoryData.length, isLoading determine which modal to open or if validation is needed
+  }, [location.state, navigate, location.pathname, activeTab, modelInventoryData.length, isLoading]);
 
   const handleNewModelInventoryClick = () => {
     // Track AI model creation start
@@ -334,37 +389,29 @@ const ModelInventory: React.FC = () => {
       user_role: userRoleName,
     });
 
+    setSelectedModelInventory(null);
     setIsNewModelInventoryModalOpen(true);
   };
 
-  const handleEditModelInventory = (id: string) => {
-    setSelectedModelInventoryId(id);
-    setIsNewModelInventoryModalOpen(true);
-  };
-
-  // Fetch model inventory data when modal opens with an ID
-  useEffect(() => {
-    const fetchModelInventoryDetails = async () => {
-      if (selectedModelInventoryId && isNewModelInventoryModalOpen) {
-        try {
-          const response = await getEntityById({
-            routeUrl: `/modelInventory/${selectedModelInventoryId}`,
-          });
-          if (response?.data) {
-            setSelectedModelInventory(response.data);
-          }
-        } catch (error) {
-          console.error("Error fetching model inventory details:", error);
-          setAlert({
-            variant: "error",
-            body: "Failed to load model inventory details. Please try again.",
-          });
-        }
+  const handleEditModelInventory = async (id: string) => {
+    try {
+      // Fetch the model inventory data first
+      const response = await getEntityById({
+        routeUrl: `/modelInventory/${id}`,
+      });
+      if (response?.data) {
+        setSelectedModelInventory(response.data);
+        // Only open modal after data is loaded
+        setIsNewModelInventoryModalOpen(true);
       }
-    };
-
-    fetchModelInventoryDetails();
-  }, [selectedModelInventoryId, isNewModelInventoryModalOpen]);
+    } catch (error) {
+      console.error("Error fetching model inventory details:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to load model inventory details. Please try again.",
+      });
+    }
+  };
 
   // Fetch model risk data when modal opens with an ID
   useEffect(() => {
@@ -393,15 +440,27 @@ const ModelInventory: React.FC = () => {
   const handleCloseModal = () => {
     setIsNewModelInventoryModalOpen(false);
     setSelectedModelInventory(null);
-    setSelectedModelInventoryId(null);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
     if (selectedModelInventory) {
       // Update existing model inventory
+      // Check if projects or frameworks are being deleted
+      const oldProjects = selectedModelInventory.projects || [];
+      const newProjects = formData.projects || [];
+      const oldFrameworks = selectedModelInventory.frameworks || [];
+      const newFrameworks = formData.frameworks || [];
+
+      const deleteProjects = oldProjects.length > 0 && newProjects.length === 0;
+      const deleteFrameworks = oldFrameworks.length > 0 && newFrameworks.length === 0;
+
       await updateEntityById({
         routeUrl: `/modelInventory/${selectedModelInventory.id}`,
-        body: formData,
+        body: {
+          ...formData,
+          deleteProjects,
+          deleteFrameworks,
+        },
       });
       setAlert({
         variant: "success",
@@ -794,19 +853,31 @@ const ModelInventory: React.FC = () => {
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Models"
+                label={createTabLabelWithCount({
+                  label: "Models",
+                  count: modelInventoryData.length,
+                  isLoading: isLoading,
+                })}
                 value="models"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Model risks"
+                label={createTabLabelWithCount({
+                  label: "Model risks",
+                  count: modelRisksData.length,
+                  isLoading: isModelRisksLoading,
+                })}
                 value="model-risks"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="MLFlow data"
+                label={createTabLabelWithCount({
+                  label: "MLFlow data",
+                  count: mlflowData.length,
+                  isLoading: isMlflowLoading,
+                })}
                 value="mlflow"
                 disableRipple
               />
@@ -1014,7 +1085,8 @@ const ModelInventory: React.FC = () => {
                 biases: selectedModelInventory.biases || "",
                 limitations: selectedModelInventory.limitations || "",
                 hosting_provider: selectedModelInventory.hosting_provider || "",
-                used_in_projects: selectedModelInventory.used_in_projects,
+                projects: selectedModelInventory.projects || [],
+                frameworks: selectedModelInventory.frameworks || [],
               }
             : undefined
         }

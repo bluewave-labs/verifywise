@@ -180,8 +180,8 @@ export const createNewModelInventoryQuery = async (
 
     for (const projectId of projects) {
       const result = await sequelize.query(
-        `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, created_at, updated_at)
-         VALUES (:model_inventory_id, :project_id, NOW(), NOW());`,
+        `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id)
+         VALUES (:model_inventory_id, :project_id);`,
         {
           replacements: {
             model_inventory_id: createdModel.id,
@@ -204,8 +204,8 @@ export const createNewModelInventoryQuery = async (
         }
       ) as [{ project_id: number }[], number];
       const result = await sequelize.query(
-        `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id, created_at, updated_at)
-         VALUES (:model_inventory_id, :project_id, :framework_id, NOW(), NOW());`,
+        `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id)
+         VALUES (:model_inventory_id, :project_id, :framework_id);`,
         {
           replacements: {
             model_inventory_id: createdModel.id,
@@ -325,8 +325,8 @@ export const updateModelInventoryByIdQuery = async (
       // Then, insert new associations
       for (const projectId of projects) {
         const result = await sequelize.query(
-          `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, created_at, updated_at)
-            VALUES (:model_inventory_id, :project_id, NOW(), NOW());`,
+          `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id)
+            VALUES (:model_inventory_id, :project_id);`,
           {
             replacements: {
               model_inventory_id: id,
@@ -362,8 +362,8 @@ export const updateModelInventoryByIdQuery = async (
         ) as [{ project_id: number }[], number];
 
         const result = await sequelize.query(
-          `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id, created_at, updated_at)
-            VALUES (:model_inventory_id, :project_id, :framework_id, NOW(), NOW());`,
+          `INSERT INTO "${tenant}".model_inventories_projects_frameworks (model_inventory_id, project_id, framework_id)
+            VALUES (:model_inventory_id, :project_id, :framework_id);`,
           {
             replacements: {
               model_inventory_id: id,

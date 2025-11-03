@@ -2,18 +2,11 @@ import { Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 
-/**
- * @deprecated Use AlertModel from domain/models/Common/alert/alert.model.ts instead
- * This interface will be removed in future versions
- */
 export interface alertState {
   variant: "success" | "info" | "warning" | "error";
   title?: string;
   body: string;
 }
-
-// Re-export the new AlertModel for compatibility
-export { AlertModel } from "../models/Common/alert/alert.model";
 
 /**
  * Props for the Alert component.

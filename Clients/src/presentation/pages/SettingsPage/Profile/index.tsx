@@ -38,8 +38,6 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
 import Avatar from "../../../components/Avatar/VWAvatar";
-import { UserModel } from "../../../../domain/models/Common/user/user.model";
-import { AlertModel } from "../../../../domain/models/Common/alert/alert.model";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -69,7 +67,19 @@ const ProfileForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false); // Separate saving state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [alert, setAlert] = useState<AlertModel | null>(null);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+    isToast: boolean;
+    visible: boolean;
+  }>({
+    variant: "info",
+    title: "",
+    body: "",
+    isToast: true,
+    visible: false,
+  });
 
   const theme = useTheme();
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
@@ -187,18 +197,16 @@ const ProfileForm: React.FC = () => {
       title: string,
       body: string,
     ) => {
-      const alertInstance = AlertModel.createAlert({
+      setAlert({
         variant,
         title,
         body,
         isToast: true,
         visible: true,
-      } as AlertModel);
-      
-      setAlert(alertInstance);
+      });
 
       setTimeout(() => {
-        setAlert(null);
+        setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000);
     },
     [],
@@ -226,20 +234,15 @@ const ProfileForm: React.FC = () => {
     setShowToast(true);
 
     try {
-      const updatedUser = UserModel.createNewUser({
-        id,
+      const updatedUser = {
         name: firstname,
         surname: lastname,
         email,
-      } as UserModel);
+      };
 
       const response = await updateUserById({
         userId: id,
-        userData: {
-          name: updatedUser.name,
-          surname: updatedUser.surname,
-          email: updatedUser.email,
-        },
+        userData: updatedUser,
       });
 
   
@@ -558,13 +561,13 @@ const ProfileForm: React.FC = () => {
           />
         )}
 
-        {alert && alert.visible && (
+        {alert.visible && (
           <Alert
             variant={alert.variant}
             title={alert.title}
             body={alert.body}
             isToast={alert.isToast}
-            onClick={() => setAlert(null)}
+            onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
           />
         )}
 

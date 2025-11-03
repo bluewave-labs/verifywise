@@ -19,6 +19,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -47,6 +48,7 @@ import {
   aiTrustCenterTabStyle,
   aiTrustCenterTabListStyle,
 } from "../AITrustCenter/styles";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -97,6 +99,10 @@ const ModelInventory: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // MLFlow data state
+  const [mlflowData, setMlflowData] = useState<any[]>([]);
+  const [isMlflowLoading, setIsMlflowLoading] = useState(false);
   const dispatch = useDispatch();
   const statusFilter = useSelector(
     (state: any) => state.ui?.modelInventory?.statusFilter || "all"
@@ -265,9 +271,28 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  // Function to fetch MLFlow data
+  const fetchMLFlowData = async () => {
+    setIsMlflowLoading(true);
+    try {
+      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
+      if (response.data && Array.isArray(response.data)) {
+        setMlflowData(response.data);
+      } else {
+        setMlflowData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching MLFlow data:", error);
+      setMlflowData([]);
+    } finally {
+      setIsMlflowLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchModelInventoryData();
     fetchModelRisksData();
+    fetchMLFlowData();
     fetchUsersData();
   }, []);
 
@@ -798,19 +823,31 @@ const ModelInventory: React.FC = () => {
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Models"
+                label={createTabLabelWithCount({
+                  label: "Models",
+                  count: modelInventoryData.length,
+                  isLoading: isLoading,
+                })}
                 value="models"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Model risks"
+                label={createTabLabelWithCount({
+                  label: "Model risks",
+                  count: modelRisksData.length,
+                  isLoading: isModelRisksLoading,
+                })}
                 value="model-risks"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="MLFlow data"
+                label={createTabLabelWithCount({
+                  label: "MLFlow data",
+                  count: mlflowData.length,
+                  isLoading: isMlflowLoading,
+                })}
                 value="mlflow"
                 disableRipple
               />

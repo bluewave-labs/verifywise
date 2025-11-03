@@ -6,7 +6,7 @@ interface GenerateReportProps {
   projectId: number | null;
   projectTitle: string;
   projectOwner: string;
-  reportType: string;
+  reportType: string | string[];
   reportName: string;
   frameworkId: number;
   projectFrameworkId: number;

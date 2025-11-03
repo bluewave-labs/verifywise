@@ -49,6 +49,7 @@ import { getVendorRiskById } from "../../../application/repository/vendorRisk.re
 import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -519,8 +520,26 @@ const Vendors = () => {
                 "& .MuiTabs-flexContainer": { columnGap: "34px" },
               }}
             >
-              <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
-              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
+              <Tab
+                label={createTabLabelWithCount({
+                  label: "Vendors",
+                  count: vendors.length,
+                  isLoading: isVendorsLoading,
+                })}
+                value="1"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label={createTabLabelWithCount({
+                  label: "Risks",
+                  count: vendorRisks.length,
+                  isLoading: loadingVendorRisks,
+                })}
+                value="2"
+                sx={tabStyle}
+                disableRipple
+              />
             </TabList>
           </Box>
           {value !== "1" &&

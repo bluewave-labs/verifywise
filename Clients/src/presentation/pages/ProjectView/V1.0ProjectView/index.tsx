@@ -13,6 +13,7 @@ import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
+import LinkedModels from "./LinkedModels";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
@@ -148,6 +149,12 @@ const VWProjectView = () => {
                 disableRipple
               />
               <Tab
+                sx={tabStyle}
+                label="Linked models"
+                value="linked-models"
+                disableRipple
+              />
+              <Tab
                 label="Frameworks/regulations"
                 value="frameworks"
                 sx={tabStyle}
@@ -178,6 +185,17 @@ const VWProjectView = () => {
             {project ? (
               // Render project risks content here
               <VWProjectRisks />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="linked-models" sx={tabPanelStyle}>
+            {project ? (
+              <LinkedModels project={project} />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

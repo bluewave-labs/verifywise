@@ -15,9 +15,19 @@ import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentre
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
 
+
+function isValidTenantSchema(tenant: string): boolean {
+  // Only letters, digits, and underscores. Length 1-30.
+  return /^[A-Za-z0-9_]{1,30}$/.test(tenant);
+}
+
 export const getIsVisibleQuery = async (
   tenant: string
 ) => {
+  if (!isValidTenantSchema(tenant)) {
+    // You could throw, log, or return false/null as appropriate
+    return false;
+  }
   try {
     const result = await sequelize.query(`SELECT visible FROM "${tenant}".ai_trust_center LIMIT 1;`) as [{ visible: boolean }[], number];
     return result[0][0]?.visible || false;

@@ -473,7 +473,7 @@ const RiskManagement = () => {
             page={currentPage}
             setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
             setAnchor={setAnchor}
-            deleteRisk={handleDelete}
+            onDeleteRisk={handleDelete}
             flashRow={currentRow}
           />
         )}

@@ -47,7 +47,7 @@ export interface IVWProjectRisksTable {
   rows: RiskModel[];
   setSelectedRow: (risk: RiskModel) => void;
   setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
-  deleteRisk: (id: number) => void;
+  onDeleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
   flashRow: number | null;

@@ -41,7 +41,7 @@ const VWProjectRisksTable = ({
   rows,
   setSelectedRow,
   setAnchor,
-  deleteRisk,
+  onDeleteRisk,
   setPage,
   page,
   flashRow,
@@ -95,7 +95,7 @@ const VWProjectRisksTable = ({
             rowsPerPage={rowsPerPage}
             setSelectedRow={setSelectedRow}
             setAnchor={setAnchor}
-            onDeleteRisk={deleteRisk}
+            onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
           />
         ) : (

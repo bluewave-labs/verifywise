@@ -48,7 +48,7 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
             setRiskDetails((prev) => [
               ...prev,
               {
-                id: responseData.id!,
+                id: responseData.id ?? 0,
                 title: responseData.risk_name,
                 status: responseData.approval_status,
                 severity: responseData.severity,
@@ -59,7 +59,7 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
       );
     };
     fetchRiskDetails();
-  }, []);
+  }, [risks]);
 
   return (
     <TableContainer>

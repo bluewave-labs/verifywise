@@ -19,7 +19,16 @@ const resetPasswordLimiter = rateLimit({
   }
 });
 
-router.post("/invite", async (req, res) => {
+// Rate limiter: max 5 requests per minute per IP for invite route
+const inviteLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,    // 1 minute
+  max: 5,                     // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many invite requests from this IP, please try again later."
+  }
+});
+
+router.post("/invite", inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 

@@ -10,6 +10,7 @@ import {
   TableFooter,
   Typography,
   useTheme,
+  Box,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -62,7 +63,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
       backgroundColor: style.bg,
       color: style.color,
       padding: "4px 8px",
-      borderRadius: "4px !important",
+      borderRadius: "4px",
       fontWeight: 500,
       fontSize: "11px",
       textTransform: "uppercase" as const,
@@ -201,9 +202,9 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
               </TableCell>
 
               <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                <span style={getRiskColor(project.ai_risk_classification)}>
+                <Box component="span" sx={getRiskColor(project.ai_risk_classification)}>
                   {project.ai_risk_classification}
-                </span>
+                </Box>
               </TableCell>
 
               <TableCell

@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useState } from "react";
 import DOMPurify from "dompurify";
-import PolicyForm, { FormData } from "./PolicyForm";
-import { Policy } from "../../../domain/types/Policy";
+import PolicyForm from "./PolicyForm";
+import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
@@ -107,23 +107,8 @@ import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
 
-interface Props {
-  policy: Policy | null;
-  tags: string[];
-  onClose: () => void;
-  onSaved: (successMessage?: string) => void;
-}
 
-export interface FormErrors {
-  title?: string;
-  status?: string;
-  tags?: string;
-  nextReviewDate?: string;
-  assignedReviewers?: string;
-  content?: string;
-}
-
-const PolicyDetailModal: React.FC<Props> = ({
+const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   policy,
   tags,
   onClose,
@@ -132,7 +117,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const isNew = !policy;
   const { users } = useUsers();
   const theme = useTheme();
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [openImage, setOpenImage] = useState(false);
 
@@ -184,7 +169,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   });
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: PolicyFormErrors = {};
 
     // Title validation
     const policyTitle = checkStringValidation(
@@ -226,7 +211,7 @@ const PolicyDetailModal: React.FC<Props> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<PolicyFormData>({
     title: "",
     status: "Under Review",
     tags: [],
@@ -464,7 +449,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                     "rel",
                   ],
                   ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
                   ADD_ATTR: ["target"],
                   FORBID_TAGS: [
                     "script",
@@ -537,7 +522,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
       if (errorData?.errors) {
         console.error("Processing server errors:", errorData.errors);
-        const serverErrors: FormErrors = {};
+        const serverErrors: PolicyFormErrors = {};
         errorData.errors.forEach((error: any) => {
           console.error("Processing error:", error);
           if (error.field === "title") {

@@ -50,6 +50,9 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 
+// Constants
+const REDIRECT_DELAY_MS = 2000;
+
 const Vendors = () => {
   const theme = useTheme();
   const location = useLocation();
@@ -134,14 +137,37 @@ const Vendors = () => {
 
   // Auto-open create vendor modal when navigating from "Add new..." dropdown
   useEffect(() => {
-    if (location.state?.openCreateModal) {
-      setIsOpen(true);
-      setSelectedVendor(null);
+    if (location.state?.openCreateModal && !isVendorsLoading) {
+      // Check if we're on the risks tab
+      if (isRisksTab) {
+        // Check if there are any vendors
+        if (vendors.length === 0) {
+          setAlert({
+            variant: "info",
+            title: "No vendors available",
+            body: "Please create a vendor first before adding vendor risks. Redirecting to vendors tab...",
+          });
+          // Redirect to vendors tab
+          setTimeout(() => {
+            navigate("/vendors");
+            setIsOpen(true);
+            setSelectedVendor(null);
+          }, REDIRECT_DELAY_MS);
+        } else {
+          setIsRiskModalOpen(true);
+        }
+      } else {
+        setIsOpen(true);
+        setSelectedVendor(null);
+      }
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+    // Dependencies: location.state triggers the effect when openCreateModal is passed via navigation
+    // navigate, location.pathname are needed for state clearing
+    // isRisksTab, vendors.length, isVendorsLoading determine which modal to open or if validation is needed
+  }, [location.state, navigate, location.pathname, isRisksTab, vendors.length, isVendorsLoading]);
 
   const handleDeleteVendor = async (vendorId?: number) => {
     if (!vendorId) {

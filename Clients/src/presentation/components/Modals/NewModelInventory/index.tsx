@@ -10,12 +10,12 @@ import {
   useTheme,
   Stack,
   Box,
-  Switch,
   FormControlLabel,
   Autocomplete,
   TextField,
   Typography,
 } from "@mui/material";
+import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
@@ -958,25 +958,17 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         </Stack>
 
         {/* Security Assessment Section */}
-        <Stack>
+        <Stack direction={"row"} spacing={6}>
                 <FormControlLabel
                   control={
-                    <Switch
+                    <Toggle
                       checked={values.security_assessment}
                       onChange={handleSecurityAssessmentChange}
-                      color="success"
-                      sx={{
-                        "&.Mui-checked": {
-                          color: "#13715B",
-                        },
-                      }}
-                      disableRipple
-                      disableFocusRipple
-                      disableTouchRipple
                     />
                   }
                   label="Security assessment is complete for this model"
                   sx={{
+                    width: "50%",
                     "& .MuiFormControlLabel-label": {
                       fontSize: 13,
                       fontWeight: 400,

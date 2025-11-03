@@ -60,6 +60,9 @@ import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum"
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
+// Constants
+const REDIRECT_DELAY_MS = 2000;
+
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,6 +72,9 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
+  // const [selectedModelInventoryId, setSelectedModelInventoryId] = useState<
+  //   string | null
+  // >(null);
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
 
@@ -299,14 +305,42 @@ const ModelInventory: React.FC = () => {
 
   // Auto-open create model modal when navigating from "Add new..." dropdown
   useEffect(() => {
-    if (location.state?.openCreateModal) {
-      setIsNewModelInventoryModalOpen(true);
-      setSelectedModelInventory(null);
+    // if (location.state?.openCreateModal) {
+    //   setIsNewModelInventoryModalOpen(true);
+    //   setSelectedModelInventory(null);
+    if (location.state?.openCreateModal && !isLoading) {
+      // Check if we're on the model-risks tab
+      if (activeTab === "model-risks") {
+        // Check if there are any models
+        if (modelInventoryData.length === 0) {
+          setAlert({
+            variant: "info",
+            title: "No models available",
+            body: "Please create a model first before adding model risks. Redirecting to models tab...",
+          });
+          // Redirect to models tab
+          setTimeout(() => {
+            navigate("/model-inventory");
+            setIsNewModelInventoryModalOpen(true);
+            setSelectedModelInventory(null);
+            // setSelectedModelInventoryId(null);
+          }, REDIRECT_DELAY_MS);
+        } else {
+          setIsNewModelRiskModalOpen(true);
+        }
+      } else {
+        setIsNewModelInventoryModalOpen(true);
+        setSelectedModelInventory(null);
+        // setSelectedModelInventoryId(null);
+      }
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+    // Dependencies: location.state triggers the effect when openCreateModal is passed via navigation
+    // navigate, location.pathname are needed for state clearing
+    // activeTab, modelInventoryData.length, isLoading determine which modal to open or if validation is needed
+  }, [location.state, navigate, location.pathname, activeTab, modelInventoryData.length, isLoading]);
 
   const handleNewModelInventoryClick = () => {
     setSelectedModelInventory(null);

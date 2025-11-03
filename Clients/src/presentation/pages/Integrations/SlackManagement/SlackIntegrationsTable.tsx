@@ -23,12 +23,12 @@ import { SlidersHorizontal } from "lucide-react";
 
 const SliderIcon = () => <SlidersHorizontal size={20} />;
 import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import NotificationRoutingModal from "./NotificationRoutingModal";
-import Popup from "../../../components/Popup";
+import StandardModal from "../../../components/Modals/StandardModal";
 import IconButton from "../../../components/IconButton";
 
 interface SlackIntegrationsTableProps {
@@ -52,13 +52,13 @@ const SlackIntegrationsTable = ({
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const theme = useTheme();
 
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-  const handleOpenOrClose = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      setAnchor(anchor ? null : event.currentTarget);
-    },
-    [anchor],
-  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const saveHandlerRef = useRef<(() => Promise<void>) | null>(null);
+
+  const handleOpenOrClose = useCallback(() => {
+    setIsModalOpen((prev) => !prev);
+  }, []);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -152,32 +152,62 @@ const SlackIntegrationsTable = ({
     }
   };
 
-  const PopupRender = useCallback(() => {
-    return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Popup
-          popupId="notification-routing-popup"
-          popupContent={
-            <NotificationRoutingModal
-              setIsOpen={() => setAnchor(null)}
-              integrations={integrationData.map((item) => ({
-                channel: item.channel,
-                teamName: item.teamName,
-                id: item.id,
-              }))}
-              showAlert={showAlert}
-            />
+  const handleSaveNotificationRouting = useCallback(async (routingData: any[], originalIds: number[]) => {
+    const transformedData = routingData.reduce(
+      (acc: { id: number; routingType: string[] }[], item) => {
+        item.id.forEach((id: number) => {
+          const existing = acc.find(
+            (entry: { id: number; routingType: string[] }) => entry.id === id,
+          );
+          if (existing) {
+            existing.routingType.push(item.routingType);
+          } else {
+            acc.push({ id, routingType: [item.routingType] });
           }
-          openPopupButtonName="Save Changes"
-          popupTitle="Notification Routing"
-          popupSubtitle="Map Notification types to Slack channels. Set a destination channel
-          for each type."
-          handleOpenOrClose={handleOpenOrClose}
-          anchor={anchor}
-        />
-      </Suspense>
+        });
+        return acc;
+      },
+      [],
     );
-  }, [integrationData, handleOpenOrClose, anchor]);
+
+    // Handling the removed slack integration IDs
+    const transformedIds = [...new Set(routingData.flatMap(item => item.id))];
+    const missingIds = originalIds.filter(item => !transformedIds.includes(item));
+    missingIds.forEach(id => transformedData.push({id, routingType: []}));
+
+    setIsSubmitting(true);
+    try {
+      await Promise.all(
+        transformedData.map((item: { routingType: string[]; id: number }) =>
+          updateSlackIntegration({
+            id: item.id,
+            body: { routing_type: item.routingType },
+          }),
+        ),
+      );
+      showAlert(
+        "success",
+        "Success",
+        "Notification Routing type updated successfully to the Slack channel.",
+      );
+      refreshSlackIntegrations();
+      setIsModalOpen(false);
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error updating routing types to Slack.: ${error}`,
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [showAlert, refreshSlackIntegrations]);
+
+  const handleModalSubmit = async () => {
+    if (saveHandlerRef.current) {
+      await saveHandlerRef.current();
+    }
+  };
 
   return (
     <Box sx={{ mt: 8 }}>
@@ -383,7 +413,30 @@ const SlackIntegrationsTable = ({
           </TableFooter>
         </Table>
       </TableContainer>
-      <PopupRender />
+
+      <StandardModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Notification Routing"
+        description="Map Notification types to Slack channels. Set a destination channel for each type."
+        maxWidth="990px"
+        onSubmit={handleModalSubmit}
+        submitButtonText="Save Changes"
+        isSubmitting={isSubmitting}
+      >
+        <Suspense fallback={<div>Loading...</div>}>
+          <NotificationRoutingModal
+            integrations={integrationData.map((item) => ({
+              channel: item.channel,
+              teamName: item.teamName,
+              id: item.id,
+            }))}
+            showAlert={showAlert}
+            onSave={handleSaveNotificationRouting}
+            onSaveRef={saveHandlerRef}
+          />
+        </Suspense>
+      </StandardModal>
     </Box>
   );
 };

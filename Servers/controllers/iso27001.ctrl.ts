@@ -644,7 +644,15 @@ export async function saveAnnexes(
       `Processing annex control data: ${JSON.stringify(annexControl)}`
     );
     logger.debug(`Files to delete: ${annexControl.delete}`);
-    logger.debug(`Files in request: ${req.files ? req.files.length : 0}`);
+    logger.debug(
+      `Files in request: ${
+        Array.isArray(req.files)
+          ? req.files.length
+          : req.files
+          ? 1
+          : 0
+      }`
+    );
 
     const filesToDelete = JSON.parse(annexControl.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);

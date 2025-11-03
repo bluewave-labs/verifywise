@@ -5,9 +5,18 @@ export interface FileMetadata {
   id: string;
   filename: string;
   size: number;
-  mimeType: string;
-  uploadedAt: string;
-  uploadedBy: string;
+  mimetype: string;
+  upload_date: string;
+  uploaded_by: string;
+  uploader_name?: string;
+  uploader_surname?: string;
+  source?: string;
+  project_title?: string;
+  project_id?: string | number;
+  parent_id?: number;
+  sub_id?: number;
+  meta_id?: number;
+  is_evidence?: boolean;
 }
 
 export interface FileManagerResponse {
@@ -66,16 +75,26 @@ export async function getUserFilesMetaData({
     signal,
   });
 
-    // Extract and transform API file data (snake_case → camelCase)
+    // Extract and return all file data from API
+    // Keep all fields intact so transformFileData can process them
     const rawFiles = response.data?.data?.files ?? [];
 
     return rawFiles.map((f: any) => ({
         id: String(f.id),
         filename: f.filename,
         size: f.size,
-        mimeType: f.mimetype,        // map mimetype → mimeType
-        uploadedAt: f.upload_date,   // map upload_date → uploadedAt
-        uploadedBy: String(f.uploaded_by), // map uploaded_by → uploadedBy
+        mimetype: f.mimetype,
+        upload_date: f.upload_date,
+        uploaded_by: String(f.uploaded_by),
+        uploader_name: f.uploader_name,         // Include uploader name
+        uploader_surname: f.uploader_surname,   // Include uploader surname
+        source: f.source,
+        project_title: f.project_title,
+        project_id: f.project_id,
+        parent_id: f.parent_id,
+        sub_id: f.sub_id,
+        meta_id: f.meta_id,
+        is_evidence: f.is_evidence,
     })) as FileMetadata[];
 }
 

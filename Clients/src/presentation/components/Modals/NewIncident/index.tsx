@@ -6,13 +6,13 @@ import {
     Box,
     Typography,
     FormControlLabel,
-    Switch,
-    Checkbox,
     FormGroup,
     FormLabel,
     useTheme,
     Divider,
 } from "@mui/material";
+import Toggle from "../../Inputs/Toggle";
+import Checkbox from "../../Inputs/Checkbox";
 import dayjs, { Dayjs } from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -123,18 +123,6 @@ const approvalStatusOptions = [
         name: "Not Required",
     },
 ];
-
-const checkbox = {
-    "& .MuiCheckbox-root": {
-        color: "#13715B",
-        "&.Mui-checked": {
-            color: "#13715B",
-        },
-        "&:hover": {
-            backgroundColor: "rgba(19, 113, 91, 0.04)",
-        },
-    },
-};
 
 const incidentTypes = Object.values(IncidentType);
 const harmCategories = Object.values(HarmCategory);
@@ -565,32 +553,23 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </FormLabel>
                             <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
                                 {harmCategories.map((category) => (
-                                    <FormControlLabel
-                                        key={category}
-                                        control={
-                                            <Checkbox
-                                                checked={values.categories_of_harm.includes(
+                                    <Box key={category} sx={{ flex: 1 }}>
+                                        <Checkbox
+                                            id={`harm-category-${category}`}
+                                            label={category}
+                                            size="small"
+                                            isChecked={values.categories_of_harm.includes(
+                                                category
+                                            )}
+                                            value={category}
+                                            onChange={() =>
+                                                handleHarmCategoryChange(
                                                     category
-                                                )}
-                                                onChange={() =>
-                                                    handleHarmCategoryChange(
-                                                        category
-                                                    )
-                                                }
-                                            />
-                                        }
-                                        label={category}
-                                        sx={{
-                                            flex: 1,
-                                            mr: 0,
-                                            "& .MuiFormControlLabel-label": {
-                                                fontSize: 13,
-                                                color: theme.palette.text.primary,
-                                            },
-                                            checkbox,
-                                        }}
-                                        disabled={isViewMode}
-                                    />
+                                                )
+                                            }
+                                            isDisabled={isViewMode}
+                                        />
+                                    </Box>
                                 ))}
                             </FormGroup>
 
@@ -754,7 +733,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                 </Stack>
                             </Stack>
 
-                            {/* Row: Approval Date + Interim Report */}
+                            {/* Row: Approval Date */}
                             <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Suspense fallback={<div>Loading...</div>}>
                                     <Stack sx={{ gap: 3, width: "50%" }}>
@@ -778,27 +757,6 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         />
                                     </Stack>
                                 </Suspense>
-                                <Stack sx={{ gap: 3, width: "50%", justifyContent: "flex-end" }}>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={values.interim_report}
-                                                onChange={handleSwitchChange(
-                                                    "interim_report"
-                                                )}
-                                                color="success"
-                                            />
-                                        }
-                                        label="This incident has an interim report"
-                                        sx={{
-                                            flex: 1,
-                                            "& .MuiFormControlLabel-label": {
-                                                fontSize: 13,
-                                            }
-                                        }}
-                                        disabled={isViewMode}
-                                    />
-                                </Stack>
                             </Stack>
 
                             <Field
@@ -808,6 +766,26 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                 onChange={handleOnTextFieldChange("approval_notes")}
                                 placeholder="Add approval notes"
                                 rows={2}
+                                disabled={isViewMode}
+                            />
+
+                            {/* Interim Report Toggle */}
+                            <FormControlLabel
+                                control={
+                                    <Toggle
+                                        checked={values.interim_report}
+                                        onChange={handleSwitchChange(
+                                            "interim_report"
+                                        )}
+                                    />
+                                }
+                                label="This incident has an interim report"
+                                sx={{
+                                    mt: 2,
+                                    "& .MuiFormControlLabel-label": {
+                                        fontSize: 13,
+                                    }
+                                }}
                                 disabled={isViewMode}
                             />
                         </Stack>

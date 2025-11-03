@@ -48,6 +48,7 @@ import {
   Layers,
   AlertCircle,
   FolderCog,
+  Database,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -158,7 +159,11 @@ const topItems = (openTasksCount: number): IMenuItem[] => [
   },
 ];
 
-const managementItems: IMenuItem[] = [
+const getManagementItems = (
+  hasDemoData: boolean,
+  onOpenCreateDemoData?: () => void,
+  onOpenDeleteDemoData?: () => void
+): IMenuItem[] => [
   {
     name: "Event Tracker",
     icon: <Telescope size={16} strokeWidth={1.5} />,
@@ -169,6 +174,21 @@ const managementItems: IMenuItem[] = [
     icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/settings",
   },
+  ...(hasDemoData
+    ? [
+        {
+          name: "Delete demo data",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          action: onOpenDeleteDemoData,
+        },
+      ]
+    : [
+        {
+          name: "Create demo data",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          action: onOpenCreateDemoData,
+        },
+      ]),
 ];
 
 // Reserved for future use
@@ -189,7 +209,17 @@ interface User_Avatar {
   pathToImage: string;
 }
 
-const Sidebar = () => {
+interface SidebarProps {
+  onOpenCreateDemoData?: () => void;
+  onOpenDeleteDemoData?: () => void;
+  hasDemoData?: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({
+  onOpenCreateDemoData,
+  onOpenDeleteDemoData,
+  hasDemoData = false,
+}) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -507,7 +537,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     stroke:
@@ -515,7 +546,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     transition: "color 0.2s ease, stroke 0.2s ease",
@@ -526,7 +558,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                   },
@@ -563,7 +596,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "#f8fafc"
                         : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
@@ -642,7 +676,8 @@ const Sidebar = () => {
                     item.highlightPaths?.some((p: string) =>
                       location.pathname.startsWith(p)
                     ) ||
-                    customMenuHandler() === item.path
+                    customMenuHandler() === item.path ||
+                    location.pathname.startsWith(`${item.path}/`)
                       ? "selected-path"
                       : "unselected"
                   }
@@ -657,7 +692,8 @@ const Sidebar = () => {
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
-                      customMenuHandler() === item.path
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                         ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                         : "transparent",
                     border:
@@ -675,7 +711,8 @@ const Sidebar = () => {
                         item.highlightPaths?.some((p: string) =>
                           location.pathname.startsWith(p)
                         ) ||
-                        customMenuHandler() === item.path
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                           ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                           : "#F9F9F9",
                       border:
@@ -683,7 +720,8 @@ const Sidebar = () => {
                         item.highlightPaths?.some((p: string) =>
                           location.pathname.startsWith(p)
                         ) ||
-                        customMenuHandler() === item.path
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                           ? "1px solid #D8D8D8"
                           : "1px solid transparent",
                     },
@@ -710,7 +748,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         stroke:
@@ -718,7 +757,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         transition: "color 0.2s ease, stroke 0.2s ease",
@@ -729,7 +769,8 @@ const Sidebar = () => {
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
-                          customMenuHandler() === item.path
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                       },
@@ -798,17 +839,17 @@ const Sidebar = () => {
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
-              background: managementItems.some(item => location.pathname.includes(item.path))
+              background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                 : "transparent",
-              border: managementItems.some(item => location.pathname.includes(item.path))
+              border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                 ? "1px solid #D8D8D8"
                 : "1px solid transparent",
               "&:hover": {
-                background: managementItems.some(item => location.pathname.includes(item.path))
+                background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: managementItems.some(item => location.pathname.includes(item.path))
+                border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item =>location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "1px solid #D8D8D8"
                   : "1px solid transparent",
               },
@@ -830,16 +871,16 @@ const Sidebar = () => {
                 width: "16px",
                 mr: 0,
                 "& svg": {
-                  color: managementItems.some(item => location.pathname.includes(item.path))
+                  color: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
-                  stroke: managementItems.some(item => location.pathname.includes(item.path))
+                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                   transition: "color 0.2s ease, stroke 0.2s ease",
                 },
                 "& svg path": {
-                  stroke: managementItems.some(item => location.pathname.includes(item.path))
+                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                 },
@@ -899,11 +940,15 @@ const Sidebar = () => {
             },
           }}
         >
-          {managementItems.map((item) => (
+          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).map((item) => (
             <MenuItem
-              key={item.path}
+              key={item.path || item.name}
               onClick={() => {
-                navigate(item.path);
+                if (item.action) {
+                  item.action();
+                } else if (item.path) {
+                  navigate(item.path);
+                }
                 setManagementAnchorEl(null);
               }}
               sx={{
@@ -943,16 +988,16 @@ const Sidebar = () => {
                     height: "16px",
                     flexShrink: 0,
                     "& svg": {
-                      color: location.pathname.includes(item.path)
+                      color: (item.path && location.pathname.includes(item.path))
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
-                      stroke: location.pathname.includes(item.path)
+                      stroke: (item.path && location.pathname.includes(item.path))
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                       transition: "color 0.2s ease, stroke 0.2s ease",
                     },
                     "& svg path": {
-                      stroke: location.pathname.includes(item.path)
+                      stroke: (item.path && location.pathname.includes(item.path))
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     },

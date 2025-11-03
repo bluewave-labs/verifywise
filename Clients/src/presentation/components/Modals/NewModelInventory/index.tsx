@@ -76,7 +76,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: 0,
+  approver: "" as any, // Initialize as empty string to avoid MUI select warning
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,

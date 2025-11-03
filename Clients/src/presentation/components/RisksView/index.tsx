@@ -247,7 +247,7 @@ const RisksView = ({
               page={currentPage}
               setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
               setAnchor={setAnchor}
-              deleteRisk={handleDelete}
+              onDeleteRisk={handleDelete}
               flashRow={null}
             />
           )}

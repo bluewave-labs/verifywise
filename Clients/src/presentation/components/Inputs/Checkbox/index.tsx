@@ -3,11 +3,12 @@
  *
  * @component
  * @param {string} id - The unique identifier for the checkbox input.
- * @param {string} label - The label displayed next to the checkbox.
+ * @param {string} [label] - The label displayed next to the checkbox (optional for table usage).
  * @param {"small" | "medium" | "large"} [size="medium"] - The size of the checkbox.
  * @param {boolean} isChecked - The checked state of the checkbox.
  * @param {string} value - The value of the checkbox input.
  * @param {function} onChange - The function to call when the checkbox state changes.
+ * @param {function} [onClick] - Optional onClick handler (for tables to prevent row click).
  * @param {boolean} [isDisabled] - Whether the checkbox is disabled.
  *
  * @returns {JSX.Element} The rendered Checkbox component.
@@ -31,6 +32,7 @@ const Checkbox: FC<CheckboxProps> = ({
   isChecked,
   value,
   onChange,
+  onClick,
   isDisabled,
 }) => {
   const sizes: { [key in "small" | "medium" | "large"]: string } = {
@@ -40,32 +42,42 @@ const Checkbox: FC<CheckboxProps> = ({
   };
   const theme = useTheme();
 
+  const checkboxElement = (
+    <MuiCheckbox
+      disableRipple
+      checked={isChecked}
+      checkedIcon={<CheckSquare2 size={16} />}
+      icon={<Square size={16} />}
+      value={value}
+      onChange={onChange}
+      onClick={onClick}
+      disabled={isDisabled}
+      inputProps={{
+        "aria-label": label || "controlled checkbox",
+        id: id,
+      }}
+      sx={{
+        borderRadius: theme.shape.borderRadius,
+        "&:hover": { backgroundColor: "transparent" },
+        "& svg": { width: sizes[size], height: sizes[size] },
+        "& .MuiTouchRipple-root": {
+          display: "none",
+        },
+      }}
+      size={size}
+    />
+  );
+
+  // If no label, return just the checkbox (for table usage)
+  if (!label) {
+    return checkboxElement;
+  }
+
+  // Otherwise, wrap with FormControlLabel
   return (
     <FormControlLabel
       className="checkbox-wrapper"
-      control={
-        <MuiCheckbox
-          disableRipple
-          checked={isChecked}
-          checkedIcon={<CheckSquare2 size={16} />}
-          icon={<Square size={16} />}
-          value={value}
-          onChange={onChange}
-          inputProps={{
-            "aria-label": "controlled checkbox",
-            id: id,
-          }}
-          sx={{
-            borderRadius: theme.shape.borderRadius,
-            "&:hover": { backgroundColor: "transparent" },
-            "& svg": { width: sizes[size], height: sizes[size] },
-            "& .MuiTouchRipple-root": {
-              display: "none",
-            },
-          }}
-          size={size}
-        />
-      }
+      control={checkboxElement}
       label={label}
       disabled={isDisabled}
       sx={{

@@ -22,6 +22,7 @@
     "@slack/web-api": "^7.10.0",
     "@smithy/node-http-handler": "^4.3.0",
     "@types/passport-jwt": "^4.0.1",
+    "axios": "^1.12.2",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.61.0",
     "cookie-parser": "^1.4.7",
@@ -29,8 +30,9 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "express-rate-limit": "^8.1.0",
+    "express-rate-limit": "^8.2.0",
     "express-validator": "^7.2.1",
+    "google-auth-library": "^10.5.0",
     "helmet": "^8.0.0",
     "html-to-docx-lite": "^2.0.1",
     "http-proxy-middleware": "^3.0.5",
@@ -38,6 +40,7 @@
     "jsonwebtoken": "^9.0.2",
     "marked": "^15.0.11",
     "mjml": "^4.16.1",
+    "mlflow": "^2.0.7",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.7",
@@ -84,7 +87,8 @@
   },
   "overrides": {
     "@awaismirza/bypass-cors": {
-      "@fastify/reply-from": "9.8.0"
+      "@fastify/reply-from": "9.8.0",
+      "pino": "10.1.0"
     },
     "@fastify/reply-from": {
       "undici": "5.29.0"

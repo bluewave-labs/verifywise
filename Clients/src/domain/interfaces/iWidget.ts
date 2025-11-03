@@ -55,11 +55,12 @@ export interface AutoCompleteFieldProps {
 
 export interface CheckboxProps {
   id: string;
-  label: string;
+  label?: string;
   size?: "small" | "medium" | "large";
   isChecked: boolean;
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   isDisabled?: boolean;
 }
 export interface DatePickerProps {
@@ -103,6 +104,8 @@ export interface FieldProps {
   disabled?: boolean;
   width?: number | string;
   sx?: SxProps<Theme>;
+  min?: number;
+  max?: number;
 }
 
 export interface ImageFieldProps {

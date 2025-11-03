@@ -37,7 +37,6 @@ const columns = [
   "",
 ];
 
-
 const VWProjectRisksTable = ({
   rows,
   setSelectedRow,

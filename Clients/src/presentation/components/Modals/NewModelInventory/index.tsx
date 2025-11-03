@@ -10,12 +10,12 @@ import {
   useTheme,
   Stack,
   Box,
-  Switch,
   FormControlLabel,
   Autocomplete,
   TextField,
   Typography,
 } from "@mui/material";
+import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
@@ -54,7 +54,8 @@ interface NewModelInventoryFormValues {
   biases: string;
   limitations: string;
   hosting_provider: string;
-  used_in_projects: string[];
+  projects: number[];
+  frameworks: number[];
 }
 
 interface NewModelInventoryFormErrors {
@@ -66,7 +67,8 @@ interface NewModelInventoryFormErrors {
   capabilities?: string;
   status?: string;
   status_date?: string;
-  used_in_projects?: string;
+  projects?: string;
+  frameworks?: string;
 }
 
 const initialState: NewModelInventoryFormValues = {
@@ -74,7 +76,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: 0,
+  approver: "" as any, // Initialize as empty string to avoid MUI select warning
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
@@ -83,7 +85,8 @@ const initialState: NewModelInventoryFormValues = {
   biases: "",
   limitations: "",
   hosting_provider: "",
-  used_in_projects: [],
+  projects: [],
+  frameworks: [],
 };
 
 const statusOptions = [
@@ -134,24 +137,30 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (initialData && users.length > 0) {
-      // If we have initialData and users are loaded, set the values
-      setValues(initialData);
-    } else if (initialData && !isEdit) {
-      // If we have initialData but no users yet, set values temporarily
-      setValues(initialData);
-    } else if (!isEdit) {
-      // If not editing, set initial state
-      setValues(initialState);
-    }
-  }, [initialData, isEdit, users]);
-
-  useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // When modal opens, set the form values
+      if (initialData) {
+        // Normalize the data
+        const normalizedData = {
+          ...initialData,
+          projects: Array.isArray(initialData.projects) ? [...initialData.projects] : [],
+          frameworks: Array.isArray(initialData.frameworks) ? [...initialData.frameworks] : [],
+          capabilities: Array.isArray(initialData.capabilities) ? [...initialData.capabilities] : [],
+        };
+        setValues(normalizedData);
+      } else {
+        // If not editing and no initial data, set initial state
+        setValues(initialState);
+      }
+      setErrors({});
+      setIsSubmitting(false); // Reset submitting state when modal opens
+    } else {
+      // When modal closes, reset everything
       setValues(initialState);
       setErrors({});
+      setIsSubmitting(false); // Reset submitting state when modal closes
     }
-  }, [isOpen]);
+  }, [isOpen, initialData, isEdit]);
 
   // Fetch users when modal opens
   useEffect(() => {
@@ -195,19 +204,31 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     fetchProjects();
   }, []);
 
-  const combinedList = useMemo(() => {
+  const projectsList = useMemo(() => {
+    return projectList
+      .filter((project) => !project.is_organizational)
+      .map((project) => project.project_title.trim());
+  }, [projectList]);
+
+  // Create a mapping from framework ID to framework name
+  const frameworkIdToNameMap = useMemo(() => {
+    const map = new Map<number, string>();
     const targetFrameworks = ["ISO 42001", "ISO 27001"];
 
-    return projectList.flatMap((project) => {
-      // Get enabled framework names for this project
-      const enabledFrameworks = project.framework?.map((f) => f.name) || [];
-
-      // Only include target frameworks that are enabled
-      return targetFrameworks
-        .filter((fw) => enabledFrameworks.includes(fw))
-        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+    projectList.forEach((project) => {
+      project.framework?.forEach((f) => {
+        if (targetFrameworks.includes(f.name)) {
+          map.set(f.framework_id, f.name);
+        }
+      });
     });
+
+    return map;
   }, [projectList]);
+
+  const frameworksList = useMemo(() => {
+    return Array.from(frameworkIdToNameMap.values());
+  }, [frameworkIdToNameMap]);
 
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
@@ -228,6 +249,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       })
     );
   }, []);
+
+  // Button should be enabled for new items or always enabled during edit
+  // Simplified: only disable during submission
+  const isButtonDisabled = isSubmitting;
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -258,10 +283,34 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
   const handleSelectUsedInProjectChange = useCallback(
     (_event: React.SyntheticEvent, newValue: string[]) => {
-      setValues((prev) => ({ ...prev, used_in_projects: newValue }));
-      setErrors((prev) => ({ ...prev, used_in_projects: "" }));
+      // Convert project titles to IDs
+      const projectIds = newValue
+        .map((title) => projectList.find((p) => p.project_title === title)?.id)
+        .filter((id): id is number => id !== undefined);
+      setValues((prev) => ({ ...prev, projects: projectIds }));
+      setErrors((prev) => ({ ...prev, projects: "" }));
     },
-    []
+    [projectList]
+  );
+
+  const handleSelectUsedInFrameworksChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string[]) => {
+      // Convert framework names to IDs using the mapping
+      const frameworkIds = newValue
+        .map((name) => {
+          // Find framework ID by name
+          for (const [id, frameworkName] of frameworkIdToNameMap.entries()) {
+            if (frameworkName === name) {
+              return id;
+            }
+          }
+          return undefined;
+        })
+        .filter((id): id is number => id !== undefined);
+      setValues((prev) => ({ ...prev, frameworks: frameworkIds }));
+      setErrors((prev) => ({ ...prev, frameworks: "" }));
+    },
+    [frameworkIdToNameMap]
   );
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
@@ -455,8 +504,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           : "Register a new AI model with comprehensive metadata and approval tracking"
       }
       onSubmit={handleSubmit}
-      submitButtonText={isEdit ? "Update Model" : "Save"}
-      isSubmitting={isSubmitting}
+      submitButtonText={isEdit ? "Update model" : "Save"}
+      isSubmitting={isButtonDisabled}
       maxWidth="760px"
     >
       <Stack spacing={6}>
@@ -724,6 +773,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           )}
         </Stack>
 
+        {/* Used in Projects Section */}
         <Stack>
                 <Typography
                   sx={{
@@ -733,18 +783,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Used in projects
+                  Used in use cases
                 </Typography>
                 <Autocomplete
                   multiple
-                  id="projects-framework"
+                  id="projects-input"
                   size="small"
-                  value={values.used_in_projects}
-                  options={combinedList}
+                  value={(values.projects || []).map(id => projectList.find(p => p.id === id)?.project_title).filter(Boolean) as string[]}
+                  options={projectsList}
                   onChange={handleSelectUsedInProjectChange}
                   getOptionLabel={(option) => option}
                   noOptionsText={
-                    values.used_in_projects.length === combinedList.length
+                    (values.projects || []).length === projectsList.length
                       ? "All projects selected"
                       : "No options"
                   }
@@ -763,8 +813,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      error={!!errors.used_in_projects}
-                      placeholder="Select projects-framework"
+                      error={!!errors.projects}
+                      placeholder="Select projects"
                       sx={capabilitiesRenderInputStyle}
                     />
                   )}
@@ -774,7 +824,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   }}
                   slotProps={capabilitiesSlotProps}
                 />
-                {errors.used_in_projects && (
+                {errors.projects && (
                   <Typography
                     variant="caption"
                     sx={{
@@ -784,7 +834,75 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontSize: 11,
                     }}
                   >
-              {errors.used_in_projects}
+              {errors.projects}
+            </Typography>
+          )}
+        </Stack>
+
+        {/* Used in Frameworks Section */}
+        <Stack>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    mb: theme.spacing(2),
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Used in frameworks
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="frameworks-input"
+                  size="small"
+                  value={(values.frameworks || [])
+                    .map(id => frameworkIdToNameMap.get(id))
+                    .filter(Boolean) as string[]}
+                  options={frameworksList}
+                  onChange={handleSelectUsedInFrameworksChange}
+                  getOptionLabel={(option) => option}
+                  noOptionsText={
+                    (values.frameworks || []).length === frameworksList.length
+                      ? "All frameworks selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  filterSelectedOptions
+                  popupIcon={<ChevronDown size={16} />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.frameworks}
+                      placeholder="Select frameworks"
+                      sx={capabilitiesRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...capabilitiesSxStyle,
+                  }}
+                  slotProps={capabilitiesSlotProps}
+                />
+                {errors.frameworks && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      color: "#f04438",
+                      fontWeight: 300,
+                      fontSize: 11,
+                    }}
+                  >
+              {errors.frameworks}
             </Typography>
           )}
         </Stack>
@@ -840,25 +958,17 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         </Stack>
 
         {/* Security Assessment Section */}
-        <Stack>
+        <Stack direction={"row"} spacing={6}>
                 <FormControlLabel
                   control={
-                    <Switch
+                    <Toggle
                       checked={values.security_assessment}
                       onChange={handleSecurityAssessmentChange}
-                      color="success"
-                      sx={{
-                        "&.Mui-checked": {
-                          color: "#13715B",
-                        },
-                      }}
-                      disableRipple
-                      disableFocusRipple
-                      disableTouchRipple
                     />
                   }
                   label="Security assessment is complete for this model"
                   sx={{
+                    width: "50%",
                     "& .MuiFormControlLabel-label": {
                       fontSize: 13,
                       fontWeight: 400,

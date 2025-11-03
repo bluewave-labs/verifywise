@@ -61,9 +61,9 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     const owner = users.find((user: any) => user.id === currentProject.owner);
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
-    // Handle both string and string array cases for report_type
+    // Keep arrays as arrays; normalize known string values
     if (Array.isArray(input.report_type)) {
-      reportTypeLabel = input.report_type.join(', ');
+      reportTypeLabel = input.report_type;
     } else {
       switch (input.report_type) {
         case "Annexes report":
@@ -87,7 +87,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: Array.isArray(reportTypeLabel) ? reportTypeLabel.join(', ') : reportTypeLabel,
+      reportType: reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework,
       projectFrameworkId: input.projectFrameworkId,

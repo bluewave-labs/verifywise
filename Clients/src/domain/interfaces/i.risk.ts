@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { RiskModel } from "../models/Common/risks/risk.model";
 import { IFilterState } from "./i.filter";
 
@@ -58,4 +59,20 @@ export interface IVWProjectRisksTableRow {
   setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
+}
+
+export interface IRisksViewProps {
+  // Function to fetch risks - should return Promise<RiskModel[]>
+  fetchRisks: (filter?: string) => Promise<RiskModel[]>;
+  // Title to display above the risks table
+  title: string;
+  // Optional header content (e.g., framework toggle)
+  headerContent?: ReactNode;
+  // Refresh key for forcing re-fetches
+  refreshTrigger?: number;
+}
+
+export interface IRiskLoadingStatus {
+  loading: boolean;
+  message: string;
 }

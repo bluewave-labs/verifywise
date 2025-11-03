@@ -1,7 +1,8 @@
-import { VendorDetails } from "../../application/hooks/useVendors";
+import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
 import { FileData } from "../types/File";
 import { User } from "../types/User";
+import { VendorRisk } from "../types/VendorRisk";
 import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
@@ -186,9 +187,9 @@ export interface IReportTablePropsExtended {
 }
 
 export interface IRiskTableProps {
-  users: any;
-  vendors: VendorDetails[];
-  vendorRisks: any;
+  users: User[];
+  vendors: VendorModel[];
+  vendorRisks: VendorRisk[];
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
@@ -206,8 +207,8 @@ export interface ITasksTableProps {
 }
 
 export interface ITableWithPlaceholderProps {
-  vendors: VendorDetails[];
+  vendors: VendorModel[];
   users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
+  onDelete: (vendorId?: number) => void;
+  onEdit: (vendorId?: number) => void;
 }

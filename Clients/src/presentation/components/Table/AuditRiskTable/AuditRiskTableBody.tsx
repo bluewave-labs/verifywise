@@ -5,13 +5,11 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Checkbox as MuiCheckbox,
 } from "@mui/material";
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { Square as CheckboxOutline } from "lucide-react";
-import { CheckSquare as CheckboxFilled } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
+import Checkbox from "../../Inputs/Checkbox";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -100,25 +98,16 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
                 sx={singleTheme.tableStyles.primary.body.row}
               >
                 <TableCell sx={cellStyle}>
-                  <MuiCheckbox
+                  <Checkbox
                     size="small"
-                    id="auto-fill"
-                    checked={
+                    id={`audit-risk-${row.id}`}
+                    isChecked={
                       deletedRisks.includes(row.id) ||
                       checkedRows.includes(row.id)
                     }
+                    value={row.id.toString()}
                     onChange={(e) => handleChange(row, e)}
                     onClick={(e) => e.stopPropagation()}
-                    checkedIcon={<CheckboxFilled size={16} />}
-                    icon={<CheckboxOutline size={16} />}
-                    sx={{
-                      borderRadius: "4px",
-                      "&:hover": { backgroundColor: "transparent" },
-                      "& svg": { width: "small", height: "small" },
-                      "& .MuiTouchRipple-root": {
-                        display: "none",
-                      },
-                    }}
                   />
                 </TableCell>
                 <TableCell sx={cellStyle}>

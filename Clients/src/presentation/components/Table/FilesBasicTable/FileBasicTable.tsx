@@ -14,8 +14,8 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
-import { ExternalLink as LinkExternalIcon } from "lucide-react";
 import { handleDownload } from "../../../../application/tools/fileDownload";
+import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileData } from "../../../../domain/types/File";
 import {
   getPaginationRowCount,
@@ -34,6 +34,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
+  onFileDeleted,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -100,6 +101,23 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     }
   };
 
+  // Create delete handler for a specific file
+  const createDeleteHandler = useCallback(
+    (fileId: string) => async () => {
+      try {
+        await deleteFileFromManager({ id: fileId });
+        // After successful delete, refresh the list
+        if (onFileDeleted) {
+          onFileDeleted();
+        }
+      } catch (error) {
+        console.error("Failed to delete file:", error);
+        throw error; // Re-throw so IconButton can show error
+      }
+    },
+    [onFileDeleted]
+  );
+
   return (
     <>
       <TableContainer id={table}>
@@ -154,19 +172,19 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     onClick={(event) => handleRowClick(row, event)}
                   >
                     {row.source}
-                    <LinkExternalIcon size={16} />
+
                   </Box>
                 </TableCell>
                 {/* Add any additional cells here */}
                 <TableCell>
                   <IconButton
                     id={Number(row.id)}
-                    type="evidence"
+                    type="report"
                     onEdit={() => {}}
                     onDownload={() => handleDownload(row.id, row.fileName)}
-                    onDelete={() => {}}
-                    warningTitle="Are you sure you want to download this file?"
-                    warningMessage="This action will download the file to your local machine."
+                    onDelete={createDeleteHandler(row.id)}
+                    warningTitle="Delete this file?"
+                    warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}
                   />
                 </TableCell>

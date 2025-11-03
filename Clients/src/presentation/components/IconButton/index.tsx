@@ -182,7 +182,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   /**
    * List of context-specific dropdown actions used to render menu items.
    *
-   * - For type "evidence", the menu item will be "download".
+   * - For type "evidence", the menu item will be "download","remove".
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
    * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
@@ -192,7 +192,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (type === "report") {
       return ["download", "remove"];
     } else if (type === "evidence") {
-      return ["download"];
+        return ["download", "remove"];
     } else if (type === "Resource") {
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {

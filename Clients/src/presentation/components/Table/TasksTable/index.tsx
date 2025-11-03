@@ -143,6 +143,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                               height: 20,
                               backgroundColor: "#f0f9ff",
                               color: "#0369a1",
+                              borderRadius: "4px",
                             }}
                           />
                         ))}
@@ -155,6 +156,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                               height: 20,
                               backgroundColor: "#f3f4f6",
                               color: "#6b7280",
+                              borderRadius: "4px",
                             }}
                           />
                         )}

@@ -6,14 +6,33 @@ import { generateToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 
-router.post("/invite", async (req, res) => {
+// Rate limiter: max 5 requests per minute per IP for password reset
+const resetPasswordLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,    // 1 minute
+  max: 5,                     // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many password reset requests from this IP, please try again later."
+  }
+});
+
+// Rate limiter: max 5 requests per minute per IP for invite route
+const inviteLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,    // 1 minute
+  max: 5,                     // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many invite requests from this IP, please try again later."
+  }
+});
+
+router.post("/invite", inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
   const { to, name, email } = req.body;
 
   logProcessing({

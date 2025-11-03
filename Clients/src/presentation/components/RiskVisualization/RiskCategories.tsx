@@ -247,6 +247,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -259,6 +260,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -271,6 +273,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -283,6 +286,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -295,6 +299,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -350,6 +355,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                                 color: "white",
                                 fontSize: 10,
                                 height: 18,
+                                borderRadius: "4px",
                               }}
                             />
                             {risk.risk_owner && (

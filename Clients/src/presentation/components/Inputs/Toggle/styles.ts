@@ -4,6 +4,7 @@ export const getToggleStyles = (theme: Theme) => ({
   width: 36,
   height: 22,
   padding: '2px 0',
+  marginRight: 2,
   display: 'flex',
   alignItems: 'center',
   '& .MuiSwitch-switchBase': {

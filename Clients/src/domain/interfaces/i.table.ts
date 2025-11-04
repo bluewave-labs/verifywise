@@ -1,5 +1,4 @@
 import { VendorDetails } from "../../application/hooks/useVendors";
-import { FileData } from "../types/File";
 import { FileModel } from "../models/Common/file/file.model";
 import { ProjectRisk } from "../types/ProjectRisk";
 import { User } from "../types/User";

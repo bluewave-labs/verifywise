@@ -127,7 +127,9 @@ const tabValue = params.tab || "overview";
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Overview"
+                label={createTabLabelWithCount({
+                  label: "Overview",
+                })}
                 value="overview"
                 disableRipple
               />
@@ -153,7 +155,9 @@ const tabValue = params.tab || "overview";
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Settings"
+                label={createTabLabelWithCount({
+                  label: "Settings",
+                })}
                 value="settings"
                 disableRipple
               />

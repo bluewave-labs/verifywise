@@ -307,14 +307,14 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     <StandardModal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEdit ? "Edit Model Risk" : "Add a new model risk"}
+      title={isEdit ? "Edit model risk" : "Add a new model risk"}
       description={
         isEdit
           ? "Update risk details, mitigation plan, and tracking information"
           : "Document and track potential risks associated with AI models"
       }
       onSubmit={handleSubmit}
-      submitButtonText={isEdit ? "Update Risk" : "Save"}
+      submitButtonText={isEdit ? "Update risk" : "Save"}
       isSubmitting={isSubmitting}
       maxWidth="760px"
     >

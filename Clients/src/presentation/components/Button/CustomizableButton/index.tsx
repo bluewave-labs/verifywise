@@ -207,6 +207,7 @@ const CustomizableButton = memo(
             appearance,
             {
               position: "relative",
+              minHeight: "34px",
               "&.Mui-disabled": {
                 pointerEvents: loading ? "none" : "auto",
               },

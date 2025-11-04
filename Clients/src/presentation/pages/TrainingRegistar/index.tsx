@@ -105,7 +105,7 @@ const Training: React.FC = () => {
   // ✅ Filter + search state
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
 
   // ✅ Status options
   const statusOptions = [

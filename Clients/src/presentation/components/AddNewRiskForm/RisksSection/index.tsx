@@ -207,17 +207,17 @@ const RiskSection: FC<RiskSectionProps> = ({
               lineHeight: 1.5,
             }}
           >
-            Define the scope of this risk by selecting applicable projects and frameworks.
+            Define the scope of this risk by selecting applicable use cases and frameworks.
           </Typography>
 
-          {/* Horizontal layout for Projects and Frameworks */}
+          {/* Horizontal layout for Use Cases and Frameworks */}
           <Stack direction="row" sx={{ gap: 8.5 }}>
-            {/* Applicable Projects */}
+            {/* Applicable Use Cases */}
             <Stack sx={{ flex: 1 }}>
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
               >
-                Applicable projects
+                Applicable use cases
               </Typography>
               <Autocomplete
                 multiple
@@ -254,10 +254,10 @@ const RiskSection: FC<RiskSectionProps> = ({
                     {...params}
                     placeholder={
                       projectsLoading || !projects?.length
-                        ? "Loading projects..."
+                        ? "Loading use cases..."
                         : projects?.filter((project) => !project.is_organizational && riskValues.applicableProjects.includes(project.id)).length > 0
                         ? ""
-                        : "Select Applicable Projects"
+                        : "Select applicable use cases"
                     }
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -363,7 +363,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                         ? "Loading frameworks..."
                         : frameworks?.filter((framework) => framework.is_organizational && riskValues.applicableFrameworks.includes(Number(framework.id))).length > 0
                         ? ""
-                        : "Select Applicable Frameworks"
+                        : "Select applicable frameworks"
                     }
                     sx={{
                       "& .MuiOutlinedInput-root": {

@@ -61,7 +61,7 @@ const IncidentManagement: React.FC = () => {
     } | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [tableKey, setTableKey] = useState(0);
-    const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+    const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const { userRoleName } = useAuth();

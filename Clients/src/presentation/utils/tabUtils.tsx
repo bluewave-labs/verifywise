@@ -56,35 +56,43 @@ export const createTabLabelWithCount = ({
                          count !== undefined &&
                          (showZero || count > 0);
 
-  // If no chip needed, return plain string for better performance
-  if (!shouldShowChip) {
-    return label;
-  }
-
-  // Return JSX with circular badge
+  // Always return Box wrapper for consistent alignment across all tabs
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minHeight: '22px' }}>
       {label}
-      <Box
-        component="span"
-        sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minWidth: '22px',
-          height: '22px',
-          padding: '0 6px',
-          fontSize: '10px',
-          fontWeight: 600,
-          color: '#047857',
-          backgroundColor: '#D1FAE5',
-          borderRadius: '11px',
-          lineHeight: 1,
-          ...chipSx, // Allow custom overrides
-        }}
-      >
-        {count! > 99 ? "99+" : count}
-      </Box>
+      {shouldShowChip ? (
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '22px',
+            height: '22px',
+            padding: '0 6px',
+            fontSize: '10px',
+            fontWeight: 600,
+            color: '#047857',
+            backgroundColor: '#D1FAE5',
+            borderRadius: '11px',
+            lineHeight: 1,
+            ...chipSx, // Allow custom overrides
+          }}
+        >
+          {count! > 99 ? "99+" : count}
+        </Box>
+      ) : (
+        // Invisible placeholder to maintain consistent height
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-flex',
+            minWidth: '22px',
+            height: '22px',
+            visibility: 'hidden',
+          }}
+        />
+      )}
     </Box>
   );
 };

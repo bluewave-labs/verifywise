@@ -3,8 +3,6 @@ import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
-import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
@@ -15,6 +13,24 @@ import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutoma
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildProjectReplacements, buildProjectUpdateReplacements } from "./automation/project.automation.utils";
+
+// Function to generate the next sequential UC ID
+// Using a database sequence to fetch the next value
+export const generateNextUcId = async (
+  tenant: string,
+  transaction: Transaction
+): Promise<string> => {
+  const result = await sequelize.query<{ next_id: number }>(
+    `SELECT nextval('"${tenant}".project_uc_id_seq') AS next_id`,
+    {
+      type: QueryTypes.SELECT,
+      transaction,
+    }
+  );
+
+  const nextNumber = result[0].next_id;
+  return `UC-${nextNumber}`;
+};
 
 interface GetUserProjectsOptions {
   userId: number;
@@ -246,16 +262,19 @@ export const createNewProjectQuery = async (
     }
   }
 
+  const ucId = await generateNextUcId(tenant, transaction);
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
-      project_title, owner, start_date, geography, ai_risk_classification, 
+      uc_id, project_title, owner, start_date, geography, ai_risk_classification,
       type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
-      :project_title, :owner, :start_date, :geography, :ai_risk_classification, 
+      :uc_id, :project_title, :owner, :start_date, :geography, :ai_risk_classification,
       :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
       replacements: {
+        uc_id: ucId,
         project_title: project.project_title,
         owner: project.owner,
         start_date: project.start_date,

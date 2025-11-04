@@ -122,7 +122,7 @@ const ModelInventory: React.FC = () => {
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Determine the active tab based on the URL

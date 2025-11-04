@@ -44,7 +44,7 @@ const PolicyDashboard: React.FC = () => {
   // New state for filter + search
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 

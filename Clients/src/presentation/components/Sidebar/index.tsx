@@ -48,6 +48,7 @@ import {
   Layers,
   AlertCircle,
   FolderCog,
+  Beaker,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -104,6 +105,11 @@ const getMenuGroups = (): IMenuGroup[] => [
         name: "Bias & Fairness",
         icon: <Scale size={16} strokeWidth={1.5} />,
         path: "/fairness-dashboard",
+      },
+      {
+        name: "LLM Evals",
+        icon: <Beaker size={16} strokeWidth={1.5} />,
+        path: "/evals",
       },
       {
         name: "Training Registry",

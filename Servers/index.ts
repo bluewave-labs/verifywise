@@ -27,6 +27,7 @@ import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
+import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route";
 import loggerRoutes from "./routes/logger.route";
@@ -87,7 +88,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/api/bias_and_fairness/")) {
+    if (req.url.includes("/api/bias_and_fairness/") || req.url.includes("/api/deepeval/")) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -120,6 +121,7 @@ try {
   app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
   app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
+  app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);

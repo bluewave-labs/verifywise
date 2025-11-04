@@ -1,0 +1,557 @@
+"""
+DeepEval Controller
+
+Handles DeepEval evaluation requests, background task execution,
+and result retrieval.
+"""
+
+import sys
+import os
+import json
+import asyncio
+from pathlib import Path
+from datetime import datetime
+from typing import Dict, Any, Optional
+from fastapi import HTTPException, BackgroundTasks
+from fastapi.responses import JSONResponse
+
+# Add BiasAndFairnessModule to path
+bias_fairness_path = str(Path(__file__).parent.parent.parent.parent / "BiasAndFairnessModule")
+if bias_fairness_path not in sys.path:
+    sys.path.insert(0, bias_fairness_path)
+
+from database.redis import get_job_status, set_job_status, delete_job_status
+
+
+# In-memory storage for evaluation results (can be replaced with database)
+DEEPEVAL_RESULTS = {}
+DEEPEVAL_STATUS = {}
+
+
+async def create_deepeval_evaluation_controller(
+    background_tasks: BackgroundTasks,
+    config_data: dict,
+    tenant: str
+) -> JSONResponse:
+    """
+    Create and start a DeepEval evaluation in the background.
+    
+    Args:
+        background_tasks: FastAPI background tasks
+        config_data: Evaluation configuration
+        tenant: Tenant ID
+        
+    Returns:
+        JSONResponse with evaluation ID and status
+    """
+    try:
+        # Generate evaluation ID
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        eval_id = f"deepeval_{tenant}_{timestamp}"
+        
+        # Store initial status
+        DEEPEVAL_STATUS[eval_id] = {
+            "eval_id": eval_id,
+            "status": "pending",
+            "tenant": tenant,
+            "config": config_data,
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
+            "progress": "0/0 prompts evaluated"
+        }
+        
+        # Add background task
+        background_tasks.add_task(
+            run_deepeval_evaluation_task,
+            eval_id=eval_id,
+            config_data=config_data,
+            tenant=tenant
+        )
+        
+        return JSONResponse(
+            status_code=202,
+            content={
+                "eval_id": eval_id,
+                "status": "pending",
+                "message": "DeepEval evaluation started",
+                "created_at": DEEPEVAL_STATUS[eval_id]["created_at"]
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to start evaluation: {str(e)}"
+        )
+
+
+async def run_deepeval_evaluation_task(
+    eval_id: str,
+    config_data: dict,
+    tenant: str
+):
+    """
+    Background task to run DeepEval evaluation.
+    
+    Args:
+        eval_id: Unique evaluation ID
+        config_data: Evaluation configuration
+        tenant: Tenant ID
+    """
+    try:
+        # Update status to running
+        DEEPEVAL_STATUS[eval_id]["status"] = "running"
+        DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
+        
+        print(f"[DeepEval] Starting evaluation {eval_id} for tenant {tenant}")
+        
+        # Import DeepEval components
+        from src.deepeval_engine import DeepEvalEvaluator, EvaluationDataset, ModelRunner
+        from deepeval.test_case import LLMTestCase
+        
+        # Load evaluation dataset
+        dataset = EvaluationDataset()
+        prompts = dataset.get_all_prompts()
+        
+        # Apply filters from config
+        dataset_config = config_data.get("dataset", {})
+        
+        if dataset_config.get("categories"):
+            prompts = [p for p in prompts if p["category"] in dataset_config["categories"]]
+        
+        if dataset_config.get("difficulties"):
+            prompts = [p for p in prompts if p["difficulty"] in dataset_config["difficulties"]]
+        
+        if dataset_config.get("ids"):
+            prompts = [p for p in prompts if p["id"] in dataset_config["ids"]]
+        
+        if dataset_config.get("limit"):
+            prompts = prompts[:dataset_config["limit"]]
+        
+        print(f"[DeepEval] Loaded {len(prompts)} prompts")
+        
+        # Update progress
+        DEEPEVAL_STATUS[eval_id]["progress"] = f"0/{len(prompts)} prompts evaluated"
+        DEEPEVAL_STATUS[eval_id]["total_prompts"] = len(prompts)
+        
+        # Initialize model runner
+        model_config = config_data.get("model", {})
+        model_runner = ModelRunner(
+            model_name=model_config.get("name", "TinyLlama/TinyLlama-1.1B-Chat-v1.0"),
+            provider=model_config.get("provider", "huggingface")
+        )
+        
+        print(f"[DeepEval] Initialized model runner")
+        
+        # Generate responses
+        test_cases_data = []
+        generation_config = model_config.get("generation", {})
+        
+        for i, prompt_data in enumerate(prompts, 1):
+            try:
+                # Generate response
+                response = model_runner.generate(
+                    prompt=prompt_data['prompt'],
+                    max_tokens=generation_config.get("max_tokens", 500),
+                    temperature=generation_config.get("temperature", 0.7),
+                    top_p=generation_config.get("top_p", 0.9),
+                )
+                
+                # Create test case
+                test_case = LLMTestCase(
+                    input=prompt_data['prompt'],
+                    actual_output=response,
+                    expected_output=prompt_data['expected_output'],
+                    context=[
+                        f"Category: {prompt_data['category']}",
+                        f"Difficulty: {prompt_data['difficulty']}",
+                    ],
+                    retrieval_context=[prompt_data['expected_output']]
+                )
+                
+                # Format metadata
+                metadata = {
+                    "sample_id": prompt_data['id'],
+                    "category": prompt_data['category'],
+                    "difficulty": prompt_data['difficulty'],
+                    "prompt": prompt_data['prompt'],
+                    "expected_output": prompt_data['expected_output'],
+                    "expected_keywords": prompt_data.get('expected_keywords', []),
+                    "protected_attributes": {
+                        "category": prompt_data['category'],
+                        "difficulty": prompt_data['difficulty']
+                    }
+                }
+                
+                test_cases_data.append({
+                    "test_case": test_case,
+                    "metadata": metadata
+                })
+                
+                # Update progress
+                DEEPEVAL_STATUS[eval_id]["progress"] = f"{i}/{len(prompts)} prompts evaluated"
+                DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
+                
+                print(f"[DeepEval] Generated response {i}/{len(prompts)}: {prompt_data['id']}")
+                
+            except Exception as e:
+                print(f"[DeepEval] Error generating response for {prompt_data['id']}: {e}")
+                continue
+        
+        print(f"[DeepEval] Generated {len(test_cases_data)} test cases")
+        
+        # Initialize evaluator
+        class SimpleConfig:
+            def __init__(self):
+                self.model = type('obj', (object,), {
+                    'model_id': model_config.get("name", "unknown")
+                })()
+                self.dataset = type('obj', (object,), {
+                    'name': 'evaluation_dataset'
+                })()
+        
+        simple_config = SimpleConfig()
+        config_manager = type('obj', (object,), {'config': simple_config})()
+        
+        output_dir = f"artifacts/deepeval_results/{tenant}/{eval_id}"
+        evaluator = DeepEvalEvaluator(
+            config_manager=config_manager,
+            output_dir=output_dir,
+            metric_thresholds=config_data.get("metric_thresholds", {})
+        )
+        
+        print(f"[DeepEval] Running evaluation with metrics")
+        
+        # Run evaluation
+        metrics_config = config_data.get("metrics", {
+            "answer_relevancy": True,
+            "bias": True,
+            "toxicity": True,
+        })
+        
+        results = evaluator.run_evaluation(
+            test_cases_data=test_cases_data,
+            metrics_config=metrics_config
+        )
+        
+        # Store results
+        DEEPEVAL_RESULTS[eval_id] = {
+            "eval_id": eval_id,
+            "tenant": tenant,
+            "status": "completed",
+            "config": config_data,
+            "results": results,
+            "summary": evaluator.generate_summary_dict(results),
+            "created_at": DEEPEVAL_STATUS[eval_id]["created_at"],
+            "completed_at": datetime.now().isoformat()
+        }
+        
+        # Update status
+        DEEPEVAL_STATUS[eval_id]["status"] = "completed"
+        DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
+        DEEPEVAL_STATUS[eval_id]["completed_at"] = datetime.now().isoformat()
+        
+        print(f"[DeepEval] Evaluation {eval_id} completed successfully")
+        
+    except Exception as e:
+        print(f"[DeepEval] Evaluation {eval_id} failed: {e}")
+        traceback.print_exc()
+        
+        # Update status to failed
+        DEEPEVAL_STATUS[eval_id]["status"] = "failed"
+        DEEPEVAL_STATUS[eval_id]["error"] = str(e)
+        DEEPEVAL_STATUS[eval_id]["updated_at"] = datetime.now().isoformat()
+
+
+async def get_deepeval_evaluation_status_controller(
+    eval_id: str,
+    tenant: str
+) -> JSONResponse:
+    """
+    Get the status of a DeepEval evaluation.
+    
+    Args:
+        eval_id: Evaluation ID
+        tenant: Tenant ID
+        
+    Returns:
+        JSONResponse with evaluation status
+    """
+    if eval_id not in DEEPEVAL_STATUS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Evaluation {eval_id} not found"
+        )
+    
+    status_data = DEEPEVAL_STATUS[eval_id]
+    
+    # Verify tenant
+    if status_data["tenant"] != tenant:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+    
+    return JSONResponse(
+        status_code=200,
+        content=status_data
+    )
+
+
+async def get_deepeval_evaluation_results_controller(
+    eval_id: str,
+    tenant: str
+) -> JSONResponse:
+    """
+    Get the results of a completed DeepEval evaluation.
+    
+    Args:
+        eval_id: Evaluation ID
+        tenant: Tenant ID
+        
+    Returns:
+        JSONResponse with evaluation results
+    """
+    if eval_id not in DEEPEVAL_RESULTS:
+        # Check if evaluation exists but isn't complete
+        if eval_id in DEEPEVAL_STATUS:
+            status = DEEPEVAL_STATUS[eval_id]["status"]
+            if status == "pending" or status == "running":
+                raise HTTPException(
+                    status_code=202,
+                    detail=f"Evaluation is still {status}"
+                )
+            elif status == "failed":
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Evaluation failed: {DEEPEVAL_STATUS[eval_id].get('error', 'Unknown error')}"
+                )
+        
+        raise HTTPException(
+            status_code=404,
+            detail=f"Evaluation results for {eval_id} not found"
+        )
+    
+    results_data = DEEPEVAL_RESULTS[eval_id]
+    
+    # Verify tenant
+    if results_data["tenant"] != tenant:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+    
+    return JSONResponse(
+        status_code=200,
+        content=results_data
+    )
+
+
+async def get_all_deepeval_evaluations_controller(tenant: str) -> JSONResponse:
+    """
+    Get all DeepEval evaluations for a tenant.
+    
+    Args:
+        tenant: Tenant ID
+        
+    Returns:
+        JSONResponse with list of evaluations
+    """
+    tenant_evaluations = []
+    
+    for eval_id, status_data in DEEPEVAL_STATUS.items():
+        if status_data["tenant"] == tenant:
+            evaluation_summary = {
+                "eval_id": eval_id,
+                "status": status_data["status"],
+                "created_at": status_data["created_at"],
+                "updated_at": status_data["updated_at"],
+                "progress": status_data.get("progress", "Unknown"),
+            }
+            
+            # Add model info if available
+            if "config" in status_data:
+                model_config = status_data["config"].get("model", {})
+                evaluation_summary["model"] = model_config.get("name", "Unknown")
+            
+            # Add summary stats if completed
+            if eval_id in DEEPEVAL_RESULTS:
+                summary = DEEPEVAL_RESULTS[eval_id].get("summary", {})
+                evaluation_summary["total_samples"] = summary.get("total_samples", 0)
+                evaluation_summary["completed_at"] = DEEPEVAL_RESULTS[eval_id].get("completed_at")
+            
+            tenant_evaluations.append(evaluation_summary)
+    
+    # Sort by created_at descending
+    tenant_evaluations.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    return JSONResponse(
+        status_code=200,
+        content={"evaluations": tenant_evaluations}
+    )
+
+
+async def delete_deepeval_evaluation_controller(
+    eval_id: str,
+    tenant: str
+) -> JSONResponse:
+    """
+    Delete a DeepEval evaluation and its results.
+    
+    Args:
+        eval_id: Evaluation ID
+        tenant: Tenant ID
+        
+    Returns:
+        JSONResponse with deletion confirmation
+    """
+    if eval_id not in DEEPEVAL_STATUS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Evaluation {eval_id} not found"
+        )
+    
+    status_data = DEEPEVAL_STATUS[eval_id]
+    
+    # Verify tenant
+    if status_data["tenant"] != tenant:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+    
+    # Delete from both storages
+    if eval_id in DEEPEVAL_STATUS:
+        del DEEPEVAL_STATUS[eval_id]
+    
+    if eval_id in DEEPEVAL_RESULTS:
+        del DEEPEVAL_RESULTS[eval_id]
+    
+    # Delete files if they exist
+    try:
+        output_dir = Path(f"artifacts/deepeval_results/{tenant}/{eval_id}")
+        if output_dir.exists():
+            import shutil
+            shutil.rmtree(output_dir)
+    except Exception as e:
+        print(f"[DeepEval] Warning: Could not delete files for {eval_id}: {e}")
+    
+    return JSONResponse(
+        status_code=200,
+        content={
+            "message": "Evaluation deleted successfully",
+            "eval_id": eval_id
+        }
+    )
+
+
+async def get_available_deepeval_metrics_controller() -> JSONResponse:
+    """
+    Get list of available DeepEval metrics with descriptions.
+    
+    Returns:
+        JSONResponse with available metrics
+    """
+    metrics = [
+        {
+            "name": "answer_relevancy",
+            "display_name": "Answer Relevancy",
+            "description": "Measures if the answer is relevant to the input",
+            "requires_context": False,
+            "requires_openai_key": True,
+            "score_interpretation": "Higher is better (0.0 - 1.0)"
+        },
+        {
+            "name": "faithfulness",
+            "display_name": "Faithfulness",
+            "description": "Checks if the answer is faithful to the provided context",
+            "requires_context": True,
+            "requires_openai_key": True,
+            "score_interpretation": "Higher is better (0.0 - 1.0)"
+        },
+        {
+            "name": "contextual_relevancy",
+            "display_name": "Contextual Relevancy",
+            "description": "Evaluates if the context is relevant to the input",
+            "requires_context": True,
+            "requires_openai_key": True,
+            "score_interpretation": "Higher is better (0.0 - 1.0)"
+        },
+        {
+            "name": "hallucination",
+            "display_name": "Hallucination Detection",
+            "description": "Detects hallucinations or fabricated information in the output",
+            "requires_context": True,
+            "requires_openai_key": True,
+            "score_interpretation": "Lower is better (0.0 - 1.0)"
+        },
+        {
+            "name": "bias",
+            "display_name": "Bias Detection",
+            "description": "Identifies potential biases in responses",
+            "requires_context": False,
+            "requires_openai_key": True,
+            "score_interpretation": "Lower is better (0.0 - 1.0)"
+        },
+        {
+            "name": "toxicity",
+            "display_name": "Toxicity Detection",
+            "description": "Detects toxic or harmful content",
+            "requires_context": False,
+            "requires_openai_key": True,
+            "score_interpretation": "Lower is better (0.0 - 1.0)"
+        }
+    ]
+    
+    return JSONResponse(
+        status_code=200,
+        content={"metrics": metrics}
+    )
+
+
+async def get_evaluation_dataset_info_controller() -> JSONResponse:
+    """
+    Get information about the evaluation dataset.
+    
+    Returns:
+        JSONResponse with dataset statistics
+    """
+    try:
+        from src.deepeval_engine import EvaluationDataset
+        
+        dataset = EvaluationDataset()
+        stats = dataset.get_statistics()
+        
+        # Get all prompts for detailed info
+        prompts = dataset.get_all_prompts()
+        
+        # Build category details
+        category_details = {}
+        for prompt in prompts:
+            category = prompt["category"]
+            if category not in category_details:
+                category_details[category] = {
+                    "count": 0,
+                    "difficulties": {"easy": 0, "medium": 0, "hard": 0}
+                }
+            category_details[category]["count"] += 1
+            category_details[category]["difficulties"][prompt["difficulty"]] += 1
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "total_prompts": stats["total_prompts"],
+                "categories": stats["category_list"],
+                "difficulties": list(stats["difficulties"].keys()),
+                "category_counts": stats["categories"],
+                "difficulty_counts": stats["difficulties"],
+                "category_details": category_details
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get dataset info: {str(e)}"
+        )
+

@@ -106,6 +106,8 @@ interface FormValues {
   riskClassification: number;
   typeOfHighRiskRole: number;
   geography: number;
+  targetIndustry: string;
+  description: string;
   monitoredRegulationsAndStandards: {
     _id: number;
     name: string;
@@ -125,6 +127,8 @@ interface FormErrors {
   typeOfHighRiskRole?: string;
   monitoredRegulationsAndStandards?: string;
   geography?: string;
+  targetIndustry?: string;
+  description?: string;
 }
 
 const initialState: FormValues = {
@@ -137,6 +141,8 @@ const initialState: FormValues = {
   riskClassification: 0,
   typeOfHighRiskRole: 0,
   geography: 1,
+  targetIndustry: "",
+  description: "",
   monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
@@ -197,6 +203,8 @@ const ProjectSettings = React.memo(
         values.typeOfHighRiskRole !==
           initialValuesRef.current.typeOfHighRiskRole ||
         values.geography !== initialValuesRef.current.geography;
+        values.targetIndustry !== initialValuesRef.current.targetIndustry ||
+        values.description !== initialValuesRef.current.description;
 
       // Only consider framework changes if we're not in the middle of a framework operation
       const frameworksModified =
@@ -293,6 +301,8 @@ const ProjectSettings = React.memo(
                 project.type_of_high_risk_role.toLowerCase(),
             )?._id || 0,
           geography: project.geography ?? 1,
+          targetIndustry: project.target_industry ?? "",
+          description: project.description ?? "",
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
@@ -702,6 +712,8 @@ const ProjectSettings = React.memo(
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
           geography: selectedGeography,
+          target_industry: values.targetIndustry,
+          description: values.description,
           status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
@@ -831,6 +843,30 @@ const ProjectSettings = React.memo(
               }}
               error={errors.goal}
               isRequired
+            />
+            <Field
+              id="target-industry-input"
+              label="Target industry"
+              width={400}
+              type="description"
+              value={values.targetIndustry}
+              onChange={handleOnTextFieldChange("targetIndustry")}
+              sx={{
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.targetIndustry}
+            />
+            <Field
+              id="description-input"
+              label="Description"
+              width={400}
+              type="description"
+              value={values.description}
+              onChange={handleOnTextFieldChange("description")}
+              sx={{
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.description}
             />
             <Select
               id="project-status"

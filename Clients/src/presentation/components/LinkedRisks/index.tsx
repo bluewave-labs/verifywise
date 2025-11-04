@@ -8,16 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import StandardModal from "../Modals/StandardModal";
 
 import { textfieldStyle } from "./styles";
-
-interface LinkedRisksModalProps {
-  onClose: () => void;
-  currentRisks: number[];
-  setSelectecRisks: (selectedRisks: number[]) => void;
-  _setDeletedRisks: (deletedRisks: number[]) => void;
-  projectId?: number; // Optional project ID to override URL search params
-  frameworkId?: number; // Optional framework ID for organizational projects
-  isOrganizational?: boolean; // Flag to determine which endpoint to use
-}
+import { LinkedRisksModalProps } from "../../../domain/interfaces/i.table";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,

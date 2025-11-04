@@ -1,6 +1,6 @@
 import { VendorModel } from "../models/Common/vendor/vendor.model";
+import { RiskModel } from "../models/Common/risks/risk.model";
 import { FileData } from "../types/File";
-import { ProjectRisk } from "../types/ProjectRisk";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { IEvent } from "./i.event";
@@ -125,7 +125,7 @@ export interface IFileTableProps {
 }
 
 export interface IProjectRiskTableBodyProps {
-  rows: ProjectRisk[];
+  rows: RiskModel[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   currentRisks: number[];
@@ -136,13 +136,23 @@ export interface IProjectRiskTableBodyProps {
 }
 
 export interface ILinkedRisksTableProps {
-  projectRisksGroup: ProjectRisk[];
-  filteredRisksGroup: ProjectRisk[];
+  projectRisksGroup: RiskModel[];
+  filteredRisksGroup: RiskModel[];
   currentRisks: number[];
   checkedRows: number[];
   setCheckedRows: (checkedRows: number[]) => void;
   deletedRisks: number[];
   setDeletedRisks: (deletedRisks: number[]) => void;
+}
+
+export interface LinkedRisksModalProps {
+  onClose: () => void;
+  currentRisks: number[];
+  setSelectecRisks: (selectedRisks: number[]) => void;
+  _setDeletedRisks: (deletedRisks: number[]) => void;
+  projectId?: number; // Optional project ID to override URL search params
+  frameworkId?: number; // Optional framework ID for organizational projects
+  isOrganizational?: boolean; // Flag to determine which endpoint to use
 }
 
 export interface ITableProps {

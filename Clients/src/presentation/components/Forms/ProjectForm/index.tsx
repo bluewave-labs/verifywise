@@ -102,6 +102,8 @@ const ProjectForm = ({
           ? FrameworkTypeEnum.OrganizationWide
           : FrameworkTypeEnum.ProjectBased,
         geography: projectToEdit.geography || 1,
+        target_industry: projectToEdit.target_industry || "",
+        description: projectToEdit.description || "",
       };
     }
     return {
@@ -926,6 +928,32 @@ const ProjectForm = ({
       {!projectToEdit &&
         values.framework_type === FrameworkTypeEnum.ProjectBased && (
           <Stack>
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
+            <Field
+              id="target-industry-input"
+              label="Target industry"
+              type="description"
+              value={values.target_industry}
+              onChange={handleOnTextFieldChange("target_industry")}
+              sx={{
+                flex: 1,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.targetIndustry}
+            />
+            <Field
+              id="description-input"
+              label="Description"
+              type="description"
+              value={values.description}
+              onChange={handleOnTextFieldChange("description")}
+              sx={{
+                flex: 1,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.description}
+            />
+            </Stack>
             <Checkbox
               size="small"
               id="auto-fill"

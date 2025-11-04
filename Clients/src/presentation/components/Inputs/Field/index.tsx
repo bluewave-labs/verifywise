@@ -80,6 +80,8 @@ const Field = forwardRef(
 
     const [isVisible, setVisible] = useState(false);
 
+    const rootSx = sx;
+
     return (
       <Stack
         gap={theme.spacing(2)}
@@ -103,6 +105,7 @@ const Field = forwardRef(
             border: `1px solid ${theme.palette.border.dark}!important`,
           },
           width: width,
+          ...(rootSx || {}),
         }}
       >
         {label && (

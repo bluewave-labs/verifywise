@@ -175,7 +175,10 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   <Box display="flex" alignItems="center" gap={1}>
                     {/* <RiskChip label={row.risk_status} /> */}
                     <CustomizableButton
-                      sx={singleTheme.tableStyles.primary.body.button}
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.button,
+                        width: 110,
+                      }}
                       variant="contained"
                       text="View risks"
                       onClick={(e: React.MouseEvent<HTMLElement>) => {

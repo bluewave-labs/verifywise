@@ -264,7 +264,6 @@ const PolicyDashboard: React.FC = () => {
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 3,
-                height: "fit-content",
               }}
               icon={<AddCircleOutlineIcon size={16} />}
               onClick={handleAddNewPolicy}

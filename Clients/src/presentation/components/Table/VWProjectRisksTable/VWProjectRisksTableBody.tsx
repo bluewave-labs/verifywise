@@ -1,4 +1,4 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme } from "@mui/material";
+import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme, Link } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
@@ -9,7 +9,6 @@ import IconButton from "../../IconButton";
 import { formatDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -218,18 +217,24 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
                 >
-                  <CustomizableButton
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      border: "1px solid #13715B",
-                    }}
-                    variant="contained"
-                    text="View controls"
+                  <Link
+                    component="button"
                     onClick={(e: React.MouseEvent<HTMLElement>) =>
                       toggleMitigations(row, e)
                     }
-                  />
+                    sx={{
+                      color: "#13715B",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      "&:hover": {
+                        color: "#0F5A47",
+                      },
+                    }}
+                  >
+                    View controls
+                  </Link>
                 </TableCell>
                 <TableCell
                   sx={{

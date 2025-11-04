@@ -2,6 +2,7 @@ artifacts:
   inference_results_path: artifacts/cleaned_inference_results.csv
   postprocessed_results_path: artifacts/postprocessed_results.csv
   reports_dir: artifacts/reports
+  deepeval_results_dir: artifacts/deepeval_results
 dataset:
   name: adult-census-income
   platform: huggingface
@@ -73,3 +74,32 @@ visualizations:
     attribute: "sex"
   - type: "plot_group_metrics_boxplots"
     attribute: "sex"
+
+# DeepEval Configuration
+deepeval:
+  enabled: true
+  metrics:
+    # Enable/disable specific DeepEval metrics
+    # Note: Most metrics require an OpenAI API key
+    answer_relevancy: true      # Measures if the answer is relevant to the input
+    faithfulness: false         # Checks if the answer is faithful to the context (requires context)
+    contextual_relevancy: false # Evaluates if context is relevant to the input (requires context)
+    hallucination: false        # Detects hallucinations in the output (requires context)
+    bias: true                  # Identifies potential biases in responses
+    toxicity: true              # Detects toxic or harmful content
+  
+  # Metric thresholds (0.0 - 1.0)
+  metric_thresholds:
+    answer_relevancy: 0.5
+    faithfulness: 0.5
+    contextual_relevancy: 0.5
+    hallucination: 0.5
+    bias: 0.5
+    toxicity: 0.5
+  
+  # Output settings
+  output:
+    save_detailed_results: true   # Save detailed JSON results
+    save_summary: true            # Save summary JSON
+    save_csv: true                # Save CSV format
+    save_report: true             # Save human-readable text report

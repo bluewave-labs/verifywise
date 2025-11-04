@@ -1,5 +1,6 @@
 import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
+import { FileModel } from "../models/Common/file/file.model";
 import { FileData } from "../types/File";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
@@ -120,7 +121,7 @@ export interface IFileBasicTableProps {
 
 export interface IFileTableProps {
   cols: any[];
-  files: FileData[];
+  files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
 }
 

@@ -73,8 +73,8 @@ const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted }) =>
         id: file.id,
         fileName: file.fileName,
         projectTitle: file.projectTitle,
-        uploadDate: file.uploadDate,
-        uploader: file.uploader,
+        uploadDate: file.getFormattedUploadDate(),
+        uploader: file.uploaderName || file.uploader,
         source: file.source,
       })),
     [sortedFiles]

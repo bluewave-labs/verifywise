@@ -1,17 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Layouts } from 'react-grid-layout';
-
-// Widget types enum
-export enum WidgetType {
-  METRICS = 'metrics',
-  PROJECTS = 'projects',
-  RISKS = 'risks',
-  COMPLIANCE = 'compliance',
-  ACTIVITIES = 'activities',
-  TASKS = 'tasks',
-  CHART = 'chart',
-  TABLE = 'table',
-  CUSTOM = 'custom'
-}
+import { WidgetType } from '../enums/dashboard.enum';
+import { IStatusData } from './i.chart';
 
 // Widget configuration
 export interface WidgetConfig {
@@ -114,4 +105,42 @@ export interface DashboardContextValue {
     exportDashboard: () => void;
     importDashboard: (config: DashboardConfig) => void;
   };
+}
+
+export interface DashboardProject {
+  id: string;
+  name: string;
+  progress: number;
+  status: 'active' | 'pending' | 'completed' | 'on-hold';
+  dueDate?: string;
+}
+
+export interface DashboardProjectsWidgetProps {
+  loading?: boolean;
+  projects?: DashboardProject[];
+}
+
+export interface MetricData {
+  label: string;
+  value: number | string;
+  change?: number;
+  unit?: string;
+  color?: string;
+}
+
+export interface MetricsWidgetProps {
+  loading?: boolean;
+  data?: MetricData[];
+}
+
+// Import MetricCard component from WorkingDashboard
+export interface MetricCardProps {
+  title: string;
+  value: number | string;
+  onClick?: () => void;
+  navigable?: boolean;
+  statusData?: IStatusData[];
+  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
+  compact?: boolean;
+  backgroundIcon?: React.ComponentType<any>;
 }

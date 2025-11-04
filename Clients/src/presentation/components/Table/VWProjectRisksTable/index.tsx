@@ -23,26 +23,29 @@ const SelectorVertical = (props: any) => (
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableHead from "./VWProjectRisksTableHead";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
+import { IVWProjectRisksTable } from "../../../../domain/interfaces/i.risk";
+
+const columns = [
+  "RISK NAME", // value from risk tab
+  "OWNER", // value from risk tab
+  "SEVERITY", // value from risk tab
+  "LIKELIHOOD", // value from risk tab
+  "MITIGATION STATUS", // mitigation status
+  "RISK LEVEL", // risk auto calculated value from risk tab
+  "TARGET DATE", // start date (deadline) value from mitigation tab
+  "LINKED CONTROLS", // controls mapping value from risk tab
+  "",
+];
 
 const VWProjectRisksTable = ({
-  columns,
   rows,
   setSelectedRow,
   setAnchor,
-  deleteRisk,
+  onDeleteRisk,
   setPage,
   page,
   flashRow,
-}: {
-  columns: any[];
-  rows: any[];
-  setSelectedRow: any;
-  setAnchor: any;
-  deleteRisk: (id: number) => void;
-  setPage: (pageNo: number) => void;
-  page: number;
-  flashRow: number | null;
-}) => {
+}: IVWProjectRisksTable) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -63,7 +66,7 @@ const VWProjectRisksTable = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, rows?.length ?? 0);
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, rows?.length ?? 0]);
+  }, [page, rowsPerPage, rows?.length]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -92,7 +95,7 @@ const VWProjectRisksTable = ({
             rowsPerPage={rowsPerPage}
             setSelectedRow={setSelectedRow}
             setAnchor={setAnchor}
-            onDeleteRisk={deleteRisk}
+            onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
           />
         ) : (

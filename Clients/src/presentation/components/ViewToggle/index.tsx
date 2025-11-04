@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleButton, ToggleButtonGroup, useTheme } from "@mui/material";
+import { ToggleButton, ToggleButtonGroup, useTheme, Tooltip } from "@mui/material";
 
 import {
   LayoutGrid as ViewModuleIcon,
@@ -49,10 +49,12 @@ const ViewToggle: React.FC<IViewToggleProps> = ({
       disabled={disabled}
       sx={[
         {
+          height: "34px",
           "& .MuiToggleButton-root": {
             border: `1px solid ${theme.palette.border.dark}`,
             color: theme.palette.text.tertiary,
             padding: "6px 12px",
+            height: "34px",
             "&.Mui-selected": {
               backgroundColor: "#13715B",
               color: theme.palette.background.main,
@@ -72,12 +74,16 @@ const ViewToggle: React.FC<IViewToggleProps> = ({
         ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
       ]}
     >
-      <ToggleButton value="card" aria-label="card view" disableRipple>
-        <ViewModuleIcon size={16} />
-      </ToggleButton>
-      <ToggleButton value="table" aria-label="table view" disableRipple>
-        <TableRowsIcon size={16} />
-      </ToggleButton>
+      <Tooltip title="Card view" placement="top" arrow>
+        <ToggleButton value="card" aria-label="card view" disableRipple>
+          <ViewModuleIcon size={16} />
+        </ToggleButton>
+      </Tooltip>
+      <Tooltip title="Row view" placement="top" arrow>
+        <ToggleButton value="table" aria-label="table view" disableRipple>
+          <TableRowsIcon size={16} />
+        </ToggleButton>
+      </Tooltip>
     </ToggleButtonGroup>
   );
 };

@@ -1,24 +1,14 @@
-import { Button, Stack, Typography } from "@mui/material";
-import { X as ClearIcon } from "lucide-react";
+import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { getAllRisksByFrameworkId } from "../../../application/repository/projectRisk.repository";
 import LinkedRisksTable from "../Table/LinkedRisksTable";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../Button/CustomizableButton";
+import StandardModal from "../Modals/StandardModal";
 
-import { textfieldStyle, styles } from "./styles";
-
-interface LinkedRisksModalProps {
-  onClose: () => void;
-  currentRisks: number[];
-  setSelectecRisks: (selectedRisks: number[]) => void;
-  _setDeletedRisks: (deletedRisks: number[]) => void;
-  projectId?: number; // Optional project ID to override URL search params
-  frameworkId?: number; // Optional framework ID for organizational projects
-  isOrganizational?: boolean; // Flag to determine which endpoint to use
-}
+import { textfieldStyle } from "./styles";
+import { LinkedRisksModalProps } from "../../../domain/interfaces/i.table";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,
@@ -78,29 +68,24 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   );
 
   return (
-    <Stack sx={styles.container}>
-      <Stack>
-        <Stack sx={styles.headingSection}>
-          <Typography sx={styles.textTitle}>
-            Link a risk from risk database
-          </Typography>
-          <ClearIcon size={20} style={styles.clearIconStyle} onClick={onClose} />
-        </Stack>
-        <Stack component="form" sx={styles.searchInputWrapper}>
-          <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>
-            Search from the risk database:
-          </Typography>
-          <Stack>
-            <Field
-              id="risk-input"
-              width="350px"
-              sx={textfieldStyle}
-              value={searchInput}
-              onChange={handleOnTextFieldChange}
-              disabled={risks.length === 0}
-            />
-          </Stack>
-        </Stack>
+    <StandardModal
+      isOpen={true}
+      onClose={onClose}
+      title="Link a risk from risk database"
+      description="Search from the risk database:"
+      onSubmit={handleFormSubmit}
+      submitButtonText="Use selected risks"
+      maxWidth="1500px"
+    >
+      <Stack spacing={6}>
+        <Field
+          id="risk-input"
+          width="350px"
+          sx={textfieldStyle}
+          value={searchInput}
+          onChange={handleOnTextFieldChange}
+          disabled={risks.length === 0}
+        />
         <LinkedRisksTable
           projectRisksGroup={risks}
           filteredRisksGroup={filteredRisks}
@@ -111,24 +96,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
           setDeletedRisks={setDeletedRisks}
         />
       </Stack>
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button sx={styles.cancelBtn} onClick={onClose}>
-          Cancel
-        </Button>
-        <CustomizableButton
-          sx={styles.CustomizableButton}
-          variant="contained"
-          text="Use selected risks"
-          onClick={handleFormSubmit}
-        />
-      </Stack>
-    </Stack>
+    </StandardModal>
   );
 };
 

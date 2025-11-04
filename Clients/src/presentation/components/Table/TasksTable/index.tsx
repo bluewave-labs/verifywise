@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Table,
   TableBody,
@@ -18,13 +19,34 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
 import { ChevronsUpDown } from "lucide-react";
-import { ITask } from "../../../../domain/interfaces/i.task";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
-import RiskChip from "../../RiskLevel/RiskChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
+import { TaskModel } from "../../../../domain/models/Common/task/task.model";
+
+// Priority badge styles (compact version similar to Model Inventory StatusBadge)
+const priorityBadgeStyle = (priority: string) => {
+  const priorityStyles = {
+    High: { bg: "#FFD6D6", color: "#D32F2F" },
+    Medium: { bg: "#FFE5D0", color: "#E64A19" },
+    Low: { bg: "#FFF8E1", color: "#795548" },
+  };
+
+  const style = priorityStyles[priority as keyof typeof priorityStyles] || { bg: "#E0E0E0", color: "#424242" };
+
+  return {
+    backgroundColor: style.bg,
+    color: style.color,
+    padding: "4px 8px",
+    borderRadius: "4px",
+    fontWeight: 500,
+    fontSize: 11,
+    textTransform: "uppercase" as const,
+    display: "inline-block" as const,
+  };
+};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -101,7 +123,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, tasks?.length ?? 0);
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, tasks?.length ?? 0]);
+  }, [page, rowsPerPage, tasks?.length]);
 
   const tableBody = useMemo(
     () => (
@@ -109,7 +131,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
         {tasks &&
           tasks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((task: ITask) => (
+            .map((task: TaskModel) => (
               <TableRow
                 key={task.id}
                 sx={{
@@ -142,6 +164,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                               height: 20,
                               backgroundColor: "#f0f9ff",
                               color: "#0369a1",
+                              borderRadius: "4px",
                             }}
                           />
                         ))}
@@ -154,6 +177,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                               height: 20,
                               backgroundColor: "#f3f4f6",
                               color: "#6b7280",
+                              borderRadius: "4px",
                             }}
                           />
                         )}
@@ -164,7 +188,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
 
                 {/* Priority */}
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={task.priority} />
+                  <Box component="span" sx={priorityBadgeStyle(task.priority)}>
+                    {task.priority}
+                  </Box>
                 </TableCell>
 
                 {/* Status */}
@@ -202,7 +228,11 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           year: "numeric",
                         })}
                       </Typography>
-                      {task.isOverdue && <RiskChip label="Overdue" />}
+                      {task.isOverdue && (
+                        <Box component="span" sx={priorityBadgeStyle("High")}>
+                          OVERDUE
+                        </Box>
+                      )}
                     </Stack>
                   ) : (
                     <Typography
@@ -305,18 +335,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
             ))}
       </TableBody>
     ),
-    [
-      tasks,
-      page,
-      rowsPerPage,
-      cellStyle,
-      users,
-      onEdit,
-      onArchive,
-      onStatusChange,
-      statusOptions,
-      isUpdateDisabled,
-    ]
+    [tasks, page, rowsPerPage, cellStyle, statusOptions, isUpdateDisabled, onRowClick, onStatusChange, users, onArchive, onEdit]
   );
 
   return (

@@ -1,8 +1,8 @@
-import { ProjectRisk } from "../types/ProjectRisk";
+import { RiskModel } from "../models/Common/risks/risk.model";
 
 export interface ICategoryGroup {
   name: string;
-  risks: ProjectRisk[];
+  risks: RiskModel[];
   count: number;
   riskLevels: {
     veryHigh: number;

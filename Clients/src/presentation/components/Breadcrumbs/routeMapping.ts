@@ -26,6 +26,7 @@ import {
   Layers,
   Puzzle,
   Zap,
+  Activity,
 } from "lucide-react";
 
 /**
@@ -54,6 +55,7 @@ export const routeMapping: Record<string, string> = {
 
   // Integrations
   "/integrations": "Integrations",
+  "/integrations/mlflow": "MLFlow",
 
   // Reporting
   "/reporting": "Reporting Dashboard",
@@ -156,6 +158,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Automations
   "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
+
+  // MLFlow
+  "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

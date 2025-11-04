@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   FC,
   useState,
@@ -8,7 +9,6 @@ import React, {
 } from "react";
 import {
   useTheme,
-  Modal,
   Stack,
   Typography,
   Autocomplete,
@@ -19,9 +19,9 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
+import ChipInput from "../../Inputs/ChipInput";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
-import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import StandardModal from "../StandardModal";
 import {
   ICreateTaskFormErrors,
   ICreateTaskFormValues,
@@ -293,420 +293,253 @@ const CreateTask: FC<ICreateTaskProps> = ({
   );
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (reason !== "backdropClick") {
-          handleClose();
-        }
-      }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={mode === "edit" ? "Edit task" : "Create new task"}
+      description={
+        mode === "edit"
+          ? "Update task details and assign team members."
+          : "Create a new task by filling in the following details."
+      }
+      onSubmit={handleSubmit}
+      submitButtonText={mode === "edit" ? "Update Task" : "Create Task"}
+      isSubmitting={isSubmitting}
+      maxWidth="800px"
     >
-      <Stack
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "fit-content",
-          maxWidth: "760px",
-          maxHeight: "90vh",
-          backgroundColor: theme.palette.background.modal,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          padding: theme.spacing(10),
-          gap: theme.spacing(10),
-          overflowY: "auto",
-          "&:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        {/* Header */}
-        <Stack
-          className="vwtask-form-header"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <Stack className="vwtask-form-header-text">
-            <Typography
-              id="task-form-title"
-              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-            >
-              {mode === "edit" ? "Edit task" : "Create new task"}
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#344054" }}>
-              {mode === "edit"
-                ? "Update task details and assign team members."
-                : "Create a new task by filling in the following details."}
-            </Typography>
-          </Stack>
-          <CloseIcon
-            size={20}
-            style={{ color: "#98A2B3", cursor: "pointer" }}
-            onClick={handleClose}
+      <Stack spacing={6}>
+        {/* Row 1: Task title | Assignees */}
+        <Stack direction="row" spacing={6}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Field
+              id="title"
+              label="Task title"
+              width="350px"
+              value={values.title}
+              onChange={handleOnTextFieldChange("title")}
+              error={errors.title}
+              isRequired
+              sx={fieldStyle}
+              placeholder="Enter task title"
+            />
+          </Suspense>
+
+          <Suspense fallback={<div>Loading...</div>}>
+            <Stack gap={theme.spacing(2)}>
+              <Typography
+                component="p"
+                variant="body1"
+                color={theme.palette.text.secondary}
+                fontWeight={500}
+                fontSize={"13px"}
+                sx={{ margin: 0, height: "22px" }}
+              >
+                Assignees *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="assignees-input"
+                size="small"
+                value={values.assignees}
+                options={assigneeOptions}
+                onChange={handleAssigneesChange}
+                getOptionLabel={(user) =>
+                  `${user.name} ${user.surname}`.trim()
+                }
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  const userEmail =
+                    option.email.length > 30
+                      ? `${option.email.slice(0, 30)}...`
+                      : option.email;
+                  return (
+                    <Box component="li" key={key} {...optionProps}>
+                      <Typography sx={{ fontSize: "13px" }}>
+                        {option.name} {option.surname}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgb(157, 157, 157)",
+                          position: "absolute",
+                          right: "9px",
+                        }}
+                      >
+                        {userEmail}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                noOptionsText={
+                  values.assignees.length === (users?.length ?? 0)
+                    ? "All members selected"
+                    : "No options"
+                }
+                popupIcon={<GreyDownArrowIcon size={16} />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select assignees"
+                    error={!!errors.assignees}
+                    aria-describedby={
+                      errors.assignees ? "assignees-error" : undefined
+                    }
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        minHeight: "34px",
+                        paddingTop: "2px !important",
+                        paddingBottom: "2px !important",
+                      },
+                      "& ::placeholder": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  />
+                )}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "5px",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#777",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#888",
+                      borderWidth: "1px",
+                    },
+                  },
+                  "& .MuiChip-root": {
+                    borderRadius: theme.shape.borderRadius,
+                    height: "26px",
+                    margin: "1px 2px",
+                  },
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      "& .MuiAutocomplete-listbox": {
+                        "& .MuiAutocomplete-option": {
+                          fontSize: "13px",
+                          color: "#1c2130",
+                          paddingLeft: "9px",
+                          paddingRight: "9px",
+                        },
+                        "& .MuiAutocomplete-option.Mui-focused": {
+                          background: "#f9fafb",
+                        },
+                      },
+                      "& .MuiAutocomplete-noOptions": {
+                        fontSize: "13px",
+                        paddingLeft: "9px",
+                        paddingRight: "9px",
+                      },
+                    },
+                  },
+                }}
+              />
+              {errors.assignees && (
+                <Typography
+                  id="assignees-error"
+                  color="error"
+                  variant="caption"
+                  sx={{
+                    mt: theme.spacing(1),
+                    ml: theme.spacing(1),
+                    color: theme.palette.error.main,
+                    fontSize: theme.typography.caption.fontSize,
+                  }}
+                >
+                  {errors.assignees}
+                </Typography>
+              )}
+            </Stack>
+          </Suspense>
+        </Stack>
+
+        {/* Row 2: Status | Categories */}
+        <Stack direction="row" spacing={6}>
+          <SelectComponent
+            items={statusOptions}
+            value={values.status}
+            error={errors.status}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            id="status"
+            label="Status"
+            isRequired
+            onChange={handleOnSelectChange("status")}
+            placeholder="Select status"
+          />
+
+          <ChipInput
+            id="categories-input"
+            label="Categories"
+            value={values.categories}
+            onChange={(newValue) => {
+              setValues((prevValues) => ({
+                ...prevValues,
+                categories: newValue,
+              }));
+              setErrors((prev) => ({ ...prev, categories: "" }));
+            }}
+            placeholder="Enter categories"
+            error={errors.categories}
+            sx={{ width: "350px" }}
           />
         </Stack>
 
-        {/* Form Content */}
-        <form onSubmit={handleSubmit}>
-          <Stack direction="row" sx={{ gap: 8 }}>
-            {/* Left Column */}
-            <Stack sx={{ gap: 8 }}>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Field
-                  id="title"
-                  label="Task title"
-                  width="350px"
-                  value={values.title}
-                  onChange={handleOnTextFieldChange("title")}
-                  error={errors.title}
-                  isRequired
-                  sx={fieldStyle}
-                  placeholder="Enter task title"
-                />
-              </Suspense>
+        {/* Row 3: Priority | Due date */}
+        <Stack direction="row" spacing={6}>
+          <SelectComponent
+            items={priorityOptions}
+            value={values.priority}
+            error={errors.priority}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            id="priority"
+            label="Priority"
+            isRequired
+            onChange={handleOnSelectChange("priority")}
+            placeholder="Select priority"
+          />
 
-              <Suspense fallback={<div>Loading...</div>}>
-                <DatePicker
-                  label="Due date"
-                  date={values.due_date ? dayjs(values.due_date) : null}
-                  handleDateChange={handleDateChange}
-                  sx={{
-                    ...datePickerStyle,
-                    width: "350px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
-                  isRequired
-                  error={errors.due_date}
-                />
-              </Suspense>
-
-              <SelectComponent
-                items={statusOptions}
-                value={values.status}
-                error={errors.status}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                id="status"
-                label="Status"
-                isRequired
-                onChange={handleOnSelectChange("status")}
-                placeholder="Select status"
-              />
-
-              <SelectComponent
-                items={priorityOptions}
-                value={values.priority}
-                error={errors.priority}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                id="priority"
-                label="Priority"
-                isRequired
-                onChange={handleOnSelectChange("priority")}
-                placeholder="Select priority"
-              />
-            </Stack>
-
-            {/* Right Column */}
-            <Stack sx={{ gap: 8 }}>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Stack gap={theme.spacing(2)}>
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color={theme.palette.text.secondary}
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px" }}
-                  >
-                    Assignees *
-                  </Typography>
-                  <Autocomplete
-                    multiple
-                    id="assignees-input"
-                    size="small"
-                    value={values.assignees}
-                    options={assigneeOptions}
-                    onChange={handleAssigneesChange}
-                    getOptionLabel={(user) =>
-                      `${user.name} ${user.surname}`.trim()
-                    }
-                    renderOption={(props, option) => {
-                      const { key, ...optionProps } = props;
-                      const userEmail =
-                        option.email.length > 30
-                          ? `${option.email.slice(0, 30)}...`
-                          : option.email;
-                      return (
-                        <Box component="li" key={key} {...optionProps}>
-                          <Typography sx={{ fontSize: "13px" }}>
-                            {option.name} {option.surname}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: "11px",
-                              color: "rgb(157, 157, 157)",
-                              position: "absolute",
-                              right: "9px",
-                            }}
-                          >
-                            {userEmail}
-                          </Typography>
-                        </Box>
-                      );
-                    }}
-                    noOptionsText={
-                      values.assignees.length === (users?.length ?? 0)
-                        ? "All members selected"
-                        : "No options"
-                    }
-                    popupIcon={<GreyDownArrowIcon size={16} />}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Select assignees"
-                        error={!!errors.assignees}
-                        aria-describedby={
-                          errors.assignees ? "assignees-error" : undefined
-                        }
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            paddingTop: "3.8px !important",
-                            paddingBottom: "3.8px !important",
-                          },
-                          "& ::placeholder": {
-                            fontSize: "13px",
-                          },
-                        }}
-                      />
-                    )}
-                    sx={{
-                      width: "350px",
-                      backgroundColor: theme.palette.background.main,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "5px",
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#777",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#888",
-                          borderWidth: "1px",
-                        },
-                      },
-                      "& .MuiChip-root": {
-                        borderRadius: theme.shape.borderRadius,
-                      },
-                    }}
-                    slotProps={{
-                      paper: {
-                        sx: {
-                          "& .MuiAutocomplete-listbox": {
-                            "& .MuiAutocomplete-option": {
-                              fontSize: "13px",
-                              color: "#1c2130",
-                              paddingLeft: "9px",
-                              paddingRight: "9px",
-                            },
-                            "& .MuiAutocomplete-option.Mui-focused": {
-                              background: "#f9fafb",
-                            },
-                          },
-                          "& .MuiAutocomplete-noOptions": {
-                            fontSize: "13px",
-                            paddingLeft: "9px",
-                            paddingRight: "9px",
-                          },
-                        },
-                      },
-                    }}
-                  />
-                  {errors.assignees && (
-                    <Typography
-                      id="assignees-error"
-                      color="error"
-                      variant="caption"
-                      sx={{
-                        mt: theme.spacing(1),
-                        ml: theme.spacing(1),
-                        color: theme.palette.error.main,
-                        fontSize: theme.typography.caption.fontSize,
-                      }}
-                    >
-                      {errors.assignees}
-                    </Typography>
-                  )}
-                </Stack>
-              </Suspense>
-
-              <Suspense fallback={<div>Loading...</div>}>
-                <Stack gap={theme.spacing(2)}>
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color={theme.palette.text.secondary}
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px" }}
-                  >
-                    Categories
-                  </Typography>
-                  <Autocomplete
-                    multiple
-                    id="categories-input"
-                    size="small"
-                    freeSolo
-                    value={values.categories}
-                    options={[]}
-                    onChange={(_event, newValue: string[]) => {
-                      setValues((prevValues) => ({
-                        ...prevValues,
-                        categories: newValue,
-                      }));
-                      setErrors((prev) => ({ ...prev, categories: "" }));
-                    }}
-                    getOptionLabel={(option: string) => option}
-                    filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon size={16} />}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Enter categories"
-                        error={!!errors.categories}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            minHeight: "34px",
-                            height: "auto",
-                            alignItems: "flex-start",
-                            paddingY: "3px !important",
-                            flexWrap: "wrap",
-                            gap: "2px",
-                          },
-                          "& ::placeholder": {
-                            fontSize: "13px",
-                          },
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            const value = input.value.trim();
-                            if (value && !values.categories.includes(value)) {
-                              setValues((prevValues) => ({
-                                ...prevValues,
-                                categories: [...prevValues.categories, value],
-                              }));
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                    sx={{
-                      width: "350px",
-                      backgroundColor: theme.palette.background.main,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "3px",
-                        overflowY: "auto",
-                        flexWrap: "wrap",
-                        maxHeight: "115px",
-                        alignItems: "flex-start",
-                        "&:hover": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                          },
-                        },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          border: "none",
-                        },
-                        "&.Mui-focused": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                          },
-                        },
-                      },
-                      "& .MuiAutocomplete-tag": {
-                        margin: "2px",
-                        maxWidth: "calc(100% - 25px)",
-                        "& .MuiChip-label": {
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        },
-                      },
-                      border: errors.categories
-                        ? `1px solid #f04438`
-                        : `1px solid ${theme.palette.border.dark}`,
-                      borderRadius: "3px",
-                      opacity: errors.categories ? 0.8 : 1,
-                    }}
-                    slotProps={{
-                      paper: {
-                        sx: {
-                          display: "none",
-                        },
-                      },
-                    }}
-                  />
-                  {errors.categories && (
-                    <Typography
-                      color="error"
-                      variant="caption"
-                      sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-                    >
-                      {errors.categories}
-                    </Typography>
-                  )}
-                </Stack>
-              </Suspense>
-
-              <Suspense fallback={<div>Loading...</div>}>
-                <Field
-                  id="description"
-                  label="Description"
-                  width="350px"
-                  type="description"
-                  value={values.description}
-                  onChange={handleOnTextFieldChange("description")}
-                  error={errors.description}
-                  sx={fieldStyle}
-                  placeholder="Enter description"
-                />
-              </Suspense>
-            </Stack>
-          </Stack>
-
-          {/* Form Actions */}
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            spacing={2}
-            sx={{ pt: 2, mt: 4 }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text={mode === "edit" ? "Update Task" : "Create Task"}
-              isDisabled={isSubmitting}
+          <Suspense fallback={<div>Loading...</div>}>
+            <DatePicker
+              label="Due date"
+              date={values.due_date ? dayjs(values.due_date) : null}
+              handleDateChange={handleDateChange}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-                marginTop: 2,
+                ...datePickerStyle,
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
               }}
-              onClick={handleSubmit}
-              icon={<SaveIcon size={16} />}
+              isRequired
+              error={errors.due_date}
             />
-          </Stack>
-        </form>
+          </Suspense>
+        </Stack>
+
+        {/* Row 4: Description (full width) */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <Field
+            id="description"
+            label="Description"
+            width="100%"
+            type="description"
+            value={values.description}
+            onChange={handleOnTextFieldChange("description")}
+            error={errors.description}
+            sx={fieldStyle}
+            placeholder="Enter description"
+          />
+        </Suspense>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

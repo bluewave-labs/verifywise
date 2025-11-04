@@ -33,7 +33,10 @@ export interface Integration {
   features: string[];
   documentationUrl?: string;
   setupRequired?: boolean;
-  lastSyncAt?: Date;
+  lastSyncAt?: string | null;
+  lastSyncStatus?: 'success' | 'partial' | 'error' | null;
+  lastTestStatus?: 'success' | 'error' | null;
+  lastTestedAt?: string | null;
   error?: string;
 }
 

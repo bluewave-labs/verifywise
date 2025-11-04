@@ -13,7 +13,6 @@ export type ProjectRiskMitigation = {
 
 export type ProjectRisk = {
   id: number;
-  project_id: number; // Foreign key to refer to the project
   risk_name: string;
   risk_owner: string;
   ai_lifecycle_phase:

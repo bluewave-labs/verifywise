@@ -7,6 +7,7 @@ import {
   Stack,
   IconButton,
   InputBase,
+  SelectChangeEvent,
 } from "@mui/material";
 import { Search as SearchIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -20,7 +21,6 @@ import {
   getAllPolicies,
   getAllTags,
 } from "../../../application/repository/policy.repository";
-import { Policy } from "../../../domain/types/Policy";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EmptyState from "../../components/EmptyState";
 import PolicyStatusCard from "./PolicyStatusCard";
@@ -30,20 +30,21 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 
 const PolicyDashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyManagerModel | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // New state for filter + search
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
@@ -69,7 +70,7 @@ const PolicyDashboard: React.FC = () => {
     }
   }, [location.state, navigate, location.pathname]);
 
-  const handleOpen = (id?: string) => {
+  const handleOpen = (id?: number) => {
     if (!id) {
       setSelectedPolicy(null); // Ensure selectedPolicy is null for new policy
       setShowModal(true); // Open modal
@@ -101,7 +102,7 @@ const PolicyDashboard: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deletePolicy(id);
       setPolicies((prev) => prev.filter((policy) => policy.id !== id));
@@ -199,12 +200,9 @@ const PolicyDashboard: React.FC = () => {
         />
 
         {/* Policy by Status Cards */}
-        {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
-        {policies.length > 0 && (
-          <Box data-joyride-id="policy-status-cards">
-            <PolicyStatusCard policies={policies} />
-          </Box>
-        )}
+        <Box data-joyride-id="policy-status-cards">
+          <PolicyStatusCard policies={policies} />
+        </Box>
 
         {/* Filter + Search + Add Button row */}
         <Stack
@@ -222,7 +220,7 @@ const PolicyDashboard: React.FC = () => {
                 id="policy-status"
                 value={statusFilter}
                 items={statusOptions}
-                onChange={(e: any) => setStatusFilter(e.target.value)}
+                onChange={(e: SelectChangeEvent<string | number>) => setStatusFilter(`${e.target.value}`)}
                 sx={{
                   minWidth: "180px",
                   height: "34px",
@@ -266,7 +264,6 @@ const PolicyDashboard: React.FC = () => {
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 3,
-                height: "fit-content",
               }}
               icon={<AddCircleOutlineIcon size={16} />}
               onClick={handleAddNewPolicy}

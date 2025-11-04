@@ -49,6 +49,16 @@ const Select: React.FC<SelectProps> = ({
     margin: theme.spacing(2),
   };
 
+  // Extract width from sx prop to apply to wrapper Stack
+  const extractedWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? (sx as any).width
+    : undefined;
+
+  // Create a copy of sx without width to pass to MuiSelect
+  const sxWithoutWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => key !== 'width'))
+    : sx;
+
   const renderValue = (value: unknown) => {
     const selected = value as string | number;
     const selectedItem = items.find(
@@ -96,6 +106,7 @@ const Select: React.FC<SelectProps> = ({
             ? `1px solid ${theme.palette.status.error.border}!important`
             : `1px solid ${theme.palette.border.dark}!important`,
         },
+        width: extractedWidth,
       }}
     >
       {label && (
@@ -174,6 +185,7 @@ const Select: React.FC<SelectProps> = ({
         sx={{
           fontSize: 13,
           minWidth: "125px",
+          width: "100%",
           backgroundColor: theme.palette.background.main,
           position: "relative",
           "& fieldset": {
@@ -183,7 +195,7 @@ const Select: React.FC<SelectProps> = ({
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
           },
-          ...sx,
+          ...sxWithoutWidth,
         }}
       >
         {items.map(

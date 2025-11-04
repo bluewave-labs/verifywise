@@ -24,11 +24,20 @@ import { useSelector } from "react-redux";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { useNavigate, useParams } from "react-router-dom";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
+import { useAITrustCentreResourcesQuery } from "../../../application/hooks/useAITrustCentreResourcesQuery";
+import { useAITrustCentreSubprocessorsQuery } from "../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 
 const AITrustCenter: React.FC = () => {
-  const [tabValue, setTabValue] = React.useState("overview");
+const params = useParams<{ tab?: string }>();
+const navigate = useNavigate();
+
+// active tab based on URL or default to "overview"
+const tabValue = params.tab || "overview";
+
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) =>
-    setTabValue(newValue);
+    navigate(`/ai-trust-center/${newValue}`);
   const authToken = useSelector(
     (state: { auth: { authToken: string } }) => state.auth.authToken
   );
@@ -36,6 +45,10 @@ const AITrustCenter: React.FC = () => {
   const tenantHash = userToken?.tenantId;
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  // Fetch data for tab counts
+  const { data: resources, isLoading: resourcesLoading } = useAITrustCentreResourcesQuery();
+  const { data: subprocessors, isLoading: subprocessorsLoading } = useAITrustCentreSubprocessorsQuery();
 
   const handlePreviewMode = () => {
     try {
@@ -114,25 +127,37 @@ const AITrustCenter: React.FC = () => {
             >
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Overview"
+                label={createTabLabelWithCount({
+                  label: "Overview",
+                })}
                 value="overview"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Resources"
+                label={createTabLabelWithCount({
+                  label: "Resources",
+                  count: resources?.length,
+                  isLoading: resourcesLoading,
+                })}
                 value="resources"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Subprocessors"
+                label={createTabLabelWithCount({
+                  label: "Subprocessors",
+                  count: subprocessors?.length,
+                  isLoading: subprocessorsLoading,
+                })}
                 value="subprocessors"
                 disableRipple
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Settings"
+                label={createTabLabelWithCount({
+                  label: "Settings",
+                })}
                 value="settings"
                 disableRipple
               />

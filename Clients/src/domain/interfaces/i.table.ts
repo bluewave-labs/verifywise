@@ -1,8 +1,8 @@
-import { VendorDetails } from "../../application/hooks/useVendors";
+import { VendorModel } from "../models/Common/vendor/vendor.model";
+import { RiskModel } from "../models/Common/risks/risk.model";
 import { FileData } from "../types/File";
-import { FileModel } from "../models/Common/file/file.model";
-import { ProjectRisk } from "../types/ProjectRisk";
 import { User } from "../types/User";
+import { VendorRisk } from "../types/VendorRisk";
 import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
@@ -115,15 +115,17 @@ export interface IFileBasicTableProps {
   bodyData: FileModel[];
   paginated?: boolean;
   table: string;
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IFileTableProps {
   cols: any[];
-  files: FileModel[];
+  files: FileData[];
+  onFileDeleted?: () => void | Promise<void>;
 }
 
 export interface IProjectRiskTableBodyProps {
-  rows: ProjectRisk[];
+  rows: RiskModel[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   currentRisks: number[];
@@ -134,13 +136,23 @@ export interface IProjectRiskTableBodyProps {
 }
 
 export interface ILinkedRisksTableProps {
-  projectRisksGroup: ProjectRisk[];
-  filteredRisksGroup: ProjectRisk[];
+  projectRisksGroup: RiskModel[];
+  filteredRisksGroup: RiskModel[];
   currentRisks: number[];
   checkedRows: number[];
   setCheckedRows: (checkedRows: number[]) => void;
   deletedRisks: number[];
   setDeletedRisks: (deletedRisks: number[]) => void;
+}
+
+export interface LinkedRisksModalProps {
+  onClose: () => void;
+  currentRisks: number[];
+  setSelectecRisks: (selectedRisks: number[]) => void;
+  _setDeletedRisks: (deletedRisks: number[]) => void;
+  projectId?: number; // Optional project ID to override URL search params
+  frameworkId?: number; // Optional framework ID for organizational projects
+  isOrganizational?: boolean; // Flag to determine which endpoint to use
 }
 
 export interface ITableProps {
@@ -175,9 +187,9 @@ export interface IReportTablePropsExtended {
 }
 
 export interface IRiskTableProps {
-  users: any;
-  vendors: VendorDetails[];
-  vendorRisks: any;
+  users: User[];
+  vendors: VendorModel[];
+  vendorRisks: VendorRisk[];
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
@@ -195,8 +207,8 @@ export interface ITasksTableProps {
 }
 
 export interface ITableWithPlaceholderProps {
-  vendors: VendorDetails[];
+  vendors: VendorModel[];
   users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
+  onDelete: (vendorId?: number) => void;
+  onEdit: (vendorId?: number) => void;
 }

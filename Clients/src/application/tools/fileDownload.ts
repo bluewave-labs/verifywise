@@ -1,21 +1,28 @@
 import { generateReport } from "../repository/entity.repository";
-import { getFileById } from "../repository/file.repository";
+import { downloadFileFromManager } from "../repository/file.repository";
+import { triggerBrowserDownload, extractFilenameFromHeaders } from "../../presentation/utils/browserDownload.utils";
 
 interface GenerateReportProps {
   projectId: number | null;
   projectTitle: string;
   projectOwner: string;
-  reportType: string;
+  reportType: string | string[];
   reportName: string;
   frameworkId: number;
   projectFrameworkId: number;
 }
 
-export const handleDownload = async (fileId: string, fileName: string) => {
+/**
+ * Downloads a file by ID and triggers browser download
+ *
+ * @param fileId - The file ID to download
+ * @param fileName - The name to save the file as
+ * @throws Error if download fails
+ */
+export const handleDownload = async (fileId: string, fileName: string): Promise<void> => {
   try {
-   const response = await getFileById({
+   const response = await downloadFileFromManager({
       id: typeof fileId === 'string' ? fileId : String(fileId),
-      responseType: "blob",
     });
     const blob = new Blob([response], { type: response.type });
     const url = window.URL.createObjectURL(blob);
@@ -32,7 +39,13 @@ export const handleDownload = async (fileId: string, fileName: string) => {
   }
 };
 
-export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
+/**
+ * Generates a report and triggers automatic download
+ *
+ * @param requestBody - Report generation parameters
+ * @returns HTTP status code (200 for success, 500 for error)
+ */
+export const handleAutoDownload = async (requestBody: GenerateReportProps): Promise<number> => {
   try {
     const response = await generateReport({
       routeUrl: `/reporting/generate-report`,
@@ -40,22 +53,18 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     });
 
     if (response.status === 200) {
-      const headerContent = response.headers.get('Content-Disposition');
-      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-      const fileName = fileAttachment.map(m => m[1]);
+      // Extract filename from Content-Disposition header (DRY: using shared utility)
+      const fileName = extractFilenameFromHeaders(response.headers, 'report');
 
+      // Get blob content and content type
       const blobFileContent = response.data;
       const responseType = response.headers.get('Content-Type');
 
-      const blob = new Blob([blobFileContent], { type: responseType });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName[0];
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Create blob and trigger download
+      const blob = new Blob([blobFileContent], { type: responseType || undefined });
+      triggerBrowserDownload(blob, fileName);
+
+
       return response.status;
     } else {
       console.error("--- Error downloading report");
@@ -66,4 +75,3 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     return 500;
   }
 };
-

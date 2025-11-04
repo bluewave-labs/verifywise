@@ -19,7 +19,7 @@ import {
 
 const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
     "card"

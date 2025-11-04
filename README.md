@@ -72,16 +72,6 @@ Policy manager
   - Automations 
   - Google OAuth2 support for authentication
 
-## Roadmap
-
-- More frameworks (eg. SOC2 and other AI regulatory frameworks)
-- Mappings between frameworks
-- Automated reports
-- Integration with 3rd party platforms
-- Better email notifications
-- MLFlow integration
-- Confluence integration
-
 ## Installation
 
 The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.

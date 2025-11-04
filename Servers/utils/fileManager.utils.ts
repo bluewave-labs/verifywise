@@ -14,21 +14,12 @@ import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 import { FileManagerModel, FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
 import { FileAccessLogModel } from "../domain.layer/models/fileManager/fileAccessLog.model";
-import * as path from "path";
-import * as fs from "fs";
-import { promisify } from "util";
-import { randomBytes } from "crypto";
-import { sanitizeFilename } from "./validations/fileManagerValidation.utils";
-import logger from "./logger/fileLogger";
-
-const writeFile = promisify(fs.writeFile);
-const mkdir = promisify(fs.mkdir);
-const unlink = promisify(fs.unlink);
+import sanitizeFilename from "sanitize-filename"; // Industry-standard filename sanitization
 
 /**
  * Uploads a file to the file manager system
  *
- * @param {Express.Multer.File} file - Uploaded file object (from disk storage)
+ * @param {Express.Multer.File} file - Uploaded file object (from memory storage)
  * @param {number} userId - User ID uploading the file
  * @param {number} orgId - Organization ID
  * @param {string} tenant - Tenant hash
@@ -42,77 +33,31 @@ export const uploadFileToManager = async (
 ): Promise<any> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
-  // Create permanent uploads directory if it doesn't exist
-  const uploadsDir = path.join(process.cwd(), "uploads", "file-manager", tenant);
-  await mkdir(uploadsDir, { recursive: true });
+  // Sanitize filename to remove dangerous characters
+  const safeName = sanitizeFilename(file.originalname) || "file";
 
-  // Generate unique filename with timestamp, random bytes, and sanitized original name
-  const timestamp = Date.now();
-  const rand = randomBytes(4).toString("hex");
-  const sanitized = sanitizeFilename(file.originalname);
-  const uniqueFilename = `${timestamp}_${rand}_${sanitized}`;
-  const permanentFilePath = path.join(uploadsDir, uniqueFilename);
-
-  // Move file from temp directory to permanent location
-  // file.path contains the temp file path from multer.diskStorage
-  if (file.path) {
-    const readStream = fs.createReadStream(file.path);
-    const writeStream = fs.createWriteStream(permanentFilePath);
-
-    await new Promise<void>((resolve, reject) => {
-      readStream.pipe(writeStream);
-      writeStream.on('finish', resolve);
-      writeStream.on('error', reject);
-      readStream.on('error', reject);
-    });
-  } else {
-    // Fallback for memory storage (if buffer exists)
-    if (file.buffer) {
-      await writeFile(permanentFilePath, file.buffer);
-    } else {
-      throw new Error("No file data available (neither path nor buffer)");
-    }
-  }
-
-  // Store relative path for portability
-  const relativeFilePath = path.join("uploads", "file-manager", tenant, uniqueFilename);
-
-  // Insert file metadata into database
+  // Insert file metadata and content into database
   const query = `
     INSERT INTO "${tenant}".file_manager
-      (filename, size, mimetype, file_path, uploaded_by, upload_date, org_id, is_demo)
+      (filename, size, mimetype, content, uploaded_by, upload_date, org_id, is_demo)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :uploaded_by, NOW(), :org_id, false)
+      (:filename, :size, :mimetype, :content, :uploaded_by, NOW(), :org_id, false)
     RETURNING *
   `;
 
-  try {
-    const result = await sequelize.query(query, {
-      replacements: {
-        filename: sanitized,
-        size: file.size,
-        mimetype: file.mimetype,
-        file_path: relativeFilePath,
-        uploaded_by: userId,
-        org_id: orgId,
-      },
-      type: QueryTypes.SELECT,
-    });
+  const result = await sequelize.query(query, {
+    replacements: {
+      filename: safeName,
+      size: file.size,
+      mimetype: file.mimetype,
+      content: file.buffer, // Store file content in database
+      uploaded_by: userId,
+      org_id: orgId,
+    },
+    type: QueryTypes.SELECT,
+  });
 
-    return result[0];
-  } catch (dbError) {
-    // Database insertion failed - cleanup orphaned file
-    try {
-      await fs.promises.unlink(permanentFilePath);
-    } catch (unlinkError: any) {
-      // Ignore ENOENT (file already deleted), but log other errors
-      if (unlinkError.code !== 'ENOENT') {
-        logger.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
-      }
-    }
-    // Rethrow original database error
-    throw dbError;
-  }
+  return result[0];
 };
 
 /**
@@ -156,7 +101,7 @@ export const getFilesByOrganization = async (
 
   const { limit, offset } = options;
 
-  // Get files with uploader info and file_path
+  // Get files with uploader info (files are now stored in database)
   let query = `
     SELECT
       fm.id,
@@ -165,7 +110,6 @@ export const getFilesByOrganization = async (
       fm.mimetype,
       fm.upload_date,
       fm.uploaded_by,
-      fm.file_path,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM "${tenant}".file_manager fm
@@ -186,7 +130,7 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  // Get database count for accurate pagination
+  // Get total count for pagination
   const totalCountQuery = `
     SELECT COUNT(*) as count
     FROM "${tenant}".file_manager
@@ -198,29 +142,9 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  const totalDbCount = parseInt((countResult[0] as any).count);
+  const total = parseInt((countResult[0] as any).count);
 
-  // Annotate each file with existsOnDisk flag instead of filtering
-  // This preserves pagination and lets the controller/UI decide visibility
-  // Use Promise.all for parallel async file existence checks (non-blocking)
-  const filesWithExistence = await Promise.all(
-    (files as any[]).map(async (file) => {
-      let existsOnDisk = false;
-      try {
-        const filePath = path.resolve(process.cwd(), file.file_path);
-        // Use fs.promises.access for async check (non-blocking)
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        existsOnDisk = true;
-      } catch (error) {
-        // File doesn't exist or not accessible
-        existsOnDisk = false;
-      }
-      return { ...file, existsOnDisk };
-    })
-  );
-
-  // Return database total for accurate pagination
-  return { files: filesWithExistence as FileManagerMetadata[], total: totalDbCount };
+  return { files: files as FileManagerMetadata[], total };
 };
 
 /**
@@ -261,59 +185,16 @@ export const logFileAccess = async (
 };
 
 /**
- * Deletes a file from the system (both database and physical file)
+ * Deletes a file from the system (database only)
  *
  * @param {number} fileId - File ID
  * @param {string} tenant - Tenant hash
  * @returns {Promise<boolean>} True if file was deleted successfully
- * @throws {Error} If security violation or partial deletion failure occurs
  */
 export const deleteFile = async (fileId: number, tenant: string): Promise<boolean> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
-  // Get file info first
-  const file = await getFileById(fileId, tenant);
-
-  if (!file) {
-    return false;
-  }
-
-  // Delete physical file with path containment validation
-  const baseDir = path.resolve(process.cwd(), "uploads", "file-manager", tenant);
-  const targetPath = path.resolve(process.cwd(), file.file_path);
-
-  // Verify path containment to prevent directory traversal
-  const relativePath = path.relative(baseDir, targetPath);
-  const isContained = !relativePath.startsWith("..") &&
-                      !path.isAbsolute(relativePath) &&
-                      targetPath.startsWith(baseDir + path.sep);
-
-  if (!isContained) {
-    const error = `Security violation: Attempted to delete file outside tenant directory. Target: ${targetPath}, Base: ${baseDir}`;
-    logger.error(error);
-    throw new Error(error);
-  }
-
-  // Track deletion status for both operations
-  let diskDeletionFailed = false;
-  let diskDeletionError: Error | null = null;
-
-  // Delete physical file first
-  try {
-    await unlink(targetPath);
-  } catch (error: any) {
-    // Only tolerate ENOENT (file already deleted/doesn't exist)
-    if (error.code === 'ENOENT') {
-      logger.warn(`Physical file already deleted or not found: ${targetPath}`);
-    } else {
-      // Other errors are concerning - log and track them
-      diskDeletionFailed = true;
-      diskDeletionError = error;
-      logger.error(`Failed to delete physical file: ${targetPath}`, error);
-    }
-  }
-
-  // Delete from database
+  // Delete from database (file content is stored in database)
   const query = `
     DELETE FROM "${tenant}".file_manager
     WHERE id = :fileId
@@ -325,16 +206,7 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
     type: QueryTypes.SELECT,
   });
 
-  const dbDeletionSucceeded = Array.isArray(result) && result.length > 0;
-
-  // If database deletion succeeded but disk deletion failed, we have a problem
-  if (dbDeletionSucceeded && diskDeletionFailed) {
-    throw new Error(
-      `Partial deletion: Database record deleted but physical file removal failed: ${diskDeletionError?.message || 'Unknown error'}`
-    );
-  }
-
-  return dbDeletionSucceeded;
+  return Array.isArray(result) && result.length > 0;
 };
 
 /**

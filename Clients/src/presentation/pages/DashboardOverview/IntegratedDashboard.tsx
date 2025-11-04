@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useCallback, lazy, Suspense, useMemo } from "react";
 import {
   Box,
@@ -13,9 +15,6 @@ import {
   Tooltip,
   alpha,
   useTheme,
-  MenuItem,
-  Select as MuiSelect,
-  SelectChangeEvent,
 } from "@mui/material";
 import {
   GripVertical,
@@ -31,8 +30,6 @@ import {
   ShieldAlert,
   GraduationCap,
   ScrollText,
-  Plus,
-  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -58,6 +55,8 @@ import { IStatusData } from "../../../domain/interfaces/i.chart";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
+import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
+import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -779,9 +778,6 @@ const IntegratedDashboard: React.FC = () => {
   // User name state
   const [userName, setUserName] = useState<string>("");
 
-  // Add New dropdown state
-  const [addNewValue, setAddNewValue] = useState("");
-
   // Show/Hide selector state
   const [showHideSelector, setShowHideSelector] = useState(false);
 
@@ -812,38 +808,6 @@ const IntegratedDashboard: React.FC = () => {
       }
     }
   }, [visibleCards]);
-
-  // Handle Add New dropdown change
-  const handleAddNewChange = (event: SelectChangeEvent<string>) => {
-    const selectedValue = event.target.value;
-    setAddNewValue(selectedValue);
-
-    // Navigate based on selection with state to trigger modal opening
-    switch (selectedValue) {
-      case "use-case":
-        navigate("/overview", { state: { openCreateModal: true } });
-        break;
-      case "vendor":
-        navigate("/vendors", { state: { openCreateModal: true } });
-        break;
-      case "model":
-        navigate("/model-inventory", { state: { openCreateModal: true } });
-        break;
-      case "risk":
-        navigate("/risk-management", { state: { openCreateModal: true } });
-        break;
-      case "policy":
-        navigate("/policies", { state: { openCreateModal: true } });
-        break;
-      default:
-        break;
-    }
-
-    // Reset selection after navigation
-    setTimeout(() => setAddNewValue(""), 100);
-  };
-
-  
   // Generate time-based greeting
   const greeting = useMemo(() => {
     return getTimeBasedGreeting(userName, userToken);
@@ -1527,7 +1491,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Vendor Risks"
           value={vendorRiskMetrics?.total || 0}
-          onClick={() => navigate("/vendors")}
+          onClick={() => navigate("/vendors/risks")}
           navigable={true}
           statusData={vendorRiskMetrics?.statusDistribution?.map((item) => ({
             ...item,
@@ -1693,96 +1657,13 @@ const IntegratedDashboard: React.FC = () => {
             />
           )}
 
-  
+
           {/* Add New Dropdown */}
-          <MuiSelect
-            data-joyride-id="add-new-dropdown"
-            value={addNewValue}
-            onChange={handleAddNewChange}
-            displayEmpty
-            renderValue={() => (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Plus size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                  Add new...
-                </Typography>
-              </Box>
-            )}
-            IconComponent={(props) => (
-              <ChevronDown
-                {...props}
-                size={16}
-                strokeWidth={1.5}
-              />
-            )}
-            MenuProps={{
-              disableScrollLock: true,
-              PaperProps: {
-                sx: {
-                  borderRadius: theme.shape.borderRadius || 4,
-                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
-                  mt: 0.5,
-                  "& .MuiMenuItem-root": {
-                    fontSize: 13,
-                    color: theme.palette.text?.primary || "#000",
-                    py: 1.5,
-                    px: 2,
-                    "&:hover": {
-                      backgroundColor: theme.palette.action?.hover || "#f5f5f5",
-                    },
-                    "&.Mui-selected": {
-                      backgroundColor: "transparent",
-                      "&:hover": {
-                        backgroundColor: theme.palette.action?.hover || "#f5f5f5",
-                      },
-                    },
-                  },
-                },
-              },
-            }}
-            sx={{
-              minWidth: 140,
-              height: 32, // Standardized medium height
-              fontSize: 13,
-              backgroundColor: "#13715B",
-              color: "#fff",
-              borderRadius: "4px",
-              "& .MuiSelect-select": {
-                padding: "8px 16px", // Standardized padding
-                display: "flex",
-                alignItems: "center",
-                minHeight: "32px",
-                fontSize: 13,
-                fontWeight: 500,
-              },
-              "& fieldset": {
-                border: "none",
-              },
-              "&:hover": {
-                backgroundColor: "#0f604d", // Darker shade on hover
-                boxShadow: "0px 2px 4px rgba(19, 113, 91, 0.2)",
-              },
-              "&:hover fieldset": {
-                border: "none",
-              },
-              "&.Mui-focused fieldset": {
-                border: "none",
-              },
-              "& .MuiSelect-icon": {
-                color: "#fff",
-                right: 8,
-                top: "50%",
-                transform: "translateY(-50%)",
-                position: "absolute",
-              },
-            }}
-          >
-            <MenuItem value="use-case">Use case</MenuItem>
-            <MenuItem value="vendor">Vendor</MenuItem>
-            <MenuItem value="model">Model</MenuItem>
-            <MenuItem value="risk">Risk</MenuItem>
-            <MenuItem value="policy">Policy</MenuItem>
-          </MuiSelect>
+          <Box data-joyride-id="add-new-dropdown">
+            <MegaDropdownErrorBoundary>
+              <AddNewMegaDropdown />
+            </MegaDropdownErrorBoundary>
+          </Box>
         </Box>
       </Stack>
 

@@ -4,6 +4,7 @@ import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import { IRiskFiltersProps } from "../../../domain/interfaces/i.risk";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
+import { User } from "../../../domain/types/User";
 
 const initialFilterState: IFilterState = {
   riskLevel: "all",
@@ -17,7 +18,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
   onFilterChange,
 }) => {
   const [filters, setFilters] = useState<IFilterState>(initialFilterState);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Fetch users on component mount
   React.useEffect(() => {
@@ -38,7 +39,8 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
     if (risks.length > 0) {
       applyFilters(filters);
     }
-  }, [risks.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [risks]);
 
   const applyFilters = (newFilters: IFilterState) => {
     let filteredRisks = [...risks];
@@ -108,7 +110,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
     onFilterChange(filteredRisks, newFilters);
   };
 
-  const handleFilterChange = (key: keyof IFilterState, value: any) => {
+  const handleFilterChange = (key: keyof IFilterState, value: string | number) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     applyFilters(newFilters);
@@ -118,17 +120,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
   const getUserNameById = (userId: string): string => {
     const user = users.find((u) => u.id.toString() === userId.toString());
     if (user) {
-      // Try different possible field name combinations
-      const firstName =
-        user.firstName || user.first_name || user.name?.split(" ")[0] || "";
-      const lastName =
-        user.lastName ||
-        user.last_name ||
-        user.surname ||
-        user.name?.split(" ")[1] ||
-        "";
-
-      const fullName = `${firstName} ${lastName}`.trim();
+      const fullName = `${user.name} ${user.surname}`.trim();
 
       // Return full name if available, otherwise fallback to email, then user ID
       return fullName || user.email || `User ${userId}`;

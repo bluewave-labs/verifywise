@@ -13,6 +13,7 @@ import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
+import LinkedModels from "./LinkedModels";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
@@ -23,6 +24,9 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
+import { createTabLabelWithCount } from "../../../utils/tabUtils";
+import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 
 const VWProjectView = () => {
   const { userRoleName } = useAuth();
@@ -39,6 +43,12 @@ const VWProjectView = () => {
     message: "",
     visible: false,
   });
+
+  // State for tab counts
+  const [projectRisksCount, setProjectRisksCount] = useState<number>(0);
+  const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
+  const [isLoadingRisks, setIsLoadingRisks] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   // Create custom breadcrumb items
   const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
@@ -74,6 +84,47 @@ const VWProjectView = () => {
       setValue(tabParam);
     }
   }, [tabParam]);
+
+  // Fetch project risks count
+  useEffect(() => {
+    const fetchRisksCount = async () => {
+      if (!projectId) return;
+      setIsLoadingRisks(true);
+      try {
+        const response = await getAllProjectRisksByProjectId({
+          projectId: String(projectId),
+          filter: "active",
+        });
+        setProjectRisksCount(response.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching project risks count:", error);
+        setProjectRisksCount(0);
+      } finally {
+        setIsLoadingRisks(false);
+      }
+    };
+    fetchRisksCount();
+  }, [projectId, refreshKey]);
+
+  // Fetch linked models count
+  useEffect(() => {
+    const fetchLinkedModelsCount = async () => {
+      if (!projectId) return;
+      setIsLoadingModels(true);
+      try {
+        const response = await getAllEntities({
+          routeUrl: `/modelInventory/by-projectId/${projectId}`,
+        });
+        setLinkedModelsCount(response.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching linked models count:", error);
+        setLinkedModelsCount(0);
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+    fetchLinkedModelsCount();
+  }, [projectId, refreshKey]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     if (tabParam) {
@@ -137,25 +188,45 @@ const VWProjectView = () => {
             >
               <Tab
                 sx={tabStyle}
-                label="Overview"
+                label={createTabLabelWithCount({
+                  label: "Overview",
+                })}
                 value="overview"
                 disableRipple
               />
               <Tab
                 sx={tabStyle}
-                label="Use case risks"
+                label={createTabLabelWithCount({
+                  label: "Use case risks",
+                  count: projectRisksCount,
+                  isLoading: isLoadingRisks,
+                })}
                 value="project-risks"
                 disableRipple
               />
               <Tab
-                label="Frameworks/regulations"
+                sx={tabStyle}
+                label={createTabLabelWithCount({
+                  label: "Linked models",
+                  count: linkedModelsCount,
+                  isLoading: isLoadingModels,
+                })}
+                value="linked-models"
+                disableRipple
+              />
+              <Tab
+                label={createTabLabelWithCount({
+                  label: "Frameworks/regulations",
+                })}
                 value="frameworks"
                 sx={tabStyle}
                 disableRipple
               />
               <Tab
                 sx={tabStyle}
-                label="Settings"
+                label={createTabLabelWithCount({
+                  label: "Settings",
+                })}
                 value="settings"
                 disableRipple
                 disabled={!allowedRoles.projects.edit.includes(userRoleName)}
@@ -178,6 +249,17 @@ const VWProjectView = () => {
             {project ? (
               // Render project risks content here
               <VWProjectRisks />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="linked-models" sx={tabPanelStyle}>
+            {project ? (
+              <LinkedModels project={project} />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

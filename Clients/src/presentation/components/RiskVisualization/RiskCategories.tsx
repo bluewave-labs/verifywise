@@ -16,6 +16,7 @@ import { getAllUsers } from "../../../application/repository/user.repository";
 import ButtonToggle from "../ButtonToggle";
 import { IRiskCategoriesProps } from "../../../domain/interfaces/i.risk";
 import { ICategoryGroup } from "../../../domain/interfaces/i.categoryGroup";
+import { User } from "../../../domain/types/User";
 
 const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   risks,
@@ -26,7 +27,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   const [viewMode, setViewMode] = useState<"category" | "lifecycle">(
     "category"
   );
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Fetch users on component mount
   useEffect(() => {
@@ -66,17 +67,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   const getUserNameById = (userId: string): string => {
     const user = users.find((u) => u.id.toString() === userId.toString());
     if (user) {
-      // Try different possible field name combinations
-      const firstName =
-        user.firstName || user.first_name || user.name?.split(" ")[0] || "";
-      const lastName =
-        user.lastName ||
-        user.last_name ||
-        user.surname ||
-        user.name?.split(" ")[1] ||
-        "";
-
-      const fullName = `${firstName} ${lastName}`.trim();
+      const fullName = `${user.name} ${user.surname}`.trim();
 
       // Return full name if available, otherwise fallback to email, then user ID
       return fullName || user.email || `User ${userId}`;
@@ -256,6 +247,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -268,6 +260,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -280,6 +273,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -292,6 +286,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -304,6 +299,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           color: "white",
                           fontSize: 10,
                           height: 18,
+                          borderRadius: "4px",
                         }}
                       />
                     )}
@@ -359,6 +355,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                                 color: "white",
                                 fontSize: 10,
                                 height: 18,
+                                borderRadius: "4px",
                               }}
                             />
                             {risk.risk_owner && (

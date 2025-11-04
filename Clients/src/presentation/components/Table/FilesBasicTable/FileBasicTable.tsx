@@ -16,7 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
 import { ExternalLink as LinkExternalIcon } from "lucide-react";
 import { handleDownload } from "../../../../application/tools/fileDownload";
-import { FileData } from "../../../../domain/types/File";
+import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -62,7 +62,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleRowClick = (item: FileData, event: React.MouseEvent) => {
+  const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();
     switch (item.source) {
       case "Assessment tracker group":
@@ -136,8 +136,8 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
               >
                 <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.projectTitle}</TableCell>
-                <TableCell>{row.uploadDate}</TableCell>
-                <TableCell>{row.uploader}</TableCell>
+                <TableCell>{row.getFormattedUploadDate()}</TableCell>
+                <TableCell>{row.uploaderName || row.uploader}</TableCell>
                 <TableCell>
                   <Box
                     sx={{

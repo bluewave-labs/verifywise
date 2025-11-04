@@ -2,15 +2,15 @@
  * Custom hook to fetch files data from the server based on project ID.
  *
  * @param {string} projectID - The ID of the project to fetch files for.
- * @returns {{ filesData: FileData[], loading: boolean, error: Error | null }} - An object containing the files data, loading state, and error.
+ * @returns {{ filesData: FileModel[], loading: boolean, error: Error | null }} - An object containing the files data, loading state, and error.
  */
 
 import { useState, useEffect } from "react";
-import { FileData } from "../../domain/types/File";
+import { FileModel } from "../../domain/models/Common/file/file.model";
 import { getUserFilesMetaData } from "../repository/file.repository";
 
 export const useUserFilesMetaData = () => {
-  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [filesData, setFilesData] = useState<FileModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -28,24 +28,29 @@ export const useUserFilesMetaData = () => {
 
         if (filesResponse && Array.isArray(filesResponse)) {
           setFilesData(
-            filesResponse.map((file) => ({
-              id: file.id,
-              fileName: file.filename,
-              uploadDate: file.uploaded_time
-                ? new Date(file.uploaded_time).toLocaleDateString()
-                : "Invalid Date",
-              uploader:
-                `${file.uploader_name ?? ""} ${
-                  file.uploader_surname ?? ""
-                }`.trim() || "N/A",
-              source: file.source,
-              projectTitle: file.project_title,
-              projectId: file.project_id.toString(),
-              parentId: file.parent_id,
-              subId: file.sub_id,
-              metaId: file.meta_id,
-              isEvidence: file.is_evidence,
-            })),
+            filesResponse.map((file) =>
+              FileModel.fromApiData({
+                id: file.id,
+                fileName: file.filename,
+                uploadDate: file.uploaded_time
+                  ? new Date(file.uploaded_time)
+                  : new Date(),
+                uploader: file.uploader_id || "unknown",
+                uploaderName:
+                  `${file.uploader_name ?? ""} ${
+                    file.uploader_surname ?? ""
+                  }`.trim() || "N/A",
+                source: file.source,
+                projectTitle: file.project_title,
+                projectId: file.project_id?.toString(),
+                parentId: file.parent_id,
+                subId: file.sub_id,
+                metaId: file.meta_id,
+                isEvidence: file.is_evidence,
+                type: file.type,
+                size: file.size,
+              })
+            )
           );
         } else {
           setFilesData([]);

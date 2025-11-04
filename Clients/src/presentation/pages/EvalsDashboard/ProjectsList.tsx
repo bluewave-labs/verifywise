@@ -120,33 +120,48 @@ export default function ProjectsList() {
       {projects.length === 0 ? (
         <Box
           sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             textAlign: "center",
-            py: 8,
-            px: 2,
-            border: "2px dashed",
-            borderColor: "divider",
+            py: 12,
+            px: 3,
+            border: "1px solid #E5E7EB",
             borderRadius: 2,
+            backgroundColor: "#FFFFFF",
+            minHeight: 400,
           }}
         >
-          <Beaker size={48} color="#999" style={{ marginBottom: 16 }} />
-          <Typography variant="h6" gutterBottom>
+          <Box sx={{ mb: 3 }}>
+            <Beaker size={64} color="#9CA3AF" strokeWidth={1.5} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: "18px", color: "#111827" }}>
             No projects yet
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Create your first DeepEval project to start evaluating LLMs
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 4, fontSize: "14px", maxWidth: 480, lineHeight: 1.6, color: "#6B7280" }}
+          >
+            Create your first DeepEval project to start evaluating LLMs. Each project can contain multiple experiments with different configurations.
           </Typography>
-          <Button
+          <CustomizableButton
             variant="contained"
-            startIcon={<CirclePlus size={20} />}
+            startIcon={<CirclePlus size={18} />}
             onClick={() => setCreateModalOpen(true)}
             sx={{
               textTransform: "none",
               backgroundColor: "#13715B",
               "&:hover": { backgroundColor: "#0f5a47" },
+              fontSize: "14px",
+              fontWeight: 500,
+              px: 3,
+              py: 1.25,
             }}
           >
             Create Your First Project
-          </Button>
+          </CustomizableButton>
         </Box>
       ) : (
         <Grid container spacing={3}>
@@ -157,59 +172,83 @@ export default function ProjectsList() {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
+                  border: "1px solid #E5E7EB",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
                   "&:hover": {
-                    boxShadow: 4,
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                    transform: "translateY(-2px)",
+                    borderColor: "#13715B",
                     cursor: "pointer",
                   },
                 }}
                 onClick={() => handleOpenProject(project.id)}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
+                <CardContent sx={{ flexGrow: 1, p: 3 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                    <Typography variant="h6" component="div">
+                    <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600, color: "#111827" }}>
                       {project.name}
                     </Typography>
-                    <Beaker size={20} color="#13715B" />
+                    <Beaker size={20} color="#13715B" strokeWidth={2} />
                   </Box>
 
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 60 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 3, minHeight: 40, fontSize: "13px", lineHeight: 1.5, color: "#6B7280" }}
+                  >
                     {project.description || "No description provided"}
                   </Typography>
 
                   <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Calendar size={14} color="#666" />
-                      <Typography variant="caption" color="text.secondary">
-                        Created {new Date(project.createdAt).toLocaleDateString()}
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <Calendar size={13} color="#9CA3AF" />
+                      <Typography variant="caption" sx={{ fontSize: "12px", color: "#9CA3AF" }}>
+                        {new Date(project.createdAt).toLocaleDateString()}
                       </Typography>
                     </Box>
                     <Chip
                       label="0 runs"
                       size="small"
-                      sx={{ fontSize: "0.7rem" }}
+                      sx={{
+                        fontSize: "11px",
+                        height: 22,
+                        backgroundColor: "#F3F4F6",
+                        color: "#6B7280",
+                        fontWeight: 500,
+                      }}
                     />
                   </Box>
                 </CardContent>
 
-                <CardActions sx={{ justifyContent: "flex-end", p: 2, pt: 0 }}>
+                <CardActions sx={{ justifyContent: "flex-end", p: 2, pt: 0, gap: 1, borderTop: "1px solid #F3F4F6" }}>
                   <Button
                     size="small"
-                    sx={{ textTransform: "none" }}
+                    sx={{
+                      textTransform: "none",
+                      fontSize: "13px",
+                      color: "#6B7280",
+                      fontWeight: 500,
+                      "&:hover": { backgroundColor: "#F9FAFB" },
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/evals/${project.id}#configuration`);
                     }}
-                    startIcon={<Settings size={16} />}
+                    startIcon={<Settings size={14} />}
                   >
-                    Configure
+                    Settings
                   </Button>
                   <Button
                     size="small"
                     variant="contained"
                     sx={{
                       textTransform: "none",
+                      fontSize: "13px",
+                      fontWeight: 500,
                       backgroundColor: "#13715B",
                       "&:hover": { backgroundColor: "#0f5a47" },
+                      px: 2.5,
                     }}
                     onClick={(e) => {
                       e.stopPropagation();

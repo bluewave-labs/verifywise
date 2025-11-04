@@ -1,23 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
-  Button,
-  Card,
-  CardContent,
-  Grid,
   Typography,
   CircularProgress,
 } from "@mui/material";
-import { Play, TrendingUp } from "lucide-react";
-import { deepEvalService } from "../../../infrastructure/api/deepEvalService";
+import { Play, Beaker } from "lucide-react";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import PerformanceChart from "./components/PerformanceChart";
+import NewExperimentModal from "./NewExperimentModal";
+import type { DeepEvalProject } from "./types";
 
 interface ProjectOverviewProps {
   projectId: string;
-  project: any;
-  onProjectUpdate: (project: any) => void;
+  project: DeepEvalProject | null;
+  onProjectUpdate: (project: DeepEvalProject) => void;
 }
 
 export default function ProjectOverview({
@@ -25,16 +21,11 @@ export default function ProjectOverview({
   project,
   onProjectUpdate,
 }: ProjectOverviewProps) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>(null);
-  const [recentExperiments, setRecentExperiments] = useState<any[]>([]);
+  const [stats, setStats] = useState<{ totalExperiments: number; lastRunDate: string | null; avgMetrics: Record<string, number> } | null>(null);
+  const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadOverviewData();
-  }, [projectId]);
-
-  const loadOverviewData = async () => {
+  const loadOverviewData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -47,22 +38,24 @@ export default function ProjectOverview({
       // Load project stats
       const statsData = await deepEvalProjectsService.getProjectStats(projectId);
       setStats(statsData.stats);
-
-      // Load recent experiments
-      const experimentsData = await deepEvalService.getAllEvaluations();
-      // Filter to this project (TODO: backend should filter)
-      const projectExperiments = experimentsData.evaluations.slice(0, 5);
-      setRecentExperiments(projectExperiments);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to load overview data:", err);
     } finally {
       setLoading(false);
     }
+  }, [projectId, project, onProjectUpdate]);
+
+  useEffect(() => {
+    loadOverviewData();
+  }, [loadOverviewData]);
+
+  const handleNewExperiment = () => {
+    setNewExperimentModalOpen(true);
   };
 
-  const handleRunExperiment = () => {
-    navigate(`/evals/${projectId}#experiments`);
-    // TODO: Open "new experiment" modal
+  const handleExperimentSuccess = () => {
+    // Reload stats after experiment is created
+    loadOverviewData();
   };
 
   if (loading) {
@@ -73,157 +66,165 @@ export default function ProjectOverview({
     );
   }
 
+  const hasExperiments = (stats?.totalExperiments ?? 0) > 0;
+
   return (
     <Box>
-      {/* Quick Stats */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary">
-                Total Experiments
-              </Typography>
-              <Typography variant="h4">{stats?.totalExperiments || 0}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* Header with New Eval button */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box>
+          <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600 }}>
+            Project overview
+          </Typography>
+        </Box>
+        <CustomizableButton
+          onClick={handleNewExperiment}
+          variant="contained"
+          text="New Eval"
+          icon={<Play size={16} />}
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+            "&:hover": {
+              backgroundColor: "#0f5a47",
+            },
+          }}
+        />
+      </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary">
-                Avg Answer Relevancy
-              </Typography>
-              <Typography variant="h4">
-                {stats?.avgMetrics?.answerRelevancy?.toFixed(2) || "N/A"}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* Two-column layout like Braintrust */}
+      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
+        {/* Left: Observability / Tracing */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            p: 3,
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, fontSize: "15px" }}>
+            Observability
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 4, fontSize: "13px" }}>
+            Trace your AI app interactions
+          </Typography>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary">
-                Avg Bias Score
-              </Typography>
-              <Typography variant="h4">
-                {stats?.avgMetrics?.bias?.toFixed(2) || "N/A"}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary">
-                Last Run
-              </Typography>
-              <Typography variant="body1">
-                {stats?.lastRunDate
-                  ? new Date(stats.lastRunDate).toLocaleDateString()
-                  : "Never"}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Performance Chart */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Box>
-              <Typography variant="h6">Performance Trends</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Metric scores across experiment runs
-              </Typography>
+          {/* Empty state */}
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 6,
+              px: 2,
+            }}
+          >
+            <Box sx={{ mb: 3 }}>
+              <Beaker size={48} color="#9CA3AF" strokeWidth={1.5} />
             </Box>
-            <TrendingUp size={24} color="#13715B" />
-          </Box>
-
-          <PerformanceChart projectId={projectId} />
-        </CardContent>
-      </Card>
-
-      {/* Recent Experiments */}
-      <Card>
-        <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">Recent Experiments</Typography>
-            <Button
-              variant="contained"
-              startIcon={<Play size={16} />}
-              onClick={handleRunExperiment}
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
+            >
+              Get started with observability
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
+            >
+              Trace user interactions for monitoring, real-time scoring, and review. Annotate logs data and use it as the source for evaluations.
+            </Typography>
+            <CustomizableButton
+              variant="outlined"
               sx={{
                 textTransform: "none",
-                backgroundColor: "#13715B",
-                "&:hover": { backgroundColor: "#0f5a47" },
+                fontSize: "13px",
+                borderColor: "#D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#D0D5DD",
+                },
               }}
             >
-              New Experiment
-            </Button>
+              Setup tracing
+            </CustomizableButton>
           </Box>
+        </Box>
 
-          {recentExperiments.length === 0 ? (
-            <Box textAlign="center" py={4}>
-              <Typography variant="body2" color="text.secondary">
-                No experiments yet. Run your first experiment to get started.
-              </Typography>
-              <Button
-                variant="outlined"
-                onClick={handleRunExperiment}
-                sx={{ mt: 2, textTransform: "none" }}
+        {/* Right: Evaluation / Experiments */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            p: 3,
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, fontSize: "15px" }}>
+            Evaluation
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: "13px" }}>
+            Experiment score progress
+          </Typography>
+
+          {!hasExperiments ? (
+            /* Empty state */
+            <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
+              <Box sx={{ mb: 3 }}>
+                <Play size={48} color="#9CA3AF" strokeWidth={1.5} />
+              </Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
               >
-                Run First Experiment
-              </Button>
+                No experiments yet
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
+              >
+                Run your first experiment to start evaluating your LLM. Configure your model, dataset, and metrics to get started.
+              </Typography>
+              <CustomizableButton
+                onClick={handleNewExperiment}
+                variant="contained"
+                text="Run first experiment"
+                icon={<Play size={16} />}
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                  "&:hover": {
+                    backgroundColor: "#0f5a47",
+                  },
+                }}
+              />
             </Box>
           ) : (
+            /* Show experiments summary when data exists */
             <Box>
-              {recentExperiments.map((exp) => (
-                <Box
-                  key={exp.evalId}
-                  sx={{
-                    p: 2,
-                    mb: 1,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    "&:hover": {
-                      bgcolor: "action.hover",
-                      cursor: "pointer",
-                    },
-                  }}
-                  onClick={() => navigate(`/evals/${projectId}#experiments`)}
-                >
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" fontWeight={600}>
-                        {exp.evalId}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(exp.createdAt).toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} textAlign="right">
-                      <Typography variant="caption" display="block">
-                        Status: {exp.status}
-                      </Typography>
-                      {exp.totalSamples > 0 && (
-                        <Typography variant="caption" color="text.secondary">
-                          {exp.totalSamples} samples
-                        </Typography>
-                      )}
-                    </Grid>
-                  </Grid>
-                </Box>
-              ))}
+              <Typography variant="h5" sx={{ mb: 3 }}>
+                {stats?.totalExperiments ?? 0} Experiments
+              </Typography>
+              {/* TODO: Add performance chart and experiment list here when data exists */}
+              <Typography variant="body2" color="text.secondary">
+                Experiment data will appear here
+              </Typography>
             </Box>
           )}
-        </CardContent>
-      </Card>
+        </Box>
+      </Box>
+
+      {/* New Experiment Modal */}
+      <NewExperimentModal
+        isOpen={newExperimentModalOpen}
+        onClose={() => setNewExperimentModalOpen(false)}
+        projectId={projectId}
+        onSuccess={handleExperimentSuccess}
+      />
     </Box>
   );
 }
-

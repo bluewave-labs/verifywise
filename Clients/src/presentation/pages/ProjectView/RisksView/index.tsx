@@ -101,27 +101,25 @@ const RisksView: FC<RisksViewProps> = memo(
      * Handles special formatting for dates and ensures data matches column structure
      */
     const risksTableRows = useMemo(() => {
-      return risksData.reduce<
-        { id: string; data: { id: string; data: any }[] }[]
-      >((acc, item, i) => {
-        const rowData = risksTableCols.map((col) => {
-          const value = (item as any)[col.id];
-          let displayValue = value;
+      return risksData.reduce((acc: any[], item, i) => {
+        const row: any = {
+          id: (item as any).id || (item as any).risk_id || `${(item as ProjectRisk | VendorRisk).risk_description}_${i}`,
+        };
+
+        // Map all column values to the row
+        risksTableCols.forEach((col) => {
+          let value = (item as any)[col.id];
+
+          // Special formatting for dates
           if (col.id === "review_date" && value) {
-            displayValue = new Date(value).toLocaleDateString();
+            value = new Date(value).toLocaleDateString();
           }
 
-          return {
-            id: `${col.id}_${i}`,
-            data: String(displayValue || ""),
-          };
+          // Set the value on the row object
+          row[col.id] = value;
         });
 
-        acc.push({
-          id: `${(item as ProjectRisk | VendorRisk).risk_description}_${i}`,
-          data: rowData,
-        });
-
+        acc.push(row);
         return acc;
       }, []);
     }, [risksData, risksTableCols]);
@@ -137,7 +135,7 @@ const RisksView: FC<RisksViewProps> = memo(
       [risksTableCols, risksTableRows]
     );
 
-    const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
+    const [selectedRow, setSelectedRow] = useState<ProjectRisk | VendorRisk | undefined>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
 
@@ -325,11 +323,11 @@ const RisksView: FC<RisksViewProps> = memo(
         {/* map the data */}
         <BasicTable
           data={tableData}
-          bodyData={riskData1}
+          bodyData={risksTableRows}
           table="risksTable"
           paginated
           label={`${title} risk`}
-          setSelectedRow={(row) => setSelectedRow(row as ProjectRisk)}
+          setSelectedRow={(row) => setSelectedRow(riskData1.find(r => (r as any).id === row.id || (r as any).risk_id === row.id) as ProjectRisk | VendorRisk)}
           setAnchorEl={setAnchorEl}
         />
       </Stack>

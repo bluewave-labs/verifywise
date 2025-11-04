@@ -28,7 +28,8 @@ export const uploadFile = async (
     | "ISO 27001 report"
     | "Models and risks report"
     | "Training registry report"
-    | "Policy manager report",
+    | "Policy manager report"
+    | "File Manager", // Standalone file uploads via File Manager
   tenant: string,
   transaction: Transaction | null = null
 ) => {

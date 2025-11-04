@@ -1,7 +1,6 @@
 import React, { useState, lazy, Suspense, useRef } from "react";
-import { IconButton, Box, Stack } from "@mui/material";
-import { X as CloseGreyIcon } from "lucide-react";
-import { styles } from "./styles";
+import { Box, Stack } from "@mui/material";
+import StandardModal from "../../Modals/StandardModal";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
 const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));
 import { handleAutoDownload } from "../../../../application/tools/fileDownload";
@@ -29,6 +28,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     body: string;
   } | null>(null);
   const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const generateReportRef = useRef<(() => void) | null>(null);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -43,6 +43,12 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   };
 
   const handleGenerateReport = async (input: IInputProps) => {
+    // Handle null project case
+    if (!input.project) {
+      handleToast("error", "Project not selected");
+      return;
+    }
+
     const currentProject = projects?.find(
       (project: { id: number | null }) => project.id === input.project
     );
@@ -55,21 +61,26 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     const owner = users.find((user: any) => user.id === currentProject.owner);
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
-    switch (input.report_type) {
-      case "Annexes report":
-        reportTypeLabel = "Annexes report";
-        break;
-      case "Clauses report":
-        reportTypeLabel = "Clauses report";
-        break;
-      case "Clauses and annexes report":
-        reportTypeLabel = "Clauses and annexes report";
-        break;
-      case "All reports combined in one file":
-        reportTypeLabel = "All reports";
-        break;
-      default:
-        break;
+    // Keep arrays as arrays; normalize known string values
+    if (Array.isArray(input.report_type)) {
+      reportTypeLabel = input.report_type;
+    } else {
+      switch (input.report_type) {
+        case "Annexes report":
+          reportTypeLabel = "Annexes report";
+          break;
+        case "Clauses report":
+          reportTypeLabel = "Clauses report";
+          break;
+        case "Clauses and annexes report":
+          reportTypeLabel = "Clauses and annexes report";
+          break;
+        case "All reports combined in one file":
+          reportTypeLabel = "All reports";
+          break;
+        default:
+          break;
+      }
     }
 
     const body = {
@@ -110,6 +121,12 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     onClose();
   };
 
+  const handleFormSubmit = () => {
+    if (generateReportRef.current) {
+      generateReportRef.current();
+    }
+  };
+
   return (
     <Stack>
       {alert && (
@@ -126,29 +143,35 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
         </Suspense>
       )}
 
-      <Box
-        sx={{
-          ...styles.formContainer,
-          ...(isReportRequest && styles.contentCenter),
-        }}
-        component="form"
+      <StandardModal
+        isOpen={true}
+        onClose={handleOnCloseModal}
+        title={`Generate ${reportType === 'organization' ? 'Organization' : 'Project'} Report`}
+        description={reportType === 'organization'
+          ? 'Generate a comprehensive report for your entire organization.'
+          : 'Pick the project you want to generate a report for.'
+        }
+        onSubmit={!isReportRequest ? handleFormSubmit : undefined}
+        submitButtonText="Generate report"
+        hideFooter={isReportRequest}
+        maxWidth="450px"
       >
-        <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
-          <CloseGreyIcon size={16} />
-        </IconButton>
-        {isReportRequest ? (
-          <Suspense fallback={<div>Loading...</div>}>
-            <DownloadReportForm statusCode={responseStatusCode} />
-          </Suspense>
-        ) : (
-          <Suspense fallback={<div>Loading...</div>}>
-            <GenerateReportFrom
-              onGenerate={handleGenerateReport}
-              reportType={reportType}
-            />
-          </Suspense>
-        )}
-      </Box>
+        <Stack sx={{ minHeight: isReportRequest ? '200px' : 'auto' }}>
+          {isReportRequest ? (
+            <Suspense fallback={<div>Loading...</div>}>
+              <DownloadReportForm statusCode={responseStatusCode} />
+            </Suspense>
+          ) : (
+            <Suspense fallback={<div>Loading...</div>}>
+              <GenerateReportFrom
+                onGenerate={handleGenerateReport}
+                reportType={reportType}
+                onSubmitRef={generateReportRef}
+              />
+            </Suspense>
+          )}
+        </Stack>
+      </StandardModal>
     </Stack>
   );
 };

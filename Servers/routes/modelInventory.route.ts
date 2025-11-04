@@ -5,6 +5,8 @@ import {
   createNewModelInventory,
   deleteModelInventoryById,
   getAllModelInventories,
+  getModelByFrameworkId,
+  getModelByProjectId,
   getModelInventoryById,
   updateModelInventoryById,
 } from "../controllers/modelInventory.ctrl";
@@ -12,6 +14,8 @@ import {
 // GET
 router.get("/", authenticateJWT, getAllModelInventories);
 router.get("/:id", authenticateJWT, getModelInventoryById);
+router.get("/by-projectId/:projectId", authenticateJWT, getModelByProjectId);
+router.get("/by-frameworkId/:frameworkId", authenticateJWT, getModelByFrameworkId);
 
 // POST
 router.post("/", authenticateJWT, createNewModelInventory);

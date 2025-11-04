@@ -8,21 +8,20 @@ import React, {
 } from "react";
 import {
   useTheme,
-  Modal,
   Stack,
   Box,
-  Switch,
   FormControlLabel,
   Autocomplete,
   TextField,
   Typography,
 } from "@mui/material";
+import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { Save as SaveIcon, X as CloseIcon, ChevronDown } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import { ChevronDown } from "lucide-react";
+import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
@@ -55,7 +54,8 @@ interface NewModelInventoryFormValues {
   biases: string;
   limitations: string;
   hosting_provider: string;
-  used_in_projects: string[];
+  projects: number[];
+  frameworks: number[];
 }
 
 interface NewModelInventoryFormErrors {
@@ -67,7 +67,8 @@ interface NewModelInventoryFormErrors {
   capabilities?: string;
   status?: string;
   status_date?: string;
-  used_in_projects?: string;
+  projects?: string;
+  frameworks?: string;
 }
 
 const initialState: NewModelInventoryFormValues = {
@@ -75,7 +76,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: 0,
+  approver: "" as any, // Initialize as empty string to avoid MUI select warning
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
@@ -84,7 +85,8 @@ const initialState: NewModelInventoryFormValues = {
   biases: "",
   limitations: "",
   hosting_provider: "",
-  used_in_projects: [],
+  projects: [],
+  frameworks: [],
 };
 
 const statusOptions = [
@@ -132,26 +134,33 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const [errors, setErrors] = useState<NewModelInventoryFormErrors>({});
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (initialData && users.length > 0) {
-      // If we have initialData and users are loaded, set the values
-      setValues(initialData);
-    } else if (initialData && !isEdit) {
-      // If we have initialData but no users yet, set values temporarily
-      setValues(initialData);
-    } else if (!isEdit) {
-      // If not editing, set initial state
-      setValues(initialState);
-    }
-  }, [initialData, isEdit, users]);
-
-  useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // When modal opens, set the form values
+      if (initialData) {
+        // Normalize the data
+        const normalizedData = {
+          ...initialData,
+          projects: Array.isArray(initialData.projects) ? [...initialData.projects] : [],
+          frameworks: Array.isArray(initialData.frameworks) ? [...initialData.frameworks] : [],
+          capabilities: Array.isArray(initialData.capabilities) ? [...initialData.capabilities] : [],
+        };
+        setValues(normalizedData);
+      } else {
+        // If not editing and no initial data, set initial state
+        setValues(initialState);
+      }
+      setErrors({});
+      setIsSubmitting(false); // Reset submitting state when modal opens
+    } else {
+      // When modal closes, reset everything
       setValues(initialState);
       setErrors({});
+      setIsSubmitting(false); // Reset submitting state when modal closes
     }
-  }, [isOpen]);
+  }, [isOpen, initialData, isEdit]);
 
   // Fetch users when modal opens
   useEffect(() => {
@@ -195,19 +204,31 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     fetchProjects();
   }, []);
 
-  const combinedList = useMemo(() => {
+  const projectsList = useMemo(() => {
+    return projectList
+      .filter((project) => !project.is_organizational)
+      .map((project) => project.project_title.trim());
+  }, [projectList]);
+
+  // Create a mapping from framework ID to framework name
+  const frameworkIdToNameMap = useMemo(() => {
+    const map = new Map<number, string>();
     const targetFrameworks = ["ISO 42001", "ISO 27001"];
 
-    return projectList.flatMap((project) => {
-      // Get enabled framework names for this project
-      const enabledFrameworks = project.framework?.map((f) => f.name) || [];
-
-      // Only include target frameworks that are enabled
-      return targetFrameworks
-        .filter((fw) => enabledFrameworks.includes(fw))
-        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+    projectList.forEach((project) => {
+      project.framework?.forEach((f) => {
+        if (targetFrameworks.includes(f.name)) {
+          map.set(f.framework_id, f.name);
+        }
+      });
     });
+
+    return map;
   }, [projectList]);
+
+  const frameworksList = useMemo(() => {
+    return Array.from(frameworkIdToNameMap.values());
+  }, [frameworkIdToNameMap]);
 
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
@@ -228,6 +249,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       })
     );
   }, []);
+
+  // Button should be enabled for new items or always enabled during edit
+  // Simplified: only disable during submission
+  const isButtonDisabled = isSubmitting;
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -258,10 +283,34 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
   const handleSelectUsedInProjectChange = useCallback(
     (_event: React.SyntheticEvent, newValue: string[]) => {
-      setValues((prev) => ({ ...prev, used_in_projects: newValue }));
-      setErrors((prev) => ({ ...prev, used_in_projects: "" }));
+      // Convert project titles to IDs
+      const projectIds = newValue
+        .map((title) => projectList.find((p) => p.project_title === title)?.id)
+        .filter((id): id is number => id !== undefined);
+      setValues((prev) => ({ ...prev, projects: projectIds }));
+      setErrors((prev) => ({ ...prev, projects: "" }));
     },
-    []
+    [projectList]
+  );
+
+  const handleSelectUsedInFrameworksChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string[]) => {
+      // Convert framework names to IDs using the mapping
+      const frameworkIds = newValue
+        .map((name) => {
+          // Find framework ID by name
+          for (const [id, frameworkName] of frameworkIdToNameMap.entries()) {
+            if (frameworkName === name) {
+              return id;
+            }
+          }
+          return undefined;
+        })
+        .filter((id): id is number => id !== undefined);
+      setValues((prev) => ({ ...prev, frameworks: frameworkIds }));
+      setErrors((prev) => ({ ...prev, frameworks: "" }));
+    },
+    [frameworkIdToNameMap]
   );
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
@@ -327,6 +376,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
+      setIsSubmitting(true);
       try {
         if (onSuccess) {
           await onSuccess({
@@ -337,6 +387,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         }
         handleClose();
       } catch (error: any) {
+        setIsSubmitting(false);
         // Handle server-side validation errors
         let errorData = null;
         
@@ -443,82 +494,27 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (reason !== "backdropClick") {
-          handleClose();
-        }
-      }}
-      sx={{ overflowY: "scroll" }}
+    <StandardModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={isEdit ? "Edit Model" : "Add a new model"}
+      description={
+        isEdit
+          ? "Update model details, approval status, and metadata"
+          : "Register a new AI model with comprehensive metadata and approval tracking"
+      }
+      onSubmit={handleSubmit}
+      submitButtonText={isEdit ? "Update model" : "Save"}
+      isSubmitting={isButtonDisabled}
+      maxWidth="760px"
     >
-      <Stack
-        gap={theme.spacing(2)}
-        color={theme.palette.text.secondary}
-        sx={{
-          backgroundColor: "#D9D9D9",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "fit-content",
-          maxHeight: "fit-content",
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: theme.palette.background.modal,
-          border: 1,
-          borderColor: theme.palette.border,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: theme.spacing(15),
-          "&:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        <form onSubmit={handleSubmit}>
-          <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            marginBottom={theme.spacing(5)}
-          >
-            <Typography fontSize={16} fontWeight={600}>
-              {isEdit ? "Edit Model" : "Add a new model"}
-            </Typography>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <CloseIcon size={20} />
-            </Box>
-          </Stack>
-
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
-          >
-            <Stack gap={theme.spacing(8)}>
-              {/* First Row: Provider, Model, Version */}
-              <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                gap={theme.spacing(8)}
-              >
+      <Stack spacing={6}>
+        {/* First Row: Provider, Model, Version */}
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          spacing={6}
+        >
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="provider"
@@ -660,15 +656,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="e.g., 4.0, 1.5"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Second Row: Approver, Status, Status Date */}
-              <Stack
-                direction={"row"}
-                justifyContent={"flex-start"}
-                gap={theme.spacing(8)}
-              >
+        {/* Second Row: Approver, Status, Status Date */}
+        <Stack
+          direction={"row"}
+          justifyContent={"flex-start"}
+          spacing={6}
+        >
                 <SelectComponent
                   id="approver"
                   label="Approver"
@@ -708,11 +704,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     isRequired
                     error={errors.status_date}
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Capabilities Section */}
-              <Stack>
+        {/* Capabilities Section */}
+        <Stack>
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -772,12 +768,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontSize: 11,
                     }}
                   >
-                    {errors.capabilities}
-                  </Typography>
-                )}
-              </Stack>
+              {errors.capabilities}
+            </Typography>
+          )}
+        </Stack>
 
-              <Stack>
+        {/* Used in Projects Section */}
+        <Stack>
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -786,18 +783,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Used in projects
+                  Used in use cases
                 </Typography>
                 <Autocomplete
                   multiple
-                  id="projects-framework"
+                  id="projects-input"
                   size="small"
-                  value={values.used_in_projects}
-                  options={combinedList}
+                  value={(values.projects || []).map(id => projectList.find(p => p.id === id)?.project_title).filter(Boolean) as string[]}
+                  options={projectsList}
                   onChange={handleSelectUsedInProjectChange}
                   getOptionLabel={(option) => option}
                   noOptionsText={
-                    values.used_in_projects.length === combinedList.length
+                    (values.projects || []).length === projectsList.length
                       ? "All projects selected"
                       : "No options"
                   }
@@ -816,8 +813,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      error={!!errors.used_in_projects}
-                      placeholder="Select projects-framework"
+                      error={!!errors.projects}
+                      placeholder="Select projects"
                       sx={capabilitiesRenderInputStyle}
                     />
                   )}
@@ -827,7 +824,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   }}
                   slotProps={capabilitiesSlotProps}
                 />
-                {errors.used_in_projects && (
+                {errors.projects && (
                   <Typography
                     variant="caption"
                     sx={{
@@ -837,12 +834,80 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       fontSize: 11,
                     }}
                   >
-                    {errors.used_in_projects}
-                  </Typography>
-                )}
-              </Stack>
+              {errors.projects}
+            </Typography>
+          )}
+        </Stack>
 
-              <Stack direction={"row"} gap={theme.spacing(8)}>
+        {/* Used in Frameworks Section */}
+        <Stack>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    mb: theme.spacing(2),
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Used in frameworks
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="frameworks-input"
+                  size="small"
+                  value={(values.frameworks || [])
+                    .map(id => frameworkIdToNameMap.get(id))
+                    .filter(Boolean) as string[]}
+                  options={frameworksList}
+                  onChange={handleSelectUsedInFrameworksChange}
+                  getOptionLabel={(option) => option}
+                  noOptionsText={
+                    (values.frameworks || []).length === frameworksList.length
+                      ? "All frameworks selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  filterSelectedOptions
+                  popupIcon={<ChevronDown size={16} />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.frameworks}
+                      placeholder="Select frameworks"
+                      sx={capabilitiesRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...capabilitiesSxStyle,
+                  }}
+                  slotProps={capabilitiesSlotProps}
+                />
+                {errors.frameworks && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      color: "#f04438",
+                      fontWeight: 300,
+                      fontSize: 11,
+                    }}
+                  >
+              {errors.frameworks}
+            </Typography>
+          )}
+        </Stack>
+
+        <Stack direction={"row"} spacing={6}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="reference_link"
@@ -864,10 +929,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="Biases"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              <Stack direction={"row"} gap={theme.spacing(8)}>
+        <Stack direction={"row"} spacing={6}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="hosting_provider"
@@ -889,61 +954,31 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     sx={fieldStyle}
                     placeholder="Limitation"
                   />
-                </Suspense>
-              </Stack>
+          </Suspense>
+        </Stack>
 
-              {/* Security Assessment Section */}
-              <Stack>
+        {/* Security Assessment Section */}
+        <Stack direction={"row"} spacing={6}>
                 <FormControlLabel
                   control={
-                    <Switch
+                    <Toggle
                       checked={values.security_assessment}
                       onChange={handleSecurityAssessmentChange}
-                      color="success"
-                      sx={{
-                        "&.Mui-checked": {
-                          color: "#13715B",
-                        },
-                      }}
-                      disableRipple
-                      disableFocusRipple
-                      disableTouchRipple
                     />
                   }
                   label="Security assessment is complete for this model"
                   sx={{
+                    width: "50%",
                     "& .MuiFormControlLabel-label": {
                       fontSize: 13,
                       fontWeight: 400,
                       color: theme.palette.text.primary,
                     },
-                  }}
-                />
-              </Stack>
-            </Stack>
-          </Box>
-
-          <Stack
-            sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
             }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text={isEdit ? "Update Model" : "Save"}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleSubmit}
-              icon={<SaveIcon size={16} />}
-            />
-          </Stack>
-        </form>
+          />
+        </Stack>
       </Stack>
-    </Modal>
+    </StandardModal>
   );
 };
 

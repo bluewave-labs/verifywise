@@ -161,6 +161,46 @@ export async function postAutoDrivers(): Promise<any> {
   }
 }
 
+/**
+ * Checks if demo data exists by querying for demo projects.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to true if demo data exists, false otherwise.
+ */
+export async function checkDemoDataExists(): Promise<boolean> {
+  try {
+    const response = await apiServices.get("/projects");
+    const projects = response.data as Array<{ project_title: string }>;
+
+    // Check if any project has demo-specific titles
+    const demoProjectTitles = ["AI Compliance Checker", "Information Security & AI Governance Framework"];
+    const hasDemoProjects = projects.some((project) =>
+      demoProjectTitles.includes(project.project_title)
+    );
+
+    return hasDemoProjects;
+  } catch (error) {
+    console.error("Error checking demo data:", error);
+    return false;
+  }
+}
+
+/**
+ * Deletes demo data by sending a DELETE request to the autoDrivers endpoint.
+ *
+ * @returns {Promise<any>} A promise that resolves to the response data.
+ * @throws Will throw an error if the request fails.
+ */
+export async function deleteAutoDrivers(): Promise<any> {
+  try {
+    const response = await apiServices.delete("/autoDrivers");
+
+    return response;
+  } catch (error) {
+    console.error("Error deleting demo data:", error);
+    throw error;
+  }
+}
+
 export async function resetPassword({
   routeUrl,
   body,

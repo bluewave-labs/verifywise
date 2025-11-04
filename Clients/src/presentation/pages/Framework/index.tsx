@@ -19,12 +19,14 @@ import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import NoProject from "../../components/NoProject/NoProject";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
+import FrameworkRisks from "./FrameworkRisks";
+import FrameworkLinkedModels from "./FrameworkLinkedModels";
 import PageTour from "../../components/PageTour";
 import FrameworkSteps from "./FrameworkSteps";
 
@@ -56,6 +58,8 @@ const tabListStyle = {
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -157,7 +161,8 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
-  const [mainTabValue, setMainTabValue] = useState("dashboard");
+  // Default to "dashboard" 
+  const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
@@ -208,6 +213,9 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
+    if (framework || frameworkName) {
+      setMainTabValue("controls");
+    }
     if (framework === "iso-42001" || frameworkName === "iso-42001") {
       // Find ISO 42001 framework in filtered frameworks
       const iso42001Index = filteredFrameworks.findIndex(fw =>
@@ -286,6 +294,11 @@ const Framework = () => {
     newValue: string
   ) => {
     setMainTabValue(newValue);
+    if (newValue === "dashboard") {
+      navigate("/framework");
+    } else {
+      navigate(`/framework/${newValue}`);
+    }
   };
 
   const renderFrameworkContent = () => {
@@ -544,16 +557,16 @@ const Framework = () => {
       />
       <PageBreadcrumbs />
       <PageHeader
-               title="Frameworks"
-               description="This page provides an overview of available AI and data governance frameworks to your organization."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
+        title="Frameworks"
+        description="This page provides an overview of available AI and data governance frameworks to your organization."
+        rightContent={
+          <HelperIcon
+              onClick={() =>
+              setIsHelperDrawerOpen(!isHelperDrawerOpen)
+              }
+              size="small"
+            />
+          }
        />
 
       {/* Only show framework content if organizational project exists */}
@@ -568,6 +581,18 @@ const Framework = () => {
               <Tab
                 label="Dashboard"
                 value="dashboard"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label="Framework risks"
+                value="framework-risks"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label="Linked models"
+                value="linked-models"
                 sx={tabStyle}
                 disableRipple
               />
@@ -614,6 +639,24 @@ const Framework = () => {
               {/* Content that changes based on selected framework */}
               {renderFrameworkContent()}
             </Stack>
+          </TabPanel>
+
+          <TabPanel value="framework-risks" sx={tabPanelStyle}>
+            <FrameworkRisks
+              organizationalProject={organizationalProject}
+              filteredFrameworks={filteredFrameworks}
+              selectedFramework={selectedFramework}
+              onFrameworkSelect={handleFrameworkSelect}
+            />
+          </TabPanel>
+
+          <TabPanel value="linked-models" sx={tabPanelStyle}>
+            <FrameworkLinkedModels
+              organizationalProject={organizationalProject}
+              filteredFrameworks={filteredFrameworks}
+              selectedFramework={selectedFramework}
+              onFrameworkSelect={handleFrameworkSelect}
+            />
           </TabPanel>
 
           <TabPanel value="settings" sx={tabPanelStyle}>

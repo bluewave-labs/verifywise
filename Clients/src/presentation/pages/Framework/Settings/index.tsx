@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Box,
   Typography,
   Stack,
-  Modal,
 } from "@mui/material";
 import { Trash2 as DeleteIconRed, Pencil as EditIconGrey, Check as CheckGreenIcon } from "lucide-react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -11,6 +10,7 @@ import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import ProjectForm from "../../../components/Forms/ProjectForm";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import StandardModal from "../../../components/Modals/StandardModal";
 import { deleteProject } from "../../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -43,6 +43,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const submitFormRef = useRef<(() => void) | undefined>();
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -242,6 +243,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               isDisabled={!allowedRoles.projects.edit.includes(userRoleName)}
               sx={{
                 borderColor: "#D1D5DB",
+                width: "170px",
                 color: "#374151",
                 "&:hover": {
                   borderColor: "#9CA3AF",
@@ -258,6 +260,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               isDisabled={!allowedRoles.projects.delete.includes(userRoleName)}
               sx={{
                 borderColor: "#F87171",
+                width: "170px",
                 color: "#DC2626",
                 "&:hover": {
                   borderColor: "#EF4444",
@@ -387,44 +390,33 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
 
       {/* Modals */}
       {isEditProjectModalOpen && (
-        <Modal
-          open={isEditProjectModalOpen}
-          onClose={async (_event, reason) => {
-            if (reason === "backdropClick") {
-              return;
-            }
+        <StandardModal
+          isOpen={isEditProjectModalOpen}
+          onClose={async () => {
             setIsEditProjectModalOpen(false);
             await onProjectDataChanged();
           }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+          title="Edit framework"
+          description="Update your framework details below"
+          onSubmit={() => {
+            if (submitFormRef.current) {
+              submitFormRef.current();
+            }
           }}
+          submitButtonText="Update framework"
+          maxWidth="900px"
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
+          <ProjectForm
+            projectToEdit={organizationalProject}
+            defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+            useStandardModal={true}
+            onSubmitRef={submitFormRef}
+            onClose={async () => {
+              setIsEditProjectModalOpen(false);
+              await onProjectDataChanged();
             }}
-          >
-            <ProjectForm
-              projectToEdit={organizationalProject}
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsEditProjectModalOpen(false);
-                await onProjectDataChanged();
-              }}
-            />
-          </Box>
-        </Modal>
+          />
+        </StandardModal>
       )}
 
       {isDeleteModalOpen && (

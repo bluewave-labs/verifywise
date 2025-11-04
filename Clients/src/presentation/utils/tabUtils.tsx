@@ -48,7 +48,7 @@ export interface TabLabelWithCountOptions {
 export const createTabLabelWithCount = ({
   label,
   count,
-  showZero = false,
+  showZero = true,
   isLoading = false,
   chipSx,
 }: TabLabelWithCountOptions): ReactNode => {

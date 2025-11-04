@@ -154,7 +154,7 @@ export const getAITrustCentrePublicResourceByIdQuery = async (
   id: number
 ) => {
   const visible = await sequelize.query(
-    `SELECT visible, file_id FROM "${tenant}".ai_trust_center_resources WHERE id = :id;`,
+    `SELECT visible, file_id FROM ${escapePgIdentifier(tenant)}.ai_trust_center_resources WHERE id = :id;`,
     { replacements: { id } }
   ) as [{ visible: boolean, file_id: number }[], number];
   if (visible[0].length === 0) {

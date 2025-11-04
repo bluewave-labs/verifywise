@@ -39,6 +39,10 @@ export const getIsVisibleQuery = async (
 export const getCompanyLogoQuery = async (
   tenant: string
 ) => {
+  if (!isValidTenantSchema(tenant)) {
+    // You could throw, log, or return null as appropriate for unsafe tenant values
+    return null;
+  }
   const result = await sequelize.query(`SELECT content, type FROM "${tenant}".ai_trust_center AS ai INNER JOIN "${tenant}".files f ON ai.logo = f.id LIMIT 1;`) as [{ content: Buffer }[], number];
 
   return result[0][0] || null;

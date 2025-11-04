@@ -8,6 +8,8 @@ import {
   createNewModelInventoryQuery,
   updateModelInventoryByIdQuery,
   deleteModelInventoryByIdQuery,
+  getModelByProjectIdQuery,
+  getModelByFrameworkIdQuery,
 } from "../utils/modelInventory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
@@ -108,6 +110,94 @@ export async function getModelInventoryById(req: Request, res: Response) {
   }
 }
 
+export async function getModelByProjectId(req: Request, res: Response) {
+  const projectId = parseInt(req.params.projectId);
+
+  logStructured(
+    "processing",
+    `fetching model inventory by project id: ${projectId}`,
+    "getModelByProjectId",
+    "modelInventory.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up model inventory with project id: ${projectId}`);
+
+  try {
+    const modelInventories = (await getModelByProjectIdQuery(
+      projectId,
+      req.tenantId!,
+    )) as unknown as ModelInventoryModel[];
+
+    logStructured(
+      "successful",
+      `model inventories retrieved for project id: ${projectId}`,
+      "getModelByProjectId",
+      "modelInventory.ctrl.ts"
+    );
+    return res
+      .status(200)
+      .json(
+        STATUS_CODE[200](
+          modelInventories.map((modelInventory) =>
+            modelInventory.toSafeJSON()
+          )
+        )
+      );
+  } catch (error) {
+    logStructured(
+      "error",
+      "failed to retrieve model inventories by project id",
+      "getModelByProjectId",
+      "modelInventory.ctrl.ts"
+    );
+    logger.error("❌ Error in getModelByProjectId:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getModelByFrameworkId(req: Request, res: Response) {
+  const frameworkId = parseInt(req.params.frameworkId);
+
+  logStructured(
+    "processing",
+    `fetching model inventory by framework id: ${frameworkId}`,
+    "getModelByFrameworkId",
+    "modelInventory.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up model inventory with framework id: ${frameworkId}`);
+
+  try {
+    const modelInventories = (await getModelByFrameworkIdQuery(
+      frameworkId,
+      req.tenantId!,
+    )) as unknown as ModelInventoryModel[];
+
+    logStructured(
+      "successful",
+      `model inventories retrieved for framework id: ${frameworkId}`,
+      "getModelByFrameworkId",
+      "modelInventory.ctrl.ts"
+    );
+    return res
+      .status(200)
+      .json(
+        STATUS_CODE[200](
+          modelInventories.map((modelInventory) =>
+            modelInventory.toSafeJSON()
+          )
+        )
+      );
+  } catch (error) {
+    logStructured(
+      "error",
+      "failed to retrieve model inventories by framework id",
+      "getModelByFrameworkId",
+      "modelInventory.ctrl.ts"
+    );
+    logger.error("❌ Error in getModelByFrameworkId:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 export async function createNewModelInventory(req: Request, res: Response) {
 
   const {
@@ -124,8 +214,9 @@ export async function createNewModelInventory(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
-    used_in_projects,
     is_demo,
+    projects,
+    frameworks,
   } = req.body;
 
   logStructured(
@@ -154,7 +245,6 @@ export async function createNewModelInventory(req: Request, res: Response) {
       biases,
       limitations,
       hosting_provider,
-      used_in_projects,
       is_demo,
     });
 
@@ -163,6 +253,8 @@ export async function createNewModelInventory(req: Request, res: Response) {
     const savedModelInventory = await createNewModelInventoryQuery(
       modelInventory,
       req.tenantId!,
+      projects || [],
+      frameworks || [],
       transaction
     );
     await transaction.commit();
@@ -226,8 +318,11 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
-    used_in_projects,
     is_demo,
+    projects,
+    frameworks,
+    deleteProjects,
+    deleteFrameworks,
   } = req.body;
 
   logStructured(
@@ -273,7 +368,6 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         status,
         status_date,
         reference_link,
-        used_in_projects,
         biases,
         limitations,
         hosting_provider,
@@ -286,6 +380,10 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     const savedModelInventory = await updateModelInventoryByIdQuery(
       modelInventoryId,
       updatedModelInventory,
+      projects || [],
+      frameworks || [],
+      deleteProjects || false,
+      deleteFrameworks || false,
       req.tenantId!,
       transaction
     );

@@ -13,7 +13,8 @@ module.exports = {
           filename VARCHAR(255) NOT NULL,
           size BIGINT NOT NULL,
           mimetype VARCHAR(255) NOT NULL,
-          file_path VARCHAR(500) NOT NULL,
+          file_path VARCHAR(500),
+          content BYTEA,
           uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
           upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
           org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -47,9 +48,9 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
         const queriesWithTenant = queries.map(query => query(tenantHash));
-        for (const query of queriesWithTenant) {
-          await queryInterface.sequelize.query(query, { transaction });
-        }
+        await Promise.all(queriesWithTenant.map(query => 
+          queryInterface.sequelize.query(query, { transaction })
+        ));
       }
 
       await transaction.commit();

@@ -5,7 +5,6 @@ import {
   CardContent,
   CardHeader,
   Typography,
-  Switch,
   FormControlLabel,
   IconButton,
   useTheme,
@@ -15,6 +14,7 @@ import {
   Divider,
   alpha,
 } from '@mui/material';
+import Toggle from '../../components/Inputs/Toggle';
 import {
   Edit as EditIcon,
   Eye as ViewIcon,
@@ -261,10 +261,9 @@ const DashboardContent: React.FC = () => {
           {/* Edit Mode Toggle */}
           <FormControlLabel
             control={
-              <Switch
+              <Toggle
                 checked={state.editMode}
                 onChange={(e) => actions.setEditMode(e.target.checked)}
-                color="primary"
               />
             }
             label={

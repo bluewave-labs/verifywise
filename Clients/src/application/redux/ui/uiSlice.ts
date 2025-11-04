@@ -4,7 +4,6 @@ const initialState = {
   sidebar: {
     collapsed: false,
   },
-  mode: "light",
   modelInventory: {
     statusFilter: "all",
   },
@@ -23,9 +22,6 @@ const uiSlice = createSlice({
     toggleSidebar: (state) => {
       state.sidebar.collapsed = !state.sidebar.collapsed;
     },
-    setMode: (state, action) => {
-      state.mode = action.payload;
-    },
     setModelInventoryStatusFilter: (state, action) => {
       state.modelInventory.statusFilter = action.payload;
     },
@@ -36,6 +32,5 @@ export default uiSlice.reducer;
 export const {
   setRowsPerPage,
   toggleSidebar,
-  setMode,
   setModelInventoryStatusFilter,
 } = uiSlice.actions;

@@ -4,7 +4,7 @@ import { Box, Stack, IconButton, InputBase, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -28,7 +28,6 @@ import {
 } from "./style";
 import IncidentTable from "./IncidentTable";
 import NewIncident from "../../components/Modals/NewIncident";
-import { IAIIncidentManagement } from "../../../domain/interfaces/i.incidentManagement";
 import {
     AIIncidentManagementApprovalStatus,
     IncidentManagementStatus,
@@ -40,19 +39,20 @@ import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const IncidentManagement: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-    const [incidentsData, setIncidentsData] = useState<IAIIncidentManagement[]>(
-        []
-    );
+    const [incidentsData, setIncidentsData] = useState<AIIncidentManagementModel[]>([]);
+    const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isNewIncidentModalOpen, setIsNewIncidentModalOpen] = useState(false);
     const [, setSelectedIncidentId] = useState<string | null>(null);
-    const [selectedIncident, setSelectedIncident] =
-        useState<IAIIncidentManagement | null>(null);
     const [, setUsers] = useState<any[]>([]);
     const [alert, setAlert] = useState<{
         variant: "success" | "info" | "warning" | "error";
@@ -135,7 +135,13 @@ const IncidentManagement: React.FC = () => {
             const response = await getAllEntities({
                 routeUrl: "/ai-incident-managements",
             });
-            if (response?.data) setIncidentsData(response.data);
+            // if (response?.data) setIncidentsData(response.data);
+            if (response?.data) {
+                const formatted = response.data.map(
+                  (item: AIIncidentManagementModel) => new AIIncidentManagementModel(item)
+                );
+                setIncidentsData(formatted);
+              }              
         } catch (error) {
             logEngine({
                 type: "error",
@@ -174,6 +180,18 @@ const IncidentManagement: React.FC = () => {
         }
     }, [alert]);
 
+    /** -------------------- CHECK FOR NAVIGATION STATE -------------------- */
+    useEffect(() => {
+        const state = location.state as { openCreateModal?: boolean } | null;
+        if (state?.openCreateModal) {
+            setIsNewIncidentModalOpen(true);
+            setModalMode("new");
+            // Clear the state to prevent modal from opening again on refresh
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+        // Dependencies: location contains state from mega dropdown navigation, navigate used for state clearing
+    }, [location, navigate]);
+
     /** -------------------- INITIAL LOAD -------------------- */
     useEffect(() => {
         fetchIncidentsData();
@@ -209,8 +227,9 @@ const IncidentManagement: React.FC = () => {
                 routeUrl: `/ai-incident-managements/${id}`,
             });
             if (response?.data) {
-                setSelectedIncident(response.data);
-                return response.data;
+                const incident = new AIIncidentManagementModel(response.data);
+                setSelectedIncident(incident);
+                return incident;
             } else {
                 setAlert({
                     variant: "error",

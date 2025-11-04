@@ -48,9 +48,9 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
         const queriesWithTenant = queries.map(query => query(tenantHash));
-        for (const query of queriesWithTenant) {
-          await queryInterface.sequelize.query(query, { transaction });
-        }
+        await Promise.all(queriesWithTenant.map(query => 
+          queryInterface.sequelize.query(query, { transaction })
+        ));
       }
 
       await transaction.commit();

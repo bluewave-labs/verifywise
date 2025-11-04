@@ -43,56 +43,21 @@ import {
   useUpdateVendor,
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
-export interface VendorDetails {
-  id?: number;
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  review_date: string;
-  assignee: string;
-  projects: number[];
-}
-
-interface FormErrors {
-  vendorName?: string;
-  vendorProvides?: string;
-  website?: string;
-  projectIds?: string;
-  vendorContactPerson?: string;
-  reviewStatus?: string;
-  assignee?: string;
-  reviewer?: string;
-  reviewResult?: string;
-}
+import { User } from "../../../../domain/types/User";
+import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
 
 const initialState = {
-  vendorDetails: {
-    vendorName: "",
-    website: "",
-    projectIds: [] as number[],
-    vendorProvides: "",
-    vendorContactPerson: "",
-    reviewStatus: "",
-    reviewer: "",
-    reviewResult: "",
-    assignee: "",
-    reviewDate: new Date().toISOString(),
-  },
+  vendorName: "",
+  website: "",
+  projectIds: [] as number[],
+  vendorProvides: "",
+  vendorContactPerson: "",
+  reviewStatus: "",
+  reviewer: null as number | null,
+  reviewResult: "",
+  assignee: null as number | null,
+  reviewDate: new Date().toISOString(),
 };
-
-interface AddNewVendorProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  value: string;
-  onSuccess: () => void;
-  existingVendor?: VendorDetails | null;
-  onChange?: () => void;
-}
 
 const REVIEW_STATUS_OPTIONS = [
   { _id: "notStarted", name: "Not started" },
@@ -111,7 +76,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<VendorFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
   const [alert, setAlert] = useState<{
@@ -132,7 +97,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
-  const formattedUsers = users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
@@ -149,7 +114,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
-      setErrors({} as FormErrors);
+      setErrors({} as VendorFormErrors);
     }
   }, [isOpen]);
 
@@ -167,28 +132,19 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (existingVendor) {
       setValues((prevValues) => ({
         ...prevValues,
-        vendorDetails: {
-          ...prevValues.vendorDetails,
-          vendorName: existingVendor.vendor_name,
-          website: existingVendor.website,
-          projectIds: existingVendor.projects || [],
-          vendorProvides: existingVendor.vendor_provides,
-          vendorContactPerson: existingVendor.vendor_contact_person,
-          reviewStatus:
-            REVIEW_STATUS_OPTIONS?.find(
-              (s) => s.name === existingVendor.review_status
-            )?._id || "",
-          reviewer:
-            formattedUsers?.find(
-              (user: any) => user._id === existingVendor.reviewer
-            )?._id || "",
-          reviewResult: existingVendor.review_result,
-          assignee:
-            formattedUsers?.find(
-              (user: any) => user._id === existingVendor.assignee
-            )?._id || "",
-          reviewDate: existingVendor.review_date,
-        },
+        vendorName: existingVendor.vendor_name,
+        website: existingVendor.website,
+        projectIds: existingVendor.projects || [],
+        vendorProvides: existingVendor.vendor_provides,
+        vendorContactPerson: existingVendor.vendor_contact_person,
+        reviewStatus:
+          REVIEW_STATUS_OPTIONS?.find(
+            (s) => s.name === existingVendor.review_status
+          )?._id || "",
+        reviewer: existingVendor.reviewer || null,
+        reviewResult: existingVendor.review_result,
+        assignee: existingVendor.assignee || null,
+        reviewDate: dayjs(existingVendor.review_date).toISOString(),
       }));
     }
   }, [existingVendor]);
@@ -216,10 +172,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
-        vendorDetails: {
-          ...prevValues.vendorDetails,
-          reviewDate: newDate ? newDate.toISOString() : "",
-        },
+        reviewDate: newDate && newDate.isValid() ? newDate.toISOString() : "",
       }));
     }
   };
@@ -233,10 +186,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const handleOnChange = (field: string, value: string | number | number[]) => {
     setValues((prevValues) => ({
       ...prevValues,
-      vendorDetails: {
-        ...prevValues.vendorDetails,
-        [field]: value,
-      },
+      [field]: value,
     }));
     setErrors({ ...errors, [field]: "" });
   };
@@ -246,10 +196,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @returns boolean indicating if form is valid
    */
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: VendorFormErrors = {};
     const vendorName = checkStringValidation(
       "Vendor Name",
-      values.vendorDetails.vendorName,
+      values.vendorName,
       1,
       64
     );
@@ -258,7 +208,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     }
     const vendorWebsite = checkStringValidation(
       "Vendor Website",
-      values.vendorDetails.website,
+      values.website,
       1,
       64
     );
@@ -266,10 +216,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.website = vendorWebsite.message;
     }
     // Review result is now optional
-    if (values.vendorDetails.reviewResult) {
+    if (values.reviewResult) {
       const vendorReviewResult = checkStringValidation(
         "Vendor review result",
-        values.vendorDetails.reviewResult,
+        values.reviewResult,
         1,
         256
       );
@@ -278,14 +228,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       }
     }
     if (
-      !values.vendorDetails.projectIds ||
-      Number(values.vendorDetails.projectIds.length) === 0
+      !values.projectIds ||
+      Number(values.projectIds.length) === 0
     ) {
       newErrors.projectIds = "Please select a use case from the dropdown";
     }
     const vendorProvides = checkStringValidation(
       "Vendor Provides",
-      values.vendorDetails.vendorProvides,
+      values.vendorProvides,
       1,
       256
     );
@@ -294,7 +244,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     }
     const vendorContactPerson = checkStringValidation(
       "Vendor Contact Person",
-      values.vendorDetails.vendorContactPerson,
+      values.vendorContactPerson,
       1,
       64,
       undefined,
@@ -307,19 +257,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.vendorContactPerson = vendorContactPerson.message;
     }
     // Review status, reviewer, and review date are now optional
-    if (
-      !values.vendorDetails.assignee ||
-      Number(values.vendorDetails.assignee) === 0
-    ) {
+    if (values.assignee === null) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
 
      // New validation: reviewer and assignee can't be the same (only if reviewer is provided)
-      if (
-        values.vendorDetails.reviewer &&
-        values.vendorDetails.assignee &&
-        Number(values.vendorDetails.reviewer) === Number(values.vendorDetails.assignee)
-      ) {
+      if (values.reviewer != null && values.assignee != null && values.reviewer === values.assignee) {
         newErrors.reviewer = "Reviewer and assignee cannot be the same";
         newErrors.assignee = "Reviewer and assignee cannot be the same";
       }
@@ -334,31 +277,27 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleOnSave = async () => {
      // Ensure website starts with http:// or https://
-  let formattedWebsite = values.vendorDetails.website?.trim() || "";
-  if (
-    formattedWebsite &&
-    !/^https?:\/\//i.test(formattedWebsite)
-  ) {
-    formattedWebsite = `http://${formattedWebsite}`;
-  }
+    let formattedWebsite = values.website?.trim() || "";
+    if (
+      formattedWebsite &&
+      !/^https?:\/\//i.test(formattedWebsite)
+    ) {
+      formattedWebsite = `http://${formattedWebsite}`;
+    }
     const _vendorDetails = {
-      projects: values.vendorDetails.projectIds,
-      vendor_name: values.vendorDetails.vendorName,
-      assignee: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.assignee
-      )?._id,
-      vendor_provides: values.vendorDetails.vendorProvides,
+      projects: values.projectIds,
+      vendor_name: values.vendorName,
+      assignee: values.assignee ?? undefined,
+      vendor_provides: values.vendorProvides,
       website: formattedWebsite,
-      vendor_contact_person: values.vendorDetails.vendorContactPerson,
-      review_result: values.vendorDetails.reviewResult,
+      vendor_contact_person: values.vendorContactPerson,
+      review_result: values.reviewResult,
       review_status:
         REVIEW_STATUS_OPTIONS?.find(
-          (s) => s._id === values.vendorDetails.reviewStatus
+          (s) => s._id === values.reviewStatus
         )?.name || "",
-      reviewer: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.reviewer
-      )?._id,
-      review_date: values.vendorDetails.reviewDate
+      reviewer: values.reviewer ?? undefined,
+      review_date: values.reviewDate
     };
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
@@ -395,7 +334,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         }, 3000);
       }
     } catch (error) {
-      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
@@ -447,7 +385,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
-      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
@@ -476,22 +413,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         <Field // vendorName
           label="Vendor name"
           width={220}
-          value={values?.vendorDetails?.vendorName}
+          value={values?.vendorName}
           onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
           isRequired
           disabled={isEditingDisabled}
         />
-        <Field // website
-          label="Website"
-          width={220}
-          value={values.vendorDetails.website}
-          onChange={(e) => handleOnChange("website", e.target.value)}
-          error={errors.website}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-        <Stack sx={{ flex: 1 }}>
+        <Stack sx={{ width: 454 }}>
           <Typography
             sx={{
               fontSize: theme.typography.fontSize,
@@ -508,12 +436,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             disabled={isEditingDisabled}
             value={
               projectOptions?.filter((project) =>
-                values.vendorDetails.projectIds?.includes(project._id)
+                values.projectIds?.includes(project._id)
               ) || []
             }
             options={projectOptions || []}
             noOptionsText={
-              values?.vendorDetails?.projectIds?.length ===
+              values?.projectIds?.length ===
               projectOptions?.length
                 ? "All use cases are selected"
                 : "No options"
@@ -530,7 +458,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             renderOption={(props, option: { _id: number; name: string }) => {
               const { key, ...optionProps } = props;
               return (
-                <Box key={option._id} component="li" {...optionProps}>
+                <Box key={`${option._id}-${key}`} component="li" {...optionProps}>
                   <Typography sx={{ fontSize: "13px" }}>
                     {option.name}
                   </Typography>
@@ -638,10 +566,20 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         direction={"row"}
         spacing={6}
       >
+        <Field // website
+          label="Website"
+          width={220}
+          value={values.website}
+          onChange={(e) => handleOnChange("website", e.target.value)}
+          error={errors.website}
+          isRequired
+          disabled={isEditingDisabled}
+          placeholder="Enter vendor website"
+        />
         <Field // vendorContactPerson
           label="Vendor contact person"
           width={220}
-          value={values.vendorDetails.vendorContactPerson}
+          value={values.vendorContactPerson}
           onChange={(e) =>
             handleOnChange("vendorContactPerson", e.target.value)
           }
@@ -655,8 +593,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select person"
           isHidden={false}
           id=""
-          onChange={(e) => handleOnChange("assignee", e.target.value)}
-          value={values.vendorDetails.assignee}
+          onChange={(e) => handleOnChange("assignee", Number(e.target.value))}
+          value={values.assignee !== null ? values.assignee : ""}
           sx={{
             width: 220,
           }}
@@ -665,20 +603,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           disabled={isEditingDisabled}
         />
       </Stack>
-      <Stack>
-        <Field // vendorProvides
-          label="What does the vendor provide?"
-          width={"100%"}
-          type="description"
-          value={values.vendorDetails.vendorProvides}
-          onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
-          error={errors.vendorProvides}
-          isRequired
-          disabled={isEditingDisabled}
-          placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
-          rows={2}
-        />
-      </Stack>
+      <Field // vendorProvides
+        label="What does the vendor provide?"
+        width={686}
+        type="description"
+        value={values.vendorProvides}
+        onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
+        error={errors.vendorProvides}
+        isRequired
+        disabled={isEditingDisabled}
+        placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
+        rows={2}
+      />
       <Stack
         direction={"row"}
         spacing={6}
@@ -690,7 +626,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("reviewStatus", e.target.value)}
-          value={values.vendorDetails.reviewStatus}
+          value={values.reviewStatus}
           sx={{
             width: 220,
           }}
@@ -703,23 +639,23 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select reviewer"
           isHidden={false}
           id=""
-          onChange={(e) => handleOnChange("reviewer", e.target.value)}
-          value={values.vendorDetails.reviewer}
+          onChange={(e) => handleOnChange("reviewer", Number(e.target.value))}
+          value={values.reviewer !== null ? values.reviewer : ""}
           error={errors.reviewer}
           sx={{
             width: 220,
           }}
           disabled={isEditingDisabled}
         />
-        <Stack sx={{ flex: 1 }}>
+        <Stack sx={{ width: 220 }}>
           <DatePicker // reviewDate
             label="Review date"
             sx={{
               width: "100%",
             }}
             date={
-              values.vendorDetails.reviewDate
-                ? dayjs(values.vendorDetails.reviewDate)
+              values.reviewDate
+                ? dayjs(values.reviewDate)
                 : dayjs(new Date())
             }
             handleDateChange={handleDateChange}
@@ -727,19 +663,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           />
         </Stack>
       </Stack>
-      <Stack>
-        <Field // reviewResult
-          label="Review result"
-          width={"100%"}
-          type="description"
-          value={values.vendorDetails.reviewResult}
-          error={errors.reviewResult}
-          onChange={(e) => handleOnChange("reviewResult", e.target.value)}
-          disabled={isEditingDisabled}
-          placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
-          rows={2}
-        />
-      </Stack>
+      <Field // reviewResult
+        label="Review result"
+        width={686}
+        type="description"
+        value={values.reviewResult}
+        error={errors.reviewResult}
+        onChange={(e) => handleOnChange("reviewResult", e.target.value)}
+        disabled={isEditingDisabled}
+        placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
+        rows={2}
+      />
       </Stack>
     </TabPanel>
   );
@@ -775,7 +709,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onSubmit={handleSave}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth="800px"
+        maxWidth="734px"
       >
         <TabContext value={value}>{vendorDetailsPanel}</TabContext>
       </StandardModal>

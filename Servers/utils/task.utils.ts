@@ -284,26 +284,34 @@ export const getTasksQuery = async (
     replacements.priorityMedium = TaskPriority.MEDIUM;
     replacements.priorityLow = TaskPriority.LOW;
   } else {
-    // Validate sort_by to prevent SQL injection
-    const allowedSortFields = ['due_date', 'created_at'];
-    if (!allowedSortFields.includes(sort_by)) {
+    // Use hardcoded mapping for sort fields to avoid SQL injection
+    const allowedSortFields = {
+      'due_date': 'due_date',
+      'created_at': 'created_at'
+    } as const;
+    const allowedSortOrders = {
+      'ASC': 'ASC',
+      'DESC': 'DESC'
+    } as const;
+    if (!(sort_by in allowedSortFields)) {
       throw new ValidationException(
         'Invalid sort field provided',
         'sort_by',
         sort_by
       );
     }
-    // Validate sort_order to prevent SQL injection
-    const allowedSortOrders = ['ASC', 'DESC'];
-    if (!allowedSortOrders.includes(sort_order)) {
+    if (!(sort_order in allowedSortOrders)) {
       throw new ValidationException(
         'Invalid sort order provided',
         'sort_order',
         sort_order
       );
     }
-    const orderClause = `ORDER BY t.${sort_by} ${sort_order}`;
-    if (sort_by !== 'created_at') {
+    // We can safely interpolate these as they come strictly from the defined mappings
+    const safeSortBy = allowedSortFields[sort_by as keyof typeof allowedSortFields];
+    const safeSortOrder = allowedSortOrders[sort_order as keyof typeof allowedSortOrders];
+    const orderClause = `ORDER BY t.${safeSortBy} ${safeSortOrder}`;
+    if (safeSortBy !== 'created_at') {
       baseQueryParts.push(orderClause + ', t.created_at DESC');
     } else {
       baseQueryParts.push(orderClause);

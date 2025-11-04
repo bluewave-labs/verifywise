@@ -7,24 +7,9 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      const tableName = 'projects';
-
-      // ---------- PUBLIC SCHEMA HANDLING ----------
-      let tableDefinition;
-      let publicTableExists = true;
-
-      try {
-        tableDefinition = await queryInterface.describeTable(tableName, { transaction });
-      } catch (err) {
-        // If describeTable throws, that means the table doesn't exist in this DB yet
-        publicTableExists = false;
-        console.warn(
-          `[add-geography-to-projects] "${tableName}" table not found in public schema; skipping public column add.`
-        );
-      }
-
-      if (publicTableExists) {
-        const columnExistsInPublic = 'geography' in tableDefinition;
+      const organizations = await queryInterface.sequelize.query(
+        `SELECT id FROM public.organizations;`, { transaction }
+      );
 
         if (!columnExistsInPublic) {
           // 1. add column nullable default 1
@@ -90,29 +75,13 @@ module.exports = {
       for (let organization of orgRows) {
         const tenantHash = getTenantHash(organization.id);
 
-        // does the tenant schema exist?
-        const [schemaExists] = await queryInterface.sequelize.query(
-          `
-          SELECT 1 FROM information_schema.schemata 
-          WHERE schema_name = '${tenantHash}'
-        `,
-          { transaction, type: queryInterface.sequelize.QueryTypes.SELECT }
-        );
+        await queryInterface.sequelize.query(`
+          ALTER TABLE "${tenantHash}".projects
+            ADD COLUMN "geography" INTEGER DEFAULT 1;`, { transaction });
 
-        if (!schemaExists) {
-          // no schema for this org yet, skip
-          continue;
-        }
-
-        // does the geography column already exist in <tenantHash>.projects ?
-        const [columnExists] = await queryInterface.sequelize.query(
-          `
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_schema = '${tenantHash}' 
-          AND table_name = 'projects' 
-          AND column_name = 'geography'
-        `,
-          { transaction, type: queryInterface.sequelize.QueryTypes.SELECT }
+        await queryInterface.sequelize.query(
+          `UPDATE "${tenantHash}".projects SET geography = 1 WHERE geography IS NULL;`,
+          { transaction }
         );
 
         if (!columnExists) {
@@ -214,39 +183,9 @@ module.exports = {
       for (let organization of orgRows) {
         const tenantHash = getTenantHash(organization.id);
 
-        // check tenant schema exists
-        const [schemaExists] = await queryInterface.sequelize.query(
-          `
-          SELECT 1 FROM information_schema.schemata 
-          WHERE schema_name = '${tenantHash}'
-        `,
-          { transaction, type: queryInterface.sequelize.QueryTypes.SELECT }
-        );
-
-        if (!schemaExists) {
-          continue;
-        }
-
-        // check geography column exists
-        const [columnExists] = await queryInterface.sequelize.query(
-          `
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_schema = '${tenantHash}' 
-          AND table_name = 'projects' 
-          AND column_name = 'geography'
-        `,
-          { transaction, type: queryInterface.sequelize.QueryTypes.SELECT }
-        );
-
-        if (columnExists) {
-          await queryInterface.sequelize.query(
-            `
-            ALTER TABLE "${tenantHash}".projects
-              DROP COLUMN "geography";
-          `,
-            { transaction }
-          );
-        }
+        await queryInterface.sequelize.query(`
+          ALTER TABLE "${tenantHash}".projects
+            DROP COLUMN "geography";`, { transaction });
       }
 
       await transaction.commit();

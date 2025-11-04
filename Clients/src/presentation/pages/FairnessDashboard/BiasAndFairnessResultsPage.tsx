@@ -42,6 +42,7 @@ import MetricInfoIcon from "../../components/MetricInfoIcon";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import ErrorModal from "../../components/Modals/Error";
+import Checkbox from "../../components/Inputs/Checkbox";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -1429,31 +1430,19 @@ export default function BiasAndFairnessResultsPage() {
                           height: "70%",
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={!!explorerDraftSelection[m]}
+                        <Checkbox
+                          id={`metric-${m}`}
+                          label={m.replace(/_/g, " ")}
+                          size="small"
+                          isChecked={!!explorerDraftSelection[m]}
+                          value={m}
                           onChange={() =>
                             setExplorerDraftSelection((prev) => ({
                               ...prev,
                               [m]: !prev[m],
                             }))
                           }
-                          aria-label={`Toggle ${m} metric`}
-                          aria-describedby={`${m}-description`}
-                          style={{ marginRight: "8px" }}
                         />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: COLORS.TEXT_PRIMARY,
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            textAlign: "left",
-                            marginRight: "10px",
-                          }}
-                        >
-                          {m.replace(/_/g, " ")}
-                        </Typography>
                         <Tooltip
                           title={
                             metricDescriptions[
@@ -1497,29 +1486,19 @@ export default function BiasAndFairnessResultsPage() {
                           height: "70%",
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={!!explorerDraftSelection[m]}
+                        <Checkbox
+                          id={`metric-${m}`}
+                          label={m.replace(/_/g, " ")}
+                          size="small"
+                          isChecked={!!explorerDraftSelection[m]}
+                          value={m}
                           onChange={() =>
                             setExplorerDraftSelection((prev) => ({
                               ...prev,
                               [m]: !prev[m],
                             }))
                           }
-                          style={{ marginRight: "8px" }}
                         />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: COLORS.TEXT_PRIMARY,
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            textAlign: "left",
-                            marginRight: "10px",
-                          }}
-                        >
-                          {m.replace(/_/g, " ")}
-                        </Typography>
                         <Tooltip
                           title={
                             metricDescriptions[
@@ -1561,29 +1540,19 @@ export default function BiasAndFairnessResultsPage() {
                           height: "70%",
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={!!explorerDraftSelection[m]}
+                        <Checkbox
+                          id={`metric-${m}`}
+                          label={m.replace(/_/g, " ")}
+                          size="small"
+                          isChecked={!!explorerDraftSelection[m]}
+                          value={m}
                           onChange={() =>
                             setExplorerDraftSelection((prev) => ({
                               ...prev,
                               [m]: !prev[m],
                             }))
                           }
-                          style={{ marginRight: "8px" }}
                         />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: COLORS.TEXT_PRIMARY,
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            textAlign: "left",
-                            marginRight: "10px",
-                          }}
-                        >
-                          {m.replace(/_/g, " ")}
-                        </Typography>
                         <Tooltip
                           title={
                             metricDescriptions[

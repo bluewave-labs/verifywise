@@ -15,11 +15,31 @@ import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentre
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
 
+
+function isValidTenantSchema(tenant: string): boolean {
+  // Only letters, digits, and underscores. Length 1-30.
+  return /^[A-Za-z0-9_]{1,30}$/.test(tenant);
+}
+
+function escapePgIdentifier(ident: string): string {
+  // Accept only identifiers that pass isValidTenantSchema. 
+  // Otherwise throw, to avoid silent failure.
+  if (!isValidTenantSchema(ident)) {
+    throw new Error("Unsafe identifier for SQL query");
+  }
+  // Replace internal double-quotes with two double-quotes (standard PG escaping)
+  return '"' + ident.replace(/"/g, '""') + '"';
+}
+
 export const getIsVisibleQuery = async (
   tenant: string
 ) => {
+  if (!isValidTenantSchema(tenant)) {
+    // You could throw, log, or return false/null as appropriate
+    return false;
+  }
   try {
-    const result = await sequelize.query(`SELECT visible FROM "${tenant}".ai_trust_center LIMIT 1;`) as [{ visible: boolean }[], number];
+    const result = await sequelize.query(`SELECT visible FROM ${escapePgIdentifier(tenant)}.ai_trust_center LIMIT 1;`) as [{ visible: boolean }[], number];
     return result[0][0]?.visible || false;
   } catch (error) {
     return false;
@@ -29,7 +49,11 @@ export const getIsVisibleQuery = async (
 export const getCompanyLogoQuery = async (
   tenant: string
 ) => {
-  const result = await sequelize.query(`SELECT content, type FROM "${tenant}".ai_trust_center AS ai INNER JOIN "${tenant}".files f ON ai.logo = f.id LIMIT 1;`) as [{ content: Buffer }[], number];
+  if (!isValidTenantSchema(tenant)) {
+    // You could throw, log, or return null as appropriate for unsafe tenant values
+    return null;
+  }
+  const result = await sequelize.query(`SELECT content, type FROM ${escapePgIdentifier(tenant)}.ai_trust_center AS ai INNER JOIN ${escapePgIdentifier(tenant)}.files f ON ai.logo = f.id LIMIT 1;`) as [{ content: Buffer }[], number];
 
   return result[0][0] || null;
 }
@@ -39,7 +63,7 @@ export const getAITrustCentrePublicPageQuery = async (
 ) => {
   const output: Partial<IAITrustCentrePublic> = {};
   const visible = await sequelize.query(
-    `SELECT intro_visible, compliance_badges_visible, company_description_visible, terms_and_contact_visible, resources_visible, subprocessor_visible FROM "${tenant}".ai_trust_center LIMIT 1;`
+    `SELECT intro_visible, compliance_badges_visible, company_description_visible, terms_and_contact_visible, resources_visible, subprocessor_visible FROM ${escapePgIdentifier(tenant)}.ai_trust_center LIMIT 1;`
   ) as [{ intro_visible: boolean, compliance_badges_visible: boolean, company_description_visible: boolean, terms_and_contact_visible: boolean, resources_visible: boolean, subprocessor_visible: boolean }[], number];
 
   type VisibleKeys = "intro_visible" | "compliance_badges_visible" | "company_description_visible" | "terms_and_contact_visible" | "resources_visible" | "subprocessor_visible";
@@ -59,7 +83,7 @@ export const getAITrustCentrePublicPageQuery = async (
         WHEN our_mission_visible THEN our_mission_text
         ELSE NULL
       END AS mission
-      FROM "${tenant}".ai_trust_center_intro LIMIT 1;
+      FROM ${escapePgIdentifier(tenant)}.ai_trust_center_intro LIMIT 1;
     `,
     compliance_badges_visible: `
       SELECT SOC2_Type_I, SOC2_Type_II, ISO_27001, ISO_42001, CCPA, GDPR, HIPAA, EU_AI_Act
@@ -118,7 +142,7 @@ export const getAITrustCentrePublicPageQuery = async (
     }
   }
 
-  const infoQuery = await sequelize.query(`SELECT title, header_color, logo FROM "${tenant}".ai_trust_center LIMIT 1;`) as [{ title: string, header_color: string, logo: number }[], number];
+  const infoQuery = await sequelize.query(`SELECT title, header_color, logo FROM ${escapePgIdentifier(tenant)}.ai_trust_center LIMIT 1;`) as [{ title: string, header_color: string, logo: number }[], number];
 
   output["info"] = infoQuery[0][0] || {};
 
@@ -130,7 +154,7 @@ export const getAITrustCentrePublicResourceByIdQuery = async (
   id: number
 ) => {
   const visible = await sequelize.query(
-    `SELECT visible, file_id FROM "${tenant}".ai_trust_center_resources WHERE id = :id;`,
+    `SELECT visible, file_id FROM ${escapePgIdentifier(tenant)}.ai_trust_center_resources WHERE id = :id;`,
     { replacements: { id } }
   ) as [{ visible: boolean, file_id: number }[], number];
   if (visible[0].length === 0) {

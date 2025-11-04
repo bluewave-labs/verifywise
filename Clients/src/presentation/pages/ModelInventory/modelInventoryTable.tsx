@@ -12,6 +12,7 @@ import {
   Typography,
   TableFooter,
   Tooltip,
+  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -93,16 +94,16 @@ const TooltipCell: React.FC<{ value: string | null | undefined }> = ({
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
 }) => {
-  return <span style={statusBadgeStyle(status)}>{status}</span>;
+  return <Box component="span" sx={statusBadgeStyle(status)}>{status}</Box>;
 };
 
 const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   assessment,
 }) => {
   return (
-    <span style={securityAssessmentBadgeStyle(assessment)}>
+    <Box component="span" sx={securityAssessmentBadgeStyle(assessment)}>
       {assessment ? "Yes" : "No"}
-    </span>
+    </Box>
   );
 };
 

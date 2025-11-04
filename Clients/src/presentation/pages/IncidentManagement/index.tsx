@@ -4,7 +4,7 @@ import { Box, Stack, IconButton, InputBase, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -44,6 +44,8 @@ import { AIIncidentManagementModel } from "../../../domain/models/Common/inciden
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const IncidentManagement: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
     const [incidentsData, setIncidentsData] = useState<AIIncidentManagementModel[]>([]);
     const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
@@ -59,7 +61,7 @@ const IncidentManagement: React.FC = () => {
     } | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [tableKey, setTableKey] = useState(0);
-    const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+    const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const { userRoleName } = useAuth();
@@ -177,6 +179,18 @@ const IncidentManagement: React.FC = () => {
             return () => clearTimeout(timer);
         }
     }, [alert]);
+
+    /** -------------------- CHECK FOR NAVIGATION STATE -------------------- */
+    useEffect(() => {
+        const state = location.state as { openCreateModal?: boolean } | null;
+        if (state?.openCreateModal) {
+            setIsNewIncidentModalOpen(true);
+            setModalMode("new");
+            // Clear the state to prevent modal from opening again on refresh
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+        // Dependencies: location contains state from mega dropdown navigation, navigate used for state clearing
+    }, [location, navigate]);
 
     /** -------------------- INITIAL LOAD -------------------- */
     useEffect(() => {

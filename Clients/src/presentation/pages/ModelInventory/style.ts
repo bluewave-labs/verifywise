@@ -79,7 +79,7 @@ export const statusBadgeStyle = (status: ModelInventoryStatus) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: "4px !important",
+    borderRadius: "4px",
     fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
@@ -96,7 +96,7 @@ export const securityAssessmentBadgeStyle = (assessment: boolean) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: "4px !important",
+    borderRadius: "4px",
     fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
@@ -232,6 +232,7 @@ export const searchBoxStyle =
     width: isSearchBarVisible ? "50%" : "auto",
     transition: "all 0.3s ease",
     mb: 9,
+    minHeight: "34px",
   });
 
 export const inputStyle = (isSearchBarVisible: boolean): SxProps<Theme> => ({

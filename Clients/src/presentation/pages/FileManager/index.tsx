@@ -63,7 +63,6 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch projects for the dropdown
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -79,6 +78,7 @@ const FileManager: React.FC = (): JSX.Element => {
   // Local state to manage files (allows manual refresh)
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Sync initial data from hook to local state (always sync, even if empty)
   useEffect(() => {
@@ -124,6 +124,12 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleUploadSuccess = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Handle file deleted - refetch files
+  const handleFileDeleted = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   const filteredFiles = useMemo(() => {
     if (selectedProject === "all" || selectedProject === null) {
       return filesData;
@@ -159,11 +165,6 @@ const FileManager: React.FC = (): JSX.Element => {
           setRunFileTour(false);
         }}
         tourKey="file-tour"
-      />
-      <FileManagerUploadModal
-        open={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onSuccess={handleUploadSuccess}
       />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -245,9 +246,17 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={refetch} />
+            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={handleFileDeleted} />
           </Box>
         </Stack>
+      )}
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <FileManagerUploadModal
+          open={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onSuccess={handleUploadSuccess}
+        />
       )}
     </Stack>
   );

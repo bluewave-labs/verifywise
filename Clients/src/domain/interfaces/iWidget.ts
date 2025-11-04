@@ -4,7 +4,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
 import { ChangeEvent, ComponentType } from "react";
-import { ProjectRisk } from "../types/ProjectRisk";
+import { RiskModel } from "../models/Common/risks/risk.model";
 
 /**
  * Props for the CloseButton component.
@@ -55,11 +55,12 @@ export interface AutoCompleteFieldProps {
 
 export interface CheckboxProps {
   id: string;
-  label: string;
+  label?: string;
   size?: "small" | "medium" | "large";
   isChecked: boolean;
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   isDisabled?: boolean;
 }
 export interface DatePickerProps {
@@ -103,6 +104,8 @@ export interface FieldProps {
   disabled?: boolean;
   width?: number | string;
   sx?: SxProps<Theme>;
+  min?: number;
+  max?: number;
 }
 
 export interface ImageFieldProps {
@@ -175,7 +178,7 @@ export interface ISearchBoxProps {
 export interface IHeatMapCell {
   likelihood: number;
   severity: number;
-  risks: ProjectRisk[];
+  risks: RiskModel[];
   riskLevel: number;
   color: string;
 }
@@ -184,7 +187,7 @@ export interface ITimelineEvent {
   id: string;
   date: Date;
   type: "created" | "resolved" | "escalated" | "mitigated";
-  risk: ProjectRisk;
+  risk: RiskModel;
   title: string;
   description: string;
   riskLevel: number;

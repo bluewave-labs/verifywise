@@ -32,6 +32,8 @@ const router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
+import rateLimit from "express-rate-limit";
+
 import {
   checkUserExists,
   createNewUser,
@@ -119,7 +121,13 @@ router.post("/register", createNewUser);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/login", loginUser);
+// Apply rate limiting specifically to login route
+const loginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5, // limit each IP to 5 login requests per windowMs
+  message: "Too many login attempts from this IP, please try again after a minute",
+});
+router.post("/login", loginLimiter, loginUser);
 
 router.post("/refresh-token", refreshAccessToken);
 

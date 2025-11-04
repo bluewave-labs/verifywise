@@ -147,8 +147,15 @@ const CustomModal: React.FC<ICustomModalProps> = ({
             value={selectedTab}
             onChange={handleSelectedTab}
             indicatorColor="primary"
-            textColor="primary"
-            sx={{ justifyContent: "flex-start" }}
+            sx={{
+              justifyContent: "flex-start",
+              '& .MuiTab-root': {
+                color: 'primary.main',
+              },
+              '& .Mui-selected': {
+                color: 'primary.main',
+              }
+            }}
           >
             {subControlTlts.map((_, index) => (
               <Tab

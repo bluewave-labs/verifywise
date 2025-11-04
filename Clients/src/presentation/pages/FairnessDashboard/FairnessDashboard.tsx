@@ -18,15 +18,7 @@ import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
-
-export type FairnessModel = {
-  id: number | string; // Use number or string based on your backend response
-  model: string;
-  dataset: string;
-  status: string;
-  report?: string;
-  action?: string; // Optional if you're not storing a real value
-};
+//import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState(() => {
@@ -328,28 +320,18 @@ export default function FairnessDashboard() {
 
         {/* <TabPanel value="uploads" sx={tabPanelStyle}>
           <Box display="flex" justifyContent="flex-end" mb={3}>
-            <Button
+            <CustomizableButton
               variant="contained"
-              startIcon={<AddCircleOutlineIcon size={16} />}
-              disableRipple
+              icon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setDialogOpen(true)}
-              data-joyride-id="validate-fairness-button"
+              text="Validate fairness"
+              testId="validate-fairness-button"
               sx={{
                 backgroundColor: "#13715B",
-                color: "white",
-                textTransform: "none",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                padding: "6px 16px",
-                borderRadius: 2,
-                fontFamily:
-                  "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-                lineHeight: 1.75,
-                minWidth: "64px",
+                border: "1px solid #13715B",
+                gap: 3,
               }}
-            >
-              Validate fairness
-            </Button>
+            />
           </Box>
 
           <FairnessTable

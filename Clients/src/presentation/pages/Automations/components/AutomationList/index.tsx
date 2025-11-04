@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Stack,
   Typography,
@@ -9,17 +9,21 @@ import {
   useTheme,
   Box,
   Tooltip,
+  Drawer,
 } from '@mui/material';
 import {
   Plus,
   Trash2,
   X,
+  History,
+  ChevronLeft,
 } from 'lucide-react';
 
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
 import { Automation } from '../../../../../domain/types/Automation';
+import AutomationHistory from '../AutomationHistory';
 
 interface AutomationListProps {
   automations: Automation[];
@@ -47,6 +51,8 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onSearchChange,
 }) => {
   const theme = useTheme();
+  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+  const [historyAutomationId, setHistoryAutomationId] = useState<string | null>(null);
 
   const handleDelete = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
     event.stopPropagation();
@@ -56,6 +62,17 @@ const AutomationList: React.FC<AutomationListProps> = ({
   const handleDiscard = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
     event.stopPropagation();
     onDiscardAutomation(automationId);
+  };
+
+  const handleViewHistory = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
+    event.stopPropagation();
+    setHistoryAutomationId(automationId);
+    setHistoryDrawerOpen(true);
+  };
+
+  const handleCloseHistory = () => {
+    setHistoryDrawerOpen(false);
+    setHistoryAutomationId(null);
   };
 
   return (
@@ -214,21 +231,61 @@ const AutomationList: React.FC<AutomationListProps> = ({
                     </IconButton>
                   </Tooltip>
                 ) : (
-                  <Tooltip title="Delete automation">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleDelete(e, automation.id)}
-                      sx={{ ml: 1, color: theme.palette.error.main }}
-                    >
-                      <Trash2 size={16} />
-                    </IconButton>
-                  </Tooltip>
+                  <>
+                    <Tooltip title="View history">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleViewHistory(e, automation.id)}
+                        sx={{ ml: 1, color: theme.palette.info.main }}
+                      >
+                        <History size={16} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete automation">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleDelete(e, automation.id)}
+                        sx={{ ml: 0.5, color: theme.palette.error.main }}
+                      >
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 )}
               </ListItemButton>
             ))}
           </List>
         )}
       </Stack>
+
+      {/* History Drawer */}
+      <Drawer
+        anchor="right"
+        open={historyDrawerOpen}
+        onClose={handleCloseHistory}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: '80%',
+            maxWidth: '1200px',
+            padding: '28px 36px',
+          },
+        }}
+      >
+        <Stack spacing={4} sx={{ height: '100%' }}>
+          <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+            <IconButton onClick={handleCloseHistory}>
+              <ChevronLeft />
+            </IconButton>
+            <Typography variant="h5">Automation History</Typography>
+          </Stack>
+
+          {historyAutomationId && (
+            <Box sx={{ flex: 1, overflow: 'auto', pr: 1 }}>
+              <AutomationHistory automationId={historyAutomationId} />
+            </Box>
+          )}
+        </Stack>
+      </Drawer>
     </Stack>
   );
 };

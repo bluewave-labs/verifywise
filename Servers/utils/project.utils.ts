@@ -456,6 +456,8 @@ export const updateProjectByIdQuery = async (
     "type_of_high_risk_role",
     "goal",
     "geography",
+    "target_industry",
+    "description",
     "last_updated",
     "last_updated_by",
     "status",

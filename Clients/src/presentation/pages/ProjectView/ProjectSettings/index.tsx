@@ -202,7 +202,7 @@ const ProjectSettings = React.memo(
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
           initialValuesRef.current.typeOfHighRiskRole ||
-        values.geography !== initialValuesRef.current.geography;
+        values.geography !== initialValuesRef.current.geography ||
         values.targetIndustry !== initialValuesRef.current.targetIndustry ||
         values.description !== initialValuesRef.current.description;
 

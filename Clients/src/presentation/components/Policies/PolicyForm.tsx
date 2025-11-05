@@ -14,6 +14,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
 import { PolicyFormData, PolicyFormProps } from "../../../domain/interfaces/IPolicy";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
 
 
 const statuses: PolicyFormData["status"][] = [
@@ -193,14 +194,12 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               />
             )}
             sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers }),
               backgroundColor: theme.palette.background.main,
               width: "100%",
+              cursor: "pointer",
               "& .MuiOutlinedInput-root": {
                 borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
               },
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
@@ -278,14 +277,12 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               />
             )}
             sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.tags }),
               backgroundColor: theme.palette.background.main,
               width: "100%",
+              cursor: "pointer",
               "& .MuiOutlinedInput-root": {
                 borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
               },
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,

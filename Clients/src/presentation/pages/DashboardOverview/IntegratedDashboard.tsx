@@ -1776,7 +1776,6 @@ const IntegratedDashboard: React.FC = () => {
             />
           )}
 
-
           {/* Add New Dropdown */}
           <Box data-joyride-id="add-new-dropdown">
             <MegaDropdownErrorBoundary>

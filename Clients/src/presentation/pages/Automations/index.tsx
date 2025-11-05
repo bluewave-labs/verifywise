@@ -699,7 +699,7 @@ This notification was sent on {{date_and_time}}.`;
           }
 
           // Build email body
-          let bodyParts = [];
+          const bodyParts = [];
 
           // Header
           bodyParts.push(`Your scheduled report is ready and attached to this email.

@@ -1882,6 +1882,7 @@ const IntegratedDashboard: React.FC = () => {
               boxSizing: "border-box",
             }}
           >
+            <Box sx={{ height: "40px" }} />
             <img src={placeholderImage} alt="No cards visible" />
             <Typography
               sx={{

@@ -26,6 +26,7 @@ import {
 import "./index.css";
 import { ChevronDown } from "lucide-react";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
+import { getSelectStyles } from "../../../utils/inputStyles";
 
 const Select: React.FC<SelectProps> = ({
   id,
@@ -96,16 +97,6 @@ const Select: React.FC<SelectProps> = ({
       gap={theme.spacing(2)}
       className="select-wrapper"
       sx={{
-        ".MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
         width: extractedWidth,
       }}
     >
@@ -188,13 +179,8 @@ const Select: React.FC<SelectProps> = ({
           width: "100%",
           backgroundColor: theme.palette.background.main,
           position: "relative",
-          "& fieldset": {
-            borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark,
-          },
-          "&:not(.Mui-focused):hover fieldset": {
-            borderColor: theme.palette.border.dark,
-          },
+          cursor: "pointer",
+          ...getSelectStyles(theme, { hasError: !!error }),
           ...sxWithoutWidth,
         }}
       >

@@ -6,6 +6,7 @@ import "./index.css";
 import dayjs from "dayjs";
 import { DatePickerProps } from "../../../../domain/interfaces/iWidget";
 import { DatePickerStyle } from "./style";
+import { getDatePickerStyles } from "../../../utils/inputStyles";
 
 const DatePicker = ({
   label,
@@ -24,21 +25,9 @@ const DatePicker = ({
     <Stack
       gap={theme.spacing(2)}
       sx={{
-        "& fieldset": {
-          borderColor: theme.palette.border.dark,
-          borderRadius: theme.shape.borderRadius,
-        },
-        "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
-          {
-            borderColor: theme.palette.border.dark,
-          },
-        "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: `1px solid ${theme.palette.border.dark}!important`,
+        ...getDatePickerStyles(theme, { hasError: !!error }),
+        '& .MuiInputBase-root': {
+          cursor: 'pointer',
         },
       }}
     >

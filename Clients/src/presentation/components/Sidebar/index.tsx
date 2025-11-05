@@ -52,6 +52,7 @@ import {
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
+import packageJson from "../../../../package.json";
 
 import Avatar from "../Avatar/VWAvatar";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -372,6 +373,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 }}
               >
                 Wise
+              </span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  marginLeft: "6px",
+                  opacity: 0.6,
+                  fontWeight: 400,
+                  // position: "relative",
+                  // top: "5px",
+                }}
+              >
+                v{packageJson.version}
               </span>
             </Typography>
           </MuiLink>

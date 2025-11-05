@@ -30,6 +30,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const columns = [
+    { id: "ucId", label: "UC ID", minWidth: 120 },
     { id: "title", label: "Use case title", minWidth: 200 },
     { id: "risk", label: "AI Risk Level", minWidth: 130 },
     { id: "role", label: "Role", minWidth: 150 },
@@ -157,7 +158,13 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
             {columns.map((column) => (
               <TableCell
                 key={column.id}
-                style={{ minWidth: column.minWidth }}
+                style={{ 
+                  minWidth: column.minWidth, 
+                  ...(column.id === "ucId" && {
+                      width: column.minWidth,
+                      maxWidth: column.minWidth,
+                  }) 
+                }}
                 sx={singleTheme.tableStyles.primary.header.cell}
               >
                 {column.label}
@@ -191,6 +198,16 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 },
               }}
             >
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                }}
+              >
+                {project.uc_id || '-'}
+              </TableCell>
+
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -253,6 +270,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 opacity: 0.7,
                 color: theme.palette.text.tertiary,
               }}
+              colSpan={2}
             >
               Showing {getRange} of {projects.length} use case(s)
             </TableCell>

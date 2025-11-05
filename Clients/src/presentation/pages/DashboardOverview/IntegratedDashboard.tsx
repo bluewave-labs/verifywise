@@ -1869,7 +1869,6 @@ const IntegratedDashboard: React.FC = () => {
         {visibleCards.size === 0 ? (
           <Stack
             alignItems="center"
-            justifyContent="center"
             sx={{
               border: "1px solid #EEEEEE",
               borderRadius: "4px",
@@ -1883,7 +1882,7 @@ const IntegratedDashboard: React.FC = () => {
             }}
           >
             <Box sx={{ height: "40px" }} />
-            <img src={placeholderImage} alt="No cards visible" />
+            <img src={placeholderImage} alt="No cards visible" style={{ marginTop: "40px" }} />
             <Typography
               sx={{
                 fontSize: "13px",

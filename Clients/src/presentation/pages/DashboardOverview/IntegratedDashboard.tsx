@@ -1869,13 +1869,11 @@ const IntegratedDashboard: React.FC = () => {
         {visibleCards.size === 0 ? (
           <Stack
             alignItems="center"
+            justifyContent="center"
             sx={{
               border: "1px solid #EEEEEE",
               borderRadius: "4px",
-              paddingTop: "100px",
-              paddingBottom: "80px",
-              paddingLeft: "20px",
-              paddingRight: "20px",
+              padding: "60px 20px 80px 20px",
               gap: "20px",
               minHeight: 400,
               backgroundColor: "#FFFFFF",

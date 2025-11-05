@@ -5,8 +5,6 @@ import {
   Box,
   Stack,
   Fade,
-  IconButton,
-  InputBase,
   SelectChangeEvent,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";

@@ -1,29 +1,15 @@
-import { Stack, Box } from "@mui/material";
+import { Stack } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState, useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { Tab } from "@mui/material";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const tabStyle = {
-  textTransform: "none",
-  fontWeight: 400,
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: "16px 0 7px",
-  minHeight: "20px",
-  minWidth: "auto",
-  "&.Mui-selected": {
-    color: "#13715B",
-  },
-};
+import TabBar from "../../components/TabBar";
 
 const tabPanelStyle = {
   padding: 0,
@@ -91,22 +77,22 @@ const WatchTower = () => {
              />
 
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleChange}
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-                "& .MuiTabs-indicator": {
-                  backgroundColor: "#13715B",
-                  height: "1.5px",
-                },
-              }}
-            >
-              <Tab label="Events" value="1" sx={tabStyle} disableRipple />
-              <Tab label="Logs" value="2" sx={tabStyle} disableRipple />
-            </TabList>
-          </Box>
+          <TabBar
+            tabs={[
+              {
+                label: "Events",
+                value: "1",
+                icon: "Calendar",
+              },
+              {
+                label: "Logs",
+                value: "2",
+                icon: "FileText",
+              },
+            ]}
+            activeTab={value}
+            onChange={handleChange}
+          />
 
           <TabPanel value="1" sx={tabPanelStyle}>
             <WatchTowerEvents />

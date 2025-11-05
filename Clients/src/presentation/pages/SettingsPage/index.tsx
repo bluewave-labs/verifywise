@@ -9,7 +9,6 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
-import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import Subscription from "./Subscription";
 import allowedRoles from "../../../application/constants/permissions";
@@ -18,6 +17,7 @@ import ApiKeys from "./ApiKeys";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import TabBar from "../../components/TabBar";
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
@@ -34,7 +34,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tab || "profile");
 
   const validTabs = useMemo(() => {
-    const tabs = ["profile", "password", "team", "organization", "apikeys"];
+    const tabs = ["profile", "password", "team", "organization", "apikeys", "subscription"];
     return tabs;
   }, [])
 
@@ -131,48 +131,46 @@ export default function ProfilePage() {
           />
         }
       />
+
       <TabContext value={activeTab}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <TabList
-            onChange={handleTabChange}
-            TabIndicatorProps={tabIndicatorStyle}
-            sx={tabContainerStyle}
-          >
-            <Tab
-              label="Profile"
-              value="profile"
-              disableRipple
-              sx={settingTabStyle}
-            />
-            <Tab
-              label="Password"
-              value="password"
-              disableRipple
-              sx={settingTabStyle}
-            />
-            <Tab
-              label="Team"
-              value="team"
-              disableRipple
-              sx={settingTabStyle}
-              disabled={isTeamManagementDisabled}
-            />
-            <Tab
-              label="Organization"
-              value="organization"
-              disableRipple
-              sx={settingTabStyle}
-            />
-            <Tab
-              label="API Keys"
-              value="apikeys"
-              disableRipple
-              sx={settingTabStyle}
-              disabled={isApiKeysDisabled}
-            />
-            <Tab label="Subscription" value="subscription" disableRipple sx={settingTabStyle} />
-          </TabList>
-        </Box>
+        <TabBar
+          tabs={[
+            {
+              label: "Profile",
+              value: "profile",
+              icon: "User",
+            },
+            {
+              label: "Password",
+              value: "password",
+              icon: "Lock",
+            },
+            {
+              label: "Team",
+              value: "team",
+              icon: "Users",
+              disabled: isTeamManagementDisabled,
+            },
+            {
+              label: "Organization",
+              value: "organization",
+              icon: "Building2",
+            },
+            {
+              label: "API Keys",
+              value: "apikeys",
+              icon: "Key",
+              disabled: isApiKeysDisabled,
+            },
+            {
+              label: "Subscription",
+              value: "subscription",
+              icon: "CreditCard",
+            },
+          ]}
+          activeTab={activeTab}
+          onChange={handleTabChange}
+        />
 
         <TabPanel value="profile">
           <Profile />

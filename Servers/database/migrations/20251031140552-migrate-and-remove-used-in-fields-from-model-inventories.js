@@ -74,8 +74,8 @@ module.exports = {
                 try {
                   await queryInterface.sequelize.query(
                     `INSERT INTO "${tenantHash}".model_inventories_projects_frameworks
-                      (model_inventory_id, project_id, framework_id, created_at, updated_at)
-                      VALUES (:model_inventory_id, :project_id, :framework_id, NOW(), NOW())
+                      (model_inventory_id, project_id, framework_id)
+                      VALUES (:model_inventory_id, :project_id, :framework_id)
                       ON CONFLICT (model_inventory_id, project_id, framework_id) DO NOTHING;`,
                     {
                       transaction,

@@ -3,7 +3,7 @@ import { Status } from "../../../types/Status";
 export class SubClauseISO42001Model {
   id?: number;
   implementation_description!: string;
-  evidence_links!: Object[];
+  evidence_links!: object[];
   staus!: Status;
   owner!: number;
   reviewer!: number;

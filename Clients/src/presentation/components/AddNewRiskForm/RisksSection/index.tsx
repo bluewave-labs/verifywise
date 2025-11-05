@@ -27,6 +27,7 @@ import { useProjects } from "../../../../application/hooks/useProjects";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import allowedRoles from "../../../../application/constants/permissions";
 import styles from "../styles.module.css";
+import { getAutocompleteStyles as getCentralizedAutocompleteStyles } from "../../../utils/inputStyles";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -37,37 +38,6 @@ const createFormRowStyles = (theme: any) => ({
   justifyContent: "space-between",
   flexWrap: "wrap" as const,
   gap: theme.spacing(FORM_CONSTANTS.SPACING),
-});
-
-// Helper function for autocomplete styles
-const getAutocompleteStyles = (theme: any) => ({
-  width: FORM_CONSTANTS.FIELD_WIDTH,
-  backgroundColor: theme.palette.background.main,
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    backgroundColor: theme.palette.background.main,
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: theme.palette.border?.dark,
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: theme.palette.primary.main,
-      borderWidth: "2px",
-    },
-  },
-  "& .MuiChip-root": {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.background.main,
-    fontSize: "12px",
-    height: "24px",
-    borderRadius: "4px",
-    "& .MuiChip-deleteIcon": {
-      display: "flex",
-      color: theme.palette.background.main,
-      "&:hover": {
-        color: theme.palette.background.accent,
-      },
-    },
-  },
 });
 
 // Constants
@@ -120,7 +90,6 @@ const RiskSection: FC<RiskSectionProps> = ({
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);
   const formRowStyles = createFormRowStyles(theme);
-  const autocompleteStyles = getAutocompleteStyles(theme);
 
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users, loading: usersLoading } = useUsers();
@@ -207,17 +176,17 @@ const RiskSection: FC<RiskSectionProps> = ({
               lineHeight: 1.5,
             }}
           >
-            Define the scope of this risk by selecting applicable projects and frameworks.
+            Define the scope of this risk by selecting applicable use cases and frameworks.
           </Typography>
 
-          {/* Horizontal layout for Projects and Frameworks */}
+          {/* Horizontal layout for Use Cases and Frameworks */}
           <Stack direction="row" sx={{ gap: 8.5 }}>
-            {/* Applicable Projects */}
+            {/* Applicable Use Cases */}
             <Stack sx={{ flex: 1 }}>
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
               >
-                Applicable projects
+                Applicable use cases
               </Typography>
               <Autocomplete
                 multiple
@@ -254,10 +223,10 @@ const RiskSection: FC<RiskSectionProps> = ({
                     {...params}
                     placeholder={
                       projectsLoading || !projects?.length
-                        ? "Loading projects..."
+                        ? "Loading use cases..."
                         : projects?.filter((project) => !project.is_organizational && riskValues.applicableProjects.includes(project.id)).length > 0
                         ? ""
-                        : "Select Applicable Projects"
+                        : "Select applicable use cases"
                     }
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -272,8 +241,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                 )}
                 onChange={handleOnMultiselectChange("applicableProjects")}
                 sx={{
-                  ...autocompleteStyles,
+                  ...getCentralizedAutocompleteStyles(theme, { hasError: !!riskErrors.applicableProjects }),
                   width: "100%",
+                  backgroundColor: theme.palette.background.main,
                   "& .MuiChip-root": {
                     borderRadius: "4px",
                     "& .MuiChip-deleteIcon": {
@@ -363,7 +333,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                         ? "Loading frameworks..."
                         : frameworks?.filter((framework) => framework.is_organizational && riskValues.applicableFrameworks.includes(Number(framework.id))).length > 0
                         ? ""
-                        : "Select Applicable Frameworks"
+                        : "Select applicable frameworks"
                     }
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -378,8 +348,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                 )}
                 onChange={handleOnMultiselectChange("applicableFrameworks")}
                 sx={{
-                  ...autocompleteStyles,
+                  ...getCentralizedAutocompleteStyles(theme, { hasError: !!riskErrors.applicableFrameworks }),
                   width: "100%",
+                  backgroundColor: theme.palette.background.main,
                   "& .MuiChip-root": {
                     borderRadius: "4px",
                     "& .MuiChip-deleteIcon": {
@@ -550,7 +521,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                   )}
                   onChange={handleOnMultiselectChange("riskCategory")}
                   sx={{
-                    ...autocompleteStyles,
+                    ...getCentralizedAutocompleteStyles(theme, { hasError: !!riskErrors.riskCategory }),
+                    width: FORM_CONSTANTS.FIELD_WIDTH,
+                    backgroundColor: theme.palette.background.main,
                     "& .MuiChip-root": {
                       borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {

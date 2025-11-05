@@ -8,6 +8,7 @@ import {
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
 import { IRiskLevelProps } from "../../../domain/interfaces/iRiskForm";
+import RiskChip from "./RiskChip";
 
 /**
  * RiskLevel component displays a form to select the likelihood and severity of a risk,
@@ -73,18 +74,10 @@ const RiskLevel: FC<IRiskLevelProps> = ({
         >
           Risk level
         </Typography>
-        <Stack
-          sx={{
-            backgroundColor: riskLevel.color,
-            color: theme.palette.background.main,
-            p: "0 8px",
-            height: 34,
-            borderRadius: "4px",
-            justifyContent: "center",
-          }}
-        >
-          {riskLevel.level}
-        </Stack>
+        <RiskChip
+          label={riskLevel.level}
+          backgroundColor={riskLevel.color}
+        />
       </Stack>
     </Stack>
   );

@@ -21,6 +21,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Extract version tag
+        run: |
+          RAW_TAG="${GITHUB_REF##*/}"   # v1.1-saas
+          CLEAN_TAG="${RAW_TAG%-saas}"  # v1.1
+          echo "TAG=$CLEAN_TAG" >> $GITHUB_ENV
+
       - name: Debug GitHub Token Access
         run: |
           if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
@@ -55,6 +61,7 @@ jobs:
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
+            VITE_APP_VERSION=${{ env.TAG }}
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4

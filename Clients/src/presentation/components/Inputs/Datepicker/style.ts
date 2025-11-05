@@ -25,16 +25,5 @@ export const DatePickerStyle = {
   "& .MuiOutlinedInput-root": {
     backgroundColor: "#FFFFFF",
     borderRadius: "2px",
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#d0d5dd",
-      borderWidth: "1px",
-    },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#d0d5dd",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#d0d5dd",
-      borderWidth: "1px",
-    },
   },
 };

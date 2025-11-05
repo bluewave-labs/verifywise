@@ -50,6 +50,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 import RiskAnalysisModal from "../RiskAnalysisModal";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const riskClassificationItems = [
   { _id: 1, name: AiRiskClassification.PROHIBITED },
@@ -1003,20 +1004,15 @@ const ProjectSettings = React.memo(
                     />
                   )}
                   sx={{
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards }),
                     width: "400px",
                     backgroundColor: theme.palette.background.main,
                     ".MuiAutocomplete-clearIndicator": {
                       display: "none",
                     },
                     "& .MuiOutlinedInput-root": {
+                      ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards })["& .MuiOutlinedInput-root"],
                       borderRadius: "4px",
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#777",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#888",
-                        borderWidth: "1px",
-                      },
                     },
                     "& .MuiChip-root": {
                       borderRadius: "4px",
@@ -1184,17 +1180,12 @@ const ProjectSettings = React.memo(
                 />
               )}
               sx={{
+                ...getAutocompleteStyles(theme, { hasError: !!errors.members }),
                 width: "400px",
                 backgroundColor: theme.palette.background.main,
                 "& .MuiOutlinedInput-root": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.members })["& .MuiOutlinedInput-root"],
                   borderRadius: "4px",
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#777",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#888",
-                    borderWidth: "1px",
-                  },
                 },
                 "& .MuiChip-root": {
                   borderRadius: "4px",

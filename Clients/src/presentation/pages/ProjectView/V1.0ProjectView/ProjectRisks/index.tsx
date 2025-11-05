@@ -3,7 +3,7 @@ import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
 import RisksView from "../../../../components/RisksView";
-import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
+import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model";
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
@@ -12,7 +12,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   // Create fetch function for use case risks
   const fetchProjectRisks = useCallback(
-    async (filter = "active"): Promise<ProjectRisk[]> => {
+    async (filter = "active"): Promise<RiskModel[]> => {
       try {
         const response = await getAllProjectRisksByProjectId({
           projectId: String(projectId),

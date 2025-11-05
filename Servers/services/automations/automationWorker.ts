@@ -14,6 +14,7 @@ import { marked } from "marked";
 import { uploadFile } from "../../utils/fileUpload.utils";
 import { mapReportTypeToFileSource } from "../../controllers/reporting.ctrl";
 import { buildReportingReplacements } from "../../utils/automation/reporting.automation.utils";
+import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
 const htmlDocx = require("html-to-docx-lite");
 
 const handlers = {
@@ -28,9 +29,10 @@ async function sendVendorReviewDateNotification() {
     const automations = await sequelize.query(`SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         a.params AS automation_params,
         aa.*
-      FROM public.automation_triggers pat JOIN "${tenantHash}".automations a ON a.trigger_id = pat.id JOIN "${tenantHash}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_review_date_approaching' AND a.is_active ORDER BY aa."order" ASC;`) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_params: { daysBefore: number } })[], number];
+      FROM public.automation_triggers pat JOIN "${tenantHash}".automations a ON a.trigger_id = pat.id JOIN "${tenantHash}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'vendor_review_date_approaching' AND a.is_active ORDER BY aa."order" ASC;`) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number, automation_params: { daysBefore: number } })[], number];
     if (automations[0].length === 0) {
       continue;
     }
@@ -60,11 +62,12 @@ async function sendVendorReviewDateNotification() {
       const processedParams = {
         ...params,
         subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements)
+        body: replaceTemplateVariables(params.body || '', replacements),
+        automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, processedParams);
+      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant: tenantHash });
     }
   }
 }
@@ -111,11 +114,12 @@ async function sendReportNotification() {
     const automations = await sequelize.query(`SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         a.params AS automation_params,
         a.created_by AS user_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenantHash}".automations a ON a.trigger_id = pat.id JOIN "${tenantHash}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'scheduled_report' AND a.is_active ORDER BY aa."order" ASC;`) as [(TenantAutomationActionModel & {
-      trigger_key: string, action_key: string, automation_params: {
+      trigger_key: string, action_key: string, automation_id: number, automation_params: {
         projectId: string, reportType: string[], frequency: string, hour?: number, minute?: number, dayOfWeek?: number, dayOfMonth?: number
       }, user_id: number
     })[], number];
@@ -236,11 +240,12 @@ async function sendReportNotificationEmail(jobData: any) {
     ...params,
     subject: replaceTemplateVariables(params.subject || '', replacements),
     body: replaceTemplateVariables(params.body || '', replacements),
-    attachments: attachments
+    attachments: attachments,
+    automation_id: automation.automation_id
   };
 
   // Enqueue with processed params
-  await enqueueAutomationAction(automation.action_key, processedParams);
+  await enqueueAutomationAction(automation.action_key, {...processedParams, tenant: tenantHash });
 }
 
 export const createAutomationWorker = () => {
@@ -249,18 +254,62 @@ export const createAutomationWorker = () => {
     async (job: Job) => {
       const name = job.name;
       console.log(`Received job of type: ${name}`);
-      if (name === "send_vendor_notification") {
-        await sendVendorReviewDateNotification();
-      } else if (name === "send_report_notification") {
-        await sendReportNotification();
-      } else if (name === "send_report_notification_daily") {
-        await sendReportNotificationEmail(job.data);
-      } else {
-        const handler = handlers[name as keyof typeof handlers];
-        if (!handler) {
-          throw new Error(`No handler found for action type: ${name}`);
+
+      let automationId: number | undefined;
+      const startTime = Date.now();
+
+      try {
+        if (name === "send_vendor_notification") {
+          await sendVendorReviewDateNotification();
+        } else if (name === "send_report_notification") {
+          await sendReportNotification();
+        } else if (name === "send_report_notification_daily") {
+          await sendReportNotificationEmail(job.data);
+        } else {
+          // For standard automation actions (like send_email triggered by entity changes)
+          const handler = handlers[name as keyof typeof handlers];
+          if (!handler) {
+            throw new Error(`No handler found for action type: ${name}`);
+          }
+
+          // Extract automation context from job data if available
+          automationId = job.data.automation_id;
+          // triggerData = job.data.trigger_data || {};
+
+          const result = await handler(job.data);
+
+          // Log the execution if we have automation context
+          if (automationId) {
+            await logAutomationExecution(
+              automationId,
+              job.data,
+              [{
+                action_type: name,
+                status: result.success ? 'success' : 'failure',
+                result_data: { recipients: job.data.to, subject: job.data.subject },
+                error_message: result.error
+              }],
+              job.data.tenant,
+              startTime
+            );
+          }
         }
-        await handler(job.data);
+      } catch (error) {
+        // Log failed execution if we have automation context
+        if (automationId) {
+          await logAutomationExecution(
+            automationId,
+            job.data,
+            [{
+              action_type: name,
+              status: 'failure',
+              error_message: error instanceof Error ? error.message : 'Unknown error'
+            }],
+            job.data.tenant,
+            startTime
+          );
+        }
+        throw error;
       }
     },
     { connection: redisClient, concurrency: 10 }

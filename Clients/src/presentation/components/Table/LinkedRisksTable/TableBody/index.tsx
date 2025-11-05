@@ -1,6 +1,4 @@
 import React, { useCallback, useState } from "react";
-import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
-import singleTheme from "../../../../themes/v1SingleTheme";
 import {
   TableBody,
   TableCell,
@@ -12,11 +10,8 @@ import {
 import { ChevronsUpDown } from "lucide-react";
 import Checkbox from "../../../Inputs/Checkbox";
 
-const SelectorVertical = (props: any) => (
-  <ChevronsUpDown size={16} {...props} />
-);
+import singleTheme from "../../../../themes/v1SingleTheme";
 import RiskChip from "../../../RiskLevel/RiskChip";
-
 import {
   paginationStyle,
   paginationDropdown,
@@ -24,7 +19,11 @@ import {
 } from "../../styles";
 import TablePaginationActions from "../../../TablePagination";
 import { IProjectRiskTableBodyProps } from "../../../../../domain/interfaces/i.table";
+import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model";
 
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
   rows,
   page,
@@ -55,11 +54,13 @@ const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
   );
 
   const handleRowClick = (
-    riskData: ProjectRisk,
+    riskData: RiskModel,
     event: React.ChangeEvent | React.MouseEvent
   ) => {
     event.stopPropagation();
     const riskId = riskData.id;
+
+    if (!riskId) return;
 
     if (checkedRows.includes(riskId)) {
       setCheckedRows(checkedRows.filter((id) => id !== riskId));
@@ -80,7 +81,7 @@ const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: ProjectRisk, index: number) => (
+            .map((row: RiskModel, index: number) => (
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
@@ -90,8 +91,8 @@ const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
                   <Checkbox
                     size="small"
                     id={`linked-risk-${row.id}`}
-                    isChecked={checkedRows.includes(row.id)}
-                    value={row.id.toString()}
+                    isChecked={checkedRows.includes(row.id!)}
+                    value={row.id ? row.id.toString(): ""}
                     onChange={(e) => handleRowClick(row, e)}
                     onClick={(e) => e.stopPropagation()}
                   />

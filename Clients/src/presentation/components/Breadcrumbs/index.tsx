@@ -174,13 +174,13 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
             },
             transition: "color 0.2s ease, background-color 0.2s ease",
             textDecoration: "none",
-            lineHeight: 1,
+            lineHeight: 1.2,
             display: "flex",
             alignItems: "center",
             backgroundColor: theme.palette.mode === "dark"
               ? "rgba(255, 255, 255, 0.06)"
               : "rgba(0, 0, 0, 0.04)",
-            padding: "2px 10px",
+            padding: "3px 10px",
             borderRadius: "4px",
             gap: "6px",
           }}
@@ -231,9 +231,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
               textDecoration: "none",
             },
             "&:focus": {
-              outline: `2px solid ${theme.palette.primary.main}`,
-              outlineOffset: "2px",
-              borderRadius: "2px",
+              outline: "none",
             },
           }}
         >
@@ -266,7 +264,7 @@ const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
         sx={{
           "& .MuiBreadcrumbs-separator": {
             color: theme.palette.text.disabled,
-            ml: 2.25,
+            ml: 4,
             mr: 2.25,
             fontSize: "14px",
           },

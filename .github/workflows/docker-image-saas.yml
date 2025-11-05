@@ -65,6 +65,7 @@ jobs:
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
+            VITE_APP_VERSION=${{ env.TAG }}
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4

@@ -1,4 +1,4 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme } from "@mui/material";
+import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme, Link } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
@@ -9,10 +9,12 @@ import IconButton from "../../IconButton";
 import { formatDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../../Button/CustomizableButton";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { IVWProjectRisksTableRow } from "../../../../domain/interfaces/i.risk";
+import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
+import { User } from "../../../../domain/types/User";
 
 function getDummyEvent() {
   const realEvent = new Event("click", { bubbles: true, cancelable: true });
@@ -51,15 +53,7 @@ const VWProjectRisksTableBody = ({
   setAnchor,
   onDeleteRisk,
   flashRow,
-}: {
-  rows: any[];
-  page: number;
-  rowsPerPage: number;
-  setSelectedRow: any;
-  setAnchor: any;
-  onDeleteRisk: (id: number) => void;
-  flashRow: number | null;
-}) => {
+}: IVWProjectRisksTableRow) => {
   const theme = useTheme();
   const { setInputValues } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
@@ -68,16 +62,21 @@ const VWProjectRisksTableBody = ({
     allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   
-  const getCellStyle = (row: ProjectRisk) => ({
+  const getCellStyle = (row: RiskModel) => ({
     ...cellStyle,
     ...(row.is_deleted && {
       textDecoration: 'line-through',
     })
   });
-  const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
+  const handleEditRisk = (row: RiskModel, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
-    setInputValues(row);
-    setAnchor(event?.currentTarget);
+    setInputValues({
+      ...row,
+      assessment_mapping: row.assessment_mapping ? Number(row.assessment_mapping) : 0
+    });
+    // ensure the anchor is an HTMLElement or null to satisfy the setter type
+    const anchorEl = (event?.currentTarget as unknown as HTMLElement) ?? null;
+    setAnchor(anchorEl);
   };
   const [showMitigations, setShowMitigations] = useState(false);
   const [showMitigationProjectRisk, setShowMitigationProjectRisk] =
@@ -88,7 +87,7 @@ const VWProjectRisksTableBody = ({
 
   useEffect(() => {
     if (riskId) {
-      const risk = rows.find((r: ProjectRisk) => r.id === parseInt(riskId));
+      const risk = rows.find((r: RiskModel) => r.id === parseInt(riskId));
       if (risk) {
         handleEditRisk(risk, getDummyEvent());
       }
@@ -96,12 +95,17 @@ const VWProjectRisksTableBody = ({
   }, []);
 
   const toggleMitigations = (
-    risk: ProjectRisk,
+    risk: RiskModel,
     e: React.MouseEvent<HTMLElement>
   ) => {
     e.stopPropagation();
     setShowMitigations((prev) => !prev);
-    setShowMitigationProjectRisk(risk);
+    const riskMitigation: ProjectRisk = {
+      ...risk,
+      risk_owner: risk.risk_owner?.toString(),
+      risk_approval: risk.risk_approval !== undefined && risk.risk_approval !== null ? String(risk.risk_approval) : "",
+    } as unknown as ProjectRisk;
+    setShowMitigationProjectRisk(riskMitigation);
   };
 
   const handleDeleteRisk = async (riskId: number) => {
@@ -109,7 +113,7 @@ const VWProjectRisksTableBody = ({
   };
 
   const displayUserFullName = (userId: number) => {
-    const currentUser = users.find((user: any) => user.id === userId);
+    const currentUser = users.find((user: User) => user.id === userId);
     const fullName = currentUser
       ? `${currentUser.name} ${currentUser.surname}`
       : "";
@@ -122,7 +126,7 @@ const VWProjectRisksTableBody = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: ProjectRisk, index: number) => (
+            .map((row: RiskModel, index: number) => (
               <TableRow
                 key={index}
                 sx={{
@@ -218,18 +222,24 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
                 >
-                  <CustomizableButton
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      border: "1px solid #13715B",
-                    }}
-                    variant="contained"
-                    text="View controls"
+                  <Link
+                    component="button"
                     onClick={(e: React.MouseEvent<HTMLElement>) =>
                       toggleMitigations(row, e)
                     }
-                  />
+                    sx={{
+                      color: "#13715B",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      "&:hover": {
+                        color: "#0F5A47",
+                      },
+                    }}
+                  >
+                    View controls
+                  </Link>
                 </TableCell>
                 <TableCell
                   sx={{
@@ -244,10 +254,10 @@ const VWProjectRisksTableBody = ({
                 >
                   {isDeletingAllowed && (
                     <IconButton
-                      id={row.id}
+                      id={row.id!}
                       type="risk"
                       onMouseEvent={(e) => handleEditRisk(row, e)}
-                      onDelete={() => handleDeleteRisk(row.id)}
+                      onDelete={() => handleDeleteRisk(row.id!)}
                       onEdit={() => handleEditRisk(row)}
                       warningTitle="Delete this project risk?"
                       warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."

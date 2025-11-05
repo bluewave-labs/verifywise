@@ -6,7 +6,6 @@ import {
   Paper,
   CircularProgress,
   Grid,
-  Tab,
   Chip,
   Divider,
   Button,
@@ -14,7 +13,8 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
+import { TabContext, TabPanel } from "@mui/lab";
+import TabBar from "../../components/TabBar";
 import {
   Copy as CopyIcon,
   Download as DownloadIcon,
@@ -42,7 +42,6 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import ErrorModal from "../../components/Modals/Error";
 import Checkbox from "../../components/Inputs/Checkbox";
-import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
 // Constants
@@ -737,40 +736,32 @@ export default function BiasAndFairnessResultsPage() {
         </Box>
 
         <TabContext value={tab}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={(_, newVal) => setTab(newVal)}
-              TabIndicatorProps={{
-                style: { backgroundColor: COLORS.PRIMARY, height: "2px" },
-              }}
-              sx={styles.tabList}
-            >
-              <Tab
-                label="Overview"
-                value="overview"
-                disableRipple
-                sx={{ textTransform: "none !important" }}
-              />
-              <Tab
-                label="Metric selection"
-                value="explorer"
-                disableRipple
-                sx={{ textTransform: "none !important" }}
-              />
-              <Tab
-                label="Evaluation details"
-                value="settings"
-                disableRipple
-                sx={{ textTransform: "none !important" }}
-              />
-              <Tab
-                label="Advanced visualizations"
-                value="visualizations"
-                disableRipple
-                sx={{ textTransform: "none !important" }}
-              />
-            </TabList>
-          </Box>
+          <TabBar
+            tabs={[
+              {
+                label: "Overview",
+                value: "overview",
+                icon: "LayoutDashboard",
+              },
+              {
+                label: "Metric selection",
+                value: "explorer",
+                icon: "ListFilter",
+              },
+              {
+                label: "Evaluation details",
+                value: "settings",
+                icon: "Settings",
+              },
+              {
+                label: "Advanced visualizations",
+                value: "visualizations",
+                icon: "BarChart3",
+              },
+            ]}
+            activeTab={tab}
+            onChange={(_, newVal) => setTab(newVal)}
+          />
 
           <TabPanel value="overview" sx={{ ...tabPanelStyle, pt: 2 }}>
             <Stack spacing={4}>

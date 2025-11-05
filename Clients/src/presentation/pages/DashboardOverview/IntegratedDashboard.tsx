@@ -30,6 +30,7 @@ import {
   ShieldAlert,
   GraduationCap,
   ScrollText,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -57,6 +58,7 @@ import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
+import placeholderImage from "../../assets/imgs/empty-state.svg";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -443,7 +445,7 @@ interface MetricCardProps {
   onClick?: () => void;
   navigable?: boolean;
   statusData?: IStatusData[];
-  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
+  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks" | "incidents";
   compact?: boolean;
   backgroundIcon?: React.ComponentType<any>;
 }
@@ -764,6 +766,7 @@ const IntegratedDashboard: React.FC = () => {
     vendorMetrics,
     usersMetrics,
     policyMetrics,
+    incidentMetrics,
   } = useDashboardMetrics();
   const { userToken, userId } = useAuth();
 
@@ -921,6 +924,17 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 2,
       },
+      {
+        i: "incidents",
+        x: 3,
+        y: 6,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 4,
+      },
     ],
     md: [
       // Row 1 - Use cases (most important) + Models + Vendors (high importance)
@@ -1024,6 +1038,17 @@ const IntegratedDashboard: React.FC = () => {
         maxW: 2.5,
         minH: 2,
         maxH: 2,
+      },
+      {
+        i: "incidents",
+        x: 2.5,
+        y: 6,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
       },
     ],
     sm: [
@@ -1132,10 +1157,86 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 2,
       },
+      {
+        i: "incidents",
+        x: 3,
+        y: 10,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 4,
+      },
     ],
   };
 
   const [layouts, setLayouts] = useState<Layouts>(defaultLayouts);
+
+  // Ensure widgets that are added back get their default layout
+  useEffect(() => {
+    setLayouts((currentLayouts) => {
+      const updatedLayouts = { ...currentLayouts };
+      let layoutsChanged = false;
+
+      Object.keys(defaultLayouts).forEach((breakpoint) => {
+        const currentBreakpointLayout = currentLayouts[breakpoint] || [];
+        const defaultBreakpointLayout = defaultLayouts[breakpoint];
+
+        // Find widgets that are visible
+        const visibleWidgetIds = Array.from(visibleCards);
+
+        // Process each visible widget
+        const processedLayout = currentBreakpointLayout.map((item) => {
+          // If this widget is visible, check if it needs to be reset to default
+          if (visibleWidgetIds.includes(item.i)) {
+            const defaultItem = defaultBreakpointLayout.find((d) => d.i === item.i);
+            if (defaultItem && item.h !== defaultItem.h) {
+              // Widget has wrong height, restore to default
+              layoutsChanged = true;
+              return { ...defaultItem, x: item.x, y: item.y };
+            }
+          }
+          return item;
+        });
+
+        // Find widgets that are missing from layout entirely
+        const missingWidgets = visibleWidgetIds.filter(
+          (widgetId) => !currentBreakpointLayout.some((item) => item.i === widgetId)
+        );
+
+        if (missingWidgets.length > 0) {
+          layoutsChanged = true;
+          const newItems = missingWidgets
+            .map((widgetId) =>
+              defaultBreakpointLayout.find((item) => item.i === widgetId)
+            )
+            .filter((item): item is Layout => item !== undefined);
+
+          updatedLayouts[breakpoint] = [...processedLayout, ...newItems];
+        } else {
+          updatedLayouts[breakpoint] = processedLayout;
+        }
+      });
+
+      // Save to localStorage if layouts were restored
+      if (layoutsChanged) {
+        try {
+          const serialized = JSON.stringify(updatedLayouts);
+          if (serialized.length <= 4.5 * 1024 * 1024) {
+            localStorage.setItem(
+              "verifywise_integrated_dashboard_layouts",
+              serialized
+            );
+          }
+        } catch (error) {
+          console.error("Failed to save restored layouts to localStorage:", error);
+        }
+      }
+
+      return layoutsChanged ? updatedLayouts : currentLayouts;
+    });
+  }, [visibleCards, defaultLayouts]);
 
   // Helper function to check if a widget should always be small (85px)
   const isRestrictedToSmallHeight = useCallback((widgetId: string): boolean => {
@@ -1539,6 +1640,24 @@ const IntegratedDashboard: React.FC = () => {
       ),
       title: "Policies",
     },
+    {
+      id: "incidents",
+      content: (
+        <MetricCard
+          title="Incidents"
+          value={incidentMetrics?.total || 0}
+          onClick={() => navigate("/ai-incident-managements")}
+          navigable={true}
+          statusData={incidentMetrics?.statusDistribution?.map((item) => ({
+            ...item,
+            label: item.name,
+          }))}
+          entityType="incidents"
+          backgroundIcon={AlertCircle}
+        />
+      ),
+      title: "Incidents",
+    },
   ];
 
   return (
@@ -1843,81 +1962,132 @@ const IntegratedDashboard: React.FC = () => {
         /* Handles remain invisible - no visual indicators */
       `}</style>
 
-      {/* Grid Layout */}
+      {/* Grid Layout or Empty State */}
       <Box data-joyride-id="dashboard-widgets">
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={layouts}
-        onLayoutChange={handleLayoutChange}
-        onResize={handleResize}
-        onResizeStop={handleResizeStop}
-        breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-        cols={{ lg: 12, md: 10, sm: 6 }}
-        rowHeight={42.5}
-        isDraggable={editMode}
-        isResizable={editMode}
-        draggableHandle=".widget-card-header"
-        resizeHandles={["se", "sw", "ne", "nw", "s", "e", "n", "w"]}
-        margin={[16, 16]}
-        containerPadding={[0, 0]}
-        useCSSTransforms={true}
-        compactType="vertical"
-        preventCollision={false}
-        autoSize={true}
-        isBounded={true}
-      >
-        {widgets
-          .filter((widget) => visibleCards.has(widget.id))
-          .map((widget) => (
-            <Card
-              key={widget.id}
-              data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
+        {visibleCards.size === 0 ? (
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            sx={{
+              border: "1px solid #EEEEEE",
+              borderRadius: "4px",
+              padding: "60px 20px 80px 20px",
+              gap: "20px",
+              minHeight: 400,
+              backgroundColor: "#FFFFFF",
+              textAlign: "center",
+              width: "100%",
+              boxSizing: "border-box",
+              marginTop: "30px",
+            }}
+          >
+            <img src={placeholderImage} alt="No cards visible" />
+            <Typography
               sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                boxShadow: "none",
-                border: `1px solid #DCDFE3`,
-                backgroundColor: "inherit",
-                "& .MuiCard-root": {
-                  height: "100%",
-                  margin: 0,
-                },
+                fontSize: "13px",
+                color: (theme) => theme.palette.text.tertiary,
               }}
             >
-              {editMode && (
-                <CardHeader
-                  className="widget-card-header"
+              This space looks a bit empty. You can add all cards to this dashboard to see a general overview of your AI governance status.{" "}
+              <Typography
+                component="span"
+                onClick={() => {
+                  const allWidgetIds = new Set(widgets.map((w) => w.id));
+                  setVisibleCards(allWidgetIds);
+                  localStorage.setItem(
+                    "dashboardVisibleCards",
+                    JSON.stringify(Array.from(allWidgetIds))
+                  );
+                }}
+                sx={{
+                  fontSize: "13px",
+                  color: "#13715B",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  "&:hover": {
+                    color: "#0f604d",
+                  },
+                }}
+              >
+                Click here to add all cards
+              </Typography>
+            </Typography>
+          </Stack>
+        ) : (
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            onLayoutChange={handleLayoutChange}
+            onResize={handleResize}
+            onResizeStop={handleResizeStop}
+            breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+            cols={{ lg: 12, md: 10, sm: 6 }}
+            rowHeight={42.5}
+            isDraggable={editMode}
+            isResizable={editMode}
+            draggableHandle=".widget-card-header"
+            resizeHandles={["se", "sw", "ne", "nw", "s", "e", "n", "w"]}
+            margin={[16, 16]}
+            containerPadding={[0, 0]}
+            useCSSTransforms={true}
+            compactType="vertical"
+            preventCollision={false}
+            autoSize={true}
+            isBounded={true}
+          >
+            {widgets
+              .filter((widget) => visibleCards.has(widget.id))
+              .map((widget) => (
+                <Card
+                  key={widget.id}
+                  data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
                   sx={{
-                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                    py: 1,
-                    px: 2,
-                    "& .MuiCardHeader-title": {
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                    boxShadow: "none",
+                    border: `1px solid #DCDFE3`,
+                    backgroundColor: "inherit",
+                    "& .MuiCard-root": {
+                      height: "100%",
+                      margin: 0,
                     },
                   }}
-                  avatar={
-                    <GripVertical
-                      size={16}
-                      color={alpha(theme.palette.text.secondary, 0.6)}
-                    />
-                  }
-                  title={widget.title}
-                />
-              )}
-              <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
-                <WidgetErrorBoundary
-                  widgetId={widget.id}
-                  widgetTitle={widget.title}
                 >
-                  {widget.content}
-                </WidgetErrorBoundary>
-              </Box>
-            </Card>
-          ))}
-      </ResponsiveGridLayout>
+                  {editMode && (
+                    <CardHeader
+                      className="widget-card-header"
+                      sx={{
+                        backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                        py: 1,
+                        px: 2,
+                        "& .MuiCardHeader-title": {
+                          fontSize: "0.875rem",
+                          fontWeight: 500,
+                        },
+                      }}
+                      avatar={
+                        <GripVertical
+                          size={16}
+                          color={alpha(theme.palette.text.secondary, 0.6)}
+                        />
+                      }
+                      title={widget.title}
+                    />
+                  )}
+                  <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
+                    <WidgetErrorBoundary
+                      widgetId={widget.id}
+                      widgetTitle={widget.title}
+                    >
+                      {widget.content}
+                    </WidgetErrorBoundary>
+                  </Box>
+                </Card>
+              ))}
+          </ResponsiveGridLayout>
+        )}
       </Box>
 
       {/* Page Tour */}

@@ -6,7 +6,6 @@ import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
 import Popup from "../../components/Popup";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -25,18 +24,8 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
-
-const TITLE_OF_COLUMNS = [
-  "RISK NAME", // value from risk tab
-  "OWNER", // value from risk tab
-  "SEVERITY", // value from risk tab
-  "LIKELIHOOD", // value from risk tab
-  "MITIGATION STATUS", // mitigation status
-  "RISK LEVEL", // risk auto calculated value from risk tab
-  "TARGET DATE", // start date (deadline) value from mitigation tab
-  "Linked controls",
-  "",
-];
+import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
+import { IFilterState } from "../../../domain/interfaces/i.filter";
 
 /**
  * Set initial loading status for all CRUD process
@@ -58,8 +47,8 @@ const RiskManagement = () => {
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
-  const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
+  const [projectRisks, setProjectRisks] = useState<RiskModel[]>([]);
+  const [selectedRow, setSelectedRow] = useState<RiskModel[]>([]);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -92,8 +81,8 @@ const RiskManagement = () => {
   } | null>(null);
 
   // State for filtering
-  const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
+  const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
@@ -153,7 +142,7 @@ const RiskManagement = () => {
     if (location.state?.openCreateModal) {
       // Create a temporary button element to use as anchor
       const tempButton = document.createElement('button');
-      setAnchor(tempButton as any);
+      setAnchor(tempButton);
       setSelectedRow([]);
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
@@ -211,7 +200,7 @@ const RiskManagement = () => {
     setIsLoading((prev) => ({ ...prev, loading: true, message: message }));
   };
 
-  const handleToast = (type: any, message: string) => {
+  const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
     handleAlert({
       variant: type,
       body: message,
@@ -229,8 +218,8 @@ const RiskManagement = () => {
     }, 1000);
 
     // set pagination for FIFO risk listing after adding a new risk
-    let rowsPerPage = 5;
-    let pageCount = Math.floor(projectRisks.length / rowsPerPage);
+    const rowsPerPage = 5;
+    const pageCount = Math.floor(projectRisks.length / rowsPerPage);
     setCurrentPage(pageCount);
 
     fetchProjectRisks();
@@ -240,7 +229,7 @@ const RiskManagement = () => {
   const handleUpdate = () => {
     setTimeout(() => {
       setIsLoading(initialLoadingState);
-      setCurrentRow(selectedRow[0].id); // set current row to trigger flash-feedback
+      setCurrentRow(selectedRow[0].id!); // set current row to trigger flash-feedback
       handleToast("success", "Risk updated successfully");
     }, 1000);
 
@@ -251,7 +240,7 @@ const RiskManagement = () => {
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
-  const handleError = (errorMessage: any) => {
+  const handleError = (errorMessage: string) => {
     setIsLoading(initialLoadingState);
     handleToast("error", errorMessage);
   };
@@ -264,8 +253,8 @@ const RiskManagement = () => {
       });
       if (response.status === 200) {
         // Set current pagination number after deleting the risk
-        let rowsPerPage = 5;
-        let rowCount = projectRisks.slice(
+        const rowsPerPage = 5;
+        const rowCount = projectRisks.slice(
           currentPage * rowsPerPage,
           currentPage * rowsPerPage + rowsPerPage
         );
@@ -300,7 +289,7 @@ const RiskManagement = () => {
     setCurrentPage(page);
   };
 
-  const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
+  const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
     
@@ -479,13 +468,12 @@ const RiskManagement = () => {
           />
         ) : (
           <VWProjectRisksTable
-            columns={TITLE_OF_COLUMNS}
             rows={filteredRisks.length > 0 ? filteredRisks : projectRisks}
             setPage={setCurrentPagingation}
             page={currentPage}
-            setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+            setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
             setAnchor={setAnchor}
-            deleteRisk={handleDelete}
+            onDeleteRisk={handleDelete}
             flashRow={currentRow}
           />
         )}

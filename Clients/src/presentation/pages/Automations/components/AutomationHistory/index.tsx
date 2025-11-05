@@ -13,11 +13,12 @@ import {
   TablePagination,
   Stack,
   useTheme,
+  Chip,
+  TableFooter,
 } from '@mui/material';
 import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight } from 'lucide-react';
 import CustomAxios from '../../../../../infrastructure/api/customAxios';
 import { AutomationExecutionLog } from '../../../../../domain/types/Automation';
-import SmallStatsCard from '../../../../components/Cards/SmallStatsCard';
 import TablePaginationActions from '../../../../components/TablePagination';
 import EmptyState from '../../../../components/EmptyState';
 import singleTheme from '../../../../themes/v1SingleTheme';
@@ -32,7 +33,10 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
   const [logs, setLogs] = useState<AutomationExecutionLog[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem('automationHistoryRowsPerPage');
+    return saved ? parseInt(saved, 10) : 10;
+  });
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{
@@ -92,36 +96,30 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
     setExpandedRows(newExpanded);
   };
 
-  const getStatusBadge = (status: 'success' | 'partial_success' | 'failure') => {
-    const styles = {
-      success: { bg: '#E6F4EA', color: '#138A5E', icon: <CheckCircle size={14} /> },
-      partial_success: { bg: '#FFF8E1', color: '#795000', icon: <AlertCircle size={14} /> },
-      failure: { bg: '#FFD6D6', color: '#D32F2F', icon: <XCircle size={14} /> },
+  const getStatusChipConfig = (status: 'success' | 'partial_success' | 'failure') => {
+    const configs = {
+      success: {
+        bg: '#E6F4EA',
+        color: '#138A5E',
+        icon: <CheckCircle size={14} />,
+        label: 'Success'
+      },
+      partial_success: {
+        bg: '#FFF8E1',
+        color: '#795000',
+        icon: <AlertCircle size={14} />,
+        label: 'Partial Success'
+      },
+      failure: {
+        bg: '#FFD6D6',
+        color: '#D32F2F',
+        icon: <XCircle size={14} />,
+        label: 'Failure'
+      },
     };
-
-    const style = styles[status];
-    const label = status === 'partial_success' ? 'Partial Success' : status.charAt(0).toUpperCase() + status.slice(1);
-
-    return (
-      <span
-        style={{
-          backgroundColor: style.bg,
-          color: style.color,
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontWeight: 500,
-          fontSize: '11px',
-          textTransform: 'uppercase',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '4px',
-        }}
-      >
-        {style.icon}
-        {label}
-      </span>
-    );
+    return configs[status];
   };
+
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleString();
@@ -154,7 +152,9 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    localStorage.setItem('automationHistoryRowsPerPage', newRowsPerPage.toString());
     setPage(0);
   };
 
@@ -179,45 +179,126 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
     <Box>
       {/* Stats Summary */}
       {stats && (
-        <Stack direction="row" spacing={3} mb={3} flexWrap="wrap">
-          <Box sx={{ flex: 1, minWidth: 200 }}>
-            <SmallStatsCard
-              attributeTitle="Total Runs"
-              rate={stats.total_executions > 0 ? stats.successful_executions / stats.total_executions : 0}
-              progress={`${stats.successful_executions}/${stats.total_executions}`}
-            />
+        <Stack direction="row" spacing={4} mb={4} flexWrap="wrap">
+          <Box
+            sx={{
+              border: "1px solid #eaecf0",
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              minWidth: 228,
+              flex: 1,
+              padding: "8px 14px 14px 14px",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "#8594AC",
+                pb: "2px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              Total Runs
+            </Typography>
+            <Typography
+              sx={{
+                mt: 1,
+                fontWeight: 600,
+                fontSize: 15,
+                color: "#1f2937",
+              }}
+            >
+              {stats.total_executions}
+            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Box
+                sx={{
+                  width: '100%',
+                  height: 6,
+                  backgroundColor: '#E5E7EB',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${stats.total_executions > 0 ? (stats.successful_executions / stats.total_executions) * 100 : 0}%`,
+                    height: '100%',
+                    backgroundColor: '#10B981',
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </Box>
+              <Typography sx={{ fontSize: 11, color: '#8594AC', mt: 0.5 }}>
+                {stats.successful_executions}/{stats.total_executions} successful
+              </Typography>
+            </Box>
           </Box>
           <Box
             sx={{
+              border: "1px solid #eaecf0",
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              minWidth: 228,
               flex: 1,
-              minWidth: 150,
-              border: '1px solid #EEEEEE',
-              borderRadius: '4px',
-              padding: 2,
-              backgroundColor: '#FAFAFA',
+              padding: "8px 14px 14px 14px",
             }}
           >
-            <Typography sx={{ fontSize: 13, color: '#8594AC', mb: 1 }}>
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "#8594AC",
+                pb: "2px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               Successful
             </Typography>
-            <Typography sx={{ fontSize: 24, color: '#138A5E', fontWeight: 700 }}>
+            <Typography
+              sx={{
+                mt: 1,
+                fontWeight: 600,
+                fontSize: 15,
+                color: "#1f2937",
+              }}
+            >
               {stats.successful_executions}
             </Typography>
           </Box>
           <Box
             sx={{
+              border: "1px solid #eaecf0",
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              minWidth: 228,
               flex: 1,
-              minWidth: 150,
-              border: '1px solid #EEEEEE',
-              borderRadius: '4px',
-              padding: 2,
-              backgroundColor: '#FAFAFA',
+              padding: "8px 14px 14px 14px",
             }}
           >
-            <Typography sx={{ fontSize: 13, color: '#8594AC', mb: 1 }}>
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "#8594AC",
+                pb: "2px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               Failed
             </Typography>
-            <Typography sx={{ fontSize: 24, color: '#DB504A', fontWeight: 700 }}>
+            <Typography
+              sx={{
+                mt: 1,
+                fontWeight: 600,
+                fontSize: 15,
+                color: "#1f2937",
+              }}
+            >
               {stats.failed_executions}
             </Typography>
           </Box>
@@ -245,16 +326,17 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                 {logs.map((log) => (
                   <React.Fragment key={log.id}>
                     <TableRow
+                      onClick={() => toggleRow(log.id)}
                       sx={{
                         ...singleTheme.tableStyles.primary.body.row,
                         '&:hover': { backgroundColor: '#FBFBFB', cursor: 'pointer' },
                         '& td': {
-                          borderBottom: '4px solid #FAFAFA',
+                          borderBottom: '1px solid #EEEEEE',
                         },
                       }}
                     >
                       <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: '50px' }}>
-                        <IconButton size="small" onClick={() => toggleRow(log.id)}>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleRow(log.id); }}>
                           {expandedRows.has(log.id) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         </IconButton>
                       </TableCell>
@@ -272,7 +354,28 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                         </Typography>
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        {getStatusBadge(log.status)}
+                        {(() => {
+                          const config = getStatusChipConfig(log.status);
+                          return (
+                            <Chip
+                              icon={config.icon}
+                              label={config.label}
+                              size="small"
+                              sx={{
+                                backgroundColor: config.bg,
+                                color: config.color,
+                                fontWeight: 500,
+                                fontSize: '11px',
+                                textTransform: 'uppercase',
+                                borderRadius: '4px',
+                                height: '24px',
+                                '& .MuiChip-icon': {
+                                  color: config.color,
+                                },
+                              }}
+                            />
+                          );
+                        })()}
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography sx={{ fontSize: 13 }}>
@@ -290,7 +393,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                     </TableRow>
                     {expandedRows.has(log.id) && (
                       <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0, borderBottom: '1px solid #EEEEEE' }} colSpan={6}>
                           <Collapse in={true} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 2 }}>
                           <Typography variant="subtitle2" gutterBottom>
@@ -300,84 +403,86 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                           {/* Trigger Data */}
                           {log.trigger_data && Object.keys(log.trigger_data).length > 0 && (
                             <Box mb={2}>
-                              <Typography variant="subtitle2" gutterBottom>
-                                Trigger Parameters
-                              </Typography>
-                              <Table size="small">
-                                <TableBody>
-                                  {Object.entries(log.trigger_data)
-                                    .filter(([key]) => !['tenant', 'automation_id'].includes(key))
-                                    .map(([key, value]) => {
-                                      let displayValue: React.ReactNode;
+                              <Box
+                                sx={{
+                                  display: 'grid',
+                                  gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                                  gap: 2,
+                                }}
+                              >
+                                {Object.entries(log.trigger_data)
+                                  .filter(([key]) => !['tenant', 'automation_id'].includes(key))
+                                  .map(([key, value]) => {
+                                    let displayValue: React.ReactNode;
 
-                                      // Format arrays (like email recipients)
-                                      if (Array.isArray(value)) {
-                                        displayValue = value.join(', ');
-                                      }
-                                      // Format objects
-                                      else if (typeof value === 'object' && value !== null) {
-                                        displayValue = (
-                                          <pre style={{ margin: 0, fontSize: '0.75rem', whiteSpace: 'pre-wrap' }}>
-                                            {JSON.stringify(value, null, 2)}
-                                          </pre>
-                                        );
-                                      }
-                                      // Format dates
-                                      else if (key.includes('date') || key.includes('time')) {
-                                        try {
-                                          const date = new Date(value as string);
-                                          if (!isNaN(date.getTime())) {
-                                            displayValue = formatDate(date);
-                                          } else {
-                                            displayValue = String(value);
-                                          }
-                                        } catch {
+                                    // Format arrays (like email recipients)
+                                    if (Array.isArray(value)) {
+                                      displayValue = value.join(', ');
+                                    }
+                                    // Format objects
+                                    else if (typeof value === 'object' && value !== null) {
+                                      displayValue = JSON.stringify(value);
+                                    }
+                                    // Format dates
+                                    else if (key.includes('date') || key.includes('time')) {
+                                      try {
+                                        const date = new Date(value as string);
+                                        if (!isNaN(date.getTime())) {
+                                          displayValue = formatDate(date);
+                                        } else {
                                           displayValue = String(value);
                                         }
+                                      } catch {
+                                        displayValue = String(value);
                                       }
-                                      // Format booleans
-                                      else if (typeof value === 'boolean') {
-                                        displayValue = value ? 'Yes' : 'No';
-                                      }
-                                      // Format primitives
-                                      else {
-                                        displayValue = String(value || '-');
-                                      }
+                                    }
+                                    // Format booleans
+                                    else if (typeof value === 'boolean') {
+                                      displayValue = value ? 'Yes' : 'No';
+                                    }
+                                    // Format primitives
+                                    else {
+                                      displayValue = String(value || '-');
+                                    }
 
-                                      // Format key for display (convert snake_case to Title Case)
-                                      const displayKey = key
-                                        .split('_')
-                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                        .join(' ');
+                                    // Format key for display (convert snake_case to Title Case)
+                                    const displayKey = key
+                                      .split('_')
+                                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                      .join(' ');
 
-                                      return (
-                                        <TableRow key={key}>
-                                          <TableCell
-                                            sx={{
-                                              fontWeight: 600,
-                                              verticalAlign: 'top',
-                                              width: '200px',
-                                              color: 'text.secondary'
-                                            }}
-                                          >
-                                            {displayKey}
-                                          </TableCell>
-                                          <TableCell sx={{ verticalAlign: 'top' }}>
-                                            <Typography variant="body2" component="div">
-                                              {displayValue}
-                                            </Typography>
-                                          </TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                </TableBody>
-                              </Table>
+                                    return (
+                                      <Box key={key}>
+                                        <Typography
+                                          sx={{
+                                            fontSize: 11,
+                                            fontWeight: 600,
+                                            color: '#8594AC',
+                                            mb: 0.5,
+                                            textTransform: 'uppercase',
+                                          }}
+                                        >
+                                          {displayKey}
+                                        </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: 13,
+                                            color: '#2D3748',
+                                            wordBreak: 'break-word',
+                                          }}
+                                        >
+                                          {displayValue}
+                                        </Typography>
+                                      </Box>
+                                    );
+                                  })}
+                              </Box>
                             </Box>
                           )}
 
                           {/* Actions Results - Step-by-Step Timeline */}
                           {log.actions && log.actions.length > 0 && (
-                            <Box>
+                            <Box mt={2}>
                               <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
                                 Execution Flow ({log.actions.length} {log.actions.length === 1 ? 'step' : 'steps'})
                               </Typography>
@@ -450,20 +555,20 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                               </Typography>
                                             </Stack>
 
-                                            <span
-                                              style={{
-                                                backgroundColor: isSuccess ? '#E6F4EA' : '#FFD6D6',
-                                                color: isSuccess ? '#138A5E' : '#D32F2F',
-                                                padding: '3px 8px',
-                                                borderRadius: '4px',
+                                            <Chip
+                                              label={action.status.toUpperCase()}
+                                              size="small"
+                                              sx={{
+                                                backgroundColor: action.status === 'success' ? '#E6F4EA' : '#FFD6D6',
+                                                color: action.status === 'success' ? '#138A5E' : '#D32F2F',
                                                 fontWeight: 600,
                                                 fontSize: '10px',
                                                 textTransform: 'uppercase',
+                                                borderRadius: '4px',
+                                                height: '20px',
                                                 letterSpacing: '0.5px',
                                               }}
-                                            >
-                                              {action.status}
-                                            </span>
+                                            />
                                           </Stack>
 
                                           {/* Step Details */}
@@ -520,9 +625,9 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                   sx={{
                                     mt: 3,
                                     p: 2,
-                                    borderRadius: '8px',
+                                    borderRadius: '4px',
                                     backgroundColor: log.status === 'success' ? '#E6F4EA' : log.status === 'failure' ? '#FFD6D6' : '#FFF8E1',
-                                    border: `2px solid ${log.status === 'success' ? '#138A5E' : log.status === 'failure' ? '#D32F2F' : '#795000'}`,
+                                    border: `1px solid ${log.status === 'success' ? '#138A5E' : log.status === 'failure' ? '#D32F2F' : '#795000'}`,
                                   }}
                                 >
                                   <Stack direction="row" alignItems="center" spacing={2}>
@@ -570,14 +675,9 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                   </React.Fragment>
                 ))}
               </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Pagination */}
-          <Table>
-            <TableBody>
-              <TableRow>
-                <TablePagination
+              <TableFooter>
+                <TableRow>
+                  <TablePagination
                   count={total}
                   page={page}
                   onPageChange={handleChangePage}
@@ -626,7 +726,6 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                   sx={{
                     backgroundColor: theme.palette.grey[50],
                     border: `1px solid ${theme.palette.border?.light || '#EEEEEE'}`,
-                    borderTop: 'none',
                     borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
                     color: theme.palette.text.secondary,
                     height: '50px',
@@ -649,8 +748,9 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                   }}
                 />
               </TableRow>
-            </TableBody>
+            </TableFooter>
           </Table>
+        </TableContainer>
         </Stack>
       )}
     </Box>

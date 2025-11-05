@@ -276,7 +276,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
             <IconButton onClick={handleCloseHistory}>
               <ChevronLeft />
             </IconButton>
-            <Typography variant="h5">Automation History</Typography>
+            <Typography sx={{ fontSize: 15, fontWeight: 600 }}>Automation History</Typography>
           </Stack>
 
           {historyAutomationId && (

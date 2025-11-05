@@ -71,13 +71,12 @@ export async function getUserFilesMetaData({
 }: {
   signal?: AbortSignal;
 } = {}): Promise<FileMetadata[]> {
-  const fileManageResponse = await apiServices.get<FileManagerResponse>("/file-manager", {
-    signal,
-  });
+    const [fileManageResponse, fileResponse] = await Promise.all([
+      apiServices.get<FileManagerResponse>("/file-manager", { signal }),
+      apiServices.get<any[]>("/files", { signal })
+    ]);
 
-  const fileResponse = await apiServices.get<any[]>("/files", {
-    signal,
-  });
+    console.log(fileManageResponse.data?.data.files, fileResponse.data);
 
     // Extract and return all file data from API
     // Keep all fields intact so transformFileData can process them
@@ -86,19 +85,19 @@ export async function getUserFilesMetaData({
     return rawFiles.map((f: any) => ({
         id: String(f.id),
         filename: f.filename,
-        size: f.size,
-        mimetype: f.mimetype,
-        upload_date: f.upload_date,
-        uploaded_by: String(f.uploaded_by),
-        uploader_name: f.uploader_name,         // Include uploader name
-        uploader_surname: f.uploader_surname,   // Include uploader surname
-        source: f.source,
-        project_title: f.project_title,
-        project_id: f.project_id,
-        parent_id: f.parent_id,
-        sub_id: f.sub_id,
-        meta_id: f.meta_id,
-        is_evidence: f.is_evidence,
+        size: f?.size,
+        mimetype: f?.mimetype,
+        upload_date: f?.upload_date || f?.uploaded_time,
+        uploaded_by: String(f?.uploaded_by),
+        uploader_name: f?.uploader_name,         // Include uploader name
+        uploader_surname: f?.uploader_surname,   // Include uploader surname
+        source: f?.source,
+        project_title: f?.project_title,
+        project_id: f?.project_id,
+        parent_id: f?.parent_id,
+        sub_id: f?.sub_id,
+        meta_id: f?.meta_id,
+        is_evidence: f?.is_evidence,
     })) as FileMetadata[];
 }
 

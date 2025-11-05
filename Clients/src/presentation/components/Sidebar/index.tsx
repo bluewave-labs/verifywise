@@ -383,7 +383,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   // top: "5px",
                 }}
               >
-                v{__APP_VERSION__}
+                {__APP_VERSION__}
               </span>
             </Typography>
           </MuiLink>

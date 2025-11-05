@@ -1,6 +1,6 @@
 {
   "name": "verifywise",
-  "version": "1.6.1",
+  "version": "v1.6.1",
   "main": "index.js",
   "scripts": {
     "test": "jest",

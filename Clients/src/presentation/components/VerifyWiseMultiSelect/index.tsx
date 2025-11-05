@@ -169,6 +169,7 @@ const VerifyWiseMultiSelect: React.FC<VerifyWiseMultiSelectProps> = ({
                 value={option.value}
                 onChange={() => {}}
                 size="small"
+                sx={{ padding: 0 }}
               />
               <Typography
                 sx={{

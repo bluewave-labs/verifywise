@@ -373,7 +373,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   fontWeight: 600,
                 }}
               >
-                {project.uc_id || '-'}
+                {project.uc_id || project.id}
               </TableCell>
 
               <TableCell

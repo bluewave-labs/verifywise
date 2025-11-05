@@ -92,7 +92,8 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
       });
     }
 
-    // Apply search filter last - search by both project title and UC ID
+    // Apply search filter last 
+    // Search by project title or uc_id
     if (searchTerm) {
       result = result.filter((p) =>
         p.project_title.toLowerCase().includes(searchTerm.toLowerCase()) ||

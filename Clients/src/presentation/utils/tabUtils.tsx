@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import { ReactNode } from "react";
 
 export interface TabLabelWithCountOptions {
@@ -6,8 +6,18 @@ export interface TabLabelWithCountOptions {
   count?: number;
   showZero?: boolean;
   isLoading?: boolean;
-  chipSx?: object;
+  chipSx?: SxProps<Theme>;
+  icon?: ReactNode;
 }
+
+// Constants for consistent badge styling
+const BADGE_MIN_WIDTH = '22px';
+const BADGE_HEIGHT = '22px';
+const BADGE_FONT_SIZE = '10px';
+const BADGE_COLOR = '#047857';
+const BADGE_BG_COLOR = '#D1FAE5';
+const BADGE_BORDER_RADIUS = '11px';
+const MAX_DISPLAY_COUNT = 99;
 
 /**
  * Creates a tab label with an optional count badge.
@@ -15,9 +25,10 @@ export interface TabLabelWithCountOptions {
  * @param options - Configuration options for the tab label
  * @param options.label - The text label for the tab
  * @param options.count - Optional count to display in a chip badge
- * @param options.showZero - Whether to show the chip when count is 0 (default: false)
+ * @param options.showZero - Whether to show the chip when count is 0 (default: true)
  * @param options.isLoading - Hide the chip during loading states (default: false)
  * @param options.chipSx - Optional custom styles for the chip
+ * @param options.icon - Optional icon to display before the label
  *
  * @returns A ReactNode that can be passed to MUI Tab's label prop
  *
@@ -51,47 +62,50 @@ export const createTabLabelWithCount = ({
   showZero = true,
   isLoading = false,
   chipSx,
+  icon,
 }: TabLabelWithCountOptions): ReactNode => {
   const shouldShowChip = !isLoading &&
                          count !== undefined &&
                          (showZero || count > 0);
 
-  // Always return Box wrapper for consistent alignment across all tabs
+  // Return Box wrapper for consistent alignment across all tabs
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minHeight: '22px' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minHeight: BADGE_HEIGHT }}>
+      {icon && (
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: '4px',
+            opacity: 0.7,
+          }}
+        >
+          {icon}
+        </Box>
+      )}
       {label}
-      {shouldShowChip ? (
+      {shouldShowChip && (
         <Box
           component="span"
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            minWidth: '22px',
-            height: '22px',
+            minWidth: BADGE_MIN_WIDTH,
+            height: BADGE_HEIGHT,
             padding: '0 6px',
-            fontSize: '10px',
+            fontSize: BADGE_FONT_SIZE,
             fontWeight: 600,
-            color: '#047857',
-            backgroundColor: '#D1FAE5',
-            borderRadius: '11px',
+            color: BADGE_COLOR,
+            backgroundColor: BADGE_BG_COLOR,
+            borderRadius: BADGE_BORDER_RADIUS,
             lineHeight: 1,
             ...chipSx, // Allow custom overrides
           }}
         >
-          {count! > 99 ? "99+" : count}
+          {count > MAX_DISPLAY_COUNT ? `${MAX_DISPLAY_COUNT}+` : count}
         </Box>
-      ) : (
-        // Invisible placeholder to maintain consistent height
-        <Box
-          component="span"
-          sx={{
-            display: 'inline-flex',
-            minWidth: '22px',
-            height: '22px',
-            visibility: 'hidden',
-          }}
-        />
       )}
     </Box>
   );

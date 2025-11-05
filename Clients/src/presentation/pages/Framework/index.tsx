@@ -13,6 +13,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
@@ -29,6 +30,7 @@ import FrameworkRisks from "./FrameworkRisks";
 import FrameworkLinkedModels from "./FrameworkLinkedModels";
 import PageTour from "../../components/PageTour";
 import FrameworkSteps from "./FrameworkSteps";
+import TabBar from "../../components/TabBar";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -571,45 +573,40 @@ const Framework = () => {
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
+        <>
         <TabContext value={mainTabValue}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }} data-joyride-id="framework-main-tabs">
-            <TabList
-              onChange={handleMainTabChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={tabListStyle}
-            >
-              <Tab
-                label="Dashboard"
-                value="dashboard"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                label="Framework risks"
-                value="framework-risks"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                label="Linked models"
-                value="linked-models"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                label="Controls and Requirements"
-                value="controls"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                label="Settings"
-                value="settings"
-                sx={tabStyle}
-                disableRipple
-              />
-            </TabList>
-          </Box>
+          <TabBar
+            tabs={[
+              {
+                label: "Dashboard",
+                value: "dashboard",
+                icon: "LayoutDashboard",
+              },
+              {
+                label: "Framework risks",
+                value: "framework-risks",
+                icon: "AlertTriangle",
+              },
+              {
+                label: "Linked models",
+                value: "linked-models",
+                icon: "Link",
+              },
+              {
+                label: "Controls and Requirements",
+                value: "controls",
+                icon: "FileCode",
+              },
+              {
+                label: "Settings",
+                value: "settings",
+                icon: "Settings",
+              },
+            ]}
+            activeTab={mainTabValue}
+            onChange={handleMainTabChange}
+            dataJoyrideId="framework-main-tabs"
+          />
 
           <TabPanel value="dashboard" sx={tabPanelStyle}>
             <Box data-joyride-id="framework-dashboard">
@@ -670,6 +667,7 @@ const Framework = () => {
             />
           </TabPanel>
         </TabContext>
+        </>
       )}
 
       {/* Show message when no organizational project exists */}

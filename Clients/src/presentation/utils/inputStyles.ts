@@ -56,7 +56,7 @@ export const getInputStyles = (theme: Theme, options: InputStylesOptions = {}) =
 
   // Color definitions
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#98A2B3';
+  const hoverBorder = hoverBorderColor || '#5FA896';
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`; // 10% opacity
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -121,7 +121,7 @@ export const getSelectStyles = (theme: Theme, options: InputStylesOptions = {}) 
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#98A2B3';
+  const hoverBorder = hoverBorderColor || '#5FA896';
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -191,7 +191,7 @@ export const getAutocompleteStyles = (theme: Theme, options: InputStylesOptions 
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#98A2B3';
+  const hoverBorder = hoverBorderColor || '#5FA896';
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -253,7 +253,7 @@ export const getSearchBoxStyles = (theme: Theme, options: InputStylesOptions = {
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#98A2B3';
+  const hoverBorder = hoverBorderColor || '#5FA896';
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
 

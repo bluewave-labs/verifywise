@@ -675,7 +675,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 outline: "1px solid transparent",
                 outlineOffset: "-1px",
                 "&:hover": {
-                  borderColor: "#98A2B3",
+                  borderColor: "#5FA896",
                 },
                 "&:focus-within": {
                   borderColor: "#13715B",

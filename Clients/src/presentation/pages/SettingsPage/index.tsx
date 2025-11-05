@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Box, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import Tab from "@mui/material/Tab";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";

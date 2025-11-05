@@ -48,9 +48,7 @@ import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.m
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
-import { IconButton, InputBase } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
-import { searchBoxStyle, inputStyle } from "./style";
+import { SearchBox } from "../../components/Search";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
@@ -116,7 +114,6 @@ const ModelInventory: React.FC = () => {
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Determine the active tab based on the URL
@@ -864,29 +861,14 @@ const ModelInventory: React.FC = () => {
                   />
                 </div>
 
-                {/* Expandable Search */}
-                <Box sx={searchBoxStyle(isSearchBarVisible)} data-joyride-id="model-search">
-                  <IconButton
-                    disableRipple
-                    disableFocusRipple
-                    sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                    aria-label="Toggle search"
-                    aria-expanded={isSearchBarVisible}
-                    onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                  >
-                    <SearchIcon size={16} />
-                  </IconButton>
-
-                  {isSearchBarVisible && (
-                    <InputBase
-                      autoFocus
-                      placeholder="Search models..."
-                      inputProps={{ "aria-label": "Search models" }}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      sx={inputStyle(isSearchBarVisible)}
-                    />
-                  )}
+                {/* Search */}
+                <Box sx={{ width: 300 }} data-joyride-id="model-search">
+                  <SearchBox
+                    placeholder="Search models..."
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    inputProps={{ "aria-label": "Search models" }}
+                  />
                 </Box>
               </Stack>
 

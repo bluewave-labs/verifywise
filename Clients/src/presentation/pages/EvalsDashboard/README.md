@@ -1,8 +1,8 @@
-# LLM Evals Dashboard
+# LLM Evaluations Dashboard
 
 ## Overview
 
-The LLM Evals Dashboard is a comprehensive evaluation platform for testing and monitoring Large Language Model performance using DeepEval's LLM-as-a-Judge methodology.
+The LLM Evaluations Dashboard is a comprehensive evaluation platform for testing and monitoring Large Language Model performance using LLM-as-a-Judge methodology.
 
 ## Features
 
@@ -77,7 +77,7 @@ Backend (Python/FastAPI)
 
 Evaluation Engine (Python)
 └── EvaluationModule/
-    └── src/deepeval_engine/    # Core DeepEval logic
+    └── src/deepeval_engine/    # Core evaluation logic
 ```
 
 ## API Endpoints

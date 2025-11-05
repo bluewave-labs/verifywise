@@ -26,6 +26,7 @@ import FairnessDashboard from "../../presentation/pages/FairnessDashboard/Fairne
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
+import ExperimentDetail from "../../presentation/pages/EvalsDashboard/ExperimentDetail";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
@@ -79,6 +80,7 @@ export const createRoutes = (
     <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
+    <Route path="/evals/:projectId/experiment/:experimentId" element={<ExperimentDetail />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />

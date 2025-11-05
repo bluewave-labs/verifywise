@@ -77,6 +77,18 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               {row.model}
             </TableCell>
+            {row.judge !== undefined && (
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  textTransform: "none",
+                }}
+              >
+                {row.judge || "-"}
+              </TableCell>
+            )}
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,

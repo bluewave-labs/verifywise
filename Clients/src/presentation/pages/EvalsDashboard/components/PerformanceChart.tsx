@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import {
   LineChart,
@@ -16,58 +16,63 @@ interface PerformanceChartProps {
 }
 
 export default function PerformanceChart({ projectId }: PerformanceChartProps) {
-  const [data, setData] = useState<any[]>([]);
+  type ChartPoint = {
+    name: string;
+    answerRelevancy: number | null;
+    bias: number | null;
+    toxicity: number | null;
+    faithfulness: number | null;
+    hallucination: number | null;
+    contextualRelevancy: number | null;
+  };
+  const [data, setData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPerformanceData();
-  }, [projectId]);
-
-  const loadPerformanceData = async () => {
+// Static imports for Vite
+  const loadPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
-      // TODO: Load actual performance history from API
-      // For now, using mock data
-      const mockData = [
-        {
-          name: "Run 1",
-          answerRelevancy: 0.72,
-          bias: 0.05,
-          toxicity: 0.02,
-        },
-        {
-          name: "Run 2",
-          answerRelevancy: 0.78,
-          bias: 0.03,
-          toxicity: 0.01,
-        },
-        {
-          name: "Run 3",
-          answerRelevancy: 0.85,
-          bias: 0.02,
-          toxicity: 0.01,
-        },
-        {
-          name: "Run 4",
-          answerRelevancy: 0.82,
-          bias: 0.03,
-          toxicity: 0.02,
-        },
-        {
-          name: "Run 5",
-          answerRelevancy: 0.88,
-          bias: 0.01,
-          toxicity: 0.00,
-        },
-      ];
+      const { experimentsService, metricsService } = await import("../../../../infrastructure/api/evaluationLogsService");
+      const expsResp = await experimentsService.getAllExperiments({ project_id: projectId });
+      const metsResp = await metricsService.getMetrics({ project_id: projectId });
+      const experiments = expsResp.experiments || [];
+      const metrics = metsResp.metrics || [];
 
-      setData(mockData);
-    } catch (err: any) {
+      // Group metrics by experiment
+      const byExp: Record<string, Record<string, number>> = {};
+      metrics.forEach((m: { experiment_id?: string; metric_name: string; value: number }) => {
+        const expId = m.experiment_id;
+        if (!expId) return;
+        if (!byExp[expId]) byExp[expId] = {};
+        byExp[expId][m.metric_name] = m.value;
+      });
+
+      const sorted = [...experiments].sort((a: { created_at: string }, b: { created_at: string }) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      const chart: ChartPoint[] = sorted.map((exp: { id: string }, idx: number) => {
+        const m = byExp[exp.id] || {};
+        return {
+          name: `Run ${idx + 1}`,
+          answerRelevancy: m["answer_relevancy"] ?? null,
+          bias: m["bias"] ?? null,
+          toxicity: m["toxicity"] ?? null,
+          faithfulness: m["faithfulness"] ?? null,
+          hallucination: m["hallucination"] ?? null,
+          contextualRelevancy: m["contextual_relevancy"] ?? null,
+        };
+      });
+
+      setData(chart);
+    } catch (err: unknown) {
       console.error("Failed to load performance data:", err);
+      setData([] as ChartPoint[]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    void loadPerformanceData();
+  }, [loadPerformanceData]);
 
   if (loading) {
     return (
@@ -125,6 +130,33 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
             stroke="#f59e0b"
             strokeWidth={2}
             name="Toxicity"
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="faithfulness"
+            stroke="#16a34a"
+            strokeWidth={2}
+            name="Faithfulness"
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="hallucination"
+            stroke="#7c3aed"
+            strokeWidth={2}
+            name="Hallucination"
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="contextualRelevancy"
+            stroke="#0ea5e9"
+            strokeWidth={2}
+            name="Contextual Relevancy"
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
           />

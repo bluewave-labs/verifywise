@@ -51,6 +51,14 @@ class ModelRunner:
             self._load_huggingface_model()
         elif self.provider == "openai":
             self._setup_openai()
+        elif self.provider == "anthropic":
+            self._setup_anthropic()
+        elif self.provider == "gemini":
+            self._setup_gemini()
+        elif self.provider == "xai":
+            self._setup_xai()
+        elif self.provider == "mistral":
+            self._setup_mistral()
         elif self.provider == "ollama":
             self._setup_ollama()
         else:
@@ -87,6 +95,59 @@ class ModelRunner:
         except ImportError:
             raise ImportError("openai package not installed. Install with: pip install openai")
     
+    def _setup_anthropic(self):
+        """Setup Anthropic API."""
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+        
+        try:
+            import anthropic
+            self.anthropic_client = anthropic.Anthropic(api_key=api_key)
+            print(f"✓ Anthropic API configured")
+        except ImportError:
+            raise ImportError("anthropic package not installed. Install with: pip install anthropic")
+    
+    def _setup_gemini(self):
+        """Setup Google Gemini API."""
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set")
+        
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            self.gemini_client = genai.GenerativeModel(self.model_name)
+            print(f"✓ Gemini API configured")
+        except ImportError:
+            raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
+    
+    def _setup_xai(self):
+        """Setup xAI API using official SDK."""
+        api_key = os.getenv("XAI_API_KEY")
+        if not api_key:
+            raise ValueError("XAI_API_KEY environment variable not set")
+        
+        try:
+            from xai_sdk import Client
+            self.xai_client = Client(api_key=api_key)
+            print(f"✓ xAI API configured")
+        except ImportError:
+            raise ImportError("xai-sdk package not installed. Install with: pip install xai-sdk")
+    
+    def _setup_mistral(self):
+        """Setup Mistral API using official SDK."""
+        api_key = os.getenv("MISTRAL_API_KEY")
+        if not api_key:
+            raise ValueError("MISTRAL_API_KEY environment variable not set")
+        
+        try:
+            from mistralai import Mistral
+            self.mistral_client = Mistral(api_key=api_key)
+            print(f"✓ Mistral API configured")
+        except ImportError:
+            raise ImportError("mistralai package not installed. Install with: pip install mistralai")
+    
     def _setup_ollama(self):
         """Setup Ollama."""
         try:
@@ -119,6 +180,14 @@ class ModelRunner:
             return self._generate_huggingface(prompt, max_tokens, temperature, top_p)
         elif self.provider == "openai":
             return self._generate_openai(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "anthropic":
+            return self._generate_anthropic(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "gemini":
+            return self._generate_gemini(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "xai":
+            return self._generate_xai(prompt, max_tokens, temperature, top_p)
+        elif self.provider == "mistral":
+            return self._generate_mistral(prompt, max_tokens, temperature, top_p)
         elif self.provider == "ollama":
             return self._generate_ollama(prompt, max_tokens, temperature, top_p)
         else:
@@ -167,6 +236,84 @@ class ModelRunner:
         )
         
         return response.choices[0].message.content.strip()
+    
+    def _generate_anthropic(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> str:
+        """Generate using Anthropic API."""
+        message = self.anthropic_client.messages.create(
+            model=self.model_name,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return message.content[0].text.strip()
+    
+    def _generate_gemini(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> str:
+        """Generate using Google Gemini API."""
+        generation_config = {
+            "max_output_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+        }
+        response = self.gemini_client.generate_content(
+            prompt,
+            generation_config=generation_config
+        )
+        return response.text.strip()
+    
+    def _generate_xai(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> str:
+        """Generate using xAI official SDK (gRPC-based)."""
+        from xai_sdk.chat import user
+        
+        chat = self.xai_client.chat.create(model=self.model_name)
+        chat.append(user(prompt))
+        response = chat.sample(
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        return response.message.content.strip()
+    
+    def _generate_mistral(
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> str:
+        """Generate using Mistral official SDK."""
+        chat_response = self.mistral_client.chat.complete(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        return chat_response.choices[0].message.content.strip()
     
     def _generate_ollama(
         self,

@@ -23,8 +23,6 @@ from deepeval.metrics import (
 from deepeval import evaluate
 from deepeval.dataset import EvaluationDataset
 
-from ..core.config import ConfigManager
-
 
 class DeepEvalEvaluator:
     """
@@ -41,7 +39,7 @@ class DeepEvalEvaluator:
     
     def __init__(
         self,
-        config_manager: ConfigManager,
+        config_manager: Any = None,  # Made optional for backward compatibility
         output_dir: Optional[str] = None,
         metric_thresholds: Optional[Dict[str, float]] = None,
     ):
@@ -143,8 +141,9 @@ class DeepEvalEvaluator:
             metadata = tc_data["metadata"]
             
             print(f"\n{'='*70}")
-            print(f"[{i}/{len(test_cases_data)}] Evaluating Sample: {metadata['sample_id']}")
-            print(f"Protected Attributes: {metadata['protected_attributes']}")
+            print(f"[{i}/{len(test_cases_data)}] Evaluating Sample: {metadata.get('sample_id', f'sample_{i}')}")
+            if metadata.get('protected_attributes'):
+                print(f"Protected Attributes: {metadata['protected_attributes']}")
             print(f"{'='*70}")
             print(f"Input (truncated): {test_case.input[:200]}...")
             print(f"\nActual Output: {test_case.actual_output}")
@@ -158,6 +157,7 @@ class DeepEvalEvaluator:
             for metric_name, metric in metrics_to_use:
                 try:
                     print(f"  Evaluating {metric_name}...", end=" ")
+                    
                     metric.measure(test_case)
                     score = metric.score
                     passed = metric.is_successful()
@@ -173,7 +173,8 @@ class DeepEvalEvaluator:
                     print(f"{status} (score: {score:.3f})")
                     
                 except Exception as e:
-                    print(f"✗ Error: {str(e)}")
+                    error_msg = str(e)
+                    print(f"✗ Error: {error_msg}")
                     metric_scores[metric_name] = {
                         "score": None,
                         "passed": False,
@@ -186,8 +187,8 @@ class DeepEvalEvaluator:
             word_count = len(test_case.actual_output.split())
             
             result = {
-                "sample_id": metadata["sample_id"],
-                "protected_attributes": metadata["protected_attributes"],
+                "sample_id": metadata.get("sample_id", f"sample_{i}"),
+                "protected_attributes": metadata.get("protected_attributes", {}),
                 "input": test_case.input,
                 "actual_output": test_case.actual_output,
                 "expected_output": test_case.expected_output,
@@ -293,8 +294,8 @@ class DeepEvalEvaluator:
             word_count = len(test_case.actual_output.split())
             
             result = {
-                "sample_id": metadata["sample_id"],
-                "protected_attributes": metadata["protected_attributes"],
+                "sample_id": metadata.get("sample_id", f"sample_{i+1}"),
+                "protected_attributes": metadata.get("protected_attributes", {}),
                 "input": test_case.input,
                 "actual_output": test_case.actual_output,
                 "expected_output": test_case.expected_output,

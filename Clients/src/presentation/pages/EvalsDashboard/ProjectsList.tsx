@@ -10,6 +10,7 @@ import {
   Typography,
   Chip,
   Stack,
+  Divider,
 } from "@mui/material";
 import { CirclePlus, Beaker, Calendar, Settings } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -17,11 +18,13 @@ import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
+import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
 
 export default function ProjectsList() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<DeepEvalProject[]>([]);
+  const [runsByProject, setRunsByProject] = useState<Record<string, number>>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{
@@ -42,9 +45,34 @@ export default function ProjectsList() {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
       setProjects(data.projects);
+
+      // Fetch run counts for each project in parallel (using experiments API)
+      const statsArray = await Promise.all(
+        (data.projects || []).map(async (p) => {
+          try {
+            const res = await experimentsService.getAllExperiments({ project_id: p.id });
+            const total = Array.isArray(res?.experiments) ? res.experiments.length : (res?.length ?? 0);
+            return { id: p.id, total };
+          } catch {
+            // Fallback to project stats if available
+            try {
+              const res = await deepEvalProjectsService.getProjectStats(p.id);
+              return { id: p.id, total: res.stats.totalExperiments ?? 0 };
+            } catch {
+              return { id: p.id, total: 0 };
+            }
+          }
+        })
+      );
+      const counts: Record<string, number> = {};
+      statsArray.forEach((s) => {
+        counts[s.id] = s.total;
+      });
+      setRunsByProject(counts);
     } catch (err) {
       console.error("Failed to load projects:", err);
       setProjects([]);
+      setRunsByProject({});
     }
   };
 
@@ -92,29 +120,35 @@ export default function ProjectsList() {
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header with Create button */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Box>
-          <Typography variant="h4" gutterBottom>
-            DeepEval Projects
+      {/* Header with Description */}
+      <Stack spacing={2} mb={4}>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Comprehensive LLM evaluation platform powered by LLM-as-a-Judge methodology. Create projects to organize your evaluations, configure models and judge LLMs, select datasets, and run experiments with multiple fairness and performance metrics. Each project can contain multiple evaluation runs with different configurations to help you systematically assess model behavior, detect bias, and ensure quality outputs.
+        </Typography>
+
+        <Divider sx={{ mt: 3 }} />
+
+        {/* Projects Title - Below Divider */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Projects
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Organize your LLM evaluations into projects
-          </Typography>
-        </Box>
-        <CustomizableButton
-          onClick={() => setCreateModalOpen(true)}
-          variant="contained"
-          startIcon={<CirclePlus size={20} />}
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#13715B",
-            "&:hover": { backgroundColor: "#0f5a47" },
-          }}
-        >
-          Create Project
-        </CustomizableButton>
-      </Box>
+          
+          {/* Create Project Button - Right Aligned */}
+          <CustomizableButton
+            onClick={() => setCreateModalOpen(true)}
+            variant="contained"
+            startIcon={<CirclePlus size={20} />}
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "0f5a47" },
+            }}
+          >
+            Create project
+          </CustomizableButton>
+        </Stack>
+      </Stack>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
@@ -144,7 +178,7 @@ export default function ProjectsList() {
             color="text.secondary"
             sx={{ mb: 4, fontSize: "14px", maxWidth: 480, lineHeight: 1.6, color: "#6B7280" }}
           >
-            Create your first DeepEval project to start evaluating LLMs. Each project can contain multiple experiments with different configurations.
+            Create your first project to start evaluating LLMs. Each project can contain multiple experiments with different configurations.
           </Typography>
           <CustomizableButton
             variant="contained"
@@ -153,14 +187,14 @@ export default function ProjectsList() {
             sx={{
               textTransform: "none",
               backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0f5a47" },
+              "&:hover": { backgroundColor: "0f5a47" },
               fontSize: "14px",
               fontWeight: 500,
               px: 3,
               py: 1.25,
             }}
           >
-            Create Your First Project
+            Create your first project
           </CustomizableButton>
         </Box>
       ) : (
@@ -186,7 +220,7 @@ export default function ProjectsList() {
               >
                 <CardContent sx={{ flexGrow: 1, p: 3 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                    <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600, color: "#111827" }}>
+                    <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
                       {project.name}
                     </Typography>
                     <Beaker size={20} color="#13715B" strokeWidth={2} />
@@ -208,7 +242,9 @@ export default function ProjectsList() {
                       </Typography>
                     </Box>
                     <Chip
-                      label="0 runs"
+                      label={`${runsByProject[project.id] ?? 0} ${
+                        (runsByProject[project.id] ?? 0) === 1 ? "run" : "runs"
+                      }`}
                       size="small"
                       sx={{
                         fontSize: "11px",
@@ -229,7 +265,7 @@ export default function ProjectsList() {
                       fontSize: "13px",
                       color: "#6B7280",
                       fontWeight: 500,
-                      "&:hover": { backgroundColor: "#F9FAFB" },
+                      "&:hover": { backgroundColor: "F9FAFB" },
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -268,10 +304,10 @@ export default function ProjectsList() {
       <StandardModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title="Create DeepEval Project"
+        title="Create project"
         description="Create a new project to organize your LLM evaluations"
         onSubmit={handleCreateProject}
-        submitButtonText="Create Project"
+        submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
@@ -299,4 +335,3 @@ export default function ProjectsList() {
     </Box>
   );
 }
-

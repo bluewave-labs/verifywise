@@ -1,97 +1,186 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
-import { Play, Eye, Trash2, TrendingUp } from "lucide-react";
-import { deepEvalService } from "../../../infrastructure/api/deepEvalService";
-import PerformanceChart from "./components/PerformanceChart";
-import StandardModal from "../../components/Modals/StandardModal";
+import { Box, Card, CardContent, Typography } from "@mui/material";
+import { Play, TrendingUp } from "lucide-react";
+import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
+import NewExperimentModal from "./NewExperimentModal";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import { useNavigate } from "react-router-dom";
+import EvaluationTable from "../../components/Table/EvaluationTable";
+import PerformanceChart from "./components/PerformanceChart";
+import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
 
 interface ProjectExperimentsProps {
   projectId: string;
 }
 
+interface ExperimentWithMetrics extends Experiment {
+  avgMetrics?: Record<string, number>;
+  sampleCount?: number;
+}
+
+interface AlertState {
+  variant: "success" | "error";
+  body: string;
+}
+
 export default function ProjectExperiments({ projectId }: ProjectExperimentsProps) {
-  const [experiments, setExperiments] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
-  const [runModalOpen, setRunModalOpen] = useState(false);
-  const [alert, setAlert] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
   useEffect(() => {
     loadExperiments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   const loadExperiments = async () => {
     try {
       setLoading(true);
-      const data = await deepEvalService.getAllEvaluations();
-      // TODO: Filter by projectId on backend
-      setExperiments(data.evaluations);
-    } catch (err: any) {
+      const data = await experimentsService.getAllExperiments({ 
+        project_id: projectId
+      });
+      
+      // Load metrics for each experiment
+      const experimentsWithMetrics = await Promise.all(
+        (data.experiments || []).map(async (exp: Experiment) => {
+          try {
+            // Get logs for this experiment to calculate metrics
+            const logsData = await evaluationLogsService.getLogs({ 
+              experiment_id: exp.id, 
+              limit: 1000 
+            });
+            
+            const logs = logsData.logs || [];
+            
+            // Calculate average metrics from logs
+            const metricsSum: Record<string, { sum: number; count: number }> = {};
+            logs.forEach((log: EvaluationLog) => {
+              if (log.metadata?.metric_scores) {
+                Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+                  if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
+                    const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
+                    if (typeof scoreValue === "number") {
+                      if (!metricsSum[key]) {
+                        metricsSum[key] = { sum: 0, count: 0 };
+                      }
+                      metricsSum[key].sum += scoreValue;
+                      metricsSum[key].count += 1;
+                    }
+                  }
+                });
+              }
+            });
+            
+            const avgMetrics: Record<string, number> = {};
+            Object.entries(metricsSum).forEach(([key, { sum, count }]) => {
+              avgMetrics[key] = count > 0 ? sum / count : 0;
+            });
+            
+            return {
+              ...exp,
+              avgMetrics,
+              sampleCount: logs.length,
+            };
+          } catch {
+            return {
+              ...exp,
+              avgMetrics: {},
+              sampleCount: 0,
+            };
+          }
+        })
+      );
+      
+      setExperiments(experimentsWithMetrics);
+    } catch (err) {
       console.error("Failed to load experiments:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRunExperiment = async () => {
-    // TODO: Open configuration and run
-    setRunModalOpen(false);
+  const handleViewExperiment = (row: IEvaluationRow) => {
+    navigate(`/evals/${projectId}/experiment/${row.id}`);
   };
 
-  const handleViewExperiment = (evalId: string) => {
-    // TODO: Navigate to detailed view
-    console.log("View experiment:", evalId);
-  };
-
-  const handleDeleteExperiment = async (evalId: string) => {
-    if (!window.confirm("Delete this experiment?")) return;
-
+  const handleDeleteExperiment = async (experimentId: string) => {
+    // Confirmation is handled by ConfirmableDeleteIconButton
     try {
-      await deepEvalService.deleteEvaluation(evalId);
-      setAlert({ variant: "success", body: "Experiment deleted" });
+      await experimentsService.deleteExperiment(experimentId);
+      setAlert({ variant: "success", body: "Eval deleted" });
       setTimeout(() => setAlert(null), 3000);
       loadExperiments();
-    } catch (err: any) {
+    } catch {
       setAlert({ variant: "error", body: "Failed to delete" });
       setTimeout(() => setAlert(null), 5000);
     }
   };
 
+  const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
+    const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } };
+    const cfgForState: Record<string, unknown> = {
+      model: { name: cfg.model?.name },
+      judgeLlm: { model: cfg.judgeLlm?.model, provider: cfg.judgeLlm?.provider },
+    };
+    setExperiments((prev) => [
+      ({
+        id: exp.id,
+        project_id: projectId,
+        name: cfg.model?.name || exp.id,
+        description: `Pending eval for ${cfg.model?.name || "model"}`,
+        config: cfgForState,
+        baseline_experiment_id: undefined,
+        status: "running",
+        results: undefined,
+        error_message: undefined,
+        started_at: exp.created_at,
+        completed_at: undefined,
+        created_at: exp.created_at || new Date().toISOString(),
+        updated_at: exp.created_at || new Date().toISOString(),
+        tenant: "",
+        created_by: undefined,
+        avgMetrics: {},
+        sampleCount: 0,
+      } as unknown as ExperimentWithMetrics),
+      ...prev,
+    ]);
+  };
+
+  // Transform to table format (exact match to Bias & Fairness structure)
+  const tableColumns = ["EVAL ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
+  
+  const tableRows: IEvaluationRow[] = experiments.map((exp) => ({
+    id: exp.id,
+    model: exp.config?.model?.name || exp.name || "Unknown",
+    judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
+    dataset: `${exp.sampleCount || 0} samples`,
+    status: 
+      exp.status === "completed" ? "Completed" :
+      exp.status === "failed" ? "Failed" :
+      exp.status === "running" ? "Running" :
+      "Pending",
+  }));
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header with Run button */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h5">Experiments</Typography>
-        <Button
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4} gap={2}>
+        <CustomizableButton
           variant="contained"
-          startIcon={<Play size={20} />}
-          onClick={() => setRunModalOpen(true)}
+          text="New Eval"
+          icon={<Play size={16} />}
           sx={{
-            textTransform: "none",
             backgroundColor: "#13715B",
-            "&:hover": { backgroundColor: "#0f5a47" },
+            border: "1px solid #13715B",
+            gap: 2,
           }}
-        >
-          New Experiment
-        </Button>
+          onClick={() => setNewEvalModalOpen(true)}
+        />
       </Box>
 
       {/* Performance Chart */}
@@ -102,146 +191,38 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
             <Typography variant="h6">Performance Tracking</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Track metric scores across experiment runs
+            Track metric scores across eval runs
           </Typography>
 
           <PerformanceChart projectId={projectId} />
         </CardContent>
       </Card>
 
-      {/* Experiments Table (Braintrust-style) */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            All Experiments
-          </Typography>
+      {/* Evals Table with Pagination */}
+      <Box mb={4}>
+        <EvaluationTable
+          columns={tableColumns}
+          rows={tableRows}
+          removeModel={{
+            onConfirm: handleDeleteExperiment,
+          }}
+          page={currentPage}
+          setCurrentPagingation={setCurrentPage}
+          onShowDetails={handleViewExperiment}
+        />
+      </Box>
 
-          <TableContainer component={Paper} variant="outlined">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Run ID</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="right">Answer Relevancy</TableCell>
-                  <TableCell align="right">Bias</TableCell>
-                  <TableCell align="right">Toxicity</TableCell>
-                  <TableCell align="right">Samples</TableCell>
-                  <TableCell>Created</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {experiments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      <Box py={4}>
-                        <Typography variant="body2" color="text.secondary">
-                          No experiments yet. Click "New Experiment" to get started.
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  experiments.map((exp) => (
-                    <TableRow
-                      key={exp.evalId}
-                      sx={{
-                        "&:hover": { bgcolor: "action.hover", cursor: "pointer" },
-                      }}
-                      onClick={() => handleViewExperiment(exp.evalId)}
-                    >
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600}>
-                          {exp.evalId}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={exp.status}
-                          size="small"
-                          color={
-                            exp.status === "completed"
-                              ? "success"
-                              : exp.status === "failed"
-                              ? "error"
-                              : exp.status === "running"
-                              ? "warning"
-                              : "default"
-                          }
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        {exp.metrics?.answerRelevancy?.toFixed(2) || "-"}
-                      </TableCell>
-                      <TableCell align="right">
-                        {exp.metrics?.bias?.toFixed(2) || "-"}
-                      </TableCell>
-                      <TableCell align="right">
-                        {exp.metrics?.toxicity?.toFixed(2) || "-"}
-                      </TableCell>
-                      <TableCell align="right">{exp.totalSamples || 0}</TableCell>
-                      <TableCell>
-                        {new Date(exp.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="View Details">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewExperiment(exp.evalId);
-                            }}
-                          >
-                            <Eye size={16} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteExperiment(exp.evalId);
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
-
-      {/* Run Experiment Modal (simplified for now) */}
-      <StandardModal
-        isOpen={runModalOpen}
-        onClose={() => setRunModalOpen(false)}
-        title="Run New Experiment"
-        description="Run a new evaluation experiment"
-      >
-        <Box sx={{ p: 3, textAlign: "center" }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            This will run an evaluation using the project's configured settings.
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handleRunExperiment}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0f5a47" },
-            }}
-          >
-            Run Experiment
-          </Button>
-        </Box>
-      </StandardModal>
+      {/* New Eval Modal */}
+      <NewExperimentModal
+        isOpen={newEvalModalOpen}
+        onClose={() => setNewEvalModalOpen(false)}
+        projectId={projectId}
+        onSuccess={() => {
+          setNewEvalModalOpen(false);
+          loadExperiments();
+        }}
+        onStarted={handleStarted}
+      />
     </Box>
   );
 }
-

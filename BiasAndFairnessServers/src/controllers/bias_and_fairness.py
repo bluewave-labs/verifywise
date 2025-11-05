@@ -520,14 +520,29 @@ async def run_bias_fairness_evaluation(job_id: int, config_path: str, eval_id: s
         print(f"Working directory: {module_dir}")
         print(f"Config path: {config_path}")
 
-        # Run the evaluation using the complete pipeline in the module directory
-        result = subprocess.run(
-            [python_exec, "run_full_evaluation.py"],
-            capture_output=True,
-            text=True,
-            cwd=str(module_dir),
-            timeout=1800  # 30 minute timeout
-        )
+        # Run the evaluation using the complete pipeline in the module directory without blocking the event loop
+        import asyncio as _asyncio
+        try:
+            proc = await _asyncio.create_subprocess_exec(
+                python_exec,
+                "run_full_evaluation.py",
+                cwd=str(module_dir),
+                stdout=_asyncio.subprocess.PIPE,
+                stderr=_asyncio.subprocess.PIPE,
+            )
+            try:
+                stdout_bytes, stderr_bytes = await _asyncio.wait_for(proc.communicate(), timeout=1800)
+            except _asyncio.TimeoutError:
+                proc.kill()
+                await proc.wait()
+                stdout_bytes, stderr_bytes = b"", b"Timeout"
+            result = type("Obj", (), {
+                "returncode": proc.returncode,
+                "stdout": stdout_bytes.decode(errors="ignore"),
+                "stderr": stderr_bytes.decode(errors="ignore"),
+            })
+        except Exception as e:
+            result = type("Obj", (), {"returncode": 1, "stdout": "", "stderr": str(e)})
         
         if result.returncode == 0:
             # Read the results

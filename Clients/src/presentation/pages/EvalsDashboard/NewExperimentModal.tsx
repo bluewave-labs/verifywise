@@ -10,7 +10,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  IconButton,
   Tooltip,
   Radio,
   RadioGroup,
@@ -20,6 +19,8 @@ import {
 import { Check, ChevronDown, Trash2 } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
+import Checkbox from "../../components/Inputs/Checkbox";
+import Alert from "../../components/Alert";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -31,12 +32,14 @@ import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.s
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
+import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
   onSuccess: () => void;
+  onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
 }
 
 const steps = ["Model", "Dataset", "Judge LLM", "Metrics"];
@@ -44,11 +47,21 @@ const steps = ["Model", "Dataset", "Judge LLM", "Metrics"];
 export default function NewExperimentModal({
   isOpen,
   onClose,
+  projectId,
   onSuccess,
+  onStarted,
 }: NewExperimentModalProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const formFieldsRef = useRef<HTMLDivElement>(null);
+  
+  // Alert state for showing success/error messages
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    variant: "success" | "error" | "info" | "warning";
+    title: string;
+    body: string;
+  } | null>(null);
 
   // Dataset prompts state
   interface DatasetPrompt {
@@ -92,8 +105,9 @@ export default function NewExperimentModal({
       answerRelevancy: true,
       bias: true,
       toxicity: true,
-      faithfulness: false,
-      hallucination: false,
+      faithfulness: true,
+      hallucination: true,
+      contextualRelevancy: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -101,6 +115,7 @@ export default function NewExperimentModal({
       toxicity: 0.5,
       faithfulness: 0.5,
       hallucination: 0.5,
+      contextualRelevancy: 0.5,
     },
   });
 
@@ -225,15 +240,86 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // TODO: Call API to create experiment
-      console.log("Creating experiment with config:", config);
-      console.log("Dataset prompts:", datasetPrompts);
+      // Prepare experiment configuration
+      const experimentConfig = {
+        project_id: projectId,
+        name: `${config.model.name} - ${new Date().toLocaleDateString()}`,
+        description: `Evaluating ${config.model.name} with ${datasetPrompts.length} prompts`,
+        config: {
+          project_id: projectId,  // Include in config for runner
+          model: {
+            name: config.model.name,
+            accessMethod: config.model.accessMethod,
+            endpointUrl: config.model.endpointUrl,
+            apiKey: config.model.apiKey || undefined, // Send actual key to runner, backend won't store it
+            modelPath: config.model.modelPath,
+          },
+          judgeLlm: {
+            provider: config.judgeLlm.provider,
+            model: config.judgeLlm.model,
+            apiKey: config.judgeLlm.apiKey || undefined, // Send actual key to runner, backend won't store it
+            temperature: config.judgeLlm.temperature,
+            maxTokens: config.judgeLlm.maxTokens,
+          },
+          dataset: {
+            useBuiltin: config.dataset.useBuiltin,
+            prompts: datasetPrompts,
+            count: datasetPrompts.length,
+          },
+          metrics: config.metrics,
+          thresholds: config.thresholds,
+        },
+      };
+
+      console.log("Creating experiment:", experimentConfig);
+
+      // Create experiment via API
+      const response = await experimentsService.createExperiment(experimentConfig);
+      console.log("Experiment created:", response);
+
+      // Optimistically notify parent so the table shows a pending row immediately
+      if (onStarted && response?.experiment?.id) {
+        onStarted({
+          id: response.experiment.id,
+          config: experimentConfig.config,
+          status: "running",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      // Show success message
+      setAlert({
+        show: true,
+        variant: "success",
+        title: "Eval Created!",
+        body: `Your evaluation has been created and is now running. Eval ID: ${response.experiment?.id || "N/A"}`,
+      });
       
-      onSuccess();
-      onClose();
-      resetForm();
+      // Close modal after a short delay to let user see the success message
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+        resetForm();
+        setAlert(null);
+      }, 2000);
     } catch (err) {
       console.error("Failed to create experiment:", err);
+      
+      // Extract error message
+      let errorMessage = "Failed to create eval. Please try again.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "object" && err !== null && "response" in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        errorMessage = axiosError.response?.data?.detail || errorMessage;
+      }
+      
+      setAlert({
+        show: true,
+        variant: "error",
+        title: "Eval Creation Failed",
+        body: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -268,8 +354,9 @@ export default function NewExperimentModal({
         answerRelevancy: true,
         bias: true,
         toxicity: true,
-        faithfulness: false,
-        hallucination: false,
+        faithfulness: true,
+        hallucination: true,
+        contextualRelevancy: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -277,6 +364,7 @@ export default function NewExperimentModal({
         toxicity: 0.5,
         faithfulness: 0.5,
         hallucination: 0.5,
+        contextualRelevancy: 0.5,
       },
     });
   };
@@ -646,16 +734,27 @@ export default function NewExperimentModal({
                             {index + 1}. {prompt.prompt.substring(0, 50)}...
                           </Typography>
                           <Tooltip title="Remove prompt">
-                            <IconButton
-                              size="small"
+                            <Box
+                              component="span"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleRemovePrompt(prompt.id);
                               }}
-                              sx={{ ml: 1 }}
+                              sx={{
+                                ml: 1,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "4px",
+                                borderRadius: "4px",
+                                "&:hover": {
+                                  backgroundColor: "#FFEBEE",
+                                },
+                              }}
                             >
                               <Trash2 size={16} color="#D32F2F" />
-                            </IconButton>
+                            </Box>
                           </Tooltip>
                         </Box>
                       </AccordionSummary>
@@ -928,30 +1027,48 @@ export default function NewExperimentModal({
         );
 
       case 3:
-        // Step 4: Metrics
+        // Step 4: Metrics (all enabled by default, no thresholds UI)
         return (
-          <Stack spacing={4}>
+          <Stack spacing={3}>
             <Typography variant="body2" color="text.secondary">
-              Select the metrics to evaluate your LLM outputs.
+              Choose which metrics to include. All are enabled by default.
             </Typography>
 
             {Object.entries({
-              answerRelevancy: "Answer Relevancy",
-              bias: "Bias Detection",
-              toxicity: "Toxicity Detection",
-              faithfulness: "Faithfulness",
-              hallucination: "Hallucination Detection",
-            }).map(([key, label]) => (
-              <Box key={key}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-                    {label}
-                  </Typography>
-                  <Chip
-                    label={config.metrics[key as keyof typeof config.metrics] ? "Enabled" : "Disabled"}
+              answerRelevancy: {
+                label: "Answer Relevancy",
+                desc: "Measures how relevant the model's answer is to the input.",
+              },
+              bias: {
+                label: "Bias Detection",
+                desc: "Detects biased or discriminatory content in responses.",
+              },
+              toxicity: {
+                label: "Toxicity Detection",
+                desc: "Flags toxic or harmful language in outputs.",
+              },
+              faithfulness: {
+                label: "Faithfulness",
+                desc: "Checks if the answer aligns with provided context.",
+              },
+              hallucination: {
+                label: "Hallucination Detection",
+                desc: "Identifies unsupported or fabricated statements.",
+              },
+              contextualRelevancy: {
+                label: "Contextual Relevancy",
+                desc: "Measures whether retrieved/used context is relevant.",
+              },
+            }).map(([key, meta]) => (
+              <Box key={key} sx={{ mb: 1.5 }}>
+                <Stack spacing={0.5}>
+                  <Checkbox
+                    id={`metric-${key}`}
+                    label={(meta as { label: string }).label}
                     size="small"
-                    color={config.metrics[key as keyof typeof config.metrics] ? "success" : "default"}
-                    onClick={() =>
+                    value={key}
+                    isChecked={config.metrics[key as keyof typeof config.metrics]}
+                    onChange={() =>
                       setConfig((prev) => ({
                         ...prev,
                         metrics: {
@@ -960,26 +1077,15 @@ export default function NewExperimentModal({
                         },
                       }))
                     }
-                    sx={{ cursor: "pointer" }}
                   />
-                </Box>
-                {config.metrics[key as keyof typeof config.metrics] && (
-                  <Field
-                    label="Threshold"
-                    type="number"
-                    value={String(config.thresholds[key as keyof typeof config.thresholds])}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        thresholds: {
-                          ...prev.thresholds,
-                          [key]: parseFloat(e.target.value) || 0.5,
-                        },
-                      }))
-                    }
-                    placeholder="0.0 - 1.0"
-                  />
-                )}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                  >
+                    {(meta as { desc: string }).desc}
+                  </Typography>
+                </Stack>
               </Box>
             ))}
           </Stack>
@@ -1018,25 +1124,39 @@ export default function NewExperimentModal({
   })();
 
   return (
-    <StepperModal
-      isOpen={isOpen}
-      onClose={() => {
-        onClose();
-        resetForm();
-      }}
-      title="Create New Evaluation"
-      steps={steps}
-      activeStep={activeStep}
-      onNext={handleNext}
-      onBack={handleBack}
-      onSubmit={handleSubmit}
-      isSubmitting={loading}
-      canProceed={canProceed}
-      submitButtonText="Start Evaluation"
-      maxWidth="700px"
-    >
-      {renderStepContent()}
-    </StepperModal>
+    <>
+      <StepperModal
+        isOpen={isOpen}
+        onClose={() => {
+          onClose();
+          resetForm();
+          setAlert(null);
+        }}
+        title="Create New Eval"
+        steps={steps}
+        activeStep={activeStep}
+        onNext={handleNext}
+        onBack={handleBack}
+        onSubmit={handleSubmit}
+        isSubmitting={loading}
+        canProceed={canProceed}
+        submitButtonText="Start Eval"
+        maxWidth="700px"
+      >
+        {renderStepContent()}
+      </StepperModal>
+      
+      {/* Alert toast for success/error messages */}
+      {alert?.show && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast
+          onClick={() => setAlert(null)}
+        />
+      )}
+    </>
   );
 }
 

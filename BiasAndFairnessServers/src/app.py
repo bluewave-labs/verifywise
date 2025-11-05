@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.bias_and_fairness import router as bias_and_fairness
 from routers.deepeval import router as deepeval
 from routers.deepeval_projects import router as deepeval_projects
+from routers.evaluation_logs import router as evaluation_logs
 from middlewares.middleware import TenantMiddleware
 from database.redis import close_redis
 from alembic.config import Config
@@ -48,6 +49,7 @@ def root():
 app.include_router(bias_and_fairness, prefix="/bias_and_fairness", tags=["Bias and Fairness"])
 app.include_router(deepeval, prefix="/deepeval", tags=["DeepEval"])
 app.include_router(deepeval_projects, prefix="/deepeval", tags=["DeepEval Projects"])
+app.include_router(evaluation_logs, tags=["Evaluation Logs & Monitoring"])
 
 if __name__ == "__main__":
     import uvicorn

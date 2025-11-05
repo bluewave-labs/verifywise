@@ -3,12 +3,21 @@ import {
   Box,
   Typography,
   CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
-import { Play, Beaker } from "lucide-react";
+import { Play, Beaker, TrendingUp } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
+import { experimentsService, type Experiment } from "../../../infrastructure/api/evaluationLogsService";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -21,8 +30,10 @@ export default function ProjectOverview({
   project,
   onProjectUpdate,
 }: ProjectOverviewProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{ totalExperiments: number; lastRunDate: string | null; avgMetrics: Record<string, number> } | null>(null);
+  const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
   const loadOverviewData = useCallback(async () => {
@@ -35,9 +46,14 @@ export default function ProjectOverview({
         onProjectUpdate(projectData.project);
       }
 
-      // Load project stats
-      const statsData = await deepEvalProjectsService.getProjectStats(projectId);
+      // Load project stats and experiments
+      const [statsData, experimentsData] = await Promise.all([
+        deepEvalProjectsService.getProjectStats(projectId),
+        experimentsService.getExperiments({ project_id: projectId, limit: 10 }),
+      ]);
+      
       setStats(statsData.stats);
+      setExperiments(experimentsData.experiments || []);
     } catch (err) {
       console.error("Failed to load overview data:", err);
     } finally {
@@ -162,14 +178,24 @@ export default function ProjectOverview({
             backgroundColor: "#FFFFFF",
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, fontSize: "15px" }}>
-            Evaluation
-          </Typography>
+          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "15px" }}>
+              Evaluation
+            </Typography>
+            {hasExperiments && (
+              <CustomizableButton
+                variant="outlined"
+                text="Go to Evals"
+                onClick={() => navigate(`/evals/${projectId}#experiments`)}
+                sx={{ textTransform: "none", fontSize: "12px", height: 30, px: 1.5 }}
+              />
+            )}
+          </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: "13px" }}>
-            Experiment score progress
+            Eval score progress
           </Typography>
 
-          {!hasExperiments ? (
+          {!hasExperiments || experiments.length === 0 ? (
             /* Empty state */
             <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
               <Box sx={{ mb: 3 }}>
@@ -179,19 +205,19 @@ export default function ProjectOverview({
                 variant="subtitle2"
                 sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
               >
-                No experiments yet
+                No evals yet
               </Typography>
               <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
               >
-                Run your first experiment to start evaluating your LLM. Configure your model, dataset, and metrics to get started.
+                Run your first eval to start evaluating your LLM. Configure your model, dataset, and metrics to get started.
               </Typography>
               <CustomizableButton
                 onClick={handleNewExperiment}
                 variant="contained"
-                text="Run first experiment"
+                text="Run first eval"
                 icon={<Play size={16} />}
                 sx={{
                   backgroundColor: "#13715B",
@@ -204,15 +230,48 @@ export default function ProjectOverview({
               />
             </Box>
           ) : (
-            /* Show experiments summary when data exists */
+            /* Evals list (Braintrust style) */
             <Box>
-              <Typography variant="h5" sx={{ mb: 3 }}>
-                {stats?.totalExperiments ?? 0} Experiments
-              </Typography>
-              {/* TODO: Add performance chart and experiment list here when data exists */}
-              <Typography variant="body2" color="text.secondary">
-                Experiment data will appear here
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                <TrendingUp size={16} color="#13715B" />
+                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "13px" }}>
+                  {experiments.length} Eval{experiments.length !== 1 ? "s" : ""}
+                </Typography>
+              </Box>
+              
+              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 320 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#374151" }}>Eval ID</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#374151" }}>Created</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {experiments.map((exp) => (
+                      <TableRow
+                        key={exp.id}
+                        hover
+                        onClick={() => navigate(`/evals/${projectId}/experiment/${exp.id}`)}
+                        sx={{
+                          cursor: "pointer",
+                          "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                          },
+                        }}
+                      >
+                        <TableCell sx={{ fontSize: "13px", fontFamily: "monospace" }}>{exp.id}</TableCell>
+                        <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                          {new Date(exp.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric"
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Box>
           )}
         </Box>

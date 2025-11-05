@@ -71,13 +71,17 @@ export async function getUserFilesMetaData({
 }: {
   signal?: AbortSignal;
 } = {}): Promise<FileMetadata[]> {
-  const response = await apiServices.get<FileManagerResponse>("/file-manager", {
+  const fileManageResponse = await apiServices.get<FileManagerResponse>("/file-manager", {
+    signal,
+  });
+
+  const fileResponse = await apiServices.get<any[]>("/files", {
     signal,
   });
 
     // Extract and return all file data from API
     // Keep all fields intact so transformFileData can process them
-    const rawFiles = response.data?.data?.files ?? [];
+    const rawFiles = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];
 
     return rawFiles.map((f: any) => ({
         id: String(f.id),

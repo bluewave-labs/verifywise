@@ -1882,6 +1882,7 @@ const IntegratedDashboard: React.FC = () => {
               textAlign: "center",
               width: "100%",
               boxSizing: "border-box",
+              marginTop: "30px",
             }}
           >
             <img src={placeholderImage} alt="No cards visible" />

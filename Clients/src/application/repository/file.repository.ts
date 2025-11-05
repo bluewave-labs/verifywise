@@ -76,8 +76,6 @@ export async function getUserFilesMetaData({
       apiServices.get<any[]>("/files", { signal })
     ]);
 
-    console.log(fileManageResponse.data?.data.files, fileResponse.data);
-
     // Extract and return all file data from API
     // Keep all fields intact so transformFileData can process them
     const rawFiles = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];

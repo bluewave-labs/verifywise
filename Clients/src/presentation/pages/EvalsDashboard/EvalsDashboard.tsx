@@ -29,6 +29,13 @@ export default function EvalsDashboard() {
     return hash || "overview";
   });
 
+  // Keep tab in sync with URL hash so external navigations (e.g., from Overview button) work
+  useEffect(() => {
+    if (!projectId) return;
+    const hash = location.hash.replace("#", "");
+    setTab(hash || "overview");
+  }, [location.hash, projectId]);
+
   const [currentProject, setCurrentProject] = useState<DeepEvalProject | null>(null);
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
@@ -152,7 +159,7 @@ export default function EvalsDashboard() {
                 value="create_new"
               >
                 <Plus size={16} style={{ marginRight: 8 }} />
-                Create Project
+                Create project
               </MenuItem>
             </Select>
           </Box>
@@ -237,10 +244,10 @@ export default function EvalsDashboard() {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "" });
         }}
-        title="Create Project"
+        title="Create project"
         description="Create a new project to organize your LLM evaluations"
         onSubmit={handleCreateProject}
-        submitButtonText="Create Project"
+        submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>

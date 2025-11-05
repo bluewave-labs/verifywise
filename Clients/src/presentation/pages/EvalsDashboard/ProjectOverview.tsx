@@ -82,7 +82,8 @@ export default function ProjectOverview({
     );
   }
 
-  const hasExperiments = (stats?.totalExperiments ?? 0) > 0;
+  const hasExperiments = experiments.length > 0 || (stats?.totalExperiments ?? 0) > 0;
+  const totalEvals = experiments.length > 0 ? experiments.length : (stats?.totalExperiments ?? 0);
 
   return (
     <Box>
@@ -96,7 +97,7 @@ export default function ProjectOverview({
         <CustomizableButton
           onClick={handleNewExperiment}
           variant="contained"
-          text="New Eval"
+          text="New eval"
           icon={<Play size={16} />}
           sx={{
             backgroundColor: "#13715B",
@@ -124,7 +125,7 @@ export default function ProjectOverview({
             Observability
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4, fontSize: "13px" }}>
-            Trace your AI app interactions
+            Monitor your LLM interactions
           </Typography>
 
           {/* Empty state */}
@@ -149,7 +150,7 @@ export default function ProjectOverview({
               color="text.secondary"
               sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
             >
-              Trace user interactions for monitoring, real-time scoring, and review. Annotate logs data and use it as the source for evaluations.
+              Capture user interactions for monitoring, real-time scoring and review; annotate logs and use them as the source for evaluations.
             </Typography>
             <CustomizableButton
               variant="outlined"
@@ -184,10 +185,18 @@ export default function ProjectOverview({
             </Typography>
             {hasExperiments && (
               <CustomizableButton
-                variant="outlined"
-                text="Go to Evals"
+                variant="contained"
+                text="Evals"
                 onClick={() => navigate(`/evals/${projectId}#experiments`)}
-                sx={{ textTransform: "none", fontSize: "12px", height: 30, px: 1.5 }}
+                sx={{
+                  textTransform: "none",
+                  fontSize: "12px",
+                  height: 30,
+                  px: 1.5,
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  "&:hover": { backgroundColor: "#0f5a47" },
+                }}
               />
             )}
           </Box>
@@ -195,7 +204,7 @@ export default function ProjectOverview({
             Eval score progress
           </Typography>
 
-          {!hasExperiments || experiments.length === 0 ? (
+          {!hasExperiments ? (
             /* Empty state */
             <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
               <Box sx={{ mb: 3 }}>
@@ -234,21 +243,24 @@ export default function ProjectOverview({
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
                 <TrendingUp size={16} color="#13715B" />
-                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "13px" }}>
-                  {experiments.length} Eval{experiments.length !== 1 ? "s" : ""}
+                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "12px" }}>
+                  {totalEvals} eval{totalEvals !== 1 ? "s" : ""}
                 </Typography>
               </Box>
               
-              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 320 }}>
+              <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#374151" }}>Eval ID</TableCell>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#374151" }}>Created</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151" }}>Eval id</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151" }}>Created</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {experiments.map((exp) => (
+                    {[...experiments]
+                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                      .slice(0, 5)
+                      .map((exp) => (
                       <TableRow
                         key={exp.id}
                         hover
@@ -260,8 +272,8 @@ export default function ProjectOverview({
                           },
                         }}
                       >
-                        <TableCell sx={{ fontSize: "13px", fontFamily: "monospace" }}>{exp.id}</TableCell>
-                        <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        <TableCell sx={{ fontSize: "12px", fontFamily: "monospace" }}>{exp.id}</TableCell>
+                        <TableCell sx={{ fontSize: "11px", color: "#6B7280" }}>
                           {new Date(exp.created_at).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric"

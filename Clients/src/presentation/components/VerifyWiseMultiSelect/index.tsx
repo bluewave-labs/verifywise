@@ -2,12 +2,12 @@ import React, { useState, useRef } from "react";
 import {
   Box,
   Typography,
-  Checkbox,
   Menu,
   MenuItem,
   useTheme,
 } from "@mui/material";
-import { ChevronDown, Eye, Square, CheckSquare2 } from "lucide-react";
+import { ChevronDown, Eye } from "lucide-react";
+import Checkbox from "../Inputs/Checkbox";
 
 export interface VerifyWiseMultiSelectOption {
   value: string;
@@ -164,22 +164,11 @@ const VerifyWiseMultiSelect: React.FC<VerifyWiseMultiSelectProps> = ({
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
               <Checkbox
-                checked={selectedValues.includes(option.value)}
+                id={`multiselect-${option.value}`}
+                isChecked={selectedValues.includes(option.value)}
+                value={option.value}
+                onChange={() => {}}
                 size="small"
-                disableRipple
-                checkedIcon={<CheckSquare2 size={16} />}
-                icon={<Square size={16} />}
-                sx={{
-                  color: colors.primary,
-                  "&.Mui-checked": {
-                    color: colors.primary,
-                  },
-                  padding: 0,
-                  "&:hover": { backgroundColor: "transparent" },
-                  "& .MuiTouchRipple-root": {
-                    display: "none",
-                  },
-                }}
               />
               <Typography
                 sx={{

@@ -929,11 +929,11 @@ const IntegratedDashboard: React.FC = () => {
         x: 3,
         y: 6,
         w: 3,
-        h: 4,
+        h: 2,
         minW: 3,
         maxW: 6,
         minH: 2,
-        maxH: 4,
+        maxH: 2,
       },
     ],
     md: [
@@ -1044,11 +1044,11 @@ const IntegratedDashboard: React.FC = () => {
         x: 2.5,
         y: 6,
         w: 2.5,
-        h: 4,
+        h: 2,
         minW: 2.5,
         maxW: 5,
         minH: 2,
-        maxH: 4,
+        maxH: 2,
       },
     ],
     sm: [
@@ -1162,11 +1162,11 @@ const IntegratedDashboard: React.FC = () => {
         x: 3,
         y: 10,
         w: 3,
-        h: 4,
+        h: 2,
         minW: 3,
         maxW: 3,
         minH: 2,
-        maxH: 4,
+        maxH: 2,
       },
     ],
   };
@@ -1183,8 +1183,24 @@ const IntegratedDashboard: React.FC = () => {
         const currentBreakpointLayout = currentLayouts[breakpoint] || [];
         const defaultBreakpointLayout = defaultLayouts[breakpoint];
 
-        // Find widgets that are visible but missing from current layout
+        // Find widgets that are visible
         const visibleWidgetIds = Array.from(visibleCards);
+
+        // Process each visible widget
+        const processedLayout = currentBreakpointLayout.map((item) => {
+          // If this widget is visible, check if it needs to be reset to default
+          if (visibleWidgetIds.includes(item.i)) {
+            const defaultItem = defaultBreakpointLayout.find((d) => d.i === item.i);
+            if (defaultItem && item.h !== defaultItem.h) {
+              // Widget has wrong height, restore to default
+              layoutsChanged = true;
+              return { ...defaultItem, x: item.x, y: item.y };
+            }
+          }
+          return item;
+        });
+
+        // Find widgets that are missing from layout entirely
         const missingWidgets = visibleWidgetIds.filter(
           (widgetId) => !currentBreakpointLayout.some((item) => item.i === widgetId)
         );
@@ -1197,9 +1213,26 @@ const IntegratedDashboard: React.FC = () => {
             )
             .filter((item): item is Layout => item !== undefined);
 
-          updatedLayouts[breakpoint] = [...currentBreakpointLayout, ...newItems];
+          updatedLayouts[breakpoint] = [...processedLayout, ...newItems];
+        } else {
+          updatedLayouts[breakpoint] = processedLayout;
         }
       });
+
+      // Save to localStorage if layouts were restored
+      if (layoutsChanged) {
+        try {
+          const serialized = JSON.stringify(updatedLayouts);
+          if (serialized.length <= 4.5 * 1024 * 1024) {
+            localStorage.setItem(
+              "verifywise_integrated_dashboard_layouts",
+              serialized
+            );
+          }
+        } catch (error) {
+          console.error("Failed to save restored layouts to localStorage:", error);
+        }
+      }
 
       return layoutsChanged ? updatedLayouts : currentLayouts;
     });

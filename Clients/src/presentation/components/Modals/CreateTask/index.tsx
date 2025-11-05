@@ -33,6 +33,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const initialState: ICreateTaskFormValues = {
   title: "",
@@ -397,17 +398,12 @@ const CreateTask: FC<ICreateTaskProps> = ({
                   />
                 )}
                 sx={{
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.assignees }),
                   width: "350px",
                   backgroundColor: theme.palette.background.main,
                   "& .MuiOutlinedInput-root": {
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.assignees })["& .MuiOutlinedInput-root"],
                     borderRadius: "5px",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#777",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#888",
-                      borderWidth: "1px",
-                    },
                   },
                   "& .MuiChip-root": {
                     borderRadius: theme.shape.borderRadius,

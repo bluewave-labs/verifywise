@@ -14,6 +14,7 @@ import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { Project, FrameworkValues } from "../../../../../application/interfaces/appStates";
+import { getAutocompleteStyles } from "../../../../utils/inputStyles";
 
 /**
  * Set form values
@@ -238,9 +239,23 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
                 <TextField
                   {...params}
                   size="small"
+                  placeholder="Select report types"
                 />
               )}
+              sx={{
+                ...getAutocompleteStyles(theme, { hasError: !!errors.report_type }),
+                backgroundColor: theme.palette.background.main,
+              }}
             />
+            {errors.report_type && (
+              <Typography
+                color="error"
+                variant="caption"
+                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+              >
+                {errors.report_type}
+              </Typography>
+            )}
           </Suspense>
         </Stack>
 

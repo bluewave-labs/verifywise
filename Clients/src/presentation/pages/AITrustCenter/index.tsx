@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { Box, Stack } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import Tab from "@mui/material/Tab";
 import { Eye as VisibilityIcon } from "lucide-react"
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
@@ -13,9 +11,7 @@ import AITrustCenterOverview from "./Overview";
 import PageTour from "../../components/PageTour";
 import AITrustCenterSteps from "./AITrustCenterSteps";
 import {
-  aiTrustCenterTabStyle,
   aiTrustCenterTabPanelStyle,
-  aiTrustCenterTabListStyle,
   aiTrustCenterPreviewButtonStyle,
 } from "./styles";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -25,7 +21,7 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import { useNavigate, useParams } from "react-router-dom";
-import { createTabLabelWithCount } from "../../utils/tabUtils";
+import TabBar from "../../components/TabBar";
 import { useAITrustCentreResourcesQuery } from "../../../application/hooks/useAITrustCentreResourcesQuery";
 import { useAITrustCentreSubprocessorsQuery } from "../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 
@@ -118,65 +114,61 @@ const tabValue = params.tab || "overview";
 
       <Stack>
         <TabContext value={tabValue}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleTabChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={aiTrustCenterTabListStyle}
-              data-joyride-id="trust-center-tabs"
-            >
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+          <Box sx={{ position: "relative" }}>
+            <TabBar
+              tabs={[
+                {
                   label: "Overview",
-                })}
-                value="overview"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+                  value: "overview",
+                  icon: "LayoutDashboard",
+                },
+                {
                   label: "Resources",
+                  value: "resources",
+                  icon: "FileText",
                   count: resources?.length,
                   isLoading: resourcesLoading,
-                })}
-                value="resources"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+                },
+                {
                   label: "Subprocessors",
+                  value: "subprocessors",
+                  icon: "Building2",
                   count: subprocessors?.length,
                   isLoading: subprocessorsLoading,
-                })}
-                value="subprocessors"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+                },
+                {
                   label: "Settings",
-                })}
-                value="settings"
-                disableRipple
+                  value: "settings",
+                  icon: "Settings",
+                },
+              ]}
+              activeTab={tabValue}
+              onChange={handleTabChange}
+              dataJoyrideId="trust-center-tabs"
+            />
+            <Box
+              data-joyride-id="preview-mode-button"
+              sx={{
+                position: "absolute",
+                right: 0,
+                bottom: 7,
+              }}
+            >
+              <CustomizableButton
+                variant="contained"
+                text="Preview mode"
+                sx={{
+                  ...aiTrustCenterPreviewButtonStyle,
+                  opacity: !tenantHash ? 0.5 : 1,
+                  cursor: !tenantHash ? "not-allowed" : "pointer",
+                }}
+                icon={<VisibilityIcon size={16} />}
+                onClick={handlePreviewMode}
+                isDisabled={!tenantHash}
               />
-              <div data-joyride-id="preview-mode-button" style={{ marginLeft: "auto" }}>
-                <CustomizableButton
-                  variant="contained"
-                  text="Preview mode"
-                  sx={{
-                    ...aiTrustCenterPreviewButtonStyle,
-                    opacity: !tenantHash ? 0.5 : 1,
-                    cursor: !tenantHash ? "not-allowed" : "pointer",
-                  }}
-                  icon={<VisibilityIcon size={16} />}
-                  onClick={handlePreviewMode}
-                  isDisabled={!tenantHash}
-                />
-              </div>
-            </TabList>
+            </Box>
           </Box>
+
           <TabPanel value="overview" sx={aiTrustCenterTabPanelStyle} data-joyride-id="trust-center-overview">
             <AITrustCenterOverview />
           </TabPanel>

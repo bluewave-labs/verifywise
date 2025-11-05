@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, InputBase, SxProps, Theme } from "@mui/material";
+import { Box, InputBase, SxProps, Theme, useTheme } from "@mui/material";
 import { Search } from "lucide-react";
 import { ISearchBoxProps } from "../../../../domain/interfaces/iWidget";
 
@@ -12,6 +12,8 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
   disabled = false,
   fullWidth = true,
 }) => {
+  const theme = useTheme();
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
   };
@@ -19,11 +21,12 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
   const searchBoxStyle: SxProps<Theme> = {
     display: "flex",
     alignItems: "center",
-    border: "1px solid #eaecf0",
-    borderRadius: 1,
-    p: "4px 6px",
+    border: `1px solid ${theme.palette.border.dark}`,
+    borderRadius: theme.shape.borderRadius,
+    px: "10px",
     bgcolor: "#fff",
     height: "34px",
+    boxSizing: "border-box",
     ...(fullWidth && { flex: 1 }),
     ...sx,
   };
@@ -32,6 +35,9 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
     flex: 1,
     fontSize: "13px",
     fontFamily: "inherit",
+    "& .MuiInputBase-input": {
+      padding: 0,
+    },
   };
 
   return (

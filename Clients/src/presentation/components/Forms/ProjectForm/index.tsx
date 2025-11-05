@@ -28,6 +28,7 @@ import {
   textfieldStyle,
 } from "./style";
 import Select from "../../../components/Inputs/Select";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import useUsers from "../../../../application/hooks/useUsers";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -664,7 +665,16 @@ const ProjectForm = ({
                 )}
                 sx={{
                   backgroundColor: theme.palette.background.main,
+                  cursor: "pointer",
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.members }),
                   ...teamMembersSxStyle,
+                  "& .MuiOutlinedInput-root": {
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.members })["& .MuiOutlinedInput-root"],
+                    "& fieldset": {
+                      ...getAutocompleteStyles(theme, { hasError: !!errors.members })["& .MuiOutlinedInput-root"]["& fieldset"],
+                      borderRadius: "3px",
+                    },
+                  },
                 }}
                 slotProps={teamMembersSlotProps}
               />

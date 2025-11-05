@@ -43,6 +43,14 @@ export const statusColorSchemes = {
     low: "#10B981", // Emerald
     "very low": "#059669", // Dark Emerald
   },
+
+  // Incident statuses
+  incidents: {
+    open: "#EF4444", // Red
+    "in progress": "#F59E0B", // Amber
+    resolved: "#10B981", // Emerald
+    closed: "#6B7280", // Gray
+  },
 };
 
 // Helper function to get color for a status
@@ -182,6 +190,30 @@ export const getDefaultStatusDistribution = (
           label: "Very High",
           value: total - Math.floor(total * 0.95),
           color: statusColorSchemes.vendorRisks["very high"],
+        },
+      ];
+
+    case "incidents":
+      return [
+        {
+          label: "Open",
+          value: Math.floor(total * 0.3),
+          color: statusColorSchemes.incidents.open,
+        },
+        {
+          label: "In Progress",
+          value: Math.floor(total * 0.4),
+          color: statusColorSchemes.incidents["in progress"],
+        },
+        {
+          label: "Resolved",
+          value: Math.floor(total * 0.2),
+          color: statusColorSchemes.incidents.resolved,
+        },
+        {
+          label: "Closed",
+          value: total - Math.floor(total * 0.9),
+          color: statusColorSchemes.incidents.closed,
         },
       ];
 

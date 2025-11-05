@@ -1,11 +1,9 @@
-import { Box, Stack, Tab, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import {
   projectViewHeaderDesc,
   projectViewHeaderTitle,
   tabPanelStyle,
-  tabStyle,
 } from "./style";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { SyntheticEvent, useState, useEffect, useMemo } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -24,7 +22,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
-import { createTabLabelWithCount } from "../../../utils/tabUtils";
+import TabBar from "../../../components/TabBar";
 import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 
@@ -177,62 +175,43 @@ const VWProjectView = () => {
       </Stack>
       <Stack className="vw-project-view-body">
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-              }}
-            >
-              <Tab
-                sx={tabStyle}
-                label={createTabLabelWithCount({
-                  label: "Overview",
-                })}
-                value="overview"
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label={createTabLabelWithCount({
-                  label: "Use case risks",
-                  count: projectRisksCount,
-                  isLoading: isLoadingRisks,
-                })}
-                value="project-risks"
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label={createTabLabelWithCount({
-                  label: "Linked models",
-                  count: linkedModelsCount,
-                  isLoading: isLoadingModels,
-                })}
-                value="linked-models"
-                disableRipple
-              />
-              <Tab
-                label={createTabLabelWithCount({
-                  label: "Frameworks/regulations",
-                })}
-                value="frameworks"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label={createTabLabelWithCount({
-                  label: "Settings",
-                })}
-                value="settings"
-                disableRipple
-                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-              />
-            </TabList>
-          </Box>
+          <TabBar
+            tabs={[
+              {
+                label: "Overview",
+                value: "overview",
+                icon: "LayoutDashboard",
+              },
+              {
+                label: "Use case risks",
+                value: "project-risks",
+                icon: "AlertTriangle",
+                count: projectRisksCount,
+                isLoading: isLoadingRisks,
+              },
+              {
+                label: "Linked models",
+                value: "linked-models",
+                icon: "Box",
+                count: linkedModelsCount,
+                isLoading: isLoadingModels,
+              },
+              {
+                label: "Frameworks/regulations",
+                value: "frameworks",
+                icon: "Shield",
+              },
+              {
+                label: "Settings",
+                value: "settings",
+                icon: "Settings",
+                disabled: !allowedRoles.projects.edit.includes(userRoleName),
+              },
+            ]}
+            activeTab={value}
+            onChange={handleChange}
+          />
+
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
               <VWProjectOverview project={project} />

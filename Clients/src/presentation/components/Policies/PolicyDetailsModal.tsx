@@ -667,35 +667,52 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
               ))}
             </Box>
 
-            <Plate
-              editor={editor}
-              onChange={({ value }) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  content: value,
-                }))
-              }
+            <Box
+              sx={{
+                border: "1px solid #D0D5DD",
+                borderRadius: "3px",
+                transition: "border-color 150ms ease-in-out, outline 150ms ease-in-out, box-shadow 150ms ease-in-out",
+                outline: "1px solid transparent",
+                outlineOffset: "-1px",
+                "&:hover": {
+                  borderColor: "#5FA896",
+                },
+                "&:focus-within": {
+                  borderColor: "#13715B",
+                  outline: "1px solid #13715B",
+                  outlineOffset: "-1px",
+                  boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
+                },
+              }}
             >
-              <PlateContent
-                style={
-                  {
-                    height: "calc(100vh - 310px)",
-                    overflowY: "auto",
-                    padding: "16px",
-                    border: "1px solid #E0E0E0",
-                    borderRadius: "3px",
-                    backgroundColor: "#FFFFFF",
-                    fontSize: theme.typography.fontSize,
-                    color: theme.palette.text.primary,
-                    boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                    "&:focus": {
-                      outline: "none",
-                    },
-                  } as CSSProperties
+              <Plate
+                editor={editor}
+                onChange={({ value }) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    content: value,
+                  }))
                 }
-                placeholder="Start typing..."
-              />
-            </Plate>
+              >
+                <PlateContent
+                  style={
+                    {
+                      height: "calc(100vh - 310px)",
+                      overflowY: "auto",
+                      padding: "16px",
+                      border: "none",
+                      borderRadius: "3px",
+                      backgroundColor: "#FFFFFF",
+                      fontSize: theme.typography.fontSize,
+                      color: theme.palette.text.primary,
+                      boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+                      outline: "none",
+                    } as CSSProperties
+                  }
+                  placeholder="Start typing..."
+                />
+              </Plate>
+            </Box>
             {errors.content && (
               <Typography
                 component="span"

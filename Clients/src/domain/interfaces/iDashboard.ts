@@ -140,7 +140,7 @@ export interface MetricCardProps {
   onClick?: () => void;
   navigable?: boolean;
   statusData?: IStatusData[];
-  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
+  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks" | "incidents";
   compact?: boolean;
   backgroundIcon?: React.ComponentType<any>;
 }

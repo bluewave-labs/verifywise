@@ -12,33 +12,129 @@ import {
   TableFooter,
   Box,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
 import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
-
-const SelectorVertical = (props: any) => (
-  <ChevronsUpDown size={16} {...props} />
-);
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
+import { ReviewStatus } from "../../../../domain/enums/status.enum";
+
+const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
+const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const titleOfTableColumns = [
-  "name",
-  "assignee",
-  "status",
-  "risk",
-  "review date",
-  "",
+  { id: "vendor_name", label: "name", sortable: true },
+  { id: "assignee", label: "assignee", sortable: true },
+  { id: "review_status", label: "status", sortable: true },
+  { id: "risk", label: "risk", sortable: false },
+  { id: "review_date", label: "review date", sortable: true },
+  { id: "actions", label: "", sortable: false },
 ];
+
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <ChevronsUpDown size={16} {...props} />
+);
+
+// Sortable Table Header Component
+const SortableTableHead: React.FC<{
+  columns: typeof titleOfTableColumns;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
+  const theme = useTheme();
+
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column, index) => (
+          <TableCell
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              ...(index === columns.length - 1
+                ? {
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }
+                : {}),
+              ...(column.sortable
+                ? {
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    },
+                  }
+                : {}),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: theme.spacing(2),
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
+                    <ChevronUp size={16} />
+                  )}
+                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
+                    <ChevronDown size={16} />
+                  )}
+                  {sortConfig.key !== column.id && (
+                    <ChevronsUpDown size={16} />
+                  )}
+                </Box>
+              )}
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+};
 
 const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   users,
@@ -49,7 +145,36 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Initialize rowsPerPage from localStorage or default to 5
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(VENDORS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 5;
+  });
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(VENDORS_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save rowsPerPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(VENDORS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(VENDORS_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   const [showVendorRisks, setShowVendorRisks] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<{
     id: number;
@@ -63,6 +188,88 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the vendors based on current sort configuration
+  const sortedVendors = useMemo(() => {
+    if (!vendors || !sortConfig.key || !sortConfig.direction) {
+      return vendors || [];
+    }
+
+    const sortableVendors = [...vendors];
+
+    return sortableVendors.sort((a: VendorModel, b: VendorModel) => {
+      // Status order function based on actual ReviewStatus enum values
+      const getStatusValue = (status: ReviewStatus) => {
+        switch (status) {
+          case ReviewStatus.NotStarted:
+            return 1; // "Not started"
+          case ReviewStatus.InReview:
+            return 2; // "In review"
+          case ReviewStatus.RequiresFollowUp:
+            return 3; // "Requires follow-up"
+          case ReviewStatus.Reviewed:
+            return 4; // "Reviewed"
+          default:
+            return 0; // fallback for unknown values
+        }
+      };
+
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case "vendor_name":
+          aValue = a.vendor_name.toLowerCase();
+          bValue = b.vendor_name.toLowerCase();
+          break;
+
+        case "assignee":
+          aValue = a.assignee;
+          bValue = b.assignee;
+          break;
+
+        case "review_status":
+          aValue = getStatusValue(a.review_status);
+          bValue = getStatusValue(b.review_status);
+          break;
+
+        case "review_date":
+          aValue = new Date(a.review_date).getTime();
+          bValue = new Date(b.review_date).getTime();
+          break;
+
+        default:
+          return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [vendors, sortConfig]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -93,50 +300,16 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      vendors?.length ?? 0
+      sortedVendors?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, vendors?.length]);
-
-  const tableHeader = useMemo(
-    () => (
-      <TableHead
-        sx={{
-          backgroundColors:
-            singleTheme.tableStyles.primary.header.backgroundColors,
-        }}
-      >
-        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {titleOfTableColumns.map((cell, index) => (
-            <TableCell
-              style={{
-                ...singleTheme.tableStyles.primary.header.cell,
-                ...(index === titleOfTableColumns.length - 1
-                  ? {
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }
-                  : {}),
-              }}
-              key={index}
-            >
-              {cell}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-    ),
-    []
-  );
+  }, [page, rowsPerPage, sortedVendors?.length]);
 
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {vendors &&
-          vendors
+        {sortedVendors &&
+          sortedVendors
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: VendorModel, index: number) => (
               <TableRow
@@ -217,7 +390,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       </TableBody>
     ),
     [
-      vendors,
+      sortedVendors,
       page,
       rowsPerPage,
       cellStyle,
@@ -231,7 +404,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
 
   return (
     <>
-      {!vendors || vendors.length === 0 ? (
+      {!sortedVendors || sortedVendors.length === 0 ? (
         <Stack
           alignItems="center"
           justifyContent="center"
@@ -252,7 +425,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
-            {tableHeader}
+            <SortableTableHead
+              columns={titleOfTableColumns}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
             {tableBody}
             <TableFooter>
               <TableRow
@@ -270,10 +447,10 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     opacity: 0.7,
                   }}
                 >
-                  Showing {getRange} of {vendors?.length} vendor(s)
+                  Showing {getRange} of {sortedVendors?.length} vendor(s)
                 </TableCell>
                 <TablePagination
-                  count={vendors?.length}
+                  count={sortedVendors?.length}
                   page={page}
                   onPageChange={handleChangePage}
                   rowsPerPage={rowsPerPage}

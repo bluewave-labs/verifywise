@@ -6,6 +6,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 export interface ChipInputProps {
   id: string;
@@ -106,26 +107,12 @@ const ChipInput: React.FC<ChipInputProps> = ({
           />
         )}
         sx={{
+          ...getAutocompleteStyles(theme, { hasError: !!error }),
           width: "100%",
           backgroundColor: theme.palette.background.main,
           "& .MuiOutlinedInput-root": {
+            ...getAutocompleteStyles(theme, { hasError: !!error })["& .MuiOutlinedInput-root"],
             borderRadius: "5px",
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: error
-                ? theme.palette.status.error.border
-                : theme.palette.border.dark,
-            },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: error
-                ? theme.palette.status.error.border
-                : theme.palette.border.dark,
-              borderWidth: "1px",
-            },
-          },
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: error
-              ? theme.palette.status.error.border
-              : theme.palette.border.dark,
           },
           "& .MuiChip-root": {
             borderRadius: theme.shape.borderRadius,

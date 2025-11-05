@@ -34,6 +34,7 @@ const Checkbox: FC<CheckboxProps> = ({
   onChange,
   onClick,
   isDisabled,
+  sx: customSx,
 }) => {
   const sizes: { [key in "small" | "medium" | "large"]: string } = {
     small: "20px",
@@ -63,6 +64,7 @@ const Checkbox: FC<CheckboxProps> = ({
         "& .MuiTouchRipple-root": {
           display: "none",
         },
+        ...customSx,
       }}
       size={size}
     />

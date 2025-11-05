@@ -30,6 +30,7 @@ import {
   ShieldAlert,
   GraduationCap,
   ScrollText,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -764,6 +765,7 @@ const IntegratedDashboard: React.FC = () => {
     vendorMetrics,
     usersMetrics,
     policyMetrics,
+    incidentMetrics,
   } = useDashboardMetrics();
   const { userToken, userId } = useAuth();
 
@@ -1538,6 +1540,24 @@ const IntegratedDashboard: React.FC = () => {
         />
       ),
       title: "Policies",
+    },
+    {
+      id: "incidents",
+      content: (
+        <MetricCard
+          title="Incidents"
+          value={incidentMetrics?.total || 0}
+          onClick={() => navigate("/ai-incident-managements")}
+          navigable={true}
+          statusData={incidentMetrics?.statusDistribution?.map((item) => ({
+            ...item,
+            label: item.name,
+          }))}
+          entityType="incidents"
+          backgroundIcon={AlertCircle}
+        />
+      ),
+      title: "Incidents",
     },
   ];
 

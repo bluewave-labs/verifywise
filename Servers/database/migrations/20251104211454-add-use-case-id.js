@@ -47,6 +47,13 @@ module.exports = {
           );
         }
 
+        // Disallow NULLs now that every existing row has a UC ID
+        await queryInterface.sequelize.query(
+          `ALTER TABLE "${tenantHash}".projects
+             ALTER COLUMN uc_id SET NOT NULL;`,
+          { transaction }
+        );
+
         // Set the sequence to start after the last assigned UC ID
         // This ensures new projects get the next sequential number
         if (existingProjects[0].length > 0) {

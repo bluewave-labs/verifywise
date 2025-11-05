@@ -24,12 +24,6 @@ const DatePicker = ({
   return (
     <Stack
       gap={theme.spacing(2)}
-      sx={{
-        ...getDatePickerStyles(theme, { hasError: !!error }),
-        '& .MuiInputBase-root': {
-          cursor: 'pointer',
-        },
-      }}
     >
       {label && (
         <Typography
@@ -68,10 +62,14 @@ const DatePicker = ({
         </Typography>
       )}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <MuiDatePicker        
+        <MuiDatePicker
           className="mui-date-picker"
           sx={{
             ...DatePickerStyle,
+            ...getDatePickerStyles(theme, { hasError: !!error }),
+            '& .MuiInputBase-root': {
+              cursor: 'pointer',
+            },
             ...sx,
           }}
           value={date ? dayjs(date) : null}

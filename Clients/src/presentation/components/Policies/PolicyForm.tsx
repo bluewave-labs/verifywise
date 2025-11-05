@@ -194,15 +194,19 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               />
             )}
             sx={{
-              ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers }),
               backgroundColor: theme.palette.background.main,
               width: "100%",
               cursor: "pointer",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-              },
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{
@@ -277,15 +281,19 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               />
             )}
             sx={{
-              ...getAutocompleteStyles(theme, { hasError: !!errors.tags }),
               backgroundColor: theme.palette.background.main,
               width: "100%",
               cursor: "pointer",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-              },
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.tags }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{

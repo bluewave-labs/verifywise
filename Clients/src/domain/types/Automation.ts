@@ -95,17 +95,19 @@ export interface ConfigurationField {
 export interface AutomationExecutionLog {
   id: string;
   automationId: string;
-  triggeredAt: Date;
-  triggerData: Record<string, any>;
+  triggered_at: Date;
+  trigger_data: Record<string, any>;
   actions: ActionExecutionResult[];
+  execution_time_ms?: number;
   status: 'success' | 'partial_success' | 'failure';
-  errorMessage?: string;
+  error_message?: string;
 }
 
 export interface ActionExecutionResult {
-  actionId: string;
+  action_id?: string;
+  action_type: string;
   status: 'success' | 'failure';
-  executedAt: Date;
-  result?: any;
-  errorMessage?: string;
+  executed_at?: Date;
+  result_data?: any;
+  error_message?: string;
 }

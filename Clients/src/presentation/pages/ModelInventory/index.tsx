@@ -44,20 +44,12 @@ import {
   statusFilterSelectStyle,
   addNewModelButtonStyle,
 } from "./style";
-import {
-  aiTrustCenterTabStyle,
-  aiTrustCenterTabListStyle,
-} from "../AITrustCenter/styles";
-import { createTabLabelWithCount } from "../../utils/tabUtils";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import Tab from "@mui/material/Tab";
-import { IconButton, InputBase } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
-import { searchBoxStyle, inputStyle } from "./style";
+import { SearchBox } from "../../components/Search";
+import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -122,7 +114,6 @@ const ModelInventory: React.FC = () => {
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Determine the active tab based on the URL
@@ -812,46 +803,35 @@ const ModelInventory: React.FC = () => {
 
         {/* Tab Bar */}
         <TabContext value={activeTab}>
-          <Box
-            sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}
-          >
-            <TabList
-              onChange={handleTabChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={aiTrustCenterTabListStyle}
-              data-joyride-id="model-tabs"
-            >
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+          <Box sx={{ marginBottom: 3 }}>
+            <TabBar
+              tabs={[
+                {
                   label: "Models",
+                  value: "models",
+                  icon: "Box",
                   count: modelInventoryData.length,
                   isLoading: isLoading,
-                })}
-                value="models"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+                },
+                {
                   label: "Model risks",
+                  value: "model-risks",
+                  icon: "AlertTriangle",
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
-                })}
-                value="model-risks"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
-                label={createTabLabelWithCount({
+                },
+                {
                   label: "MLFlow data",
+                  value: "mlflow",
+                  icon: "Database",
                   count: mlflowData.length,
                   isLoading: isMlflowLoading,
-                })}
-                value="mlflow"
-                disableRipple
-              />
-            </TabList>
+                },
+              ]}
+              activeTab={activeTab}
+              onChange={handleTabChange}
+              dataJoyrideId="model-tabs"
+            />
           </Box>
         </TabContext>
 
@@ -881,29 +861,14 @@ const ModelInventory: React.FC = () => {
                   />
                 </div>
 
-                {/* Expandable Search */}
-                <Box sx={searchBoxStyle(isSearchBarVisible)} data-joyride-id="model-search">
-                  <IconButton
-                    disableRipple
-                    disableFocusRipple
-                    sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                    aria-label="Toggle search"
-                    aria-expanded={isSearchBarVisible}
-                    onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                  >
-                    <SearchIcon size={16} />
-                  </IconButton>
-
-                  {isSearchBarVisible && (
-                    <InputBase
-                      autoFocus
-                      placeholder="Search models..."
-                      inputProps={{ "aria-label": "Search models" }}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      sx={inputStyle(isSearchBarVisible)}
-                    />
-                  )}
+                {/* Search */}
+                <Box sx={{ width: 300 }} data-joyride-id="model-search">
+                  <SearchBox
+                    placeholder="Search models..."
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    inputProps={{ "aria-label": "Search models" }}
+                  />
                 </Box>
               </Stack>
 

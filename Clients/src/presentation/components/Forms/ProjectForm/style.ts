@@ -33,16 +33,6 @@ export const teamMembersRenderInputStyle = {
 
 export const teamMembersSxStyle = {
   width: "350px",
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "3px",
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "none",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#888",
-      borderWidth: "1px",
-    },
-  },
   "& .MuiChip-root": {
     borderRadius: "4px",
   },

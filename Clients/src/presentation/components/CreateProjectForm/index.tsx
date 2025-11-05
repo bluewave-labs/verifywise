@@ -35,6 +35,7 @@ import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -392,7 +393,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     sx={createProjectFormStyles.autocompleteTextField}
                   />
                 )}
-                sx={createProjectFormStyles.autocompleteContainer(theme)}
+                sx={{
+                  ...getAutocompleteStyles(theme, { hasError: memberRequired }),
+                  ...createProjectFormStyles.autocompleteContainer(theme),
+                }}
                 slotProps={createProjectFormStyles.autocompleteSlotProps}
               />
               {memberRequired && (

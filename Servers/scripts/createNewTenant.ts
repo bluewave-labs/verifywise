@@ -959,6 +959,18 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
           (project_id IS NOT NULL AND framework_id IS NOT NULL)
         )
     );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automation_execution_logs (
+      id SERIAL PRIMARY KEY,
+      automation_id INTEGER REFERENCES "${tenantHash}".automations(id) ON DELETE CASCADE,
+      triggered_at TIMESTAMP DEFAULT NOW(),
+      trigger_data JSONB DEFAULT '{}',
+      action_results JSONB DEFAULT '[]',
+      status TEXT CHECK (status IN ('success', 'partial_success', 'failure')) DEFAULT 'success',
+      execution_time_ms INTEGER,
+      error_message TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
   }
   catch (error) {
     throw error;

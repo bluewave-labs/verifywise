@@ -1901,6 +1901,7 @@ const IntegratedDashboard: React.FC = () => {
                   );
                 }}
                 sx={{
+                  fontSize: "13px",
                   color: "#13715B",
                   cursor: "pointer",
                   textDecoration: "underline",

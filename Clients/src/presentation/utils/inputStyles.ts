@@ -240,6 +240,48 @@ export const getAutocompleteStyles = (theme: Theme, options: InputStylesOptions 
 };
 
 /**
+ * Returns styles for SearchBox component
+ * SearchBox is a special input with icon prefix
+ */
+export const getSearchBoxStyles = (theme: Theme, options: InputStylesOptions = {}) => {
+  const {
+    hoverBorderColor,
+    focusBorderColor,
+    focusRingColor,
+    disableHover = false,
+    disableFocusRing = false,
+  } = options;
+
+  const defaultBorderColor = theme.palette.border.dark;
+  const hoverBorder = hoverBorderColor || '#98A2B3';
+  const focusBorder = focusBorderColor || theme.palette.primary.main;
+  const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
+
+  return {
+    border: `1px solid ${defaultBorderColor}`,
+    borderRadius: theme.shape.borderRadius,
+    transition: 'border-color 150ms ease-in-out, box-shadow 150ms ease-in-out',
+
+    // Hover state
+    ...(!disableHover && {
+      '&:hover': {
+        borderColor: hoverBorder,
+      },
+    }),
+
+    // Focus-within state (when input inside is focused)
+    '&:focus-within': {
+      borderColor: `${focusBorder}`,
+      borderWidth: '2px',
+      padding: '9px', // Compensate for 2px border (was 10px with 1px border)
+      ...(!disableFocusRing && {
+        boxShadow: `0 0 0 3px ${focusRing}`,
+      }),
+    },
+  };
+};
+
+/**
  * Helper function to get cursor style based on input type
  */
 export const getInputCursor = (type: 'text' | 'select' | 'datepicker' | 'button'): string => {

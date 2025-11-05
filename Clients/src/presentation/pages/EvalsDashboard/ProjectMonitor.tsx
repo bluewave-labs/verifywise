@@ -24,8 +24,7 @@ import {
   BarChart3,
   RefreshCw,
 } from "lucide-react";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import { monitoringService, experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import { monitoringService } from "../../../infrastructure/api/evaluationLogsService";
 import type { MonitorDashboard } from "../../../infrastructure/api/evaluationLogsService";
 
 interface ProjectMonitorProps {
@@ -84,7 +83,6 @@ export default function ProjectMonitor({ projectId }: ProjectMonitorProps) {
   const { metrics, logs, recent_experiments } = dashboardData;
 
   // Calculate trends (placeholder - would need historical data)
-  const latencyTrend = "neutral";
   const errorRateTrend = logs.error_rate > 5 ? "up" : "down";
 
   return (

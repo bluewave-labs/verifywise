@@ -2,6 +2,7 @@ import React from "react";
 import { Box, InputBase, SxProps, Theme, useTheme } from "@mui/material";
 import { Search } from "lucide-react";
 import { ISearchBoxProps } from "../../../../domain/interfaces/iWidget";
+import { getSearchBoxStyles } from "../../../utils/inputStyles";
 
 const SearchBox: React.FC<ISearchBoxProps> = ({
   placeholder = "Search...",
@@ -21,8 +22,7 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
   const searchBoxStyle: SxProps<Theme> = {
     display: "flex",
     alignItems: "center",
-    border: `1px solid ${theme.palette.border.dark}`,
-    borderRadius: theme.shape.borderRadius,
+    ...getSearchBoxStyles(theme),
     px: "10px",
     bgcolor: "#fff",
     height: "34px",

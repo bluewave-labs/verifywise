@@ -45,6 +45,7 @@ import {
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { User } from "../../../../domain/types/User";
 import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const initialState = {
   vendorName: "",
@@ -488,27 +489,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               />
             )}
             sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds }),
               width: "100%",
               backgroundColor: theme.palette.background.main,
               "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds })["& .MuiOutlinedInput-root"],
                 borderRadius: "3px",
                 overflowY: "auto",
                 flexWrap: "wrap",
                 maxHeight: "115px",
                 alignItems: "flex-start",
-                "&:hover": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
               },
               "& .MuiAutocomplete-tag": {
                 margin: "2px",
@@ -522,11 +512,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               "& .MuiChip-root": {
                 borderRadius: "4px",
               },
-              border: errors.projectIds
-                ? `1px solid #f04438`
-                : `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
-              opacity: errors.projectIds ? 0.8 : 1,
             }}
             slotProps={{
               paper: {

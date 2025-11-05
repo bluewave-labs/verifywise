@@ -26,6 +26,7 @@
 import { Autocomplete, TextField, Typography, useTheme } from "@mui/material";
 import "./index.css";
 import { AutoCompleteFieldProps } from "../../../../domain/interfaces/iWidget";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
   id,
@@ -44,7 +45,11 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
   return (
     <>
       <Autocomplete
-        sx={sx}
+        sx={{
+          ...getAutocompleteStyles(theme, { hasError: !!error }),
+          cursor: 'pointer',
+          ...sx,
+        }}
         className="auto-complete-field"
         id={id}
         value={autoCompleteValue}

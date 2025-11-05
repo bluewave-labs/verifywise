@@ -924,6 +924,17 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 2,
       },
+      {
+        i: "incidents",
+        x: 3,
+        y: 6,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 4,
+      },
     ],
     md: [
       // Row 1 - Use cases (most important) + Models + Vendors (high importance)
@@ -1027,6 +1038,17 @@ const IntegratedDashboard: React.FC = () => {
         maxW: 2.5,
         minH: 2,
         maxH: 2,
+      },
+      {
+        i: "incidents",
+        x: 2.5,
+        y: 6,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
       },
     ],
     sm: [
@@ -1135,10 +1157,53 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 2,
       },
+      {
+        i: "incidents",
+        x: 3,
+        y: 10,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 4,
+      },
     ],
   };
 
   const [layouts, setLayouts] = useState<Layouts>(defaultLayouts);
+
+  // Ensure widgets that are added back get their default layout
+  useEffect(() => {
+    setLayouts((currentLayouts) => {
+      const updatedLayouts = { ...currentLayouts };
+      let layoutsChanged = false;
+
+      Object.keys(defaultLayouts).forEach((breakpoint) => {
+        const currentBreakpointLayout = currentLayouts[breakpoint] || [];
+        const defaultBreakpointLayout = defaultLayouts[breakpoint];
+
+        // Find widgets that are visible but missing from current layout
+        const visibleWidgetIds = Array.from(visibleCards);
+        const missingWidgets = visibleWidgetIds.filter(
+          (widgetId) => !currentBreakpointLayout.some((item) => item.i === widgetId)
+        );
+
+        if (missingWidgets.length > 0) {
+          layoutsChanged = true;
+          const newItems = missingWidgets
+            .map((widgetId) =>
+              defaultBreakpointLayout.find((item) => item.i === widgetId)
+            )
+            .filter((item): item is Layout => item !== undefined);
+
+          updatedLayouts[breakpoint] = [...currentBreakpointLayout, ...newItems];
+        }
+      });
+
+      return layoutsChanged ? updatedLayouts : currentLayouts;
+    });
+  }, [visibleCards, defaultLayouts]);
 
   // Helper function to check if a widget should always be small (85px)
   const isRestrictedToSmallHeight = useCallback((widgetId: string): boolean => {

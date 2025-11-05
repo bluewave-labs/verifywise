@@ -56,10 +56,8 @@ interface FlyingHeartsProps {
 }
 
 const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
-  const [hearts, setHearts] = useState<Heart[]>([]);
-
-  useEffect(() => {
-    // Generate 30 hearts with random properties
+  const [hearts] = useState<Heart[]>(() => {
+    // Generate 30 hearts with random properties only once on mount
     const generatedHearts: Heart[] = [];
     for (let i = 0; i < 30; i++) {
       generatedHearts.push({
@@ -71,8 +69,10 @@ const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
         size: 20 + Math.random() * 20, // Random size (20-40px)
       });
     }
-    setHearts(generatedHearts);
+    return generatedHearts;
+  });
 
+  useEffect(() => {
     // Call onComplete after animation finishes (max duration + max delay)
     const timer = setTimeout(() => {
       if (onComplete) {
@@ -81,7 +81,7 @@ const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
     }, 7000); // 5s max duration + 2s max delay
 
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <Box

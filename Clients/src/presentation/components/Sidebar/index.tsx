@@ -328,15 +328,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Handle logo hover to show heart icon
   const handleLogoHover = () => {
     setShowHeartIcon(true);
+    setHeartReturning(false); // Reset returning state
 
     // Clear existing timer
     if (heartTimerRef.current) {
       clearTimeout(heartTimerRef.current);
     }
 
-    // Set new timer to hide after 5 seconds
+    // Set new timer to animate return after 5 seconds
     heartTimerRef.current = setTimeout(() => {
-      setShowHeartIcon(false);
+      setHeartReturning(true);
+
+      // Hide heart after return animation completes (500ms)
+      setTimeout(() => {
+        setShowHeartIcon(false);
+        setHeartReturning(false);
+      }, 500);
     }, 5000);
   };
 
@@ -425,7 +432,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     '@keyframes slideUpFromBehind': {
                       '0%': {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(50px)',
+                        transform: 'translateX(-50%) translateY(35px)',
                         zIndex: -1,
                       },
                       '60%': {
@@ -456,7 +463,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                       '100%': {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(50px)',
+                        transform: 'translateX(-50%) translateY(35px)',
                         zIndex: -1,
                       },
                     },

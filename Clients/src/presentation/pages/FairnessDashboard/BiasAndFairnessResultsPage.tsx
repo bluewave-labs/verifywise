@@ -42,7 +42,6 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import ErrorModal from "../../components/Modals/Error";
 import Checkbox from "../../components/Inputs/Checkbox";
-import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
 // Constants

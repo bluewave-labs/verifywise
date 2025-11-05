@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { TabContext, TabPanel } from "@mui/lab";
-import { styles } from "./styles";
 import TabBar from "../../components/TabBar";
 import { useNavigate } from "react-router-dom";
 import FairnessTable from "../../components/Table/FairnessTable";

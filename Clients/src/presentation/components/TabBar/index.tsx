@@ -4,6 +4,7 @@ import Tab from "@mui/material/Tab";
 import TabList from "@mui/lab/TabList";
 import { createTabLabelWithCount } from "../../utils/tabUtils";
 import * as LucideIcons from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
 export interface TabItem {
   label: string;
@@ -109,7 +110,7 @@ const TabBar: React.FC<TabBarProps> = ({
       >
         {tabs.map((tab) => {
           // Dynamically get the icon component from lucide-react
-          const IconComponent = tab.icon ? LucideIcons[tab.icon] : undefined;
+          const IconComponent = tab.icon ? (LucideIcons[tab.icon] as LucideIcon) : undefined;
           const iconElement = IconComponent ? (
             <IconComponent
               size={TAB_ICON_SIZE}

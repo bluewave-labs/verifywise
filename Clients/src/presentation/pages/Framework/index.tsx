@@ -13,7 +13,6 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
-import { createTabLabelWithCount } from "../../utils/tabUtils";
 import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";

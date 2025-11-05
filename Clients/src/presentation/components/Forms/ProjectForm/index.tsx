@@ -808,9 +808,10 @@ const ProjectForm = ({
               onChange={handleOnTextFieldChange("goal")}
               sx={{
                 backgroundColor: theme.palette.background.main,
-                marginTop: "4px",
+                marginTop: "1px",
                 ...(projectToEdit && { width: "350px" }), // Fix width when editing
               }}
+              rows={4.6}
               isRequired
               error={errors.goal}
             />
@@ -928,7 +929,7 @@ const ProjectForm = ({
       {!projectToEdit &&
         values.framework_type === FrameworkTypeEnum.ProjectBased && (
           <Stack>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8 }}>
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8, mb: 4 }}>
             <Field
               id="target-industry-input"
               label="Target industry"

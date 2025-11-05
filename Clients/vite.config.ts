@@ -27,5 +27,9 @@ export default defineConfig({
       }
     }
   },
-  define: { global: "globalThis", __APP_VERSION__: JSON.stringify(version) },
+  define: {
+    global: "globalThis",
+    // Use environment variable if available (for CI/CD), otherwise use package.json version
+    __APP_VERSION__: JSON.stringify(process.env.VITE_APP_VERSION || version)
+  },
 });

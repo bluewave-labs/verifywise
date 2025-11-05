@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useMemo, Suspense } from "react";
-import { Box, Stack, IconButton, InputBase, Fade } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { SearchBox } from "../../components/Search";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -20,9 +20,7 @@ import SelectComponent from "../../components/Inputs/Select";
 import {
     addNewIncidentButton,
     incidentFilterRow,
-    incidentInput,
     incidentMainStack,
-    incidentSearchBox,
     incidentStatusSelect,
     incidentToastContainer,
 } from "./style";
@@ -61,7 +59,6 @@ const IncidentManagement: React.FC = () => {
     } | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [tableKey, setTableKey] = useState(0);
-    const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const { userRoleName } = useAuth();
@@ -536,32 +533,13 @@ const IncidentManagement: React.FC = () => {
                         </div>
 
                         {/* Search box */}
-                        <Box sx={incidentSearchBox(isSearchBarVisible)} data-joyride-id="incident-search">
-                            <IconButton
-                                disableRipple
-                                disableFocusRipple
-                                onClick={() =>
-                                    setIsSearchBarVisible((prev) => !prev)
-                                }
-                                aria-label="Toggle search"
-                            >
-                                <SearchIcon />
-                            </IconButton>
-
-                            {isSearchBarVisible && (
-                                <InputBase
-                                    autoFocus
-                                    placeholder="Search..."
-                                    inputProps={{
-                                        "aria-label": "Search incidents",
-                                    }}
-                                    value={searchTerm}
-                                    onChange={(e) =>
-                                        setSearchTerm(e.target.value)
-                                    }
-                                    sx={incidentInput(isSearchBarVisible)}
-                                />
-                            )}
+                        <Box sx={{ width: 300 }} data-joyride-id="incident-search">
+                            <SearchBox
+                                placeholder="Search incidents..."
+                                value={searchTerm}
+                                onChange={setSearchTerm}
+                                inputProps={{ "aria-label": "Search incidents" }}
+                            />
                         </Box>
                     </Stack>
 

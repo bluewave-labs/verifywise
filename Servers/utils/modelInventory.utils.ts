@@ -224,9 +224,10 @@ export const createNewModelInventoryQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_added") {
@@ -239,11 +240,12 @@ export const createNewModelInventoryQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
@@ -383,9 +385,10 @@ export const updateModelInventoryByIdQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_updated") {
@@ -398,11 +401,12 @@ export const updateModelInventoryByIdQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
@@ -445,9 +449,10 @@ export const deleteModelInventoryByIdQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_deleted") {
@@ -460,11 +465,12 @@ export const deleteModelInventoryByIdQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }

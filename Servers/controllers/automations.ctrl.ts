@@ -3,6 +3,7 @@ import { createAutomationQuery, deleteAutomationByIdQuery, getAllAutomationActio
 import { sequelize } from "../database/db";
 import { ITenantAutomationAction } from "../domain.layer/interfaces/i.tenantAutomationAction";
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import { getAutomationExecutionLogs, getAutomationExecutionStats } from "../utils/automationExecutionLog.utils";
 
 export const getAllAutomationTriggers = async (
   req: Request,
@@ -201,6 +202,59 @@ export const deleteAutomationById = async (
   } catch (error) {
     await transaction.rollback();
     console.error(`Error deleting automation with ID ${id}:`, error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export const getAutomationHistory = async (
+  req: Request,
+  res: Response
+) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (isNaN(id)) {
+    return res.status(400).json(STATUS_CODE[400]({ message: "Invalid automation ID" }));
+  }
+
+  try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const { logs, total } = await getAutomationExecutionLogs(id, limit, offset, req.tenantId!);
+
+    // Map action_results to actions for frontend compatibility
+    const mappedLogs = logs.map((log: any) => ({
+      ...log,
+      actions: log.action_results || [],
+    }));
+
+    return res.status(200).json(STATUS_CODE[200]({
+      logs: mappedLogs,
+      total,
+      limit,
+      offset
+    }));
+  } catch (error) {
+    console.error(`Error fetching automation history for ID ${id}:`, error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export const getAutomationStats = async (
+  req: Request,
+  res: Response
+) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (isNaN(id)) {
+    return res.status(400).json(STATUS_CODE[400]({ message: "Invalid automation ID" }));
+  }
+
+  try {
+    const stats = await getAutomationExecutionStats(id, req.tenantId!);
+    return res.status(200).json(STATUS_CODE[200](stats));
+  } catch (error) {
+    console.error(`Error fetching automation stats for ID ${id}:`, error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -1872,7 +1872,10 @@ const IntegratedDashboard: React.FC = () => {
             sx={{
               border: "1px solid #EEEEEE",
               borderRadius: "4px",
-              padding: "60px 20px 80px 20px",
+              paddingTop: "100px",
+              paddingBottom: "80px",
+              paddingLeft: "20px",
+              paddingRight: "20px",
               gap: "20px",
               minHeight: 400,
               backgroundColor: "#FFFFFF",
@@ -1881,8 +1884,7 @@ const IntegratedDashboard: React.FC = () => {
               boxSizing: "border-box",
             }}
           >
-            <Box sx={{ height: "40px" }} />
-            <img src={placeholderImage} alt="No cards visible" style={{ marginTop: "40px" }} />
+            <img src={placeholderImage} alt="No cards visible" />
             <Typography
               sx={{
                 fontSize: "13px",

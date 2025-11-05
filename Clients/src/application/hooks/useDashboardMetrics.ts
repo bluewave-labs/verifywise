@@ -131,6 +131,19 @@ export interface PolicyMetrics {
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
 
+export interface IncidentMetrics {
+  total: number;
+  recent: Array<{
+    id: number;
+    incident_id: string;
+    description: string;
+    severity: string;
+    status: string;
+    created_at: string;
+  }>;
+  statusDistribution?: Array<{ name: string; value: number; color: string }>;
+}
+
 export interface AITrustCenterStatus {
   enabled: boolean;
   last_updated: string;
@@ -161,6 +174,9 @@ export const useDashboardMetrics = () => {
   );
   const [usersMetrics, setUsersMetrics] = useState<UsersMetrics | null>(null);
   const [policyMetrics, setPolicyMetrics] = useState<PolicyMetrics | null>(
+    null
+  );
+  const [incidentMetrics, setIncidentMetrics] = useState<IncidentMetrics | null>(
     null
   );
   const [loading, setLoading] = useState(false);
@@ -399,6 +415,33 @@ export const useDashboardMetrics = () => {
     }
   }, []);
 
+  // Fetch incident metrics
+  const fetchIncidentMetrics = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/ai-incident-managements" });
+
+      // Handle the API response structure
+      const incidentsData = response.data || response.incidents || response;
+      const incidentsArray = Array.isArray(incidentsData) ? incidentsData : [];
+
+      const incidentMetrics = {
+        total: incidentsArray.length,
+        recent: incidentsArray.slice(0, 5).map((incident: any, index: number) => ({
+          id: incident.id || index + 1,
+          incident_id: incident.incident_id || `INC-${index + 1}`,
+          description: incident.description || incident.title || "Incident",
+          severity: incident.severity || "Unknown",
+          status: incident.status || "Unknown",
+          created_at: incident.created_at || incident.createdAt || new Date().toISOString(),
+        })),
+      };
+
+      setIncidentMetrics(incidentMetrics);
+    } catch (err) {
+      setIncidentMetrics(null);
+    }
+  }, []);
+
   // Fetch all dashboard metrics safely
   const fetchAllMetrics = useCallback(async () => {
     setLoading(true);
@@ -419,6 +462,7 @@ export const useDashboardMetrics = () => {
         fetchVendorMetrics(),
         fetchUsersMetrics(),
         fetchPolicyMetrics(),
+        fetchIncidentMetrics(),
       ]);
 
       // Log which ones failed
@@ -436,6 +480,7 @@ export const useDashboardMetrics = () => {
           "vendorMetrics",
           "usersMetrics",
           "policyMetrics",
+          "incidentMetrics",
         ];
 
         if (result.status === "rejected") {
@@ -461,6 +506,7 @@ export const useDashboardMetrics = () => {
     fetchVendorMetrics,
     fetchUsersMetrics,
     fetchPolicyMetrics,
+    fetchIncidentMetrics,
   ]);
 
   // Initialize data on mount
@@ -482,6 +528,7 @@ export const useDashboardMetrics = () => {
     vendorMetrics,
     usersMetrics,
     policyMetrics,
+    incidentMetrics,
 
     // State
     loading,
@@ -501,5 +548,6 @@ export const useDashboardMetrics = () => {
     fetchVendorMetrics,
     fetchUsersMetrics,
     fetchPolicyMetrics,
+    fetchIncidentMetrics,
   };
 };

@@ -29,21 +29,22 @@ export const uploadFileToManager = async (
   file: Express.Multer.File,
   userId: number,
   orgId: number,
-  tenant: string
+  tenant: string,
+  modelId?: number
 ): Promise<any> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
   // Sanitize filename to remove dangerous characters
   const safeName = sanitizeFilename(file.originalname) || "file";
 
-  // Insert file metadata and content into database
-  const query = `
+    // Insert file metadata and content into database
+    const query = `
     INSERT INTO "${tenant}".file_manager
-      (filename, size, mimetype, content, uploaded_by, upload_date, org_id, is_demo)
+      (filename, size, mimetype, file_path, uploaded_by, upload_date, model_id,  org_id, is_demo)
     VALUES
-      (:filename, :size, :mimetype, :content, :uploaded_by, NOW(), :org_id, false)
+      (:filename, :size, :mimetype, :file_path, :uploaded_by, NOW(), :model_id, :org_id, false)
     RETURNING *
-  `;
+    `;
 
   const result = await sequelize.query(query, {
     replacements: {
@@ -53,6 +54,7 @@ export const uploadFileToManager = async (
       content: file.buffer, // Store file content in database
       uploaded_by: userId,
       org_id: orgId,
+      model_id: modelId
     },
     type: QueryTypes.SELECT,
   });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import {
   Stack,
@@ -235,7 +236,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       case 'text':
       case 'textarea':
         // Check if this is a message/content field that should have multiple rows (excluding subject)
-        const isMessageField = field.type === 'textarea' ||
+        { const isMessageField = field.type === 'textarea' ||
                               field.key.toLowerCase().includes('message') ||
                               field.key.toLowerCase().includes('body') ||
                               field.key.toLowerCase().includes('content') ||
@@ -323,7 +324,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             isRequired={field.required}
             ref={inputRef}
           />
-        );
+        ); }
 
       case 'select':
         return (
@@ -485,6 +486,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       { var: '{{model.limitations}}', desc: 'Model limitations' },
       { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
       { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
+      { var: '{{model.securityAssessmentData}}', desc: 'security assessment data' },
       { var: '{{model.created_at}}', desc: 'Model creation date' },
     ];
 
@@ -639,7 +641,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
       case 'scheduled_report':
         // Base variables available for all reports
-        const baseReportVariables = [
+        { const baseReportVariables = [
           { var: '{{report.type}}', desc: 'Type of report being generated' },
           { var: '{{schedule.frequency}}', desc: 'Report frequency (daily/weekly/monthly)' },
         ];
@@ -664,7 +666,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           ...projectLevelVariables,
           ...orgVariables,
           ...commonVariables,
-        ];
+        ]; }
 
       default:
         return commonVariables;

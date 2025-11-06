@@ -100,6 +100,12 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
 
     try {
         const file = req.file as Express.Multer.File;
+        // Parse model_id from request body
+        let modelId: number | undefined;
+        if (req.body.model_id != null && req.body.model_id !== "") {
+          const parsed = Number(req.body.model_id);
+          if (!isNaN(parsed)) modelId = parsed;
+        }      
 
         if (!file) {
             await logFailure({
@@ -133,8 +139,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
             return res.status(400).json(STATUS_CODE[400](validation.error));
         }
 
-        // Upload file (stores file.buffer in database)
-        const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant);
+        // Upload file (this will move it from temp to permanent location)
+        const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant, modelId);
 
         await logSuccess({
             eventType: "Create",
@@ -152,6 +158,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
                 mimetype: uploadedFile.mimetype,
                 upload_date: uploadedFile.upload_date,
                 uploaded_by: uploadedFile.uploaded_by,
+                modelId: uploadedFile.model_id
             })
         );
     } catch (error) {

@@ -1000,6 +1000,7 @@ const ModelInventory: React.FC = () => {
         setIsOpen={handleCloseModal}
         onSuccess={handleModelInventorySuccess}
         onError={handleModelInventoryError}
+        selectedModelInventoryId={selectedModelInventory?.id}
         initialData={
           selectedModelInventory
             ? {
@@ -1022,6 +1023,7 @@ const ModelInventory: React.FC = () => {
                 hosting_provider: selectedModelInventory.hosting_provider || "",
                 projects: selectedModelInventory.projects || [],
                 frameworks: selectedModelInventory.frameworks || [],
+                security_assessment_data: selectedModelInventory.security_assessment_data || [],
               }
             : undefined
         }

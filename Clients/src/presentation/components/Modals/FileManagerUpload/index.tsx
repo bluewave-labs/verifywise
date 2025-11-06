@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
@@ -27,13 +28,15 @@ const UPLOAD_CONTEXT = 'FileManagerUpload';
 interface FileManagerUploadModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (uploadedFile: any) => void; // ✅ return uploaded file info
+  modelId?: string | number | undefined; // save model Id
 }
 
 type UploadStatus = "pending" | "uploading" | "success" | "error";
 
 interface UploadedFileInfo {
   file: File;
+  model_id?: string | number | undefined,
   status: UploadStatus;
   progress: number;
   error?: string;
@@ -43,6 +46,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   open,
   onClose,
   onSuccess,
+  modelId
 }) => {
   const theme = useTheme();
   const [fileList, setFileList] = useState<UploadedFileInfo[]>([]);
@@ -115,6 +119,8 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     setIsUploading(true);
     let successCount = 0;
 
+    const uploadedFiles: any[] = []; // to collect all successful uploads
+
     for (let i = 0; i < fileList.length; i++) {
       // Skip files that failed client-side validation or already uploaded
       if (fileList[i].status !== "pending") continue;
@@ -127,8 +133,15 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
           )
         );
 
+        // const modelIdNumber: number | null = modelId && !isNaN(Number(modelId)) ? Number(modelId) : null;
+
+        fileList[i] = { ...fileList[i], model_id: modelId };
+
+
         // Upload the file and validate response
-        const response = await uploadFileToManager({ file: fileList[i].file });
+        const response = await uploadFileToManager({ file: fileList[i].file, model_id: fileList[i].model_id });
+
+        uploadedFiles.push(response.data);
 
         // Validate server response structure
         // Backend returns: { message: "Created", data: { id, filename, ... } }
@@ -177,7 +190,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
     // Trigger refresh once after all uploads complete (avoid multiple refetches)
     if (successCount > 0 && onSuccess) {
-      onSuccess();
+      onSuccess(uploadedFiles);
     }
 
     // DEFENSIVE: Clear any existing timeouts before scheduling new ones

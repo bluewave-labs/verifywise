@@ -15,7 +15,6 @@ export function buildModelReplacements(model: any): Record<string, any> {
     'model.biases': model.biases,
     'model.limitations': model.limitations,
     'model.hosting_provider': model.hosting_provider,
-    'model.used_in_projects': model.used_in_projects,
     'model.security_assessment_data': model.security_assessment_data,
     'model.created_at': model.created_at ? new Date(model.created_at).toLocaleDateString('en-US', { dateStyle: 'long' }) : '',
     'date_and_time': new Date().toLocaleString('en-US', {

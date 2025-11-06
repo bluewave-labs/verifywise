@@ -5,7 +5,6 @@ import {
   Box,
   SelectChangeEvent,
   Stack,
-  Tab,
   useTheme,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,14 +17,13 @@ import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { AppState } from "../../../application/interfaces/appStates";
 import useUsers from "../../../application/hooks/useUsers";
-import { tabPanelStyle, tabStyle } from "./style";
+import { tabPanelStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
 import PageTour from "../../components/PageTour";
 import VendorsSteps from "./VendorsSteps";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import AddNewRisk from "../../components/Modals/NewRisk";
@@ -49,7 +47,7 @@ import { getVendorRiskById } from "../../../application/repository/vendorRisk.re
 import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
-import { createTabLabelWithCount } from "../../utils/tabUtils";
+import TabBar from "../../components/TabBar";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -510,37 +508,28 @@ const Vendors = () => {
             />
           </Box>
 
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 2 }}>
-            <TabList
-              onChange={handleChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              data-joyride-id="vendor-list-tab"
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-              }}
-            >
-              <Tab
-                label={createTabLabelWithCount({
+          <Box sx={{ mt: 2 }}>
+            <TabBar
+              tabs={[
+                {
                   label: "Vendors",
+                  value: "1",
+                  icon: "Building",
                   count: vendors.length,
                   isLoading: isVendorsLoading,
-                })}
-                value="1"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                label={createTabLabelWithCount({
+                },
+                {
                   label: "Risks",
+                  value: "2",
+                  icon: "AlertTriangle",
                   count: vendorRisks.length,
                   isLoading: loadingVendorRisks,
-                })}
-                value="2"
-                sx={tabStyle}
-                disableRipple
-              />
-            </TabList>
+                },
+              ]}
+              activeTab={value}
+              onChange={handleChange}
+              dataJoyrideId="vendor-list-tab"
+            />
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (

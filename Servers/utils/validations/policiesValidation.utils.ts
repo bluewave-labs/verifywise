@@ -13,7 +13,7 @@ import {
   ValidationError
 } from './validation.utils';
 import { POLICY_TAGS, PolicyTag } from '../../domain.layer/interfaces/i.policy';
-
+import striptags from 'striptags';
 /**
  * Validation constants for policies
  */
@@ -354,7 +354,7 @@ export const validatePolicyCreationBusinessRules = (data: any): ValidationError[
   // Validate content HTML has meaningful content
   if (data.content_html) {
     // Strip HTML tags to check actual content length
-    const textContent = data.content_html.replace(/<[^>]*>/g, '').trim();
+    const textContent = striptags(data.content_html).trim();
     if (textContent.length < 100) {
       errors.push({
         field: 'content_html',

@@ -62,6 +62,7 @@ export interface CheckboxProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   isDisabled?: boolean;
+  sx?: SxProps<Theme>;
 }
 export interface DatePickerProps {
   label?: string;

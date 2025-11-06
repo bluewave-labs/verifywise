@@ -21,7 +21,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, UploadIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
@@ -32,7 +32,6 @@ import modelInventoryOptions from "../../../utils/model-inventory.json";
 import { getAllProjects } from "../../../../application/repository/project.repository";
 import { Project } from "../../../../domain/types/Project";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
-import { FileUploadResponse } from "../../../../application/repository/file.repository";
 import FileManagerUploadModal from "../FileManagerUpload";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { FileResponse } from "../../../../domain/interfaces/i.modelInventory";
@@ -63,7 +62,7 @@ interface NewModelInventoryFormValues {
     hosting_provider: string;
     projects: number[];
     frameworks: number[];
-    security_assessment_data: FileUploadResponse["data"][]; // store only inner data
+    security_assessment_data: FileResponse[];
 }
 
 interface NewModelInventoryFormErrors {
@@ -1091,92 +1090,140 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     />
                 </Stack>
 
-                {/* Row 2: Uploaded files info */}
-                {values.security_assessment_data &&
-                    values.security_assessment_data.length > 0 && (
-                        <Stack spacing={2}>
-                            {values.security_assessment_data.map(
-                                (file, index) => (
-                                    <Box
-                                        key={index}
-                                        p={1}
-                                        border={`1px solid ${theme.palette.grey[300]}`}
-                                        borderRadius={1}
-                                    >
-                                        <Typography variant="body2">
-                                            <strong>File:</strong>{" "}
-                                            {file.filename}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            <strong>Size:</strong>{" "}
-                                            {(file.size / 1024 / 1024).toFixed(
-                                                2
-                                            )}{" "}
-                                            MB
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            <strong>Uploaded:</strong>{" "}
-                                            {typeof file.upload_date ===
-                                            "string"
-                                                ? dayjs
-                                                      .utc(file.upload_date)
-                                                      .format(
-                                                          "YYYY-MM-DD mm:ss"
-                                                      )
-                                                : dayjs
-                                                      .utc(file.upload_date)
-                                                      .format(
-                                                          "YYYY-MM-DD mm:ss"
-                                                      )}
-                                        </Typography>
-
-                                        <Stack
-                                            direction="row"
-                                            spacing={4}
-                                            mt={1}
-                                        >
-                                            <CustomizableButton
-                                                variant="contained"
-                                                size="small"
-                                                onClick={() => {
-                                                    if (!file.id) {
-                                                        console.error(
-                                                            "File ID is missing for replacement!",
-                                                            file
-                                                        );
-                                                        return;
-                                                    }
-                                                    setCurrentReplaceId(
-                                                        file.id
-                                                    ); // store the model record’s file ID
-                                                    setIsUploadModalOpen(true);
-                                                }}
-                                                text="Replace file"
-                                            />
-
-                                            <CustomizableButton
-                                                variant="contained"
-                                                color="error"
-                                                size="small"
-                                                onClick={() => {
-                                                    setValues((prevValues) => ({
-                                                        ...prevValues,
-                                                        security_assessment_data:
-                                                            prevValues.security_assessment_data.filter(
-                                                                (f) =>
-                                                                    f.id !==
-                                                                    file.id // remove the reference from the model record
-                                                            ),
-                                                    }));
-                                                }}
-                                                text="Remove file"
-                                            />
-                                        </Stack>
-                                    </Box>
-                                )
-                            )}
+                {errors.security_assessment_data && (
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            mt: 1,
+                            color: "#f04438",
+                            fontWeight: 300,
+                            fontSize: 11,
+                        }}
+                    >
+                        {errors.security_assessment_data}
+                    </Typography>
+                )}
+                {/* ✅ Upload Section (appears only when toggle is ON) */}
+                {values.security_assessment && (
+                    <Stack spacing={4}>
+                        {/* Row 1: Upload / Replace button - always visible */}
+                        <Stack direction="row" spacing={2}>
+                            <CustomizableButton
+                                variant="contained"
+                                text={
+                                    values.security_assessment_data &&
+                                    values.security_assessment_data.length > 0
+                                        ? "Add more files"
+                                        : "Upload assessment"
+                                }
+                                sx={{ gap: 2 }}
+                                icon={<UploadIcon size={16} />}
+                                onClick={() => setIsUploadModalOpen(true)}
+                            />
                         </Stack>
-                    )}
+
+                        {/* Row 2: Uploaded files info */}
+                        {values.security_assessment_data &&
+                            values.security_assessment_data.length > 0 && (
+                                <Stack spacing={2}>
+                                    {values.security_assessment_data.map(
+                                        (file, index) => (
+                                            <Box
+                                                key={index}
+                                                p={1}
+                                                border={`1px solid ${theme.palette.grey[300]}`}
+                                                borderRadius={1}
+                                            >
+                                                <Typography variant="body2">
+                                                    <strong>File:</strong>{" "}
+                                                    {file.filename}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>Size:</strong>{" "}
+                                                    {(
+                                                        file.size /
+                                                        1024 /
+                                                        1024
+                                                    ).toFixed(2)}{" "}
+                                                    MB
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>Uploaded:</strong>{" "}
+                                                    {typeof file.upload_date ===
+                                                    "string"
+                                                        ? dayjs
+                                                              .utc(
+                                                                  file.upload_date
+                                                              )
+                                                              .format(
+                                                                  "YYYY-MM-DD mm:ss"
+                                                              )
+                                                        : dayjs
+                                                              .utc(
+                                                                  file.upload_date
+                                                              )
+                                                              .format(
+                                                                  "YYYY-MM-DD mm:ss"
+                                                              )}
+                                                </Typography>
+
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={4}
+                                                    mt={1}
+                                                >
+                                                    <CustomizableButton
+                                                        variant="contained"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            if (!file.id) {
+                                                                console.error(
+                                                                    "File ID is missing for replacement!",
+                                                                    file
+                                                                );
+                                                                return;
+                                                            }
+                                                            setCurrentReplaceId(
+                                                                file.id
+                                                            ); // store the model record’s file ID
+                                                            setIsUploadModalOpen(
+                                                                true
+                                                            );
+                                                        }}
+                                                        text="Replace file"
+                                                    />
+
+                                                    <CustomizableButton
+                                                        variant="contained"
+                                                        color="error"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setValues(
+                                                                (
+                                                                    prevValues
+                                                                ) => ({
+                                                                    ...prevValues,
+                                                                    security_assessment_data:
+                                                                        prevValues.security_assessment_data.filter(
+                                                                            (
+                                                                                f
+                                                                            ) =>
+                                                                                f.id !==
+                                                                                file.id // remove the reference from the model record
+                                                                        ),
+                                                                })
+                                                            );
+                                                        }}
+                                                        text="Remove file"
+                                                    />
+                                                </Stack>
+                                            </Box>
+                                        )
+                                    )}
+                                </Stack>
+                            )}
+                    </Stack>
+                )}
 
                 <FileManagerUploadModal
                     open={isUploadModalOpen}

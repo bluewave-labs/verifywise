@@ -133,8 +133,6 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
           )
         );
 
-        // const modelIdNumber: number | null = modelId && !isNaN(Number(modelId)) ? Number(modelId) : null;
-
         fileList[i] = { ...fileList[i], model_id: modelId };
 
 

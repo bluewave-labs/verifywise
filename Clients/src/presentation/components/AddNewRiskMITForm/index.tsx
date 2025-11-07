@@ -12,7 +12,7 @@ import {
   Radio,
   TextField,
 } from "@mui/material";
-import SkeletonCard from "../SkeletonCard";
+import EmptyState from "../EmptyState";
 import riskData from "../../assets/MITAIRISKDB.json";
 import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -318,15 +318,9 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       colSpan={TITLE_OF_COLUMNS.length}
                       align="center"
+                      sx={{ border: "none", p: 0 }}
                     >
-                      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-                        <Box sx={{ mb: '20px' }}>
-                          <SkeletonCard showHalo={false} />
-                        </Box>
-                        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-                          No risks found in database
-                        </Typography>
-                      </Stack>
+                      <EmptyState message="No risks found in database" />
                     </TableCell>
                   </TableRow>
                 </TableBody>

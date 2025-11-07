@@ -13,7 +13,7 @@ import {
   TableFooter,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
-import SkeletonCard from "../../components/SkeletonCard";
+import EmptyState from "../../components/EmptyState";
 import singleTheme from "../../themes/v1SingleTheme";
 import IconButton from "../../components/IconButton";
 import TablePaginationActions from "../../components/TablePagination";
@@ -273,14 +273,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
     <>
       {/* Empty state outside the table */}
       {!data || data.length === 0 ? (
-        <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-          <Box sx={{ mb: '20px' }}>
-            <SkeletonCard showHalo={false} />
-          </Box>
-          <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-            There are currently no model risks in this table.
-          </Typography>
-        </Stack>
+        <EmptyState message="There are currently no model risks in this table." />
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

@@ -5,23 +5,19 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
   TableFooter,
-  Stack,
-  Box,
 } from "@mui/material";
 import { Suspense, lazy, useMemo, useState, useCallback } from "react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import SkeletonCard from "../../SkeletonCard";
+import EmptyState from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import {
-  emptyData,
   paginationStatus,
   paginationStyle,
   paginationDropdown,
@@ -149,15 +145,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
             ) : (
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={columns.length} sx={emptyData}>
-                    <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-                      <Box sx={{ mb: '20px' }}>
-                        <SkeletonCard showHalo={false} />
-                      </Box>
-                      <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-                        There is currently no data in this table.
-                      </Typography>
-                    </Stack>
+                  <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+                    <EmptyState message="There is currently no data in this table." />
                   </TableCell>
                 </TableRow>
               </TableBody>

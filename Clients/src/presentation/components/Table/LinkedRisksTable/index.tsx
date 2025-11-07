@@ -4,15 +4,12 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  Typography,
-  Stack,
-  Box,
 } from "@mui/material";
 import React, { useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TableHeader from "../TableHead";
 import { TITLE_OF_COLUMNS } from "../../LinkedRisks/constants";
-import SkeletonCard from "../../SkeletonCard";
+import EmptyState from "../../EmptyState";
 
 import LinkedRisksTableBody from "./TableBody";
 
@@ -64,14 +61,7 @@ const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
                       align="center"
                       sx={{ border: "none", p: 0 }}
                     >
-                      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-                        <Box sx={{ mb: '20px' }}>
-                          <SkeletonCard showHalo={false} />
-                        </Box>
-                        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-                          There is currently no data in this table.
-                        </Typography>
-                      </Stack>
+                      <EmptyState message="There is currently no data in this table." />
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -87,14 +77,7 @@ const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
                   align="center"
                   sx={{ border: "none", p: 0 }}
                 >
-                  <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-                    <Box sx={{ mb: '20px' }}>
-                      <SkeletonCard showHalo={false} />
-                    </Box>
-                    <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-                      There is currently no data in this table.
-                    </Typography>
-                  </Stack>
+                  <EmptyState message="There is currently no data in this table." />
                 </TableCell>
               </TableRow>
             </TableBody>

@@ -26,14 +26,12 @@ import AddNewRisk from "../Modals/NewRisk";
 import { useVendors } from "../../../application/hooks/useVendors";
 import singleTheme from "../../themes/v1SingleTheme";
 import {
-  emptyData,
-  styles,
   tableWrapper,
   paginationDropdown,
   paginationSelect,
   paginationStyle,
 } from "../Table/styles";
-import SkeletonCard from "../SkeletonCard";
+import EmptyState from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import {
@@ -340,16 +338,9 @@ const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
                     <TableRow>
                       <TableCell
                         colSpan={4}
-                        align="center"
+                        sx={{ border: "none", p: 0 }}
                       >
-                        <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-                          <Box sx={{ mb: '20px' }}>
-                            <SkeletonCard showHalo={false} />
-                          </Box>
-                          <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-                            No risks found for this vendor.
-                          </Typography>
-                        </Stack>
+                        <EmptyState message="No risks found for this vendor." />
                       </TableCell>
                     </TableRow>
                   </TableBody>

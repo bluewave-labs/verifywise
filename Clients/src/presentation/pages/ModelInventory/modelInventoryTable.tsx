@@ -23,7 +23,7 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-import SkeletonCard from "../../components/SkeletonCard";
+import EmptyState from "../../components/EmptyState";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
@@ -37,8 +37,6 @@ import {
   tableRowHoverStyle,
   tableRowDeletingStyle,
   loadingContainerStyle,
-  emptyStateContainerStyle,
-  emptyStateTextStyle,
   tableFooterRowStyle,
   showingTextCellStyle,
   paginationMenuProps,
@@ -406,16 +404,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return (
-      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-        <Box sx={{ mb: '20px' }}>
-          <SkeletonCard showHalo={false} />
-        </Box>
-        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-          There is currently no data in this table.
-        </Typography>
-      </Stack>
-    );
+    return <EmptyState message="There is currently no data in this table." />;
   }
 
   return (

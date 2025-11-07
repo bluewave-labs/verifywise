@@ -1,6 +1,5 @@
-import { Box, Typography, useTheme } from "@mui/material";
 import { NoProjectBox } from "../../pages/Home/styles";
-import SkeletonCard from "../SkeletonCard";
+import EmptyState from "../EmptyState";
 
 interface NoProjectProps {
   message: string;
@@ -17,24 +16,10 @@ interface NoProjectProps {
  */
 
 const NoProject = ({ message }: NoProjectProps) => {
-  const theme = useTheme();
 
   return (
     <NoProjectBox>
-      <Box sx={{ display: "flex", justifyContent: "center", mb: '20px' }}>
-        <SkeletonCard showHalo={false} />
-      </Box>
-      <Typography
-        sx={{
-          textAlign: "center",
-          color: theme.palette.text.tertiary,
-          textWrap: "balance",
-          fontSize: 13,
-          fontWeight: 400,
-        }}
-      >
-        {message}
-      </Typography>
+      <EmptyState message={message} />
     </NoProjectBox>
   );
 };

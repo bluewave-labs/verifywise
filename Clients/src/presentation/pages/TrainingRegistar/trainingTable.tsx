@@ -20,7 +20,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import SkeletonCard from "../../components/SkeletonCard";
+import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
@@ -465,16 +465,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return (
-      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
-        <Box sx={{ mb: '20px' }}>
-          <SkeletonCard showHalo={false} />
-        </Box>
-        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
-          There is currently no data in this table.
-        </Typography>
-      </Stack>
-    );
+    return <EmptyState message="There is currently no data in this table." />;
   }
 
   return (

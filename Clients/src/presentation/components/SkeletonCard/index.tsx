@@ -68,22 +68,6 @@ const SkeletonCard: React.FC<SkeletonCardProps> = ({
     ...pulseAnimation
   };
 
-  const hairlineStyle = {
-    position: 'relative',
-    height: '7.2px', // 60% of 12px
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: '50%',
-      height: 0,
-      borderTop: '1px solid #9ca3af', // slightly thinner for smaller size
-      transform: 'translateY(-50%)',
-      borderRadius: '2px'
-    }
-  };
-
   return (
     <Box sx={{ position: 'relative' }}>
       {/* Soft spotlight halo */}

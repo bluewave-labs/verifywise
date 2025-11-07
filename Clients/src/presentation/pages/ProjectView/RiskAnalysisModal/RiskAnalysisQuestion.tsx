@@ -6,7 +6,6 @@ import {
   RadioGroup,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { IQuestion, IQuestionnaireAnswers } from "./iQuestion";
 
@@ -41,10 +40,9 @@ const RiskAnalysisQuestion = ({
   onSelect,
   answers,
 }: RiskAnalysisQuestionProps) => {
-  const theme = useTheme();
   return (
     <Stack>
-      <Typography fontWeight={600} my={4} sx={{color: theme.palette.text.primary}}>
+      <Typography fontSize={15} fontWeight={600} my={4} color="text.primary">
         {question.id}. {question.text}
       </Typography>
       {/* Options */}
@@ -62,7 +60,8 @@ const RiskAnalysisQuestion = ({
                 control={<Radio />}
                 label={
                   <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.secondary }}
+                    fontSize={13}
+                    color="text.primary"
                   >
                     {option.label}
                   </Typography>
@@ -109,7 +108,8 @@ const RiskAnalysisQuestion = ({
                   }
                   label={
                     <Typography
-                      sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
+                      fontSize={13}
+                      color="text.primary"
                     >
                       {option.label}
                     </Typography>

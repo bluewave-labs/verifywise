@@ -60,9 +60,7 @@ export class UserPreferencesModel
     userPreferencesData.user_id = user_id;
     userPreferencesData.date_format = date_format;
 
-    const userPreferences =
-      await UserPreferencesModel.create(userPreferencesData);
-    return userPreferences;
+    return userPreferencesData;
   }
 
   /**
@@ -78,8 +76,6 @@ export class UserPreferencesModel
     }
 
     await this.validateUserPreferences();
-
-    await this.save();
   }
 
   /**

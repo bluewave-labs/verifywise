@@ -63,7 +63,7 @@ export const updateUserPreferencesByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE user_preferences SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE user_preferences SET ${setClause} WHERE user_id = :id RETURNING *;`;
 
   updatedData.id = id;
 

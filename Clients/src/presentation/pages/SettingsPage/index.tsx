@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Stack } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Stack } from "@mui/material";
+import TabPanel from "@mui/lab/TabPanel";
+import TabContext from "@mui/lab/TabContext";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import Organization from "./Organization";
+import Preferences from "./Preferences/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
@@ -13,8 +16,6 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
-import TabPanel from "@mui/lab/TabPanel";
-import TabContext from "@mui/lab/TabContext";
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
@@ -30,9 +31,16 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(tab || "profile");
 
   const validTabs = useMemo(() => {
-    const tabs = ["profile", "password", "team", "organization", "apikeys"];
+    const tabs = [
+      "profile",
+      "password",
+      "preferences",
+      "team",
+      "organization",
+      "apikeys",
+    ];
     return tabs;
-  }, [])
+  }, []);
 
   // keep state synced with URL
   useEffect(() => {
@@ -51,9 +59,9 @@ export default function ProfilePage() {
 
       // Check if requested tab is valid and user has permission to access it
       if (validTabs.includes(requestedTab)) {
-        if (requestedTab === 'team' && isTeamManagementDisabled) {
+        if (requestedTab === "team" && isTeamManagementDisabled) {
           // If team management is requested but user doesn't have permission, stay on profile
-          setActiveTab('profile');
+          setActiveTab("profile");
         } else {
           setActiveTab(requestedTab);
         }
@@ -62,7 +70,13 @@ export default function ProfilePage() {
       // Clear the navigation state to prevent stale state issues
       navigate(location.pathname, { replace: true });
     }
-  }, [location.state, isTeamManagementDisabled, navigate, location.pathname, validTabs]);
+  }, [
+    location.state,
+    isTeamManagementDisabled,
+    navigate,
+    location.pathname,
+    validTabs,
+  ]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
@@ -132,6 +146,11 @@ export default function ProfilePage() {
               icon: "Lock",
             },
             {
+              label: "Preferences",
+              value: "preferences",
+              icon: "Settings",
+            },
+            {
               label: "Team",
               value: "team",
               icon: "Users",
@@ -159,6 +178,10 @@ export default function ProfilePage() {
 
         <TabPanel value="password">
           <Password />
+        </TabPanel>
+
+        <TabPanel value="preferences">
+          <Preferences />
         </TabPanel>
 
         <TabPanel value="team">

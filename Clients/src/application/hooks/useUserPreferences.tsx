@@ -15,6 +15,7 @@ const useUserPreferences = () => {
   >(defaultUserPreferences);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDefault, setIsDefault] = useState<boolean>(false);
 
   const fetchUserPreferences = async () => {
     try {
@@ -23,7 +24,9 @@ const useUserPreferences = () => {
 
       setUserPreferences(response.data);
       setError(null);
+      setIsDefault(false);
     } catch (err) {
+      setIsDefault(true);
       setError(
         err instanceof Error ? err.message : "Failed to fetch user preferences",
       );
@@ -38,6 +41,7 @@ const useUserPreferences = () => {
 
   return {
     userPreferences,
+    isDefault,
     loading,
     error,
     refreshUserPreferences: fetchUserPreferences,

@@ -52,12 +52,12 @@ import DashboardErrorBoundary from "../../components/Dashboard/DashboardErrorBou
 import WidgetErrorBoundary from "../../components/Dashboard/WidgetErrorBoundary";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { IStatusData } from "../../../domain/interfaces/i.chart";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
+import { MetricCardProps } from "../../../domain/interfaces/iDashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 
 const Alert = lazy(() => import("../../components/Alert"));
@@ -436,19 +436,6 @@ const getSpecialDayGreeting = (month: number, day: number, displayName: string):
 
   return null;
 };
-
-
-// Import MetricCard component from WorkingDashboard
-interface MetricCardProps {
-  title: string;
-  value: number | string;
-  onClick?: () => void;
-  navigable?: boolean;
-  statusData?: IStatusData[];
-  entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks" | "incidents";
-  compact?: boolean;
-  backgroundIcon?: React.ComponentType<any>;
-}
 
 const MetricCard: React.FC<MetricCardProps> = ({
   title,

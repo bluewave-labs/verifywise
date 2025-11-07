@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback, useContext, useMemo } from "react";
 import {
   Stack,
   Table,
@@ -11,17 +11,26 @@ import {
   TableRow,
   Typography,
   useTheme,
+  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
 import { ITableProps } from "../../../../domain/interfaces/i.table";
+
+const POLICY_TABLE_SORTING_KEY = "verifywise_policy_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -44,7 +53,41 @@ const CustomizablePolicyTable = ({
   );
   const { setInputValues } = useContext(VerifyWiseContext);
 
-  useEffect(() => setPage(0), [data.rows.length]);
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(POLICY_TABLE_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(POLICY_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  useEffect(() => setPage(0), [data.rows.length, sortConfig]);
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
 
   const handleChangePage = useCallback(
     (_: unknown, newPage: number) => setPage(newPage),
@@ -70,6 +113,72 @@ const CustomizablePolicyTable = ({
     onRowClick?.(rowData.id);
   };
 
+  // Sort the data based on current sort configuration
+  const sortedData = useMemo(() => {
+    if (!data.rows || !sortConfig.key || !sortConfig.direction) {
+      return data.rows || [];
+    }
+
+    const sortableData = [...data.rows];
+
+    return sortableData.sort((a: any, b: any) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for policies
+      if (sortKey.includes("title")) {
+        aValue = a.title?.toLowerCase() || "";
+        bValue = b.title?.toLowerCase() || "";
+      } else if (sortKey.includes("status")) {
+        aValue = a.status?.toLowerCase() || "";
+        bValue = b.status?.toLowerCase() || "";
+      } else if (sortKey.includes("tags")) {
+        aValue = a.tags?.join(", ")?.toLowerCase() || "";
+        bValue = b.tags?.join(", ")?.toLowerCase() || "";
+      } else if (sortKey.includes("next") || sortKey.includes("review")) {
+        aValue = a.next_review_date ? new Date(a.next_review_date).getTime() : 0;
+        bValue = b.next_review_date ? new Date(b.next_review_date).getTime() : 0;
+      } else if (sortKey.includes("author")) {
+        aValue = a.author_id?.toString() || "";
+        bValue = b.author_id?.toString() || "";
+      } else if (sortKey.includes("last") || sortKey.includes("updated")) {
+        // Handle both "last updated" and "updated by" columns
+        if (sortKey.includes("by")) {
+          aValue = a.last_updated_by?.toString() || "";
+          bValue = b.last_updated_by?.toString() || "";
+        } else {
+          aValue = a.last_updated_at ? new Date(a.last_updated_at).getTime() : 0;
+          bValue = b.last_updated_at ? new Date(b.last_updated_at).getTime() : 0;
+        }
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the row
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as Record<string, unknown>)[sortKey];
+          const bVal = (b as Record<string, unknown>)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons (for dates)
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [data.rows, sortConfig]);
+
   const tableHeader = (
     <TableHead
       sx={{
@@ -78,21 +187,82 @@ const CustomizablePolicyTable = ({
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {data.cols.map((col) => (
-          <TableCell
-            key={col.id}
-            style={singleTheme.tableStyles.primary.header.cell}
-          >
-            {col.name}
-          </TableCell>
-        ))}
+        {data.cols.map((col) => {
+          const isLastColumn = col.id === "actions";
+          const sortable = !["actions"].includes(col.id);
+
+          return (
+            <TableCell
+              key={col.id}
+              style={{
+                ...singleTheme.tableStyles.primary.header.cell,
+                ...(isLastColumn && {
+                  position: "sticky",
+                  right: 0,
+                  zIndex: 10,
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }),
+                ...(!isLastColumn && sortable
+                  ? {
+                      cursor: "pointer",
+                      userSelect: "none",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      },
+                    }
+                  : {}),
+              }}
+              onClick={() => sortable && handleSort(col.name)}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: theme.spacing(2),
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    color: sortConfig.key === col.name ? "primary.main" : "inherit",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {col.name}
+                </Typography>
+                {sortable && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      color: sortConfig.key === col.name ? "primary.main" : "#9CA3AF",
+                    }}
+                  >
+                    {sortConfig.key === col.name && sortConfig.direction === "asc" && (
+                      <ChevronUp size={16} />
+                    )}
+                    {sortConfig.key === col.name && sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                    {sortConfig.key !== col.name && (
+                      <ChevronsUpDown size={16} />
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </TableCell>
+          );
+        })}
       </TableRow>
     </TableHead>
   );
 
   const tableBody = (
     <TableBody>
-      {data.rows
+      {sortedData
         ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) =>
           renderRow ? (
@@ -118,7 +288,7 @@ const CustomizablePolicyTable = ({
 
   return (
     <>
-      {!data.rows.length ? (
+      {!sortedData.length ? (
         <Stack
           alignItems="center"
           justifyContent="center"
@@ -160,12 +330,12 @@ const CustomizablePolicyTable = ({
                     Showing {page * rowsPerPage + 1} -{" "}
                     {Math.min(
                       page * rowsPerPage + rowsPerPage,
-                      data.rows.length
+                      sortedData.length
                     )}{" "}
-                    of {data.rows.length} items
+                    of {sortedData.length} items
                   </TableCell>
                   <TablePagination
-                    count={data.rows.length}
+                    count={sortedData.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

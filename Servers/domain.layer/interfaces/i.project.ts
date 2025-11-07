@@ -12,6 +12,8 @@ export interface IProjectAttributes {
   ai_risk_classification: AiRiskClassification;
   type_of_high_risk_role: HighRiskRole;
   goal: string;
+  target_industry: string;
+  description: string;
   last_updated: Date;
   last_updated_by: number;
   created_at?: Date;

@@ -326,7 +326,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
           <TableBody>
             {paginatedRows.map((row) => (
               <TableRow
-                key={row.id}
+                key={`${row.id}-${row.fileName}`}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",

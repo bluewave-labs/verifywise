@@ -16,9 +16,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import { emptyStateStyles } from "../../../themes/components";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
+import SkeletonCard from "../../SkeletonCard";
 import { IVWProjectRisksTable } from "../../../../domain/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 
@@ -347,9 +346,11 @@ const VWProjectRisksTable = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <Stack sx={emptyStateStyles.tableContainer(theme)}>
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                  <Box sx={{ mb: '20px' }}>
+                    <SkeletonCard showHalo={false} />
+                  </Box>
+                  <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
                     There is currently no data in this table.
                   </Typography>
                 </Stack>

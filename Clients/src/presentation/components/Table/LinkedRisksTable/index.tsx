@@ -5,16 +5,18 @@ import {
   TableContainer,
   TableRow,
   Typography,
+  Stack,
+  Box,
 } from "@mui/material";
 import React, { useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TableHeader from "../TableHead";
 import { TITLE_OF_COLUMNS } from "../../LinkedRisks/constants";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../SkeletonCard";
 
 import LinkedRisksTableBody from "./TableBody";
 
-import { tableWrapper, emptyData, styles } from "../styles";
+import { tableWrapper } from "../styles";
 import { ILinkedRisksTableProps } from "../../../../domain/interfaces/i.table";
 
 const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
@@ -55,18 +57,24 @@ const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
               />
             ) : (
               <>
-                <TableRow>
-                  <TableCell
-                    colSpan={TITLE_OF_COLUMNS.length}
-                    align="center"
-                    sx={emptyData}
-                  >
-                    <img src={placeholderImage} alt="Placeholder" />
-                    <Typography sx={styles.textBase}>
-                      No risks found in database
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={TITLE_OF_COLUMNS.length}
+                      align="center"
+                      sx={{ border: "none", p: 0 }}
+                    >
+                      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                        <Box sx={{ mb: '20px' }}>
+                          <SkeletonCard showHalo={false} />
+                        </Box>
+                        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+                          There is currently no data in this table.
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
               </>
             )}
           </>
@@ -77,12 +85,16 @@ const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
                 <TableCell
                   colSpan={TITLE_OF_COLUMNS.length}
                   align="center"
-                  sx={emptyData}
+                  sx={{ border: "none", p: 0 }}
                 >
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={styles.textBase}>
-                    There is currently no risk in this project.
-                  </Typography>
+                  <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                    <Box sx={{ mb: '20px' }}>
+                      <SkeletonCard showHalo={false} />
+                    </Box>
+                    <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+                      There is currently no data in this table.
+                    </Typography>
+                  </Stack>
                 </TableCell>
               </TableRow>
             </TableBody>

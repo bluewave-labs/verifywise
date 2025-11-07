@@ -4,14 +4,17 @@ import {
   TableContainer,
   TableRow,
   Typography,
+  Stack,
+  Box,
+  TableBody,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { emptyData, styles, tableWrapper } from "../styles";
+import { tableWrapper } from "../styles";
 import TableHeader from "../TableHead";
 import { useState } from "react";
 import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import { ProjectRiskMitigationTableBody } from "./ProjectRiskMitigationTableBody";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../SkeletonCard";
 
 const TITLE_OF_COLUMNS = ["Component", "Type", ""];
 
@@ -43,18 +46,24 @@ export const ProjectRiskMitigationTable: React.FC<
             setCurrentPagingation={setCurrentPagingation}
           />
         ) : (
-          <TableRow>
-            <TableCell
-              colSpan={TITLE_OF_COLUMNS.length}
-              align="center"
-              sx={emptyData}
-            >
-              <img src={placeholderImage} alt="Placeholder" />
-              <Typography sx={styles.textBase}>
-                No mitigation data available
-              </Typography>
-            </TableCell>
-          </TableRow>
+          <TableBody>
+            <TableRow>
+              <TableCell
+                colSpan={TITLE_OF_COLUMNS.length}
+                align="center"
+                sx={{ border: "none", p: 0 }}
+              >
+                <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                  <Box sx={{ mb: '20px' }}>
+                    <SkeletonCard showHalo={false} />
+                  </Box>
+                  <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+                    There is currently no data in this table.
+                  </Typography>
+                </Stack>
+              </TableCell>
+            </TableRow>
+          </TableBody>
         )}
       </Table>
     </TableContainer>

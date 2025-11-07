@@ -12,20 +12,23 @@ import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
-import { buildProjectReplacements, buildProjectUpdateReplacements } from "./automation/project.automation.utils";
+import {
+  buildProjectReplacements,
+  buildProjectUpdateReplacements,
+} from "./automation/project.automation.utils";
 
 // Function to generate the next sequential UC ID
 // Using a database sequence to fetch the next value
 export const generateNextUcId = async (
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<string> => {
   const result = await sequelize.query<{ next_id: number }>(
     `SELECT nextval('"${tenant}".project_uc_id_seq') AS next_id`,
     {
       type: QueryTypes.SELECT,
       transaction,
-    }
+    },
   );
 
   const nextNumber = result[0].next_id;
@@ -40,7 +43,7 @@ interface GetUserProjectsOptions {
 
 export const getUserProjects = async (
   { userId, role, transaction }: GetUserProjectsOptions,
-  tenant: string
+  tenant: string,
 ) => {
   const baseQueryParts: string[] = [
     `SELECT DISTINCT p.*`,
@@ -55,7 +58,7 @@ export const getUserProjects = async (
 
   if (role !== "Admin") {
     baseQueryParts.push(
-      `LEFT JOIN "${tenant}".projects_members pm ON pm.project_id = p.id`
+      `LEFT JOIN "${tenant}".projects_members pm ON pm.project_id = p.id`,
     );
     whereConditions.push("(p.owner = :userId OR pm.user_id = :userId)");
     replacements.userId = userId;
@@ -86,7 +89,7 @@ export const getAllProjectsQuery = async (
     userId: number;
     role: IRoleAttributes["name"];
   },
-  tenant: string
+  tenant: string,
 ): Promise<IProjectAttributes[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");
@@ -107,11 +110,11 @@ export const getAllProjectsQuery = async (
         WHERE project_id = :project_id`,
       {
         replacements: { project_id: project.id },
-      }
+      },
     )) as [
-        { project_framework_id: number; framework_id: number; name: string }[],
-        number,
-      ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -123,7 +126,7 @@ export const getAllProjectsQuery = async (
         replacements: { project_id: project.id },
         mapToModel: true,
         model: ProjectsMembersModel,
-      }
+      },
     );
     (project.dataValues as any)["members"] = members.map((m) => m.user_id);
   }
@@ -133,7 +136,7 @@ export const getAllProjectsQuery = async (
 
 export const getProjectByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
 ): Promise<IProjectAttributes | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".projects WHERE id = :id`,
@@ -141,7 +144,7 @@ export const getProjectByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: ProjectModel,
-    }
+    },
   );
   if (result.length === 0) return null;
   const project = result[0];
@@ -155,22 +158,22 @@ export const getProjectByIdQuery = async (
       WHERE project_id = :project_id`,
     {
       replacements: { project_id: project.id },
-    }
+    },
   )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number,
-    ];
+    { project_framework_id: number; framework_id: number; name: string }[],
+    number,
+  ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
   }
 
-  const projectOwner = await sequelize.query(
+  const projectOwner = (await sequelize.query(
     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
     {
       replacements: { owner_id: project.owner },
-    }
-  ) as [{ full_name: string }[], number];
+    },
+  )) as [{ full_name: string }[], number];
   (project.dataValues as any)["owner_name"] = projectOwner[0][0].full_name;
 
   const members = await sequelize.query(
@@ -179,7 +182,7 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
       mapToModel: true,
       model: ProjectsMembersModel,
-    }
+    },
   );
   (project.dataValues as any)["members"] = members.map((m) => m.user_id);
 
@@ -188,7 +191,7 @@ export const getProjectByIdQuery = async (
 
 export const countSubControlsByProjectId = async (
   project_id: number,
-  tenant: string
+  tenant: string,
 ): Promise<{
   totalSubcontrols: string;
   doneSubcontrols: string;
@@ -200,7 +203,7 @@ export const countSubControlsByProjectId = async (
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
-    }
+    },
   );
   return result[0] as {
     totalSubcontrols: string;
@@ -210,7 +213,7 @@ export const countSubControlsByProjectId = async (
 
 export const countAnswersByProjectId = async (
   project_id: number,
-  tenant: string
+  tenant: string,
 ): Promise<{
   totalAssessments: string;
   answeredAssessments: string;
@@ -223,7 +226,7 @@ export const countAnswersByProjectId = async (
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
-    }
+    },
   );
   return result[0] as {
     totalAssessments: string;
@@ -238,26 +241,26 @@ export const createNewProjectQuery = async (
   tenant: string,
   userId: number,
   transaction: Transaction,
-  isDemo: boolean = false
+  isDemo: boolean = false,
 ): Promise<ProjectModel> => {
   const allowedFrameworks: number[] = [];
   if (project.is_organizational === true) {
     const result = (await sequelize.query(
       `SELECT id FROM public.frameworks WHERE is_organizational = true;`,
-      { transaction }
+      { transaction },
     )) as [{ id: number }[], number];
     allowedFrameworks.push(...result[0].map((f) => f.id));
   } else {
     const result = (await sequelize.query(
       `SELECT id FROM public.frameworks WHERE is_organizational = false;`,
-      { transaction }
+      { transaction },
     )) as [{ id: number }[], number];
     allowedFrameworks.push(...result[0].map((f) => f.id));
   }
   for (let framework of frameworks) {
     if (!allowedFrameworks.includes(framework)) {
       throw new Error(
-        `Framework with ID ${framework} is not allowed for this project.`
+        `Framework with ID ${framework} is not allowed for this project.`,
       );
     }
   }
@@ -266,10 +269,10 @@ export const createNewProjectQuery = async (
 
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
-      uc_id, project_title, owner, start_date, geography, ai_risk_classification,
+      uc_id, project_title, owner, start_date, geography, target_industry, description, ai_risk_classification,
       type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
-      :uc_id, :project_title, :owner, :start_date, :geography, :ai_risk_classification,
+      :uc_id, :project_title, :owner, :start_date, :geography, :target_industry, :description, :ai_risk_classification,
       :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
@@ -282,6 +285,8 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification || null,
         type_of_high_risk_role: project.type_of_high_risk_role || null,
         goal: project.goal || null,
+        target_industry: project.target_industry || null,
+        description: project.description || null,
         status: project.status || "Not started",
         last_updated: new Date(Date.now()),
         last_updated_by: userId,
@@ -292,7 +297,7 @@ export const createNewProjectQuery = async (
       model: ProjectModel,
       // type: QueryTypes.INSERT
       transaction,
-    }
+    },
   );
   const createdProject = result[0];
   (createdProject.dataValues as any)["members"] = [];
@@ -309,7 +314,7 @@ export const createNewProjectQuery = async (
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
         transaction,
-      }
+      },
     );
     (createdProject.dataValues as any)["members"].push(member);
   }
@@ -326,47 +331,63 @@ export const createNewProjectQuery = async (
         mapToModel: true,
         model: ProjectFrameworksModel,
         transaction,
-      }
+      },
     );
     (createdProject.dataValues as any)["framework"].push(framework);
   }
 
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction },
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_added") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: createdProject.dataValues.owner },
-          transaction
-        }
-      ) as [{ full_name: string }[], number];
+          transaction,
+        },
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectReplacements({ ...createdProject.dataValues, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectReplacements({
+        ...createdProject.dataValues,
+        owner_name: owner_name[0][0].full_name,
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`,
+      );
     }
   }
 
@@ -385,7 +406,7 @@ export const updateProjectUpdatedByIdQuery = async (
     | "annexcontrols_iso27001"
     | "subclauses_iso27001",
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<void> => {
   const queryMap = {
     controls: `SELECT pf.project_id as id FROM "${tenant}".controls_eu c JOIN "${tenant}".projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
@@ -414,7 +435,7 @@ export const updateProjectUpdatedByIdQuery = async (
           project_ids: projectIds,
         },
         transaction,
-      }
+      },
     );
   }
 };
@@ -424,7 +445,7 @@ export const updateProjectByIdQuery = async (
   project: Partial<ProjectModel>,
   members: number[],
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<(IProjectAttributes & { members: number[] }) | null> => {
   const oldProject = await getProjectByIdQuery(id, tenant);
   const _currentMembers = await sequelize.query(
@@ -434,7 +455,7 @@ export const updateProjectByIdQuery = async (
       mapToModel: true,
       model: ProjectsMembersModel,
       transaction,
-    }
+    },
   );
   const currentMembers = _currentMembers.map((m) => m.user_id);
   const deletedMembers = currentMembers.filter((m) => !members.includes(m));
@@ -449,7 +470,7 @@ export const updateProjectByIdQuery = async (
         model: ProjectsMembersModel,
         type: QueryTypes.DELETE,
         transaction,
-      }
+      },
     );
   }
 
@@ -462,7 +483,7 @@ export const updateProjectByIdQuery = async (
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
         transaction,
-      }
+      },
     );
   }
 
@@ -475,6 +496,8 @@ export const updateProjectByIdQuery = async (
     "type_of_high_risk_role",
     "goal",
     "geography",
+    "target_industry",
+    "description",
     "last_updated",
     "last_updated_by",
     "status",
@@ -511,52 +534,68 @@ export const updateProjectByIdQuery = async (
       mapToModel: true,
       model: ProjectsMembersModel,
       transaction,
-    }
+    },
   );
   const updatedProject = result[0];
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction },
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_updated") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: updatedProject.dataValues.owner },
-          transaction
-        }
-      ) as [{ full_name: string }[], number];
+          transaction,
+        },
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectUpdateReplacements(oldProject, { ...updatedProject.dataValues, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectUpdateReplacements(oldProject, {
+        ...updatedProject.dataValues,
+        owner_name: owner_name[0][0].full_name,
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`,
+      );
     }
   }
   return result.length
     ? {
-      ...updatedProject.dataValues,
-      members: updatedMembers.map((m) => m.user_id),
-    }
+        ...updatedProject.dataValues,
+        members: updatedMembers.map((m) => m.user_id),
+      }
     : null;
 };
 
@@ -565,7 +604,7 @@ const deleteTable = async (
   foreignKey: string,
   id: number,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ) => {
   let tableToDelete = entity;
   if (entity === "vendors") {
@@ -580,7 +619,7 @@ const deleteTable = async (
       // model: model,
       type: QueryTypes.DELETE,
       transaction,
-    }
+    },
   );
 };
 
@@ -588,10 +627,10 @@ export const deleteHelper = async (
   childObject: Record<string, any>,
   parent_id: number,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ) => {
   const childTableName = Object.keys(childObject).filter(
-    (k) => !["foreignKey", "model"].includes(k)
+    (k) => !["foreignKey", "model"].includes(k),
   )[0];
   let childIds: any = {};
   if (
@@ -607,7 +646,7 @@ export const deleteHelper = async (
           mapToModel: true,
           model: VendorsProjectsModel,
           transaction,
-        }
+        },
       );
     } else {
       childIds = await sequelize.query(
@@ -617,7 +656,7 @@ export const deleteHelper = async (
           mapToModel: true,
           model: childObject[childTableName].model,
           transaction,
-        }
+        },
       );
     }
   }
@@ -632,24 +671,24 @@ export const deleteHelper = async (
             { [k]: childObject[childTableName][k] },
             childId,
             tenant,
-            transaction
+            transaction,
           );
         }
-      })
+      }),
   );
   await deleteTable(
     childTableName,
     childObject[childTableName].foreignKey,
     parent_id,
     tenant,
-    transaction
+    transaction,
   );
 };
 
 export const deleteProjectByIdQuery = async (
   id: number,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<boolean> => {
   const frameworks = await sequelize.query(
     `SELECT framework_id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id`,
@@ -658,7 +697,7 @@ export const deleteProjectByIdQuery = async (
       mapToModel: true,
       model: ProjectFrameworksModel,
       transaction,
-    }
+    },
   );
   const dependantEntities = [
     // {
@@ -688,11 +727,11 @@ export const deleteProjectByIdQuery = async (
       const deleteFunction = frameworkDeletionMap[framework_id];
       if (!deleteFunction) {
         throw new Error(
-          `Unsupported framework_id encountered: ${framework_id}`
+          `Unsupported framework_id encountered: ${framework_id}`,
         );
       }
       return deleteFunction(id, tenant, transaction);
-    })
+    }),
   );
 
   const result = await sequelize.query(
@@ -703,45 +742,61 @@ export const deleteProjectByIdQuery = async (
       model: ProjectModel,
       type: QueryTypes.DELETE,
       transaction,
-    }
+    },
   );
   const deletedProject = result[0];
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction },
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_deleted") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: deletedProject.owner },
-          transaction
-        }
-      ) as [{ full_name: string }[], number];
+          transaction,
+        },
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectReplacements({ ...deletedProject, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectReplacements({
+        ...deletedProject,
+        owner_name: owner_name[0][0].full_name,
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`,
+      );
     }
   }
   return result.length > 0;
@@ -749,7 +804,7 @@ export const deleteProjectByIdQuery = async (
 
 export const calculateProjectRisks = async (
   project_id: number,
-  tenant: string
+  tenant: string,
 ): Promise<
   {
     risk_level_autocalculated: string;
@@ -764,14 +819,14 @@ export const calculateProjectRisks = async (
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
-    }
+    },
   );
   return result;
 };
 
 export const calculateVendirRisks = async (
   project_id: number,
-  tenant: string
+  tenant: string,
 ): Promise<
   {
     risk_level: string;
@@ -783,11 +838,10 @@ export const calculateVendirRisks = async (
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
-    }
+    },
   );
   return result;
 };
-
 
 /**
  * Gets current project members to identify newly added ones
@@ -799,7 +853,7 @@ export const calculateVendirRisks = async (
 export const getCurrentProjectMembers = async (
   projectId: number,
   tenant: string,
-  transaction?: Transaction
+  transaction?: Transaction,
 ): Promise<number[]> => {
   const currentMembersResult = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
@@ -807,8 +861,7 @@ export const getCurrentProjectMembers = async (
       replacements: { project_id: projectId },
       type: QueryTypes.SELECT,
       transaction,
-    }
+    },
   );
   return (currentMembersResult as any[]).map((m) => m.user_id);
 };
-

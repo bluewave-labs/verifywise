@@ -69,6 +69,16 @@ export class ProjectModel
   goal!: string;
 
   @Column({
+    type: DataType.STRING,
+  })
+  target_industry!: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  description!: string;
+
+  @Column({
     type: DataType.DATE,
   })
   last_updated!: Date;

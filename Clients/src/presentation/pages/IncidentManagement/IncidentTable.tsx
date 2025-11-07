@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -13,9 +13,11 @@ import {
     Tooltip,
     useTheme,
     Chip,
+    Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -128,6 +130,13 @@ interface IncidentTableProps {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 const STORAGE_KEY = 'incident-table-rows-per-page';
+const INCIDENT_TABLE_SORTING_KEY = "verifywise_incident_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const TooltipCell: React.FC<{ value?: string | null }> = ({ value }) => {
     const displayValue = value || "-";
@@ -163,6 +172,24 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         return stored ? parseInt(stored, 10) : DEFAULT_ROWS_PER_PAGE;
     });
 
+    // Initialize sorting state from localStorage or default to no sorting
+    const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+        const saved = localStorage.getItem(INCIDENT_TABLE_SORTING_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return { key: "", direction: null };
+            }
+        }
+        return { key: "", direction: null };
+    });
+
+    // Save sorting state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(INCIDENT_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+    }, [sortConfig]);
+
     const handleChangePage = useCallback(
         (_: unknown, newPage: number) => setPage(newPage),
         []
@@ -177,14 +204,99 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         []
     );
 
+    // Sorting handlers
+    const handleSort = useCallback((columnId: string) => {
+        setSortConfig((prevConfig) => {
+            if (prevConfig.key === columnId) {
+                // Toggle direction if same column, or clear if already descending
+                if (prevConfig.direction === "asc") {
+                    return { key: columnId, direction: "desc" };
+                } else if (prevConfig.direction === "desc") {
+                    return { key: "", direction: null };
+                }
+            }
+            // New column or first sort
+            return { key: columnId, direction: "asc" };
+        });
+    }, []);
+
+    // Sort the incident data based on current sort configuration
+    const sortedData = useMemo(() => {
+        if (!data || !sortConfig.key || !sortConfig.direction) {
+            return data || [];
+        }
+
+        const sortableData = [...data];
+
+        return sortableData.sort((a: AIIncidentManagementModel, b: AIIncidentManagementModel) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            // Use exact column name matching - case insensitive
+            const sortKey = sortConfig.key.trim().toLowerCase();
+
+            // Handle different column types for incidents
+            if (sortKey.includes("incident") && sortKey.includes("id")) {
+                aValue = a.incident_id?.toString() || "";
+                bValue = b.incident_id?.toString() || "";
+            } else if (sortKey.includes("project")) {
+                aValue = a.ai_project?.toLowerCase() || "";
+                bValue = b.ai_project?.toLowerCase() || "";
+            } else if (sortKey.includes("type")) {
+                aValue = a.type?.toLowerCase() || "";
+                bValue = b.type?.toLowerCase() || "";
+            } else if (sortKey.includes("severity")) {
+                aValue = a.severity?.toLowerCase() || "";
+                bValue = b.severity?.toLowerCase() || "";
+            } else if (sortKey.includes("status")) {
+                aValue = a.status?.toLowerCase() || "";
+                bValue = b.status?.toLowerCase() || "";
+            } else if (sortKey.includes("occurred") || sortKey.includes("date")) {
+                aValue = a.occurred_date ? new Date(a.occurred_date).getTime() : 0;
+                bValue = b.occurred_date ? new Date(b.occurred_date).getTime() : 0;
+            } else if (sortKey.includes("reporter")) {
+                aValue = a.reporter?.toLowerCase() || "";
+                bValue = b.reporter?.toLowerCase() || "";
+            } else if (sortKey.includes("approval")) {
+                aValue = a.approval_status?.toLowerCase() || "";
+                bValue = b.approval_status?.toLowerCase() || "";
+            } else if (sortKey.includes("approved") && sortKey.includes("by")) {
+                aValue = a.approved_by?.toLowerCase() || "";
+                bValue = b.approved_by?.toLowerCase() || "";
+            } else {
+                // Try to handle unknown columns by checking if they're properties of the incident
+                if (sortKey && sortKey in a && sortKey in b) {
+                    const aVal = (a as any)[sortKey];
+                    const bVal = (b as any)[sortKey];
+                    aValue = String(aVal).toLowerCase();
+                    bValue = String(bVal).toLowerCase();
+                    const comparison = aValue.localeCompare(bValue);
+                    return sortConfig.direction === "asc" ? comparison : -comparison;
+                }
+                return 0;
+            }
+
+            // Handle string comparisons
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                const comparison = aValue.localeCompare(bValue);
+                return sortConfig.direction === "asc" ? comparison : -comparison;
+            }
+
+            // Handle number comparisons (for dates)
+            if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [data, sortConfig]);
+
     const getRange = useMemo(() => {
         const start = page * rowsPerPage + 1;
         const end = Math.min(
             page * rowsPerPage + rowsPerPage,
-            data?.length ?? 0
+            sortedData?.length ?? 0
         );
         return `${start} - ${end}`;
-    }, [page, rowsPerPage, data?.length]);
+    }, [page, rowsPerPage, sortedData?.length]);
 
     const tableHeader = useMemo(
         () => (
@@ -195,43 +307,86 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 }}
             >
                 <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {TABLE_COLUMNS.map((column) => (
-                        <TableCell
-                            component="td"
-                            className="incident-management-table-header-cel"
-                            key={column.id}
-                            sx={{
-                                ...singleTheme.tableStyles.primary.header.cell,
-                                ...(column.id === "incident_id" && {
-                                    width: "110px",
-                                    maxWidth: "110px",
-                                }),
-                                ...(column.id === "actions" && {
-                                    position: "sticky",
-                                    right: 0,
-                                    zIndex: 10,
-                                    backgroundColor:
-                                        singleTheme.tableStyles.primary.header
-                                            .backgroundColors,
-                                }),
-                            }}
-                        >
-                            <div style={{ fontWeight: 400 }}>
-                                {column.label}
-                            </div>
-                        </TableCell>
-                    ))}
+                    {TABLE_COLUMNS.map((column) => {
+                        const isLastColumn = column.id === "actions";
+                        const sortable = !["actions"].includes(column.id);
+
+                        return (
+                            <TableCell
+                                component="td"
+                                className="incident-management-table-header-cel"
+                                key={column.id}
+                                sx={{
+                                    ...singleTheme.tableStyles.primary.header.cell,
+                                    ...(column.id === "incident_id" && {
+                                        width: "110px",
+                                        maxWidth: "110px",
+                                    }),
+                                    ...(column.id === "actions" && {
+                                        position: "sticky",
+                                        right: 0,
+                                        zIndex: 10,
+                                        backgroundColor:
+                                            singleTheme.tableStyles.primary.header
+                                                .backgroundColors,
+                                    }),
+                                    ...(!isLastColumn && sortable
+                                        ? {
+                                            cursor: "pointer",
+                                            userSelect: "none",
+                                            "&:hover": {
+                                                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                                            },
+                                        }
+                                        : {}),
+                                }}
+                                onClick={() => sortable && handleSort(column.label)}
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: theme.spacing(2),
+                                    }}
+                                >
+                                    <div style={{ fontWeight: 400, color: sortConfig.key === column.label ? "primary.main" : "inherit" }}>
+                                        {column.label}
+                                    </div>
+                                    {sortable && (
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                                            }}
+                                        >
+                                            {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                                                <ChevronUp size={16} />
+                                            )}
+                                            {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                                                <ChevronDown size={16} />
+                                            )}
+                                            {sortConfig.key !== column.label && (
+                                                <ChevronsUpDown size={16} />
+                                            )}
+                                        </Box>
+                                    )}
+                                </Box>
+                            </TableCell>
+                        );
+                    })}
                 </TableRow>
             </TableHead>
         ),
-        []
+        [sortConfig, handleSort, theme]
     );
 
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {data?.length > 0 ? (
-                    data
+                {sortedData?.length > 0 ? (
+                    sortedData
                         .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -338,7 +493,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 )}
             </TableBody>
         ),
-        [data, page, rowsPerPage, archivedId, onEdit, onArchive, onView]
+        [sortedData, page, rowsPerPage, archivedId, onEdit, onArchive, onView]
     );
 
     if (isLoading) {
@@ -353,7 +508,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         );
     }
 
-    if (!data || data.length === 0) {
+    if (!sortedData || sortedData.length === 0) {
         return (
             <Stack
                 alignItems="center"
@@ -377,10 +532,10 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
                             <TableCell colSpan={3} sx={incidentShowingText(theme)}>
-                                Showing {getRange} of {data?.length} incident(s)
+                                Showing {getRange} of {sortedData?.length} incident(s)
                             </TableCell>
                             <TablePagination
-                                count={data?.length ?? 0}
+                                count={sortedData?.length ?? 0}
                                 page={page}
                                 onPageChange={handleChangePage}
                                 rowsPerPage={rowsPerPage}

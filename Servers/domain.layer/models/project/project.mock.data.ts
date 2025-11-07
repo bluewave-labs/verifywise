@@ -16,6 +16,8 @@ const mockProjects = (user1: number, user2: number): IProjectAttributes[] => {
       goal: "To ensure compliance with AI governance standards",
       last_updated: new Date("2024-10-30"),
       last_updated_by: user1,
+      target_industry: "Technology",
+      description: "This is a project to ensure compliance with AI governance standards",
     },
     {
       id: 2,
@@ -28,6 +30,8 @@ const mockProjects = (user1: number, user2: number): IProjectAttributes[] => {
       goal: "Analyze and optimize dataset usage",
       last_updated: new Date("2024-09-12"),
       last_updated_by: user2,
+      target_industry: "Data Analytics",
+      description: "This is a project to analyze and optimize dataset usage",
     },
   ];
 };

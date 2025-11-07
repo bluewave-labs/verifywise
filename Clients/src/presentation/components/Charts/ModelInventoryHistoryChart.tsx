@@ -76,7 +76,7 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
       label: status,
       data: timeseriesData.map((point) => point.data[status] || 0),
       color: STATUS_COLORS[status] || "#9CA3AF",
-      curve: "monotone" as const,
+      curve: "monotoneX" as const,
       showMark: false,
     }));
 
@@ -196,7 +196,7 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
                 min: 0,
                 max: maxValue > 0 ? Math.ceil(maxValue * 1.15) : 10,
                 tickMinStep: 1,
-                valueFormatter: (value) => value.toString(),
+                valueFormatter: (value: number) => value.toString(),
                 labelStyle: {
                   fontSize: 13,
                   fill: "#344054",
@@ -212,18 +212,18 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
             margin={{ top: 20, right: 30, bottom: 80, left: 70 }}
             slotProps={{
               legend: {
-                direction: "row",
-                position: { vertical: "bottom", horizontal: "middle" },
-                padding: { top: 30 },
-                itemMarkWidth: 14,
-                itemMarkHeight: 14,
-                markGap: 8,
-                itemGap: 24,
-                labelStyle: {
-                  fontSize: 13,
-                  fontWeight: 500,
-                  fill: "#1c2130",
-                },
+                direction: "row" as any,
+                position: { vertical: "bottom", horizontal: "center" },
+                // padding: { top: 30 },
+                // itemMarkWidth: 14,
+                // itemMarkHeight: 14,
+                // markGap: 8,
+                // itemGap: 24,
+                // labelStyle: {
+                //   fontSize: 13,
+                //   fontWeight: 500,
+                //   fill: "#1c2130",
+                // },
               },
             }}
             grid={{

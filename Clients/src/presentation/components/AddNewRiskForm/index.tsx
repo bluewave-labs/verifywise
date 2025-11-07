@@ -428,20 +428,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   ]);
 
   // Helper function to get only changed fields for UPDATE requests
-  const getChangedFields = useCallback((
-    original: RiskFormValues & MitigationFormValues,
-    current: RiskFormValues & MitigationFormValues
-  ) => {
-    const changedFields: any = {};
+  const getChangedFields = useCallback(<T extends Record<string, any>>(original: Partial<T>, current: Partial<T>) => {
+    const changedFields: Record<string, any> = {};
 
     // Check each field for changes
     Object.keys(current).forEach((key) => {
-      const originalValue = original[key as keyof (RiskFormValues & MitigationFormValues)];
-      const currentValue = current[key as keyof (RiskFormValues & MitigationFormValues)];
+      const originalValue = original[key as keyof T];
+      const currentValue = current[key as keyof T];
 
-      // For arrays, do deep comparison
+      // For arrays, do deep comparison (use copies to avoid mutating originals)
       if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
-        if (JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort())) {
+        const originalArr = [...(originalValue as any[])].sort();
+        const currentArr = [...(currentValue as any[])].sort();
+        if (JSON.stringify(originalArr) !== JSON.stringify(currentArr)) {
           changedFields[key] = currentValue;
         }
       }

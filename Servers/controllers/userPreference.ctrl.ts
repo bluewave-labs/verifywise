@@ -62,6 +62,33 @@ export async function createUserPreferences(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const preferenceData = req.body;
 
+  if (!preferenceData.user_id || !preferenceData.date_format) {
+    logStructured(
+      "error",
+      "Missing required fields in request body",
+      functionName,
+      fileName,
+    );
+    return res
+      .status(400)
+      .json(
+        STATUS_CODE[400]("Missing required fields: user_id and date_format"),
+      );
+  }
+
+  if (
+    typeof preferenceData.user_id !== "number" ||
+    preferenceData.user_id <= 0
+  ) {
+    logStructured(
+      "error",
+      `Invalid user_id: ${preferenceData.user_id}`,
+      functionName,
+      fileName,
+    );
+    return res.status(400).json(STATUS_CODE[400]("Invalid user_id"));
+  }
+
   logStructured(
     "processing",
     `Starting User Preferences creation`,
@@ -73,6 +100,22 @@ export async function createUserPreferences(req: Request, res: Response) {
   );
 
   try {
+    const existingPreference = await getPreferencesByUserQuery(
+      parseInt(preferenceData.user_id),
+    );
+    if (existingPreference) {
+      await transaction.rollback();
+      logStructured(
+        "error",
+        `User preferences already exist for user ID ${preferenceData.user_id}`,
+        functionName,
+        fileName,
+      );
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("User preferences already exist for this user"));
+    }
+
     const userPreference = await UserPreferencesModel.createNewUserPreferences(
       preferenceData.user_id,
       preferenceData.date_format,
@@ -109,7 +152,7 @@ export async function createUserPreferences(req: Request, res: Response) {
       functionName,
       fileName,
     );
-    await logEvent("Error", `user preferences creation failed}`);
+    await logEvent("Error", "User preferences creation failed");
     await transaction.rollback();
     return res
       .status(400)
@@ -211,7 +254,7 @@ export async function updateUserPreferences(req: Request, res: Response) {
       functionName,
       fileName,
     );
-    await logEvent("Error", `user preferences creation failed}`);
+    await logEvent("Error", "user preferences update failed");
     await transaction.rollback();
     return res
       .status(400)

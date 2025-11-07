@@ -28,12 +28,13 @@ export class UserPreferencesModel
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    unique: true,
   })
   user_id!: number;
 
   @Column({
     type: DataType.ENUM(...Object.values(UserDateFormat)),
-    defaultValue: "DD-MM-YYYY",
+    defaultValue: UserDateFormat.DD_MM_YYYY_DASH,
     allowNull: false,
   })
   date_format!: UserDateFormat;

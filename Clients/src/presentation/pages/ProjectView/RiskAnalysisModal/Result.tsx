@@ -94,7 +94,7 @@ const Results: React.FC<ResultsDisplayProps> = ({
             >
               {config.title}
             </Typography>
-            <Typography fontSize={13} color="text.secondary">
+            <Typography fontSize={13} color="text.primary">
               {config.description}
             </Typography>
           </Stack>

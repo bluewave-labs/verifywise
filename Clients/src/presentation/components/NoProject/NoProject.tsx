@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import { NoProjectBox } from "../../pages/Home/styles";
-import emptyState from "../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../SkeletonCard";
 
 interface NoProjectProps {
   message: string;
@@ -21,15 +21,16 @@ const NoProject = ({ message }: NoProjectProps) => {
 
   return (
     <NoProjectBox>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <img src={emptyState} alt="Empty project state" />
+      <Box sx={{ display: "flex", justifyContent: "center", mb: '20px' }}>
+        <SkeletonCard showHalo={false} />
       </Box>
       <Typography
         sx={{
           textAlign: "center",
-          mt: 13.5,
           color: theme.palette.text.tertiary,
           textWrap: "balance",
+          fontSize: 13,
+          fontWeight: 400,
         }}
       >
         {message}

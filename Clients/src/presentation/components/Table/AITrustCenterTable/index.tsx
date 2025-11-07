@@ -16,8 +16,9 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { IAITrustCenterTableProps } from "../../../../domain/interfaces/i.table";
+import SkeletonCard from "../../SkeletonCard";
+import Box from "@mui/material/Box";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -30,7 +31,6 @@ const AITrustCenterTable = <T extends { id: number }>({
   columns,
   isLoading = false,
   paginated = true,
-  emptyStateText = "No data found. Add your first item to get started.",
   renderRow,
   onRowClick,
   tableId = "ai-trust-center-table",
@@ -139,24 +139,23 @@ const AITrustCenterTable = <T extends { id: number }>({
     () => (
       <Stack
         alignItems="center"
-        justifyContent="center"
         sx={{
           border: "1px solid #EEEEEE",
           borderRadius: "4px",
-          padding: theme.spacing(15, 5),
-          paddingBottom: theme.spacing(20),
-          gap: theme.spacing(10),
-          minHeight: 200,
           backgroundColor: "#FFFFFF",
+          pt: '75px',
+          pb: 16,
         }}
       >
-        <img src={Placeholder} alt="Empty state" />
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-          {emptyStateText}
+        <Box sx={{ mb: '20px' }}>
+          <SkeletonCard showHalo={false} />
+        </Box>
+        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+          There is currently no data in this table.
         </Typography>
       </Stack>
     ),
-    [theme, emptyStateText]
+    [theme]
   );
 
   if (isLoading) {

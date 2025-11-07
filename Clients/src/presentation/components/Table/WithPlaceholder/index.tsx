@@ -13,8 +13,8 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
+import SkeletonCard from "../../SkeletonCard";
 import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
@@ -407,18 +407,18 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       {!sortedVendors || sortedVendors.length === 0 ? (
         <Stack
           alignItems="center"
-          justifyContent="center"
           sx={{
             border: "1px solid #EEEEEE",
             borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
+            backgroundColor: "#FFFFFF",
+            pt: '75px',
+            pb: 16,
           }}
         >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+          <Box sx={{ mb: '20px' }}>
+            <SkeletonCard showHalo={false} />
+          </Box>
+          <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
             There is currently no data in this table.
           </Typography>
         </Stack>

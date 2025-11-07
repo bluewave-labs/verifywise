@@ -8,12 +8,13 @@ import {
   Typography,
   useTheme,
   TableFooter,
+  Stack,
   Box,
 } from "@mui/material";
 import { Suspense, lazy, useMemo, useState, useCallback } from "react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../SkeletonCard";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => (
@@ -149,34 +150,14 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={columns.length} sx={emptyData}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "300px",
-                      }}
-                    >
-                      <img
-                        src={placeholderImage}
-                        alt="No data"
-                        style={{
-                          width: "120px",
-                          height: "120px",
-                          marginBottom: "16px",
-                        }}
-                      />
-                      <Typography variant="h6" sx={{ color: "#6B7280", mb: 1 }}>
-                        No evaluations found
+                    <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                      <Box sx={{ mb: '20px' }}>
+                        <SkeletonCard showHalo={false} />
+                      </Box>
+                      <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+                        There is currently no data in this table.
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "#9CA3AF", textAlign: "center" }}
-                      >
-                        Start by creating a new bias and fairness evaluation
-                      </Typography>
-                    </Box>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               </TableBody>

@@ -58,7 +58,7 @@ import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../components/SkeletonCard";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -1981,7 +1981,9 @@ const IntegratedDashboard: React.FC = () => {
               marginTop: "30px",
             }}
           >
-            <img src={placeholderImage} alt="No cards visible" />
+            <Box sx={{ mb: '20px' }}>
+              <SkeletonCard showHalo={false} />
+            </Box>
             <Typography
               sx={{
                 fontSize: "13px",

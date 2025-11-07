@@ -9,9 +9,11 @@ import {
   Typography,
   useTheme,
   TableFooter,
+  Stack,
+  Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../SkeletonCard";
 import { ChevronsUpDown } from "lucide-react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
@@ -155,10 +157,14 @@ const ReportTable: React.FC<IReportTablePropsExtended> = ({
                       align="center"
                       sx={emptyData}
                     >
-                      <img src={placeholderImage} alt="Placeholder" />
-                      <Typography sx={styles.textBase}>
-                        There is currently no data in this table.
-                      </Typography>
+                      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                        <Box sx={{ mb: '20px' }}>
+                          <SkeletonCard showHalo={false} />
+                        </Box>
+                        <Typography sx={styles.textBase}>
+                          There is currently no data in this table.
+                        </Typography>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 </TableBody>

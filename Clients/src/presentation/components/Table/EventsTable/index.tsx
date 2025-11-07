@@ -14,8 +14,9 @@ import {
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ChevronsUpDown } from "lucide-react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
+import SkeletonCard from "../../SkeletonCard";
+import Box from "@mui/material/Box";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
 import {
@@ -243,18 +244,18 @@ const EventsTable: React.FC<IEventsTableProps> = ({
     return (
       <Stack
         alignItems="center"
-        justifyContent="center"
         sx={{
           border: "1px solid #EEEEEE",
           borderRadius: "4px",
-          padding: theme.spacing(15, 5),
-          paddingBottom: theme.spacing(20),
-          gap: theme.spacing(10),
-          minHeight: 200,
+          backgroundColor: "#FFFFFF",
+          pt: '75px',
+          pb: 16,
         }}
       >
-        <img src={Placeholder} alt="Placeholder" />
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+        <Box sx={{ mb: '20px' }}>
+          <SkeletonCard showHalo={false} />
+        </Box>
+        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
           There is currently no data in this table.
         </Typography>
       </Stack>

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../components/SkeletonCard";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
@@ -355,13 +355,11 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
 
     if (!data || data.length === 0) {
         return (
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={incidentEmptyContainer()}
-            >
-                <img src={Placeholder} alt="Placeholder" />
-                <Typography sx={incidentEmptyText}>
+            <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+                <Box sx={{ mb: '20px' }}>
+                    <SkeletonCard showHalo={false} />
+                </Box>
+                <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
                     There is currently no data in this table.
                 </Typography>
             </Stack>

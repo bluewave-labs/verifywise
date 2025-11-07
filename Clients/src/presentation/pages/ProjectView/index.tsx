@@ -10,7 +10,7 @@ import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
-import emptyStateImg from "../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../components/SkeletonCard";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
@@ -101,10 +101,7 @@ const ProjectView = () => {
         <Box sx={noProjectContainerStyle}>
           {/* empty state image */}
           <Box sx={noProjectImageStyle}>
-            <img
-              src={emptyStateImg}
-              alt="No project found"
-            />
+            <SkeletonCard showHalo={false} />
           </Box>
 
           {/* Subtitle */}

@@ -20,7 +20,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import SkeletonCard from "../../components/SkeletonCard";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
@@ -466,20 +466,11 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <Stack
-        alignItems="center"
-        justifyContent="center"
-        sx={{
-          border: "1px solid #EEEEEE",
-          borderRadius: "4px",
-          padding: theme.spacing(15, 5),
-          paddingBottom: theme.spacing(20),
-          gap: theme.spacing(10),
-          minHeight: 200,
-        }}
-      >
-        <img src={Placeholder} alt="Placeholder" />
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+      <Stack alignItems="center" sx={{ pt: '75px', pb: 16 }}>
+        <Box sx={{ mb: '20px' }}>
+          <SkeletonCard showHalo={false} />
+        </Box>
+        <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
           There is currently no data in this table.
         </Typography>
       </Stack>

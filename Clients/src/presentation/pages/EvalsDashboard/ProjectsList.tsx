@@ -269,7 +269,7 @@ export default function ProjectsList() {
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/evals/${project.id}#configuration`);
+                      navigate(`/evals/${project.id}#overview`);
                     }}
                     startIcon={<Settings size={14} />}
                   >

@@ -13,14 +13,12 @@ import {
   Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import EmptyState from "../../EmptyState";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import TablePaginationActions from "../../TablePagination";
 const ReportTableBody = lazy(() => import("./TableBody"));
 import {
-  styles,
   tableWrapper,
-  emptyData,
   pagniationStatus,
   paginationStyle,
   paginationDropdown,
@@ -347,13 +345,9 @@ const ReportTable: React.FC<IReportTablePropsExtended> = ({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      align="center"
-                      sx={emptyData}
+                      sx={{ border: "none", p: 0 }}
                     >
-                      <img src={placeholderImage} alt="Placeholder" />
-                      <Typography sx={styles.textBase}>
-                        There is currently no data in this table.
-                      </Typography>
+                      <EmptyState message="There is currently no data in this table." />
                     </TableCell>
                   </TableRow>
                 </TableBody>

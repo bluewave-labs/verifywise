@@ -7,14 +7,13 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Stack,
   Typography,
   TableFooter,
   Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
+import EmptyState from "../../EmptyState";
 import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
@@ -405,23 +404,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   return (
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+        <EmptyState message="There is currently no data in this table." showBorder />
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>

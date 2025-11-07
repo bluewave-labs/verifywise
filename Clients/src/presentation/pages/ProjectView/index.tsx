@@ -10,7 +10,7 @@ import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
-import emptyStateImg from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
@@ -20,8 +20,6 @@ import { createTabLabelWithCount } from "../../utils/tabUtils";
 import {
   tabStyle,
   noProjectContainerStyle,
-  noProjectImageStyle,
-  noProjectDescriptionStyle,
   newProjectButtonStyle,
   projectTitleStyle,
   projectDescriptionStyle,
@@ -99,21 +97,7 @@ const ProjectView = () => {
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>
-          {/* empty state image */}
-          <Box sx={noProjectImageStyle}>
-            <img
-              src={emptyStateImg}
-              alt="No project found"
-            />
-          </Box>
-
-          {/* Subtitle */}
-          <Typography
-            variant="body2"
-            sx={noProjectDescriptionStyle}
-          >
-            No projects found. Create a new project to start with.
-          </Typography>
+          <EmptyState message="No projects found. Create a new project to start with." />
           {/* new project button */}
           <Button
             variant="contained"

@@ -15,7 +15,7 @@ import {
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
@@ -303,17 +303,9 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
               <TableCell
                 colSpan={columns.length}
                 align="center"
-                style={{
-                  padding: theme.spacing(15, 5),
-                  paddingBottom: theme.spacing(20),
-                }}
+                sx={{ border: "none", p: 0 }}
               >
-                <img src={placeholderImage} alt="No use cases" />
-                <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A use case is a real-world scenario describing how an AI
-                  system is applied within an organization. Currently you don't
-                  have any use cases in this workspace.
-                </Typography>
+                <EmptyState message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
               </TableCell>
             </TableRow>
           </TableBody>

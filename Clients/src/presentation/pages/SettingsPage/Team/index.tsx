@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  lazy,
-  Suspense,
-} from "react";
+import React, { useState, useCallback, useMemo, lazy, Suspense, useEffect } from "react";
 import {
   Box,
   Button,
@@ -24,7 +18,14 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import { UserPlus as GroupsIcon, ChevronsUpDown as SelectorVertical, Trash2 as DeleteIconGrey } from "lucide-react";
+import {
+  UserPlus as GroupsIcon,
+  ChevronsUpDown,
+  Trash2 as DeleteIconGrey,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
@@ -48,6 +49,14 @@ const TABLE_COLUMNS = [
   { id: "role", label: "ROLE" },
   { id: "action", label: "ACTION" },
 ];
+
+const TEAM_TABLE_SORTING_KEY = "verifywise_team_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 /**
  * A component that renders a team management table with the ability to edit member roles, invite new members, and delete members.
@@ -78,6 +87,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [page, setPage] = useState(0); // Current page
   const { userId } = useAuth();
   const { users, refreshUsers } = useUsers();
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(TEAM_TABLE_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(TEAM_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
 
   // Exclude the current user from the team users list
   const teamUsers = users;
@@ -219,12 +246,78 @@ const TeamManagement: React.FC = (): JSX.Element => {
     [roles, RoleTypography]
   );
 
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the team data based on current sort configuration
+  const sortedTeamUsers = useMemo(() => {
+    if (!teamUsers || !sortConfig.key || !sortConfig.direction) {
+      return teamUsers || [];
+    }
+
+    const sortableData = [...teamUsers];
+
+    return sortableData.sort((a: any, b: any) => {
+      let aValue: string;
+      let bValue: string;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for team members
+      if (sortKey.includes("name")) {
+        const aFullName = [a.name, a.surname].filter(Boolean).join(" ").toLowerCase();
+        const bFullName = [b.name, b.surname].filter(Boolean).join(" ").toLowerCase();
+        aValue = aFullName;
+        bValue = bFullName;
+      } else if (sortKey.includes("email")) {
+        aValue = a.email?.toLowerCase() || "";
+        bValue = b.email?.toLowerCase() || "";
+      } else if (sortKey.includes("role")) {
+        // Get role names for sorting
+        const aRole = roles.find((r) => r.id.toString() === a.roleId?.toString());
+        const bRole = roles.find((r) => r.id.toString() === b.roleId?.toString());
+        aValue = aRole?.name?.toLowerCase() || "";
+        bValue = bRole?.name?.toLowerCase() || "";
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the member
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as Record<string, unknown>)[sortKey];
+          const bVal = (b as Record<string, unknown>)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle string comparisons
+      const comparison = aValue.localeCompare(bValue);
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+  }, [teamUsers, sortConfig, roles]);
+
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
+    const members = sortedTeamUsers.length > 0 ? sortedTeamUsers : teamUsers;
     return filter === 0
-      ? teamUsers
-      : teamUsers.filter((member) => member.roleId === filter);
-  }, [filter, teamUsers]);
+      ? members
+      : members.filter((member) => member.roleId === filter);
+  }, [filter, teamUsers, sortedTeamUsers]);
 
   const handleDeleteClick = (memberId: number) => {
     setMemberToDelete(memberId);
@@ -251,7 +344,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
     status: number | string,
     link: string | undefined = undefined
   ) => {
-  
     if (status === 200) {
       handleAlert({
         variant: "success",
@@ -372,23 +464,75 @@ const TeamManagement: React.FC = (): JSX.Element => {
                     }}
                   >
                     <TableRow>
-                      {TABLE_COLUMNS.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          sx={{
-                            ...singleTheme.tableStyles.primary.header.cell,
-                            ...(column.id === "action" && {
-                              position: "sticky",
-                              right: 0,
-                              backgroundColor:
-                                singleTheme.tableStyles.primary.header
-                                  .backgroundColors,
-                            }),
-                          }}
-                        >
-                          {column.label}
-                        </TableCell>
-                      ))}
+                      {TABLE_COLUMNS.map((column) => {
+                        const isLastColumn = column.id === "action";
+                        const sortable = !["action"].includes(column.id);
+
+                        return (
+                          <TableCell
+                            key={column.id}
+                            sx={{
+                              ...singleTheme.tableStyles.primary.header.cell,
+                              ...(isLastColumn && {
+                                position: "sticky",
+                                right: 0,
+                                backgroundColor:
+                                  singleTheme.tableStyles.primary.header
+                                    .backgroundColors,
+                              }),
+                              ...(!isLastColumn && sortable
+                                ? {
+                                    cursor: "pointer",
+                                    userSelect: "none",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                                    },
+                                  }
+                                : {}),
+                            }}
+                            onClick={() => sortable && handleSort(column.label)}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: theme.spacing(2),
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 500,
+                                  color: sortConfig.key === column.label ? "primary.main" : "inherit",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                {column.label}
+                              </Typography>
+                              {sortable && (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                                  }}
+                                >
+                                  {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                                    <ChevronUp size={16} />
+                                  )}
+                                  {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                                    <ChevronDown size={16} />
+                                  )}
+                                  {sortConfig.key !== column.label && (
+                                    <ChevronsUpDown size={16} />
+                                  )}
+                                </Box>
+                              )}
+                            </Box>
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   </TableHead>
                   <TableBody>

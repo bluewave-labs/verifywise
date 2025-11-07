@@ -7,15 +7,14 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Stack,
   Typography,
   Box,
   Tooltip,
   TableFooter,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
+import EmptyState from "../../EmptyState";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -564,24 +563,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     <>
       {/* Empty state outside the table */}
       {!vendorRisks || vendorRisks.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-            backgroundColor: "white",
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+        <EmptyState message="There is currently no data in this table." showBorder />
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

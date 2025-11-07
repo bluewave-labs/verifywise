@@ -28,6 +28,12 @@ export class ProjectModel
 
   @Column({
     type: DataType.STRING,
+    unique: true,
+  })
+  uc_id?: string;
+
+  @Column({
+    type: DataType.STRING,
   })
   project_title!: string;
 

@@ -27,6 +27,7 @@ export interface IProjectRiskMitigationProps {
 
 export interface IProjectCardProps {
   id: number;
+  uc_id?: string;
   project_title: string;
   owner: string;
   assessments: Assessments;

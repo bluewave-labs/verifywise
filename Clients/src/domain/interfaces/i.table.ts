@@ -1,6 +1,6 @@
 import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
-import { FileData } from "../types/File";
+import { FileModel } from "../models/Common/file/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { IEvent } from "./i.event";
@@ -103,7 +103,7 @@ export interface IFairnessTableProps {
 }
 export interface IColumn {
   id: number;
-  name: keyof FileData | string;
+  name: keyof FileModel | string;
   sx?: object;
 }
 
@@ -112,7 +112,7 @@ export interface IFileBasicTableProps {
     rows: any[];
     cols: IColumn[];
   };
-  bodyData: FileData[];
+  bodyData: FileModel[];
   paginated?: boolean;
   table: string;
   onFileDeleted?: () => void | Promise<void>;
@@ -120,7 +120,8 @@ export interface IFileBasicTableProps {
 
 export interface IFileTableProps {
   cols: any[];
-  files: FileData[];
+  
+  files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
 }
 

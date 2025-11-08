@@ -1,7 +1,7 @@
 export class ISO27001AnnexControlModel {
   id?: number;
   implementation_description!: string;
-  evidence_links!: Object[];
+  evidence_links!: object[];
   status!: string;
   owner!: number;
   reviewer!: number;

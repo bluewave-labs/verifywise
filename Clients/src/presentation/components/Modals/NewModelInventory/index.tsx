@@ -30,6 +30,7 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import modelInventoryOptions from "../../../utils/model-inventory.json";
 import { getAllProjects } from "../../../../application/repository/project.repository";
 import { Project } from "../../../../domain/types/Project";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -447,27 +448,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     },
   };
 
-  const capabilitiesSxStyle = {
-    width: "100%",
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "2px",
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#d0d5dd",
-        borderWidth: "1px",
-      },
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#d0d5dd",
-      },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#d0d5dd",
-        borderWidth: "1px",
-      },
-    },
-    "& .MuiChip-root": {
-      borderRadius: "4px",
-    },
-  };
-
   const capabilitiesSlotProps = {
     paper: {
       sx: {
@@ -753,8 +733,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     />
                   )}
                   sx={{
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.capabilities }),
                     backgroundColor: theme.palette.background.main,
-                    ...capabilitiesSxStyle,
+                    "& .MuiChip-root": {
+                      borderRadius: "4px",
+                    },
                   }}
                   slotProps={capabilitiesSlotProps}
                 />
@@ -819,8 +802,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     />
                   )}
                   sx={{
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.projects }),
                     backgroundColor: theme.palette.background.main,
-                    ...capabilitiesSxStyle,
+                    "& .MuiChip-root": {
+                      borderRadius: "4px",
+                    },
                   }}
                   slotProps={capabilitiesSlotProps}
                 />
@@ -887,8 +873,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     />
                   )}
                   sx={{
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.frameworks }),
                     backgroundColor: theme.palette.background.main,
-                    ...capabilitiesSxStyle,
+                    "& .MuiChip-root": {
+                      borderRadius: "4px",
+                    },
                   }}
                   slotProps={capabilitiesSlotProps}
                 />

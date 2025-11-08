@@ -1,4 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
+import { LayoutDashboard, AlertTriangle, Settings } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -9,17 +10,16 @@ import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
-import emptyStateImg from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
 import { getProjectById } from "../../../application/repository/project.repository";
+import { createTabLabelWithCount } from "../../utils/tabUtils";
 import {
   tabStyle,
   noProjectContainerStyle,
-  noProjectImageStyle,
-  noProjectDescriptionStyle,
   newProjectButtonStyle,
   projectTitleStyle,
   projectDescriptionStyle,
@@ -97,21 +97,7 @@ const ProjectView = () => {
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>
-          {/* empty state image */}
-          <Box sx={noProjectImageStyle}>
-            <img
-              src={emptyStateImg}
-              alt="No project found"
-            />
-          </Box>
-
-          {/* Subtitle */}
-          <Typography
-            variant="body2"
-            sx={noProjectDescriptionStyle}
-          >
-            No projects found. Create a new project to start with.
-          </Typography>
+          <EmptyState message="No projects found. Create a new project to start with." />
           {/* new project button */}
           <Button
             variant="contained"
@@ -140,19 +126,28 @@ const ProjectView = () => {
                   sx={tabListStyle}
                 >
                   <Tab
-                    label="Overview"
+                    label={createTabLabelWithCount({
+                      label: "Overview",
+                      icon: <LayoutDashboard size={14} />,
+                    })}
                     value="overview"
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Use case risks"
+                    label={createTabLabelWithCount({
+                      label: "Use case risks",
+                      icon: <AlertTriangle size={14} />,
+                    })}
                     value="project-risks"
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Settings"
+                    label={createTabLabelWithCount({
+                      label: "Settings",
+                      icon: <Settings size={14} />,
+                    })}
                     value="settings"
                     sx={tabStyle}
                     disableRipple={disableRipple}

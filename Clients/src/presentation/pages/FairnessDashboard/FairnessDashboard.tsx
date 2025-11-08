@@ -22,9 +22,8 @@ import {
   X as CloseGreyIcon,
 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
-import Tab from "@mui/material/Tab";
-import { styles } from "./styles";
+import { TabContext, TabPanel } from "@mui/lab";
+import TabBar from "../../components/TabBar";
 import { useNavigate } from "react-router-dom";
 import FairnessTable from "../../components/Table/FairnessTable";
 import Select from "../../components/Inputs/Select";
@@ -313,31 +312,23 @@ export default function FairnessDashboard() {
       )}
 
       <TabContext value={tab}>
-        <Box
-          sx={{ borderBottom: 1, borderColor: "divider" }}
-          data-joyride-id="fairness-tabs"
-        >
-          <TabList
-            onChange={(_, newVal) => setTab(newVal)}
-            TabIndicatorProps={{
-              style: { backgroundColor: "#13715B", height: "2px" },
-            }}
-            sx={styles.tabList}
-          >
-            <Tab
-              label="ML evaluator"
-              value="uploads"
-              disableRipple
-              sx={{ textTransform: "none !important" }}
-            />
-            <Tab
-              label="LLM evaluator"
-              value="biasModule"
-              disableRipple
-              sx={{ textTransform: "none !important" }}
-            />
-          </TabList>
-        </Box>
+        <TabBar
+          tabs={[
+            {
+              label: "ML evaluator",
+              value: "uploads",
+              icon: "Bot",
+            },
+            {
+              label: "LLM evaluator",
+              value: "biasModule",
+              icon: "MessageSquare",
+            },
+          ]}
+          activeTab={tab}
+          onChange={(_, newVal) => setTab(newVal)}
+          dataJoyrideId="fairness-tabs"
+        />
 
         <TabPanel value="uploads" sx={tabPanelStyle}>
           <Box display="flex" justifyContent="flex-end" mb={3}>

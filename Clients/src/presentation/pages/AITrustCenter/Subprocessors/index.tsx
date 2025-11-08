@@ -281,7 +281,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
       // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w]*)*(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(newSubprocessor.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;

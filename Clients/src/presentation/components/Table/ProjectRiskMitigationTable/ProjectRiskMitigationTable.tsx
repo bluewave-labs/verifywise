@@ -3,15 +3,15 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  Typography,
+  TableBody,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { emptyData, styles, tableWrapper } from "../styles";
+import { tableWrapper } from "../styles";
 import TableHeader from "../TableHead";
 import { useState } from "react";
 import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import { ProjectRiskMitigationTableBody } from "./ProjectRiskMitigationTableBody";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import EmptyState from "../../EmptyState";
 
 const TITLE_OF_COLUMNS = ["Component", "Type", ""];
 
@@ -43,18 +43,17 @@ export const ProjectRiskMitigationTable: React.FC<
             setCurrentPagingation={setCurrentPagingation}
           />
         ) : (
-          <TableRow>
-            <TableCell
-              colSpan={TITLE_OF_COLUMNS.length}
-              align="center"
-              sx={emptyData}
-            >
-              <img src={placeholderImage} alt="Placeholder" />
-              <Typography sx={styles.textBase}>
-                No mitigation data available
-              </Typography>
-            </TableCell>
-          </TableRow>
+          <TableBody>
+            <TableRow>
+              <TableCell
+                colSpan={TITLE_OF_COLUMNS.length}
+                align="center"
+                sx={{ border: "none", p: 0 }}
+              >
+                <EmptyState message="There is currently no data in this table." />
+              </TableCell>
+            </TableRow>
+          </TableBody>
         )}
       </Table>
     </TableContainer>

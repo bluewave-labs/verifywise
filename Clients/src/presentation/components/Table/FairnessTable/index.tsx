@@ -5,22 +5,19 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
   TableFooter,
 } from "@mui/material";
 import { Suspense, lazy, useMemo, useState, useCallback } from "react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import EmptyState from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 import {
-  styles,
   paginationStatus,
   paginationStyle,
   paginationDropdown,
   paginationSelect,
-  emptyData,
 } from "./styles";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { IFairnessTableProps } from "../../../../domain/interfaces/i.table";
@@ -142,14 +139,9 @@ const FairnessTable: React.FC<IFairnessTableProps> = ({
                   <TableCell
                     colSpan={columns.length}
                     align="center"
-                    sx={emptyData}
+                    sx={{ border: "none", p: 0 }}
                   >
-                    <img src={placeholderImage} alt="Placeholder" />
-                    <Typography
-                      sx={{ ...styles.textBase, color: "text.primary" }}
-                    >
-                      There is currently no data in this table.
-                    </Typography>
+                    <EmptyState message="There is currently no data in this table." />
                   </TableCell>
                 </TableRow>
               </TableBody>

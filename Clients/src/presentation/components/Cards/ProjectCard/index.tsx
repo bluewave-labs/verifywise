@@ -208,7 +208,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
         <Stack className="project-card-header" sx={{ gap: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Typography className="project-card-title" sx={projectCardTitleStyle}>
-              {project.project_title}
+              {project.uc_id ? `${project.uc_id}: ` : ''}{project.project_title}
             </Typography>
             <Stack direction="row" spacing={8} sx={{ ml: 2 }}>
               <Stack className="project-card-spec-tile" alignItems="flex-end">

@@ -25,6 +25,7 @@ export const getQuickStats = (
     | "policies"
     | "trainings"
     | "vendorRisks"
+    | "incidents"
     | undefined,
   total: number,
   statusData?: IStatusData[]
@@ -75,6 +76,12 @@ export const getQuickStats = (
         ? `${criticalCount} require attention`
         : "All risks managed";
 
+    case "incidents":
+      const openIncidents =
+        statusData?.find((s) => s.label.toLowerCase().includes("open"))
+          ?.value || Math.floor(total * 0.3);
+      return openIncidents > 0 ? `${openIncidents} open` : "All resolved";
+
     default:
       return "";
   }
@@ -88,6 +95,7 @@ export const hasCriticalItems = (
     | "policies"
     | "trainings"
     | "vendorRisks"
+    | "incidents"
     | undefined,
   statusData?: IStatusData[]
 ): { hasCritical: boolean; actionLabel: string; actionRoute: string } => {
@@ -148,6 +156,17 @@ export const hasCriticalItems = (
         actionRoute: "/vendors?filter=follow-up",
       };
 
+    case "incidents":
+      const openIncidents =
+        statusData.find((s) => s.label.toLowerCase().includes("open"))
+          ?.value || 0;
+
+      return {
+        hasCritical: openIncidents > 0,
+        actionLabel: `Resolve ${openIncidents} Open`,
+        actionRoute: "/ai-incident-managements?filter=open",
+      };
+
     default:
       return { hasCritical: false, actionLabel: "", actionRoute: "" };
   }
@@ -161,6 +180,7 @@ export const getPriorityLevel = (
     | "policies"
     | "trainings"
     | "vendorRisks"
+    | "incidents"
     | undefined,
   total: number,
   statusData?: IStatusData[]
@@ -201,6 +221,16 @@ export const getPriorityLevel = (
 
       if (completionRate < 50) return "high";
       if (completionRate < 75) return "medium";
+      return "none";
+
+    case "incidents":
+      const openIncidents =
+        statusData?.find((s) => s.label.toLowerCase().includes("open"))
+          ?.value || 0;
+      const openPercentage = (openIncidents / total) * 100;
+
+      if (openPercentage > 50) return "high";
+      if (openPercentage > 20) return "medium";
       return "none";
 
     default:

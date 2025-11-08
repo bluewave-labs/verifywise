@@ -13,7 +13,7 @@ import {
   ValidationError
 } from './validation.utils';
 import { POLICY_TAGS, PolicyTag } from '../../domain.layer/interfaces/i.policy';
-
+import striptags from 'striptags';
 /**
  * Validation constants for policies
  */
@@ -354,7 +354,7 @@ export const validatePolicyCreationBusinessRules = (data: any): ValidationError[
   // Validate content HTML has meaningful content
   if (data.content_html) {
     // Strip HTML tags to check actual content length
-    const textContent = data.content_html.replace(/<[^>]*>/g, '').trim();
+    const textContent = striptags(data.content_html).trim();
     if (textContent.length < 100) {
       errors.push({
         field: 'content_html',
@@ -449,8 +449,8 @@ export const validatePolicyUpdateBusinessRules = (data: any, existingData?: any)
 
   // Validate major content changes for published policies
   if (data.content_html && existingData?.status === 'Published' && existingData?.content_html) {
-    const oldContent = existingData.content_html.replace(/<[^>]*>/g, '').trim();
-    const newContent = data.content_html.replace(/<[^>]*>/g, '').trim();
+    const oldContent = striptags(existingData.content_html).trim();
+    const newContent = striptags(data.content_html).trim();
 
     // Simple check for significant content changes (more than 30% difference)
     const similarity = Math.min(oldContent.length, newContent.length) / Math.max(oldContent.length, newContent.length);

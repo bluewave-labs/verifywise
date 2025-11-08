@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import lusca from "lusca";
+// import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
@@ -95,7 +95,6 @@ try {
     express.json()(req, res, next);
   });
   app.use(cookieParser());
-  app.use(lusca.csrf());
 
   // Routes
   app.use("/api/users", userRoutes);

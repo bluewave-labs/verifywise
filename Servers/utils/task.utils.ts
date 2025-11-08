@@ -317,6 +317,22 @@ export const getTasksQuery = async (
     baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
   }
 
+  // Validate sort_order first to ensure we have a valid sortOrder for both cases
+  const sortOrders = {
+    ASC: "ASC",
+    DESC: "DESC",
+  } as const;
+
+  if (!(sort_order in sortOrders)) {
+    throw new ValidationException(
+      "Invalid sort order provided",
+      "sort_order",
+      sort_order
+    );
+  }
+
+  const sortOrder = sortOrders[sort_order as keyof typeof sortOrders];
+
   // Build ORDER clause for sorts (due_date, priority, created_at)
   if (sort_by === "priority") {
     // Custom priority ordering: High=1, Medium=2, Low=3
@@ -324,19 +340,15 @@ export const getTasksQuery = async (
       WHEN t.priority = :priorityHigh THEN 1
       WHEN t.priority = :priorityMedium THEN 2
       WHEN t.priority = :priorityLow THEN 3
-      END ${sort_order}, t.created_at DESC`);
+      END ${sortOrder}, t.created_at DESC`);
     replacements.priorityHigh = TaskPriority.HIGH;
     replacements.priorityMedium = TaskPriority.MEDIUM;
     replacements.priorityLow = TaskPriority.LOW;
+  } else {
     // Use hardcoded mapping for sort fields to avoid SQL injection
     const allowedSortFields = {
       due_date: "due_date",
       created_at: "created_at",
-    } as const;
-
-    const sortOrders = {
-      ASC: "ASC",
-      DESC: "DESC",
     } as const;
 
     if (!(sort_by in allowedSortFields)) {
@@ -347,18 +359,9 @@ export const getTasksQuery = async (
       );
     }
 
-    if (!(sort_order in sortOrders)) {
-      throw new ValidationException(
-        "Invalid sort order provided",
-        "sort_order",
-        sort_order
-      );
-    }
-
     // We can safely interpolate these as they come strictly from the defined mappings
     const safeSortBy =
       allowedSortFields[sort_by as keyof typeof allowedSortFields];
-    const sortOrder = sortOrders[sort_order as keyof typeof sortOrders];
     const orderClause = `ORDER BY t.${safeSortBy} ${sortOrder}`;
 
     if (safeSortBy !== "created_at") {

@@ -328,7 +328,6 @@ export const getTasksQuery = async (
     replacements.priorityHigh = TaskPriority.HIGH;
     replacements.priorityMedium = TaskPriority.MEDIUM;
     replacements.priorityLow = TaskPriority.LOW;
-  } else {
     // Use hardcoded mapping for sort fields to avoid SQL injection
     const allowedSortFields = {
       due_date: "due_date",

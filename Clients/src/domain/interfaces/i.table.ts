@@ -120,6 +120,7 @@ export interface IFileBasicTableProps {
 
 export interface IFileTableProps {
   cols: any[];
+  
   files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
 }

@@ -10,14 +10,14 @@
 import { FileModel } from "../../domain/models/Common/file/file.model";
 
 /**
- * Transforms raw file data from API to FileModel format
+ * Transforms raw file data from API to application FileModel format
  *
  * Handles missing or malformed data gracefully with defensive checks.
  * Server response fields: id, filename, size, mimetype, upload_date, uploaded_by,
  * uploader_name, uploader_surname, existsOnDisk
  *
  * @param {any} file - Raw file data from API
- * @returns {FileModel} FileModel instance for application use
+ * @returns {FileModel} Formatted file data for application use
  */
 export const transformFileData = (file: any): FileModel => {
     // Server sends 'upload_date' not 'uploaded_time'
@@ -32,7 +32,7 @@ export const transformFileData = (file: any): FileModel => {
         id: file.id ?? "",
         fileName: file.filename ?? "Unknown",
         uploadDate: uploadDate ? new Date(uploadDate) : new Date(),
-        uploader: uploaderName,
+        uploader: file.uploaded_by || "unknown",
         uploaderName: uploaderName,
         source: file.source ?? "File Manager",
         projectTitle: file.project_title ?? "N/A",
@@ -41,8 +41,8 @@ export const transformFileData = (file: any): FileModel => {
         subId: file.sub_id ?? null,
         metaId: file.meta_id ?? null,
         isEvidence: file.is_evidence ?? false,
-        size: file.size ?? 0,
-        mimeType: file.mimetype ?? "application/octet-stream"
+        type: file.mimetype || file.type,
+        size: file.size,
     });
 };
 
@@ -50,7 +50,7 @@ export const transformFileData = (file: any): FileModel => {
  * Transforms an array of raw file data to FileModel format
  *
  * @param {any[]} files - Array of raw file data from API
- * @returns {FileModel[]} Array of FileModel instances
+ * @returns {FileModel[]} Array of formatted file data
  */
 export const transformFilesData = (files: any[]): FileModel[] => {
     if (!Array.isArray(files)) {

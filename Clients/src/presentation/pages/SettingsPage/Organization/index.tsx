@@ -10,7 +10,6 @@ import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
   CreateMyOrganization,
   GetMyOrganization,
@@ -105,7 +104,8 @@ const Organization = () => {
         routeUrl: `/organizations/${organizationId}`,
       });
       const org = organizations.data.data;
-      setOrganizationName(org.name || "");
+      const organizationModel = OrganizationModel.fromApiData(org);
+      setOrganizationName(organizationModel.name || "");
       setOrganizationExists(true);
       setHasChanges(false);
 
@@ -148,15 +148,13 @@ const Organization = () => {
       setOrganizationName(value);
       setHasChanges(true);
 
-      const validation = checkStringValidation(
-        "Organization name",
-        value,
-        2,
-        50,
-        false,
-        false
-      );
-      setOrganizationNameError(validation.accepted ? null : validation.message);
+      const tempOrganization = OrganizationModel.createNewOrganization({
+        name: value,
+        logo: ""
+      } as OrganizationModel);
+      
+      const validation = tempOrganization.validateName();
+      setOrganizationNameError(validation.accepted ? null : validation.message || "Invalid organization name");
       setIsSaveDisabled(!value.trim() || !validation.accepted);
     },
     []
@@ -168,15 +166,10 @@ const Organization = () => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      // Validate file
-      if (!file.type.startsWith("image/")) {
-        showAlert("error", "Invalid File", "Please select a valid image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showAlert("error", "File Too Large", "File size must be less than 5MB");
+      // Validate file using OrganizationModel business logic
+      const validation = OrganizationModel.validateLogoFile(file);
+      if (!validation.isValid) {
+        showAlert("error", "Invalid File", validation.errorMessage!);
         return;
       }
 

@@ -1,0 +1,12 @@
+name: suite_bias_smoke
+dataset: src/ce_eval/datasets/bias_smoke.csv
+metrics:
+  - type: bias_and_fairness
+    hard_gates:
+      demographic_parity_max_delta: 0.02
+    soft_watch:
+      equal_selection_parity_max_delta: 0.02
+regression:
+  allow_drop:
+    demographic_parity: 0.00
+    equal_selection_parity: 0.00

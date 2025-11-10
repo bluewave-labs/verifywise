@@ -6,7 +6,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import { getMitigationStatusColor } from "../../../constants/statusColors";
 import RiskChip from "../../RiskLevel/RiskChip";
 import IconButton from "../../IconButton";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
@@ -214,7 +214,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
                 >
-                  {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
+                  {row.deadline ? displayFormattedDate(row.deadline.toString()) : "NA"}
                 </TableCell>
                 <TableCell
                   sx={getCellStyle(row)}

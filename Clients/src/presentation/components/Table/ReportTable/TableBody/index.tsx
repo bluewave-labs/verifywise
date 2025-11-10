@@ -1,7 +1,7 @@
 import React from "react";
 import { TableBody, TableCell, TableRow } from "@mui/material";
 import IconButton from "../../../IconButton";
-import { formatDate } from "../../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { styles } from "./styles";
 import { handleDownload } from "../../../../../application/tools/fileDownload";
@@ -59,7 +59,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               </TableCell>
               <TableCell sx={cellStyle}>
                 {row.uploaded_time
-                  ? formatDate(row.uploaded_time.toString())
+                  ? displayFormattedDate(row.uploaded_time.toString())
                   : "NA"}
               </TableCell>
               <TableCell sx={cellStyle}>

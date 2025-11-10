@@ -9,7 +9,7 @@ import TeamCard from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
 import CustomizableSkeleton from "../../../../components/Skeletons";
-import { formatDate } from "../../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import { useEffect, useState } from "react";
 import { User } from "../../../../../domain/types/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
@@ -223,7 +223,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
             />
             <InfoCard
               title="Last updated"
-              body={formatDate(project.last_updated.toString())}
+              body={displayFormattedDate(project.last_updated.toString())}
               icon={<ClockIcon size={16} />}
             />
             {user.name !== undefined && user.surname !== undefined ? (

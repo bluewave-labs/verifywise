@@ -53,6 +53,7 @@ const VWProjectRisksTableBody = ({
   setAnchor,
   onDeleteRisk,
   flashRow,
+  sortConfig,
 }: IVWProjectRisksTableRow) => {
   const theme = useTheme();
   const { setInputValues } = useContext(VerifyWiseContext);
@@ -139,9 +140,13 @@ const VWProjectRisksTableBody = ({
                 onClick={(e) => handleEditRisk(row, e)}
               >
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "risk_name"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.risk_name
@@ -151,9 +156,13 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "risk_owner"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.risk_owner
@@ -161,25 +170,37 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "severity"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   <RiskChip label={row.severity} />
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "likelihood"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.likelihood ? row.likelihood : "-"}
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "mitigation_status"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.mitigation_status ? (
@@ -201,25 +222,37 @@ const VWProjectRisksTableBody = ({
                   )}
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "risk_level_autocalculated"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   <RiskChip label={row.risk_level_autocalculated} />
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "deadline"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
                 </TableCell>
                 <TableCell
-                  sx={getCellStyle(row)}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "controls_mapping"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   <Link
@@ -247,9 +280,11 @@ const VWProjectRisksTableBody = ({
                     position: "sticky",
                     right: 0,
                     minWidth: "50px",
-                  }}
-                  style={{
-                    backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                    backgroundColor: flashRow === row.id
+                      ? "#e3f5e6"
+                      : sortConfig.key === "actions"
+                      ? "#f5f5f5"
+                      : "",
                   }}
                 >
                   {isDeletingAllowed && (

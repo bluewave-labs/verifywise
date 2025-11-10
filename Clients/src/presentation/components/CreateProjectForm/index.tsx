@@ -27,7 +27,7 @@ import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
-import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+// import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
@@ -36,6 +36,7 @@ import { createProjectFormStyles } from "./styles";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
 import { getAutocompleteStyles } from "../../utils/inputStyles";
+import { CreateProjectFormUserModel } from "../../../domain/models/Common/user/user.model";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -243,7 +244,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUser[]) => {
+      (_event: React.SyntheticEvent, newValue: CreateProjectFormUserModel[]) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
@@ -353,7 +354,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                           name: user.name,
                           surname: user.surname,
                           email: user.email,
-                        } satisfies CreateProjectFormUser)
+                        } satisfies CreateProjectFormUserModel)
                     ) || []
                 }
                 noOptionsText={

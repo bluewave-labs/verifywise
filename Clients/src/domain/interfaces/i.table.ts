@@ -177,6 +177,10 @@ export interface IReportTableProps {
   onRemoveReport: (id: number) => void;
   page: number;
   rowsPerPage: number;
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }
 
 export interface IReportTablePropsExtended {

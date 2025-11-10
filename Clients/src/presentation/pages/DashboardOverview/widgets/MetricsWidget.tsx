@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import {
   Box,
@@ -12,19 +13,7 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
-
-interface MetricData {
-  label: string;
-  value: number | string;
-  change?: number;
-  unit?: string;
-  color?: string;
-}
-
-interface MetricsWidgetProps {
-  loading?: boolean;
-  data?: MetricData[];
-}
+import { MetricData, MetricsWidgetProps } from '../../../../domain/interfaces/iDashboard';
 
 export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
   loading = false,

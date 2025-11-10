@@ -449,8 +449,8 @@ export const validatePolicyUpdateBusinessRules = (data: any, existingData?: any)
 
   // Validate major content changes for published policies
   if (data.content_html && existingData?.status === 'Published' && existingData?.content_html) {
-    const oldContent = existingData.content_html.replace(/<[^>]*>/g, '').trim();
-    const newContent = data.content_html.replace(/<[^>]*>/g, '').trim();
+    const oldContent = striptags(existingData.content_html).trim();
+    const newContent = striptags(data.content_html).trim();
 
     // Simple check for significant content changes (more than 30% difference)
     const similarity = Math.min(oldContent.length, newContent.length) / Math.max(oldContent.length, newContent.length);

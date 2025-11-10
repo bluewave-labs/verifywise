@@ -31,6 +31,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
         id serial NOT NULL,
+        uc_id character varying(255) UNIQUE,
         project_title character varying(255) NOT NULL,
         owner integer,
         start_date timestamp with time zone NOT NULL,

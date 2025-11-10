@@ -12,7 +12,7 @@ import {
   Radio,
   TextField,
 } from "@mui/material";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 import riskData from "../../assets/MITAIRISKDB.json";
 import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -318,26 +318,9 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       colSpan={TITLE_OF_COLUMNS.length}
                       align="center"
-                      sx={{
-                        padding: theme.spacing(15, 5),
-                        paddingBottom: theme.spacing(20),
-                      }}
+                      sx={{ border: "none", p: 0 }}
                     >
-                      <img
-                        src={placeholderImage}
-                        alt="No risks found"
-                        style={{ maxWidth: "100%", height: "auto" }}
-                      />
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          fontWeight: 400,
-                          color: theme.palette.text.secondary,
-                          mt: 2,
-                        }}
-                      >
-                        No risks found in database
-                      </Typography>
+                      <EmptyState message="No risks found in database" />
                     </TableCell>
                   </TableRow>
                 </TableBody>

@@ -15,7 +15,7 @@ import {
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
@@ -34,6 +34,7 @@ type SortConfig = {
 };
 
 const columns = [
+  { id: "ucId", label: "Use Case ID", minWidth: 120, sortable: true },
   { id: "title", label: "Use case title", minWidth: 200, sortable: true },
   { id: "risk", label: "AI Risk Level", minWidth: 130, sortable: true },
   { id: "role", label: "Role", minWidth: 150, sortable: true },
@@ -68,6 +69,10 @@ const SortableTableHeader: React.FC<{
               "&:hover": {
                 backgroundColor: "rgba(0, 0, 0, 0.04)",
               },
+              ...(column.id === "ucId" && {
+                  width: column.minWidth,
+                  maxWidth: column.minWidth,
+              })
             }}
             onClick={() => column.sortable && onSort(column.id)}
           >
@@ -237,6 +242,11 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
       let bValue: string | number;
 
       switch (sortConfig.key) {
+        case "ucId":
+          aValue = a.uc_id ? a.uc_id.toLowerCase() : "";
+          bValue = b.uc_id ? b.uc_id.toLowerCase() : "";
+          break;
+
         case "title":
           aValue = a.project_title.toLowerCase();
           bValue = b.project_title.toLowerCase();
@@ -303,17 +313,9 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
               <TableCell
                 colSpan={columns.length}
                 align="center"
-                style={{
-                  padding: theme.spacing(15, 5),
-                  paddingBottom: theme.spacing(20),
-                }}
+                sx={{ border: "none", p: 0 }}
               >
-                <img src={placeholderImage} alt="No use cases" />
-                <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A use case is a real-world scenario describing how an AI
-                  system is applied within an organization. Currently you don't
-                  have any use cases in this workspace.
-                </Typography>
+                <EmptyState message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
               </TableCell>
             </TableRow>
           </TableBody>
@@ -356,6 +358,16 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 },
               }}
             >
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                }}
+              >
+                {project.uc_id || project.id}
+              </TableCell>
+
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -418,6 +430,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 opacity: 0.7,
                 color: theme.palette.text.tertiary,
               }}
+              colSpan={2}
             >
               Showing {getRange} of {sortedProjects.length} use case(s)
             </TableCell>

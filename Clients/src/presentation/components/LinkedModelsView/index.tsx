@@ -16,7 +16,7 @@ import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import CustomizableSkeleton from "../Skeletons";
 import singleTheme from "../../themes/v1SingleTheme";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../EmptyState";
 
 const TABLE_COLUMNS = [
   { id: "provider", label: "PROVIDER" },
@@ -118,18 +118,7 @@ const LinkedModelsView = ({
             border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <img src={Placeholder} alt="No models" />
-          <Typography
-            sx={{
-              color: theme.palette.text.secondary,
-              fontSize: 14,
-              mt: 2,
-              textAlign: "center",
-              maxWidth: 500,
-            }}
-          >
-            {emptyMessage}
-          </Typography>
+          <EmptyState message={emptyMessage} />
           <Typography
             sx={{
               color: theme.palette.text.tertiary,

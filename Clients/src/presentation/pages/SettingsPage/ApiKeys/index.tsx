@@ -18,38 +18,37 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import { createApiToken, deleteApiToken, getApiTokens } from "../../../../application/repository/tokens.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { alertState } from "../../../../domain/interfaces/iAlert";
+import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
 
-interface ApiToken {
-  id: number;
-  name: string;
-  token?: string;
-  expires_at: string;
-  created_at: string;
-  created_by: number;
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
 }
+
 
 const ApiKeys = () => {
   const { userRoleName } = useAuth();
   const theme = useTheme();
   const isDisabled = !allowedRoles.apiKeys?.manage?.includes(userRoleName);
 
-  const [tokens, setTokens] = useState<ApiToken[]>([]);
+  const [tokens, setTokens] = useState<ApiTokenModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [tokenToDelete, setTokenToDelete] = useState<ApiToken | null>(null);
+  const [tokenToDelete, setTokenToDelete] = useState<ApiTokenModel | null>(null);
   const [newTokenName, setNewTokenName] = useState("");
   const [newTokenNameError, setNewTokenNameError] = useState<string | null>(null);
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
-  const [alert, setAlert] = useState<alertState | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
   const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null);
   const [hoveredTokenId, setHoveredTokenId] = useState<number | null>(null);
   const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
 
   const showAlert = useCallback(
-    (variant: alertState["variant"], title: string, body: string) => {
-      setAlert({ variant, title, body });
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
     },
     []
   );
@@ -59,7 +58,10 @@ const ApiKeys = () => {
     try {
       const response = await getApiTokens({ routeUrl: "/tokens" });
       if (response && response.data && response.data.data) {
-        setTokens(response.data.data);
+        const tokenModels = response.data.data.map((tokenData: any) => 
+          ApiTokenModel.createNewApiToken(tokenData)
+        );
+        setTokens(tokenModels);
       }
     } catch (error) {
       showAlert("error", "Error", "Failed to fetch API tokens");
@@ -94,9 +96,11 @@ const ApiKeys = () => {
 
     setIsLoading(true);
     try {
+      const tokenCreationData = ApiTokenModel.createApiTokenForCreation(newTokenName);
+      
       const response = await createApiToken({
         routeUrl: "/tokens",
-        body: { name: newTokenName },
+        body: { name: tokenCreationData.name },
       });
 
       if (response && response.data && response.data.data) {
@@ -193,17 +197,6 @@ const ApiKeys = () => {
     setNewlyCreatedToken(null);
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const isTokenExpired = (expiresAt: string) => {
-    return new Date() > new Date(expiresAt);
-  };
 
   return (
     <Stack sx={{ mt: 3, maxWidth: 1000 }}>
@@ -329,10 +322,10 @@ const ApiKeys = () => {
                   </Typography>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Chip
-                      label={isTokenExpired(token.expires_at) ? "Expired" : "Active"}
+                      label={token.getStatus()}
                       sx={{
-                        backgroundColor: isTokenExpired(token.expires_at) ? "#ffebee" : "#c8e6c9",
-                        color: isTokenExpired(token.expires_at) ? "#d32f2f" : "#388e3c",
+                        backgroundColor: token.getStatusColor(),
+                        color: token.getStatusTextColor(),
                         fontWeight: 500,
                         fontSize: "11px",
                         height: "20px",
@@ -350,16 +343,16 @@ const ApiKeys = () => {
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       Created{" "}
                       <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
-                        {formatDate(token.created_at)}
+                        {token.getFormattedCreatedDate()}
                       </Typography>
                     </Typography>
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                      {isTokenExpired(token.expires_at) ? "Expired" : "Expires"}{" "}
+                      {token.isExpired() ? "Expired" : "Expires"}{" "}
                       <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
-                        {formatDate(token.expires_at)}
+                        {token.getFormattedExpiryDate()}
                       </Typography>
                     </Typography>
                   </Box>

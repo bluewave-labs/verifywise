@@ -51,7 +51,6 @@ export const uploadFileToManager = async (
       filename: safeName,
       size: file.size,
       mimetype: file.mimetype,
-      content: file.buffer, // Store file content in database
       uploaded_by: userId,
       org_id: orgId,
       model_id: modelId !== undefined ? modelId : null, 

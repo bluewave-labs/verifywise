@@ -122,9 +122,7 @@ export async function uploadFileToManager({
   formData.append("file", file);
 
    // Append model_id only if it's defined and valid
-   if (model_id != null && model_id !== "") {
-    formData.append("model_id", String(model_id));
-  }
+  formData.append("model_id", model_id ? String(model_id) : ""); // ✅ always present
 
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary

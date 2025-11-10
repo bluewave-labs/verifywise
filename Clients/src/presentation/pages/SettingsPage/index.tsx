@@ -146,11 +146,6 @@ export default function ProfilePage() {
               icon: "Lock",
             },
             {
-              label: "Preferences",
-              value: "preferences",
-              icon: "Settings",
-            },
-            {
               label: "Team",
               value: "team",
               icon: "Users",
@@ -160,6 +155,11 @@ export default function ProfilePage() {
               label: "Organization",
               value: "organization",
               icon: "Building2",
+            },
+            {
+              label: "Preferences",
+              value: "preferences",
+              icon: "Settings",
             },
             {
               label: "API Keys",

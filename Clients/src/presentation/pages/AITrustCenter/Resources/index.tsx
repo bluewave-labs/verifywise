@@ -79,7 +79,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
-          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? "#f5f5f5" : "inherit",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? "#e8e8e8" : "#fafafa",
         }}
       >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>

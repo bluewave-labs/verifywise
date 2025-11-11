@@ -52,7 +52,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               <TableCell
                 sx={{
                   ...cellStyle,
-                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("file") || sortConfig.key.toLowerCase().includes("name")) ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("file") || sortConfig.key.toLowerCase().includes("name")) ? "#e8e8e8" : "#fafafa",
                 }}
               >
                 {row.filename ? row.filename : "-"}

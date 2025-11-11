@@ -391,7 +391,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     maxWidth: 300,
                     whiteSpace: "normal",
                     wordBreak: "break-word",
-                    backgroundColor: sortConfig.key === "risk_description" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "risk_description" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <Tooltip title={row.risk_description} arrow placement="top">

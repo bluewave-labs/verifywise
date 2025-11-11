@@ -335,7 +335,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   {row.vendor_name}

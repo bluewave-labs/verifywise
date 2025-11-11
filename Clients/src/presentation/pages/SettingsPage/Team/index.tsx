@@ -534,7 +534,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("name") ? "#f5f5f5" : "inherit",
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("name") ? "#e8e8e8" : "#fafafa",
                               }}
                             >
                               {[member.name, member.surname]

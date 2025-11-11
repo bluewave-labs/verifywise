@@ -298,7 +298,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "80px",
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("id") ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("id") ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   {event.id}

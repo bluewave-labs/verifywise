@@ -183,7 +183,7 @@ const Resources = ({
                 <TableCell
                   sx={{
                     ...aiTrustCenterTableCell,
-                    backgroundColor: sortConfig.key === "document name" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "document name" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1}>

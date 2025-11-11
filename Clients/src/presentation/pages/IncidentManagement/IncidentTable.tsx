@@ -410,7 +410,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         ...cellStyle,
                                         width: "110px",
                                         maxWidth: "110px",
-                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("incident") && sortConfig.key.toLowerCase().includes("id") ? "#f5f5f5" : "inherit",
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("incident") && sortConfig.key.toLowerCase().includes("id") ? "#e8e8e8" : "#fafafa",
                                     }}
                                 >
                                     {incident.incident_id}{" "}

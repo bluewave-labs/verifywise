@@ -363,7 +363,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   cursor: "pointer",
                   textTransform: "none !important",
-                  backgroundColor: sortConfig.key === "training_name" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "training_name" ? "#e8e8e8" : "#fafafa",
                 }}>
                     {training.training_name}
                   </TableCell>

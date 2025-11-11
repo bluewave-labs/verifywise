@@ -145,8 +145,8 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? "#e3f5e6"
                       : sortConfig.key === "risk_name"
-                      ? "#f5f5f5"
-                      : "",
+                      ? "#e8e8e8"
+                      : "#fafafa",
                   }}
                 >
                   {row.risk_name

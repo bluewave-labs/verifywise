@@ -342,7 +342,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     backgroundColor:
-                      sortConfig.key === "title" ? "#f5f5f5" : "inherit",
+                      sortConfig.key === "title" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <Box>

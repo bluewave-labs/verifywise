@@ -200,11 +200,11 @@ async def create_experiment(
 
 
 async def run_evaluation_task(experiment_id: str, config: Dict, tenant: str):
-    """Background task to run evaluation in a separate process to avoid uvloop conflicts"""
-    import subprocess
+    """Background task: run evaluation in a non-blocking subprocess and stream logs asynchronously."""
     import sys
     import json
     from pathlib import Path
+    import asyncio
     
     try:
         from database.db import get_db
@@ -221,38 +221,44 @@ async def run_evaluation_task(experiment_id: str, config: Dict, tenant: str):
         
         # Run evaluation in subprocess to avoid uvloop conflict with DeepEval
         print("🚀 Starting evaluation in subprocess (streaming logs)...")
-        
+
         script_path = Path(__file__).parent.parent / "utils" / "run_evaluation_subprocess.py"
         python_executable = sys.executable
-        
+
         # Prepare arguments
         eval_args = json.dumps({
             "experiment_id": experiment_id,
             "config": config,
             "tenant": tenant,
         })
-        
-        # Run in subprocess UNBUFFERED and stream output
+
+        # Async subprocess with piped output (non-blocking)
         env = dict(**os.environ)
         env["PYTHONUNBUFFERED"] = "1"
-        process = subprocess.Popen(
-            [python_executable, "-u", str(script_path), eval_args],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
+
+        proc = await asyncio.create_subprocess_exec(
+            python_executable,
+            "-u",
+            str(script_path),
+            eval_args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
             env=env,
         )
-        
-        assert process.stdout is not None
-        for line in process.stdout:
-            print(f"[eval:{experiment_id}] {line.rstrip()}")
-        process.wait()
-        
-        if process.returncode == 0:
+
+        assert proc.stdout is not None
+        while True:
+            line = await proc.stdout.readline()
+            if not line:
+                break
+            print(f"[eval:{experiment_id}] {line.decode().rstrip()}")
+
+        return_code = await proc.wait()
+
+        if return_code == 0:
             print("✅ Evaluation subprocess completed successfully")
         else:
-            raise Exception(f"Evaluation subprocess failed with code {process.returncode}")
+            raise Exception(f"Evaluation subprocess failed with code {return_code}")
             
     except Exception as e:
         print(f"❌ Background evaluation failed: {e}")

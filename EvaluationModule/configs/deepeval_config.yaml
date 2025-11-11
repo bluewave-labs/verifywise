@@ -1,60 +1,56 @@
 # DeepEval Standalone Configuration
 # Separate from BiasAndFairnessModule - for general LLM evaluation
 
-# Model Configuration
+# Model Configuration (chatbot use case)
 model:
-  name: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"  # Can be any HuggingFace model or OpenAI model
-  provider: "huggingface"  # Options: "huggingface", "openai", "ollama"
-  
+  name: "gpt-4o-mini" # Can be any OpenAI/HF/Ollama model
+  provider: "openai" # Options: "openai", "huggingface", "ollama"
+
   # Generation parameters
   generation:
-    max_tokens: 500
-    temperature: 0.7
-    top_p: 0.9
+    max_tokens: 2048
+    temperature: 0.3
+    top_p: 0.95
 
 # Dataset Configuration
 dataset:
-  # Use built-in evaluation dataset or load from file
-  use_builtin: true
-  
+  # Use built-in evaluation dataset by name or load from file
+  # Builtins: chatbot | rag | agent | safety
+  use_builtin: "chatbot"
+
   # Optional: load from custom file
   # path: "data/evaluation_prompts.json"
-  
+
   # Optional: filter dataset
   # categories: ["coding", "mathematics", "reasoning"]
   # difficulties: ["easy", "medium"]
   # ids: ["code_001", "math_001"]
 
-# DeepEval Metrics Configuration
-metrics:
-  # Enable/disable specific metrics
-  # Note: Most metrics require OPENAI_API_KEY environment variable
-  answer_relevancy: true      # Measures if the answer is relevant to the input
-  faithfulness: false         # Checks if the answer is faithful to context (requires context)
-  contextual_relevancy: false # Evaluates if context is relevant (requires context)
-  hallucination: false        # Detects hallucinations (requires context)
-  bias: true                  # Identifies potential biases
-  toxicity: true              # Detects toxic or harmful content
-  
-  # Metric thresholds (0.0 - 1.0)
-  thresholds:
-    answer_relevancy: 0.5
-    faithfulness: 0.5
-    contextual_relevancy: 0.5
-    hallucination: 0.5
-    bias: 0.5
-    toxicity: 0.5
+# Task category: rag | agent | chatbot (auto-select bundles)
+task_type: "chatbot"
+
+# Optional bundles to auto-enable specialized metrics by category
+bundles:
+  # RAG bundles (not used for chatbot)
+  contextual_recall: false
+  contextual_precision: false
+  ragas: false
+  hallucination: false
+  # Chatbot additions
+  summarization: false
+  bias: true
+  toxicity: true
 
 # Output Configuration
 output:
   dir: "artifacts/deepeval_results"
-  save_detailed_results: true   # Save detailed JSON
-  save_summary: true            # Save summary JSON
-  save_csv: true                # Save CSV format
-  save_report: true             # Save human-readable text report
+  save_detailed_results: true # Save detailed JSON
+  save_summary: true # Save summary JSON
+  save_csv: true # Save CSV format
+  save_report: true # Save human-readable text report
 
 # Example Usage:
-# python run_deepeval_evaluation.py --config configs/deepeval_config.yaml
-# python run_deepeval_evaluation.py --config configs/deepeval_config.yaml --limit 10
-# python run_deepeval_evaluation.py --config configs/deepeval_config.yaml --use-all-metrics
+# python main.py --config configs/deepeval_config.yaml
+# python main.py --config configs/deepeval_config.yaml --limit 10
+# python main.py --config configs/deepeval_config.yaml --use-g-eval
 

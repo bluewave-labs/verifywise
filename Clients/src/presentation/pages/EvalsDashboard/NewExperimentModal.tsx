@@ -15,8 +15,11 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
+  Button,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { Check, ChevronDown, Trash2 } from "lucide-react";
+import { Check, ChevronDown, Trash2, Plus } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
@@ -33,6 +36,7 @@ import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
@@ -78,6 +82,8 @@ export default function NewExperimentModal({
 
   // Configuration state
   const [config, setConfig] = useState({
+    // High-level task type for presets
+    taskType: "chatbot" as "chatbot" | "rag" | "agent",
     // Step 1: Model to be evaluated
     model: {
       name: "",
@@ -92,22 +98,22 @@ export default function NewExperimentModal({
       model: "",
       apiKey: "",
       temperature: 0.7,
-      maxTokens: 500,
+      maxTokens: 2048,
     },
     // Step 3: Dataset
     dataset: {
       useBuiltin: true,
+      preset: "chatbot" as string,
       categories: [] as string[],
       limit: 10,
+      benchmark: "",
     },
     // Step 4: Metrics
     metrics: {
-      answerRelevancy: true,
-      bias: true,
-      toxicity: true,
-      faithfulness: true,
-      hallucination: true,
-      contextualRelevancy: true,
+      answerCorrectness: true,
+      coherence: true,
+      tonality: true,
+      safety: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -118,6 +124,29 @@ export default function NewExperimentModal({
       contextualRelevancy: 0.5,
     },
   });
+
+  // Default task type/preset from project configuration if available
+  useEffect(() => {
+    const loadProjectDefaults = async () => {
+      try {
+        const { project } = await deepEvalProjectsService.getProject(projectId);
+        if (project?.useCase) {
+          setConfig((prev) => ({
+            ...prev,
+            taskType: project.useCase as "chatbot" | "rag" | "agent",
+            dataset: {
+              ...prev.dataset,
+              preset: (project.defaultDataset as string) || (project.useCase as string),
+              useBuiltin: true,
+            },
+          }));
+        }
+      } catch {
+        // non-fatal
+      }
+    };
+    loadProjectDefaults();
+  }, [projectId]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -226,12 +255,21 @@ export default function NewExperimentModal({
         },
       ];
 
-      setDatasetPrompts(builtinDataset);
+      // Apply category filters and limits if provided
+      let filtered = builtinDataset;
+      if (config.dataset.categories && config.dataset.categories.length > 0) {
+        filtered = filtered.filter((p) => config.dataset.categories.includes(p.category));
+      }
+      if (config.dataset.limit && config.dataset.limit > 0) {
+        filtered = filtered.slice(0, config.dataset.limit);
+      }
+
+      setDatasetPrompts(filtered);
       setDatasetLoaded(true);
     } catch (err) {
       console.error("Failed to load dataset:", err);
     }
-  }, []);
+  }, [config.dataset.categories, config.dataset.limit]);
 
   const handleRemovePrompt = (id: string) => {
     setDatasetPrompts((prev) => prev.filter((p) => p.id !== id));
@@ -247,6 +285,7 @@ export default function NewExperimentModal({
         description: `Evaluating ${config.model.name} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
+              taskType: config.taskType,
           model: {
             name: config.model.name,
             accessMethod: config.model.accessMethod,
@@ -262,9 +301,12 @@ export default function NewExperimentModal({
             maxTokens: config.judgeLlm.maxTokens,
           },
           dataset: {
-            useBuiltin: config.dataset.useBuiltin,
-            prompts: datasetPrompts,
+            useBuiltin: config.dataset.useBuiltin
+              ? (config.dataset.preset || config.taskType || "chatbot")
+              : false,
+                prompts: config.dataset.benchmark ? [] : datasetPrompts,
             count: datasetPrompts.length,
+                benchmark: config.dataset.benchmark || undefined,
           },
           metrics: config.metrics,
           thresholds: config.thresholds,
@@ -331,6 +373,7 @@ export default function NewExperimentModal({
     setDatasetLoaded(false);
     setExpandedPrompts([]);
     setConfig({
+      taskType: "chatbot",
       model: {
         name: "",
         accessMethod: "",
@@ -343,20 +386,20 @@ export default function NewExperimentModal({
         model: "",
         apiKey: "",
         temperature: 0.7,
-        maxTokens: 500,
+        maxTokens: 2048,
       },
       dataset: {
         useBuiltin: true,
+        preset: "chatbot",
         categories: [],
         limit: 10,
+        benchmark: "",
       },
       metrics: {
-        answerRelevancy: true,
-        bias: true,
-        toxicity: true,
-        faithfulness: true,
-        hallucination: true,
-        contextualRelevancy: true,
+        answerCorrectness: true,
+        coherence: true,
+        tonality: true,
+        safety: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -371,7 +414,16 @@ export default function NewExperimentModal({
 
   type ProviderType = "openai" | "anthropic" | "gemini" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
 
-  const providers = [
+  type ProviderEntry = {
+    id: ProviderType;
+    name: string;
+    Logo: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    models: string[];
+    needsApiKey: boolean;
+    needsUrl?: boolean;
+  };
+
+  const providers: ProviderEntry[] = [
     { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"], needsApiKey: true },
     { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, models: ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"], needsApiKey: true },
     { id: "gemini" as ProviderType, name: "Gemini", Logo: GeminiLogo, models: ["gemini-pro", "gemini-ultra"], needsApiKey: true },
@@ -387,29 +439,67 @@ export default function NewExperimentModal({
   useEffect(() => {
     if (config.judgeLlm.provider && formFieldsRef.current) {
       setTimeout(() => {
-        formFieldsRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
+        // Scroll the closest scrollable container to bottom
+        let parent: HTMLElement | null = formFieldsRef.current?.parentElement as HTMLElement | null;
+        while (parent) {
+          const overflowY = window.getComputedStyle(parent).overflowY;
+          if (overflowY === "auto" || overflowY === "scroll") {
+            parent.scrollTo({ top: parent.scrollHeight, behavior: "smooth" });
+            return;
+          }
+          parent = parent.parentElement as HTMLElement | null;
+        }
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
       }, 100);
     }
   }, [config.judgeLlm.provider]);
 
-  // Auto-load default dataset when reaching step 2 (Dataset)
+  // Auto-scroll when model provider (to be evaluated) is selected
   useEffect(() => {
-    if (activeStep === 1 && config.dataset.useBuiltin && !datasetLoaded) {
+    if (config.model.accessMethod && formFieldsRef.current) {
+      // Wait for conditional fields to mount, then scroll them into view
+      setTimeout(() => {
+        let parent: HTMLElement | null = formFieldsRef.current?.parentElement as HTMLElement | null;
+        while (parent) {
+          const overflowY = window.getComputedStyle(parent).overflowY;
+          if (overflowY === "auto" || overflowY === "scroll") {
+            parent.scrollTo({ top: parent.scrollHeight, behavior: "smooth" });
+            return;
+          }
+          parent = parent.parentElement as HTMLElement | null;
+        }
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+      }, 100);
+    }
+  }, [config.model.accessMethod]);
+
+  // Load or refresh built-in dataset when step/category/limit changes
+  useEffect(() => {
+    if (activeStep === 1 && config.dataset.useBuiltin && !config.dataset.benchmark) {
       handleLoadBuiltinDataset();
     }
-  }, [activeStep, config.dataset.useBuiltin, datasetLoaded, handleLoadBuiltinDataset]);
+  }, [activeStep, config.dataset.useBuiltin, config.dataset.categories, config.dataset.limit, config.dataset.benchmark, handleLoadBuiltinDataset]);
 
   // Model providers - includes all Judge LLM providers plus Local and Custom API
-  const modelProviders = [
+  const modelProviders: ProviderEntry[] = [
     ...providers,
     { id: "local" as ProviderType, name: "Local", Logo: FolderFilledIcon, models: ["local-model"], needsApiKey: false, needsUrl: true },
     { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, models: ["custom-model"], needsApiKey: true, needsUrl: true },
   ];
 
   const selectedModelProvider = modelProviders.find(p => p.id === config.model.accessMethod);
+
+  const defaultModelByProvider: Record<ProviderType, string> = {
+    openai: "gpt-4o-mini",
+    anthropic: "claude-3-5-sonnet-latest",
+    gemini: "gemini-1.5-pro",
+    xai: "grok-1",
+    mistral: "mistral-large-latest",
+    huggingface: "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    ollama: "llama3.1:8b",
+    local: "local-model",
+    custom_api: "custom-model",
+  };
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -425,7 +515,7 @@ export default function NewExperimentModal({
               <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
                 Model Provider
               </Typography>
-              <Grid container spacing={1.5}>
+              <Grid container spacing={1.5} sx={{ userSelect: "none" }}>
                 {modelProviders.map((provider) => {
                   const { Logo } = provider;
                   const isSelected = config.model.accessMethod === provider.id;
@@ -434,14 +524,25 @@ export default function NewExperimentModal({
                     <Grid item xs={4} sm={3} key={provider.id}>
                       <Card
                         onClick={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            model: {
-                              ...prev.model,
-                              accessMethod: provider.id as typeof config.model.accessMethod,
-                              name: provider.name,
-                            },
-                          }))
+                          setConfig((prev) => {
+                            const accessMethod: ProviderType = provider.id;
+                            const needsUrl = !!provider.needsUrl;
+                            const endpointUrl = needsUrl
+                              ? (accessMethod === 'local'
+                                  ? (prev.model.endpointUrl || 'http://localhost:11434/api/generate')
+                                  : (prev.model.endpointUrl || 'https://api.example.com/v1/chat/completions'))
+                              : prev.model.endpointUrl;
+                            return {
+                              ...prev,
+                              model: {
+                                ...prev.model,
+                                accessMethod,
+                                // don't auto-fill model name; keep user input
+                                name: prev.model.name,
+                                endpointUrl,
+                              },
+                            };
+                          })
                         }
                         sx={{
                           cursor: "pointer",
@@ -452,6 +553,7 @@ export default function NewExperimentModal({
                           transition: "all 0.2s ease",
                           position: "relative",
                           height: "100%",
+                          userSelect: "none",
                           "&:hover": {
                             borderColor: "#13715B",
                             boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
@@ -468,6 +570,7 @@ export default function NewExperimentModal({
                             flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
+                            userSelect: "none",
                             "&:last-child": { pb: 3 },
                           }}
                         >
@@ -534,6 +637,14 @@ export default function NewExperimentModal({
             {config.model.accessMethod && (
               <Box ref={formFieldsRef}>
                 <Stack spacing={3}>
+                  {(() => {
+                    const suggested = selectedModelProvider
+                      ? (selectedModelProvider.models?.[0] || defaultModelByProvider[selectedModelProvider.id])
+                      : undefined;
+                    const placeholder = suggested
+                      ? `e.g., ${suggested}`
+                      : "e.g., gpt-4, claude-3-opus, tinyllama";
+                    return (
                   <Field
                     label="Model Name"
                     value={config.model.name}
@@ -543,8 +654,10 @@ export default function NewExperimentModal({
                         model: { ...prev.model, name: e.target.value },
                       }))
                     }
-                    placeholder="e.g., gpt-4, claude-3-opus, tinyllama"
+                    placeholder={placeholder}
                   />
+                    );
+                  })()}
 
                   {/* URL field for Local and Custom API */}
                   {(selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl) && (
@@ -593,21 +706,70 @@ export default function NewExperimentModal({
               Configure the dataset to use for evaluation.
             </Typography>
 
+            {/* LLM Type (presets) */}
+            <Box>
+              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.0 }}>
+                LLM Type
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                {["chatbot", "rag", "agent"].map((t) => {
+                  const selected = config.taskType === t;
+                  return (
+                    <Chip
+                      key={t}
+                      label={t}
+                      size="small"
+                      onClick={() =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          taskType: t as "chatbot" | "rag" | "agent",
+                          dataset: {
+                            ...prev.dataset,
+                            // if using builtin, align preset name
+                            preset: prev.dataset.useBuiltin ? (t as string) : prev.dataset.preset,
+                          },
+                        }))
+                      }
+                      sx={{
+                        textTransform: "capitalize",
+                        fontSize: "12px",
+                        height: 24,
+                        bgcolor: selected ? "#E3F2FD" : "#F3F4F6",
+                        color: selected ? "#1976D2" : "#374151",
+                        border: selected ? "1px solid #90CAF9" : "1px solid #E5E7EB",
+                        cursor: "pointer",
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            </Box>
+
             {/* Dataset Source Selection - Radio Group */}
             <FormControl component="fieldset">
               <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                 Dataset Source
               </Typography>
               <RadioGroup
-                value={config.dataset.useBuiltin ? "default" : "upload"}
+                value={config.dataset.benchmark ? "benchmark" : (config.dataset.useBuiltin ? "default" : "upload")}
                 onChange={(e) => {
-                  const useBuiltin = e.target.value === "default";
-                  setConfig((prev) => ({
-                    ...prev,
-                    dataset: { ...prev.dataset, useBuiltin },
-                  }));
-                  if (useBuiltin && !datasetLoaded) {
-                    handleLoadBuiltinDataset();
+                  const val = e.target.value;
+                  if (val === "default") {
+                    setConfig((prev) => ({
+                      ...prev,
+                      dataset: { ...prev.dataset, useBuiltin: true, preset: prev.taskType, benchmark: "" },
+                    }));
+                    if (!datasetLoaded) handleLoadBuiltinDataset();
+                  } else if (val === "benchmark") {
+                    setConfig((prev) => ({
+                      ...prev,
+                      dataset: { ...prev.dataset, useBuiltin: false, benchmark: "mt-bench" },
+                    }));
+                  } else {
+                    setConfig((prev) => ({
+                      ...prev,
+                      dataset: { ...prev.dataset, useBuiltin: false, benchmark: "" },
+                    }));
                   }
                 }}
               >
@@ -632,6 +794,32 @@ export default function NewExperimentModal({
                     mb: 1,
                     bgcolor: config.dataset.useBuiltin ? "#F0F9FF" : "#FFFFFF",
                     borderColor: config.dataset.useBuiltin ? "#3B82F6" : "#E0E0E0",
+                    "&:hover": {
+                      bgcolor: "#F9FAFB",
+                    },
+                  }}
+                />
+                <FormControlLabel
+                  value="benchmark"
+                  control={<Radio size="small" />}
+                  label={
+                    <Box>
+                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
+                        Use DeepEval benchmark
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
+                        Run standard benchmark suites (e.g., MT-Bench)
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    border: "1px solid #E0E0E0",
+                    borderRadius: "8px",
+                    p: 1.5,
+                    m: 0,
+                    mb: 1,
+                    bgcolor: config.dataset.benchmark ? "#F0F9FF" : "#FFFFFF",
+                    borderColor: config.dataset.benchmark ? "#3B82F6" : "#E0E0E0",
                     "&:hover": {
                       bgcolor: "#F9FAFB",
                     },
@@ -663,8 +851,107 @@ export default function NewExperimentModal({
               </RadioGroup>
             </FormControl>
 
+            {/* Benchmark selector */}
+            {config.dataset.benchmark && (
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Typography sx={{ fontSize: "13px", color: "#374151" }}>Benchmark</Typography>
+                <Select
+                  size="small"
+                  value={config.dataset.benchmark}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      dataset: { ...prev.dataset, benchmark: String(e.target.value) },
+                    }))
+                  }
+                  sx={{ minWidth: 200 }}
+                >
+                  <MenuItem value="mt-bench">MT-Bench</MenuItem>
+                  <MenuItem value="summeval">SummEval</MenuItem>
+                </Select>
+              </Box>
+            )}
+
+            {/* Built-in preset selector when using default datasets */}
+            {config.dataset.useBuiltin && !config.dataset.benchmark && (
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Typography sx={{ fontSize: "13px", color: "#374151" }}>Built-in preset</Typography>
+                <Select
+                  size="small"
+                  value={config.dataset.preset || config.taskType}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      taskType: e.target.value as "chatbot" | "rag" | "agent",
+                      dataset: { ...prev.dataset, preset: String(e.target.value) },
+                    }))
+                  }
+                  sx={{ minWidth: 200 }}
+                >
+                  <MenuItem value="chatbot">chatbot</MenuItem>
+                  <MenuItem value="rag">rag</MenuItem>
+                  <MenuItem value="agent">agent</MenuItem>
+                  <MenuItem value="safety">safety</MenuItem>
+                </Select>
+              </Box>
+            )}
+
+            {/* Dataset Category Selection and Limit */}
+            {config.dataset.useBuiltin && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.0 }}>
+                  Dataset categories
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  {["coding", "mathematics", "reasoning", "creative", "knowledge"].map((cat) => {
+                    const selected = config.dataset.categories.includes(cat);
+                    return (
+                      <Chip
+                        key={cat}
+                        label={cat}
+                        size="small"
+                        onClick={() =>
+                          setConfig((prev) => {
+                            const has = prev.dataset.categories.includes(cat);
+                            const categories = has
+                              ? prev.dataset.categories.filter((c) => c !== cat)
+                              : [...prev.dataset.categories, cat];
+                            return { ...prev, dataset: { ...prev.dataset, categories } };
+                          })
+                        }
+                        sx={{
+                          textTransform: "capitalize",
+                          fontSize: "12px",
+                          height: 24,
+                          bgcolor: selected ? "#E3F2FD" : "#F3F4F6",
+                          color: selected ? "#1976D2" : "#374151",
+                          border: selected ? "1px solid #90CAF9" : "1px solid #E5E7EB",
+                          cursor: "pointer",
+                        }}
+                      />
+                    );
+                  })}
+                </Stack>
+
+                <Stack direction="row" spacing={2} sx={{ mt: 2, alignItems: "center" }}>
+                  <Field
+                    label="Limit prompts"
+                    type="number"
+                    value={String(config.dataset.limit)}
+                    onChange={(e) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        dataset: { ...prev.dataset, limit: Math.max(1, parseInt(e.target.value) || 1) },
+                      }))
+                    }
+                    sx={{ maxWidth: 160 }}
+                  />
+                </Stack>
+              </Box>
+            )}
+
             {/* Dataset Prompts Display (Editable) - With Border */}
-            {datasetLoaded && config.dataset.useBuiltin && (
+            {datasetLoaded && config.dataset.useBuiltin && !config.dataset.benchmark && (
               <Box
                 sx={{
                   border: "2px solid #E5E7EB",
@@ -673,10 +960,33 @@ export default function NewExperimentModal({
                   bgcolor: "#FAFBFC",
                 }}
               >
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
                   <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1F2937" }}>
                     Dataset Prompts ({datasetPrompts.length} prompts)
                   </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      const id = `custom_${Date.now()}`;
+                      setDatasetPrompts((prev) => [
+                        ...prev,
+                        {
+                          id,
+                          category: "custom",
+                          prompt: "",
+                          expected_output: "",
+                          expected_keywords: [],
+                          difficulty: "easy",
+                        },
+                      ]);
+                      setExpandedPrompts((prev) => [...prev, prev.length]);
+                    }}
+                    sx={{ textTransform: "none", borderColor: "#D1D5DB" }}
+                    startIcon={<Plus size={14} />}
+                  >
+                    Add prompt
+                  </Button>
                 </Box>
 
                 {/* Prompts list */}
@@ -1027,37 +1337,29 @@ export default function NewExperimentModal({
         );
 
       case 3:
-        // Step 4: Metrics (all enabled by default, no thresholds UI)
+        // Step 4: Metrics (GEval + safety)
         return (
           <Stack spacing={3}>
             <Typography variant="body2" color="text.secondary">
-              Choose which metrics to include. All are enabled by default.
+              Choose which metrics to include.
             </Typography>
 
             {Object.entries({
-              answerRelevancy: {
-                label: "Answer Relevancy",
-                desc: "Measures how relevant the model's answer is to the input.",
+              answerCorrectness: {
+                label: "Answer Correctness",
+                desc: "Checks factual correctness against expected output.",
               },
-              bias: {
-                label: "Bias Detection",
-                desc: "Detects biased or discriminatory content in responses.",
+              coherence: {
+                label: "Coherence",
+                desc: "Assesses clarity and logical flow.",
               },
-              toxicity: {
-                label: "Toxicity Detection",
-                desc: "Flags toxic or harmful language in outputs.",
+              tonality: {
+                label: "Tonality",
+                desc: "Evaluates tone and formality appropriateness.",
               },
-              faithfulness: {
-                label: "Faithfulness",
-                desc: "Checks if the answer aligns with provided context.",
-              },
-              hallucination: {
-                label: "Hallucination Detection",
-                desc: "Identifies unsupported or fabricated statements.",
-              },
-              contextualRelevancy: {
-                label: "Contextual Relevancy",
-                desc: "Measures whether retrieved/used context is relevant.",
+              safety: {
+                label: "Safety",
+                desc: "Flags unsafe, toxic, or privacy-violating content.",
               },
             }).map(([key, meta]) => (
               <Box key={key} sx={{ mb: 1.5 }}>
@@ -1132,7 +1434,7 @@ export default function NewExperimentModal({
           resetForm();
           setAlert(null);
         }}
-        title="Create New Eval"
+        title="Create New Experiment"
         steps={steps}
         activeStep={activeStep}
         onNext={handleNext}

@@ -86,7 +86,7 @@ export default function ProjectMonitor({ projectId }: ProjectMonitorProps) {
   const errorRateTrend = logs.error_rate > 5 ? "up" : "down";
 
   return (
-    <Box>
+    <Box sx={{ userSelect: "none" }}>
       {/* Header with Refresh */}
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
         <Box display="flex" alignItems="center" gap={2}>

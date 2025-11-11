@@ -74,8 +74,8 @@ export default function ExperimentDetail() {
 
   const breadcrumbItems = [
     { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
-    { label: "Evals", onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Eval" },
+    { label: "Experiments", onClick: () => navigate(`/evals/${projectId}#experiments`) },
+    { label: experiment.name || "Experiment" },
   ];
 
   // Lightweight Markdown -> HTML converter for common syntax
@@ -108,7 +108,7 @@ export default function ExperimentDetail() {
   };
 
   return (
-    <Box>
+    <Box sx={{ userSelect: "none" }}>
       <PageBreadcrumbs items={breadcrumbItems} />
       
       {/* Header */}
@@ -161,12 +161,10 @@ export default function ExperimentDetail() {
         // Determine enabled metrics from experiment config and map to display names
         const enabled: Record<string, unknown> = (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
         const displayMap: Record<string, string> = {
-          answerRelevancy: "Answer Relevancy",
-          bias: "Bias",
-          toxicity: "Toxicity",
-          faithfulness: "Faithfulness",
-          hallucination: "Hallucination",
-          contextualRelevancy: "Contextual Relevancy",
+          answerCorrectness: "Answer Correctness",
+          coherence: "Coherence",
+          tonality: "Tonality",
+          safety: "Safety",
         };
         const orderedLabels = Object.keys(displayMap)
           .filter((k) => !!enabled?.[k])
@@ -181,16 +179,17 @@ export default function ExperimentDetail() {
             </Typography>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
               {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
-                const entry = metricsSum[label];
+                const entry = metricsSum[label] || metricsSum[`G-Eval (${label})`];
                 const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
                 const count = entry ? entry.count : 0;
+                const friendlyLabel = label;
                 return (
                   <Card key={label} variant="outlined">
                     <CardContent sx={{ p: 2 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                         <TrendingUp size={14} color="#13715B" />
                         <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 600, color: "#6B7280" }}>
-                          {label}
+                          {friendlyLabel}
                         </Typography>
                       </Box>
                       <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 700 }}>
@@ -363,12 +362,13 @@ export default function ExperimentDetail() {
                         const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
                         const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
                         const reason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                        const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
                         
                          return (
                            <Box key={metricName} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                <Typography variant="body2" sx={{ fontSize: "13px", textTransform: "capitalize" }}>
-                                 {metricName.replace(/([A-Z])/g, " $1").trim()}
+                                 {friendlyMetric.replace(/([A-Z])/g, " $1").trim()}
                                </Typography>
                                <Chip
                                  label={typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}

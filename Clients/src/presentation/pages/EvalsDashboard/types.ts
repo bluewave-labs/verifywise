@@ -1,5 +1,5 @@
 /**
- * Type definitions for DeepEval Evals Dashboard
+ * Type definitions for DeepEval Experiments Dashboard
  */
 
 /**
@@ -15,6 +15,16 @@ export interface DeepEvalProject {
   updatedAt: string;
   createdBy: string;
   tenant?: string;
+  // Project-level defaults/configuration
+  useCase?: "chatbot" | "rag" | "agent";
+  defaultDataset?: "chatbot" | "rag" | "agent" | "safety";
+  orgId?: string;
+}
+
+export interface DeepEvalOrganization {
+  id: string;
+  name: string;
+  createdAt: string;
 }
 
 /**

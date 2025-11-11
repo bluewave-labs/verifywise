@@ -151,7 +151,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   };
 
   // Transform to table format (exact match to Bias & Fairness structure)
-  const tableColumns = ["EVAL ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
   
   const tableRows: IEvaluationRow[] = experiments.map((exp) => ({
     id: exp.id,
@@ -166,13 +166,13 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   }));
 
   return (
-    <Box>
+    <Box sx={{ userSelect: "none" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4} gap={2}>
         <CustomizableButton
           variant="contained"
-          text="New Eval"
+          text="New Experiment"
           icon={<Play size={16} />}
           sx={{
             backgroundColor: "#13715B",
@@ -198,7 +198,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
         </CardContent>
       </Card>
 
-      {/* Evals Table with Pagination */}
+      {/* Experiments Table with Pagination */}
       <Box mb={4}>
         <EvaluationTable
           columns={tableColumns}
@@ -212,7 +212,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
         />
       </Box>
 
-      {/* New Eval Modal */}
+      {/* New Experiment Modal */}
       <NewExperimentModal
         isOpen={newEvalModalOpen}
         onClose={() => setNewEvalModalOpen(false)}

@@ -169,10 +169,81 @@ async def run_evaluation(
         if runner_provider == "ollama" and isinstance(model_name, str):
             ensure_ollama_model(model_name)
         
-        # 2. Load Dataset
-        print(f"\n📊 Loading dataset: {dataset_config.get('count', 0)} prompts")
-        
+        # 2. Load Dataset (builtin by name, custom path, prompts, or benchmarks)
+        print(f"\n📊 Loading dataset...")
+
         prompts = dataset_config.get("prompts", [])
+        # Built-in preset by name (chatbot | rag | agent | safety)
+        builtin_value = dataset_config.get("useBuiltin")
+        if not prompts and isinstance(builtin_value, str):
+            name = builtin_value.strip().lower()
+            preset_map = {
+                "chatbot": evaluation_module_path / "data" / "presets" / "chatbot_dataset.json",
+                "rag": evaluation_module_path / "data" / "presets" / "rag_dataset.json",
+                "agent": evaluation_module_path / "data" / "presets" / "agent_dataset.json",
+                "safety": evaluation_module_path / "data" / "presets" / "safety_dataset.json",
+            }
+            preset_path = preset_map.get(name)
+            if preset_path and preset_path.is_file():
+                print(f"📦 Using built-in dataset: {name} -> {preset_path}")
+                try:
+                    with open(preset_path, "r", encoding="utf-8") as f:
+                        prompts = json.load(f)
+                except Exception as e:
+                    print(f"⚠️  Failed to load builtin dataset '{name}': {e}")
+        # Custom dataset path if provided
+        if not prompts and dataset_config.get("path"):
+            custom_path = Path(dataset_config["path"])
+            if not custom_path.is_absolute():
+                custom_path = (evaluation_module_path / custom_path).resolve()
+            print(f"📄 Using custom dataset: {custom_path}")
+            try:
+                with open(custom_path, "r", encoding="utf-8") as f:
+                    prompts = json.load(f)
+            except Exception as e:
+                print(f"⚠️  Failed to load custom dataset '{custom_path}': {e}")
+        # DeepEval benchmark (fallback)
+        if not prompts and dataset_config.get("benchmark"):
+            bench_name = str(dataset_config.get("benchmark")).strip().lower()
+            print(f"• Attempting to load DeepEval benchmark: {bench_name}")
+            try:
+                # Try common loader patterns
+                try:
+                    from deepeval.benchmarks import load_benchmark  # type: ignore
+                    bench = load_benchmark(bench_name)
+                except Exception:
+                    bench = None
+
+                if bench is None:
+                    # Fallback: some packages expose specific helpers, try minimal mapping
+                    from importlib import import_module
+                    mod = import_module("deepeval.benchmarks")
+                    bench = getattr(mod, "load", None)
+                    if callable(bench):
+                        bench = bench(bench_name)
+
+                # Convert benchmark to our prompts format
+                extracted: list[dict[str, str]] = []
+                if bench is not None and hasattr(bench, "to_test_cases"):
+                    tcs = bench.to_test_cases()
+                    for i, tc in enumerate(tcs, 1):
+                        # tc likely resembles LLMTestCase
+                        inp = getattr(tc, "input", "")
+                        exp = getattr(tc, "expected_output", "")
+                        extracted.append({
+                            "id": f"bench_{bench_name}_{i}",
+                            "category": bench_name,
+                            "prompt": inp,
+                            "expected_output": exp,
+                            "difficulty": "benchmark",
+                        })
+                if extracted:
+                    prompts = extracted
+                    print(f"✓ Loaded {len(prompts)} prompts from benchmark '{bench_name}'")
+                else:
+                    print(f"⚠️  Could not extract prompts from benchmark '{bench_name}', falling back to provided prompts")
+            except Exception as be:
+                print(f"⚠️  Benchmark load failed: {be}")
         if not prompts:
             error_msg = "No prompts in dataset"
             print(f"❌ {error_msg}")
@@ -324,15 +395,52 @@ async def run_evaluation(
             metric_thresholds=thresholds_config,
         )
         
-        # Convert metrics config format
+        # Determine metrics based on task type & bundles, ignoring UI toggles (presets)
+        task_type = (config.get("taskType") or config.get("task_type") or "").strip().lower()
+        bundles = config.get("bundles") or {}
+        # Core judge can be toggled via config flag; default on for chatbot
+        enable_core_judge = config.get("useGEval", None)
+        if enable_core_judge is None:
+            enable_core_judge = (task_type == "chatbot")
+
         deepeval_metrics_config = {
-            "answer_relevancy": metrics_config.get("answerRelevancy", False),
-            "bias": metrics_config.get("bias", False),
-            "toxicity": metrics_config.get("toxicity", False),
-            "faithfulness": metrics_config.get("faithfulness", False),
-            "hallucination": metrics_config.get("hallucination", False),
-            "contextual_relevancy": metrics_config.get("contextualRelevancy", False),
+            # Core G‑Eval
+            "g_eval_correctness": bool(enable_core_judge),
+            "g_eval_coherence": bool(enable_core_judge),
+            "g_eval_tonality": bool(enable_core_judge),
+            "g_eval_safety": bool(enable_core_judge),
+            # Classic (generally useful)
+            "bias": True,
+            "toxicity": True,
+            "answer_relevancy": False,
+            "faithfulness": False,
+            "contextual_relevancy": False,
+            "hallucination": False,
         }
+        if task_type == "rag":
+            deepeval_metrics_config.update({
+                "answer_relevancy": True,
+                "faithfulness": True,
+                "contextual_relevancy": True,
+                "hallucination": bool(bundles.get("hallucination", True)),
+                "contextual_recall": bool(bundles.get("contextual_recall", True)),
+                "contextual_precision": bool(bundles.get("contextual_precision", True)),
+                "ragas": bool(bundles.get("ragas", False)),
+            })
+        elif task_type in ("agent", "agents"):
+            deepeval_metrics_config.update({
+                "task_completion": True,
+                "tool_correctness": True,
+            })
+        elif task_type in ("chatbot", ""):
+            deepeval_metrics_config.update({
+                "knowledge_retention": True,
+                "conversation_completeness": True,
+                "conversation_relevancy": True,
+                "role_adherence": True,
+            })
+            if bundles.get("summarization", False):
+                deepeval_metrics_config["summarization"] = True
         
         results = evaluator.run_evaluation(
             test_cases_data=test_cases_data,
@@ -362,12 +470,26 @@ async def run_evaluation(
         
         # Map snake_case keys to the display names used in evaluator results
         name_map = {
+            "g_eval_correctness": "Answer Correctness",
+            "g_eval_coherence": "Coherence",
+            "g_eval_tonality": "Tonality",
+            "g_eval_safety": "Safety",
             "answer_relevancy": "Answer Relevancy",
+            "faithfulness": "Faithfulness",
+            "contextual_relevancy": "Contextual Relevancy",
+            "hallucination": "Hallucination",
             "bias": "Bias",
             "toxicity": "Toxicity",
-            "faithfulness": "Faithfulness",
-            "hallucination": "Hallucination",
-            "contextual_relevancy": "Contextual Relevancy",
+            "contextual_recall": "Contextual Recall",
+            "contextual_precision": "Contextual Precision",
+            "ragas": "RAGAS",
+            "task_completion": "Task Completion",
+            "tool_correctness": "Tool Correctness",
+            "knowledge_retention": "Knowledge Retention",
+            "conversation_completeness": "Conversation Completeness",
+            "conversation_relevancy": "Conversation Relevancy",
+            "role_adherence": "Role Adherence",
+            "summarization": "Summarization",
         }
 
         for metric_key, enabled in deepeval_metrics_config.items():

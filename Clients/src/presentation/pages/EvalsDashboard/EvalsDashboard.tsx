@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, MenuItem, Select, Divider, Stack } from "@mui/material";
+import { Box, MenuItem, Select, Divider, Stack, IconButton } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
-import { LayoutDashboard, FlaskConical, Activity, ChevronDown, Plus } from "lucide-react";
+import { LayoutDashboard, FlaskConical, Activity, ChevronDown, Plus, Settings, Bot, FileSearch, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import StandardModal from "../../components/Modals/StandardModal";
+import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 
@@ -16,6 +16,8 @@ import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import ProjectMonitor from "./ProjectMonitor";
 import type { DeepEvalProject } from "./types";
+import OrganizationSelector from "./OrganizationSelector";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -39,14 +41,28 @@ export default function EvalsDashboard() {
   const [currentProject, setCurrentProject] = useState<DeepEvalProject | null>(null);
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
-  const [newProject, setNewProject] = useState({ name: "", description: "" });
+  const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
   const [loading, setLoading] = useState(false);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgCreateOpen, setOrgCreateOpen] = useState(false);
+  const [orgCreating, setOrgCreating] = useState(false);
+  const [newOrgName, setNewOrgName] = useState("");
+
+  // Load orgs and current org (re-run when URL search changes to support "Manage organizations" from children)
+  useEffect(() => {
+    const loadOrgs = async () => {
+      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      setOrgId(org?.id || null);
+    };
+    loadOrgs();
+  }, [location.search]);
 
   // Load all projects for the dropdown and current project
   useEffect(() => {
     const loadProjects = async () => {
       try {
         const data = await deepEvalProjectsService.getAllProjects();
+        // In future, filter by orgId if backend supports it or project.orgId is set.
         setAllProjects(data.projects);
         
         // Find and set the current project
@@ -79,12 +95,17 @@ export default function EvalsDashboard() {
     }
   };
 
+  // Organization selection is handled in ProjectsList; keep org state here only
+
   const handleCreateProject = async () => {
     setLoading(true);
     try {
       await deepEvalProjectsService.createProject({
         name: newProject.name,
         description: newProject.description,
+        useCase: newProject.useCase,
+        defaultDataset: newProject.useCase, // align preset with use case by default
+        orgId: orgId || undefined,
       });
 
       // Reload projects
@@ -94,11 +115,18 @@ export default function EvalsDashboard() {
       // Navigate to the newly created project
       const createdProject = data.projects.find((p) => p.name === newProject.name);
       if (createdProject) {
+        if (orgId) {
+          try {
+            await deepEvalOrgsService.addProjectToOrg(orgId, createdProject.id);
+          } catch (e) {
+            console.warn("Failed to link project to org:", e);
+          }
+        }
         navigate(`/evals/${createdProject.id}#overview`);
       }
 
       setCreateProjectModalOpen(false);
-      setNewProject({ name: "", description: "" });
+      setNewProject({ name: "", description: "", useCase: "chatbot" });
     } catch (err) {
       console.error("Failed to create project:", err);
       alert("Failed to create project");
@@ -108,21 +136,41 @@ export default function EvalsDashboard() {
   };
 
   // Build breadcrumbs based on current view
-  const breadcrumbItems = projectId && currentProject
-    ? [
-        { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
-        { label: currentProject.name }
-      ]
-    : [{ label: "LLM Evals Dashboard" }];
+  const breadcrumbItems =
+    !orgId
+      ? [
+          { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+          { label: "Organizations" },
+        ]
+      : projectId && currentProject
+      ? [
+          { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+          { label: currentProject.name },
+        ]
+      : [{ label: "LLM Evals Dashboard" }];
 
   return (
     <Box>
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, userSelect: "none" }}>
         <PageBreadcrumbs items={breadcrumbItems} />
         
-        {/* Project selector dropdown or Projects list title */}
-        {projectId && allProjects.length > 0 ? (
+        {/* Top row: Project selector (when in project), Settings on right */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 2,
+            mb: 2,
+          }}
+        >
+
+          {/* Project selector (only when in a project context) */}
+          {projectId && allProjects.length > 0 ? (
           <Box sx={{ mb: 2 }}>
+            <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
+              Project
+            </Box>
             <Select
               value={projectId}
               onChange={(e) => handleProjectChange(e.target.value)}
@@ -163,14 +211,44 @@ export default function EvalsDashboard() {
               </MenuItem>
             </Select>
           </Box>
-        ) : (
-          <PageHeader title="LLM Evaluations" />
-        )}
+          ) : (
+            <PageHeader title="LLM Evals" />
+          )}
+
+          {/* Spacer pushes settings to the right */}
+          <Box sx={{ flex: 1 }} />
+          {/* Settings icon navigates directly to configuration */}
+          <IconButton
+            aria-label="settings"
+            onClick={() => {
+              if (projectId) {
+                navigate(`/evals/${projectId}/configuration`);
+              } else {
+                navigate("/evals/settings");
+              }
+            }}
+            sx={{
+              border: "1px solid #E5E7EB",
+              width: 36,
+              height: 36,
+              borderRadius: "8px",
+              backgroundColor: "#FFFFFF",
+              "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
+            }}
+            title="Settings"
+          >
+            <Settings size={20} />
+          </IconButton>
+        </Box>
       </Box>
 
-      <Box sx={{ px: 3, py: 2 }}>
-        {!projectId ? (
-          // Projects list view (no tabs)
+      <Box sx={{ px: 3, py: 2, userSelect: "none" }}>
+        {!orgId ? (
+          <OrganizationSelector onSelected={async () => {
+            const { org } = await deepEvalOrgsService.getCurrentOrg();
+            setOrgId(org?.id || null);
+          }} />
+        ) : !projectId ? (
           <ProjectsList />
         ) : (
           // Project detail view with tabs
@@ -202,7 +280,7 @@ export default function EvalsDashboard() {
                 <Tab
                   icon={<FlaskConical size={16} />}
                   iconPosition="start"
-                  label="Evals"
+                  label="Experiments"
                   value="experiments"
                   disableRipple
                   sx={{ textTransform: "none !important", fontSize: "14px", gap: 1.5 }}
@@ -238,11 +316,11 @@ export default function EvalsDashboard() {
       </Box>
 
       {/* Create Project Modal */}
-      <StandardModal
+      <ModalStandard
         isOpen={createProjectModalOpen}
         onClose={() => {
           setCreateProjectModalOpen(false);
-          setNewProject({ name: "", description: "" });
+          setNewProject({ name: "", description: "", useCase: "chatbot" });
         }}
         title="Create project"
         description="Create a new project to organize your LLM evaluations"
@@ -265,8 +343,122 @@ export default function EvalsDashboard() {
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
             placeholder="Brief description of this project..."
           />
+
+          {/* LLM Use Case - card selection */}
+          <Box>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+              LLM Use Case
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                sx={{
+                  border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <Workflow size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
+                sx={{
+                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <FileSearch size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
+                sx={{
+                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <Bot size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate conversational experiences for coherence, correctness and safety.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Stack>
-      </StandardModal>
+      </ModalStandard>
+      
+      {/* Create Organization Modal (inline) */}
+      <ModalStandard
+        isOpen={orgCreateOpen}
+        onClose={() => {
+          setOrgCreateOpen(false);
+          setNewOrgName("");
+        }}
+        title="Create organization"
+        description="Name your organization to begin organizing projects and experiments."
+        onSubmit={async () => {
+          if (!newOrgName.trim()) return;
+          setOrgCreating(true);
+          const { org } = await deepEvalOrgsService.createOrg(newOrgName.trim());
+          setOrgCreating(false);
+          setOrgCreateOpen(false);
+          setNewOrgName("");
+          setOrgId(org.id);
+          navigate("/evals");
+        }}
+        submitButtonText="Create organization"
+        isSubmitting={orgCreating || !newOrgName.trim()}
+      >
+        <Stack spacing={3}>
+          <Field
+            label="Organization name"
+            value={newOrgName}
+            onChange={(e) => setNewOrgName(e.target.value)}
+            placeholder="e.g., VerifyEvals"
+            isRequired
+          />
+        </Stack>
+      </ModalStandard>
     </Box>
   );
 }

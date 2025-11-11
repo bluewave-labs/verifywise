@@ -11,8 +11,10 @@ import {
   Chip,
   Stack,
   Divider,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, Settings } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, Settings, Trash2, ChevronDown, Plus } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -20,6 +22,8 @@ import Alert from "../../components/Alert";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
+import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDeleteIconButton";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 export default function ProjectsList() {
   const navigate = useNavigate();
@@ -27,6 +31,11 @@ export default function ProjectsList() {
   const [runsByProject, setRunsByProject] = useState<Record<string, number>>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
+  const [orgCreateOpen, setOrgCreateOpen] = useState(false);
+  const [orgCreating, setOrgCreating] = useState(false);
+  const [newOrgName, setNewOrgName] = useState("");
   const [alert, setAlert] = useState<{
     variant: "success" | "error";
     body: string;
@@ -39,12 +48,46 @@ export default function ProjectsList() {
 
   useEffect(() => {
     loadProjects();
+    // Load orgs for inline org picker
+    (async () => {
+      const [{ orgs }, { org }] = await Promise.all([
+        deepEvalOrgsService.getAllOrgs(),
+        deepEvalOrgsService.getCurrentOrg(),
+      ]);
+      setOrgs(orgs);
+      setCurrentOrgId(org?.id || null);
+    })();
   }, []);
 
   const loadProjects = async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
-      setProjects(data.projects);
+      let fetched = data.projects;
+      // Filter by org when available
+      try {
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        const orgId = org?.id || null;
+        if (orgId) {
+          // If we're in VerifyWiseEvals, ensure all existing projects are attached to this org (one-time, idempotent)
+          let allowedIds = await deepEvalOrgsService.getProjectsForOrg(orgId);
+          if (org?.name === "VerifyWiseEvals") {
+            const toAdd = (data.projects || [])
+              .map((p) => p.id)
+              .filter((id) => !allowedIds.includes(id));
+            await Promise.all(
+              toAdd.map((id) => deepEvalOrgsService.addProjectToOrg(orgId, id))
+            );
+            // refresh allowed list
+            allowedIds = await deepEvalOrgsService.getProjectsForOrg(orgId);
+          }
+          fetched = (data.projects || []).filter(
+            (p) => p.orgId === orgId || allowedIds.includes(p.id)
+          );
+        }
+      } catch {
+        // ignore filtering errors
+      }
+      setProjects(fetched);
 
       // Fetch run counts for each project in parallel (using experiments API)
       const statsArray = await Promise.all(
@@ -116,6 +159,21 @@ export default function ProjectsList() {
     navigate(`/evals/${projectId}#overview`);
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await deepEvalProjectsService.deleteProject(projectId);
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      const updated = { ...runsByProject };
+      delete updated[projectId];
+      setRunsByProject(updated);
+      setAlert({ variant: "success", body: "Project deleted" });
+      setTimeout(() => setAlert(null), 4000);
+    } catch (err) {
+      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
+      setTimeout(() => setAlert(null), 6000);
+    }
+  };
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
@@ -127,6 +185,57 @@ export default function ProjectsList() {
         </Typography>
 
         <Divider sx={{ mt: 3 }} />
+
+        {/* Organization selector below divider */}
+        {currentOrgId && (
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1 }}>
+            <Box>
+              <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
+                Organization
+              </Box>
+              <Select
+                value={currentOrgId}
+                onChange={async (e) => {
+                  const val = e.target.value as string;
+                  if (val === "manage_orgs") {
+                    await deepEvalOrgsService.clearCurrentOrg();
+                    setCurrentOrgId(null);
+                    navigate("/evals?org=none"); // trigger parent to re-check org and show selector
+                    return;
+                  }
+                  if (val === "create_new_org") {
+                    setOrgCreateOpen(true);
+                    return;
+                  }
+                  await deepEvalOrgsService.setCurrentOrg(val);
+                  setCurrentOrgId(val);
+                  navigate("/evals");
+                }}
+                IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  minWidth: "260px",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "6px",
+                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
+                }}
+              >
+                <MenuItem value="manage_orgs">Manage organizations</MenuItem>
+                <Divider sx={{ my: 0.5 }} />
+                {orgs.map((o) => (
+                  <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
+                ))}
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem value="create_new_org">
+                  <Plus size={16} style={{ marginRight: 8 }} />
+                  Create organization
+                </MenuItem>
+              </Select>
+            </Box>
+          </Box>
+        )}
 
         {/* Projects Title - Below Divider */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
@@ -208,12 +317,13 @@ export default function ProjectsList() {
                   flexDirection: "column",
                   border: "1px solid #E5E7EB",
                   boxShadow: "none",
+                  userSelect: "none",
+                  cursor: "pointer",
                   transition: "all 0.2s ease",
                   "&:hover": {
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
                     transform: "translateY(-2px)",
                     borderColor: "#13715B",
-                    cursor: "pointer",
                   },
                 }}
                 onClick={() => handleOpenProject(project.id)}
@@ -223,7 +333,21 @@ export default function ProjectsList() {
                     <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
                       {project.name}
                     </Typography>
-                    <Beaker size={20} color="#13715B" strokeWidth={2} />
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {/* Delete project */}
+                      <Box
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{ ml: 0.5 }}
+                      >
+                        <ConfirmableDeleteIconButton
+                          id={project.id}
+                          title="Delete this project?"
+                          message="This will remove the project and all its eval runs."
+                          onConfirm={() => handleDeleteProject(project.id)}
+                          customIcon={<Trash2 size={16} color="#D32F2F" />}
+                        />
+                      </Box>
+                    </Box>
                   </Box>
 
                   <Typography
@@ -260,23 +384,6 @@ export default function ProjectsList() {
                 <CardActions sx={{ justifyContent: "flex-end", p: 2, pt: 0, gap: 1, borderTop: "1px solid #F3F4F6" }}>
                   <Button
                     size="small"
-                    sx={{
-                      textTransform: "none",
-                      fontSize: "13px",
-                      color: "#6B7280",
-                      fontWeight: 500,
-                      "&:hover": { backgroundColor: "F9FAFB" },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/evals/${project.id}#configuration`);
-                    }}
-                    startIcon={<Settings size={14} />}
-                  >
-                    Settings
-                  </Button>
-                  <Button
-                    size="small"
                     variant="contained"
                     sx={{
                       textTransform: "none",
@@ -292,6 +399,23 @@ export default function ProjectsList() {
                     }}
                   >
                     Open
+                  </Button>
+                  <Button
+                    size="small"
+                    sx={{
+                      textTransform: "none",
+                      fontSize: "13px",
+                      color: "#6B7280",
+                      fontWeight: 500,
+                      "&:hover": { backgroundColor: "F9FAFB" },
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/evals/${project.id}/configuration`);
+                    }}
+                    startIcon={<Settings size={14} />}
+                  >
+                    Settings
                   </Button>
                 </CardActions>
               </Card>
@@ -329,6 +453,44 @@ export default function ProjectsList() {
             value={newProject.description}
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
             placeholder="Brief description of this project..."
+          />
+        </Stack>
+      </StandardModal>
+
+      {/* Inline Create Organization Modal */}
+      <StandardModal
+        isOpen={orgCreateOpen}
+        onClose={() => {
+          setOrgCreateOpen(false);
+          setNewOrgName("");
+        }}
+        title="Create organization"
+        description="Name your organization to begin organizing projects and experiments."
+        onSubmit={async () => {
+          if (!newOrgName.trim()) return;
+          setOrgCreating(true);
+          const { org } = await deepEvalOrgsService.createOrg(newOrgName.trim());
+          setOrgCreating(false);
+          setOrgCreateOpen(false);
+          setNewOrgName("");
+          const [{ orgs }, { org: current }] = await Promise.all([
+            deepEvalOrgsService.getAllOrgs(),
+            deepEvalOrgsService.getCurrentOrg(),
+          ]);
+          setOrgs(orgs);
+          setCurrentOrgId(current?.id || org.id);
+          navigate("/evals");
+        }}
+        submitButtonText="Create organization"
+        isSubmitting={orgCreating || !newOrgName.trim()}
+      >
+        <Stack spacing={3}>
+          <Field
+            label="Organization name"
+            value={newOrgName}
+            onChange={(e) => setNewOrgName(e.target.value)}
+            placeholder="e.g., VerifyEvals"
+            isRequired
           />
         </Stack>
       </StandardModal>

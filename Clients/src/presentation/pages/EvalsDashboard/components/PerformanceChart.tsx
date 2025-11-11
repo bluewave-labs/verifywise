@@ -18,12 +18,10 @@ interface PerformanceChartProps {
 export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   type ChartPoint = {
     name: string;
-    answerRelevancy: number | null;
-    bias: number | null;
-    toxicity: number | null;
-    faithfulness: number | null;
-    hallucination: number | null;
-    contextualRelevancy: number | null;
+    answerCorrectness: number | null;
+    coherence: number | null;
+    tonality: number | null;
+    safety: number | null;
   };
   const [data, setData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +50,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         const m = byExp[exp.id] || {};
         return {
           name: `Run ${idx + 1}`,
-          answerRelevancy: m["answer_relevancy"] ?? null,
-          bias: m["bias"] ?? null,
-          toxicity: m["toxicity"] ?? null,
-          faithfulness: m["faithfulness"] ?? null,
-          hallucination: m["hallucination"] ?? null,
-          contextualRelevancy: m["contextual_relevancy"] ?? null,
+          answerCorrectness: m["g_eval_correctness"] ?? null,
+          coherence: m["g_eval_coherence"] ?? null,
+          tonality: m["g_eval_tonality"] ?? null,
+          safety: m["g_eval_safety"] ?? null,
         };
       });
 
@@ -68,12 +64,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
           const clamp = (v: number) => Math.max(0.1, Math.min(0.98, v));
           return {
             name: `Run ${idx + 1}`,
-            answerRelevancy: clamp(base + Math.random() * 0.1),
-            bias: clamp(0.4 + Math.random() * 0.15),
-            toxicity: clamp(0.5 + Math.random() * 0.12),
-            faithfulness: clamp(base + Math.random() * 0.1),
-            hallucination: clamp(0.45 + Math.random() * 0.15),
-            contextualRelevancy: clamp(base + Math.random() * 0.1),
+            answerCorrectness: clamp(base + Math.random() * 0.1),
+            coherence: clamp(0.45 + Math.random() * 0.15),
+            tonality: clamp(0.5 + Math.random() * 0.12),
+            safety: clamp(0.5 + Math.random() * 0.12),
           } as ChartPoint;
         });
         setData(mock);
@@ -88,12 +82,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         const clamp = (v: number) => Math.max(0.1, Math.min(0.98, v));
         return {
           name: `Run ${idx + 1}`,
-          answerRelevancy: clamp(base + Math.random() * 0.1),
-          bias: clamp(0.4 + Math.random() * 0.15),
-          toxicity: clamp(0.5 + Math.random() * 0.12),
-          faithfulness: clamp(base + Math.random() * 0.1),
-          hallucination: clamp(0.45 + Math.random() * 0.15),
-          contextualRelevancy: clamp(base + Math.random() * 0.1),
+          answerCorrectness: clamp(base + Math.random() * 0.1),
+          coherence: clamp(0.45 + Math.random() * 0.15),
+          tonality: clamp(0.5 + Math.random() * 0.12),
+          safety: clamp(0.5 + Math.random() * 0.12),
         } as ChartPoint;
       });
       setData(mock);
@@ -138,66 +130,28 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
             contentStyle={{ backgroundColor: "#fff", border: "1px solid #ccc" }}
           />
           <Legend />
+          <Line type="monotone" dataKey="answerCorrectness" stroke="#2563eb" strokeWidth={2} name="Answer Correctness" dot={{ r: 3 }} activeDot={{ r: 5 }} isAnimationActive={false} />
           <Line
             type="monotone"
-            dataKey="answerRelevancy"
-            stroke="#2563eb"
-            strokeWidth={2}
-            name="Answer Relevancy"
-            dot={{ r: 3 }}
-            activeDot={{ r: 5 }}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="bias"
-            stroke="#dc2626"
-            strokeWidth={2}
-            name="Bias"
-            dot={{ r: 3 }}
-            activeDot={{ r: 5 }}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="toxicity"
-            stroke="#f59e0b"
-            strokeWidth={2}
-            name="Toxicity"
-            dot={{ r: 3 }}
-            activeDot={{ r: 5 }}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="faithfulness"
+            dataKey="coherence"
             stroke="#16a34a"
             strokeWidth={2}
-            name="Faithfulness"
+            name="Coherence"
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
             isAnimationActive={false}
           />
           <Line
             type="monotone"
-            dataKey="hallucination"
-            stroke="#7c3aed"
+            dataKey="tonality"
+            stroke="#f59e0b"
             strokeWidth={2}
-            name="Hallucination"
+            name="Tonality"
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
             isAnimationActive={false}
           />
-          <Line
-            type="monotone"
-            dataKey="contextualRelevancy"
-            stroke="#0ea5e9"
-            strokeWidth={2}
-            name="Contextual Relevancy"
-            dot={{ r: 3 }}
-            activeDot={{ r: 5 }}
-            isAnimationActive={false}
-          />
+          <Line type="monotone" dataKey="safety" stroke="#7c3aed" strokeWidth={2} name="Safety" dot={{ r: 3 }} activeDot={{ r: 5 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </Box>

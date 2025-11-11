@@ -46,6 +46,13 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import { User } from "../../../../domain/types/User";
 import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import { 
+  DataSensitivity,
+  BusinessCriticality,
+  PastIssues,
+  RegulatoryExposure
+} from "../../../../domain/enums/status.enum";
+import { calculateVendorRiskScore, getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
 
 const initialState = {
   vendorName: "",
@@ -58,6 +65,11 @@ const initialState = {
   reviewResult: "",
   assignee: null as number | null,
   reviewDate: new Date().toISOString(),
+  // Scorecard fields
+  dataSensitivity: "",
+  businessCriticality: "",
+  pastIssues: "",
+  regulatoryExposure: "",
 };
 
 const REVIEW_STATUS_OPTIONS = [
@@ -65,6 +77,39 @@ const REVIEW_STATUS_OPTIONS = [
   { _id: "inReview", name: "In review" },
   { _id: "reviewed", name: "Reviewed" },
   { _id: "requiresFollowUp", name: "Requires follow-up" },
+];
+
+const DATA_SENSITIVITY_OPTIONS = [
+  { _id: DataSensitivity.None, name: "None" },
+  { _id: DataSensitivity.InternalOnly, name: "Internal Only" },
+  { _id: DataSensitivity.PII, name: "Personally Identifiable Information (PII)" },
+  { _id: DataSensitivity.FinancialData, name: "Financial Data" },
+  { _id: DataSensitivity.HealthData, name: "Health Data (e.g. HIPAA)" },
+  { _id: DataSensitivity.ModelWeights, name: "Model Weights or AI Assets" },
+  { _id: DataSensitivity.OtherSensitive, name: "Other Sensitive Data" },
+];
+
+const BUSINESS_CRITICALITY_OPTIONS = [
+  { _id: BusinessCriticality.Low, name: "Low (Vendor supports non-core functions)" },
+  { _id: BusinessCriticality.Medium, name: "Medium (Affects operations but is replaceable)" },
+  { _id: BusinessCriticality.High, name: "High (Critical to core services or products)" },
+];
+
+const PAST_ISSUES_OPTIONS = [
+  { _id: PastIssues.None, name: "None" },
+  { _id: PastIssues.MinorIncident, name: "Minor Incident (e.g. small delay, minor bug)" },
+  { _id: PastIssues.MajorIncident, name: "Major Incident (e.g. data breach, legal issue)" },
+];
+
+const REGULATORY_EXPOSURE_OPTIONS = [
+  { _id: RegulatoryExposure.None, name: "None" },
+  { _id: RegulatoryExposure.GDPR, name: "GDPR (EU)" },
+  { _id: RegulatoryExposure.HIPAA, name: "HIPAA (US)" },
+  { _id: RegulatoryExposure.SOC2, name: "SOC 2" },
+  { _id: RegulatoryExposure.ISO27001, name: "ISO 27001" },
+  { _id: RegulatoryExposure.EUAIAct, name: "EU AI Act" },
+  { _id: RegulatoryExposure.CCPA, name: "CCPA (California)" },
+  { _id: RegulatoryExposure.Other, name: "Other" },
 ];
 
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
@@ -88,6 +133,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
+  const [isScorecardExpanded, setIsScorecardExpanded] = useState(false);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
   const { data: projects } = useProjects();
@@ -146,7 +192,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         reviewResult: existingVendor.review_result,
         assignee: existingVendor.assignee || null,
         reviewDate: dayjs(existingVendor.review_date).toISOString(),
+        dataSensitivity: existingVendor.data_sensitivity || "",
+        businessCriticality: existingVendor.business_criticality || "",
+        pastIssues: existingVendor.past_issues || "",
+        regulatoryExposure: existingVendor.regulatory_exposure || "",
       }));
+      // Expand scorecard if any scorecard fields have values
+      if (existingVendor.data_sensitivity || existingVendor.business_criticality || 
+          existingVendor.past_issues || existingVendor.regulatory_exposure) {
+        setIsScorecardExpanded(true);
+      }
     }
   }, [existingVendor]);
 
@@ -298,7 +353,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           (s) => s._id === values.reviewStatus
         )?.name || "",
       reviewer: values.reviewer ?? undefined,
-      review_date: values.reviewDate
+      review_date: values.reviewDate,
+      // Scorecard fields
+      data_sensitivity: values.dataSensitivity || undefined,
+      business_criticality: values.businessCriticality || undefined,
+      past_issues: values.pastIssues || undefined,
+      regulatory_exposure: values.regulatoryExposure || undefined,
     };
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
@@ -660,6 +720,140 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
         rows={2}
       />
+      
+      {/* Vendor Scorecard Section */}
+      <Stack spacing={2}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            padding: theme.spacing(2),
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: "4px",
+            backgroundColor: theme.palette.grey[50],
+            "&:hover": {
+              backgroundColor: theme.palette.grey[100],
+            },
+          }}
+          onClick={() => setIsScorecardExpanded(!isScorecardExpanded)}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Vendor Scorecard (Advanced)
+            </Typography>
+            {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (() => {
+              const riskScore = calculateVendorRiskScore({
+                data_sensitivity: values.dataSensitivity as DataSensitivity,
+                business_criticality: values.businessCriticality as BusinessCriticality,
+                past_issues: values.pastIssues as PastIssues,
+                regulatory_exposure: values.regulatoryExposure as RegulatoryExposure,
+              });
+              const riskColor = getRiskScoreColor(riskScore);
+              
+              return (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    backgroundColor: `${riskColor}20`,
+                    border: `1px solid ${riskColor}`,
+                    minWidth: "50px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      backgroundColor: riskColor,
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 500, color: riskColor }}>
+                    {riskScore}%
+                  </Typography>
+                </Box>
+              );
+            })()}
+          </Box>
+          <Box sx={{ transform: isScorecardExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+            <ChevronDown size={20} />
+          </Box>
+        </Box>
+        
+        {isScorecardExpanded && (
+          <Stack spacing={4} sx={{ padding: theme.spacing(3), border: `1px solid ${theme.palette.divider}`, borderRadius: "4px" }}>
+            <Stack direction="row" spacing={6}>
+              <Select
+                items={DATA_SENSITIVITY_OPTIONS}
+                label="Data Sensitivity"
+                placeholder="Select data sensitivity level"
+                isHidden={false}
+                id="dataSensitivity"
+                onChange={(e) => handleOnChange("dataSensitivity", e.target.value)}
+                value={values.dataSensitivity}
+                sx={{ width: 220 }}
+                error={errors.dataSensitivity}
+                disabled={isEditingDisabled}
+              />
+              <Select
+                items={BUSINESS_CRITICALITY_OPTIONS}
+                label="Business Criticality"
+                placeholder="Select business criticality"
+                isHidden={false}
+                id="businessCriticality"
+                onChange={(e) => handleOnChange("businessCriticality", e.target.value)}
+                value={values.businessCriticality}
+                sx={{ width: 220 }}
+                error={errors.businessCriticality}
+                disabled={isEditingDisabled}
+              />
+              <Select
+                items={PAST_ISSUES_OPTIONS}
+                label="Past Issues"
+                placeholder="Select past issues level"
+                isHidden={false}
+                id="pastIssues"
+                onChange={(e) => handleOnChange("pastIssues", e.target.value)}
+                value={values.pastIssues}
+                sx={{ width: 220 }}
+                error={errors.pastIssues}
+                disabled={isEditingDisabled}
+              />
+            </Stack>
+            <Stack direction="row" spacing={6}>
+              <Select
+                items={REGULATORY_EXPOSURE_OPTIONS}
+                label="Regulatory Exposure"
+                placeholder="Select regulatory exposure"
+                isHidden={false}
+                id="regulatoryExposure"
+                onChange={(e) => handleOnChange("regulatoryExposure", e.target.value)}
+                value={values.regulatoryExposure}
+                sx={{ width: 220 }}
+                error={errors.regulatoryExposure}
+                disabled={isEditingDisabled}
+              />
+              <Box sx={{ width: 220 }}>
+                {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 3 }}>
+                    Risk Score: {calculateVendorRiskScore({
+                      data_sensitivity: values.dataSensitivity as DataSensitivity,
+                      business_criticality: values.businessCriticality as BusinessCriticality,
+                      past_issues: values.pastIssues as PastIssues,
+                      regulatory_exposure: values.regulatoryExposure as RegulatoryExposure,
+                    })}%
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          </Stack>
+        )}
+      </Stack>
       </Stack>
     </TabPanel>
   );

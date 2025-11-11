@@ -26,6 +26,7 @@ import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.mode
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
+import { calculateVendorRiskScore, getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -41,6 +42,7 @@ const titleOfTableColumns = [
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
   { id: "risk", label: "risk", sortable: false },
+  { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },
 ];
@@ -253,6 +255,21 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           bValue = new Date(b.review_date).getTime();
           break;
 
+        case "scorecard":
+          aValue = calculateVendorRiskScore({
+            data_sensitivity: a.data_sensitivity,
+            business_criticality: a.business_criticality,
+            past_issues: a.past_issues,
+            regulatory_exposure: a.regulatory_exposure,
+          });
+          bValue = calculateVendorRiskScore({
+            data_sensitivity: b.data_sensitivity,
+            business_criticality: b.business_criticality,
+            past_issues: b.past_issues,
+            regulatory_exposure: b.regulatory_exposure,
+          });
+          break;
+
         default:
           return 0;
       }
@@ -367,7 +384,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1}>
-                    {/* <RiskChip label={row.risk_status} /> */}
                     <CustomizableButton
                       sx={{
                         ...singleTheme.tableStyles.primary.body.button,
@@ -380,6 +396,51 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                         openVendorRisksDialog(row.id!, row.vendor_name);
                       }}
                     />
+                  </Box>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "scorecard" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {(() => {
+                      const riskScore = calculateVendorRiskScore({
+                        data_sensitivity: row.data_sensitivity,
+                        business_criticality: row.business_criticality,
+                        past_issues: row.past_issues,
+                        regulatory_exposure: row.regulatory_exposure,
+                      });
+                      const riskColor = getRiskScoreColor(riskScore);
+                      
+                      return (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            backgroundColor: `${riskColor}20`,
+                            border: `1px solid ${riskColor}`,
+                            minWidth: "50px",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              backgroundColor: riskColor,
+                            }}
+                          />
+                          <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 500, color: riskColor }}>
+                            {riskScore}%
+                          </Typography>
+                        </Box>
+                      );
+                    })()}
                   </Box>
                 </TableCell>
                 <TableCell

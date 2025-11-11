@@ -23,7 +23,6 @@ const useUserPreferences = () => {
       const response = await getUserPreferencesByUserId(userId!);
 
       setUserPreferences(response.data);
-      localStorage.setItem("verifywise_preferences", JSON.stringify(response.data));
       setError(null);
       setIsDefault(false);
     } catch (err) {

@@ -31,11 +31,20 @@ export function formatDate(isoDate: string): string {
 export const displayFormattedDate = (isoDate: string): string => {
   
   if (!isoDate || !/^\d{4}-\d{2}-\d{2}/.test(isoDate)) {
-    throw new Error("Invalid ISO date format");
+    console.warn("Invalid ISO date format:", isoDate);
+    return isoDate;
   }
-  
-  const preference = localStorage.getItem("verifywise_preferences");
-  const dateFormat = preference ? JSON.parse(preference).date_format : UserDateFormat.DD_MM_YYYY_DASH;
+
+  let dateFormat = UserDateFormat.DD_MM_YYYY_DASH;
+  try {
+    const preference = localStorage.getItem("verifywise_preferences");
+    if (preference) {
+      const parsed = JSON.parse(preference);
+      dateFormat = parsed.date_format || UserDateFormat.DD_MM_YYYY_DASH;
+    }
+  } catch (error) {
+    console.warn("Failed to read date format preference, using default:", error);
+  }
 
   const formattedDate = dayjs(isoDate).format(dateFormat);
   return formattedDate;

@@ -143,6 +143,11 @@ const getMenuGroups = (): IMenuGroup[] => [
         icon: <AlertCircle size={16} strokeWidth={1.5} />,
         path: "/ai-incident-managements",
       },
+      {
+        name: "Approval Workflows",
+        icon: <AlertCircle size={16} strokeWidth={1.5} />,
+        path: "/approval-workflows",
+      }
     ],
   },
 ];
@@ -166,32 +171,32 @@ const getManagementItems = (
   onOpenCreateDemoData?: () => void,
   onOpenDeleteDemoData?: () => void
 ): IMenuItem[] => [
-  {
-    name: "Event Tracker",
-    icon: <Telescope size={16} strokeWidth={1.5} />,
-    path: "/event-tracker",
-  },
-  {
-    name: "Settings",
-    icon: <Settings size={16} strokeWidth={1.5} />,
-    path: "/settings",
-  },
-  ...(hasDemoData
-    ? [
+    {
+      name: "Event Tracker",
+      icon: <Telescope size={16} strokeWidth={1.5} />,
+      path: "/event-tracker",
+    },
+    {
+      name: "Settings",
+      icon: <Settings size={16} strokeWidth={1.5} />,
+      path: "/settings",
+    },
+    ...(hasDemoData
+      ? [
         {
           name: "Delete demo data",
           icon: <Database size={16} strokeWidth={1.5} />,
           action: onOpenDeleteDemoData,
         },
       ]
-    : [
+      : [
         {
           name: "Create demo data",
           icon: <Database size={16} strokeWidth={1.5} />,
           action: onOpenCreateDemoData,
         },
       ]),
-];
+  ];
 
 // Reserved for future use
 // const other: IMenuItem[] = [];
@@ -606,10 +611,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               }
               className={
                 location.pathname === item.path ||
-                item.highlightPaths?.some((p: string) =>
-                  location.pathname.startsWith(p)
-                ) ||
-                customMenuHandler() === item.path
+                  item.highlightPaths?.some((p: string) =>
+                    location.pathname.startsWith(p)
+                  ) ||
+                  customMenuHandler() === item.path
                   ? "selected-path"
                   : "unselected"
               }
@@ -621,36 +626,36 @@ const Sidebar: React.FC<SidebarProps> = ({
                 px: theme.spacing(4),
                 background:
                   location.pathname === item.path ||
-                  item.highlightPaths?.some((p: string) =>
-                    location.pathname.startsWith(p)
-                  ) ||
-                  customMenuHandler() === item.path
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
                     ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                     : "transparent",
                 border:
                   location.pathname === item.path ||
-                  item.highlightPaths?.some((p: string) =>
-                    location.pathname.startsWith(p)
-                  ) ||
-                  customMenuHandler() === item.path
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
                     ? "1px solid #D8D8D8"
                     : "1px solid transparent",
 
                 "&:hover": {
                   background:
                     location.pathname === item.path ||
-                    item.highlightPaths?.some((p: string) =>
-                      location.pathname.startsWith(p)
-                    ) ||
-                    customMenuHandler() === item.path
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
                       ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                       : "#F9F9F9",
                   border:
                     location.pathname === item.path ||
-                    item.highlightPaths?.some((p: string) =>
-                      location.pathname.startsWith(p)
-                    ) ||
-                    customMenuHandler() === item.path
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
                       ? "1px solid #D8D8D8"
                       : "1px solid transparent",
                 },
@@ -674,20 +679,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                   "& svg": {
                     color:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path ||
-                      location.pathname.startsWith(`${item.path}/`)
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     stroke:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path ||
-                      location.pathname.startsWith(`${item.path}/`)
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                     transition: "color 0.2s ease, stroke 0.2s ease",
@@ -695,11 +700,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   "& svg path": {
                     stroke:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path ||
-                      location.pathname.startsWith(`${item.path}/`)
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
                   },
@@ -733,11 +738,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 500,
                     backgroundColor:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path ||
-                      location.pathname.startsWith(`${item.path}/`)
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                         ? "#f8fafc"
                         : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
@@ -813,11 +818,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   }
                   className={
                     location.pathname === item.path ||
-                    item.highlightPaths?.some((p: string) =>
-                      location.pathname.startsWith(p)
-                    ) ||
-                    customMenuHandler() === item.path ||
-                    location.pathname.startsWith(`${item.path}/`)
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)
                       ? "selected-path"
                       : "unselected"
                   }
@@ -829,39 +834,39 @@ const Sidebar: React.FC<SidebarProps> = ({
                     px: theme.spacing(4),
                     background:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path ||
-                      location.pathname.startsWith(`${item.path}/`)
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path ||
+                        location.pathname.startsWith(`${item.path}/`)
                         ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                         : "transparent",
                     border:
                       location.pathname === item.path ||
-                      item.highlightPaths?.some((p: string) =>
-                        location.pathname.startsWith(p)
-                      ) ||
-                      customMenuHandler() === item.path
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path
                         ? "1px solid #D8D8D8"
                         : "1px solid transparent",
 
                     "&:hover": {
                       background:
                         location.pathname === item.path ||
-                        item.highlightPaths?.some((p: string) =>
-                          location.pathname.startsWith(p)
-                        ) ||
-                        customMenuHandler() === item.path ||
-                        location.pathname.startsWith(`${item.path}/`)
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                           ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                           : "#F9F9F9",
                       border:
                         location.pathname === item.path ||
-                        item.highlightPaths?.some((p: string) =>
-                          location.pathname.startsWith(p)
-                        ) ||
-                        customMenuHandler() === item.path ||
-                        location.pathname.startsWith(`${item.path}/`)
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path ||
+                          location.pathname.startsWith(`${item.path}/`)
                           ? "1px solid #D8D8D8"
                           : "1px solid transparent",
                     },
@@ -885,20 +890,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                       "& svg": {
                         color:
                           location.pathname === item.path ||
-                          item.highlightPaths?.some((p: string) =>
-                            location.pathname.startsWith(p)
-                          ) ||
-                          customMenuHandler() === item.path ||
-                          location.pathname.startsWith(`${item.path}/`)
+                            item.highlightPaths?.some((p: string) =>
+                              location.pathname.startsWith(p)
+                            ) ||
+                            customMenuHandler() === item.path ||
+                            location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         stroke:
                           location.pathname === item.path ||
-                          item.highlightPaths?.some((p: string) =>
-                            location.pathname.startsWith(p)
-                          ) ||
-                          customMenuHandler() === item.path ||
-                          location.pathname.startsWith(`${item.path}/`)
+                            item.highlightPaths?.some((p: string) =>
+                              location.pathname.startsWith(p)
+                            ) ||
+                            customMenuHandler() === item.path ||
+                            location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                         transition: "color 0.2s ease, stroke 0.2s ease",
@@ -906,11 +911,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                       "& svg path": {
                         stroke:
                           location.pathname === item.path ||
-                          item.highlightPaths?.some((p: string) =>
-                            location.pathname.startsWith(p)
-                          ) ||
-                          customMenuHandler() === item.path ||
-                          location.pathname.startsWith(`${item.path}/`)
+                            item.highlightPaths?.some((p: string) =>
+                              location.pathname.startsWith(p)
+                            ) ||
+                            customMenuHandler() === item.path ||
+                            location.pathname.startsWith(`${item.path}/`)
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
                       },
@@ -989,7 +994,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item =>location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+                border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
                   ? "1px solid #D8D8D8"
                   : "1px solid transparent",
               },

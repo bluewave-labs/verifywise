@@ -5,22 +5,19 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
   TableFooter,
-  Box,
 } from "@mui/material";
 import { Suspense, lazy, useMemo, useState, useCallback } from "react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
+import EmptyState from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import {
-  emptyData,
   paginationStatus,
   paginationStyle,
   paginationDropdown,
@@ -148,35 +145,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
             ) : (
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={columns.length} sx={emptyData}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "300px",
-                      }}
-                    >
-                      <img
-                        src={placeholderImage}
-                        alt="No data"
-                        style={{
-                          width: "120px",
-                          height: "120px",
-                          marginBottom: "16px",
-                        }}
-                      />
-                      <Typography variant="h6" sx={{ color: "#6B7280", mb: 1 }}>
-                        No evaluations found
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "#9CA3AF", textAlign: "center" }}
-                      >
-                        Start by creating a new bias and fairness evaluation
-                      </Typography>
-                    </Box>
+                  <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+                    <EmptyState message="There is currently no data in this table." />
                   </TableCell>
                 </TableRow>
               </TableBody>

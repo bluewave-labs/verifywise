@@ -31,12 +31,15 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
         id serial NOT NULL,
+        uc_id character varying(255) UNIQUE,
         project_title character varying(255) NOT NULL,
         owner integer,
         start_date timestamp with time zone NOT NULL,
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
         goal character varying(255) NOT NULL,
+        target_industry character varying(255),
+        description character varying(255),
         geography integer NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
@@ -958,6 +961,18 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
           (project_id IS NULL AND framework_id IS NOT NULL) OR
           (project_id IS NOT NULL AND framework_id IS NOT NULL)
         )
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automation_execution_logs (
+      id SERIAL PRIMARY KEY,
+      automation_id INTEGER REFERENCES "${tenantHash}".automations(id) ON DELETE CASCADE,
+      triggered_at TIMESTAMP DEFAULT NOW(),
+      trigger_data JSONB DEFAULT '{}',
+      action_results JSONB DEFAULT '[]',
+      status TEXT CHECK (status IN ('success', 'partial_success', 'failure')) DEFAULT 'success',
+      execution_time_ms INTEGER,
+      error_message TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
     );`, { transaction });
   }
   catch (error) {

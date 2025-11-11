@@ -120,7 +120,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
             <TableCell
               sx={{
                 ...cellStyle,
-                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("title") ? "#f5f5f5" : "inherit",
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("title") ? "#e8e8e8" : "#fafafa",
               }}
             >
               {policy.title.length > 30

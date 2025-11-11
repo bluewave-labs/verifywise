@@ -363,6 +363,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   cursor: "pointer",
                   textTransform: "none !important",
+                  backgroundColor: sortConfig.key === "training_name" ? "#f5f5f5" : "inherit",
                 }}>
                     {training.training_name}
                   </TableCell>
@@ -370,6 +371,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   cursor: "pointer",
                   textTransform: "none !important",
+                  backgroundColor: sortConfig.key === "duration" ? "#f5f5f5" : "inherit",
                 }}>
                     {training.duration}
                   </TableCell>
@@ -377,6 +379,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   cursor: "pointer",
                   textTransform: "none !important",
+                  backgroundColor: sortConfig.key === "provider" ? "#f5f5f5" : "inherit",
                 }}>
                     {training.provider}
                   </TableCell>
@@ -384,6 +387,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     cursor: "pointer",
                     textTransform: "none !important",
+                    backgroundColor: sortConfig.key === "department" ? "#f5f5f5" : "inherit",
                   }}>
                     {training.department}
                   </TableCell>
@@ -391,6 +395,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     cursor: "pointer",
                     textTransform: "none !important",
+                    backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
                   }}>
                     <StatusBadge status={training.status} />
                   </TableCell>
@@ -398,6 +403,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     cursor: "pointer",
                     textTransform: "none !important",
+                    backgroundColor: sortConfig.key === "numberOfPeople" ? "#f5f5f5" : "inherit",
                   }}>
                     {training.numberOfPeople}
                   </TableCell>
@@ -408,6 +414,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                       right: 0,
                       zIndex: 10,
                       minWidth: "50px",
+                      backgroundColor: sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
                     }}
                   >
                     {isDeletingAllowed && (

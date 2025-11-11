@@ -266,7 +266,7 @@ const CustomizablePolicyTable = ({
         ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) =>
           renderRow ? (
-            renderRow(row)
+            renderRow(row, sortConfig)
           ) : (
             <TableRow
               key={row.id}

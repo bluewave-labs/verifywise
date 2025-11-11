@@ -363,6 +363,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   fontWeight: 600,
+                  backgroundColor: sortConfig.key === "ucId" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.uc_id || project.id}
@@ -373,12 +374,18 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   fontWeight: 500,
+                  backgroundColor: sortConfig.key === "title" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.project_title}
               </TableCell>
 
-              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                }}
+              >
                 <Box component="span" sx={getRiskColor(project.ai_risk_classification)}>
                   {project.ai_risk_classification}
                 </Box>
@@ -389,6 +396,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   textTransform: "capitalize",
+                  backgroundColor: sortConfig.key === "role" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.type_of_high_risk_role.replace(/_/g, " ")}
@@ -398,6 +406,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor: sortConfig.key === "startDate" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.start_date)}
@@ -407,6 +416,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor: sortConfig.key === "lastUpdated" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.last_updated)}

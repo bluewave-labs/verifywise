@@ -332,7 +332,12 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 onClick={() => onRowClick?.(task)}
               >
                 {/* Task Name */}
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: sortConfig.key === "title" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box>
                     <Typography
                       variant="body2"
@@ -375,14 +380,25 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Priority */}
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "priority" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box component="span" sx={priorityBadgeStyle(task.priority)}>
                     {task.priority}
                   </Box>
                 </TableCell>
 
                 {/* Status */}
-                <TableCell sx={cellStyle} onClick={(e) => e.stopPropagation()}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <CustomSelect
                     currentValue={
                       STATUS_DISPLAY_MAP[task.status] || task.status
@@ -399,7 +415,12 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Due Date */}
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "due_date" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {task.due_date ? (
                     <Stack direction="row" spacing={3} alignItems="center">
                       <Typography
@@ -434,7 +455,12 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Assignees */}
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "assignees" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {task.assignees && task.assignees.length > 0 ? (
                     <Stack direction="row" spacing={0.5}>
                       {task.assignees.slice(0, 3).map((assigneeId, idx) => {

@@ -532,7 +532,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             sx={singleTheme.tableStyles.primary.body.row}
                           >
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("name") ? "#f5f5f5" : "inherit",
+                              }}
                             >
                               {[member.name, member.surname]
                                 .filter(Boolean)
@@ -542,12 +545,16 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
                                 textTransform: "none",
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("email") ? "#f5f5f5" : "inherit",
                               }}
                             >
                               {member.email}
                             </TableCell>
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("role") ? "#f5f5f5" : "inherit",
+                              }}
                             >
                               <Select
                                 value={member.roleId?.toString() || "1"}
@@ -593,6 +600,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 position: "sticky",
                                 right: 0,
                                 minWidth: "50px",
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
                               }}
                             >
                               <IconButton

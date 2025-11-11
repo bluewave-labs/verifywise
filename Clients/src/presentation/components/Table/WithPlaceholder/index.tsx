@@ -332,18 +332,40 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 role="button"
                 aria-label={`Edit vendor ${row.vendor_name}`}
               >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.vendor_name}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "assignee" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.assignee
                     ? formattedUsers?.find(
                         (user: {_id: number; name: string;}) => user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.review_status}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "review_status" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.review_status}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box display="flex" alignItems="center" gap={1}>
                     {/* <RiskChip label={row.risk_status} /> */}
                     <CustomizableButton
@@ -360,7 +382,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     />
                   </Box>
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "review_date" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.review_date
                     ? formatDate(row.review_date.toString())
                     : "No review date"}

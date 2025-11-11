@@ -284,22 +284,42 @@ const Subprocessors = ({
           <TableBody>
             {sortedSubprocessors.map((sp: any, idx: number) => (
               <TableRow key={idx}>
-                <TableCell sx={aiTrustCenterTableCell}>
+                <TableCell
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "company name" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Typography variant="body2" sx={{ fontSize: 13 }}>
                     {sp.name}
                   </Typography>
                 </TableCell>
-                <TableCell sx={aiTrustCenterTableCell}>
+                <TableCell
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "url" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Typography variant="body2" sx={{ fontSize: 13 }}>
                     {sp.url}
                   </Typography>
                 </TableCell>
-                <TableCell sx={aiTrustCenterTableCell}>
+                <TableCell
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "purpose" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Typography variant="body2" sx={{ fontSize: 13 }}>
                     {sp.purpose}
                   </Typography>
                 </TableCell>
-                <TableCell sx={aiTrustCenterTableCell}>
+                <TableCell
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "location" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Typography variant="body2" sx={{ fontSize: 13 }}>
                     {sp.location}
                   </Typography>

@@ -17,7 +17,7 @@ export interface IAITrustCenterTableProps<T> {
   isLoading?: boolean;
   paginated?: boolean;
   emptyStateText?: string;
-  renderRow: (item: T) => React.ReactNode;
+  renderRow: (item: T, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;
@@ -169,7 +169,7 @@ export interface ITableProps {
   label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any) => React.ReactNode;
+  renderRow?: (row: any, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
 }
 
 export interface IReportTableProps {
@@ -177,6 +177,10 @@ export interface IReportTableProps {
   onRemoveReport: (id: number) => void;
   page: number;
   rowsPerPage: number;
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }
 
 export interface IReportTablePropsExtended {

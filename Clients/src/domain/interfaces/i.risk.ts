@@ -61,6 +61,10 @@ export interface IVWProjectRisksTableRow {
   setAnchor: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
+  sortConfig: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }
 
 export interface IRisksViewProps {

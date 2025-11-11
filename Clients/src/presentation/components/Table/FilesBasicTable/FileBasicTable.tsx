@@ -38,6 +38,24 @@ const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
+// Helper function to match column name with sort key
+const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boolean => {
+  if (!sortConfig?.key || !columnName) return false;
+
+  const sortKey = sortConfig.key.toLowerCase().trim();
+  const colName = columnName.toString().toLowerCase().trim();
+
+  // Handle flexible matching for different column name patterns
+  return (
+    sortKey === colName ||
+    (sortKey.includes("file") && colName.includes("name")) ||
+    (sortKey.includes("project") && colName.includes("project")) ||
+    (sortKey.includes("date") || sortKey.includes("upload")) && (colName.includes("date") || colName.includes("upload")) ||
+    (sortKey.includes("uploader") || sortKey.includes("user")) && (colName.includes("uploader") || colName.includes("user")) ||
+    (sortKey.includes("source") || sortKey.includes("type")) && (colName.includes("source") || colName.includes("type"))
+  );
+};
+
 // Sortable Table Header Component
 const SortableTableHead: React.FC<{
   columns: any[];
@@ -333,11 +351,44 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                   "&:hover": { backgroundColor: "#FBFBFB" },
                 }}
               >
-                <TableCell>{row.fileName}</TableCell>
-                <TableCell>{row.projectTitle}</TableCell>
-                <TableCell>{row.getFormattedUploadDate()}</TableCell>
-                <TableCell>{row.uploaderName || row.uploader}</TableCell>
-                <TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
+                  {row.fileName}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.projectTitle}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.getFormattedUploadDate()}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.uploaderName || row.uploader}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box
                     sx={{
                       display: "flex",
@@ -356,7 +407,16 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                   </Box>
                 </TableCell>
                 {/* Add any additional cells here */}
-                <TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    minWidth: "50px",
+                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <IconButton
                     id={Number(row.id)}
                     type="report"

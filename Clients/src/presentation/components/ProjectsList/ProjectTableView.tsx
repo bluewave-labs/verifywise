@@ -70,9 +70,9 @@ const SortableTableHeader: React.FC<{
                 backgroundColor: "rgba(0, 0, 0, 0.04)",
               },
               ...(column.id === "ucId" && {
-                  width: column.minWidth,
-                  maxWidth: column.minWidth,
-              })
+                width: column.minWidth,
+                maxWidth: column.minWidth,
+              }),
             }}
             onClick={() => column.sortable && onSort(column.id)}
           >
@@ -88,7 +88,8 @@ const SortableTableHeader: React.FC<{
                 variant="body2"
                 sx={{
                   fontWeight: 500,
-                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
                 }}
               >
                 {column.label}
@@ -97,18 +98,15 @@ const SortableTableHeader: React.FC<{
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
                 }}
               >
-                {sortConfig.key === column.id && sortConfig.direction === "asc" && (
-                  <ChevronUp size={16} />
-                )}
-                {sortConfig.key === column.id && sortConfig.direction === "desc" && (
-                  <ChevronDown size={16} />
-                )}
-                {sortConfig.key !== column.id && (
-                  <ChevronsUpDown size={16} />
-                )}
+                {sortConfig.key === column.id &&
+                  sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                {sortConfig.key === column.id &&
+                  sortConfig.direction === "desc" && <ChevronDown size={16} />}
+                {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
               </Box>
             </Box>
           </TableCell>
@@ -291,12 +289,18 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, sortedProjects.length);
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      sortedProjects.length
+    );
     return `${start} - ${end}`;
   }, [page, rowsPerPage, sortedProjects.length]);
 
   const paginatedProjects = useMemo(() => {
-    return sortedProjects.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    return sortedProjects.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
   }, [sortedProjects, page, rowsPerPage]);
 
   if (!projects || projects.length === 0) {
@@ -363,6 +367,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   fontWeight: 600,
+                  backgroundColor:
+                    sortConfig.key === "ucId" ? "#e8e8e8" : "#fafafa",
                 }}
               >
                 {project.uc_id || project.id}
@@ -373,13 +379,24 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   fontWeight: 500,
+                  backgroundColor:
+                    sortConfig.key === "title" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.project_title}
               </TableCell>
 
-              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                <Box component="span" sx={getRiskColor(project.ai_risk_classification)}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  backgroundColor:
+                    sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={getRiskColor(project.ai_risk_classification)}
+                >
                   {project.ai_risk_classification}
                 </Box>
               </TableCell>
@@ -389,6 +406,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   textTransform: "capitalize",
+                  backgroundColor:
+                    sortConfig.key === "role" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.type_of_high_risk_role.replace(/_/g, " ")}
@@ -398,6 +417,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor:
+                    sortConfig.key === "startDate" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.start_date)}
@@ -407,6 +428,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor:
+                    sortConfig.key === "lastUpdated" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.last_updated)}

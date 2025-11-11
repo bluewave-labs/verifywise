@@ -281,6 +281,7 @@ const ReportTable: React.FC<IReportTablePropsExtended> = ({
                   onRemoveReport={removeReport}
                   page={page}
                   rowsPerPage={rowsPerPage}
+                  sortConfig={sortConfig}
                 />
                 <TableFooter>
                   <TableRow

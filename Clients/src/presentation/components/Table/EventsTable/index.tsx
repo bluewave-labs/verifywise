@@ -298,6 +298,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "80px",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("id") ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   {event.id}
@@ -307,6 +308,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("event") || sortConfig.key.toLowerCase().includes("type")) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <EventTypeBadge eventType={event.event_type} />
@@ -316,6 +318,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "auto",
                     whiteSpace: "normal",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("description") ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {event.description}
@@ -325,6 +328,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("user") ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {(() => {
@@ -341,6 +345,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("timestamp") || sortConfig.key.toLowerCase().includes("time")) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {event.timestamp ? formatDateTime(event.timestamp) : "N/A"}

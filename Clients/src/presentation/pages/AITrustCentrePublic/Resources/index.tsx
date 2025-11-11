@@ -180,7 +180,12 @@ const Resources = ({
           <TableBody>
             {sortedResources.map((resource: any, idx: number) => (
               <TableRow key={idx}>
-                <TableCell sx={aiTrustCenterTableCell}>
+                <TableCell
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "document name" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
                   <Box display="flex" alignItems="center" gap={1}>
                     <CheckCircleOutlineIcon
                       size={24}
@@ -191,7 +196,13 @@ const Resources = ({
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell align="right" sx={aiTrustCenterTableCell}>
+                <TableCell
+                  align="right"
+                  sx={{
+                    ...aiTrustCenterTableCell,
+                    backgroundColor: sortConfig.key === "action" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Button
                     onClick={() => handleDownload(resource.id)}
                     size="small"

@@ -51,7 +51,11 @@ const SubprocessorTableRow: React.FC<{
   subprocessor: Subprocessor;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
-}> = ({ subprocessor, onDelete, onEdit }) => {
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
+}> = ({ subprocessor, onDelete, onEdit, sortConfig }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -62,23 +66,55 @@ const SubprocessorTableRow: React.FC<{
 
   return (
     <>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("company name") ? "#e8e8e8" : "#fafafa",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("url") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>{subprocessor.url.replace(/^https?:\/\//, "")}</Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("purpose") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>
           {subprocessor.purpose}
         </Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: "pointer",
+          textTransform: "none !important",
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("location") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Typography sx={styles.tableDataCell}>
           {subprocessor.location}
         </Typography>
       </TableCell>
-      <TableCell>
+      <TableCell
+        sx={{
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButtonComponent
             id={subprocessor.id}
@@ -481,12 +517,13 @@ const AITrustCenterSubprocessors: React.FC = () => {
             paginated={true}
             disabled={!formData?.info?.subprocessor_visible}
             emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor) => (
+            renderRow={(subprocessor, sortConfig) => (
               <SubprocessorTableRow
                 key={subprocessor.id}
                 subprocessor={subprocessor}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
+                sortConfig={sortConfig}
               />
             )}
             tableId="subprocessors-table"

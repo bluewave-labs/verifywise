@@ -95,7 +95,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
         onRowClick={(id: string) => onOpen(Number(id))}
-        renderRow={(policy) => (
+        renderRow={(policy, sortConfig) => (
           <TableRow
             key={policy.id}
             tabIndex={0}
@@ -117,26 +117,51 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
               onOpen(policy.id);
             }}
           >
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("title") ? "#f5f5f5" : "inherit",
+              }}
+            >
               {policy.title.length > 30
                 ? `${policy.title.slice(0, 30)}...`
                 : policy.title}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
+              }}
+            >
               <Chip {...getStatusChipProps(policy.status)} />
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("tags") ? "#f5f5f5" : "inherit",
+              }}
+            >
               {(() => {
                 const tags = policy.tags?.join(", ") ?? "-";
                 return tags.length > 30 ? `${tags.slice(0, 30)}...` : tags;
               })()}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("next") || sortConfig.key.toLowerCase().includes("review")) ? "#f5f5f5" : "inherit",
+              }}
+            >
               {policy.next_review_date
                 ? new Date(policy.next_review_date).toLocaleDateString()
                 : "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("author") ? "#f5f5f5" : "inherit",
+              }}
+            >
               {getUserNameById(policy.author_id)}
             </TableCell>
             {/* <TableCell sx={cellStyle}>
@@ -144,15 +169,29 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                 policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").length > 30 ? `${policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").slice(0, 30)}...` : policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"
               }
             </TableCell> */}
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("last") || sortConfig.key.toLowerCase().includes("updated")) && !sortConfig.key.toLowerCase().includes("by") ? "#f5f5f5" : "inherit",
+              }}
+            >
               {policy.last_updated_at
                 ? new Date(policy.last_updated_at).toLocaleString()
                 : "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>
+            <TableCell
+              sx={{
+                ...cellStyle,
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("updated") && sortConfig.key.toLowerCase().includes("by") ? "#f5f5f5" : "inherit",
+              }}
+            >
               {getUserNameById(policy.last_updated_by)}
             </TableCell>
-            <TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("actions") ? "#f5f5f5" : "inherit",
+              }}
+            >
               <div onClick={(e) => e.stopPropagation()}>
                 <CustomIconButton
                   id={Number(policy.id)}

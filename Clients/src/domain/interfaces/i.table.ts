@@ -169,7 +169,7 @@ export interface ITableProps {
   label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any) => React.ReactNode;
+  renderRow?: (row: any, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
 }
 
 export interface IReportTableProps {

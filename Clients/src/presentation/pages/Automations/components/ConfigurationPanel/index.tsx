@@ -485,7 +485,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       { var: '{{model.biases}}', desc: 'Known biases' },
       { var: '{{model.limitations}}', desc: 'Model limitations' },
       { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
-      { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
       { var: '{{model.securityAssessmentData}}', desc: 'security assessment data' },
       { var: '{{model.created_at}}', desc: 'Model creation date' },
     ];

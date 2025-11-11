@@ -354,7 +354,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   {row.fileName}

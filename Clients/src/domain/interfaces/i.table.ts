@@ -17,7 +17,7 @@ export interface IAITrustCenterTableProps<T> {
   isLoading?: boolean;
   paginated?: boolean;
   emptyStateText?: string;
-  renderRow: (item: T) => React.ReactNode;
+  renderRow: (item: T, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;

@@ -166,7 +166,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                 }}
                 onClick={() => onEdit(row.id!)}
               >
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: "#fafafa",
+                }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
                   </Typography>

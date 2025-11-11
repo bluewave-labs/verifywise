@@ -287,7 +287,7 @@ const Subprocessors = ({
                 <TableCell
                   sx={{
                     ...aiTrustCenterTableCell,
-                    backgroundColor: sortConfig.key === "company name" ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key === "company name" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <Typography variant="body2" sx={{ fontSize: 13 }}>

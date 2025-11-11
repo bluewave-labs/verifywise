@@ -583,16 +583,19 @@ const TrustCenterResources: React.FC = () => {
             paginated={true}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
-            renderRow={(resource) => (
-              <ResourceTableRow
-                key={resource.id}
-                resource={resource}
-                onDelete={handleDeleteResource}
-                onEdit={handleEditResource}
-                onMakeVisible={handleMakeVisible}
-                onDownload={handleDownload}
-              />
-            )}
+            renderRow={((resource: any, sortConfig: any) => (
+              (ResourceTableRow as any)(
+                {
+                  key: resource.id,
+                  resource: resource,
+                  onDelete: handleDeleteResource,
+                  onEdit:handleEditResource,
+                  onMakeVisible: handleMakeVisible,
+                  onDownload: handleDownload,
+                  sortConfig: sortConfig
+                }
+              )
+            )) as any}
             tableId="resources-table"
           />
         </Box>

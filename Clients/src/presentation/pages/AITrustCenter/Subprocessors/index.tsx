@@ -481,14 +481,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
             paginated={true}
             disabled={!formData?.info?.subprocessor_visible}
             emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor) => (
-              <SubprocessorTableRow
-                key={subprocessor.id}
-                subprocessor={subprocessor}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-              />
-            )}
+            renderRow={((subprocessor: any, sortConfig: any) => (
+              (SubprocessorTableRow as any)(
+                {
+                  key: subprocessor.id,
+                  subprocessor: subprocessor,
+                  onDelete: handleDelete,
+                  onEdit: handleEdit,
+                  sortConfig: sortConfig
+                }
+              )
+            )) as any}
             tableId="subprocessors-table"
           />
         </Box>

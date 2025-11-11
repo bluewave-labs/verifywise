@@ -281,7 +281,9 @@ const AITrustCenterTable = <T extends { id: number }>({
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >
-                {renderRow(item)}
+                {typeof renderRow === 'function' && renderRow.length > 1
+                  ? renderRow(item, sortConfig)
+                  : renderRow(item)}
               </TableRow>
             ))}
       </TableBody>

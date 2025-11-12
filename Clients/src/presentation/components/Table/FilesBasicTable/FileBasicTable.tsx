@@ -18,7 +18,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
-import { FileData } from "../../../../domain/types/File";
+import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -36,6 +36,24 @@ type SortConfig = {
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
+};
+
+// Helper function to match column name with sort key
+const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boolean => {
+  if (!sortConfig?.key || !columnName) return false;
+
+  const sortKey = sortConfig.key.toLowerCase().trim();
+  const colName = columnName.toString().toLowerCase().trim();
+
+  // Handle flexible matching for different column name patterns
+  return (
+    sortKey === colName ||
+    (sortKey.includes("file") && colName.includes("name")) ||
+    (sortKey.includes("project") && colName.includes("project")) ||
+    (sortKey.includes("date") || sortKey.includes("upload")) && (colName.includes("date") || colName.includes("upload")) ||
+    (sortKey.includes("uploader") || sortKey.includes("user")) && (colName.includes("uploader") || colName.includes("user")) ||
+    (sortKey.includes("source") || sortKey.includes("type")) && (colName.includes("source") || colName.includes("type"))
+  );
 };
 
 // Sortable Table Header Component
@@ -259,7 +277,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleRowClick = (item: FileData, event: React.MouseEvent) => {
+  const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();
     switch (item.source) {
       case "Assessment tracker group":
@@ -326,18 +344,51 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
           <TableBody>
             {paginatedRows.map((row) => (
               <TableRow
-                key={row.id}
+                key={`${row.id}-${row.fileName}`}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",
                   "&:hover": { backgroundColor: "#FBFBFB" },
                 }}
               >
-                <TableCell>{row.fileName}</TableCell>
-                <TableCell>{row.projectTitle}</TableCell>
-                <TableCell>{row.uploadDate}</TableCell>
-                <TableCell>{row.uploader}</TableCell>
-                <TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
+                  {row.fileName}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.projectTitle}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.getFormattedUploadDate()}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.uploaderName || row.uploader}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box
                     sx={{
                       display: "flex",
@@ -356,7 +407,16 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                   </Box>
                 </TableCell>
                 {/* Add any additional cells here */}
-                <TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    minWidth: "50px",
+                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <IconButton
                     id={Number(row.id)}
                     type="report"

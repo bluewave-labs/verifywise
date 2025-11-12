@@ -51,6 +51,7 @@ import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
+import userPreferenceRouter from "./routes/userPreference.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -141,6 +142,7 @@ try {
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
+  app.use("/api/user-preferences", userPreferenceRouter);
 
   // Adding background jobs in the Queue
   (async () => {

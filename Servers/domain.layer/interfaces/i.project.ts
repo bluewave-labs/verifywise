@@ -5,6 +5,7 @@ import { IProjectFramework } from "./i.projectFramework";
 
 export interface IProjectAttributes {
   id?: number;
+  uc_id?: string;
   project_title: string;
   owner: number;
   start_date: Date;

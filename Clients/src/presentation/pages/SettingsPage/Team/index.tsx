@@ -29,7 +29,6 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
@@ -39,6 +38,14 @@ import {
 } from "../../../../application/repository/user.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { UserModel } from "../../../../domain/models/Common/user/user.model";
+
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -68,11 +75,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
   const { roles, loading: rolesLoading } = useRoles();
 
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
+  const showAlert = useCallback(
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
+    },
+    []
+  );
+
+  // Auto-hide alert after 3 seconds
+  React.useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const roleItems = useMemo(
     () => roles.map((role) => ({ _id: role.id, name: role.name })),
@@ -120,54 +138,45 @@ const TeamManagement: React.FC = (): JSX.Element => {
           (user) => user.id.toString() === memberId
         );
         if (!member) {
-          setAlert({
-            variant: "error",
-            body: "User not found.",
-          });
-          setTimeout(() => setAlert(null), 3000);
+          showAlert("error", "Error", "User not found.");
           return;
         }
+
+        const updatedUser = UserModel.createNewUser({
+          id: parseInt(memberId),
+          name: member.name,
+          surname: member.surname,
+          email: member.email,
+          roleId: parseInt(newRole),
+        } as UserModel);
 
         const response = await updateUserById({
           userId: parseInt(memberId),
           userData: {
-            name: member.name,
-            surname: member.surname,
-            email: member.email,
-            roleId: parseInt(newRole),
+            name: updatedUser.name,
+            surname: updatedUser.surname,
+            email: updatedUser.email,
+            roleId: updatedUser.roleId,
           },
         });
 
         if (response.status === 202) {
-          handleAlert({
-            variant: "success",
-            body: "User role updated successfully.",
-            setAlert,
-          });
+          showAlert("success", "Success", "User role updated successfully.");
 
           // Add a small delay to ensure the server has processed the update
           setTimeout(() => {
             refreshUsers();
           }, 500);
         } else {
-          setAlert({
-            variant: "error",
-            body: (response as any)?.data?.message || "An error occurred.",
-          });
-          setTimeout(() => setAlert(null), 3000);
+          showAlert("error", "Error", (response as any)?.data?.message || "An error occurred.");
         }
       } catch (error) {
-        setAlert({
-          variant: "error",
-          body: `An error occurred: ${
-            (error as Error).message || "Please try again."
-          }`,
-        });
-
-        setTimeout(() => setAlert(null), 3000);
+        showAlert("error", "Error", `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`);
       }
     },
-    [teamUsers, refreshUsers]
+    [teamUsers, refreshUsers, showAlert]
   );
 
   const handleClose = () => {
@@ -186,27 +195,15 @@ const TeamManagement: React.FC = (): JSX.Element => {
       });
 
       if (response && response.status === 202) {
-        handleAlert({
-          variant: "success",
-          body: "User deleted successfully",
-          setAlert,
-        });
+        showAlert("success", "Success", "User deleted successfully");
         refreshUsers();
       } else {
-        handleAlert({
-          variant: "error",
-          body: "User deletion failed",
-          setAlert,
-        });
+        showAlert("error", "Error", "User deletion failed");
       }
     } catch (error) {
-      handleAlert({
-        variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
-        setAlert,
-      });
+      showAlert("error", "Error", `An error occurred: ${
+        (error as Error).message || "Please try again."
+      }`);
     }
 
     handleClose();
@@ -345,24 +342,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
     link: string | undefined = undefined
   ) => {
     if (status === 200) {
-      handleAlert({
-        variant: "success",
-        body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
-        setAlert,
-      });
+      showAlert("success", "Success", `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`);
     } else if (status === 206) {
-      handleAlert({
-        variant: "info",
-        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
-        setAlert,
-        alertTimeout: 20000,
-      });
+      showAlert("info", "Info", `Invitation sent to ${email}. Please use this link: ${link} to create an account.`);
     } else {
-      handleAlert({
-        variant: "error",
-        body: `Failed to send invitation to ${email}. Please try again.`,
-        setAlert,
-      });
+      showAlert("error", "Error", `Failed to send invitation to ${email}. Please try again.`);
     }
 
     setInviteUserModalOpen(false);
@@ -548,7 +532,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             sx={singleTheme.tableStyles.primary.body.row}
                           >
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("name") ? "#e8e8e8" : "#fafafa",
+                              }}
                             >
                               {[member.name, member.surname]
                                 .filter(Boolean)
@@ -558,12 +545,16 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
                                 textTransform: "none",
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("email") ? "#f5f5f5" : "inherit",
                               }}
                             >
                               {member.email}
                             </TableCell>
                             <TableCell
-                              sx={singleTheme.tableStyles.primary.body.cell}
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("role") ? "#f5f5f5" : "inherit",
+                              }}
                             >
                               <Select
                                 value={member.roleId?.toString() || "1"}
@@ -609,6 +600,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 position: "sticky",
                                 right: 0,
                                 minWidth: "50px",
+                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
                               }}
                             >
                               <IconButton

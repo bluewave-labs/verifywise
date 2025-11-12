@@ -340,6 +340,7 @@ const VWProjectRisksTable = ({
             setAnchor={setAnchor}
             onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
+            sortConfig={sortConfig}
           />
         ) : (
           <TableBody>

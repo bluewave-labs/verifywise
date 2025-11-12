@@ -405,51 +405,103 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell sx={{ ...cellStyle, width: "110px", maxWidth: "110px" }}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        width: "110px",
+                                        maxWidth: "110px",
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("incident") && sortConfig.key.toLowerCase().includes("id") ? "#e8e8e8" : "#fafafa",
+                                    }}
+                                >
                                     {incident.incident_id}{" "}
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("ai") && sortConfig.key.toLowerCase().includes("project") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <TooltipCell value={incident.ai_project} />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("type") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <TooltipCell value={incident.type} />
                                 </TableCell>
 
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("severity") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <Chip
                                         {...getIncidentChipProps(
                                             incident.severity
                                         )}
                                     />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <Chip
                                         {...getIncidentChipProps(
                                             incident.status
                                         )}
                                     />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("occurred") || sortConfig.key.toLowerCase().includes("date")) ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     {incident.occurred_date
                                         ? dayjs
                                               .utc(incident.occurred_date)
                                               .format("YYYY-MM-DD")
                                         : "-"}
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("reporter") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <TooltipCell value={incident.reporter} />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approval") && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <Chip
                                         {...getIncidentChipProps(
                                             incident.approval_status
                                         )}
                                     />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approved") && sortConfig.key.toLowerCase().includes("by") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <TooltipCell value={incident.approved_by} />
                                 </TableCell>
-                                <TableCell sx={cellStyle}>
+                                <TableCell
+                                    sx={{
+                                        ...cellStyle,
+                                        backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("actions") ? "#f5f5f5" : "inherit",
+                                    }}
+                                >
                                     <Stack direction="row" spacing={1}>
                                         <CustomIconButton
                                             id={incident.id}

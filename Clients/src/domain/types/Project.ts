@@ -2,6 +2,7 @@
 
 export type Project = {
   id: number;
+  uc_id?: string;
   project_title: string;
   owner: number;
   members: string[];

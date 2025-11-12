@@ -16,7 +16,7 @@ import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
-import { FileData } from "../../../domain/types/File";
+import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
@@ -76,7 +76,7 @@ const FileManager: React.FC = (): JSX.Element => {
   const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
 
   // Local state to manage files (allows manual refresh)
-  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [filesData, setFilesData] = useState<FileModel[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 

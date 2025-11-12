@@ -7,19 +7,19 @@
  * @module utils/fileTransform
  */
 
-import { FileData } from "../../domain/types/File";
+import { FileModel } from "../../domain/models/Common/file/file.model";
 
 /**
- * Transforms raw file data from API to application FileData format
+ * Transforms raw file data from API to application FileModel format
  *
  * Handles missing or malformed data gracefully with defensive checks.
  * Server response fields: id, filename, size, mimetype, upload_date, uploaded_by,
  * uploader_name, uploader_surname, existsOnDisk
  *
  * @param {any} file - Raw file data from API
- * @returns {FileData} Formatted file data for application use
+ * @returns {FileModel} Formatted file data for application use
  */
-export const transformFileData = (file: any): FileData => {
+export const transformFileData = (file: any): FileModel => {
     // Server sends 'upload_date' not 'uploaded_time'
     const uploadDate = file.upload_date || file.uploaded_time;
 
@@ -28,13 +28,12 @@ export const transformFileData = (file: any): FileData => {
         ? `${file.uploader_name} ${file.uploader_surname}`
         : file.uploader_name || file.uploader_surname || "Unknown";
 
-    return {
+    return FileModel.fromApiData({
         id: file.id ?? "",
         fileName: file.filename ?? "Unknown",
-        uploadDate: uploadDate
-            ? new Date(uploadDate).toLocaleDateString()
-            : "Invalid Date",
-        uploader: uploaderName,
+        uploadDate: uploadDate ? new Date(uploadDate) : new Date(),
+        uploader: file.uploaded_by || "unknown",
+        uploaderName: uploaderName,
         source: file.source ?? "File Manager",
         projectTitle: file.project_title ?? "N/A",
         projectId: file.project_id != null ? String(file.project_id) : "0",
@@ -42,16 +41,18 @@ export const transformFileData = (file: any): FileData => {
         subId: file.sub_id ?? null,
         metaId: file.meta_id ?? null,
         isEvidence: file.is_evidence ?? false,
-    };
+        type: file.mimetype || file.type,
+        size: file.size,
+    });
 };
 
 /**
- * Transforms an array of raw file data to FileData format
+ * Transforms an array of raw file data to FileModel format
  *
  * @param {any[]} files - Array of raw file data from API
- * @returns {FileData[]} Array of formatted file data
+ * @returns {FileModel[]} Array of formatted file data
  */
-export const transformFilesData = (files: any[]): FileData[] => {
+export const transformFilesData = (files: any[]): FileModel[] => {
     if (!Array.isArray(files)) {
         return [];
     }

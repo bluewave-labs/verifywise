@@ -25,6 +25,7 @@ import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
+import useUserPreferences from "./application/hooks/useUserPreferences";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -54,6 +55,7 @@ function App() {
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
+  const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
 
   useEffect(() => {
@@ -67,6 +69,12 @@ function App() {
 
     return () => setShowAlertCallback(() => {});
   }, []);
+
+  useEffect(() => {
+    if (userPreferences) {
+      localStorage.setItem("verifywise_preferences", JSON.stringify(userPreferences));
+    }
+  }, [userPreferences]);
 
   const [uiValues, setUiValues] = useState<UIValues>({});
   const [authValues, setAuthValues] = useState<AuthValues>({});

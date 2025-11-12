@@ -1,5 +1,5 @@
+import React, { useState } from "react";
 import {
-  Radio,
   Stack,
   Table,
   TableBody,
@@ -10,69 +10,79 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import StandardModal from "../Modals/StandardModal";
-import EmptyState from "../EmptyState";
-import { useCallback, useState } from "react";
-import policies from "../../assets/PolicyTemplates.json";
-import { PolicyTemplate, PolicyTemplatesModalProps } from "../../../domain/interfaces/IPolicy";
+import EmptyState from "../../components/EmptyState";
+import policyTemplates from "../../assets/PolicyTemplates.json";
+import {
+  PolicyTemplate,
+  PolicyTemplatesProps,
+} from "../../../domain/interfaces/IPolicy";
+import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
+import { handleAlert } from "../../../application/tools/alertUtils";
+import Alert from "../../components/Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 const TITLE_OF_COLUMNS = [
-  {col: "", width: 50,},
-  {col: "ID", width: 50,},
-  {col: "TITLE", width: 150,},
-  {col: "TAGS", width: 250,},
-  {col: "DESCRIPTION", width: 600,},
-]
+  { col: "ID", width: 50 },
+  { col: "TITLE", width: 150 },
+  { col: "TAGS", width: 250 },
+  { col: "DESCRIPTION", width: 600 },
+];
 
-const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
-  isOpen,
-  onClose,
-  handleSelectPolicyTemplate
+const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
+  tags,
+  fetchAll,
 }) => {
   const theme = useTheme();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPolicyTemplate, setSelectedPolicyTemplate] = useState<
+    PolicyTemplate | undefined
+  >(undefined);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const handleClose = () => {
-    onClose();
+    setShowModal(false);
+    setSelectedPolicyTemplate(undefined);
   };
 
-  const handleRowClick = useCallback(
-    (riskId: number) => {
-      setSelectedId(selectedId === riskId ? null : riskId);
-    },
-    [selectedId],
-  );
-
-  const handleSubmit = () => {
-    if (selectedId) {
-      const selectedPolicy = policies.find((policy) => policy.id === selectedId);
+  const handleSelectPolicyTemplate = (id: number) => {
+    setSelectedId(id);
+    if (id) {
+      const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
+      console.log(selectedPolicy);
       if (selectedPolicy) {
         const template: PolicyTemplate = {
           title: selectedPolicy.title,
           tags: selectedPolicy.tags,
-          content: selectedPolicy.content
-        }
-        handleSelectPolicyTemplate(template);
-        onClose();
+          content: selectedPolicy.content,
+        };
+        setSelectedPolicyTemplate(template);
+        setShowModal(true);
       }
     }
   };
 
+  const handleSaved = (successMessage?: string) => {
+    fetchAll();
+    handleClose();
+
+    // Show success alert if message is provided
+    if (successMessage) {
+      handleAlert({
+        variant: "success",
+        body: successMessage,
+        setAlert,
+        alertTimeout: 4000, // 4 seconds to give users time to read
+      });
+    }
+  };
+
   return (
-    <StandardModal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Add a new policy"
-      description="Select a policy from the template"
-      onSubmit={handleSubmit}
-      submitButtonText="Use selected policy and edit"
-      isSubmitting={!selectedId}
-      maxWidth="1500px"
-    >
+    <Stack>
       <Stack spacing={6}>
         <Stack
           sx={{
-            maxHeight: "50vh",
+            maxHeight: "75vh",
             overflow: "auto",
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: theme.spacing(1),
@@ -93,7 +103,7 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                         position: "sticky",
                         top: 0,
                         zIndex: 1,
-                        minWidth: column.width
+                        minWidth: column.width,
                       }}
                     >
                       {column.col}
@@ -101,7 +111,7 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                   ))}
                 </TableRow>
               </TableHead>
-              {policies.length === 0 && (
+              {policyTemplates.length === 0 && (
                 <TableBody>
                   <TableRow>
                     <TableCell
@@ -115,10 +125,10 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                 </TableBody>
               )}
               <TableBody>
-                {policies.map((policy) => (
+                {policyTemplates.map((policy) => (
                   <TableRow
                     key={policy.id}
-                    onClick={() => handleRowClick(policy.id)}
+                    onClick={() => handleSelectPolicyTemplate(policy.id)}
                     sx={{
                       cursor: "pointer",
                       backgroundColor:
@@ -139,18 +149,6 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                     role="button"
                     aria-label={`Select policy: ${policy.title}`}
                   >
-                    <TableCell>
-                      <Radio
-                        checked={selectedId === policy.id}
-                        onChange={() => handleRowClick(policy.id)}
-                        slotProps={{
-                          input: {
-                            "aria-label": `Select policy ${policy.id}: ${policy.title}`,
-                          },
-                        }}
-                        color="primary"
-                      />
-                    </TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>{policy.id}</TableCell>
                     <TableCell
                       sx={{
@@ -173,13 +171,13 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                               fontSize: 11,
                               fontWeight: 600,
                               textAlign: "center",
-                              width: 'fit-content',
-                              padding: '2px 8px'
+                              width: "fit-content",
+                              padding: "2px 8px",
                             }}
                           >
                             {tag}
                           </Typography>
-                        ))}   
+                        ))}
                       </Stack>
                     </TableCell>
                     <TableCell
@@ -189,11 +187,22 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
                         textOverflow: "ellipsis",
                       }}
                     >
-                      <div 
-                        className="prose prose-slate max-w-none"
-                        dangerouslySetInnerHTML={{ __html: policy.content }}
-                      />
+                      {policy.description}
                     </TableCell>
+                    {/* <TableCell>
+                      <CustomizableButton
+                        variant="contained"
+                        text="Use this template"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 3,
+                        }}
+                        onClick={(e) =>
+                          handleSelectPolicyTemplate(e, policy.id)
+                        }
+                      />
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
@@ -201,8 +210,29 @@ const PolicyTemplatesModal: React.FC<PolicyTemplatesModalProps> = ({
           </TableContainer>
         </Stack>
       </Stack>
-    </StandardModal>
+
+      {/* Modal */}
+      {showModal && tags.length > 0 && (
+        <PolicyDetailModal
+          policy={null}
+          tags={tags}
+          onClose={handleClose}
+          onSaved={handleSaved}
+          template={selectedPolicyTemplate}
+        />
+      )}
+
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
+    </Stack>
   );
 };
 
-export default PolicyTemplatesModal;
+export default PolicyTemplates;

@@ -33,8 +33,8 @@ export interface PolicyFormData {
 }
 
 export interface PolicyTemplate {
-  title: string; 
-  tags: string[]; 
+  title: string;
+  tags: string[];
   content: string;
 }
 
@@ -63,8 +63,13 @@ export interface PolicyFormProps {
   setErrors: React.Dispatch<React.SetStateAction<PolicyFormErrors>>;
 }
 
-export interface PolicyTemplatesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  handleSelectPolicyTemplate: (template: PolicyTemplate) => void;
+export interface PolicyManagerProps {
+  policies: PolicyManagerModel[];
+  tags: string[];
+  fetchAll: () => void;
+}
+
+export interface PolicyTemplatesProps {
+  tags: string[];
+  fetchAll: () => void;
 }

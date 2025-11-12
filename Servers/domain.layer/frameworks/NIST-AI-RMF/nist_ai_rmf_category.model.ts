@@ -1,10 +1,17 @@
-import { Column, DataType, ForeignKey, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { NISTAIMRFFunctionModel } from "./nist_ai_rmf_function.model";
 
 @Table({
   tableName: "nist_ai_rmf_categories",
   timestamps: false,
 })
-export class NISTAIMRFCategoryModel {
+export class NISTAIMRFCategoryModel extends Model<NISTAIMRFCategoryModel> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -15,15 +22,16 @@ export class NISTAIMRFCategoryModel {
   @Column({
     type: DataType.STRING,
   })
-  title!: string;
+  title?: string;
 
   @Column({
     type: DataType.STRING,
   })
-  description!: string;
+  description?: string;
 
+  @ForeignKey(() => NISTAIMRFFunctionModel)
   @Column({
     type: DataType.INTEGER,
   })
-  function_id!: number;
+  function_id?: number;
 }

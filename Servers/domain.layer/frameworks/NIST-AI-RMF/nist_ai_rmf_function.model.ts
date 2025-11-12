@@ -1,4 +1,10 @@
-import { Column, DataType, ForeignKey, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { NISTAIMRFFunctionType } from "../../enums/nist-ai-rmf-function.enum";
 import { FrameworkModel } from "../../models/frameworks/frameworks.model";
 
@@ -6,7 +12,7 @@ import { FrameworkModel } from "../../models/frameworks/frameworks.model";
   tableName: "nist_ai_rmf_functions",
   timestamps: false,
 })
-export class NISTAIMRFFunctionModel {
+export class NISTAIMRFFunctionModel extends Model<NISTAIMRFFunctionModel> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -17,29 +23,29 @@ export class NISTAIMRFFunctionModel {
   @Column({
     type: DataType.ENUM(...Object.values(NISTAIMRFFunctionType)),
   })
-  type!: NISTAIMRFFunctionType;
+  type?: NISTAIMRFFunctionType;
 
   @Column({
     type: DataType.STRING,
   })
-  title!: string;
+  title?: string;
 
   @Column({
     type: DataType.STRING,
   })
-  description!: string;
+  description?: string;
 
   @ForeignKey(() => FrameworkModel)
   @Column({
     type: DataType.INTEGER,
   })
-  framework_id!: number;
+  framework_id?: number;
 
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
-  created_at!: Date;
+  created_at?: Date;
 
   @Column({
     type: DataType.BOOLEAN,
@@ -51,5 +57,5 @@ export class NISTAIMRFFunctionModel {
     type: DataType.INTEGER,
     allowNull: true,
   })
-  index!: number;
+  index?: number;
 }

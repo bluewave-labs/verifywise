@@ -6,6 +6,7 @@ import {
   getAllNISTAIRMFfunctions,
   getNISTAIRMFfunctionById,
 } from "../controllers/nist_ai_rmf.function.ctrl";
+import { getAllNISTAIRMFCategoriesByfunctionId } from "../controllers/nist_ai_rmf.category.ctrl";
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -17,15 +18,13 @@ router.get(
   validateId("id"),
   getNISTAIRMFfunctionById
 ); // getting a specific NIST AI RMF function by id
-router.post("/functions", authenticateJWT); // creating a new NIST AI RMF function
-router.patch("/functions/:id", authenticateJWT, validateId("id")); // updating a specific NIST AI RMF function by id
-router.delete("/functions/:id", authenticateJWT, validateId("id")); // deleting a specific NIST AI RMF function by id
 
 // CRUD requests for NIST AI RMF categories
 router.get(
   "/categories/:functionId",
   authenticateJWT,
-  validateId("functionId")
+  validateId("functionId"),
+  getAllNISTAIRMFCategoriesByfunctionId
 ); // getting all NIST AI RMF categories of the organization by function id
 router.post("/categories", authenticateJWT); // creating a new NIST AI RMF category
 router.patch("/categories/:id", authenticateJWT, validateId("id")); // updating a specific NIST AI RMF category by id

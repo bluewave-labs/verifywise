@@ -1,0 +1,221 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verifywise
+spec:
+  selector:
+    matchLabels:
+      app: verifywise
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: verifywise
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: verifywise-backend
+          image: ghcr.io/bluewave-labs/verifywise-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: web
+              protocol: TCP
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: verifywise-config
+            - secretRef:
+                name: verifywise-secret
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: BACKEND_PORT
+            - name: DB_HOST
+              value: localhost
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_USER
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_PORT
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_NAME
+            - name: MOCK_DATA_ON
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: MOCK_DATA_ON
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: JWT_SECRET
+            - name: SMTP_HOST
+              value: smtp.gmail.com
+            - name: SMTP_PORT
+              value: "587"
+            - name: FAIRNESS_AND_BIAS_URL
+              value: http://localhost:8000
+
+        - name: verifywise-worker
+          image: ghcr.io/bluewave-labs/verifywise-backend:latest
+          imagePullPolicy: Always
+          command: ["node", "dist/jobs/worker.js"]
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: verifywise-config
+            - secretRef:
+                name: verifywise-secret
+          env:
+            - name: DB_HOST
+              value: localhost
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_USER
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_PORT
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_NAME
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: JWT_SECRET
+            - name: REDIS_URL
+              value: redis://localhost:6379/0
+
+        - name: verifywise-frontend
+          image: ghcr.io/bluewave-labs/verifywise-frontend:latest
+          imagePullPolicy: Always
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: verifywise-config
+            - secretRef:
+                name: verifywise-secret
+          ports:
+            - containerPort: 30
+              name: web
+              protocol: TCP
+
+        - name: verifywise-redis
+          image: redis:7
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6379
+              name: web
+              protocol: TCP
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - NET_RAW
+            privileged: false
+            readOnlyRootFilesystem: false
+            seccompProfile:
+              type: RuntimeDefault
+        
+        - name: verifywise-biasandfairness-backend
+          image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: web
+              protocol: TCP
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: verifywise-config
+            - secretRef:
+                name: verifywise-secret
+          env:
+            - name: DB_HOST
+              value: localhost
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_USER
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_PORT
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_NAME
+            - name: BACKEND_URL
+              value: http://localhost:3000
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+
+        - name: verifywise-postgres-temp
+          image: postgres:16.8
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5432
+              name: web
+              protocol: TCP
+          resources: {}
+          securityContext:
+            runAsUser: 999
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: verifywise-config
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: verifywise-secret
+                  key: DB_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata

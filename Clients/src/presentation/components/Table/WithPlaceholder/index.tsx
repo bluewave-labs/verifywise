@@ -405,12 +405,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1}>
-                    {(() => {
+                    {useMemo(() => {
                       const riskScore = calculateVendorRiskScore({
-                        data_sensitivity: row.data_sensitivity,
-                        business_criticality: row.business_criticality,
-                        past_issues: row.past_issues,
-                        regulatory_exposure: row.regulatory_exposure,
+                        data_sensitivity: row.data_sensitivity || undefined,
+                        business_criticality: row.business_criticality || undefined,
+                        past_issues: row.past_issues || undefined,
+                        regulatory_exposure: row.regulatory_exposure || undefined,
                       });
                       const riskColor = getRiskScoreColor(riskScore);
                       
@@ -440,7 +440,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                           </Typography>
                         </Box>
                       );
-                    })()}
+                    }, [row.data_sensitivity, row.business_criticality, row.past_issues, row.regulatory_exposure])}
                   </Box>
                 </TableCell>
                 <TableCell

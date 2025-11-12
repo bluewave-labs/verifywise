@@ -745,10 +745,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             </Typography>
             {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (() => {
               const riskScore = calculateVendorRiskScore({
-                data_sensitivity: values.dataSensitivity as DataSensitivity,
-                business_criticality: values.businessCriticality as BusinessCriticality,
-                past_issues: values.pastIssues as PastIssues,
-                regulatory_exposure: values.regulatoryExposure as RegulatoryExposure,
+                data_sensitivity: values.dataSensitivity || undefined,
+                business_criticality: values.businessCriticality || undefined,
+                past_issues: values.pastIssues || undefined,
+                regulatory_exposure: values.regulatoryExposure || undefined,
               });
               const riskColor = getRiskScoreColor(riskScore);
               
@@ -842,10 +842,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (
                   <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 3 }}>
                     Risk Score: {calculateVendorRiskScore({
-                      data_sensitivity: values.dataSensitivity as DataSensitivity,
-                      business_criticality: values.businessCriticality as BusinessCriticality,
-                      past_issues: values.pastIssues as PastIssues,
-                      regulatory_exposure: values.regulatoryExposure as RegulatoryExposure,
+                      data_sensitivity: values.dataSensitivity || undefined,
+                      business_criticality: values.businessCriticality || undefined,
+                      past_issues: values.pastIssues || undefined,
+                      regulatory_exposure: values.regulatoryExposure || undefined,
                     })}%
                   </Typography>
                 )}

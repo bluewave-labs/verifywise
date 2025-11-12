@@ -34,4 +34,10 @@ export class NISTAIMRFCategoryModel extends Model<NISTAIMRFCategoryModel> {
     type: DataType.INTEGER,
   })
   function_id?: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  index?: number;
 }

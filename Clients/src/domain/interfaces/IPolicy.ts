@@ -32,9 +32,16 @@ export interface PolicyFormData {
   content: string;
 }
 
+export interface PolicyTemplate {
+  title: string; 
+  tags: string[]; 
+  content: string;
+}
+
 export interface PolicyDetailModalProps {
   policy: PolicyManagerModel | null;
   tags: string[];
+  template?: PolicyTemplate;
   onClose: () => void;
   onSaved: (successMessage?: string) => void;
 }
@@ -54,4 +61,10 @@ export interface PolicyFormProps {
   tags: string[];
   errors: PolicyFormErrors;
   setErrors: React.Dispatch<React.SetStateAction<PolicyFormErrors>>;
+}
+
+export interface PolicyTemplatesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  handleSelectPolicyTemplate: (template: PolicyTemplate) => void;
 }

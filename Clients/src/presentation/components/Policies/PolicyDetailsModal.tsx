@@ -111,6 +111,7 @@ import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   policy,
   tags,
+  template,
   onClose,
   onSaved,
 }) => {
@@ -163,9 +164,21 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   );
 
+  const handleClose = () => {
+    setFormData({
+      title: "",
+      status: "Under Review",
+      tags: [],
+      nextReviewDate: "",
+      assignedReviewers: [],
+      content: "",
+    });
+    onClose();
+  }
+
   useModalKeyHandling({
     isOpen: true,
-    onClose,
+    onClose: handleClose,
   });
 
   const validateForm = (): boolean => {
@@ -287,6 +300,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           : [],
         content: policy.content_html || "",
       });
+    } else if (template) {
+      setFormData({
+        ...formData, 
+        title: template.title, 
+        tags: template.tags, 
+        content: template.content
+      })
     } else {
       setFormData({
         title: "",
@@ -297,7 +317,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         content: "",
       });
     }
-  }, [policy, users]);
+  }, [policy, template, users]);
 
   const toolbarConfig: Array<{
     key: ToolbarKey;
@@ -404,13 +424,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   ];
 
   useEffect(() => {
-    if (policy && editor) {
+    if ((policy || template) && editor) {
       const api = editor.api.html;
+      const content = policy?.content_html || template?.content;
       const nodes =
-        typeof policy.content_html === "string"
+        typeof content === "string"
           ? api.deserialize({
               element: Object.assign(document.createElement("div"), {
-                innerHTML: DOMPurify.sanitize(policy.content_html, {
+                innerHTML: DOMPurify.sanitize(content, {
                   ALLOWED_TAGS: [
                     "p",
                     "br",
@@ -471,12 +492,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 }),
               }),
             })
-          : policy.content_html || editor.children;
+          : content || editor.children;
 
       editor.tf.reset();
       editor.tf.setValue(nodes);
     }
-  }, [policy, editor]);
+  }, [policy, template, editor]);
 
   const save = async () => {
     if (!validateForm()) {
@@ -579,7 +600,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         open={true}
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
-            onClose();
+            handleClose();
           }
         }}
         anchor="right"
@@ -611,7 +632,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           <CloseGreyIcon
             size={16}
             style={{ color: "#98A2B3", cursor: "pointer" }}
-            onClick={onClose}
+            onClick={handleClose}
           />
         </Stack>
 

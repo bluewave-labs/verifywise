@@ -28,6 +28,8 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
+import PolicyTemplatesModal from "../../components/Policies/PolicyTemplatesModal";
+import { PolicyTemplate } from "../../../domain/interfaces/IPolicy";
 
 const PolicyDashboard: React.FC = () => {
   const location = useLocation();
@@ -36,6 +38,8 @@ const PolicyDashboard: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<PolicyManagerModel | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedPolicyTemplate, setSelectedPolicyTemplate] = useState<PolicyTemplate | undefined>(undefined);
+  const [showPolicyTemplatesModal, setShowPolicyTemplatesModal] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // New state for filter + search
@@ -81,7 +85,15 @@ const PolicyDashboard: React.FC = () => {
     handleOpen();
   };
 
-  const handleClose = () => setShowModal(false);
+  const handleClose = () => {
+    setShowModal(false);
+    setSelectedPolicyTemplate(undefined);
+  };
+
+  const handleSelectPolicyTemplate = (template: PolicyTemplate) => {
+    setSelectedPolicyTemplate(template);
+    handleAddNewPolicy();
+  }
 
   const handleSaved = (successMessage?: string) => {
     fetchAll();
@@ -225,6 +237,14 @@ const PolicyDashboard: React.FC = () => {
               />
             </div>
 
+            <Box data-joyride-id="view-policy-templates">
+              <CustomizableButton
+                variant="contained"
+                text="View Policy Templates"
+                onClick={() => setShowPolicyTemplatesModal(true)}
+              />
+            </Box>
+
             {/* Search */}
             <Box sx={{ width: 300 }} data-joyride-id="policy-search">
               <SearchBox
@@ -281,8 +301,15 @@ const PolicyDashboard: React.FC = () => {
           tags={tags}
           onClose={handleClose}
           onSaved={handleSaved}
+          template={selectedPolicyTemplate}
         />
       )}
+
+      <PolicyTemplatesModal 
+        isOpen={showPolicyTemplatesModal} 
+        onClose={() => setShowPolicyTemplatesModal(false)} 
+        handleSelectPolicyTemplate={handleSelectPolicyTemplate}
+      />
 
       {alert && (
         <Alert

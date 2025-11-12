@@ -63,38 +63,44 @@ export class NISTAIMRFSubcategoryModel extends Model<NISTAIMRFSubcategoryModel> 
   @Column({
     type: DataType.ENUM(...STATUSES),
   })
-  status!: Status;
+  status?: Status;
 
   @Column({
     type: DataType.STRING,
   })
-  auditor_feedback!: string;
+  auditor_feedback?: string;
 
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
   })
-  owner!: number;
+  owner?: number;
 
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
   })
-  reviewer!: number;
+  reviewer?: number;
 
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
   })
-  approver!: number;
+  approver?: number;
 
   @Column({
     type: DataType.DATE,
   })
-  due_date!: Date;
+  due_date?: Date;
 
   @Column({
     type: DataType.JSONB,
   })
-  evidence_links!: Object[];
+  evidence_links?: Object[];
+
+  @Column({
+    type: DataType.ARRAY(DataType.STRING),
+    allowNull: true,
+  })
+  tags?: string[];
 }

@@ -4,9 +4,9 @@
   "version": "v1.6.1",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev:vite": "vite --host",
     "nginx": "sudo nginx -c ./nginx.conf -g 'daemon off;'",
-    "dev:all": "concurrently \"npm run dev\" \"npm run nginx\"",
+    "dev": "concurrently \"npm run dev:vite\" \"npm run nginx\"",
     "build": "tsc -b && node scripts/build.js",
     "build-dev": "vite build",
     "build:original": "tsc -b && vite build",

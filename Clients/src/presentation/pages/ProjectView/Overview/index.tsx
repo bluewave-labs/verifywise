@@ -5,7 +5,7 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
@@ -118,7 +118,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>
           <Typography sx={styles.value}>
-            {formatDate(project.last_updated.toISOString())}
+            {displayFormattedDate(project.last_updated.toISOString())}
           </Typography>
         </Stack>
         <Stack sx={styles.block}>

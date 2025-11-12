@@ -16,7 +16,7 @@ import IconButton from "../../IconButton";
 import EmptyState from "../../EmptyState";
 import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
@@ -389,7 +389,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   {row.review_date
-                    ? formatDate(row.review_date.toString())
+                    ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
                 <TableCell

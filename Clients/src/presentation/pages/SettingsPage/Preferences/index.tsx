@@ -62,6 +62,8 @@ const Preferences: React.FC = () => {
         });
 
         if (created) {
+          localStorage.setItem("verifywise_preferences", JSON.stringify(created.data));
+
           setAlert({
             variant: "success",
             title: "Success",
@@ -77,6 +79,8 @@ const Preferences: React.FC = () => {
         });
 
         if (updated) {
+          localStorage.setItem("verifywise_preferences", JSON.stringify(updated.data));
+
           setAlert({
             variant: "success",
             title: "Success",

@@ -89,7 +89,7 @@ const getMenuGroups = (): IMenuGroup[] => [
         path: "/vendors",
       },
       {
-        name: "Model inventory",
+        name: "Model Inventory",
         icon: <ListIcon size={16} strokeWidth={1.5} />,
         path: "/model-inventory",
       },
@@ -99,7 +99,7 @@ const getMenuGroups = (): IMenuGroup[] => [
     name: "ASSURANCE",
     items: [
       {
-        name: "Risk management",
+        name: "Risk Management",
         icon: <AlertTriangle size={16} strokeWidth={1.5} />,
         path: "/risk-management",
       },
@@ -124,7 +124,7 @@ const getMenuGroups = (): IMenuGroup[] => [
         path: "/reporting",
       },
       {
-        name: "AI trust center",
+        name: "AI Trust Center",
         icon: <Brain size={16} strokeWidth={1.5} />,
         path: "/ai-trust-center",
       },
@@ -134,12 +134,12 @@ const getMenuGroups = (): IMenuGroup[] => [
     name: "GOVERNANCE",
     items: [
       {
-        name: "Policy manager",
+        name: "Policy Manager",
         icon: <Shield size={16} strokeWidth={1.5} />,
         path: "/policies",
       },
       {
-        name: "Incident management",
+        name: "Incident Management",
         icon: <AlertCircle size={16} strokeWidth={1.5} />,
         path: "/ai-incident-managements",
       },
@@ -167,7 +167,7 @@ const getManagementItems = (
   onOpenDeleteDemoData?: () => void
 ): IMenuItem[] => [
   {
-    name: "Event tracker",
+    name: "Event Tracker",
     icon: <Telescope size={16} strokeWidth={1.5} />,
     path: "/event-tracker",
   },

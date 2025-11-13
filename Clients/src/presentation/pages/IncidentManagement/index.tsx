@@ -381,7 +381,7 @@ const IncidentManagement: React.FC = () => {
             <HelperDrawer
                 open={isHelperDrawerOpen}
                 onClose={() => setIsHelperDrawerOpen(false)}
-                title="Incident management"
+                title="Incident Management"
                 description="Track, investigate, and resolve AI-related incidents efficiently"
                 whatItDoes="Maintain a centralized log of all AI incidents including *incident type*, *severity*, *reporter details*, and *status*. Record *impact assessment*, *mitigations*, *corrective actions*, and *approval workflow* for full traceability."
                 whyItMatters="Effective incident management ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It helps your team respond to issues promptly, identify root causes, and prevent recurrence."
@@ -448,7 +448,7 @@ const IncidentManagement: React.FC = () => {
             <Stack sx={incidentMainStack}>
                 <Stack>
                     <PageHeader
-                        title="Incident management"
+                        title="Incident Management"
                         description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
                         rightContent={
                             <HelperIcon

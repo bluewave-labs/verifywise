@@ -339,7 +339,7 @@ const RiskManagement = () => {
 
       <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
-          title="Risk management"
+          title="Risk Management"
           description="Manage and monitor risks across all your projects"
           rightContent={
             <HelperIcon

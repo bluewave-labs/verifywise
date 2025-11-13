@@ -317,7 +317,7 @@ const Training: React.FC = () => {
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
-        title="AI training registry"
+        title="AI Training Registry"
         description="Manage and track AI-related training programs and educational resources"
         whatItDoes="Centralize all *AI training programs*, *courses*, and *educational materials* for your organization. Track *completion status*, *certifications*, and *learning progress* across teams."
         whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for *responsible AI development* and deployment. Training records support *compliance* and *competency requirements*."
@@ -377,7 +377,7 @@ const Training: React.FC = () => {
       )}
 
         <PageHeader
-               title="AI training registry"
+               title="AI Training Registry"
                description=" This registry lists all AI-related training programs available to
                your organization. You can view, add, and manage training details here."
                rightContent={

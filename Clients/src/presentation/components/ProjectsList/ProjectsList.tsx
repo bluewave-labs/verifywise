@@ -205,7 +205,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
             <>
               <Select
                 id="risk-level-filter"
-                label="Risk Level"
+                label="Risk level"
                 value={filters.riskLevel}
                 items={[
                   { _id: "all", name: "All Levels" },

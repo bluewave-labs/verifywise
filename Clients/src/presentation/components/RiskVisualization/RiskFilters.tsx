@@ -152,7 +152,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
       <Stack direction="row" spacing="16px" alignItems="flex-end">
         <Select
           id="risk-level-filter"
-          label="Risk Level"
+          label="Risk level"
           value={filters.riskLevel}
           items={[
             { _id: "all", name: "All Levels" },
@@ -183,7 +183,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
 
         <Select
           id="mitigation-status-filter"
-          label="Mitigation Status"
+          label="Mitigation status"
           value={filters.mitigationStatus}
           items={[
             { _id: "all", name: "All Statuses" },

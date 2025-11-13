@@ -417,7 +417,7 @@ const SlackIntegrationsTable = ({
       <StandardModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Notification Routing"
+        title="Notification routing"
         description="Map Notification types to Slack channels. Set a destination channel for each type."
         maxWidth="990px"
         onSubmit={handleModalSubmit}

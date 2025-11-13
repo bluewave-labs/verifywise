@@ -73,13 +73,13 @@ const getMenuGroups = (): IMenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Use cases",
+        name: "Use Cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
         highlightPaths: ["/project-view"],
       },
       {
-        name: "Organizational view",
+        name: "Organizational View",
         icon: <Layers size={16} strokeWidth={1.5} />,
         path: "/framework",
       },

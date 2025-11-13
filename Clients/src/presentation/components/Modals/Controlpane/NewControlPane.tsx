@@ -114,18 +114,11 @@ const NewControlPane = ({
     }));
 
   const [state, setState] = useState<Control>(() => ({
-    order_no: data.order_no,
     id: data.id,
     title: data.title,
     description: data.description,
-    status: data.status,
-    approver: data.approver,
-    risk_review: data.risk_review,
-    owner: data.owner,
-    reviewer: data.reviewer,
-    implementation_details: data.implementation_details,
-    due_date: data.due_date,
-    control_category_id: data.control_category_id, // Added missing property
+    order_no: data.order_no,
+    control_category_id: data.control_category_id,
     subControls: initialSubControlState || [],
   }));
 

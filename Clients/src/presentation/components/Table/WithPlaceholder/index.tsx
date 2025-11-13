@@ -256,7 +256,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           break;
 
         case "scorecard":
-          // Use only backend provided risk_score, no client-side calculations
           aValue = a.risk_score ?? 0;
           bValue = b.risk_score ?? 0;
           break;

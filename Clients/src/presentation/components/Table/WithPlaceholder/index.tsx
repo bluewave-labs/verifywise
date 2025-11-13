@@ -26,7 +26,7 @@ import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.mode
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
-import { calculateVendorRiskScore, getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
+import { getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -256,18 +256,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           break;
 
         case "scorecard":
-          aValue = calculateVendorRiskScore({
-            data_sensitivity: a.data_sensitivity,
-            business_criticality: a.business_criticality,
-            past_issues: a.past_issues,
-            regulatory_exposure: a.regulatory_exposure,
-          });
-          bValue = calculateVendorRiskScore({
-            data_sensitivity: b.data_sensitivity,
-            business_criticality: b.business_criticality,
-            past_issues: b.past_issues,
-            regulatory_exposure: b.regulatory_exposure,
-          });
+          // Use only backend provided risk_score, no client-side calculations
+          aValue = a.risk_score ?? 0;
+          bValue = b.risk_score ?? 0;
           break;
 
         default:
@@ -405,13 +396,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1}>
-                    {useMemo(() => {
-                      const riskScore = calculateVendorRiskScore({
-                        data_sensitivity: row.data_sensitivity || undefined,
-                        business_criticality: row.business_criticality || undefined,
-                        past_issues: row.past_issues || undefined,
-                        regulatory_exposure: row.regulatory_exposure || undefined,
-                      });
+                    {(() => {
+                      // Use only backend provided risk_score, no client-side calculations
+                      const riskScore = row.risk_score ?? 0;
                       const riskColor = getRiskScoreColor(riskScore);
                       
                       return (
@@ -440,7 +427,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                           </Typography>
                         </Box>
                       );
-                    }, [row.data_sensitivity, row.business_criticality, row.past_issues, row.regulatory_exposure])}
+                    })()}
                   </Box>
                 </TableCell>
                 <TableCell

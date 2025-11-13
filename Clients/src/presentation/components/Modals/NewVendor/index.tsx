@@ -26,7 +26,7 @@ import {
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -81,24 +81,24 @@ const REVIEW_STATUS_OPTIONS = [
 
 const DATA_SENSITIVITY_OPTIONS = [
   { _id: DataSensitivity.None, name: "None" },
-  { _id: DataSensitivity.InternalOnly, name: "Internal Only" },
-  { _id: DataSensitivity.PII, name: "Personally Identifiable Information (PII)" },
-  { _id: DataSensitivity.FinancialData, name: "Financial Data" },
-  { _id: DataSensitivity.HealthData, name: "Health Data (e.g. HIPAA)" },
-  { _id: DataSensitivity.ModelWeights, name: "Model Weights or AI Assets" },
-  { _id: DataSensitivity.OtherSensitive, name: "Other Sensitive Data" },
+  { _id: DataSensitivity.InternalOnly, name: "Internal only" },
+  { _id: DataSensitivity.PII, name: "Personally identifiable information (PII)" },
+  { _id: DataSensitivity.FinancialData, name: "Financial data" },
+  { _id: DataSensitivity.HealthData, name: "Health data (e.g. HIPAA)" },
+  { _id: DataSensitivity.ModelWeights, name: "Model weights or AI assets" },
+  { _id: DataSensitivity.OtherSensitive, name: "Other sensitive data" },
 ];
 
 const BUSINESS_CRITICALITY_OPTIONS = [
-  { _id: BusinessCriticality.Low, name: "Low (Vendor supports non-core functions)" },
-  { _id: BusinessCriticality.Medium, name: "Medium (Affects operations but is replaceable)" },
-  { _id: BusinessCriticality.High, name: "High (Critical to core services or products)" },
+  { _id: BusinessCriticality.Low, name: "Low (vendor supports non-core functions)" },
+  { _id: BusinessCriticality.Medium, name: "Medium (affects operations but is replaceable)" },
+  { _id: BusinessCriticality.High, name: "High (critical to core services or products)" },
 ];
 
 const PAST_ISSUES_OPTIONS = [
   { _id: PastIssues.None, name: "None" },
-  { _id: PastIssues.MinorIncident, name: "Minor Incident (e.g. small delay, minor bug)" },
-  { _id: PastIssues.MajorIncident, name: "Major Incident (e.g. data breach, legal issue)" },
+  { _id: PastIssues.MinorIncident, name: "Minor incident (e.g. small delay, minor bug)" },
+  { _id: PastIssues.MajorIncident, name: "Major incident (e.g. data breach, legal issue)" },
 ];
 
 const REGULATORY_EXPOSURE_OPTIONS = [
@@ -107,8 +107,8 @@ const REGULATORY_EXPOSURE_OPTIONS = [
   { _id: RegulatoryExposure.HIPAA, name: "HIPAA (US)" },
   { _id: RegulatoryExposure.SOC2, name: "SOC 2" },
   { _id: RegulatoryExposure.ISO27001, name: "ISO 27001" },
-  { _id: RegulatoryExposure.EUAIAct, name: "EU AI Act" },
-  { _id: RegulatoryExposure.CCPA, name: "CCPA (California)" },
+  { _id: RegulatoryExposure.EUAIAct, name: "EU AI act" },
+  { _id: RegulatoryExposure.CCPA, name: "CCPA (california)" },
   { _id: RegulatoryExposure.Other, name: "Other" },
 ];
 
@@ -340,6 +340,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     ) {
       formattedWebsite = `http://${formattedWebsite}`;
     }
+    // Calculate risk score if any scorecard fields are provided
+    const riskScore = (values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) 
+      ? calculateVendorRiskScore({
+          data_sensitivity: values.dataSensitivity || undefined,
+          business_criticality: values.businessCriticality || undefined,
+          past_issues: values.pastIssues || undefined,
+          regulatory_exposure: values.regulatoryExposure || undefined,
+        })
+      : undefined;
+
     const _vendorDetails = {
       projects: values.projectIds,
       vendor_name: values.vendorName,
@@ -359,6 +369,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       business_criticality: values.businessCriticality || undefined,
       past_issues: values.pastIssues || undefined,
       regulatory_exposure: values.regulatoryExposure || undefined,
+      risk_score: riskScore,
     };
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
@@ -780,14 +791,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               );
             })()}
           </Box>
-          <Box sx={{ transform: isScorecardExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
-            <ChevronDown size={20} />
-          </Box>
+          {isScorecardExpanded ? (
+            <ChevronUp size={16} style={{ color: theme.palette.text.tertiary }} />
+          ) : (
+            <ChevronDown size={16} style={{ color: theme.palette.text.tertiary }} />
+          )}
         </Box>
         
         {isScorecardExpanded && (
-          <Stack spacing={4} sx={{ padding: theme.spacing(3), border: `1px solid ${theme.palette.divider}`, borderRadius: "4px" }}>
-            <Stack direction="row" spacing={6}>
+          <Stack spacing={6}>
+            <Stack direction="row" justifyContent="space-between">
               <Select
                 items={DATA_SENSITIVITY_OPTIONS}
                 label="Data Sensitivity"
@@ -796,7 +809,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 id="dataSensitivity"
                 onChange={(e) => handleOnChange("dataSensitivity", e.target.value)}
                 value={values.dataSensitivity}
-                sx={{ width: 220 }}
+                sx={{ width: 280 }}
                 error={errors.dataSensitivity}
                 disabled={isEditingDisabled}
               />
@@ -808,10 +821,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 id="businessCriticality"
                 onChange={(e) => handleOnChange("businessCriticality", e.target.value)}
                 value={values.businessCriticality}
-                sx={{ width: 220 }}
+                sx={{ width: 280 }}
                 error={errors.businessCriticality}
                 disabled={isEditingDisabled}
               />
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
               <Select
                 items={PAST_ISSUES_OPTIONS}
                 label="Past Issues"
@@ -820,12 +835,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 id="pastIssues"
                 onChange={(e) => handleOnChange("pastIssues", e.target.value)}
                 value={values.pastIssues}
-                sx={{ width: 220 }}
+                sx={{ width: 280 }}
                 error={errors.pastIssues}
                 disabled={isEditingDisabled}
               />
-            </Stack>
-            <Stack direction="row" spacing={6}>
               <Select
                 items={REGULATORY_EXPOSURE_OPTIONS}
                 label="Regulatory Exposure"
@@ -834,23 +847,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 id="regulatoryExposure"
                 onChange={(e) => handleOnChange("regulatoryExposure", e.target.value)}
                 value={values.regulatoryExposure}
-                sx={{ width: 220 }}
+                sx={{ width: 280 }}
                 error={errors.regulatoryExposure}
                 disabled={isEditingDisabled}
               />
-              <Box sx={{ width: 220 }}>
-                {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 3 }}>
-                    Risk Score: {calculateVendorRiskScore({
-                      data_sensitivity: values.dataSensitivity || undefined,
-                      business_criticality: values.businessCriticality || undefined,
-                      past_issues: values.pastIssues || undefined,
-                      regulatory_exposure: values.regulatoryExposure || undefined,
-                    })}%
-                  </Typography>
-                )}
-              </Box>
             </Stack>
+            {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                Risk Score: {calculateVendorRiskScore({
+                  data_sensitivity: values.dataSensitivity || undefined,
+                  business_criticality: values.businessCriticality || undefined,
+                  past_issues: values.pastIssues || undefined,
+                  regulatory_exposure: values.regulatoryExposure || undefined,
+                })}%
+              </Typography>
+            )}
           </Stack>
         )}
       </Stack>

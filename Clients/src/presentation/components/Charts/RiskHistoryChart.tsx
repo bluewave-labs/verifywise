@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Stack } from "@mui/material";
+import { Typography, Stack, Box } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getRiskTimeseries } from "../../../application/repository/riskHistory.repository";
 import ButtonToggle from "../ButtonToggle";
 import CustomizableSkeleton from "../Skeletons";
+import EmptyState from "../EmptyState";
 
 interface RiskHistoryChartProps {
   parameter?: string;
@@ -181,21 +182,10 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
 
   if (!timeseriesData || timeseriesData.length === 0) {
     return (
-      <Stack
-        sx={{
-          p: 3,
-          border: "1px solid #EAECF0",
-          borderRadius: 2,
-          height: height + 120,
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-        }}
-      >
-        <Typography sx={{ color: "#8594AC", fontSize: 14 }}>
-          No historical data available
-        </Typography>
-      </Stack>
+      <EmptyState
+        message="There is no historical data here"
+        showBorder={true}
+      />
     );
   }
 
@@ -210,10 +200,7 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
       }}
     >
       <Stack spacing={3}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#1c2130" }}>
-            {title}
-          </Typography>
+        <Stack direction="row" justifyContent="flex-end" alignItems="center">
           <ButtonToggle
             options={TIMEFRAME_OPTIONS}
             value={timeframe}
@@ -222,81 +209,84 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
           />
         </Stack>
 
-        <Stack sx={{ width: "100%", height, mt: 2 }}>
-          <LineChart
-            xAxis={[
-              {
-                data: timestamps,
-                scaleType: "time",
-                valueFormatter: (date) => {
-                  return new Intl.DateTimeFormat("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  }).format(date);
+        <Stack sx={{ width: "100%", mt: 2 }}>
+          <Box sx={{ position: "relative" }}>
+            <LineChart
+              xAxis={[
+                {
+                  data: timestamps,
+                  scaleType: "time",
+                  valueFormatter: (date) => {
+                    return new Intl.DateTimeFormat("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    }).format(date);
+                  },
+                  tickLabelStyle: {
+                    fontSize: 12,
+                    fill: "#475467",
+                  },
                 },
-                tickLabelStyle: {
-                  fontSize: 12,
-                  fill: "#475467",
+              ]}
+              yAxis={[
+                {
+                  label: "Count",
+                  min: 0,
+                  max: maxValue > 0 ? Math.ceil(maxValue * 1.15) : 10,
+                  tickMinStep: 1,
+                  valueFormatter: (value: number) => value.toString(),
+                  labelStyle: {
+                    fontSize: 13,
+                    fill: "#344054",
+                  },
+                  tickLabelStyle: {
+                    fontSize: 12,
+                    fill: "#475467",
+                  },
                 },
-              },
-            ]}
-            yAxis={[
-              {
-                label: "Count",
-                min: 0,
-                max: maxValue > 0 ? Math.ceil(maxValue * 1.15) : 10,
-                tickMinStep: 1,
-                valueFormatter: (value: number) => value.toString(),
-                labelStyle: {
-                  fontSize: 13,
-                  fill: "#344054",
+              ]}
+              series={series}
+              height={height}
+              margin={{ top: 10, right: 30, bottom: 30, left: 70 }}
+              slotProps={{
+                legend: {
+                  hidden: false,
+                  direction: "row" as any,
+                  position: { vertical: "bottom", horizontal: "center" },
+                  padding: { top: 35 },
+                  itemMarkWidth: 10,
+                  itemMarkHeight: 10,
+                  markGap: 5,
+                  itemGap: 12,
+                  labelStyle: {
+                    fontSize: 11,
+                    fontWeight: 400,
+                    fill: "#475467",
+                  },
                 },
-                tickLabelStyle: {
-                  fontSize: 12,
-                  fill: "#475467",
+              }}
+              grid={{
+                vertical: true,
+                horizontal: true,
+              }}
+              sx={{
+                "& .MuiLineElement-root": {
+                  strokeWidth: 3,
                 },
-              },
-            ]}
-            series={series}
-            height={height}
-            margin={{ top: 20, right: 30, bottom: 80, left: 70 }}
-            slotProps={{
-              legend: {
-                direction: "row" as any,
-                position: { vertical: "bottom", horizontal: "center" },
-                // padding: { top: 30 },
-                // itemMarkWidth: 14,
-                // itemMarkHeight: 14,
-                // markGap: 8,
-                // itemGap: 24,
-                // labelStyle: {
-                //   fontSize: 13,
-                //   fontWeight: 500,
-                //   fill: "#1c2130",
-                // },
-              },
-            }}
-            grid={{
-              vertical: true,
-              horizontal: true,
-            }}
-            sx={{
-              "& .MuiLineElement-root": {
-                strokeWidth: 3,
-              },
-              "& .MuiChartsGrid-line": {
-                stroke: "#EAECF0",
-                strokeWidth: 1,
-              },
-              "& .MuiChartsAxis-line": {
-                stroke: "#D0D5DD",
-                strokeWidth: 1.5,
-              },
-              "& .MuiChartsAxis-tick": {
-                stroke: "#D0D5DD",
-              },
-            }}
-          />
+                "& .MuiChartsGrid-line": {
+                  stroke: "#EAECF0",
+                  strokeWidth: 1,
+                },
+                "& .MuiChartsAxis-line": {
+                  stroke: "#D0D5DD",
+                  strokeWidth: 1.5,
+                },
+                "& .MuiChartsAxis-tick": {
+                  stroke: "#D0D5DD",
+                },
+              }}
+            />
+          </Box>
         </Stack>
       </Stack>
     </Stack>

@@ -96,7 +96,7 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
           sx={{ mb: 3 }}
         >
           <Box>
-            <Typography sx={{ fontSize: 24, fontWeight: 700, color: "#2D3748" }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2D3748" }}>
               {title}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#8594AC", mt: 0.5 }}>
@@ -117,34 +117,31 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
         </Stack>
 
         {/* Parameter Selection */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 3 }}
-        >
-          <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#2D3748" }}>
-            Historical Trends
+        <Stack sx={{ mb: 3, gap: 2 }}>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2D3748" }}>
+            Historical trend: {entityName} {selectedParameterLabel.toLowerCase()} over time
           </Typography>
-          <ButtonToggle
-            options={availableParameters}
-            value={selectedParameter}
-            onChange={handleParameterChange}
-          />
-        </Box>
+          <Box display="flex" justifyContent="flex-end">
+            <ButtonToggle
+              options={availableParameters}
+              value={selectedParameter}
+              onChange={handleParameterChange}
+            />
+          </Box>
+        </Stack>
 
         {/* Chart */}
         {chartType === "model" ? (
           <ModelInventoryHistoryChart
             parameter={selectedParameter}
             title={`${entityName} ${selectedParameterLabel} Over Time`}
-            height={400}
+            height={300}
           />
         ) : (
           <RiskHistoryChart
             parameter={selectedParameter}
             title={`${entityName} ${selectedParameterLabel} Over Time`}
-            height={400}
+            height={300}
           />
         )}
       </Box>

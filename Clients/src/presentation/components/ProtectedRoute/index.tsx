@@ -55,6 +55,7 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
               tokenError
             );
             dispatch(clearAuthState());
+            return; // Exit early since token is invalid
           }
         }
 
@@ -67,8 +68,17 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
         setLoading(false);
       }
     };
-    checkUserExistsInDatabase();
-  }, [dispatch, authState.authToken]);
+
+    // Only run the check if we're not on public auth pages and we have a valid token
+    // This prevents unnecessary API calls during logout
+    const shouldRunCheck = !isPublicRoute && authState.authToken && authState.authToken.trim() !== "";
+
+    if (shouldRunCheck) {
+      checkUserExistsInDatabase();
+    } else {
+      setLoading(false);
+    }
+  }, [dispatch, authState.authToken, isPublicRoute]);
 
   if (loading) {
     return <CustomizableToast title="Loading..." />; // Show a loading indicator while checking user existence

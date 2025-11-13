@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Box,
+  SelectChangeEvent,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
   useTheme,
@@ -20,6 +24,15 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
+import Select from "../../components/Inputs/Select";
+import { SearchBox } from "../../components/Search";
+import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../application/utils/paginationStorage";
+import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import { ChevronsUpDown } from "lucide-react";
 
 const TITLE_OF_COLUMNS = [
   { col: "ID", width: 50 },
@@ -27,6 +40,12 @@ const TITLE_OF_COLUMNS = [
   { col: "TAGS", width: 250 },
   { col: "DESCRIPTION", width: 600 },
 ];
+
+const DEFAULT_ROWS_PER_PAGE = 5;
+
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   tags,
@@ -39,6 +58,12 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     PolicyTemplate | undefined
   >(undefined);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("policyManager", DEFAULT_ROWS_PER_PAGE),
+  );
 
   const handleClose = () => {
     setShowModal(false);
@@ -77,8 +102,73 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     }
   };
 
+  const filterOptions = [
+    { _id: "all", name: "All Policy Templates" },
+    ...[...Object.values(PolicyTemplateCategory)].map((value) => ({
+      _id: value,
+      name: value,
+    })),
+  ];
+
+  // Filter + search
+  const filteredPolicyTemplates = useMemo(() => {
+    return policyTemplates.filter((p) => {
+      const matchesCategory =
+        categoryFilter === "all" ? true : p.category === categoryFilter;
+      const matchesSearch = p.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [categoryFilter, searchTerm]);
+
+  useEffect(() => setPage(0), [filteredPolicyTemplates.length]);
+
+  const handleChangePage = useCallback(
+    (_: unknown, newPage: number) => setPage(newPage),
+    [],
+  );
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount("policyManager", newRowsPerPage);
+      setPage(0);
+    },
+    [],
+  );
+
   return (
     <Stack>
+      <Stack direction="row" spacing={6} alignItems="center" mb={8}>
+        {/* Dropdown Filter */}
+        <div data-joyride-id="policy-status-filter">
+          <Select
+            id="policy-category"
+            value={categoryFilter}
+            items={filterOptions}
+            onChange={(e: SelectChangeEvent<string | number>) =>
+              setCategoryFilter(`${e.target.value}`)
+            }
+            sx={{
+              minWidth: "225px",
+              height: "34px",
+              bgcolor: "#fff",
+            }}
+          />
+        </div>
+
+        {/* Search */}
+        <Box sx={{ width: 300 }} data-joyride-id="policy-search">
+          <SearchBox
+            placeholder="Search policy templates..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            inputProps={{ "aria-label": "Search policy templates" }}
+          />
+        </Box>
+      </Stack>
       <Stack spacing={6}>
         <Stack
           sx={{
@@ -111,7 +201,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                   ))}
                 </TableRow>
               </TableHead>
-              {policyTemplates.length === 0 && (
+              {filteredPolicyTemplates.length === 0 && (
                 <TableBody>
                   <TableRow>
                     <TableCell
@@ -125,87 +215,162 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                 </TableBody>
               )}
               <TableBody>
-                {policyTemplates.map((policy) => (
-                  <TableRow
-                    key={policy.id}
-                    onClick={() => handleSelectPolicyTemplate(policy.id)}
-                    sx={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        selectedId === policy.id
-                          ? theme.palette.action.selected
-                          : "inherit",
-                      "&:hover": {
-                        backgroundColor: theme.palette.action.hover,
-                      },
-                      "&:focus": {
-                        backgroundColor: theme.palette.action.focus,
-                        outline: `2px solid ${theme.palette.primary.main}`,
-                        outlineOffset: -2,
-                      },
-                      verticalAlign: "initial",
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Select policy: ${policy.title}`}
-                  >
-                    <TableCell sx={{ fontWeight: 500 }}>{policy.id}</TableCell>
-                    <TableCell
+                {filteredPolicyTemplates
+                  ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((policy) => (
+                    <TableRow
+                      key={policy.id}
+                      onClick={() => handleSelectPolicyTemplate(policy.id)}
                       sx={{
-                        maxWidth: 200,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        cursor: "pointer",
+                        backgroundColor:
+                          selectedId === policy.id
+                            ? theme.palette.action.selected
+                            : "inherit",
+                        "&:hover": {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                        "&:focus": {
+                          backgroundColor: theme.palette.action.focus,
+                          outline: `2px solid ${theme.palette.primary.main}`,
+                          outlineOffset: -2,
+                        },
+                        verticalAlign: "initial",
                       }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Select policy: ${policy.title}`}
                     >
-                      {policy.title}
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" gap={2}>
-                        {policy.tags.map((tag) => (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              borderRadius: 1,
-                              bgcolor: theme.palette.info.light,
-                              color: theme.palette.info.contrastText,
-                              fontSize: 11,
-                              fontWeight: 600,
-                              textAlign: "center",
-                              width: "fit-content",
-                              padding: "2px 8px",
-                            }}
-                          >
-                            {tag}
-                          </Typography>
-                        ))}
-                      </Stack>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        maxWidth: 250,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {policy.description}
-                    </TableCell>
-                    {/* <TableCell>
-                      <CustomizableButton
-                        variant="contained"
-                        text="Use this template"
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        {policy.id}
+                      </TableCell>
+                      <TableCell
                         sx={{
-                          backgroundColor: "#13715B",
-                          border: "1px solid #13715B",
-                          gap: 3,
+                          maxWidth: 200,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
                         }}
-                        onClick={(e) =>
-                          handleSelectPolicyTemplate(e, policy.id)
-                        }
-                      />
-                    </TableCell> */}
-                  </TableRow>
-                ))}
+                      >
+                        {policy.title}
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" gap={2}>
+                          {policy.tags.map((tag) => (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                borderRadius: 1,
+                                bgcolor: theme.palette.primary.main,
+                                color: theme.palette.info.contrastText,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                textAlign: "center",
+                                width: "fit-content",
+                                padding: "2px 8px",
+                              }}
+                            >
+                              {tag}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 250,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {policy.description}
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
+              <TableFooter>
+                <TableRow
+                  sx={{
+                    "& .MuiTableCell-root.MuiTableCell-footer": {
+                      paddingX: theme.spacing(8),
+                      paddingY: theme.spacing(4),
+                    },
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      paddingX: theme.spacing(2),
+                      fontSize: 12,
+                      opacity: 0.7,
+                    }}
+                  >
+                    Showing {page * rowsPerPage + 1} -{" "}
+                    {Math.min(
+                      page * rowsPerPage + rowsPerPage,
+                      filteredPolicyTemplates.length,
+                    )}{" "}
+                    of {filteredPolicyTemplates.length} items
+                  </TableCell>
+                  <TablePagination
+                    count={filteredPolicyTemplates.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    rowsPerPageOptions={[5, 10, 15, 25]}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ActionsComponent={
+                      TablePaginationActions as React.ComponentType<any>
+                    }
+                    labelRowsPerPage="Rows per page"
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          keepMounted: true,
+                          PaperProps: {
+                            className: "pagination-dropdown",
+                            sx: {
+                              mt: 0,
+                              mb: theme.spacing(2),
+                            },
+                          },
+                          transformOrigin: {
+                            vertical: "bottom",
+                            horizontal: "left",
+                          },
+                          anchorOrigin: {
+                            vertical: "top",
+                            horizontal: "left",
+                          },
+                          sx: { mt: theme.spacing(-2) },
+                        },
+                        inputProps: { id: "pagination-dropdown" },
+                        IconComponent: SelectorVertical,
+                        sx: {
+                          ml: theme.spacing(4),
+                          mr: theme.spacing(12),
+                          minWidth: theme.spacing(20),
+                          textAlign: "left",
+                          "&.Mui-focused > div": {
+                            backgroundColor: theme.palette.background.main,
+                          },
+                        },
+                      },
+                    }}
+                    sx={{
+                      mt: theme.spacing(6),
+                      color: theme.palette.text.secondary,
+                      "& .MuiSelect-icon": {
+                        width: "24px",
+                        height: "fit-content",
+                      },
+                      "& .MuiSelect-select": {
+                        width: theme.spacing(10),
+                        borderRadius: theme.shape.borderRadius,
+                        border: `1px solid ${theme.palette.border.light}`,
+                        padding: theme.spacing(4),
+                      },
+                    }}
+                  />
+                </TableRow>
+              </TableFooter>
             </Table>
           </TableContainer>
         </Stack>

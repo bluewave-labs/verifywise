@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
+import { CirclePlus as AddCircleOutlineIcon, TrendingUp } from "lucide-react"
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
 import Popup from "../../components/Popup";
@@ -26,6 +26,7 @@ import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
+import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 
 /**
  * Set initial loading status for all CRUD process
@@ -84,6 +85,7 @@ const RiskManagement = () => {
   const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
   const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -385,6 +387,22 @@ const RiskManagement = () => {
             />
           </div>
           <Stack direction="row" gap={4}>
+            <div data-joyride-id="analytics-button">
+              <CustomizableButton
+                variant="contained"
+                text="Analytics"
+                sx={{
+                  backgroundColor: "#7F56D9",
+                  border: "1px solid #7F56D9",
+                  gap: 2,
+                  "&:hover": {
+                    backgroundColor: "#6941C6",
+                  },
+                }}
+                onClick={() => setIsAnalyticsDrawerOpen(true)}
+                icon={<TrendingUp size={16} />}
+              />
+            </div>
             <div data-joyride-id="import-ai-risks-button">
               <CustomizableButton
                 variant="contained"
@@ -508,6 +526,23 @@ const RiskManagement = () => {
           anchor={aiRiskAnchor}
         />
       )}
+
+      {/* Analytics Drawer */}
+      <AnalyticsDrawer
+        open={isAnalyticsDrawerOpen}
+        onClose={() => setIsAnalyticsDrawerOpen(false)}
+        title="Risk Analytics & Trends"
+        description="Track your project risks history over time"
+        entityName="Risk"
+        chartType="risk"
+        availableParameters={[
+          { value: "severity", label: "Severity" },
+          { value: "likelihood", label: "Likelihood" },
+          { value: "mitigation_status", label: "Mitigation Status" },
+          { value: "risk_level", label: "Risk Level" },
+        ]}
+        defaultParameter="risk_level"
+      />
 
       <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
       </Stack>

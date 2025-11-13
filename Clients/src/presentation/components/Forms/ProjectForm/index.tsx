@@ -660,7 +660,7 @@ const ProjectForm = ({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select Users"
+                    placeholder="Select users"
                     error={!!errors.members}
                     sx={teamMembersRenderInputStyle}
                   />

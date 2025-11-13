@@ -1577,7 +1577,7 @@ const IntegratedDashboard: React.FC = () => {
       id: "vendor-risks",
       content: (
         <MetricCard
-          title="Vendor Risks"
+          title="Vendor risks"
           value={vendorRiskMetrics?.total || 0}
           onClick={() => navigate("/vendors/risks")}
           navigable={true}
@@ -1656,7 +1656,7 @@ const IntegratedDashboard: React.FC = () => {
         <Suspense fallback={<div>Loading...</div>}>
           <Alert
             variant="warning"
-            title="Set Your Password"
+            title="Set your password"
             body="You signed in with Google but haven't set a password yet. For account security, please set a password that you can use to access your account."
             isToast={true}
             onClick={() => {

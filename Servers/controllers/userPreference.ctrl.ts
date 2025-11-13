@@ -133,6 +133,8 @@ export async function createUserPreferences(req: Request, res: Response) {
         description: "Created user preferences",
         functionName,
         fileName,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       logStructured(
         "successful",
@@ -143,6 +145,8 @@ export async function createUserPreferences(req: Request, res: Response) {
       await logEvent(
         "Create",
         `User Preferences created: ID ${createdData.user_id}, format: ${createdData.date_format}`,
+        req.userId!,
+        req.tenantId!,
       );
       return res.status(201).json(STATUS_CODE[201](createdData));
     }
@@ -152,7 +156,7 @@ export async function createUserPreferences(req: Request, res: Response) {
       functionName,
       fileName,
     );
-    await logEvent("Error", "User preferences creation failed");
+    await logEvent("Error", "User preferences creation failed", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -170,6 +174,8 @@ export async function createUserPreferences(req: Request, res: Response) {
       await logEvent(
         "Error",
         `Validation error during user preferences creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!,
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -235,6 +241,8 @@ export async function updateUserPreferences(req: Request, res: Response) {
         description: "Updated user preferences",
         functionName,
         fileName,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       logStructured(
         "successful",
@@ -245,6 +253,8 @@ export async function updateUserPreferences(req: Request, res: Response) {
       await logEvent(
         "Update",
         `User Preferences Updated: ID ${updatedData.user_id}, format: ${updatedData.date_format}`,
+        req.userId!,
+        req.tenantId!,
       );
       return res.status(200).json(STATUS_CODE[200](updatedData));
     }
@@ -254,7 +264,7 @@ export async function updateUserPreferences(req: Request, res: Response) {
       functionName,
       fileName,
     );
-    await logEvent("Error", "user preferences update failed");
+    await logEvent("Error", "user preferences update failed", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -272,6 +282,8 @@ export async function updateUserPreferences(req: Request, res: Response) {
       await logEvent(
         "Error",
         `Validation error during user preferences update: ${error.message}`,
+        req.userId!,
+        req.tenantId!,
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }

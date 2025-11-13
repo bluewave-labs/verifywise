@@ -251,15 +251,6 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
                 legend: {
                   direction: "row" as any,
                   position: { vertical: "bottom", horizontal: "center" },
-                  itemMarkWidth: 10,
-                  itemMarkHeight: 10,
-                  markGap: 5,
-                  itemGap: 12,
-                  labelStyle: {
-                    fontSize: 11,
-                    fontWeight: 400,
-                    fill: "#475467",
-                  },
                 },
               }}
               grid={{

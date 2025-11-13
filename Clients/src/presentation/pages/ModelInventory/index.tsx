@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, TrendingUp } from "lucide-react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -33,6 +33,7 @@ import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
 import MLFlowDataTable from "./MLFlowDataTable";
+import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -111,6 +112,7 @@ const ModelInventory: React.FC = () => {
   } | null>(null);
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -844,7 +846,7 @@ const ModelInventory: React.FC = () => {
               sx={filterButtonRowStyle}
             >
               {/* Left side: Status dropdown + Search */}
-              <Stack direction="row" spacing={4} alignItems="center">
+              <Stack direction="row" spacing={2} alignItems="center">
                 <div data-joyride-id="model-status-filter">
                   <SelectComponent
                     id="status-filter"
@@ -872,17 +874,26 @@ const ModelInventory: React.FC = () => {
                 </Box>
               </Stack>
 
-              {/* Right side: Add Model button */}
-              <div data-joyride-id="add-model-button">
+              {/* Right side: Analytics & Add Model buttons */}
+              <Stack direction="row" spacing={2}>
                 <CustomizableButton
                   variant="contained"
+                  onClick={() => setIsAnalyticsDrawerOpen(true)}
                   sx={addNewModelButtonStyle}
-                  text="Add new model"
-                  icon={<AddCircleOutlineIcon size={16} />}
-                  onClick={handleNewModelInventoryClick}
-                  isDisabled={isCreatingDisabled}
+                  icon={<TrendingUp size={16} />}
+                  text="Analytics"
                 />
-              </div>
+                <div data-joyride-id="add-model-button">
+                  <CustomizableButton
+                    variant="contained"
+                    sx={addNewModelButtonStyle}
+                    text="Add new model"
+                    icon={<AddCircleOutlineIcon size={16} />}
+                    onClick={handleNewModelInventoryClick}
+                    isDisabled={isCreatingDisabled}
+                  />
+                </div>
+              </Stack>
             </Stack>
 
             <ModelInventoryTable
@@ -994,6 +1005,20 @@ const ModelInventory: React.FC = () => {
           <MLFlowDataTable />
         )}
       </Stack>
+
+      {/* Analytics Drawer */}
+      <AnalyticsDrawer
+        open={isAnalyticsDrawerOpen}
+        onClose={() => setIsAnalyticsDrawerOpen(false)}
+        title="Analytics & Trends"
+        description="Track your model inventory history over time"
+        entityName="Model"
+        availableParameters={[
+          { value: "status", label: "Status" },
+          // Add more parameters here as needed
+        ]}
+        defaultParameter="status"
+      />
 
       <NewModelInventory
         isOpen={isNewModelInventoryModalOpen}

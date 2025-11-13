@@ -239,8 +239,6 @@ export async function saveControls(
       user_id: number;
       project_id: number;
       delete: string;
-      risksDelete: string;
-      risksMitigated: string;
     };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
@@ -254,8 +252,6 @@ export async function saveControls(
         reviewer: Control.reviewer,
         due_date: Control.due_date,
         implementation_details: Control.implementation_details,
-        risksDelete: JSON.parse(Control.risksDelete || "[]") as number[],
-        risksMitigated: JSON.parse(Control.risksMitigated || "[]") as number[],
       },
       req.tenantId!,
       transaction

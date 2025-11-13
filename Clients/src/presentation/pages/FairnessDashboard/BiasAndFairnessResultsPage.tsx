@@ -1519,7 +1519,7 @@ export default function BiasAndFairnessResultsPage() {
                 </Typography>
                 <CustomizableButton
                   variant="contained"
-                  text="Apply Selection"
+                  text="Apply selection"
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",
@@ -2011,7 +2011,7 @@ export default function BiasAndFairnessResultsPage() {
                 {configValidationErrors.length > 0 && (
                   <Alert
                     variant="error"
-                    title="Validation Errors"
+                    title="Validation errors"
                     body={configValidationErrors
                       .map((error) => `• ${error.path}: ${error.msg}`)
                       .join("\n")}

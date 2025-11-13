@@ -49,6 +49,7 @@ import {
   AlertCircle,
   FolderCog,
   Database,
+  Heart,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -65,19 +66,20 @@ import { User } from "../../../domain/types/User";
 import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
+import FlyingHearts from "../FlyingHearts";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
     name: "DISCOVERY",
     items: [
       {
-        name: "Use cases",
+        name: "Use Cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
         highlightPaths: ["/project-view"],
       },
       {
-        name: "Organizational view",
+        name: "Organizational View",
         icon: <Layers size={16} strokeWidth={1.5} />,
         path: "/framework",
       },
@@ -229,6 +231,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
+  // Heart icon state
+  const [showHeartIcon, setShowHeartIcon] = useState(false);
+  const [showFlyingHearts, setShowFlyingHearts] = useState(false);
+  const [heartReturning, setHeartReturning] = useState(false);
+  const heartTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const { userId, changeComponentVisibility, users } =
     useContext(VerifyWiseContext);
 
@@ -317,6 +325,53 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
   }, [slideoverOpen]);
 
+  // Handle logo hover to show heart icon
+  const handleLogoHover = () => {
+    setShowHeartIcon(true);
+    setHeartReturning(false); // Reset returning state
+
+    // Clear existing timer
+    if (heartTimerRef.current) {
+      clearTimeout(heartTimerRef.current);
+    }
+
+    // Set new timer to animate return after 5 seconds
+    heartTimerRef.current = setTimeout(() => {
+      setHeartReturning(true);
+
+      // Hide heart after return animation completes (500ms)
+      setTimeout(() => {
+        setShowHeartIcon(false);
+        setHeartReturning(false);
+      }, 500);
+    }, 5000);
+  };
+
+  // Handle heart icon click
+  const handleHeartClick = () => {
+    setShowFlyingHearts(true);
+
+    // Start return animation after a brief delay
+    setTimeout(() => {
+      setHeartReturning(true);
+
+      // Hide heart after return animation completes (500ms)
+      setTimeout(() => {
+        setShowHeartIcon(false);
+        setHeartReturning(false);
+      }, 500);
+    }, 1500);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (heartTimerRef.current) {
+        clearTimeout(heartTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <Stack
       component="aside"
@@ -344,6 +399,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
+        sx={{ position: 'relative' }}
       >
         <Stack
           direction="row"
@@ -351,9 +407,81 @@ const Sidebar: React.FC<SidebarProps> = ({
           gap={theme.spacing(4)}
           className="app-title"
         >
-          <RouterLink to="/">
-            <img src={Logo} alt="Logo" width={32} height={30} />
-          </RouterLink>
+          <Box
+            onMouseEnter={handleLogoHover}
+            sx={{ position: 'relative' }}
+          >
+            {/* Heart Icon - Rises behind and appears above logo */}
+            {showHeartIcon && (
+              <Tooltip title="Spread some love!">
+                <IconButton
+                  onClick={handleHeartClick}
+                  sx={{
+                    position: 'absolute',
+                    top: '-20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: 0,
+                    zIndex: 10,
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    animation: heartReturning
+                      ? 'slideDownBehind 0.5s ease-in forwards'
+                      : 'slideUpFromBehind 0.5s ease-out',
+                    '@keyframes slideUpFromBehind': {
+                      '0%': {
+                        opacity: 0,
+                        transform: 'translateX(-50%) translateY(35px)',
+                        zIndex: -1,
+                      },
+                      '60%': {
+                        zIndex: -1,
+                      },
+                      '70%': {
+                        opacity: 1,
+                        zIndex: 10,
+                      },
+                      '100%': {
+                        opacity: 1,
+                        transform: 'translateX(-50%) translateY(0)',
+                        zIndex: 10,
+                      },
+                    },
+                    '@keyframes slideDownBehind': {
+                      '0%': {
+                        opacity: 1,
+                        transform: 'translateX(-50%) translateY(0)',
+                        zIndex: 10,
+                      },
+                      '30%': {
+                        opacity: 0.7,
+                        zIndex: 10,
+                      },
+                      '40%': {
+                        zIndex: -1,
+                      },
+                      '100%': {
+                        opacity: 0,
+                        transform: 'translateX(-50%) translateY(35px)',
+                        zIndex: -1,
+                      },
+                    },
+                  }}
+                >
+                  <Heart
+                    size={18}
+                    color="#FF1493"
+                    strokeWidth={1.5}
+                    fill="#FF1493"
+                  />
+                </IconButton>
+              </Tooltip>
+            )}
+            <RouterLink to="/">
+              <img src={Logo} alt="Logo" width={32} height={30} style={{ position: 'relative', zIndex: 1 }} />
+            </RouterLink>
+          </Box>
           <MuiLink
             component={RouterLink}
             to="/"
@@ -1292,6 +1420,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Box>
         </Drawer>
       </Stack>
+
+      {/* Flying Hearts Animation */}
+      {showFlyingHearts && (
+        <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
+      )}
     </Stack>
   );
 };

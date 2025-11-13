@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,10 +11,11 @@ import {
   useTheme,
   Stack,
   Typography,
+  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
@@ -23,6 +25,14 @@ import {
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
 import { IEventsTableProps } from "../../../../domain/interfaces/i.table";
+
+const EVENTS_TABLE_SORTING_KEY = "verifywise_events_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -84,6 +94,24 @@ const EventsTable: React.FC<IEventsTableProps> = ({
     getPaginationRowCount("eventTracker", DEFAULT_ROWS_PER_PAGE)
   );
 
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(EVENTS_TABLE_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(EVENTS_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   // Format users data like other tables do
   const formattedUsers = useMemo(() => {
     return users?.map((user: User) => ({
@@ -106,6 +134,86 @@ const EventsTable: React.FC<IEventsTableProps> = ({
     []
   );
 
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the events data based on current sort configuration
+  const sortedData = useMemo(() => {
+    if (!data || !sortConfig.key || !sortConfig.direction) {
+      return data || [];
+    }
+
+    const sortableData = [...data];
+
+    return sortableData.sort((a: Event, b: Event) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for events
+      if (sortKey.includes("id")) {
+        aValue = a.id?.toString() || "";
+        bValue = b.id?.toString() || "";
+      } else if (sortKey.includes("event") || sortKey.includes("type")) {
+        aValue = a.event_type?.toLowerCase() || "";
+        bValue = b.event_type?.toLowerCase() || "";
+      } else if (sortKey.includes("description")) {
+        aValue = a.description?.toLowerCase() || "";
+        bValue = b.description?.toLowerCase() || "";
+      } else if (sortKey.includes("user")) {
+        // Get user name for sorting, fallback to user_id
+        const aUserName = formattedUsers?.find(
+          (user: any) => user._id === a.user_id
+        )?.name?.toLowerCase() || "";
+        const bUserName = formattedUsers?.find(
+          (user: any) => user._id === b.user_id
+        )?.name?.toLowerCase() || "";
+        aValue = aUserName || a.user_id?.toString() || "";
+        bValue = bUserName || b.user_id?.toString() || "";
+      } else if (sortKey.includes("timestamp") || sortKey.includes("time")) {
+        aValue = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        bValue = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the event
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as any)[sortKey];
+          const bVal = (b as any)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons (for dates and IDs)
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortConfig, formattedUsers]);
+
   const tableHeader = useMemo(
     () => (
       <TableHead
@@ -127,22 +235,56 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ? "80px"
                     : "fit-content",
                 whiteSpace: column.id === "description" ? "normal" : "nowrap",
+                cursor: "pointer",
+                userSelect: "none",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                },
               }}
+              onClick={() => handleSort(column.label)}
             >
-              {column.label}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: theme.spacing(2),
+                }}
+              >
+                <div style={{ fontWeight: 400, color: sortConfig.key === column.label ? "primary.main" : "inherit" }}>
+                  {column.label}
+                </div>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                    <ChevronUp size={16} />
+                  )}
+                  {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                    <ChevronDown size={16} />
+                  )}
+                  {sortConfig.key !== column.label && (
+                    <ChevronsUpDown size={16} />
+                  )}
+                </Box>
+              </Box>
             </TableCell>
           ))}
         </TableRow>
       </TableHead>
     ),
-    []
+    [sortConfig, handleSort, theme]
   );
 
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {data?.length > 0 ? (
-          data
+        {sortedData?.length > 0 ? (
+          sortedData
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((event) => (
               <TableRow
@@ -157,6 +299,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "80px",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("id") ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   {event.id}
@@ -166,6 +309,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("event") || sortConfig.key.toLowerCase().includes("type")) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <EventTypeBadge eventType={event.event_type} />
@@ -175,6 +319,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "auto",
                     whiteSpace: "normal",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("description") ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {event.description}
@@ -184,6 +329,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("user") ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {(() => {
@@ -200,6 +346,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("timestamp") || sortConfig.key.toLowerCase().includes("time")) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {event.timestamp ? formatDateTime(event.timestamp) : "N/A"}
@@ -219,7 +366,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
         )}
       </TableBody>
     ),
-    [data, page, rowsPerPage, formattedUsers]
+    [sortedData, page, rowsPerPage, formattedUsers]
   );
 
   if (isLoading) {
@@ -239,7 +386,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!sortedData || sortedData.length === 0) {
     return (
       <Stack
         alignItems="center"
@@ -275,7 +422,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
           <TableBody>
             <TableRow>
               <TablePagination
-                count={data?.length ?? 0}
+                count={sortedData?.length ?? 0}
                 page={page}
                 onPageChange={handleChangePage}
                 rowsPerPage={rowsPerPage}

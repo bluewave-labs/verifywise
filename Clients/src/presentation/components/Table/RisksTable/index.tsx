@@ -7,15 +7,14 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Stack,
   Typography,
   Box,
   Tooltip,
   TableFooter,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
+import EmptyState from "../../EmptyState";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -103,7 +102,8 @@ const SortableTableHead: React.FC<{
                 variant="body2"
                 sx={{
                   fontWeight: 500,
-                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
                 }}
               >
                 {column.label}
@@ -113,18 +113,17 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
                   }}
                 >
-                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
-                    <ChevronUp size={16} />
-                  )}
-                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
-                    <ChevronDown size={16} />
-                  )}
-                  {sortConfig.key !== column.id && (
-                    <ChevronsUpDown size={16} />
-                  )}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
                 </Box>
               )}
             </Box>
@@ -167,7 +166,10 @@ const RiskTable: React.FC<IRiskTableProps> = ({
 
   // Save rowsPerPage to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(VENDOR_RISKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+    localStorage.setItem(
+      VENDOR_RISKS_ROWS_PER_PAGE_KEY,
+      rowsPerPage.toString()
+    );
   }, [rowsPerPage]);
 
   // Save sorting state to localStorage whenever it changes
@@ -179,12 +181,12 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  
+
   const getCellStyle = (row: VendorRisk) => ({
     ...cellStyle,
     ...(row.is_deleted && {
-      textDecoration: 'line-through',
-    })
+      textDecoration: "line-through",
+    }),
   });
   const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
@@ -283,70 +285,77 @@ const RiskTable: React.FC<IRiskTableProps> = ({
 
     const getRiskLevelValue = (riskLevel: string) => {
       const riskLower = riskLevel.toLowerCase();
-      if (riskLower.includes("high") || riskLower.includes("critical")) return 3;
-      if (riskLower.includes("medium") || riskLower.includes("moderate")) return 2;
+      if (riskLower.includes("high") || riskLower.includes("critical"))
+        return 3;
+      if (riskLower.includes("medium") || riskLower.includes("moderate"))
+        return 2;
       if (riskLower.includes("low") || riskLower.includes("minor")) return 1;
       return 0;
     };
 
-    return sortableRisks.sort((a: VendorRisk & { project_titles: string, vendor_name?: string }, b: VendorRisk & { project_titles: string, vendor_name?: string }) => {
-      let aValue: string | number;
-      let bValue: string | number;
+    return sortableRisks.sort(
+      (
+        a: VendorRisk & { project_titles: string; vendor_name?: string },
+        b: VendorRisk & { project_titles: string; vendor_name?: string }
+      ) => {
+        let aValue: string | number;
+        let bValue: string | number;
 
-      switch (sortConfig.key) {
-        case "risk_description":
-          aValue = a.risk_description.toLowerCase();
-          bValue = b.risk_description.toLowerCase();
-          break;
+        switch (sortConfig.key) {
+          case "risk_description":
+            aValue = a.risk_description.toLowerCase();
+            bValue = b.risk_description.toLowerCase();
+            break;
 
-        case "vendor_name":
-          aValue = a.vendor_name ? a.vendor_name.toLowerCase() : "";
-          bValue = b.vendor_name ? b.vendor_name.toLowerCase() : "";
-          break;
+          case "vendor_name":
+            aValue = a.vendor_name ? a.vendor_name.toLowerCase() : "";
+            bValue = b.vendor_name ? b.vendor_name.toLowerCase() : "";
+            break;
 
-        case "project_titles":
-          aValue = a.project_titles.toLowerCase();
-          bValue = b.project_titles.toLowerCase();
-          break;
+          case "project_titles":
+            aValue = a.project_titles.toLowerCase();
+            bValue = b.project_titles.toLowerCase();
+            break;
 
-        case "action_owner":
-          aValue = a.action_owner;
-          bValue = b.action_owner;
-          break;
+          case "action_owner":
+            aValue = a.action_owner;
+            bValue = b.action_owner;
+            break;
 
-        case "risk_severity":
-          // Severity order: Catastrophic > Critical > Major > Moderate > Minor > Negligible
-          aValue = getSeverityValue(a.risk_severity);
-          bValue = getSeverityValue(b.risk_severity);
-          break;
+          case "risk_severity":
+            // Severity order: Catastrophic > Critical > Major > Moderate > Minor > Negligible
+            aValue = getSeverityValue(a.risk_severity);
+            bValue = getSeverityValue(b.risk_severity);
+            break;
 
-        case "likelihood":
-          // Likelihood order: Almost certain > Likely > Possible > Unlikely > Rare
-          aValue = getLikelihoodValue(a.likelihood);
-          bValue = getLikelihoodValue(b.likelihood);
-          break;
+          case "likelihood":
+            // Likelihood order: Almost certain > Likely > Possible > Unlikely > Rare
+            aValue = getLikelihoodValue(a.likelihood);
+            bValue = getLikelihoodValue(b.likelihood);
+            break;
 
-        case "risk_level":
-          // Risk level order: High > Medium > Low (assuming these are the values)
-          aValue = getRiskLevelValue(a.risk_level);
-          bValue = getRiskLevelValue(b.risk_level);
-          break;
+          case "risk_level":
+            // Risk level order: High > Medium > Low (assuming these are the values)
+            aValue = getRiskLevelValue(a.risk_level);
+            bValue = getRiskLevelValue(b.risk_level);
+            break;
 
-        default:
-          return 0;
+          default:
+            return 0;
+        }
+
+        // Handle string comparisons
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+
+        // Handle number comparisons
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
       }
-
-      // Handle string comparisons
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      // Handle number comparisons
-      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
+    );
   }, [uniqueRisks, sortConfig]);
 
   const getRange = useMemo(() => {
@@ -357,7 +366,6 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     );
     return `${start} - ${end}`;
   }, [page, rowsPerPage, sortedRisks?.length]);
-
 
   const tableBody = useMemo(
     () => (
@@ -372,41 +380,48 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.row,
                   ...(row.is_deleted && {
                     opacity: 0.7,
-                    backgroundColor: theme.palette.action?.hover || '#fafafa',
-                  })
+                    backgroundColor: theme.palette.action?.hover || "#fafafa",
+                  }),
                 }}
                 onClick={() => onEdit(row.risk_id!)}
               >
                 <TableCell
-  sx={{
-    ...getCellStyle(row),
-    maxWidth: 300,
-    whiteSpace: "normal",
-    wordBreak: "break-word",
-  }}
->
-  <Tooltip title={row.risk_description} arrow placement="top">
-    <Box
-      sx={{
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        display: "-webkit-box",
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: "vertical",
-        lineHeight: "1.4em",
-        maxHeight: "2.8em",
-      }}
-    >
-      {row.risk_description.length > 20
-        ? `${row.risk_description.substring(0, 20)}...`
-        : row.risk_description}
-    </Box>
-  </Tooltip>
-</TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                  sx={{
+                    ...getCellStyle(row),
+                    maxWidth: 300,
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
+                    backgroundColor: sortConfig.key === "risk_description" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
+                  <Tooltip title={row.risk_description} arrow placement="top">
+                    <Box
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        lineHeight: "1.4em",
+                        maxHeight: "2.8em",
+                      }}
+                    >
+                      {row.risk_description.length > 20
+                        ? `${row.risk_description.substring(0, 20)}...`
+                        : row.risk_description}
+                    </Box>
+                  </Tooltip>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {
                     formattedVendors?.find(
-                      (vendor: {_id: number; name: string;}) => vendor._id === row.vendor_id
+                      (vendor: { _id: number; name: string }) =>
+                        vendor._id === row.vendor_id
                     )?.name
                   }
                 </TableCell>
@@ -417,6 +432,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    backgroundColor: sortConfig.key === "project_titles" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {(() => {
@@ -504,18 +520,41 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     );
                   })()}
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: sortConfig.key === "action_owner" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {
                     formattedUsers?.find(
-                      (user: {_id: number; name: string;}) => user._id === row.action_owner
+                      (user: { _id: number; name: string }) =>
+                        user._id === row.action_owner
                     )?.name
                   }
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: sortConfig.key === "risk_severity" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <RiskChip label={row.risk_severity} />
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>{row.likelihood}</TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: sortConfig.key === "likelihood" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.likelihood}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...getCellStyle(row),
+                    backgroundColor: sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell
@@ -564,24 +603,10 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     <>
       {/* Empty state outside the table */}
       {!vendorRisks || vendorRisks.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-            backgroundColor: "white",
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+        <EmptyState
+          message="There is currently no data in this table."
+          showBorder
+        />
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

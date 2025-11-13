@@ -81,6 +81,8 @@ const Field = forwardRef(
 
     const [isVisible, setVisible] = useState(false);
 
+    const rootSx = sx;
+
     return (
       <Stack
         gap={theme.spacing(2)}
@@ -88,6 +90,7 @@ const Field = forwardRef(
         sx={{
           ...getInputStyles(theme, { hasError: !!error }),
           width: width,
+          ...(rootSx || {}),
         }}
       >
         {label && (

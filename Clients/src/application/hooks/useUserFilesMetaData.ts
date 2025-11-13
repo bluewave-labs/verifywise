@@ -2,7 +2,7 @@
  * Custom hook to fetch and manage user files metadata
  *
  * @returns {{
- *   filesData: FileData[],
+ *   filesData: FileModel[],
  *   loading: boolean,
  *   error: Error | null,
  *   refetch: () => void
@@ -10,12 +10,12 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { FileData } from "../../domain/types/File";
+import { FileModel } from "../../domain/models/Common/file/file.model";
 import { getUserFilesMetaData } from "../repository/file.repository";
 import { transformFilesData } from "../utils/fileTransform.utils";
 
 export const useUserFilesMetaData = () => {
-  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [filesData, setFilesData] = useState<FileModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);

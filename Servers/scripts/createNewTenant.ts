@@ -31,12 +31,15 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
         id serial NOT NULL,
+        uc_id character varying(255) UNIQUE,
         project_title character varying(255) NOT NULL,
         owner integer,
         start_date timestamp with time zone NOT NULL,
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
         goal character varying(255) NOT NULL,
+        target_industry character varying(255),
+        description character varying(255),
         geography integer NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
@@ -969,6 +972,24 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       status TEXT CHECK (status IN ('success', 'partial_success', 'failure')) DEFAULT 'success',
       execution_time_ms INTEGER,
       error_message TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".risk_history (
+      id SERIAL PRIMARY KEY,
+      parameter VARCHAR(255) NOT NULL,
+      snapshot_data JSONB NOT NULL DEFAULT '{}',
+      recorded_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      triggered_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".model_inventory_history (
+      id SERIAL PRIMARY KEY,
+      parameter VARCHAR(255) NOT NULL,
+      snapshot_data JSONB NOT NULL DEFAULT '{}',
+      recorded_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      triggered_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );`, { transaction });
   }

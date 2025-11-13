@@ -12,7 +12,7 @@ import {
   iso42001ChipStyle,
 } from "./style";
 import { Project } from "../../../../domain/types/Project";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import { useEffect, useState, useMemo, FC } from "react";
 import React from "react";
 import { User } from "../../../../domain/types/User";
@@ -208,7 +208,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
         <Stack className="project-card-header" sx={{ gap: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Typography className="project-card-title" sx={projectCardTitleStyle}>
-              {project.project_title}
+              {project.uc_id ? `${project.uc_id}: ` : ''}{project.project_title}
             </Typography>
             <Stack direction="row" spacing={8} sx={{ ml: 2 }}>
               <Stack className="project-card-spec-tile" alignItems="flex-end">
@@ -222,7 +222,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
               <Stack className="project-card-spec-tile" alignItems="flex-end">
                 <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
                 <Typography sx={projectCardSpecValueyStyle}>
-                  {formatDate(project.last_updated.toString())}
+                  {displayFormattedDate(project.last_updated.toString())}
                 </Typography>
               </Stack>
             </Stack>

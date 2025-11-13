@@ -24,7 +24,7 @@ import { SlidersHorizontal } from "lucide-react";
 const SliderIcon = () => <SlidersHorizontal size={20} />;
 import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useRef, useState } from "react";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import NotificationRoutingModal from "./NotificationRoutingModal";
@@ -296,7 +296,7 @@ const SlackIntegrationsTable = ({
                       }}
                     >
                       {item.createdAt
-                        ? formatDate(item.createdAt.toString())
+                        ? displayFormattedDate(item.createdAt.toString())
                         : ""}
                     </TableCell>
                     <TableCell
@@ -417,7 +417,7 @@ const SlackIntegrationsTable = ({
       <StandardModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Notification Routing"
+        title="Notification routing"
         description="Map Notification types to Slack channels. Set a destination channel for each type."
         maxWidth="990px"
         onSubmit={handleModalSubmit}

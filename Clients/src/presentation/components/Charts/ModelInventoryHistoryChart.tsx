@@ -201,7 +201,6 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
                 legend: {
                   direction: "row" as any,
                   position: { vertical: "bottom", horizontal: "center" },
-                  padding: { top: 35 },
                   itemMarkWidth: 10,
                   itemMarkHeight: 10,
                   markGap: 5,

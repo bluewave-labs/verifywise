@@ -340,7 +340,7 @@ const PasswordForm: React.FC = () => {
       )}
       {isConfirmationModalOpen && (
         <DualButtonModal
-          title="Confirm Save"
+          title="Confirm save"
           body={
             <Typography fontSize={13}>
               Are you sure you want to save the changes?

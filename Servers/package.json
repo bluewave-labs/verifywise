@@ -94,6 +94,7 @@
     },
     "@fastify/reply-from": {
       "undici": "5.29.0"
-    }
+    },
+    "html-minifier": "npm:html-minifier-terser@^7.2.0"
   }
 }

@@ -1,8 +1,9 @@
 // styles.ts for FairnessTable
   export const styles = {
     textBase : {
-      fontSize: "13px", 
-      color: "#475467"
+      fontSize: "13px",
+      color: "#9CA3AF",
+      fontWeight: 400
     }
   }
   

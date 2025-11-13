@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
-import { FileData } from "../types/File";
+import { FileModel } from "../models/Common/file/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
-import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
+import { EventModel } from "../models/Common/evenTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -17,7 +18,7 @@ export interface IAITrustCenterTableProps<T> {
   isLoading?: boolean;
   paginated?: boolean;
   emptyStateText?: string;
-  renderRow: (item: T) => React.ReactNode;
+  renderRow: (item: T, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;
@@ -75,7 +76,7 @@ export interface IEvaluationTableProps {
 }
 
 export interface IEventsTableProps {
-  data: IEvent[];
+  data: EventModel[];
   users?: IUser[];
   isLoading?: boolean;
   paginated?: boolean;
@@ -103,7 +104,7 @@ export interface IFairnessTableProps {
 }
 export interface IColumn {
   id: number;
-  name: keyof FileData | string;
+  name: keyof FileModel | string;
   sx?: object;
 }
 
@@ -112,7 +113,7 @@ export interface IFileBasicTableProps {
     rows: any[];
     cols: IColumn[];
   };
-  bodyData: FileData[];
+  bodyData: FileModel[];
   paginated?: boolean;
   table: string;
   onFileDeleted?: () => void | Promise<void>;
@@ -120,7 +121,8 @@ export interface IFileBasicTableProps {
 
 export interface IFileTableProps {
   cols: any[];
-  files: FileData[];
+  
+  files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
 }
 
@@ -168,7 +170,7 @@ export interface ITableProps {
   label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any) => React.ReactNode;
+  renderRow?: (row: any, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
 }
 
 export interface IReportTableProps {
@@ -176,6 +178,10 @@ export interface IReportTableProps {
   onRemoveReport: (id: number) => void;
   page: number;
   rowsPerPage: number;
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }
 
 export interface IReportTablePropsExtended {

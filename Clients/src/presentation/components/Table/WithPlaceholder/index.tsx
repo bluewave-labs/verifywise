@@ -7,17 +7,16 @@ import {
   TablePagination,
   TableRow,
   useTheme,
-  Stack,
   Typography,
   TableFooter,
   Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
+import EmptyState from "../../EmptyState";
 import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
@@ -333,18 +332,40 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 role="button"
                 aria-label={`Edit vendor ${row.vendor_name}`}
               >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor: sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
                   {row.vendor_name}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "assignee" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.assignee
                     ? formattedUsers?.find(
                         (user: {_id: number; name: string;}) => user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.review_status}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "review_status" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {row.review_status}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box display="flex" alignItems="center" gap={1}>
                     {/* <RiskChip label={row.risk_status} /> */}
                     <CustomizableButton
@@ -361,9 +382,14 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     />
                   </Box>
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "review_date" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {row.review_date
-                    ? formatDate(row.review_date.toString())
+                    ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
                 <TableCell
@@ -405,23 +431,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   return (
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+        <EmptyState message="There is currently no data in this table." showBorder />
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>

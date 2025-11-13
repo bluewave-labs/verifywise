@@ -26,6 +26,8 @@ export interface FormValues {
   monitored_regulations_and_standards: { _id: number; name: string }[];
   framework_type: FrameworkTypeEnum | null;
   geography: number;
+  target_industry: string;
+  description: string;
 }
 
 export interface FormErrors {
@@ -40,6 +42,8 @@ export interface FormErrors {
   goal?: string;
   frameworkType?: string;
   geography?: string;
+  targetIndustry?: string;
+  description?: string;
 }
 
 export const initialState: FormValues = {
@@ -55,6 +59,8 @@ export const initialState: FormValues = {
   monitored_regulations_and_standards: [],
   framework_type: null,
   geography: 1,
+  target_industry: "",
+  description: "",
 };
 
 export interface ProjectFormProps {

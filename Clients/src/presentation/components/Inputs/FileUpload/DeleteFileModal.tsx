@@ -18,7 +18,7 @@ const DeleteFileModal = ({
 
   return (
     <DualButtonModal
-      title="Confirm Delete"
+      title="Confirm delete"
       body={
         <Typography fontSize={13}>
           Are you sure you want to delete the file {fileName}?

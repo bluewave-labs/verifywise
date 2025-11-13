@@ -116,6 +116,8 @@ const Field = forwardRef(
       }
     }, [id, label, type, onChange, trackForm]);
 
+    const rootSx = sx;
+
     return (
       <Stack
         gap={theme.spacing(2)}
@@ -123,6 +125,7 @@ const Field = forwardRef(
         sx={{
           ...getInputStyles(theme, { hasError: !!error }),
           width: width,
+          ...(rootSx || {}),
         }}
       >
         {label && (

@@ -10,28 +10,16 @@ import {
   Skeleton,
   useTheme,
 } from '@mui/material';
+import { DashboardProject, DashboardProjectsWidgetProps } from '../../../../domain/interfaces/iDashboard';
 
-interface Project {
-  id: string;
-  name: string;
-  progress: number;
-  status: 'active' | 'pending' | 'completed' | 'on-hold';
-  dueDate?: string;
-}
-
-interface ProjectsWidgetProps {
-  loading?: boolean;
-  projects?: Project[];
-}
-
-export const ProjectsWidget: React.FC<ProjectsWidgetProps> = ({
+export const ProjectsWidget: React.FC<DashboardProjectsWidgetProps> = ({
   loading = false,
   projects = [],
 }) => {
   const theme = useTheme();
 
   // Default sample data
-  const defaultProjects: Project[] = [
+  const defaultProjects: DashboardProject[] = [
     { id: '1', name: 'AI Governance Framework', progress: 75, status: 'active', dueDate: '2024-03-15' },
     { id: '2', name: 'Risk Assessment Q1', progress: 45, status: 'active', dueDate: '2024-02-28' },
     { id: '3', name: 'Compliance Audit 2024', progress: 90, status: 'active', dueDate: '2024-02-10' },
@@ -40,7 +28,7 @@ export const ProjectsWidget: React.FC<ProjectsWidgetProps> = ({
 
   const projectList = projects.length > 0 ? projects : defaultProjects;
 
-  const getStatusColor = (status: Project['status']) => {
+  const getStatusColor = (status: DashboardProject['status']) => {
     switch (status) {
       case 'active': return 'primary';
       case 'pending': return 'warning';

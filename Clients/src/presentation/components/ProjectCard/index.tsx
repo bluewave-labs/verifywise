@@ -6,7 +6,7 @@ import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import useUsers from "../../../application/hooks/useUsers";
 import getProjectData from "../../../application/tools/getProjectData";
-import { formatDate } from "../../tools/isoDateToString";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
 import { IProjectCardProps } from "../../../domain/interfaces/i.project";
 
@@ -64,7 +64,7 @@ const ProjectCard: FC<IProjectCardProps> = ({
             Last updated
           </Typography>
           <SubtitleValue>
-            {last_updated ? formatDate(last_updated.toString()) : "NA"}
+            {last_updated ? displayFormattedDate(last_updated.toString()) : "NA"}
           </SubtitleValue>
         </Box>
       </Box>

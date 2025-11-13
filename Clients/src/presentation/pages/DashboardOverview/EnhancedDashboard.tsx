@@ -28,7 +28,9 @@ import {
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';
-import { WidgetConfig, WidgetType } from './types/dashboard.types';
+import { WidgetConfig } from '../../../domain/interfaces/iDashboard';
+import { WidgetType } from '../../../domain/enums/dashboard.enum';
+
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 

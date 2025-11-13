@@ -54,6 +54,7 @@ import {
   deleteUserProfilePhoto,
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
+import registerJWT from "../middleware/register.middleware";
 
 /**
  * GET /users
@@ -81,7 +82,7 @@ router.get("/", authenticateJWT, getAllUsers);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/by-email/:email", getUserByEmail);
+// router.get("/by-email/:email", getUserByEmail);
 
 /**
  * GET /users/:id
@@ -109,7 +110,7 @@ router.get("/:id", authenticateJWT, getUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/register", createNewUser);
+router.post("/register", registerJWT, createNewUser);
 
 router.post("/register-google", createNewUserWithGoogle);
 
@@ -149,7 +150,7 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("/reset-password", resetPassword);
+// router.post("/reset-password", resetPassword);
 
 /**
  * PATCH /users/:id

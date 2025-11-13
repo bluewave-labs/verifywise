@@ -511,7 +511,7 @@ const NewControlPane = ({
               onClick={() => setIsLinkedRisksModalOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove risks
+              Add/remove risks
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

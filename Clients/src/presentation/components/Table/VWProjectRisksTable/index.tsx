@@ -9,16 +9,14 @@ import {
   TableFooter,
   Typography,
   useTheme,
-  Stack,
   TableHead,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import { emptyStateStyles } from "../../../themes/components";
-import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
+import EmptyState from "../../EmptyState";
 import { IVWProjectRisksTable } from "../../../../domain/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 
@@ -342,17 +340,13 @@ const VWProjectRisksTable = ({
             setAnchor={setAnchor}
             onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
+            sortConfig={sortConfig}
           />
         ) : (
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <Stack sx={emptyStateStyles.tableContainer(theme)}>
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                    There is currently no data in this table.
-                  </Typography>
-                </Stack>
+                <EmptyState message="There is currently no data in this table." />
               </TableCell>
             </TableRow>
           </TableBody>

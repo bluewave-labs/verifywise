@@ -389,7 +389,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select Users"
+                    placeholder="Select users"
                     error={memberRequired}
                     sx={createProjectFormStyles.autocompleteTextField}
                   />

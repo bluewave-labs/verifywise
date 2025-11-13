@@ -421,7 +421,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
 
       {isDeleteModalOpen && (
         <DualButtonModal
-          title="Confirm Delete"
+          title="Confirm delete"
           body={
             <Typography fontSize={13}>
               Are you sure you want to delete the framework "
@@ -441,7 +441,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
 
       {isRemoveModalOpen && frameworkToRemove && (
         <DualButtonModal
-          title="Confirm Framework Removal"
+          title="Confirm framework removal"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove {frameworkToRemove.name} from

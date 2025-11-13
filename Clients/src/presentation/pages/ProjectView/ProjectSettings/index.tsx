@@ -1279,7 +1279,7 @@ const ProjectSettings = React.memo(
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        placeholder="Select Users"
+                        placeholder="Select users"
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             height: "34px",
@@ -1483,7 +1483,7 @@ const ProjectSettings = React.memo(
 
         {isDeleteModalOpen && (
           <DualButtonModal
-            title="Confirm Delete"
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to delete the use case?
@@ -1501,7 +1501,7 @@ const ProjectSettings = React.memo(
 
         {isFrameworkRemoveModalOpen && (
           <DualButtonModal
-            title="Confirm Framework Removal"
+            title="Confirm framework removal"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from

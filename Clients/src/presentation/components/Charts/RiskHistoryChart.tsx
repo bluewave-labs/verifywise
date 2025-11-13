@@ -75,7 +75,6 @@ const getColorMap = (parameter: string): Record<string, string> => {
 
 const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
   parameter = "risk_level",
-  title = "Risk History",
   height = 400,
 }) => {
   const [timeframe, setTimeframe] = useState<string>("1month");
@@ -250,7 +249,6 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
               margin={{ top: 10, right: 30, bottom: 30, left: 70 }}
               slotProps={{
                 legend: {
-                  hidden: false,
                   direction: "row" as any,
                   position: { vertical: "bottom", horizontal: "center" },
                   padding: { top: 35 },

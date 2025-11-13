@@ -31,7 +31,6 @@ const TIMEFRAME_OPTIONS = [
 
 const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
   parameter = "status",
-  title = "Model Inventory Status History",
   height = 400,
 }) => {
   const [timeframe, setTimeframe] = useState<string>("1month");
@@ -200,7 +199,6 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
               margin={{ top: 10, right: 30, bottom: 30, left: 70 }}
               slotProps={{
                 legend: {
-                  hidden: false,
                   direction: "row" as any,
                   position: { vertical: "bottom", horizontal: "center" },
                   padding: { top: 35 },

@@ -26,9 +26,6 @@ router.get(
   validateId("functionId"),
   getAllNISTAIRMFCategoriesByfunctionId
 ); // getting all NIST AI RMF categories of the organization by function id
-router.post("/categories", authenticateJWT); // creating a new NIST AI RMF category
-router.patch("/categories/:id", authenticateJWT, validateId("id")); // updating a specific NIST AI RMF category by id
-router.delete("/categories/:id", authenticateJWT, validateId("id")); // deleting a specific NIST AI RMF category by id
 
 // CRUD requests for NIST AI RMF subcategories
 router.get(
@@ -36,13 +33,11 @@ router.get(
   authenticateJWT,
   validateId("categoryId")
 ); // getting all NIST AI RMF subcategories of the organization by category id
-router.post("/subcategories", authenticateJWT); // creating a new NIST AI RMF subcategory
 router.patch(
   "/subcategories/:id",
   authenticateJWT,
   validateId("id"),
   upload.any()
 ); // updating a specific NIST AI RMF subcategory by id
-router.delete("/subcategories/:id", authenticateJWT, validateId("id")); // deleting a specific NIST AI RMF subcategory by id
 
 export default router;

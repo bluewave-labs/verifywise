@@ -201,7 +201,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
             <Select
               id="framework-input"
               label="Framework"
-              placeholder="Select Framework"
+              placeholder="Select framework"
               value={values.framework}
               onChange={handleOnSelectChange("framework")}
               items={

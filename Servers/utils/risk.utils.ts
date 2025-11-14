@@ -8,6 +8,7 @@ import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutoma
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildRiskReplacements, buildRiskUpdateReplacements } from "./automation/risk.automation.utils";
+import { recordSnapshotIfChanged } from "./history/riskHistory.utils";
 
 type Mitigation = { id: number, meta_id: number, parent_id: number, sup_id: string, title: string, sub_id: number, project_id: number };
 
@@ -556,6 +557,20 @@ export const createRiskQuery = async (
       console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
     }
   }
+
+  // Record history snapshots for all tracked parameters
+  try {
+    await Promise.all([
+      recordSnapshotIfChanged('severity', tenant, undefined, transaction),
+      recordSnapshotIfChanged('likelihood', tenant, undefined, transaction),
+      recordSnapshotIfChanged('mitigation_status', tenant, undefined, transaction),
+      recordSnapshotIfChanged('risk_level', tenant, undefined, transaction),
+    ]);
+  } catch (historyError) {
+    console.error("Error recording risk history snapshots:", historyError);
+    // Don't throw - history recording failure shouldn't block risk creation
+  }
+
   return createdRisk;
 };
 
@@ -808,6 +823,32 @@ export const updateRiskByIdQuery = async (
       console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
     }
   }
+
+  // Record history snapshots if tracked parameters changed
+  try {
+    const parametersToCheck = [
+      { key: 'severity', param: 'severity' },
+      { key: 'likelihood', param: 'likelihood' },
+      { key: 'mitigation_status', param: 'mitigation_status' },
+      { key: 'risk_level', param: 'risk_level_autocalculated' }
+    ];
+
+    const snapshotPromises = [];
+    for (const { key, param } of parametersToCheck) {
+      // Cast to any to avoid TypeScript complaining about indexing RiskModel with IRisk keys      
+      if (existingRisk && (existingRisk as any)[param] !== (updatedRisk.dataValues as any)[param]) {
+        snapshotPromises.push(recordSnapshotIfChanged(key, tenant, undefined, transaction));
+      }
+    }
+
+    if (snapshotPromises.length > 0) {
+      await Promise.all(snapshotPromises);
+    }
+  } catch (historyError) {
+    console.error("Error recording risk history snapshots:", historyError);
+    // Don't throw - history recording failure shouldn't block risk update
+  }
+
   return updatedRisk;
 };
 
@@ -874,5 +915,19 @@ export const deleteRiskByIdQuery = async (
       console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
     }
   }
+
+  // Record history snapshots for all tracked parameters after deletion
+  try {
+    await Promise.all([
+      recordSnapshotIfChanged('severity', tenant, undefined, transaction),
+      recordSnapshotIfChanged('likelihood', tenant, undefined, transaction),
+      recordSnapshotIfChanged('mitigation_status', tenant, undefined, transaction),
+      recordSnapshotIfChanged('risk_level', tenant, undefined, transaction),
+    ]);
+  } catch (historyError) {
+    console.error("Error recording risk history snapshots:", historyError);
+    // Don't throw - history recording failure shouldn't block risk deletion
+  }
+
   return result[0].length > 0;
 };

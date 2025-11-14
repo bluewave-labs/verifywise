@@ -7,6 +7,7 @@ import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";
 import { IModelInventoryProjectFramework } from "../domain.layer/interfaces/i.modelInventoryProjectFramework";
+import { recordSnapshotIfChanged } from "./history/modelInventoryHistory.utils";
 
 export const getAllModelInventoriesQuery = async (tenant: string) => {
   const modelInventories = await sequelize.query(
@@ -245,10 +246,18 @@ export const createNewModelInventoryQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot for status changes
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model creation
     }
 
     return createdModel;
@@ -406,10 +415,20 @@ export const updateModelInventoryByIdQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot if status changed
+    try {
+      if (oldModel && oldModel.status !== updatedModel.status) {
+        await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+      }
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model update
     }
 
     return updatedModel;
@@ -470,10 +489,18 @@ export const deleteModelInventoryByIdQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot after deletion
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model deletion
     }
 
     return deletedModel;

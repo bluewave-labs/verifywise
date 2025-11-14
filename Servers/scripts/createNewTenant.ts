@@ -974,6 +974,24 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       error_message TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".risk_history (
+      id SERIAL PRIMARY KEY,
+      parameter VARCHAR(255) NOT NULL,
+      snapshot_data JSONB NOT NULL DEFAULT '{}',
+      recorded_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      triggered_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".model_inventory_history (
+      id SERIAL PRIMARY KEY,
+      parameter VARCHAR(255) NOT NULL,
+      snapshot_data JSONB NOT NULL DEFAULT '{}',
+      recorded_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      triggered_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
   }
   catch (error) {
     throw error;

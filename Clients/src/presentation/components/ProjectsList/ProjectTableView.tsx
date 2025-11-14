@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -15,27 +15,156 @@ import {
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
-import { ChevronsUpDown } from "lucide-react";
+import EmptyState from "../EmptyState";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
+import { Project } from "../../../domain/types/Project";
 
-const SelectorVertical = (props: any) => (
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
 );
+
+const PROJECT_ROWS_PER_PAGE_KEY = "verifywise_project_rows_per_page";
+const PROJECT_SORTING_KEY = "verifywise_project_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
+const columns = [
+  { id: "ucId", label: "Use Case ID", minWidth: 120, sortable: true },
+  { id: "title", label: "Use case title", minWidth: 200, sortable: true },
+  { id: "risk", label: "AI Risk Level", minWidth: 130, sortable: true },
+  { id: "role", label: "Role", minWidth: 150, sortable: true },
+  { id: "startDate", label: "Start Date", minWidth: 120, sortable: true },
+  { id: "lastUpdated", label: "Last Updated", minWidth: 120, sortable: true },
+];
+
+// Sortable Table Header Component
+const SortableTableHeader: React.FC<{
+  columns: typeof columns;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
+  const theme = useTheme();
+
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column) => (
+          <TableCell
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              minWidth: column.minWidth,
+              cursor: "pointer",
+              userSelect: "none",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.04)",
+              },
+              ...(column.id === "ucId" && {
+                width: column.minWidth,
+                maxWidth: column.minWidth,
+              }),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: theme.spacing(2),
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                }}
+              >
+                {sortConfig.key === column.id &&
+                  sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                {sortConfig.key === column.id &&
+                  sortConfig.direction === "desc" && <ChevronDown size={16} />}
+                {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+              </Box>
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+};
 
 const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const columns = [
-    { id: "title", label: "Use case title", minWidth: 200 },
-    { id: "risk", label: "AI Risk Level", minWidth: 130 },
-    { id: "role", label: "Role", minWidth: 150 },
-    { id: "startDate", label: "Start Date", minWidth: 120 },
-    { id: "lastUpdated", label: "Last Updated", minWidth: 120 },
-  ];
+  // Initialize rowsPerPage from localStorage or default to 10
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(PROJECT_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 10;
+  });
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(PROJECT_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save rowsPerPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(PROJECT_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(PROJECT_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -88,54 +217,109 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
     navigate("/project-view", { projectId: projectId.toString() });
   };
 
+  // Sort the projects based on current sort configuration
+  const sortedProjects = useMemo(() => {
+    if (!projects || !sortConfig.key || !sortConfig.direction) {
+      return projects || [];
+    }
+
+    const sortableProjects = [...projects];
+
+    return sortableProjects.sort((a: Project, b: Project) => {
+      // Risk level order: High > Limited > Minimal
+      // Handle various possible formats of risk levels
+      const getRiskValue = (risk: string) => {
+        const riskLower = risk.toLowerCase().trim();
+        if (riskLower.includes("high")) return 3;
+        if (riskLower.includes("limited")) return 2;
+        if (riskLower.includes("minimal")) return 1;
+        return 0; // fallback for unknown risk levels
+      };
+
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case "ucId":
+          aValue = a.uc_id ? a.uc_id.toLowerCase() : "";
+          bValue = b.uc_id ? b.uc_id.toLowerCase() : "";
+          break;
+
+        case "title":
+          aValue = a.project_title.toLowerCase();
+          bValue = b.project_title.toLowerCase();
+          break;
+
+        case "risk":
+          aValue = getRiskValue(a.ai_risk_classification);
+          bValue = getRiskValue(b.ai_risk_classification);
+          break;
+
+        case "role":
+          aValue = a.type_of_high_risk_role.toLowerCase();
+          bValue = b.type_of_high_risk_role.toLowerCase();
+          break;
+
+        case "startDate":
+          aValue = new Date(a.start_date).getTime();
+          bValue = new Date(b.start_date).getTime();
+          break;
+
+        case "lastUpdated":
+          aValue = new Date(a.last_updated).getTime();
+          bValue = new Date(b.last_updated).getTime();
+          break;
+
+        default:
+          return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [projects, sortConfig]);
+
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, projects.length);
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      sortedProjects.length
+    );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, projects.length]);
+  }, [page, rowsPerPage, sortedProjects.length]);
 
   const paginatedProjects = useMemo(() => {
-    return projects.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-  }, [projects, page, rowsPerPage]);
+    return sortedProjects.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [sortedProjects, page, rowsPerPage]);
 
   if (!projects || projects.length === 0) {
     return (
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
-          <TableHead
-            sx={{
-              backgroundColor:
-                singleTheme.tableStyles.primary.header.backgroundColors,
-            }}
-          >
-            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  style={{ minWidth: column.minWidth }}
-                  sx={singleTheme.tableStyles.primary.header.cell}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
+          <SortableTableHeader
+            columns={columns}
+            sortConfig={sortConfig}
+            onSort={handleSort}
+          />
           <TableBody>
             <TableRow>
               <TableCell
                 colSpan={columns.length}
                 align="center"
-                style={{
-                  padding: theme.spacing(15, 5),
-                  paddingBottom: theme.spacing(20),
-                }}
+                sx={{ border: "none", p: 0 }}
               >
-                <img src={placeholderImage} alt="No use cases" />
-                <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A use case is a real-world scenario describing how an AI
-                  system is applied within an organization. Currently you don't
-                  have any use cases in this workspace.
-                </Typography>
+                <EmptyState message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
               </TableCell>
             </TableRow>
           </TableBody>
@@ -147,24 +331,11 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
   return (
     <TableContainer>
       <Table sx={singleTheme.tableStyles.primary.frame}>
-        <TableHead
-          sx={{
-            backgroundColor:
-              singleTheme.tableStyles.primary.header.backgroundColors,
-          }}
-        >
-          <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-            {columns.map((column) => (
-              <TableCell
-                key={column.id}
-                style={{ minWidth: column.minWidth }}
-                sx={singleTheme.tableStyles.primary.header.cell}
-              >
-                {column.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
+        <SortableTableHeader
+          columns={columns}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
         <TableBody>
           {paginatedProjects.map((project) => (
             <TableRow
@@ -195,14 +366,37 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
+                  fontWeight: 600,
+                  backgroundColor:
+                    sortConfig.key === "ucId" ? "#e8e8e8" : "#fafafa",
+                }}
+              >
+                {project.uc_id || project.id}
+              </TableCell>
+
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  fontSize: "13px",
                   fontWeight: 500,
+                  backgroundColor:
+                    sortConfig.key === "title" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.project_title}
               </TableCell>
 
-              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                <Box component="span" sx={getRiskColor(project.ai_risk_classification)}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  backgroundColor:
+                    sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={getRiskColor(project.ai_risk_classification)}
+                >
                   {project.ai_risk_classification}
                 </Box>
               </TableCell>
@@ -212,6 +406,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   textTransform: "capitalize",
+                  backgroundColor:
+                    sortConfig.key === "role" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {project.type_of_high_risk_role.replace(/_/g, " ")}
@@ -221,6 +417,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor:
+                    sortConfig.key === "startDate" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.start_date)}
@@ -230,6 +428,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                   ...singleTheme.tableStyles.primary.body.cell,
                   fontSize: "13px",
                   color: "#475467",
+                  backgroundColor:
+                    sortConfig.key === "lastUpdated" ? "#f5f5f5" : "inherit",
                 }}
               >
                 {formatDate(project.last_updated)}
@@ -253,11 +453,12 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 opacity: 0.7,
                 color: theme.palette.text.tertiary,
               }}
+              colSpan={2}
             >
-              Showing {getRange} of {projects.length} use case(s)
+              Showing {getRange} of {sortedProjects.length} use case(s)
             </TableCell>
             <TablePagination
-              count={projects.length}
+              count={sortedProjects.length}
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}

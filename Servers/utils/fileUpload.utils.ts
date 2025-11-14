@@ -4,6 +4,24 @@ import { FileModel } from "../domain.layer/models/file/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 
+/**
+ * Only allow tenants as valid PostgreSQL schema identifiers: letters, digits, underscores (max 30 chars).
+ */
+function isValidTenantSchema(tenant: string): boolean {
+  return /^[A-Za-z0-9_]{1,30}$/.test(tenant);
+}
+
+/**
+ * Escape a SQL identifier safely for PostgreSQL.
+ * Throws on invalid schema name.
+ */
+function escapePgIdentifier(ident: string): string {
+  if (!isValidTenantSchema(ident)) {
+    throw new Error("Unsafe tenant identifier provided to SQL query");
+  }
+  return '"' + ident.replace(/"/g, '""') + '"';
+}
+
 const sanitizeFilename = (name: string) =>
   name.replace(/[^a-zA-Z0-9-_\.]/g, "_");
 
@@ -36,7 +54,7 @@ export const uploadFile = async (
   let is_demo = false;
   if (project_id) {
     const projectIsDemo = await sequelize.query(
-      `SELECT is_demo FROM "${tenant}".projects WHERE id = :id`,
+      `SELECT is_demo FROM ${escapePgIdentifier(tenant)}.projects WHERE id = :id`,
       {
         replacements: { id: project_id },
         mapToModel: true,
@@ -46,7 +64,7 @@ export const uploadFile = async (
     );
     is_demo = projectIsDemo[0]?.is_demo || false;
   }
-  const query = `INSERT INTO "${tenant}".files
+  const query = `INSERT INTO ${escapePgIdentifier(tenant)}.files
     (
       filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
     )
@@ -73,7 +91,7 @@ export const uploadFile = async (
 };
 
 export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
-  const query = `DELETE FROM "${tenant}".files WHERE id = :id returning id`;
+  const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id returning id`;
   console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {
     replacements: { id },
@@ -86,7 +104,7 @@ export const deleteFileById = async (id: number, tenant: string, transaction: Tr
 };
 
 export const getFileById = async (id: number, tenant: string) => {
-  const query = `SELECT * FROM "${tenant}".files WHERE id = :id`;
+  const query = `SELECT * FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
@@ -104,7 +122,7 @@ export const getFileMetadataByProjectId = async (project_id: number, tenant: str
   f.source,
   u.name AS uploader_name,
   u.surname AS uploader_surname 
-    FROM "${tenant}".files f
+    FROM ${escapePgIdentifier(tenant)}.files f
   JOIN public.users u ON f.uploaded_by = u.id
     WHERE project_id = :project_id 
     ORDER BY uploaded_time DESC, id ASC`;

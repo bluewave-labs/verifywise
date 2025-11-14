@@ -428,20 +428,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   ]);
 
   // Helper function to get only changed fields for UPDATE requests
-  const getChangedFields = useCallback((
-    original: RiskFormValues & MitigationFormValues,
-    current: RiskFormValues & MitigationFormValues
-  ) => {
-    const changedFields: any = {};
+  const getChangedFields = useCallback(<T extends Record<string, any>>(original: Partial<T>, current: Partial<T>) => {
+    const changedFields: Record<string, any> = {};
 
     // Check each field for changes
     Object.keys(current).forEach((key) => {
-      const originalValue = original[key as keyof (RiskFormValues & MitigationFormValues)];
-      const currentValue = current[key as keyof (RiskFormValues & MitigationFormValues)];
+      const originalValue = original[key as keyof T];
+      const currentValue = current[key as keyof T];
 
-      // For arrays, do deep comparison
+      // For arrays, do deep comparison (use copies to avoid mutating originals)
       if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
-        if (JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort())) {
+        const originalArr = [...(originalValue as any[])].sort();
+        const currentArr = [...(currentValue as any[])].sort();
+        if (JSON.stringify(originalArr) !== JSON.stringify(currentArr)) {
           changedFields[key] = currentValue;
         }
       }
@@ -521,30 +520,36 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         const updateData: any = {};
 
         // Map frontend field names to backend field names and include only changed fields
+        // Note: Fields are now prefixed with 'risk_' or 'mitigation_' to distinguish their source
         const fieldMapping: Record<string, string> = {
-          riskName: 'risk_name',
-          actionOwner: 'risk_owner',
-          aiLifecyclePhase: 'ai_lifecycle_phase',
-          riskDescription: 'risk_description',
-          riskCategory: 'risk_category',
-          potentialImpact: 'impact',
-          assessmentMapping: 'assessment_mapping',
-          controlsMapping: 'controls_mapping',
-          likelihood: 'likelihood',
-          riskSeverity: 'severity',
-          riskLevel: 'risk_level_autocalculated',
-          reviewNotes: 'review_notes',
-          mitigationStatus: 'mitigation_status',
-          currentRiskLevel: 'current_risk_level',
-          deadline: 'deadline',
-          mitigationPlan: 'mitigation_plan',
-          implementationStrategy: 'implementation_strategy',
-          doc: 'mitigation_evidence_document',
-          approver: 'risk_approval',
-          approvalStatus: 'approval_status',
-          dateOfAssessment: 'date_of_assessment',
-          applicableProjects: 'projects',
-          applicableFrameworks: 'frameworks',
+          // Risk tab fields
+          risk_riskName: 'risk_name',
+          risk_actionOwner: 'risk_owner',
+          risk_aiLifecyclePhase: 'ai_lifecycle_phase',
+          risk_riskDescription: 'risk_description',
+          risk_riskCategory: 'risk_category',
+          risk_potentialImpact: 'impact',
+          risk_assessmentMapping: 'assessment_mapping',
+          risk_controlsMapping: 'controls_mapping',
+          risk_likelihood: 'likelihood',
+          risk_riskSeverity: 'severity',
+          risk_riskLevel: 'risk_level_autocalculated',
+          risk_reviewNotes: 'review_notes',
+          risk_applicableProjects: 'projects',
+          risk_applicableFrameworks: 'frameworks',
+
+          // Mitigation tab fields
+          mitigation_mitigationStatus: 'mitigation_status',
+          mitigation_currentRiskLevel: 'current_risk_level',
+          mitigation_deadline: 'deadline',
+          mitigation_mitigationPlan: 'mitigation_plan',
+          mitigation_implementationStrategy: 'implementation_strategy',
+          mitigation_doc: 'mitigation_evidence_document',
+          mitigation_likelihood: 'likelihood_mitigation',
+          mitigation_riskSeverity: 'risk_severity',
+          mitigation_approver: 'risk_approval',
+          mitigation_approvalStatus: 'approval_status',
+          mitigation_dateOfAssessment: 'date_of_assessment',
         };
 
         Object.keys(changedFields).forEach(frontendField => {
@@ -556,14 +561,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
         // Always include calculated risk levels if any risk-related field changed
         if (Object.keys(changedFields).some(field =>
-          ['likelihood', 'riskSeverity', 'riskName', 'riskDescription', 'potentialImpact'].includes(field)
+          ['risk_likelihood', 'risk_riskSeverity', 'risk_riskName', 'risk_riskDescription', 'risk_potentialImpact'].includes(field)
         )) {
           updateData.risk_level_autocalculated = riskLevel;
         }
 
         // Always include mitigation risk level if any mitigation-related field changed
         if (Object.keys(changedFields).some(field =>
-          ['mitigationStatus', 'currentRiskLevel', 'mitigationPlan', 'implementationStrategy'].includes(field)
+          ['mitigation_likelihood', 'mitigation_riskSeverity', 'mitigation_mitigationStatus', 'mitigation_currentRiskLevel', 'mitigation_mitigationPlan', 'mitigation_implementationStrategy'].includes(field)
         )) {
           updateData.final_risk_level = mitigationRiskLevel;
         }
@@ -625,10 +630,18 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       let formData;
 
       if (popupStatus !== "new") {
-        // For updates, get only changed fields
-        const combinedOriginal = { ...originalRiskValues, ...originalMitigationValues };
-        const combinedCurrent = { ...riskValues, ...mitigationValues };
-        const changedFields = getChangedFields(combinedOriginal, combinedCurrent);
+        // For updates, get only changed fields separately for risk and mitigation
+        const changedRiskFields = getChangedFields(originalRiskValues, riskValues);
+        const changedMitigationFields = getChangedFields(originalMitigationValues, mitigationValues);
+
+        // Combine with prefixes to distinguish risk vs mitigation fields
+        const changedFields: any = {};
+        Object.keys(changedRiskFields).forEach(key => {
+          changedFields[`risk_${key}`] = changedRiskFields[key];
+        });
+        Object.keys(changedMitigationFields).forEach(key => {
+          changedFields[`mitigation_${key}`] = changedMitigationFields[key];
+        });
 
         formData = buildFormData(
           risk_risklevel.level,
@@ -637,13 +650,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         );
 
         // Add boolean flags for deleted/emptied linked projects and frameworks
-        if (changedFields.hasOwnProperty('applicableProjects')) {
+        if (changedFields.hasOwnProperty('risk_applicableProjects')) {
           const originalProjects = originalRiskValues?.applicableProjects || [];
           const currentProjects = riskValues.applicableProjects || [];
           formData.deletedLinkedProject = originalProjects.length > 0 && currentProjects.length === 0;
         }
 
-        if (changedFields.hasOwnProperty('applicableFrameworks')) {
+        if (changedFields.hasOwnProperty('risk_applicableFrameworks')) {
           const originalFrameworks = originalRiskValues?.applicableFrameworks || [];
           const currentFrameworks = riskValues.applicableFrameworks || [];
           formData.deletedLinkedFrameworks = originalFrameworks.length > 0 && currentFrameworks.length === 0;

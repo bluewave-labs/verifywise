@@ -67,19 +67,14 @@ const ProfileForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false); // Separate saving state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title: string;
-    body: string;
-    isToast: boolean;
-    visible: boolean;
-  }>({
-    variant: "info",
-    title: "",
-    body: "",
-    isToast: true,
-    visible: false,
-  });
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
+
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
   const theme = useTheme();
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
@@ -192,25 +187,19 @@ const ProfileForm: React.FC = () => {
    * Show alert with auto-hide functionality
    */
   const showAlert = useCallback(
-    (
-      variant: "success" | "info" | "warning" | "error",
-      title: string,
-      body: string,
-    ) => {
-      setAlert({
-        variant,
-        title,
-        body,
-        isToast: true,
-        visible: true,
-      });
-
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, visible: false }));
-      }, 3000);
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: true });
     },
-    [],
+    []
   );
+
+  // Auto-hide alert after 3 seconds
+  React.useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   /**
    * Handle save button click with validation.
@@ -561,13 +550,13 @@ const ProfileForm: React.FC = () => {
           />
         )}
 
-        {alert.visible && (
+        {alert && (
           <Alert
             variant={alert.variant}
             title={alert.title}
             body={alert.body}
             isToast={alert.isToast}
-            onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+            onClick={() => setAlert(null)}
           />
         )}
 
@@ -727,7 +716,7 @@ const ProfileForm: React.FC = () => {
 
         {isDeleteModalOpen && (
           <DualButtonModal
-            title="Confirm Delete"
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to delete your account? This action is
@@ -866,7 +855,7 @@ const ProfileForm: React.FC = () => {
       </Stack>
       {isRemoveImageModalOpen && (
         <DualButtonModal
-          title="Remove Profile Photo"
+          title="Remove profile photo"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove your profile photo?

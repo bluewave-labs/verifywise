@@ -6,16 +6,16 @@ import {
   ArrowDown as DescendingIcon,
 } from "lucide-react";
 import EmptyState from "../../EmptyState";
-import { FileData } from "../../../../domain/types/File";
+import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import { IFileTableProps } from "../../../../domain/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;
 
 const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted }) => {
-  const [sortField, setSortField] = useState<keyof FileData | null>(null);
+  const [sortField, setSortField] = useState<keyof FileModel | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const handleSort = (field: keyof FileData) => {
+  const handleSort = (field: keyof FileModel) => {
     const isAsc = sortField === field && sortDirection === "asc";
     setSortDirection(isAsc ? "desc" : "asc");
     setSortField(field);
@@ -50,7 +50,7 @@ const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted }) =>
                 <Stack
                   direction="row"
                   alignItems="center"
-                  onClick={() => handleSort(colKey as keyof FileData)}
+                  onClick={() => handleSort(colKey as keyof FileModel)}
                   sx={{ cursor: "pointer" }}
                 >
                   {col.name}
@@ -73,8 +73,8 @@ const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted }) =>
         id: file.id,
         fileName: file.fileName,
         projectTitle: file.projectTitle,
-        uploadDate: file.uploadDate,
-        uploader: file.uploader,
+        uploadDate: file.getFormattedUploadDate(),
+        uploader: file.uploaderName || file.uploader,
         source: file.source,
       })),
     [sortedFiles]

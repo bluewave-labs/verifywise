@@ -70,6 +70,10 @@ import { AutomationTriggerActionModel } from "../domain.layer/models/automationT
 import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
 import { MLFlowIntegrationModel } from "../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
 import { MLFlowModelRecordModel } from "../domain.layer/models/mlflowModelRecord/mlflowModelRecord.model";
+import { AutomationExecutionLogModel } from "../domain.layer/models/automationExecutionLog/automationExecutionLog.model";
+import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventoryHistory/modelInventoryHistory.model";
+import { RiskHistoryModel } from "../domain.layer/models/riskHistory/riskHistory.model";
+import { UserPreferencesModel } from "../domain.layer/models/userPreferences/userPreferences.model";
 
 dotenv.config();
 
@@ -149,6 +153,10 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AIIncidentManagementModel,
     MLFlowIntegrationModel,
     MLFlowModelRecordModel,
+    AutomationExecutionLogModel,
+    ModelInventoryHistoryModel,
+    RiskHistoryModel,
+    UserPreferencesModel,
   ],
 }) as Sequelize;
 

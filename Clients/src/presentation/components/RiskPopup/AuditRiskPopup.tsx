@@ -15,8 +15,8 @@ export const AuditRiskPopup: React.FC<IAuditRiskModalProps> = ({
   const [checkedRows, setCheckedRows] = useState<number[]>([]);
 
   const handleUnlinkRisk = () => {
-    let newSelectedRisks = new Set(_selectedRisks);
-    let newDeletedRisks = [..._deletedRisks];
+    const newSelectedRisks = new Set(_selectedRisks);
+    const newDeletedRisks = [..._deletedRisks];
 
     for (const riskId of checkedRows) {
       if (_selectedRisks.includes(riskId)) {

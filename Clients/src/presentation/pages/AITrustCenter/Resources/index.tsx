@@ -50,12 +50,17 @@ const ResourceTableRow: React.FC<{
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
+  sortConfig?: {
+    key: string;
+    direction: "asc" | "desc" | null;
+  };
 }> = ({
   resource,
   onDelete,
   onEdit,
   onMakeVisible,
   onDownload,
+  sortConfig,
 }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
@@ -74,6 +79,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("resource name") ? "#e8e8e8" : "#fafafa",
         }}
       >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
@@ -84,6 +90,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("type") && sortConfig.key.toLowerCase().includes("purpose") ? "#f5f5f5" : "inherit",
         }}
       >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
@@ -94,6 +101,7 @@ const ResourceTableRow: React.FC<{
           cursor: resource.visible ? "pointer" : "default",
           textTransform: "none !important",
           opacity: resource.visible ? 1 : 0.5,
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("visibility") ? "#f5f5f5" : "inherit",
         }}
       >
         {resource.visible ? (
@@ -110,7 +118,11 @@ const ResourceTableRow: React.FC<{
           </Tooltip>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell
+        sx={{
+          backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
+        }}
+      >
         <IconButtonComponent
           id={resource.id}
           onDelete={() => onDelete(resource.id)}
@@ -583,7 +595,7 @@ const TrustCenterResources: React.FC = () => {
             paginated={true}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
-            renderRow={(resource) => (
+                    renderRow={(resource, sortConfig) => (
               <ResourceTableRow
                 key={resource.id}
                 resource={resource}
@@ -591,6 +603,7 @@ const TrustCenterResources: React.FC = () => {
                 onEdit={handleEditResource}
                 onMakeVisible={handleMakeVisible}
                 onDownload={handleDownload}
+                sortConfig={sortConfig}
               />
             )}
             tableId="resources-table"

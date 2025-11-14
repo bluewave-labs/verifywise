@@ -232,6 +232,7 @@ export const searchBoxStyle =
     width: isSearchBarVisible ? "50%" : "auto",
     transition: "all 0.3s ease",
     mb: 9,
+    minHeight: "34px",
   });
 
 export const inputStyle = (isSearchBarVisible: boolean): SxProps<Theme> => ({

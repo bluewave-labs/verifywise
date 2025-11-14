@@ -139,8 +139,8 @@ const RegisterUser: React.FC = () => {
   };
 
   const checkValidInvitation = (expDate: any) => {
-    let todayDate = new Date();
-    let currentTime = todayDate.getTime();
+    const todayDate = new Date();
+    const currentTime = todayDate.getTime();
 
     if (currentTime < expDate) {
       setIsInvitationValid(true);

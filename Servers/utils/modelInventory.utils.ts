@@ -7,6 +7,7 @@ import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";
 import { IModelInventoryProjectFramework } from "../domain.layer/interfaces/i.modelInventoryProjectFramework";
+import { recordSnapshotIfChanged } from "./history/modelInventoryHistory.utils";
 
 export const getAllModelInventoriesQuery = async (tenant: string) => {
   const modelInventories = await sequelize.query(
@@ -145,8 +146,8 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, is_demo, created_at, updated_at)       
-      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :is_demo, :created_at, :updated_at) RETURNING *`,
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, security_assessment_data, is_demo, created_at, updated_at)       
+      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :security_assessment_data, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
           provider_model: modelInventory.provider_model || '',
@@ -164,6 +165,7 @@ export const createNewModelInventoryQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
           is_demo: modelInventory.is_demo,
           created_at: created_at,
           updated_at: created_at,
@@ -224,9 +226,10 @@ export const createNewModelInventoryQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_added") {
@@ -239,14 +242,23 @@ export const createNewModelInventoryQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot for status changes
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model creation
     }
 
     return createdModel;
@@ -272,7 +284,7 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, security_assessment_data = :security_assessment_data, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
@@ -291,6 +303,7 @@ export const updateModelInventoryByIdQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
           is_demo: modelInventory.is_demo,
           updated_at,
         },
@@ -383,9 +396,10 @@ export const updateModelInventoryByIdQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_updated") {
@@ -398,14 +412,25 @@ export const updateModelInventoryByIdQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot if status changed
+    try {
+      if (oldModel && oldModel.status !== updatedModel.status) {
+        await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+      }
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model update
     }
 
     return updatedModel;
@@ -445,9 +470,10 @@ export const deleteModelInventoryByIdQuery = async (
       `SELECT
         pat.key AS trigger_key,
         paa.key AS action_key,
+        a.id AS automation_id,
         aa.*
       FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
     if (automations[0].length > 0) {
       const automation = automations[0][0];
       if (automation["trigger_key"] === "model_deleted") {
@@ -460,14 +486,23 @@ export const deleteModelInventoryByIdQuery = async (
         const processedParams = {
           ...params,
           subject: replaceTemplateVariables(params.subject || '', replacements),
-          body: replaceTemplateVariables(params.body || '', replacements)
+          body: replaceTemplateVariables(params.body || '', replacements),
+          automation_id: automation.automation_id,
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, processedParams);
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot after deletion
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model deletion
     }
 
     return deletedModel;

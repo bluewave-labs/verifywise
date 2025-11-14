@@ -45,6 +45,7 @@ import {
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { User } from "../../../../domain/types/User";
 import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const initialState = {
   vendorName: "",
@@ -410,29 +411,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         direction={"row"}
         spacing={6}
       >
-        <Stack>
-          <Field // vendorName
-            label="Vendor name"
-            width={220}
-            value={values?.vendorName}
-            onChange={(e) => handleOnChange("vendorName", e.target.value)}
-            error={errors.vendorName}
-            isRequired
-            disabled={isEditingDisabled}
-          />
-          <Box mt={theme.spacing(8)}>
-            <Field // website
-              label="Website"
-              width={220}
-              value={values.website}
-              onChange={(e) => handleOnChange("website", e.target.value)}
-              error={errors.website}
-              isRequired
-              disabled={isEditingDisabled}
-            />
-          </Box>
-        </Stack>
-        <Stack sx={{ flex: 1 }}>
+        <Field // vendorName
+          label="Vendor name"
+          width={220}
+          value={values?.vendorName}
+          onChange={(e) => handleOnChange("vendorName", e.target.value)}
+          error={errors.vendorName}
+          isRequired
+          disabled={isEditingDisabled}
+        />
+        <Stack sx={{ width: 454 }}>
           <Typography
             sx={{
               fontSize: theme.typography.fontSize,
@@ -501,27 +489,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               />
             )}
             sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds }),
               width: "100%",
               backgroundColor: theme.palette.background.main,
               "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.projectIds })["& .MuiOutlinedInput-root"],
                 borderRadius: "3px",
                 overflowY: "auto",
                 flexWrap: "wrap",
                 maxHeight: "115px",
                 alignItems: "flex-start",
-                "&:hover": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
               },
               "& .MuiAutocomplete-tag": {
                 margin: "2px",
@@ -535,11 +512,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               "& .MuiChip-root": {
                 borderRadius: "4px",
               },
-              border: errors.projectIds
-                ? `1px solid #f04438`
-                : `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
-              opacity: errors.projectIds ? 0.8 : 1,
             }}
             slotProps={{
               paper: {
@@ -579,6 +552,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         direction={"row"}
         spacing={6}
       >
+        <Field // website
+          label="Website"
+          width={220}
+          value={values.website}
+          onChange={(e) => handleOnChange("website", e.target.value)}
+          error={errors.website}
+          isRequired
+          disabled={isEditingDisabled}
+          placeholder="Enter vendor website"
+        />
         <Field // vendorContactPerson
           label="Vendor contact person"
           width={220}
@@ -606,20 +589,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           disabled={isEditingDisabled}
         />
       </Stack>
-      <Stack>
-        <Field // vendorProvides
-          label="What does the vendor provide?"
-          width={"100%"}
-          type="description"
-          value={values.vendorProvides}
-          onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
-          error={errors.vendorProvides}
-          isRequired
-          disabled={isEditingDisabled}
-          placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
-          rows={2}
-        />
-      </Stack>
+      <Field // vendorProvides
+        label="What does the vendor provide?"
+        width={686}
+        type="description"
+        value={values.vendorProvides}
+        onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
+        error={errors.vendorProvides}
+        isRequired
+        disabled={isEditingDisabled}
+        placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
+        rows={2}
+      />
       <Stack
         direction={"row"}
         spacing={6}
@@ -652,7 +633,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           disabled={isEditingDisabled}
         />
-        <Stack sx={{ flex: 1 }}>
+        <Stack sx={{ width: 220 }}>
           <DatePicker // reviewDate
             label="Review date"
             sx={{
@@ -668,19 +649,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           />
         </Stack>
       </Stack>
-      <Stack>
-        <Field // reviewResult
-          label="Review result"
-          width={"100%"}
-          type="description"
-          value={values.reviewResult}
-          error={errors.reviewResult}
-          onChange={(e) => handleOnChange("reviewResult", e.target.value)}
-          disabled={isEditingDisabled}
-          placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
-          rows={2}
-        />
-      </Stack>
+      <Field // reviewResult
+        label="Review result"
+        width={686}
+        type="description"
+        value={values.reviewResult}
+        error={errors.reviewResult}
+        onChange={(e) => handleOnChange("reviewResult", e.target.value)}
+        disabled={isEditingDisabled}
+        placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
+        rows={2}
+      />
       </Stack>
     </TabPanel>
   );
@@ -716,7 +695,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onSubmit={handleSave}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth="800px"
+        maxWidth="734px"
       >
         <TabContext value={value}>{vendorDetailsPanel}</TabContext>
       </StandardModal>

@@ -37,6 +37,7 @@ import { forwardRef, useState } from "react";
 import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ForwardedRef } from "react";
 import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
+import { getInputStyles } from "../../../utils/inputStyles";
 
 // Extend FieldProps to add optional rows
 interface FieldProps extends OriginalFieldProps {
@@ -80,29 +81,16 @@ const Field = forwardRef(
 
     const [isVisible, setVisible] = useState(false);
 
+    const rootSx = sx;
+
     return (
       <Stack
         gap={theme.spacing(2)}
         className={`field field-${type}`}
         sx={{
-          "& fieldset": {
-            borderColor: theme.palette.border.dark,
-            borderRadius: theme.shape.borderRadius,
-          },
-          "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
-            {
-              borderColor: theme.palette.border.dark,
-            },
-          "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-            border: error
-              ? `1px solid ${theme.palette.status.error.border}`
-              : `1px solid ${theme.palette.border.dark}`,
-            borderColor: theme.palette.status.error.border,
-          },
-          ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: `1px solid ${theme.palette.border.dark}!important`,
-          },
+          ...getInputStyles(theme, { hasError: !!error }),
           width: width,
+          ...(rootSx || {}),
         }}
       >
         {label && (

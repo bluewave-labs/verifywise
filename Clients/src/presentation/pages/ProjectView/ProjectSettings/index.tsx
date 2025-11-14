@@ -50,6 +50,8 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 import RiskAnalysisModal from "../RiskAnalysisModal";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import { useStyles } from "./styles";
 
 const riskClassificationItems = [
   { _id: 1, name: AiRiskClassification.PROHIBITED },
@@ -106,6 +108,8 @@ interface FormValues {
   riskClassification: number;
   typeOfHighRiskRole: number;
   geography: number;
+  targetIndustry: string;
+  description: string;
   monitoredRegulationsAndStandards: {
     _id: number;
     name: string;
@@ -125,6 +129,8 @@ interface FormErrors {
   typeOfHighRiskRole?: string;
   monitoredRegulationsAndStandards?: string;
   geography?: string;
+  targetIndustry?: string;
+  description?: string;
 }
 
 const initialState: FormValues = {
@@ -137,6 +143,8 @@ const initialState: FormValues = {
   riskClassification: 0,
   typeOfHighRiskRole: 0,
   geography: 1,
+  targetIndustry: "",
+  description: "",
   monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
@@ -151,6 +159,7 @@ const ProjectSettings = React.memo(
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
+    const styles = useStyles();
     const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
     const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
     const [removedOwner, setRemovedOwner] = useState<User | null>(null);
@@ -196,7 +205,9 @@ const ProjectSettings = React.memo(
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
           initialValuesRef.current.typeOfHighRiskRole ||
-        values.geography !== initialValuesRef.current.geography;
+        values.geography !== initialValuesRef.current.geography ||
+        values.targetIndustry !== initialValuesRef.current.targetIndustry ||
+        values.description !== initialValuesRef.current.description;
 
       // Only consider framework changes if we're not in the middle of a framework operation
       const frameworksModified =
@@ -293,6 +304,8 @@ const ProjectSettings = React.memo(
                 project.type_of_high_risk_role.toLowerCase(),
             )?._id || 0,
           geography: project.geography ?? 1,
+          targetIndustry: project.target_industry ?? "",
+          description: project.description ?? "",
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
@@ -702,6 +715,8 @@ const ProjectSettings = React.memo(
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
           geography: selectedGeography,
+          target_industry: values.targetIndustry,
+          description: values.description,
           status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
@@ -808,561 +823,667 @@ const ProjectSettings = React.memo(
             height={200}
           />
         ) : (
-          <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
-            <Field
-              id="project-title-input"
-              label="Use case title"
-              width={400}
-              value={values.projectTitle}
-              onChange={handleOnTextFieldChange("projectTitle")}
-              sx={fieldStyle}
-              error={errors.projectTitle}
-              isRequired
-            />
-            <Field
-              id="goal-input"
-              label="Goal"
-              width={400}
-              type="description"
-              value={values.goal}
-              onChange={handleOnTextFieldChange("goal")}
-              sx={{
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.goal}
-              isRequired
-            />
-            <Select
-              id="project-status"
-              label="Use case status"
-              value={values.status || 1}
-              onChange={handleOnSelectChange("status")}
-              items={projectStatusItems}
-              sx={{
-                width: 400,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.status}
-              isRequired
-            />
-            <Select
-              id="owner"
-              label="Owner"
-              value={values.owner || ""}
-              onChange={handleOnSelectChange("owner")}
-              items={
-                users?.map((user) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                  email: user.email,
-                })) || []
-              }
-              sx={{
-                width: 400,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.owner}
-              isRequired
-            />
-            {isChangeOwnerModalOpen && (
-              <DualButtonModal
-                title="Confirm owner change"
-                body={
-                  <Typography fontSize={13}>
-                    You setting ownership from{" "}
-                    <strong>
-                      {removedOwner?.name} {removedOwner?.surname}
-                    </strong>{" "}
-                    to{" "}
-                    <strong>
-                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
-                    </strong>
-                    . We will remove{" "}
-                    <strong>
-                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
-                    </strong>{" "}
-                    from the members list.
-                  </Typography>
-                }
-                cancelText="Cancel"
-                proceedText="I understand"
-                onCancel={handleCloseOwnerChangeDialog}
-                onProceed={handleOwnershipChangeAcknowledge}
-                proceedButtonColor="primary"
-                proceedButtonVariant="contained"
-                TitleFontSize={0}
-              />
-            )}
-
-            {/* Only render the monitored regulations and standards section if frameworks are loaded */}
-            {monitoredFrameworks.length > 0 && (
-              <Stack gap="5px" sx={{ mt: "6px" }}>
-                <Typography
-                  sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+          <Box sx={styles.root}>
+            <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
+              {/* General Information Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>General Information</Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
+                  }}
                 >
-                  Applicable regulations *
-                </Typography>
-                <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                  Add all monitored regulations and standards of the use case.
-                </Typography>
-                <Autocomplete
-                  multiple
-                  id="monitored-regulations-and-standards-input"
-                  size="small"
-                  value={values.monitoredRegulationsAndStandards}
-                  options={nonOrganizationalFrameworks.map((fw: Framework) => ({
-                    _id: Number(fw.id),
-                    name: fw.name,
-                  }))}
-                  onChange={handleOnMultiSelect(
-                    "monitoredRegulationsAndStandards",
+                  {/* Use case title Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Use case title
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="project-title-input"
+                    label=""
+                    width={400}
+                    value={values.projectTitle}
+                    onChange={handleOnTextFieldChange("projectTitle")}
+                    sx={fieldStyle}
+                    error={errors.projectTitle}
+                    isRequired
+                  />
+
+                  {/* Goal Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Goal
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="goal-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.goal}
+                    onChange={handleOnTextFieldChange("goal")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.goal}
+                    isRequired
+                  />
+
+                  {/* Target industry Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Target industry
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="target-industry-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.targetIndustry}
+                    onChange={handleOnTextFieldChange("targetIndustry")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.targetIndustry}
+                  />
+
+                  {/* Description Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Description
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="description-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.description}
+                    onChange={handleOnTextFieldChange("description")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.description}
+                  />
+
+                  {/* Use case status Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Use case status
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="project-status"
+                    label=""
+                    value={values.status || 1}
+                    onChange={handleOnSelectChange("status")}
+                    items={projectStatusItems}
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.status}
+                    isRequired
+                  />
+
+                  {/* Owner Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Owner
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="owner"
+                    label=""
+                    value={values.owner || ""}
+                    onChange={handleOnSelectChange("owner")}
+                    items={
+                      users?.map((user) => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`,
+                        email: user.email,
+                      })) || []
+                    }
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.owner}
+                    isRequired
+                  />
+                  {isChangeOwnerModalOpen && (
+                    <DualButtonModal
+                      title="Confirm owner change"
+                      body={
+                        <Typography fontSize={13}>
+                          You setting ownership from{" "}
+                          <strong>
+                            {removedOwner?.name} {removedOwner?.surname}
+                          </strong>{" "}
+                          to{" "}
+                          <strong>
+                            {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                          </strong>
+                          . We will remove{" "}
+                          <strong>
+                            {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                          </strong>{" "}
+                          from the members list.
+                        </Typography>
+                      }
+                      cancelText="Cancel"
+                      proceedText="I understand"
+                      onCancel={handleCloseOwnerChangeDialog}
+                      onProceed={handleOwnershipChangeAcknowledge}
+                      proceedButtonColor="primary"
+                      proceedButtonVariant="contained"
+                      TitleFontSize={0}
+                    />
                   )}
-                  getOptionLabel={(item: { _id: number; name: string }) =>
-                    item.name
-                  }
-                  noOptionsText={
-                    values.monitoredRegulationsAndStandards.length ===
-                    nonOrganizationalFrameworks.length
-                      ? "All regulations selected"
-                      : "No options"
-                  }
-                  renderOption={(
-                    props: any,
-                    option: { _id: number; name: string },
-                  ) => {
-                    const isComingSoon = option.name.includes("coming soon");
-                    return (
-                      <Box
-                        component="li"
-                        {...props}
+
+                  {/* Start date Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Start date
+                    </Typography>
+                  </Box>
+                  <DatePicker
+                    label=""
+                    date={values.startDate ? dayjs(values.startDate) : null}
+                    handleDateChange={handleDateChange}
+                    sx={{
+                      width: "130px",
+                      "& input": { width: "85px" },
+                    }}
+                    isRequired
+                    error={errors.startDate}
+                  />
+
+                  {/* Geography Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Geography
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="geography-type-input"
+                    label=""
+                    value={values.geography}
+                    onChange={handleOnSelectChange("geography")}
+                    items={geographyItems}
+                    sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
+                    isRequired
+                  />
+                </Box>
+              </Box>
+
+              {/* Team & Compliance Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>Team & Compliance</Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
+                  }}
+                >
+                  {/* Only render the monitored regulations and standards section if frameworks are loaded */}
+                  {monitoredFrameworks.length > 0 && (
+                    <>
+                      {/* Applicable regulations Row */}
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                          Applicable regulations *
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                        >
+                          Add all monitored regulations and standards of the use case.
+                        </Typography> 
+                      </Box>
+                      <Stack>
+                        <Autocomplete
+                          multiple
+                          id="monitored-regulations-and-standards-input"
+                          size="small"
+                          value={values.monitoredRegulationsAndStandards}
+                          options={nonOrganizationalFrameworks.map((fw: Framework) => ({
+                            _id: Number(fw.id),
+                            name: fw.name,
+                          }))}
+                          onChange={handleOnMultiSelect(
+                            "monitoredRegulationsAndStandards",
+                          )}
+                          getOptionLabel={(item: { _id: number; name: string }) =>
+                            item.name
+                          }
+                          noOptionsText={
+                            values.monitoredRegulationsAndStandards.length ===
+                            nonOrganizationalFrameworks.length
+                              ? "All regulations selected"
+                              : "No options"
+                          }
+                          renderOption={(
+                            props: any,
+                            option: { _id: number; name: string },
+                          ) => {
+                            const isComingSoon = option.name.includes("coming soon");
+                            return (
+                              <Box
+                                component="li"
+                                {...props}
+                                sx={{
+                                  opacity: isComingSoon ? 0.5 : 1,
+                                  cursor: isComingSoon ? "not-allowed" : "pointer",
+                                  "&:hover": {
+                                    backgroundColor: isComingSoon
+                                      ? "transparent"
+                                      : undefined,
+                                  },
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: "13px",
+                                    color: isComingSoon
+                                      ? "text.secondary"
+                                      : "text.primary",
+                                  }}
+                                >
+                                  {option.name}
+                                </Typography>
+                              </Box>
+                            );
+                          }}
+                          isOptionEqualToValue={(
+                            option: { _id: number },
+                            value: { _id: number },
+                          ) => option._id === value._id}
+                          getOptionDisabled={(option: { name: string }) =>
+                            option.name.includes("coming soon")
+                          }
+                          filterSelectedOptions
+                          popupIcon={
+                            <ChevronDown
+                              size={16}
+                              color={theme.palette.text.tertiary}
+                            />
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="Select regulations and standards"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  height: "34px",
+                                  padding: "0 10px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                },
+                                "& .MuiInputBase-root": {
+                                  height: "34px !important",
+                                  padding: "0 10px !important",
+                                  display: "flex !important",
+                                  alignItems: "center !important",
+                                  justifyContent: "flex-start !important",
+                                },
+                                "& .MuiInputBase-input": {
+                                  padding: "0 !important",
+                                  margin: "0 !important",
+                                  fontSize: "13px",
+                                  lineHeight: "1 !important",
+                                },
+                                "& ::placeholder": {
+                                  fontSize: "13px",
+                                },
+                              }}
+                            />
+                          )}
+                          sx={{
+                            ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards }),
+                            width: "400px",
+                            backgroundColor: theme.palette.background.main,
+                            ".MuiAutocomplete-clearIndicator": {
+                              display: "none",
+                            },
+                            "& .MuiOutlinedInput-root": {
+                              ...getAutocompleteStyles(theme, { hasError: !!errors.monitoredRegulationsAndStandards })["& .MuiOutlinedInput-root"],
+                              borderRadius: "4px",
+                            },
+                            "& .MuiChip-root": {
+                              borderRadius: "4px",
+                              "& .MuiChip-deleteIcon": {
+                                display:
+                                  values.monitoredRegulationsAndStandards.length === 1
+                                    ? "none"
+                                    : "flex",
+                              },
+                            },
+                          }}
+                          slotProps={{
+                            paper: {
+                              sx: {
+                                "& .MuiAutocomplete-listbox": {
+                                  "& .MuiAutocomplete-option": {
+                                    fontSize: "13px",
+                                    color: "#1c2130",
+                                    paddingLeft: "9px",
+                                    paddingRight: "9px",
+                                  },
+                                  "& .MuiAutocomplete-option.Mui-focused": {
+                                    background: "#f9fafb",
+                                  },
+                                },
+                                "& .MuiAutocomplete-noOptions": {
+                                  fontSize: "13px",
+                                  paddingLeft: "9px",
+                                  paddingRight: "9px",
+                                },
+                              },
+                            },
+                          }}
+                        />
+                        {removedFramework &&
+                          values.monitoredRegulationsAndStandards.length === 1 && (
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "warning.main", fontWeight: 300, mt: 1 }}
+                            >
+                              Framework cannot be empty.
+                            </Typography>
+                          )}
+                      </Stack>
+                    </>
+                  )}
+
+                  {/* Team members Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Team members
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      Add all team members of the use case.<br />Only those who are added
+                      will be able to see the use case.
+                    </Typography>
+                  </Box>
+                  <Autocomplete
+                    multiple
+                    readOnly={
+                      !allowedRoles.projects.editTeamMembers.includes(userRoleName)
+                    }
+                    id="users-input"
+                    size="small"
+                    value={users.filter((user) =>
+                      values.members.includes(Number(user.id)),
+                    )}
+                    options={
+                      users
+                        ?.filter(
+                          (user) =>
+                            user.id !== values.owner &&
+                            !values.members.includes(Number(user.id)),
+                        )
+                        .map((user) => ({
+                          id: user.id,
+                          name: user.name,
+                          surname: user.surname,
+                          email: user.email,
+                        })) || []
+                    }
+                    getOptionLabel={(member) => `${member.name} ${member.surname}`}
+                    renderOption={(props, option) => {
+                      const { key, ...optionProps } = props;
+                      const userEmail =
+                        option.email.length > 30
+                          ? `${option.email.slice(0, 30)}...`
+                          : option.email;
+                      return (
+                        <Box component="li" key={key} {...optionProps}>
+                          <Typography sx={{ fontSize: "13px" }}>
+                            {option.name} {option.surname}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "11px",
+                              color: "rgb(157, 157, 157)",
+                              position: "absolute",
+                              right: "9px",
+                            }}
+                          >
+                            {userEmail}
+                          </Typography>
+                        </Box>
+                      );
+                    }}
+                    noOptionsText={
+                      values.members.length === users.length
+                        ? "All members selected"
+                        : "No options"
+                    }
+                    onChange={handleOnMultiSelect("members")}
+                    popupIcon={
+                      <ChevronDown size={16} color={theme.palette.text.tertiary} />
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Select users"
                         sx={{
-                          opacity: isComingSoon ? 0.5 : 1,
-                          cursor: isComingSoon ? "not-allowed" : "pointer",
-                          "&:hover": {
-                            backgroundColor: isComingSoon
-                              ? "transparent"
-                              : undefined,
+                          "& .MuiOutlinedInput-root": {
+                            height: "34px",
+                            padding: "0 10px",
+                            display: "flex",
+                            alignItems: "center",
+                          },
+                          "& .MuiInputBase-root": {
+                            height: "34px !important",
+                            padding: "0 10px !important",
+                            display: "flex !important",
+                            alignItems: "center !important",
+                            justifyContent: "flex-start !important",
+                          },
+                          "& .MuiInputBase-input": {
+                            padding: "0 !important",
+                            margin: "0 !important",
+                            fontSize: "13px",
+                            lineHeight: "1 !important",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
                           },
                         }}
-                      >
-                        <Typography
-                          sx={{
+                      />
+                    )}
+                    sx={{
+                      ...getAutocompleteStyles(theme, { hasError: !!errors.members }),
+                      width: "400px",
+                      backgroundColor: theme.palette.background.main,
+                      "& .MuiOutlinedInput-root": {
+                        ...getAutocompleteStyles(theme, { hasError: !!errors.members })["& .MuiOutlinedInput-root"],
+                        borderRadius: "4px",
+                      },
+                      "& .MuiChip-root": {
+                        borderRadius: "4px",
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          "& .MuiAutocomplete-listbox": {
+                            "& .MuiAutocomplete-option": {
+                              fontSize: "13px",
+                              color: "#1c2130",
+                              paddingLeft: "9px",
+                              paddingRight: "9px",
+                            },
+                            "& .MuiAutocomplete-option.Mui-focused": {
+                              background: "#f9fafb",
+                            },
+                          },
+                          "& .MuiAutocomplete-noOptions": {
                             fontSize: "13px",
-                            color: isComingSoon
-                              ? "text.secondary"
-                              : "text.primary",
-                          }}
-                        >
-                          {option.name}
-                        </Typography>
-                      </Box>
-                    );
-                  }}
-                  isOptionEqualToValue={(
-                    option: { _id: number },
-                    value: { _id: number },
-                  ) => option._id === value._id}
-                  getOptionDisabled={(option: { name: string }) =>
-                    option.name.includes("coming soon")
-                  }
-                  filterSelectedOptions
-                  popupIcon={
-                    <ChevronDown
-                      size={16}
-                      color={theme.palette.text.tertiary}
-                    />
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Select regulations and standards"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          height: "34px",
-                          padding: "0 10px",
-                          display: "flex",
-                          alignItems: "center",
-                        },
-                        "& .MuiInputBase-root": {
-                          height: "34px !important",
-                          padding: "0 10px !important",
-                          display: "flex !important",
-                          alignItems: "center !important",
-                          justifyContent: "flex-start !important",
-                        },
-                        "& .MuiInputBase-input": {
-                          padding: "0 !important",
-                          margin: "0 !important",
-                          fontSize: "13px",
-                          lineHeight: "1 !important",
-                        },
-                        "& ::placeholder": {
-                          fontSize: "13px",
-                        },
-                      }}
-                    />
-                  )}
-                  sx={{
-                    width: "400px",
-                    backgroundColor: theme.palette.background.main,
-                    ".MuiAutocomplete-clearIndicator": {
-                      display: "none",
-                    },
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "4px",
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#777",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#888",
-                        borderWidth: "1px",
-                      },
-                    },
-                    "& .MuiChip-root": {
-                      borderRadius: "4px",
-                      "& .MuiChip-deleteIcon": {
-                        display:
-                          values.monitoredRegulationsAndStandards.length === 1
-                            ? "none"
-                            : "flex",
-                      },
-                    },
-                  }}
-                  slotProps={{
-                    paper: {
-                      sx: {
-                        "& .MuiAutocomplete-listbox": {
-                          "& .MuiAutocomplete-option": {
-                            fontSize: "13px",
-                            color: "#1c2130",
                             paddingLeft: "9px",
                             paddingRight: "9px",
                           },
-                          "& .MuiAutocomplete-option.Mui-focused": {
-                            background: "#f9fafb",
-                          },
-                        },
-                        "& .MuiAutocomplete-noOptions": {
-                          fontSize: "13px",
-                          paddingLeft: "9px",
-                          paddingRight: "9px",
                         },
                       },
-                    },
-                  }}
-                />
-                {removedFramework &&
-                  values.monitoredRegulationsAndStandards.length === 1 && (
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "warning.main", fontWeight: 300 }}
-                    >
-                      Framework cannot be empty.
-                    </Typography>
-                  )}
-              </Stack>
-            )}
+                    }}
+                  />
 
-            <DatePicker
-              label="Start date"
-              date={values.startDate ? dayjs(values.startDate) : null}
-              handleDateChange={handleDateChange}
-              sx={{
-                width: "130px",
-                "& input": { width: "85px" },
-              }}
-              isRequired
-              error={errors.startDate}
-            />
-            <Select
-              id="geography-type-input"
-              label="Geography"
-              value={values.geography}
-              onChange={handleOnSelectChange("geography")}
-              items={geographyItems}
-              sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
-              isRequired
-            />
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                Team members
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all team members of the use case. Only those who are added
-                will be able to see the use case.
-              </Typography>
-            </Stack>
-
-            <Autocomplete
-              multiple
-              readOnly={
-                !allowedRoles.projects.editTeamMembers.includes(userRoleName)
-              }
-              id="users-input"
-              size="small"
-              value={users.filter((user) =>
-                values.members.includes(Number(user.id)),
-              )}
-              options={
-                users
-                  ?.filter(
-                    (user) =>
-                      user.id !== values.owner &&
-                      !values.members.includes(Number(user.id)),
-                  )
-                  .map((user) => ({
-                    id: user.id,
-                    name: user.name,
-                    surname: user.surname,
-                    email: user.email,
-                  })) || []
-              }
-              getOptionLabel={(member) => `${member.name} ${member.surname}`}
-              renderOption={(props, option) => {
-                const { key, ...optionProps } = props;
-                const userEmail =
-                  option.email.length > 30
-                    ? `${option.email.slice(0, 30)}...`
-                    : option.email;
-                return (
-                  <Box component="li" key={key} {...optionProps}>
-                    <Typography sx={{ fontSize: "13px" }}>
-                      {option.name} {option.surname}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "11px",
-                        color: "rgb(157, 157, 157)",
-                        position: "absolute",
-                        right: "9px",
-                      }}
-                    >
-                      {userEmail}
+                  {/* AI risk classification Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      AI risk classification
                     </Typography>
                   </Box>
-                );
-              }}
-              noOptionsText={
-                values.members.length === users.length
-                  ? "All members selected"
-                  : "No options"
-              }
-              onChange={handleOnMultiSelect("members")}
-              popupIcon={
-                <ChevronDown size={16} color={theme.palette.text.tertiary} />
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select Users"
+                  <Stack gap={1}>
+                    <CustomizableButton
+                      variant="contained"
+                      text="Calculate your AI risk classification"
+                      onClick={() => setIsRiskModalOpen(true)}
+                      sx={{
+                        width: "255px",
+                        mt: -4,
+                        mb: 4,
+                        backgroundColor: "#13715B",
+                        border: "1px solid #13715B",
+                        "&:hover": {
+                          backgroundColor: "#0F5A48",
+                        },
+                      }}
+                    />
+                    <Select
+                      id="risk-classification-input"
+                      label=""
+                      value={values?.riskClassification || 1}
+                      onChange={handleOnSelectChange("riskClassification")}
+                      items={riskClassificationItems}
+                      sx={{
+                        width: 400,
+                        backgroundColor: theme.palette.background.main,
+                      }}
+                      error={errors.riskClassification}
+                      isRequired
+                    />
+                  </Stack>
+
+                  {/* Type of high risk role Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Type of high risk role
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      If you are not sure about the high risk role,&nbsp;
+                      <Link
+                        href="https://artificialintelligenceact.eu/high-level-summary/"
+                        target="_blank"
+                        rel="noopener"
+                        color={theme.palette.text.secondary}
+                      >
+                        please see this link
+                      </Link>
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="risk-classification-input"
+                    label=""
+                    value={values?.typeOfHighRiskRole || 1}
+                    onChange={handleOnSelectChange("typeOfHighRiskRole")}
+                    items={highRiskRoleItems}
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.typeOfHighRiskRole}
+                    isRequired
+                  />
+                </Box>
+              </Box>
+
+              {/* Save Button Row */}
+              <Stack sx={{ width: "100%" }}>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                  <CustomizableButton
+                    sx={{
+                      ...styles.saveButton,
+                      backgroundColor: isSaveDisabled
+                        ? "#ccc"
+                        : "#13715B",
+                      border: isSaveDisabled
+                        ? "1px solid rgba(0, 0, 0, 0.26)"
+                        : "1px solid #13715B",
+                    }}
+                    icon={<SaveIcon size={16} />}
+                    variant="contained"
+                    onClick={(event: any) => {
+                      handleSubmit(event);
+                    }}
+                    isDisabled={isSaveDisabled}
+                    text="Save"
+                  />
+                </Box>
+
+                {/* divider for seperation */}
+                <Box sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8, width: "100%" }} />
+                <Typography
                   sx={{
-                    "& .MuiOutlinedInput-root": {
-                      height: "34px",
-                      padding: "0 10px",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiInputBase-root": {
-                      height: "34px !important",
-                      padding: "0 10px !important",
-                      display: "flex !important",
-                      alignItems: "center !important",
-                      justifyContent: "flex-start !important",
-                    },
-                    "& .MuiInputBase-input": {
-                      padding: "0 !important",
-                      margin: "0 !important",
-                      fontSize: "13px",
-                      lineHeight: "1 !important",
-                    },
-                    "& ::placeholder": {
-                      fontSize: "13px",
-                    },
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 600,
+                    mb: 4,
                   }}
+                >
+                  Delete use case
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: theme.typography.fontSize,
+                    color: "#667085",
+                    mb: 8,
+                  }}
+                >
+                  Note that deleting a use case will remove all data related to
+                  that use case from your system. This is permanent and
+                  non-recoverable.
+                </Typography>
+                <CustomizableButton
+                  sx={{
+                    width: { xs: "100%", sm: theme.spacing(80) },
+                    mb: theme.spacing(4),
+                    backgroundColor: "#DB504A",
+                    color: "#fff",
+                    border: "1px solid #DB504A",
+                    gap: 2,
+                  }}
+                  icon={<DeleteIcon size={16} />}
+                  variant="contained"
+                  onClick={handleOpenDeleteDialog}
+                  text="Delete use case"
+                  isDisabled={
+                    !allowedRoles.projects.delete.includes(userRoleName)
+                  }
                 />
-              )}
-              sx={{
-                width: "400px",
-                backgroundColor: theme.palette.background.main,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "4px",
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#777",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#888",
-                    borderWidth: "1px",
-                  },
-                },
-                "& .MuiChip-root": {
-                  borderRadius: "4px",
-                },
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    "& .MuiAutocomplete-listbox": {
-                      "& .MuiAutocomplete-option": {
-                        fontSize: "13px",
-                        color: "#1c2130",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                      "& .MuiAutocomplete-option.Mui-focused": {
-                        background: "#f9fafb",
-                      },
-                    },
-                    "& .MuiAutocomplete-noOptions": {
-                      fontSize: "13px",
-                      paddingLeft: "9px",
-                      paddingRight: "9px",
-                    },
-                  },
-                },
-              }}
-            />
-
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                AI risk classification
-              </Typography>
-              {/* <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                To define the AI risk classification,&nbsp;
-                <Link
-                  href="https://artificialintelligenceact.eu/high-level-summary/"
-                  target="_blank"
-                  rel="noopener"
-                  color={theme.palette.text.secondary}
-                >
-                  please see this link
-                </Link>
-              </Typography> */}
-              <CustomizableButton
-                variant="contained"
-                text="Calculate your AI risk classification"
-                onClick={() => setIsRiskModalOpen(true)}
-                sx={{
-                  width: "255px",
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  "&:hover": {
-                    backgroundColor: "#0F5A48",
-                  },
-                }}
-              />
+              </Stack>
             </Stack>
-            <Select
-              id="risk-classification-input"
-              value={values?.riskClassification || 1}
-              onChange={handleOnSelectChange("riskClassification")}
-              items={riskClassificationItems}
-              sx={{
-                width: 400,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.riskClassification}
-              isRequired
-            />
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                Type of high risk role
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                If you are not sure about the high risk role,&nbsp;
-                <Link
-                  href="https://artificialintelligenceact.eu/high-level-summary/"
-                  target="_blank"
-                  rel="noopener"
-                  color={theme.palette.text.secondary}
-                >
-                  please see this link
-                </Link>
-              </Typography>
-            </Stack>
-            <Select
-              id="risk-classification-input"
-              value={values?.typeOfHighRiskRole || 1}
-              onChange={handleOnSelectChange("typeOfHighRiskRole")}
-              items={highRiskRoleItems}
-              sx={{
-                width: 400,
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.typeOfHighRiskRole}
-              isRequired
-            />
-            <Stack sx={{ width: "100%", maxWidth: 800 }}>
-              <CustomizableButton
-                sx={{
-                  alignSelf: "flex-end",
-                  width: "fit-content",
-                  backgroundColor: "#13715B",
-                  border: isSaveDisabled
-                    ? "1px solid rgba(0, 0, 0, 0.26)"
-                    : "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<SaveIcon size={16} />}
-                variant="contained"
-                onClick={(event: any) => {
-                  handleSubmit(event);
-                }}
-                isDisabled={isSaveDisabled}
-                text="Save"
-              />
-
-              {/* divider for seperation */}
-              <Stack sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8 }} />
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 600,
-                  mb: 4,
-                }}
-              >
-                Delete use case
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  color: "#667085",
-                  mb: 8,
-                }}
-              >
-                Note that deleting a use case will remove all data related to
-                that use case from your system. This is permanent and
-                non-recoverable.
-              </Typography>
-              <CustomizableButton
-                sx={{
-                  width: { xs: "100%", sm: theme.spacing(80) },
-                  mb: theme.spacing(4),
-                  backgroundColor: "#DB504A",
-                  color: "#fff",
-                  border: "1px solid #DB504A",
-                  gap: 2,
-                }}
-                icon={<DeleteIcon size={16} />}
-                variant="contained"
-                onClick={handleOpenDeleteDialog}
-                text="Delete use case"
-                isDisabled={
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-              />
-            </Stack>
-          </Stack>
+          </Box>
         )}
 
         {isDeleteModalOpen && (
           <DualButtonModal
-            title="Confirm Delete"
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to delete the use case?
@@ -1380,7 +1501,7 @@ const ProjectSettings = React.memo(
 
         {isFrameworkRemoveModalOpen && (
           <DualButtonModal
-            title="Confirm Framework Removal"
+            title="Confirm framework removal"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from

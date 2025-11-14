@@ -26,6 +26,7 @@ import {
 import "./index.css";
 import { ChevronDown } from "lucide-react";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
+import { getSelectStyles } from "../../../utils/inputStyles";
 
 const Select: React.FC<SelectProps> = ({
   id,
@@ -48,6 +49,16 @@ const Select: React.FC<SelectProps> = ({
     borderRadius: theme.shape.borderRadius,
     margin: theme.spacing(2),
   };
+
+  // Extract width from sx prop to apply to wrapper Stack
+  const extractedWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? (sx as any).width
+    : undefined;
+
+  // Create a copy of sx without width to pass to MuiSelect
+  const sxWithoutWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => key !== 'width'))
+    : sx;
 
   const renderValue = (value: unknown) => {
     const selected = value as string | number;
@@ -86,16 +97,7 @@ const Select: React.FC<SelectProps> = ({
       gap={theme.spacing(2)}
       className="select-wrapper"
       sx={{
-        ".MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
-        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: error
-            ? `1px solid ${theme.palette.status.error.border}!important`
-            : `1px solid ${theme.palette.border.dark}!important`,
-        },
+        width: extractedWidth,
       }}
     >
       {label && (
@@ -174,16 +176,12 @@ const Select: React.FC<SelectProps> = ({
         sx={{
           fontSize: 13,
           minWidth: "125px",
+          width: "100%",
           backgroundColor: theme.palette.background.main,
           position: "relative",
-          "& fieldset": {
-            borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark,
-          },
-          "&:not(.Mui-focused):hover fieldset": {
-            borderColor: theme.palette.border.dark,
-          },
-          ...sx,
+          cursor: "pointer",
+          ...getSelectStyles(theme, { hasError: !!error }),
+          ...sxWithoutWidth,
         }}
       >
         {items.map(

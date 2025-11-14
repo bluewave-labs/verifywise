@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -12,10 +12,11 @@ import {
   useTheme,
   Stack,
   Paper,
+  Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { IAITrustCenterTableProps } from "../../../../domain/interfaces/i.table";
 
@@ -24,6 +25,13 @@ const SelectorVertical = (props: any) => (
 );
 
 const DEFAULT_ROWS_PER_PAGE = 5;
+const AI_TRUST_CENTER_SORTING_KEY = "verifywise_ai_trust_center_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 const AITrustCenterTable = <T extends { id: number }>({
   data,
@@ -40,6 +48,24 @@ const AITrustCenterTable = <T extends { id: number }>({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(AI_TRUST_CENTER_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(AI_TRUST_CENTER_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
@@ -52,11 +78,87 @@ const AITrustCenterTable = <T extends { id: number }>({
     []
   );
 
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the data based on current sort configuration
+  const sortedData = useMemo(() => {
+    if (!data || !sortConfig.key || !sortConfig.direction) {
+      return data || [];
+    }
+
+    const sortableData = [...data];
+
+    return sortableData.sort((a: any, b: any) => {
+      let aValue: string | number | boolean;
+      let bValue: string | number | boolean;
+
+      // Use exact column name matching - case insensitive
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types for AI Trust Center data
+      if (sortKey.includes("name")) {
+        aValue = a.name?.toString().toLowerCase() || "";
+        bValue = b.name?.toString().toLowerCase() || "";
+      } else if (sortKey.includes("type") || sortKey.includes("purpose") || sortKey.includes("description")) {
+        aValue = a.description?.toString().toLowerCase() || "";
+        bValue = b.description?.toString().toLowerCase() || "";
+      } else if (sortKey.includes("visible")) {
+        aValue = a.visible || false;
+        bValue = b.visible || false;
+      } else if (sortKey.includes("action")) {
+        // Don't sort by action column
+        return 0;
+      } else {
+        // Try to handle unknown columns by checking if they're properties of the item
+        if (sortKey && sortKey in a && sortKey in b) {
+          const aVal = (a as Record<string, unknown>)[sortKey];
+          const bVal = (b as Record<string, unknown>)[sortKey];
+          aValue = String(aVal).toLowerCase();
+          bValue = String(bVal).toLowerCase();
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+        return 0;
+      }
+
+      // Handle boolean comparisons
+      if (typeof aValue === "boolean" && typeof bValue === "boolean") {
+        if (aValue === bValue) return 0;
+        return sortConfig.direction === "asc" ? (aValue ? -1 : 1) : (aValue ? 1 : -1);
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortConfig]);
+
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, data?.length ?? 0);
+    const end = Math.min(page * rowsPerPage + rowsPerPage, sortedData?.length ?? 0);
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, data?.length]);
+  }, [page, rowsPerPage, sortedData?.length]);
 
   const tableHeader = useMemo(
     () => (
@@ -67,30 +169,82 @@ const AITrustCenterTable = <T extends { id: number }>({
         }}
       >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {columns.map((column) => (
-            <TableCell
-              key={column.id}
-              sx={{
-                ...singleTheme.tableStyles.primary.header.cell,
-                // Remove width constraints to match original AI Trust Center behavior
-                minWidth: "auto",
-                width: "auto",
-                ...(column.id === "action" && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
-              }}
-            >
-              {column.label}
-            </TableCell>
-          ))}
+          {columns.map((column) => {
+            const isLastColumn = column.id === "action";
+            const sortable = !["action"].includes(column.id);
+
+            return (
+              <TableCell
+                key={column.id}
+                sx={{
+                  ...singleTheme.tableStyles.primary.header.cell,
+                  // Remove width constraints to match original AI Trust Center behavior
+                  minWidth: "auto",
+                  width: "auto",
+                  ...(isLastColumn && {
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }),
+                  ...(!isLastColumn && sortable
+                    ? {
+                        cursor: "pointer",
+                        userSelect: "none",
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        },
+                      }
+                    : {}),
+                }}
+                onClick={() => sortable && handleSort(column.label)}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: theme.spacing(2),
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      color: sortConfig.key === column.label ? "primary.main" : "inherit",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {column.label}
+                  </Typography>
+                  {sortable && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                      }}
+                    >
+                      {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                        <ChevronUp size={16} />
+                      )}
+                      {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                        <ChevronDown size={16} />
+                      )}
+                      {sortConfig.key !== column.label && (
+                        <ChevronsUpDown size={16} />
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              </TableCell>
+            );
+          })}
         </TableRow>
       </TableHead>
     ),
-    [columns]
+    [columns, sortConfig, handleSort, theme]
   );
 
   const tableBody = useMemo(
@@ -103,8 +257,8 @@ const AITrustCenterTable = <T extends { id: number }>({
           }),
         }}
       >
-        {data &&
-          data
+        {sortedData &&
+          sortedData
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((item) => (
               <TableRow
@@ -127,12 +281,12 @@ const AITrustCenterTable = <T extends { id: number }>({
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >
-                {renderRow(item)}
+                {renderRow(item, sortConfig)}
               </TableRow>
             ))}
       </TableBody>
     ),
-    [data, page, rowsPerPage, renderRow, onRowClick, disabled]
+    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled]
   );
 
   const emptyState = useMemo(
@@ -178,7 +332,7 @@ const AITrustCenterTable = <T extends { id: number }>({
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!sortedData || sortedData.length === 0) {
     return emptyState;
   }
 
@@ -204,10 +358,10 @@ const AITrustCenterTable = <T extends { id: number }>({
                   opacity: 0.7,
                 }}
               >
-                Showing {getRange} of {data?.length} item(s)
+                Showing {getRange} of {sortedData?.length} item(s)
               </TableCell>
               <TablePagination
-                count={data?.length}
+                count={sortedData?.length}
                 page={page}
                 onPageChange={handleChangePage}
                 rowsPerPage={rowsPerPage}

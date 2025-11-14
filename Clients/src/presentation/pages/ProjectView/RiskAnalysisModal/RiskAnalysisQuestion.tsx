@@ -1,14 +1,12 @@
 import {
-  Checkbox,
+  Box,
   FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { IQuestion, IQuestionnaireAnswers } from "./iQuestion";
+import Checkbox from "../../../components/Inputs/Checkbox";
+import Radio from "../../../components/Inputs/Radio";
 
 const radioOptionStyle = {
   width: "100%",
@@ -41,44 +39,37 @@ const RiskAnalysisQuestion = ({
   onSelect,
   answers,
 }: RiskAnalysisQuestionProps) => {
-  const theme = useTheme();
   return (
     <Stack>
-      <Typography fontWeight={600} my={4} sx={{color: theme.palette.text.primary}}>
+      <Typography fontSize={15} fontWeight={600} my={4} color="text.primary">
         {question.id}. {question.text}
       </Typography>
       {/* Options */}
       <Stack spacing={2}>
         {question.inputType === "single_select" ? (
-          <RadioGroup
-            value={answers[question.id] || ""}
-            onChange={(event) => onSelect(question.id, event.target.value)}
-            sx={{ gap: 4 }}
-          >
+          <FormControl sx={{gap: 4}}>
             {question.options.map((option) => (
-              <FormControlLabel
-                key={option.value}
-                value={option.value}
-                control={<Radio />}
-                label={
-                  <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.secondary }}
-                  >
-                    {option.label}
-                  </Typography>
-                }
-                sx={{
-                  ...radioOptionStyle,
-                  "&.Mui-checked": {
-                    ...radioOptionStyle["&.selected"],
-                  },
-                  "& .MuiFormControlLabel-label": {
-                    width: "100%",
-                  },
-                }}
-              />
+              <Box 
+                key={option.value} 
+                sx={{ "& > label": {
+                  ...radioOptionStyle, 
+                  padding: "10px",
+                  margin: 0,
+                  alignItems: "center",
+                }}}
+              >
+                <Radio
+                  id={option.value}
+                  title={option.label}
+                  size="small"
+                  checked={answers[question.id] === option.value}
+                  desc=""
+                  value={option.value}
+                  onChange={(event) => onSelect(question.id, event.target.value)}
+                />
+              </Box>
             ))}
-          </RadioGroup>
+          </FormControl>
         ) : (
           <FormControl sx={{gap: 4}}>
             {question.options.map((option) => {
@@ -88,42 +79,29 @@ const RiskAnalysisQuestion = ({
                   : [];
               const isChecked = (selectedValues ?? []).includes(option.value);
               return (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={
-                    <Checkbox
-                      checked={isChecked}
-                      onChange={(event) => {
-                        const currentValues = (
-                          Array.isArray(answers[question.id])
-                            ? answers[question.id]
-                            : []
-                        ) as string[];
-                        const newValues = event.target.checked
-                          ? [...currentValues, option.value]
-                          : currentValues.filter((v) => v !== option.value);
-                        onSelect(question.id, newValues);
-                      }}
-                    />
-                  }
-                  label={
-                    <Typography
-                      sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
-                    >
-                      {option.label}
-                    </Typography>
-                  }
-                  sx={{
-                    ...radioOptionStyle,
-                    "&.Mui-checked": {
-                      ...radioOptionStyle["&.selected"],
-                    },
-                    "& .MuiFormControlLabel-label": {
-                      width: "100%",
-                    },
-                  }}
+                <Box 
+                  key={option.value} 
+                  sx={{ "& > label": {
+                    ...radioOptionStyle, 
+                    padding: "10px",
+                    margin: 0,
+                  }}}
+                >
+                  <Checkbox
+                    id={option.value}
+                    label={option.label}
+                    size="small"
+                    isChecked={isChecked}
+                    value={option.value}
+                    onChange={(event) => {
+                      const currentValues = (Array.isArray(answers[question.id]) ? answers[question.id] : []) as string[];
+                      const newValues = event.target.checked
+                        ? [...currentValues, option.value]
+                        : currentValues.filter((v) => v !== option.value);
+                      onSelect(question.id, newValues);
+                    }}
                 />
+                </Box>
               );
             })}
           </FormControl>

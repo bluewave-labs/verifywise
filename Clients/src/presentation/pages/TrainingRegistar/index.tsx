@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
 import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import {
   Box,
   Stack,
   Fade,
-  IconButton,
-  InputBase,
   SelectChangeEvent,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -29,9 +27,8 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-import { Search as SearchIcon } from "lucide-react";
 import Select from "../../components/Inputs/Select";
-import { searchBoxStyle, inputStyle } from "./style";
+import { SearchBox } from "../../components/Search";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
 import {
@@ -105,7 +102,6 @@ const Training: React.FC = () => {
   // ✅ Filter + search state
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
 
   // ✅ Status options
   const statusOptions = [
@@ -321,7 +317,7 @@ const Training: React.FC = () => {
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
-        title="AI training registry"
+        title="AI Training Registry"
         description="Manage and track AI-related training programs and educational resources"
         whatItDoes="Centralize all *AI training programs*, *courses*, and *educational materials* for your organization. Track *completion status*, *certifications*, and *learning progress* across teams."
         whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for *responsible AI development* and deployment. Training records support *compliance* and *competency requirements*."
@@ -381,7 +377,7 @@ const Training: React.FC = () => {
       )}
 
         <PageHeader
-               title="AI training registry"
+               title="AI Training Registry"
                description=" This registry lists all AI-related training programs available to
                your organization. You can view, add, and manage training details here."
                rightContent={
@@ -419,29 +415,14 @@ const Training: React.FC = () => {
                 />
               </div>
 
-              {/* Expandable Search */}
-              <Box sx={searchBoxStyle(isSearchBarVisible)}>
-                <IconButton
-                  disableRipple
-                  disableFocusRipple
-                  sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                  aria-label="Toggle training search"
-                  aria-expanded={isSearchBarVisible}
-                  onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                >
-                  <SearchIcon size={16} />
-                </IconButton>
-
-                {isSearchBarVisible && (
-                  <InputBase
-                    autoFocus
-                    placeholder="Search trainings"
-                    inputProps={{ "aria-label": "Search trainings" }}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={inputStyle(isSearchBarVisible)}
-                  />
-                )}
+              {/* Search */}
+              <Box sx={{ width: 300 }}>
+                <SearchBox
+                  placeholder="Search trainings..."
+                  value={searchTerm}
+                  onChange={setSearchTerm}
+                  inputProps={{ "aria-label": "Search trainings" }}
+                />
               </Box>
             </Stack>
 

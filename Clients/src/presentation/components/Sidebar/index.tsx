@@ -50,6 +50,7 @@ import {
   FolderCog,
   Database,
   Heart,
+  Workflow,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -145,7 +146,7 @@ const getMenuGroups = (): IMenuGroup[] => [
       },
       {
         name: "Approval Workflows",
-        icon: <AlertCircle size={16} strokeWidth={1.5} />,
+        icon: <Workflow size={16} strokeWidth={1.5} />,
         path: "/approval-workflows",
       }
     ],

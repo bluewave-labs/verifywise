@@ -852,16 +852,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 disabled={isEditingDisabled}
               />
             </Stack>
-            {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (
-              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                Risk Score: {calculateVendorRiskScore({
-                  data_sensitivity: values.dataSensitivity || undefined,
-                  business_criticality: values.businessCriticality || undefined,
-                  past_issues: values.pastIssues || undefined,
-                  regulatory_exposure: values.regulatoryExposure || undefined,
-                })}%
-              </Typography>
-            )}
           </Stack>
         )}
       </Stack>

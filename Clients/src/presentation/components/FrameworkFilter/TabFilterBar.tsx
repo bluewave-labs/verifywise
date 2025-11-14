@@ -1,13 +1,27 @@
+import { Dispatch, SetStateAction } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import Select from "../Inputs/Select";
+import { SearchBox } from "../Search";
+
 interface TabFilterBarProps {
   statusFilter?: string;
   onStatusChange?: (val: string) => void;
   applicabilityFilter?: string;
   onApplicabilityChange?: (val: string) => void;
+  ownerFilter?: string;
+  onOwnerChange?: (val: string) => void;
+  reviewerFilter?: string;
+  onReviewerChange?: (val: string) => void;
   showStatusFilter?: boolean;
   showApplicabilityFilter?: boolean;
+  showOwnerFilter?: boolean;
+  showReviewerFilter?: boolean;
   statusOptions?: { label: string; value: string }[];
+  ownerOptions?: { label: string; value: string }[];
+  reviewerOptions?: { label: string; value: string }[];
+  showSearchBar?: boolean;
+  searchTerm?: string;
+  setSearchTerm?: Dispatch<SetStateAction<string>>;
 }
 
 const TabFilterBar = ({
@@ -15,9 +29,20 @@ const TabFilterBar = ({
   onStatusChange,
   applicabilityFilter,
   onApplicabilityChange,
+  ownerFilter,
+  onOwnerChange,
+  reviewerFilter,
+  onReviewerChange,
   showStatusFilter,
   showApplicabilityFilter,
+  showOwnerFilter,
+  showReviewerFilter,
   statusOptions = [],
+  ownerOptions = [],
+  reviewerOptions = [],
+  showSearchBar = false,
+  searchTerm,
+  setSearchTerm,
 }: TabFilterBarProps) => {
   const mapToSelectItems = (options: { label: string; value: string }[]) =>
     options.map((opt) => ({ _id: opt.value, name: opt.label }));
@@ -36,7 +61,7 @@ const TabFilterBar = ({
             value={statusFilter ?? ""}
             onChange={(e) => onStatusChange?.(e.target.value as string)}
             items={[
-              { _id: "", name: "All" },
+              { _id: "", name: "Status: All (by default)" },
               ...mapToSelectItems(statusOptions),
             ]}
             getOptionValue={(item) => item._id}
@@ -52,16 +77,55 @@ const TabFilterBar = ({
         {showApplicabilityFilter && (
           <Select
             id="applicability-filter"
-            placeholder="All"
+            placeholder="Applicability: All (by default)"
             value={applicabilityFilter ?? "all"}
             onChange={(e) => onApplicabilityChange?.(e.target.value as string)}
             items={[
-              { _id: "all", name: "All" },
+              { _id: "all", name: "Applicability: All (by default)" },
               { _id: "true", name: "Applicable" },
               { _id: "false", name: "Not Applicable" },
             ]}
             getOptionValue={(item) => item._id}
           />
+        )}
+
+        {showOwnerFilter && (
+          <Select
+            id="owner-filter"
+            placeholder="All Owners"
+            value={ownerFilter ?? ""}
+            onChange={(e) => onOwnerChange?.(e.target.value as string)}
+            items={[
+              { _id: "", name: "All Owners" },
+              ...mapToSelectItems(ownerOptions),
+            ]}
+            getOptionValue={(item) => item._id}
+          />
+        )}
+
+        {showReviewerFilter && (
+          <Select
+            id="reviewer-filter"
+            placeholder="All Reviewers"
+            value={reviewerFilter ?? ""}
+            onChange={(e) => onReviewerChange?.(e.target.value as string)}
+            items={[
+              { _id: "", name: "All Reviewers" },
+              ...mapToSelectItems(reviewerOptions),
+            ]}
+            getOptionValue={(item) => item._id}
+          />
+        )}
+
+        {showSearchBar && (
+          <Box sx={{ width: "300px" }}>
+            <SearchBox
+              placeholder="Search by title..."
+              value={searchTerm ?? ""}
+              onChange={(value) => setSearchTerm?.(value)}
+              sx={{ mt: 4, mb: 2 }}
+            />
+          </Box>
         )}
 
         {(statusFilter ||

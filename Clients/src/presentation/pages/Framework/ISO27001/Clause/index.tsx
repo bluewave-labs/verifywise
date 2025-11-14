@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application/repository/clause_struct_iso.repository";
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { styles } from "./style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
@@ -29,14 +29,20 @@ const ISO27001Clause = ({
   project,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  reviewerFilter,
   initialClauseId,
   initialSubClauseId,
+  searchTerm,
 }: {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  ownerFilter?: string;
+  reviewerFilter?: string;
   initialClauseId?: string | null;
   initialSubClauseId?: string | null;
+  searchTerm: string;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
@@ -220,16 +226,41 @@ const ISO27001Clause = ({
     }
   };
 
+  const filteredClauses = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return clauses;
+    }
+    return clauses.filter((clause: ClauseStructISO) =>
+      clause.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [clauses, searchTerm]);
+
   function dynamicSubClauses(clause: any) {
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
 
-    const filteredSubClauses =
-      statusFilter && statusFilter !== ""
-        ? subClauses.filter(
-            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
-          )
-        : subClauses;
+    let filteredSubClauses = subClauses;
+
+    // Filter by status
+    if (statusFilter && statusFilter !== "") {
+      filteredSubClauses = filteredSubClauses.filter(
+        (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
+      );
+    }
+
+    // Filter by owner
+    if (ownerFilter && ownerFilter !== "") {
+      filteredSubClauses = filteredSubClauses.filter(
+        (sc) => sc.owner?.toString() === ownerFilter,
+      );
+    }
+
+    // Filter by reviewer
+    if (reviewerFilter && reviewerFilter !== "") {
+      filteredSubClauses = filteredSubClauses.filter(
+        (sc) => sc.reviewer?.toString() === reviewerFilter,
+      );
+    }
 
     return (
       <AccordionDetails sx={{ padding: 0 }}>
@@ -291,8 +322,8 @@ const ISO27001Clause = ({
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Management System Clauses"}
       </Typography>
-      {clauses &&
-        clauses.map((clause: any) => (
+      {filteredClauses &&
+        filteredClauses.map((clause: any) => (
           <Stack key={clause.id} sx={styles.container}>
             <Accordion
               key={clause.id}

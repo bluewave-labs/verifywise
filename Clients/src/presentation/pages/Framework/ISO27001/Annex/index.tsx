@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { styles } from "../Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
@@ -28,16 +28,22 @@ const ISO27001Annex = ({
   project,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  reviewerFilter,
   applicabilityFilter,
   initialAnnexId,
   initialAnnexControlId,
+  searchTerm,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
+  ownerFilter?: string;
+  reviewerFilter?: string;
   applicabilityFilter?: string;
   initialAnnexId?: string | null;
   initialAnnexControlId?: string | null;
+  searchTerm: string;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -90,6 +96,16 @@ const ISO27001Annex = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annexId, annexes, annexControlId, annexId, annexControlId]);
+
+
+  const filteredAnnexes = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return annexes;
+    }
+    return annexes.filter((annex) =>
+      annex.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [annexes, searchTerm]);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -220,8 +236,8 @@ const ISO27001Annex = ({
           <Typography sx={{ ...styles.title, mt: 4 }}>
             Annex A : Reference Controls (Statement of Applicability)
           </Typography>
-          {annexes &&
-            annexes.map((annex: any) => (
+          {filteredAnnexes &&
+            filteredAnnexes.map((annex: any) => (
               <Stack key={annex.id} sx={styles.container}>
                 <Accordion
                   key={annex.id}
@@ -247,6 +263,20 @@ const ISO27001Annex = ({
                           (control: any) =>
                             control.status?.toLowerCase() ===
                             statusFilter.toLowerCase(),
+                        );
+                      }
+
+                      // Apply owner filter
+                      if (ownerFilter && ownerFilter !== "") {
+                        filteredControls = filteredControls.filter(
+                          (control: any) => control.owner?.toString() === ownerFilter,
+                        );
+                      }
+
+                      // Apply reviewer filter
+                      if (reviewerFilter && reviewerFilter !== "") {
+                        filteredControls = filteredControls.filter(
+                          (control: any) => control.reviewer?.toString() === reviewerFilter,
                         );
                       }
 

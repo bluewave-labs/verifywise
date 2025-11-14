@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
@@ -26,15 +26,21 @@ const ISO42001Annex = ({
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
+  reviewerFilter,
+  ownerFilter,
   initialAnnexId,
   initialAnnexCategoryId,
+  searchTerm,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
+  ownerFilter?: string;
+  reviewerFilter?: string;
   initialAnnexId?: string | null;
   initialAnnexCategoryId?: string | null;
+  searchTerm: string;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -83,6 +89,16 @@ const ISO42001Annex = ({
       }
     }
   }, [annexId, annexes, annexControlId, initialAnnexId, initialAnnexCategoryId]);
+
+
+  const filteredAnnexes = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return annexes;
+    }
+    return annexes.filter((annex) =>
+      annex.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [annexes, searchTerm]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -197,6 +213,20 @@ const ISO42001Annex = ({
       );
     }
 
+    // Apply owner filter
+    if (ownerFilter && ownerFilter !== "") {
+      filteredControls = filteredControls.filter(
+        (control: any) => control.owner?.toString() === ownerFilter,
+      );
+    }
+
+    // Apply reviewer filter
+    if (reviewerFilter && reviewerFilter !== "") {
+      filteredControls = filteredControls.filter(
+        (control: any) => control.reviewer?.toString() === reviewerFilter,
+      );
+    }
+
     return (
       <AccordionDetails sx={{ padding: 0 }}>
         {filteredControls.length > 0 ? (
@@ -245,8 +275,8 @@ const ISO42001Annex = ({
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Information Security Controls"}
       </Typography>
-      {annexes &&
-        annexes.map((annex: any) => (
+      {filteredAnnexes &&
+        filteredAnnexes.map((annex: any) => (
           <Stack key={annex.id} sx={styles.container}>
             <Accordion
               key={annex.id}

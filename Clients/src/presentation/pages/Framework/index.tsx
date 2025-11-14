@@ -22,6 +22,7 @@ import {
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
+import useUsers from "../../../application/hooks/useUsers";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -112,6 +113,7 @@ const Framework = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+  const { users } = useUsers();
 
   // Check if there are any organizational projects
   const organizationalProject = useMemo(() => {
@@ -276,6 +278,9 @@ const Framework = () => {
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("");
+  const [reviewerFilter, setReviewerFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Status options following ProjectFrameworks pattern for ISO27001
   const iso27001StatusOptions = [
@@ -312,6 +317,14 @@ const Framework = () => {
     // { value: "audited", label: "Audited" },
     { value: "needs rework", label: "Needs Rework" },
   ];
+
+  // User options for owner and reviewer filters
+  const userOptions = useMemo(() => {
+    return users.map((user: any) => ({
+      value: user.id?.toString() || "",
+      label: `${user.name} ${user.surname}`,
+    }));
+  }, [users]);
 
   useEffect(() => {
     if (allVisible) {
@@ -404,11 +417,18 @@ const Framework = () => {
     subcategoryId,
   ]);
 
+  const resetFilters = () => {
+    setStatusFilter("");
+    setApplicabilityFilter("");
+    setSearchTerm("");
+    setOwnerFilter("");
+    setReviewerFilter("");
+  }
+
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
     if (organizationalProject) {
-      setStatusFilter("");
-      setApplicabilityFilter("");
+      resetFilters();
     }
   }, [
     iso27001TabValue,
@@ -419,6 +439,9 @@ const Framework = () => {
 
   const handleFrameworkSelect = (index: number) => {
     if (organizationalProject) {
+      if(selectedFramework !== index) {
+        resetFilters();
+      }
       setSelectedFramework(index);
     }
   };
@@ -541,11 +564,22 @@ const Framework = () => {
               onStatusChange={setStatusFilter}
               applicabilityFilter={applicabilityFilter}
               onApplicabilityChange={setApplicabilityFilter}
+              ownerFilter={ownerFilter}
+              onOwnerChange={setOwnerFilter}
+              reviewerFilter={reviewerFilter}
+              onReviewerChange={setReviewerFilter}
               showStatusFilter={
                 iso27001TabValue === "clause" || iso27001TabValue === "annex"
               }
               showApplicabilityFilter={iso27001TabValue === "annex"}
+              showOwnerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
+              showReviewerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
               statusOptions={iso27001StatusOptions}
+              ownerOptions={userOptions}
+              reviewerOptions={userOptions}
+              showSearchBar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}  
             />
 
             <TabPanel value="clause" sx={tabPanelStyle}>
@@ -555,8 +589,11 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
                 initialClauseId={clause27001Id}
                 initialSubClauseId={subClause27001Id}
+                searchTerm={searchTerm}
               />
             </TabPanel>
 
@@ -570,6 +607,9 @@ const Framework = () => {
                 applicabilityFilter={applicabilityFilter}
                 initialAnnexId={annex27001Id}
                 initialAnnexControlId={annexControl27001Id}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
               />
             </TabPanel>
           </TabContext>
@@ -609,11 +649,22 @@ const Framework = () => {
               onStatusChange={setStatusFilter}
               applicabilityFilter={applicabilityFilter}
               onApplicabilityChange={setApplicabilityFilter}
+              ownerFilter={ownerFilter}
+              onOwnerChange={setOwnerFilter}
+              reviewerFilter={reviewerFilter}
+              onReviewerChange={setReviewerFilter}
               showStatusFilter={
                 iso42001TabValue === "clauses" || iso42001TabValue === "annexes"
               }
               showApplicabilityFilter={iso42001TabValue === "annexes"}
+              showOwnerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
+              showReviewerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
               statusOptions={iso42001StatusOptions}
+              ownerOptions={userOptions}
+              reviewerOptions={userOptions}
+              showSearchBar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
             />
 
             <TabPanel value="clauses" sx={tabPanelStyle}>
@@ -623,8 +674,11 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
                 initialClauseId={clauseId}
                 initialSubClauseId={subClauseId}
+                searchTerm={searchTerm}
               />
             </TabPanel>
 
@@ -638,6 +692,9 @@ const Framework = () => {
                 applicabilityFilter={applicabilityFilter}
                 initialAnnexId={annexId}
                 initialAnnexCategoryId={annexCategoryId}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
               />
             </TabPanel>
           </TabContext>

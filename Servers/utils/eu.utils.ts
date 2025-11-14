@@ -393,19 +393,6 @@ export const getControlByIdQuery = async (
     }
   )) as [Partial<ControlEUModel & ControlStructEUModel>[], number];
   const control = result[0];
-  for (let c of control) {
-    (c as any).risks = [];
-    const risks = (await sequelize.query(
-      `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
-      {
-        replacements: { id: c.id },
-        transaction,
-      }
-    )) as [{ projects_risks_id: number }[], number];
-    for (let risk of risks[0]) {
-      (c as any).risks.push(risk.projects_risks_id);
-    }
-  }
   return control
 };
 
@@ -756,10 +743,7 @@ export const createEUFrameworkQuery = async (
 
 export const updateControlEUByIdQuery = async (
   id: number,
-  control: Partial<ControlEU & {
-    risksDelete: number[];
-    risksMitigated: number[];
-  }>,
+  control: Partial<ControlEU>,
   tenant: string,
   transaction: Transaction
 ): Promise<ControlEU> => {
@@ -800,49 +784,6 @@ export const updateControlEUByIdQuery = async (
     transaction,
   });
   const controlResult = result[0];
-  (controlResult as any).dataValues.risks = [];
-
-  const risks = (await sequelize.query(
-    `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
-    {
-      replacements: { id },
-      transaction,
-    }
-  )) as [ControlsEURisksModel[], number];
-  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
-  currentRisks = currentRisks.filter((r) => !(validateRiskArray(control.risksDelete || [], "risksDelete")).includes(r));
-  currentRisks = currentRisks.concat(validateRiskArray(control.risksMitigated || [], "risksMitigated"));
-
-  await sequelize.query(
-    `DELETE FROM "${tenant}".controls_eu__risks WHERE control_id = :id;`,
-    {
-      replacements: { id },
-      transaction,
-    }
-  );
-
-  if (currentRisks.length > 0) {
-    // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:control_id${i}, :projects_risks_id${i})`).join(", ");
-    const replacements: { [key: string]: any } = {};
-
-    // Build replacement parameters safely
-    currentRisks.forEach((risk, i) => {
-      replacements[`control_id${i}`] = id;
-      replacements[`projects_risks_id${i}`] = risk;
-    });
-
-    const subClauseRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".controls_eu__risks (control_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
-      {
-        replacements,
-        transaction,
-      }
-    )) as [{ projects_risks_id: number }[], number];
-    for (let risk of subClauseRisksInsertResult[0]) {
-      (controlResult as any).dataValues.risks.push(risk.projects_risks_id);
-    }
-  }
 
   return controlResult;
 };

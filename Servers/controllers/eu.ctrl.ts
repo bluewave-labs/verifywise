@@ -269,27 +269,14 @@ export async function saveControls(
       user_id: number;
       project_id: number;
       delete: string;
-      risksDelete: string;
-      risksMitigated: string;
     };
 
-    // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlEUByIdQuery(
-      controlId,
-      {
-        status: Control.status,
-        approver: Control.approver,
-        risk_review: Control.risk_review,
-        owner: Control.owner,
-        reviewer: Control.reviewer,
-        due_date: Control.due_date,
-        implementation_details: Control.implementation_details,
-        risksDelete: JSON.parse(Control.risksDelete || "[]") as number[],
-        risksMitigated: JSON.parse(Control.risksMitigated || "[]") as number[],
-      },
-      req.tenantId!,
-      transaction
-    );
+    // Control-level status fields are no longer managed here - they exist only at subcontrol level
+    // The control record in database doesn't need to be updated - all editable fields are at subcontrol level
+    // We return a simple control object for the response
+    const control: any = {
+      id: controlId,
+    };
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {

@@ -454,6 +454,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
+
+    await sequelize.query(`COMMENT ON TABLE "${tenantHash}".controls_eu__risks IS
+      'DEPRECATED as of Nov 2025: Control-level risks removed. This table is no longer used.
+        Risk associations are now managed at subcontrol level only.
+        Existing data preserved for potential future migration or historical reference.';`, { transaction });
+
     await sequelize.query(`CREATE TABLE "${tenantHash}".answers_eu__risks (
       answer_id INTEGER NOT NULL,
       projects_risks_id INTEGER NOT NULL,

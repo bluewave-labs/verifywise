@@ -14,6 +14,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
 import { PolicyFormData, PolicyFormProps } from "../../../domain/interfaces/IPolicy";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
 
 
 const statuses: PolicyFormData["status"][] = [
@@ -179,7 +180,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Users"
+                placeholder="Select users"
                 error={!!errors.assignedReviewers}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -195,15 +196,17 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             sx={{
               backgroundColor: theme.palette.background.main,
               width: "100%",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
-              },
+              cursor: "pointer",
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.assignedReviewers })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{
@@ -264,7 +267,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Tags"
+                placeholder="Select tags"
                 error={!!errors.tags}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -280,15 +283,17 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             sx={{
               backgroundColor: theme.palette.background.main,
               width: "100%",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
-                },
-              },
+              cursor: "pointer",
               "& .MuiChip-root": {
                 borderRadius: theme.shape.borderRadius,
+              },
+              ...getAutocompleteStyles(theme, { hasError: !!errors.tags }),
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"],
+                "& fieldset": {
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.tags })["& .MuiOutlinedInput-root"]["& fieldset"],
+                  borderRadius: "3px",
+                },
               },
             }}
             slotProps={{

@@ -19,6 +19,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
+import ChipInput from "../../Inputs/ChipInput";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import {
@@ -32,6 +33,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const initialState: ICreateTaskFormValues = {
   title: "",
@@ -385,8 +387,9 @@ const CreateTask: FC<ICreateTaskProps> = ({
                     }
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        paddingTop: "3.8px !important",
-                        paddingBottom: "3.8px !important",
+                        minHeight: "34px",
+                        paddingTop: "2px !important",
+                        paddingBottom: "2px !important",
                       },
                       "& ::placeholder": {
                         fontSize: "13px",
@@ -395,20 +398,17 @@ const CreateTask: FC<ICreateTaskProps> = ({
                   />
                 )}
                 sx={{
+                  ...getAutocompleteStyles(theme, { hasError: !!errors.assignees }),
                   width: "350px",
                   backgroundColor: theme.palette.background.main,
                   "& .MuiOutlinedInput-root": {
+                    ...getAutocompleteStyles(theme, { hasError: !!errors.assignees })["& .MuiOutlinedInput-root"],
                     borderRadius: "5px",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#777",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#888",
-                      borderWidth: "1px",
-                    },
                   },
                   "& .MuiChip-root": {
                     borderRadius: theme.shape.borderRadius,
+                    height: "26px",
+                    margin: "1px 2px",
                   },
                 }}
                 slotProps={{
@@ -470,126 +470,21 @@ const CreateTask: FC<ICreateTaskProps> = ({
             placeholder="Select status"
           />
 
-          <Suspense fallback={<div>Loading...</div>}>
-            <Stack gap={theme.spacing(2)}>
-              <Typography
-                component="p"
-                variant="body1"
-                color={theme.palette.text.secondary}
-                fontWeight={500}
-                fontSize={"13px"}
-                sx={{ margin: 0, height: "22px" }}
-              >
-                Categories
-              </Typography>
-              <Autocomplete
-                multiple
-                id="categories-input"
-                size="small"
-                freeSolo
-                value={values.categories}
-                options={[]}
-                onChange={(_event, newValue: string[]) => {
-                  setValues((prevValues) => ({
-                    ...prevValues,
-                    categories: newValue,
-                  }));
-                  setErrors((prev) => ({ ...prev, categories: "" }));
-                }}
-                getOptionLabel={(option: string) => option}
-                filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon size={16} />}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Enter categories"
-                    error={!!errors.categories}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        minHeight: "34px",
-                        height: "auto",
-                        alignItems: "flex-start",
-                        paddingY: "3px !important",
-                        flexWrap: "wrap",
-                        gap: "2px",
-                      },
-                      "& ::placeholder": {
-                        fontSize: "13px",
-                      },
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        const input = e.target as HTMLInputElement;
-                        const value = input.value.trim();
-                        if (value && !values.categories.includes(value)) {
-                          setValues((prevValues) => ({
-                            ...prevValues,
-                            categories: [...prevValues.categories, value],
-                          }));
-                          input.value = "";
-                        }
-                      }
-                    }}
-                  />
-                )}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "3px",
-                    overflowY: "auto",
-                    flexWrap: "wrap",
-                    maxHeight: "115px",
-                    alignItems: "flex-start",
-                    "&:hover": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        border: "none",
-                      },
-                    },
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        border: "none",
-                      },
-                    },
-                  },
-                  "& .MuiAutocomplete-tag": {
-                    margin: "2px",
-                    maxWidth: "calc(100% - 25px)",
-                    "& .MuiChip-label": {
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    },
-                  },
-                  border: errors.categories
-                    ? `1px solid #f04438`
-                    : `1px solid ${theme.palette.border.dark}`,
-                  borderRadius: "3px",
-                  opacity: errors.categories ? 0.8 : 1,
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      display: "none",
-                    },
-                  },
-                }}
-              />
-              {errors.categories && (
-                <Typography
-                  color="error"
-                  variant="caption"
-                  sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-                >
-                  {errors.categories}
-                </Typography>
-              )}
-            </Stack>
-          </Suspense>
+          <ChipInput
+            id="categories-input"
+            label="Categories"
+            value={values.categories}
+            onChange={(newValue) => {
+              setValues((prevValues) => ({
+                ...prevValues,
+                categories: newValue,
+              }));
+              setErrors((prev) => ({ ...prev, categories: "" }));
+            }}
+            placeholder="Enter categories"
+            error={errors.categories}
+            sx={{ width: "350px" }}
+          />
         </Stack>
 
         {/* Row 3: Priority | Due date */}

@@ -1,7 +1,13 @@
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { sequelize } from "../database/db";
-import { QueryTypes, Transaction, Op, WhereOptions, OrderItem } from "sequelize";
+import {
+  QueryTypes,
+  Transaction,
+  Op,
+  WhereOptions,
+  OrderItem,
+} from "sequelize";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
@@ -9,10 +15,13 @@ import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
 import {
   NotFoundException,
   ForbiddenException,
-  ValidationException
+  ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
-import { buildTaskReplacements, buildTaskUpdateReplacements } from "./automation/task.automation.utils";
+import {
+  buildTaskReplacements,
+  buildTaskUpdateReplacements,
+} from "./automation/task.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 
@@ -35,14 +44,13 @@ interface TaskFilters {
 }
 
 interface TaskSortOptions {
-  sort_by?: 'due_date' | 'priority' | 'created_at';
-  sort_order?: 'ASC' | 'DESC';
+  sort_by?: "due_date" | "priority" | "created_at";
+  sort_order?: "ASC" | "DESC";
 }
 
 interface QueryReplacements {
   [key: string]: any;
 }
-
 
 // Helper function for DRY visibility logic - adds JOIN and WHERE conditions for non-Admin users
 const addVisibilityLogic = (
@@ -52,7 +60,7 @@ const addVisibilityLogic = (
   { userId, role }: GetTasksOptions,
   tenant: string,
   organizationId: number,
-  joinAlias: string = 'ta'
+  joinAlias: string = "ta"
 ): void => {
   // SECURITY: Always filter by organization_id to prevent cross-organization access
   whereConditions.push("t.organization_id = :organizationId");
@@ -62,7 +70,9 @@ const addVisibilityLogic = (
     baseQueryParts.push(
       `LEFT JOIN "${tenant}".task_assignees ${joinAlias} ON ${joinAlias}.task_id = t.id AND ${joinAlias}.user_id = :userId`
     );
-    whereConditions.push(`(t.creator_id = :userId OR ${joinAlias}.user_id IS NOT NULL)`);
+    whereConditions.push(
+      `(t.creator_id = :userId OR ${joinAlias}.user_id IS NOT NULL)`
+    );
     replacements.userId = userId;
   }
 };
@@ -74,8 +84,6 @@ export const createNewTaskQuery = async (
   transaction: Transaction,
   assignees?: Array<{ user_id: number }>
 ): Promise<TasksModel> => {
-
-
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".tasks (
         title, description, creator_id, organization_id, due_date, priority, status, categories
@@ -107,9 +115,10 @@ export const createNewTaskQuery = async (
   if (assignees && assignees.length > 0) {
     for (let assignee of assignees) {
       // Handle both formats: string/number directly, or object with user_id property
-      const userId = typeof assignee === 'string' || typeof assignee === 'number'
-        ? Number(assignee)
-        : Number(assignee.user_id);
+      const userId =
+        typeof assignee === "string" || typeof assignee === "number"
+          ? Number(assignee)
+          : Number(assignee.user_id);
 
       if (!isNaN(userId) && userId > 0) {
         await sequelize.query(
@@ -117,7 +126,7 @@ export const createNewTaskQuery = async (
           {
             replacements: {
               task_id: createdTask.id,
-              user_id: userId
+              user_id: userId,
             },
             transaction,
           }
@@ -127,28 +136,41 @@ export const createNewTaskQuery = async (
     }
   }
 
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
+      a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "task_added") {
-      const creator_name = await sequelize.query(
+      const creator_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
         {
-          replacements: { creator_id: createdTask.dataValues.creator_id }, transaction
+          replacements: { creator_id: createdTask.dataValues.creator_id },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
-      const assignee_names = await sequelize.query(
+      )) as [{ full_name: string }[], number];
+      const assignee_names = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
         {
-          replacements: { assignee_ids: (createdTask.dataValues as any)["assignees"] }, transaction
+          replacements: {
+            assignee_ids: (createdTask.dataValues as any)["assignees"],
+          },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
@@ -156,20 +178,26 @@ export const createNewTaskQuery = async (
       const replacements = buildTaskReplacements({
         ...createdTask.dataValues,
         creator_name: creator_name[0][0].full_name,
-        assignee_names: assignee_names[0].map(a => a.full_name).join(', ')
+        assignee_names: assignee_names[0].map((a) => a.full_name).join(", "),
       });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements)
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, processedParams);
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
 
@@ -185,12 +213,15 @@ export const getTasksQuery = async (
   options?: { limit?: number; offset?: number }
 ): Promise<TasksModel[]> => {
   const { limit, offset } = options ?? {};
-  const { sort_by = 'created_at', sort_order = 'DESC' } = sort;
+  const { sort_by = "created_at", sort_order = "DESC" } = sort;
 
   // Build base query parts following project utils pattern
-  const baseQueryParts: string[] = [`SELECT DISTINCT t.*`, `FROM "${tenant}".tasks t`];
+  const baseQueryParts: string[] = [
+    `SELECT DISTINCT t.*`,
+    `FROM "${tenant}".tasks t`,
+  ];
 
-  // Build pagination clause 
+  // Build pagination clause
   const paginationClause =
     limit !== undefined && offset !== undefined
       ? "LIMIT :limit OFFSET :offset"
@@ -208,11 +239,18 @@ export const getTasksQuery = async (
   }
 
   // Enforce visibility rules: admins see all, others see tasks where they're creator or assignee
-  addVisibilityLogic(baseQueryParts, whereConditions, replacements, { userId, role }, tenant, filters.organization_id!);
+  addVisibilityLogic(
+    baseQueryParts,
+    whereConditions,
+    replacements,
+    { userId, role },
+    tenant,
+    filters.organization_id!
+  );
 
   // Apply filters
   if (filters.status && filters.status.length > 0) {
-    const statusList = filters.status.map((s, i) => `:status${i}`).join(', ');
+    const statusList = filters.status.map((s, i) => `:status${i}`).join(", ");
     whereConditions.push(`t.status IN (${statusList})`);
     filters.status.forEach((status, i) => {
       replacements[`status${i}`] = status;
@@ -220,7 +258,9 @@ export const getTasksQuery = async (
   }
 
   if (filters.priority && filters.priority.length > 0) {
-    const priorityList = filters.priority.map((p, i) => `:priority${i}`).join(', ');
+    const priorityList = filters.priority
+      .map((p, i) => `:priority${i}`)
+      .join(", ");
     whereConditions.push(`t.priority IN (${priorityList})`);
     filters.priority.forEach((priority, i) => {
       replacements[`priority${i}`] = priority;
@@ -239,7 +279,9 @@ export const getTasksQuery = async (
 
   if (filters.category && filters.category.length > 0) {
     // For JSONB array contains any of the categories
-    const categoryConditions = filters.category.map((j, i) => `t.categories::jsonb ? :category${i}`).join(' OR ');
+    const categoryConditions = filters.category
+      .map((j, i) => `t.categories::jsonb ? :category${i}`)
+      .join(" OR ");
     whereConditions.push(`(${categoryConditions})`);
     filters.category.forEach((cat, i) => {
       replacements[`category${i}`] = cat;
@@ -253,7 +295,9 @@ export const getTasksQuery = async (
         `LEFT JOIN "${tenant}".task_assignees ta_filter ON ta_filter.task_id = t.id`
       );
     }
-    const assigneeList = filters.assignee.map((_, i) => `:assignee${i}`).join(', ');
+    const assigneeList = filters.assignee
+      .map((_, i) => `:assignee${i}`)
+      .join(", ");
     const joinAlias = role === "Admin" ? "ta_filter" : "ta";
     whereConditions.push(`${joinAlias}.user_id IN (${assigneeList})`);
     filters.assignee.forEach((assignee, i) => {
@@ -262,49 +306,66 @@ export const getTasksQuery = async (
   }
 
   if (filters.search) {
-    whereConditions.push(`(t.title ILIKE :search OR t.description ILIKE :search)`);
+    whereConditions.push(
+      `(t.title ILIKE :search OR t.description ILIKE :search)`
+    );
     replacements.search = `%${filters.search}%`;
   }
-
 
   // Add WHERE conditions
   if (whereConditions.length > 0) {
     baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
   }
 
+  // Validate sort_order first to ensure we have a valid sortOrder for both cases
+  const sortOrders = {
+    ASC: "ASC",
+    DESC: "DESC",
+  } as const;
+
+  if (!(sort_order in sortOrders)) {
+    throw new ValidationException(
+      "Invalid sort order provided",
+      "sort_order",
+      sort_order
+    );
+  }
+
+  const sortOrder = sortOrders[sort_order as keyof typeof sortOrders];
+
   // Build ORDER clause for sorts (due_date, priority, created_at)
-  if (sort_by === 'priority') {
+  if (sort_by === "priority") {
     // Custom priority ordering: High=1, Medium=2, Low=3
-    baseQueryParts.push(`ORDER BY CASE 
-      WHEN t.priority = :priorityHigh THEN 1 
-      WHEN t.priority = :priorityMedium THEN 2 
-      WHEN t.priority = :priorityLow THEN 3 
-      END ${sort_order}, t.created_at DESC`);
+    baseQueryParts.push(`ORDER BY CASE
+      WHEN t.priority = :priorityHigh THEN 1
+      WHEN t.priority = :priorityMedium THEN 2
+      WHEN t.priority = :priorityLow THEN 3
+      END ${sortOrder}, t.created_at DESC`);
     replacements.priorityHigh = TaskPriority.HIGH;
     replacements.priorityMedium = TaskPriority.MEDIUM;
     replacements.priorityLow = TaskPriority.LOW;
   } else {
-    // Validate sort_by to prevent SQL injection
-    const allowedSortFields = ['due_date', 'created_at'];
-    if (!allowedSortFields.includes(sort_by)) {
+    // Use hardcoded mapping for sort fields to avoid SQL injection
+    const allowedSortFields = {
+      due_date: "due_date",
+      created_at: "created_at",
+    } as const;
+
+    if (!(sort_by in allowedSortFields)) {
       throw new ValidationException(
-        'Invalid sort field provided',
-        'sort_by',
+        "Invalid sort field provided",
+        "sort_by",
         sort_by
       );
     }
-    // Validate sort_order to prevent SQL injection
-    const allowedSortOrders = ['ASC', 'DESC'];
-    if (!allowedSortOrders.includes(sort_order)) {
-      throw new ValidationException(
-        'Invalid sort order provided',
-        'sort_order',
-        sort_order
-      );
-    }
-    const orderClause = `ORDER BY t.${sort_by} ${sort_order}`;
-    if (sort_by !== 'created_at') {
-      baseQueryParts.push(orderClause + ', t.created_at DESC');
+
+    // We can safely interpolate these as they come strictly from the defined mappings
+    const safeSortBy =
+      allowedSortFields[sort_by as keyof typeof allowedSortFields];
+    const orderClause = `ORDER BY t.${safeSortBy} ${sortOrder}`;
+
+    if (safeSortBy !== "created_at") {
+      baseQueryParts.push(orderClause + ", t.created_at DESC");
     } else {
       baseQueryParts.push(orderClause);
     }
@@ -339,7 +400,9 @@ export const getTasksQuery = async (
         model: TaskAssigneesModel,
       }
     );
-    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+    (task.dataValues as any)["assignees"] = assignees.map(
+      (a: any) => a.user_id
+    );
   }
 
   return tasks as TasksModel[];
@@ -352,15 +415,28 @@ export const getTaskByIdQuery = async (
   tenant: string,
   userOrganizationId: number
 ): Promise<TasksModel | null> => {
-  const baseQueryParts: string[] = [`SELECT DISTINCT t.*`, `FROM "${tenant}".tasks t`];
-  const whereConditions: string[] = ["t.id = :taskId", "t.status != :deletedStatus"];
+  const baseQueryParts: string[] = [
+    `SELECT DISTINCT t.*`,
+    `FROM "${tenant}".tasks t`,
+  ];
+  const whereConditions: string[] = [
+    "t.id = :taskId",
+    "t.status != :deletedStatus",
+  ];
   const replacements: QueryReplacements = {
     taskId,
     deletedStatus: TaskStatus.DELETED,
   };
 
   // Role-based visibility rules
-  addVisibilityLogic(baseQueryParts, whereConditions, replacements, { userId, role }, tenant, userOrganizationId);
+  addVisibilityLogic(
+    baseQueryParts,
+    whereConditions,
+    replacements,
+    { userId, role },
+    tenant,
+    userOrganizationId
+  );
 
   baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
   const finalQuery = baseQueryParts.join("\n");
@@ -384,22 +460,26 @@ export const getTaskByIdQuery = async (
         model: TaskAssigneesModel,
       }
     );
-    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+    (task.dataValues as any)["assignees"] = assignees.map(
+      (a: any) => a.user_id
+    );
 
-    const creator_name = await sequelize.query(
+    const creator_name = (await sequelize.query(
       `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
       {
-        replacements: { creator_id: task.dataValues.creator_id }
+        replacements: { creator_id: task.dataValues.creator_id },
       }
-    ) as [{ full_name: string }[], number];
+    )) as [{ full_name: string }[], number];
     (task.dataValues as any)["creator_name"] = creator_name[0][0].full_name;
-    const assignee_names = await sequelize.query(
+    const assignee_names = (await sequelize.query(
       `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
       {
-        replacements: { assignee_ids: (task.dataValues as any)["assignees"] }
+        replacements: { assignee_ids: (task.dataValues as any)["assignees"] },
       }
-    ) as [{ full_name: string }[], number];
-    (task.dataValues as any)["assignee_names"] = assignee_names[0].map(a => a.full_name);
+    )) as [{ full_name: string }[], number];
+    (task.dataValues as any)["assignee_names"] = assignee_names[0].map(
+      (a) => a.full_name
+    );
 
     return task;
   }
@@ -428,14 +508,15 @@ export const updateTaskByIdQuery = async (
   assignees?: number[]
 ): Promise<TasksModel> => {
   // First, get the task to check permissions
-  const existingTask = await getTaskByIdQuery(id, { userId, role }, tenant, userOrganizationId);
+  const existingTask = await getTaskByIdQuery(
+    id,
+    { userId, role },
+    tenant,
+    userOrganizationId
+  );
 
   if (!existingTask) {
-    throw new NotFoundException(
-      "Task not found or access denied",
-      "task",
-      id
-    );
+    throw new NotFoundException("Task not found or access denied", "task", id);
   }
 
   // Permission checks for specific fields
@@ -453,7 +534,11 @@ export const updateTaskByIdQuery = async (
   const isAssignee = assigneeCheck.length > 0;
 
   // Restrict who can update certain fields - only admin and creator can edit due_date and priority
-  if ((task.due_date !== undefined || task.priority !== undefined) && !isAdmin && !isCreator) {
+  if (
+    (task.due_date !== undefined || task.priority !== undefined) &&
+    !isAdmin &&
+    !isCreator
+  ) {
     throw new ForbiddenException(
       "Only admin and creator can update due_date and priority",
       "task",
@@ -481,9 +566,10 @@ export const updateTaskByIdQuery = async (
   ]
     .filter((f) => {
       if (task[f as keyof ITask] !== undefined) {
-        updateTask[f as keyof ITask] = f === "categories"
-          ? JSON.stringify(task[f as keyof ITask])
-          : task[f as keyof ITask];
+        updateTask[f as keyof ITask] =
+          f === "categories"
+            ? JSON.stringify(task[f as keyof ITask])
+            : task[f as keyof ITask];
         return true;
       }
     })
@@ -526,9 +612,9 @@ export const updateTaskByIdQuery = async (
 
     // Add new assignees if any
     if (assignees && assignees.length > 0) {
-      const assigneeValues = assignees.map((assigneeId, index) =>
-        `(:taskId, :assignee${index})`
-      ).join(', ');
+      const assigneeValues = assignees
+        .map((assigneeId, index) => `(:taskId, :assignee${index})`)
+        .join(", ");
 
       const assigneeReplacements: any = { taskId: id };
       assignees.forEach((assigneeId, index) => {
@@ -557,30 +643,45 @@ export const updateTaskByIdQuery = async (
         model: TaskAssigneesModel,
       }
     );
-    (updatedTask.dataValues as any)["assignees"] = existingAssignees.map((a: any) => a.user_id);
+    (updatedTask.dataValues as any)["assignees"] = existingAssignees.map(
+      (a: any) => a.user_id
+    );
   }
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
+      a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "task_updated") {
-      const creator_name = await sequelize.query(
+      const creator_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
         {
-          replacements: { creator_id: updatedTask.dataValues.creator_id }, transaction
+          replacements: { creator_id: updatedTask.dataValues.creator_id },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
-      const assignee_names = await sequelize.query(
+      )) as [{ full_name: string }[], number];
+      const assignee_names = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
         {
-          replacements: { assignee_ids: (updatedTask.dataValues as any)["assignees"] }, transaction
+          replacements: {
+            assignee_ids: (updatedTask.dataValues as any)["assignees"],
+          },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
@@ -588,20 +689,26 @@ export const updateTaskByIdQuery = async (
       const replacements = buildTaskUpdateReplacements(existingTask, {
         ...updatedTask.dataValues,
         creator_name: creator_name[0][0].full_name,
-        assignee_names: assignee_names[0].map(a => a.full_name).join(', ')
+        assignee_names: assignee_names[0].map((a) => a.full_name).join(", "),
       });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements)
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, processedParams);
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
 
@@ -615,7 +722,7 @@ export const deleteTaskByIdQuery = async (
     userId,
     role,
     transaction,
-    organizationId
+    organizationId,
   }: {
     id: number;
     userId: number;
@@ -625,7 +732,12 @@ export const deleteTaskByIdQuery = async (
   },
   tenant: string
 ): Promise<boolean> => {
-  const task = await getTaskByIdQuery(id, { userId, role }, tenant, organizationId);
+  const task = await getTaskByIdQuery(
+    id,
+    { userId, role },
+    tenant,
+    organizationId
+  );
 
   if (!task) {
     return false;
@@ -644,7 +756,7 @@ export const deleteTaskByIdQuery = async (
   }
 
   // Soft delete by setting status to DELETED
-  const result = await sequelize.query(
+  const result = (await sequelize.query(
     `UPDATE "${tenant}".tasks SET status = :status WHERE id = :id RETURNING *;`,
     {
       replacements: {
@@ -654,7 +766,7 @@ export const deleteTaskByIdQuery = async (
       // type: QueryTypes.UPDATE,
       transaction,
     }
-  ) as [TasksModel[], number];
+  )) as [TasksModel[], number];
   const deletedTask = result[0][0];
   const existingAssignees = await sequelize.query(
     `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
@@ -664,29 +776,42 @@ export const deleteTaskByIdQuery = async (
       model: TaskAssigneesModel,
     }
   );
-  (deletedTask as any)["assignees"] = existingAssignees.map((a: any) => a.user_id);
-  const automations = await sequelize.query(
+  (deletedTask as any)["assignees"] = existingAssignees.map(
+    (a: any) => a.user_id
+  );
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
+      a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "task_deleted") {
-      const creator_name = await sequelize.query(
+      const creator_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
         {
-          replacements: { creator_id: deletedTask.creator_id }, transaction
+          replacements: { creator_id: deletedTask.creator_id },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
-      const assignee_names = await sequelize.query(
+      )) as [{ full_name: string }[], number];
+      const assignee_names = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
         {
-          replacements: { assignee_ids: (deletedTask as any)["assignees"] }, transaction
+          replacements: { assignee_ids: (deletedTask as any)["assignees"] },
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
@@ -694,23 +819,28 @@ export const deleteTaskByIdQuery = async (
       const replacements = buildTaskReplacements({
         ...deletedTask,
         creator_name: creator_name[0][0].full_name,
-        assignee_names: assignee_names[0].map(a => a.full_name).join(', ')
+        assignee_names: assignee_names[0].map((a) => a.full_name).join(", "),
       });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements)
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
+        automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, processedParams);
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
 
   return true;
 };
-

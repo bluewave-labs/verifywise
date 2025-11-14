@@ -73,6 +73,8 @@ export async function insertMockData(
           owner: owner,
           start_date: new Date(Date.now()),
           geography: 1,
+          target_industry: "Technology",
+          description: "This is a project to ensure compliance with AI governance standards",
           ai_risk_classification: AiRiskClassification.HIGH_RISK,
           type_of_high_risk_role: HighRiskRole.DEPLOYER,
           goal: "To ensure compliance with AI governance standards",

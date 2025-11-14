@@ -1,10 +1,9 @@
-import { Suspense, useCallback, useEffect, useState, useMemo, ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import RisksCard from "../Cards/RisksCard";
 import RiskVisualizationTabs from "../RiskVisualization/RiskVisualizationTabs";
 import RiskFilters from "../RiskVisualization/RiskFilters";
 import VWProjectRisksTable from "../Table/VWProjectRisksTable";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../AddNewRiskForm";
 import Popup from "../Popup";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -13,50 +12,25 @@ import { deleteEntityById } from "../../../application/repository/entity.reposit
 import CustomizableToast from "../Toast";
 import CustomizableSkeleton from "../Skeletons";
 import useUsers from "../../../application/hooks/useUsers";
+import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
+import { IFilterState } from "../../../domain/interfaces/i.filter";
+import { IRiskLoadingStatus, IRisksViewProps } from "../../../domain/interfaces/i.risk";
 
-const TITLE_OF_COLUMNS = [
-  "RISK NAME",
-  "OWNER",
-  "SEVERITY",
-  "LIKELIHOOD",
-  "MITIGATION STATUS",
-  "RISK LEVEL",
-  "TARGET DATE",
-  "Linked controls",
-  "",
-];
-
-interface LoadingStatus {
-  loading: boolean;
-  message: string;
-}
-
-const initialLoadingState: LoadingStatus = {
+const initialLoadingState: IRiskLoadingStatus = {
   loading: false,
   message: "",
 };
-
-interface RisksViewProps {
-  // Function to fetch risks - should return Promise<ProjectRisk[]>
-  fetchRisks: (filter?: string) => Promise<ProjectRisk[]>;
-  // Title to display above the risks table
-  title: string;
-  // Optional header content (e.g., framework toggle)
-  headerContent?: ReactNode;
-  // Refresh key for forcing re-fetches
-  refreshTrigger?: number;
-}
 
 const RisksView = ({
   fetchRisks,
   title,
   headerContent,
   refreshTrigger,
-}: RisksViewProps) => {
+}: IRisksViewProps) => {
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
+  const [projectRisks, setProjectRisks] = useState<RiskModel[]>([]);
+  const [selectedRow, setSelectedRow] = useState<RiskModel[]>([]);
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -64,13 +38,13 @@ const RisksView = ({
     body: string;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [isLoading, setIsLoading] = useState<LoadingStatus>(initialLoadingState);
+  const [isLoading, setIsLoading] = useState<IRiskLoadingStatus>(initialLoadingState);
   const [showCustomizableSkeleton, setShowCustomizableSkeleton] = useState<boolean>(false);
 
   // New state for enhanced risk visualization
-  const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
-  const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const [selectedRisk, setSelectedRisk] = useState<RiskModel | null>(null);
+  const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
+  const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -142,12 +116,12 @@ const RisksView = ({
     setAnchor(null);
   };
 
-  const handleError = (errorMessage: any) => {
+  const handleError = (errorMessage: string) => {
     setIsLoading(initialLoadingState);
     handleToast("error", errorMessage);
   };
 
-  const handleToast = (type: any, message: string) => {
+  const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
     handleAlert({
       variant: type,
       body: message,
@@ -165,8 +139,8 @@ const RisksView = ({
         routeUrl: `/projectRisks/${riskId}`,
       });
       if (response.status === 200) {
-        let rowsPerPage = 5;
-        let rowCount = projectRisks.slice(
+        const rowsPerPage = 5;
+        const rowCount = projectRisks.slice(
           currentPage * rowsPerPage,
           currentPage * rowsPerPage + rowsPerPage
         );
@@ -198,11 +172,11 @@ const RisksView = ({
     setCurrentPage(page);
   };
 
-  const handleRiskSelect = (risk: ProjectRisk) => {
+  const handleRiskSelect = (risk: RiskModel) => {
     setSelectedRisk(risk);
   };
 
-  const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
+  const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
 
@@ -268,13 +242,12 @@ const RisksView = ({
             <CustomizableSkeleton variant="rectangular" width="100%" height={200} />
           ) : (
             <VWProjectRisksTable
-              columns={TITLE_OF_COLUMNS}
               rows={projectRisks}
               setPage={setCurrentPagingation}
               page={currentPage}
-              setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+              setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
               setAnchor={setAnchor}
-              deleteRisk={handleDelete}
+              onDeleteRisk={handleDelete}
               flashRow={null}
             />
           )}

@@ -445,7 +445,7 @@ const VWISO42001AnnexDrawerDialog = ({
               />
               <Checkbox
                 id={`${control?.id}-iso-42001-not-applicable`}
-                label="Not Applicable"
+                label="Not applicable"
                 isChecked={!formData.is_applicable}
                 value={"Not Applicable"}
                 onChange={() =>
@@ -626,7 +626,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onClick={() => setIsLinkedRisksModalOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove risks
+              Add/remove risks
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

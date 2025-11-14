@@ -19,7 +19,7 @@ import {
 
 const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
     "card"
@@ -92,10 +92,12 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
       });
     }
 
-    // Apply search filter last
+    // Apply search filter last 
+    // Search by project title or uc_id
     if (searchTerm) {
       result = result.filter((p) =>
-        p.project_title.toLowerCase().includes(searchTerm.toLowerCase())
+        p.project_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.uc_id && p.uc_id.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -203,7 +205,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
             <>
               <Select
                 id="risk-level-filter"
-                label="Risk Level"
+                label="Risk level"
                 value={filters.riskLevel}
                 items={[
                   { _id: "all", name: "All Levels" },

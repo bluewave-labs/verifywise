@@ -8,7 +8,7 @@ module.exports = {
     try {
       const queries = [
         // Create file_manager table for organization-wide file storage
-        (tenantHash) => `CREATE TABLE "${tenantHash}".file_manager (
+        (tenantHash) => `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_manager (
           id SERIAL PRIMARY KEY,
           filename VARCHAR(255) NOT NULL,
           size BIGINT NOT NULL,
@@ -22,7 +22,7 @@ module.exports = {
         );`,
 
         // Create file_access_logs table for audit trail
-        (tenantHash) => `CREATE TABLE "${tenantHash}".file_access_logs (
+        (tenantHash) => `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_access_logs (
           id SERIAL PRIMARY KEY,
           file_id INTEGER NOT NULL REFERENCES "${tenantHash}".file_manager(id) ON DELETE CASCADE,
           accessed_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -32,12 +32,12 @@ module.exports = {
         );`,
 
         // Create indexes for better query performance
-        (tenantHash) => `CREATE INDEX idx_file_manager_org_id ON "${tenantHash}".file_manager(org_id);`,
-        (tenantHash) => `CREATE INDEX idx_file_manager_uploaded_by ON "${tenantHash}".file_manager(uploaded_by);`,
-        (tenantHash) => `CREATE INDEX idx_file_manager_upload_date ON "${tenantHash}".file_manager(upload_date DESC);`,
-        (tenantHash) => `CREATE INDEX idx_file_access_logs_file_id ON "${tenantHash}".file_access_logs(file_id);`,
-        (tenantHash) => `CREATE INDEX idx_file_access_logs_accessed_by ON "${tenantHash}".file_access_logs(accessed_by);`,
-        (tenantHash) => `CREATE INDEX idx_file_access_logs_access_date ON "${tenantHash}".file_access_logs(access_date DESC);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_manager_org_id ON "${tenantHash}".file_manager(org_id);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_manager_uploaded_by ON "${tenantHash}".file_manager(uploaded_by);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_manager_upload_date ON "${tenantHash}".file_manager(upload_date DESC);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_access_logs_file_id ON "${tenantHash}".file_access_logs(file_id);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_access_logs_accessed_by ON "${tenantHash}".file_access_logs(accessed_by);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS idx_file_access_logs_access_date ON "${tenantHash}".file_access_logs(access_date DESC);`,
       ];
 
       const organizations = await queryInterface.sequelize.query(

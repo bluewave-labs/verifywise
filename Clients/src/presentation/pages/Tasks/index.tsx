@@ -439,7 +439,7 @@ const Tasks: React.FC = () => {
                   sx={{ width: 160 }}
                 />
 
-                <Stack direction="column" spacing={1} sx={{ width: 300 }} data-joyride-id="task-search">
+                <Stack direction="column" spacing={2} sx={{ width: 300 }} data-joyride-id="task-search">
                   <Typography
                     component="p"
                     variant="body1"
@@ -455,6 +455,7 @@ const Tasks: React.FC = () => {
                     value={searchQuery}
                     onChange={setSearchQuery}
                     inputProps={{ "aria-label": "Search tasks" }}
+                    fullWidth={false}
                   />
                 </Stack>
 
@@ -537,7 +538,7 @@ const Tasks: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <DualButtonModal
-        title="Archive Task"
+        title="Archive task"
         body={
           <Typography fontSize={13}>
             Are you sure you want to archive "{taskToDelete?.title}"? You can

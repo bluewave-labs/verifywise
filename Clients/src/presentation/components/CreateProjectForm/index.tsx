@@ -28,7 +28,7 @@ import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
-import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+// import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { usePostHog } from "../../../application/hooks/usePostHog";
@@ -38,6 +38,8 @@ import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
+import { getAutocompleteStyles } from "../../utils/inputStyles";
+import { CreateProjectFormUserModel } from "../../../domain/models/Common/user/user.model";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -333,7 +335,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUser[]) => {
+      (_event: React.SyntheticEvent, newValue: CreateProjectFormUserModel[]) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
@@ -443,7 +445,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                           name: user.name,
                           surname: user.surname,
                           email: user.email,
-                        } satisfies CreateProjectFormUser)
+                        } satisfies CreateProjectFormUserModel)
                     ) || []
                 }
                 noOptionsText={
@@ -478,12 +480,15 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select Users"
+                    placeholder="Select users"
                     error={memberRequired}
                     sx={createProjectFormStyles.autocompleteTextField}
                   />
                 )}
-                sx={createProjectFormStyles.autocompleteContainer(theme)}
+                sx={{
+                  ...getAutocompleteStyles(theme, { hasError: memberRequired }),
+                  ...createProjectFormStyles.autocompleteContainer(theme),
+                }}
                 slotProps={createProjectFormStyles.autocompleteSlotProps}
               />
               {memberRequired && (

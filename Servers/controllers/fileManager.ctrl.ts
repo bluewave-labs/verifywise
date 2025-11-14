@@ -102,6 +102,12 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
 
     try {
         const file = req.file as Express.Multer.File;
+        // Parse model_id from request body
+        let modelId: number | undefined;
+        if (req.body.model_id != null && req.body.model_id !== "") {
+          const parsed = Number(req.body.model_id);
+          if (!isNaN(parsed)) modelId = parsed;
+        }      
 
         if (!file) {
             await logFailure({
@@ -139,8 +145,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
             return res.status(400).json(STATUS_CODE[400](validation.error));
         }
 
-        // Upload file (stores file.buffer in database)
-        const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant);
+        // Upload file (this will move it from temp to permanent location)
+        const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant, modelId);
 
         await logSuccess({
             eventType: "Create",
@@ -159,6 +165,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
                 mimetype: uploadedFile.mimetype,
                 upload_date: uploadedFile.upload_date,
                 uploaded_by: uploadedFile.uploaded_by,
+                modelId: uploadedFile.model_id
             })
         );
     } catch (error) {
@@ -281,6 +288,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     }
 
     const fileId = parseInt(req.params.id, 10);
+    const isFileManagerFile = req.query.isFileManagerFile === "true";
 
     // Validate parsed file ID is a safe integer
     if (!Number.isSafeInteger(fileId)) {
@@ -303,7 +311,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
 
     try {
         // Get file metadata
-        const file = await getFileById(fileId, tenant);
+        const file = await getFileById(fileId, tenant, isFileManagerFile);
 
         if (!file) {
             await logFailure({
@@ -396,6 +404,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     }
 
     const fileId = parseInt(req.params.id, 10);
+    const isFileManagerFile = req.query.isFileManagerFile === "true";
 
     // Validate parsed file ID is a safe integer
     if (!Number.isSafeInteger(fileId)) {
@@ -432,7 +441,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
 
     try {
         // Get file metadata to verify access
-        const file = await getFileById(fileId, tenant);
+        const file = await getFileById(fileId, tenant, isFileManagerFile);
 
         if (!file) {
             await logFailure({
@@ -464,7 +473,7 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
         // Delete the file from database
         let deleted: boolean;
         try {
-            deleted = await deleteFile(fileId, tenant);
+            deleted = await deleteFile(fileId, tenant, isFileManagerFile);
         } catch (error: any) {
             // Handle partial deletion failure (DB deleted but disk failed)
             if (error.message?.includes("Partial deletion")) {

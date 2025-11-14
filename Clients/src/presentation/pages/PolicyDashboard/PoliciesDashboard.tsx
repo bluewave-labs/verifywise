@@ -5,11 +5,8 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import {
   Box,
   Stack,
-  IconButton,
-  InputBase,
   SelectChangeEvent,
 } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import HelperDrawer from "../../components/HelperDrawer";
@@ -24,8 +21,8 @@ import {
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EmptyState from "../../components/EmptyState";
 import PolicyStatusCard from "./PolicyStatusCard";
-import { searchBoxStyle, inputStyle } from "./style";
 import Select from "../../components/Inputs/Select";
+import { SearchBox } from "../../components/Search";
 import PageHeader from "../../components/Layout/PageHeader";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
@@ -44,7 +41,6 @@ const PolicyDashboard: React.FC = () => {
   // New state for filter + search
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
@@ -229,29 +225,14 @@ const PolicyDashboard: React.FC = () => {
               />
             </div>
 
-            {/* Expandable Search */}
-            <Box sx={searchBoxStyle(isSearchBarVisible)} data-joyride-id="policy-search">
-              <IconButton
-                disableRipple
-                disableFocusRipple
-                sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                aria-label="Toggle policy search"
-                aria-expanded={isSearchBarVisible}
-                onClick={() => setIsSearchBarVisible((prev) => !prev)}
-              >
-                <SearchIcon size={16} />
-              </IconButton>
-
-              {isSearchBarVisible && (
-                <InputBase
-                  autoFocus
-                  placeholder="Search policies..."
-                  inputProps={{ "aria-label": "Search policies" }}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={inputStyle(isSearchBarVisible)}
-                />
-              )}
+            {/* Search */}
+            <Box sx={{ width: 300 }} data-joyride-id="policy-search">
+              <SearchBox
+                placeholder="Search policies..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search policies" }}
+              />
             </Box>
           </Stack>
 
@@ -264,7 +245,6 @@ const PolicyDashboard: React.FC = () => {
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 3,
-                height: "fit-content",
               }}
               icon={<AddCircleOutlineIcon size={16} />}
               onClick={handleAddNewPolicy}

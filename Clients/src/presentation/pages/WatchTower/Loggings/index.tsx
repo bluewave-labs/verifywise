@@ -10,7 +10,7 @@ import {
 import { useState, useEffect } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
 import LogLine from "../../../components/LogLine";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
+import EmptyState from "../../../components/EmptyState";
 import { RefreshCw as RefreshIcon } from "lucide-react";
 
 const WatchTowerLogs = () => {
@@ -207,23 +207,7 @@ const WatchTowerLogs = () => {
           </Box>
         </Paper>
       ) : !error ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There are currently no logs available.
-          </Typography>
-        </Stack>
+        <EmptyState message="There are currently no logs available." />
       ) : null}
     </Stack>
   );

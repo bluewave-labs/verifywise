@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import { UserDateFormat } from "../../domain/enums/userDateFormat.enum";
+
 /**
  * Converts an ISO date string to a formatted date string.
  *
@@ -19,6 +22,33 @@ export function formatDate(isoDate: string): string {
   return `${day} ${month} ${year}`;
 }
 
+/**
+ * Converts an ISO date string to a formatted date string based on the user preference.
+ *
+ * @param {string} isoDate - The ISO date string to be converted.
+ * @returns {string} The formatted date string in the format (default: DD-MM-YYYY).
+ */
+export const displayFormattedDate = (isoDate: string): string => {
+  
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}/.test(isoDate)) {
+    console.warn("Invalid ISO date format:", isoDate);
+    return isoDate;
+  }
+
+  let dateFormat = UserDateFormat.DD_MM_YYYY_DASH;
+  try {
+    const preference = localStorage.getItem("verifywise_preferences");
+    if (preference) {
+      const parsed = JSON.parse(preference);
+      dateFormat = parsed.date_format || UserDateFormat.DD_MM_YYYY_DASH;
+    }
+  } catch (error) {
+    console.warn("Failed to read date format preference, using default:", error);
+  }
+
+  const formattedDate = dayjs(isoDate).format(dateFormat);
+  return formattedDate;
+}
 /**
  * Converts an ISO date string to a formatted date and time string.
  *

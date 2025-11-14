@@ -208,7 +208,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           }}
         >
           <CustomizableButton
-            text="Create Demo Data"
+            text="Create demo data"
             onClick={handleOpenOrCloseDemoDataModal}
           />
           <Suspense fallback={<div>Loading...</div>}>

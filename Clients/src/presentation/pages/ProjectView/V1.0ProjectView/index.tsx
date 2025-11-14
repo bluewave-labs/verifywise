@@ -1,11 +1,9 @@
-import { Box, Stack, Tab, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import {
   projectViewHeaderDesc,
   projectViewHeaderTitle,
   tabPanelStyle,
-  tabStyle,
 } from "./style";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { SyntheticEvent, useState, useEffect, useMemo } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -24,6 +22,9 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
 import { FileText as FileTextIcon } from "lucide-react";
+import TabBar from "../../../components/TabBar";
+import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 
 const VWProjectView = () => {
   const { userRoleName } = useAuth();
@@ -40,6 +41,12 @@ const VWProjectView = () => {
     message: "",
     visible: false,
   });
+
+  // State for tab counts
+  const [projectRisksCount, setProjectRisksCount] = useState<number>(0);
+  const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
+  const [isLoadingRisks, setIsLoadingRisks] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   // Create custom breadcrumb items
   const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
@@ -75,6 +82,47 @@ const VWProjectView = () => {
       setValue(tabParam);
     }
   }, [tabParam]);
+
+  // Fetch project risks count
+  useEffect(() => {
+    const fetchRisksCount = async () => {
+      if (!projectId) return;
+      setIsLoadingRisks(true);
+      try {
+        const response = await getAllProjectRisksByProjectId({
+          projectId: String(projectId),
+          filter: "active",
+        });
+        setProjectRisksCount(response.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching project risks count:", error);
+        setProjectRisksCount(0);
+      } finally {
+        setIsLoadingRisks(false);
+      }
+    };
+    fetchRisksCount();
+  }, [projectId, refreshKey]);
+
+  // Fetch linked models count
+  useEffect(() => {
+    const fetchLinkedModelsCount = async () => {
+      if (!projectId) return;
+      setIsLoadingModels(true);
+      try {
+        const response = await getAllEntities({
+          routeUrl: `/modelInventory/by-projectId/${projectId}`,
+        });
+        setLinkedModelsCount(response.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching linked models count:", error);
+        setLinkedModelsCount(0);
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+    fetchLinkedModelsCount();
+  }, [projectId, refreshKey]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     if (tabParam) {
@@ -127,48 +175,43 @@ const VWProjectView = () => {
       </Stack>
       <Stack className="vw-project-view-body">
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-              }}
-            >
-              <Tab
-                sx={tabStyle}
-                label="Overview"
-                value="overview"
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label="Use case risks"
-                value="project-risks"
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label="Linked models"
-                value="linked-models"
-                disableRipple
-              />
-              <Tab
-                label="Frameworks/regulations"
-                value="frameworks"
-                sx={tabStyle}
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label="Settings"
-                value="settings"
-                disableRipple
-                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-              />
-            </TabList>
-          </Box>
+          <TabBar
+            tabs={[
+              {
+                label: "Overview",
+                value: "overview",
+                icon: "LayoutDashboard",
+              },
+              {
+                label: "Use case risks",
+                value: "project-risks",
+                icon: "AlertTriangle",
+                count: projectRisksCount,
+                isLoading: isLoadingRisks,
+              },
+              {
+                label: "Linked models",
+                value: "linked-models",
+                icon: "Box",
+                count: linkedModelsCount,
+                isLoading: isLoadingModels,
+              },
+              {
+                label: "Frameworks/regulations",
+                value: "frameworks",
+                icon: "Shield",
+              },
+              {
+                label: "Settings",
+                value: "settings",
+                icon: "Settings",
+                disabled: !allowedRoles.projects.edit.includes(userRoleName),
+              },
+            ]}
+            activeTab={value}
+            onChange={handleChange}
+          />
+
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
               <VWProjectOverview project={project} />

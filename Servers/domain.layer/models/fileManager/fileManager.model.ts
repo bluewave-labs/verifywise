@@ -44,6 +44,7 @@ export interface FileManager {
   upload_date: Date;
   org_id: number;
   is_demo?: boolean;
+  model_id?: number;
 }
 
 export interface FileManagerMetadata {
@@ -106,6 +107,12 @@ export class FileManagerModel extends Model<FileManager> {
     defaultValue: DataType.NOW,
   })
   upload_date!: Date;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true, // nullable for now
+  })
+  model_id!: number;
 
   @ForeignKey(() => OrganizationModel)
   @Column({

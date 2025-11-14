@@ -5,6 +5,7 @@ import { IProjectFramework } from "./i.projectFramework";
 
 export interface IProjectAttributes {
   id?: number;
+  uc_id?: string;
   project_title: string;
   owner: number;
   start_date: Date;
@@ -12,6 +13,8 @@ export interface IProjectAttributes {
   ai_risk_classification: AiRiskClassification;
   type_of_high_risk_role: HighRiskRole;
   goal: string;
+  target_industry: string;
+  description: string;
   last_updated: Date;
   last_updated_by: number;
   created_at?: Date;

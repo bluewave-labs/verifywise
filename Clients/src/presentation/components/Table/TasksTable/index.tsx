@@ -6,6 +6,7 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
+  TableHead,
   useTheme,
   Stack,
   Typography,
@@ -14,18 +15,41 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
+import EmptyState from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
-import TableHeader from "../TableHead";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
-import IconButton from "../../IconButton";
-import RiskChip from "../../RiskLevel/RiskChip";
+import IconButtonComponent from "../../IconButton";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
+
+// Priority badge styles (compact version similar to Model Inventory StatusBadge)
+const priorityBadgeStyle = (priority: string) => {
+  const priorityStyles = {
+    High: { bg: "#FFD6D6", color: "#D32F2F" },
+    Medium: { bg: "#FFE5D0", color: "#E64A19" },
+    Low: { bg: "#FFF8E1", color: "#795548" },
+  };
+
+  const style = priorityStyles[priority as keyof typeof priorityStyles] || {
+    bg: "#E0E0E0",
+    color: "#424242",
+  };
+
+  return {
+    backgroundColor: style.bg,
+    color: style.color,
+    padding: "4px 8px",
+    borderRadius: "4px",
+    fontWeight: 500,
+    fontSize: 11,
+    textTransform: "uppercase" as const,
+    display: "inline-block" as const,
+  };
+};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -50,15 +74,107 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
 };
 
 const titleOfTableColumns = [
-  "Task",
-  "Priority",
-  "Status",
-  "Due date",
-  "Assignees",
-  "Actions",
+  { id: "title", label: "Task", sortable: true },
+  { id: "priority", label: "Priority", sortable: true },
+  { id: "status", label: "Status", sortable: true },
+  { id: "due_date", label: "Due date", sortable: true },
+  { id: "assignees", label: "Assignees", sortable: false },
+  { id: "actions", label: "Actions", sortable: false },
 ];
 
 const TASKS_ROWS_PER_PAGE_KEY = "verifywise_tasks_rows_per_page";
+const TASKS_SORTING_KEY = "verifywise_tasks_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
+// Sortable Table Header Component
+const SortableTableHeader: React.FC<{
+  columns: typeof titleOfTableColumns;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+}> = ({ columns, sortConfig, onSort }) => {
+  const theme = useTheme();
+
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column, index) => (
+          <TableCell
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              ...(index === columns.length - 1
+                ? {
+                    position: "sticky",
+                    right: 0,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }
+                : {}),
+              ...(column.sortable
+                ? {
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    },
+                  }
+                : {}),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: theme.spacing(2),
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
+                </Box>
+              )}
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+};
 
 const TasksTable: React.FC<ITasksTableProps> = ({
   tasks,
@@ -79,12 +195,108 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     return saved ? parseInt(saved, 10) : 10;
   });
 
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(TASKS_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
   // Save rowsPerPage to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
   }, [rowsPerPage]);
 
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(TASKS_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  // Sorting handlers
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Sort the tasks based on current sort configuration
+  const sortedTasks = useMemo(() => {
+    if (!tasks || !sortConfig.key || !sortConfig.direction) {
+      return tasks || [];
+    }
+
+    // Priority order for sorting
+    const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+
+    // Status order for sorting
+    const statusOrder = {
+      [TaskStatus.OPEN]: 1,
+      [TaskStatus.IN_PROGRESS]: 2,
+      [TaskStatus.COMPLETED]: 3,
+      [TaskStatus.OVERDUE]: 4,
+      [TaskStatus.DELETED]: 5,
+    };
+
+    const sortableTasks = [...tasks];
+
+    return sortableTasks.sort((a: TaskModel, b: TaskModel) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortConfig.key) {
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+
+        case "priority":
+          aValue = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          bValue = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          break;
+
+        case "status":
+          aValue = statusOrder[a.status as keyof typeof statusOrder] || 0;
+          bValue = statusOrder[b.status as keyof typeof statusOrder] || 0;
+          break;
+
+        case "due_date":
+          aValue = a.due_date ? new Date(a.due_date).getTime() : 0;
+          bValue = b.due_date ? new Date(b.due_date).getTime() : 0;
+          break;
+
+        default:
+          return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [tasks, sortConfig]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -100,15 +312,18 @@ const TasksTable: React.FC<ITasksTableProps> = ({
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, tasks?.length ?? 0);
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      sortedTasks?.length ?? 0
+    );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, tasks?.length]);
+  }, [page, rowsPerPage, sortedTasks?.length]);
 
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {tasks &&
-          tasks
+        {sortedTasks &&
+          sortedTasks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((task: TaskModel) => (
               <TableRow
@@ -123,7 +338,13 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 onClick={() => onRowClick?.(task)}
               >
                 {/* Task Name */}
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor:
+                      sortConfig.key === "title" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
                   <Box>
                     <Typography
                       variant="body2"
@@ -166,12 +387,27 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Priority */}
-                <TableCell sx={cellStyle}>
-                  <RiskChip label={task.priority} />
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "priority" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  <Box component="span" sx={priorityBadgeStyle(task.priority)}>
+                    {task.priority}
+                  </Box>
                 </TableCell>
 
                 {/* Status */}
-                <TableCell sx={cellStyle} onClick={(e) => e.stopPropagation()}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <CustomSelect
                     currentValue={
                       STATUS_DISPLAY_MAP[task.status] || task.status
@@ -188,7 +424,13 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Due Date */}
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "due_date" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {task.due_date ? (
                     <Stack direction="row" spacing={3} alignItems="center">
                       <Typography
@@ -205,7 +447,11 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           year: "numeric",
                         })}
                       </Typography>
-                      {task.isOverdue && <RiskChip label="Overdue" />}
+                      {task.isOverdue && (
+                        <Box component="span" sx={priorityBadgeStyle("High")}>
+                          OVERDUE
+                        </Box>
+                      )}
                     </Stack>
                   ) : (
                     <Typography
@@ -219,7 +465,13 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 </TableCell>
 
                 {/* Assignees */}
-                <TableCell sx={cellStyle}>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor:
+                      sortConfig.key === "assignees" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   {task.assignees && task.assignees.length > 0 ? (
                     <Stack direction="row" spacing={0.5}>
                       {task.assignees.slice(0, 3).map((assigneeId, idx) => {
@@ -294,7 +546,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <IconButton
+                  <IconButtonComponent
                     id={task.id!}
                     onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
@@ -308,33 +560,36 @@ const TasksTable: React.FC<ITasksTableProps> = ({
             ))}
       </TableBody>
     ),
-    [tasks, page, rowsPerPage, cellStyle, statusOptions, isUpdateDisabled, onRowClick, onStatusChange, users, onArchive, onEdit]
+    [
+      sortedTasks,
+      page,
+      rowsPerPage,
+      cellStyle,
+      statusOptions,
+      isUpdateDisabled,
+      onRowClick,
+      onStatusChange,
+      users,
+      onArchive,
+      onEdit,
+    ]
   );
 
   return (
     <>
-      {!tasks || tasks.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: 13, color: "#475467" }}>
-            There is currently no data in this table.
-          </Typography>
-        </Stack>
+      {!sortedTasks || sortedTasks.length === 0 ? (
+        <EmptyState
+          message="There is currently no data in this table."
+          showBorder
+        />
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
-            <TableHeader columns={titleOfTableColumns} />
+            <SortableTableHeader
+              columns={titleOfTableColumns}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
             {tableBody}
             <TableFooter>
               <TableRow
@@ -352,10 +607,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     opacity: 0.7,
                   }}
                 >
-                  Showing {getRange} of {tasks?.length} task(s)
+                  Showing {getRange} of {sortedTasks?.length} task(s)
                 </TableCell>
                 <TablePagination
-                  count={tasks?.length}
+                  count={sortedTasks?.length}
                   page={page}
                   onPageChange={handleChangePage}
                   rowsPerPage={rowsPerPage}

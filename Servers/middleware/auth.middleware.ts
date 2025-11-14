@@ -40,7 +40,7 @@ import { asyncLocalStorage } from '../utils/context/context';
  *
  * @constant
  */
-const roleMap = new Map([
+export const roleMap = new Map([
   [1, "Admin"],
   [2, "Reviewer"],
   [3, "Editor"],

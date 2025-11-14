@@ -13,7 +13,7 @@ import {
   TableFooter,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
 import singleTheme from "../../themes/v1SingleTheme";
 import IconButton from "../../components/IconButton";
 import TablePaginationActions from "../../components/TablePagination";
@@ -166,7 +166,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                 }}
                 onClick={() => onEdit(row.id!)}
               >
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: "#fafafa",
+                }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
                   </Typography>
@@ -273,23 +276,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
     <>
       {/* Empty state outside the table */}
       {!data || data.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            padding: theme.spacing(15, 5),
-            paddingBottom: theme.spacing(20),
-            gap: theme.spacing(10),
-            minHeight: 200,
-          }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-            There are currently no model risks in this table.
-          </Typography>
-        </Stack>
+        <EmptyState message="There are currently no model risks in this table." />
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

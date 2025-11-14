@@ -31,6 +31,7 @@ import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
@@ -282,6 +283,8 @@ const Framework = () => {
   const [reviewerFilter, setReviewerFilter] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
+
   // Status options following ProjectFrameworks pattern for ISO27001
   const iso27001StatusOptions = [
     { value: "not started", label: "Not Started" },
@@ -475,6 +478,27 @@ const Framework = () => {
       navigate(`/framework/${newValue}`);
     }
   };
+
+  useEffect(() => {
+    const getLinkedModelCount = async() => {
+      if (filteredFrameworks.length === 0) return;
+
+      const framework = filteredFrameworks[selectedFramework];
+      if (!framework) return;
+      const frameworkId = framework?.id;
+
+      const response = await getAllEntities({
+        routeUrl: `/modelInventory/by-frameworkId/${frameworkId}`,
+      });
+
+      if (response && response.data) {
+        setLinkedModelsCount(response.data.length);
+      }
+    };
+
+    getLinkedModelCount();
+
+  }, [filteredFrameworks, selectedFramework]);
 
   const renderFrameworkContent = () => {
     if (loading) {
@@ -1188,6 +1212,7 @@ const Framework = () => {
                   label: "Linked models",
                   value: "linked-models",
                   icon: "Link",
+                  count: linkedModelsCount,
                 },
                 {
                   label: "Controls and Requirements",

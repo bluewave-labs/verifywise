@@ -140,11 +140,13 @@ export async function uploadFileToManager({
 export async function downloadFileFromManager({
   id,
   signal,
+  source,
 }: {
   id: string;
   signal?: AbortSignal;
+  source?: string;
 }): Promise<Blob> {
-  const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
     signal,
     responseType: "blob",
   });
@@ -162,11 +164,13 @@ export async function downloadFileFromManager({
 export async function deleteFileFromManager({
   id,
   signal,
+  source,
 }: {
   id: string;
   signal?: AbortSignal;
+  source?: string;
 }): Promise<any> {
-  const response = await apiServices.delete<any>(`/file-manager/${id}`, {
+  const response = await apiServices.delete<any>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
     signal,
   });
   return response.data;

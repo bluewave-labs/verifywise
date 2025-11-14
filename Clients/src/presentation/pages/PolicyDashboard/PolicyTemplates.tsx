@@ -35,8 +35,8 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import { ChevronsUpDown } from "lucide-react";
 
 const TITLE_OF_COLUMNS = [
-  { col: "ID", width: 50 },
-  { col: "TITLE", width: 150 },
+  { col: "ID", width: 100 },
+  { col: "TITLE", width: 200 },
   { col: "TAGS", width: 250 },
   { col: "DESCRIPTION", width: 600 },
 ];
@@ -194,6 +194,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                         top: 0,
                         zIndex: 1,
                         minWidth: column.width,
+                        width: column.col === 'ID' ? column.width : 'auto',
                       }}
                     >
                       {column.col}
@@ -223,17 +224,9 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                       onClick={() => handleSelectPolicyTemplate(policy.id)}
                       sx={{
                         cursor: "pointer",
-                        backgroundColor:
-                          selectedId === policy.id
-                            ? theme.palette.action.selected
-                            : "inherit",
+                        backgroundColor: "inherit",
                         "&:hover": {
                           backgroundColor: theme.palette.action.hover,
-                        },
-                        "&:focus": {
-                          backgroundColor: theme.palette.action.focus,
-                          outline: `2px solid ${theme.palette.primary.main}`,
-                          outlineOffset: -2,
                         },
                         verticalAlign: "initial",
                       }}
@@ -301,6 +294,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                       fontSize: 12,
                       opacity: 0.7,
                     }}
+                    colSpan={3}
                   >
                     Showing {page * rowsPerPage + 1} -{" "}
                     {Math.min(

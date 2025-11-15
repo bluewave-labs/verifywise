@@ -9,11 +9,8 @@ import { useSubscriptionManagement } from "../../../../application/hooks/useSubs
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-  
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CloseIcon from '@mui/icons-material/Close';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
+import { CheckCircle, X, ArrowRight, Info } from 'lucide-react';
 import { getAllTiers } from "../../../../application/repository/tiers.repository";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 
@@ -278,9 +275,9 @@ const Subscription: React.FC = () => {
   const renderFeatureValue = (value: boolean | string) => {
     if (typeof value === 'boolean') {
       return value ? (
-        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 20 }} />
+        <CheckCircle size={20} color="#2e7d32" />
       ) : (
-        <CloseIcon sx={{ color: 'action.disabled', fontSize: 20 }} />
+        <X size={20} color="rgba(0, 0, 0, 0.26)" />
       );
     }
     return (
@@ -552,7 +549,7 @@ const Subscription: React.FC = () => {
                                 size="medium"
                                 onClick={() => handleSubscribe(tier.id)}
                                 disabled={organizationTierId === tier.id}
-                                endIcon={<ArrowForwardIcon />}
+                                endIcon={<ArrowRight size={18} />}
                                 disableRipple={true}
                                 sx={{
                                   bgcolor: 'primary.main',
@@ -606,13 +603,12 @@ const Subscription: React.FC = () => {
                                     }
                                   }}
                                 >
-                                  <InfoOutlinedIcon
-                                    sx={{
-                                      fontSize: 16,
-                                      color: 'text.secondary',
-                                      cursor: 'help'
-                                    }}
-                                  />
+                                  <div style={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+                                    <Info
+                                      size={16}
+                                      color="rgba(0, 0, 0, 0.6)"
+                                    />
+                                  </div>
                                 </Tooltip>
                               )}
                             </Box>

@@ -100,6 +100,7 @@ const FileManager: React.FC = (): JSX.Element => {
       setLoadingFiles(true);
       const response = await getUserFilesMetaData();
       setFilesData(transformFilesData(response));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
       //  includes user ID/email/name which violates GDPR/compliance

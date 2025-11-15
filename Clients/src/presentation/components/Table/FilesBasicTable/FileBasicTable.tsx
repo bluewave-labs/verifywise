@@ -317,9 +317,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
 
   // Create delete handler for a specific file
   const createDeleteHandler = useCallback(
-    (fileId: string) => async () => {
+    (fileId: string, source?: string) => async () => {
       try {
-        await deleteFileFromManager({ id: fileId });
+        await deleteFileFromManager({ id: fileId, source });
         // After successful delete, refresh the list
         if (onFileDeleted) {
           onFileDeleted();
@@ -421,8 +421,8 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     id={Number(row.id)}
                     type="report"
                     onEdit={() => {}}
-                    onDownload={() => handleDownload(row.id, row.fileName)}
-                    onDelete={createDeleteHandler(row.id)}
+                    onDownload={() => handleDownload(row.id, row.fileName, row.source)}
+                    onDelete={createDeleteHandler(row.id, row.source)}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}

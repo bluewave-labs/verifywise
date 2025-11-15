@@ -19,10 +19,11 @@ interface GenerateReportProps {
  * @param fileName - The name to save the file as
  * @throws Error if download fails
  */
-export const handleDownload = async (fileId: string, fileName: string): Promise<void> => {
+export const handleDownload = async (fileId: string, fileName: string, source?: string): Promise<void> => {
   try {
    const response = await downloadFileFromManager({
       id: typeof fileId === 'string' ? fileId : String(fileId),
+      source,
     });
     const blob = new Blob([response], { type: response.type });
     const url = window.URL.createObjectURL(blob);

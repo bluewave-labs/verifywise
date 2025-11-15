@@ -1,12 +1,10 @@
 import {
   Box,
   Button,
-  Divider,
   Stack,
   Tab,
   Tabs,
   Typography,
-  useTheme,
 } from "@mui/material";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useEffect } from "react";
@@ -60,7 +58,6 @@ const NewControlPane = ({
   onComplianceUpdate?: () => void;
   projectId: number;
 }) => {
-  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [alert, setAlert] = useState<AlertProps | null>(null);

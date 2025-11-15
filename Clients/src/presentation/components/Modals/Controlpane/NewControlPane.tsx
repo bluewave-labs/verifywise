@@ -372,7 +372,7 @@ const NewControlPane = ({
       >
         <Stack spacing={6}>
           {/* Control-level fields removed - only subcontrols have these fields now */}
-          <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
+          <Box sx={{ width: "100%", bgcolor: "#FCFCFD", mt: -3 }}>
             <Tabs
               value={selectedTab}
               onChange={handleSelectedTab}

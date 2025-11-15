@@ -441,6 +441,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
+
+    await sequelize.query(`COMMENT ON TABLE "${tenantHash}".controls_eu__risks IS
+      'DEPRECATED as of Nov 2025: Control-level risks removed. This table is no longer used.
+        Risk associations are now managed at subcontrol level only.
+        Existing data preserved for potential future migration or historical reference.';`, { transaction });
+
     await sequelize.query(`CREATE TABLE "${tenantHash}".answers_eu__risks (
       answer_id INTEGER NOT NULL,
       projects_risks_id INTEGER NOT NULL,
@@ -678,6 +684,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         biases VARCHAR(255) NOT NULL,
         limitations VARCHAR(255) NOT NULL,
         hosting_provider VARCHAR(255) NOT NULL,
+        security_assessment_data JSONB DEFAULT '[]'::JSONB,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -925,6 +932,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       content BYTEA,
       uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
       upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      model_id INTEGER NULL,
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
       is_demo BOOLEAN NOT NULL DEFAULT FALSE
     );`, { transaction });
@@ -939,10 +947,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     );`, { transaction });
 
     await sequelize.query(`CREATE TABLE "${tenantHash}".model_inventories_projects_frameworks (
+      id SERIAL PRIMARY KEY,
       model_inventory_id INTEGER NOT NULL,
       project_id INTEGER,
       framework_id INTEGER,
-      PRIMARY KEY (model_inventory_id, project_id, framework_id),
+      CONSTRAINT unique_model_project_framework
+        UNIQUE (model_inventory_id, project_id, framework_id),
       CONSTRAINT fk_model_inventory
         FOREIGN KEY (model_inventory_id)
         REFERENCES "${tenantHash}".model_inventories(id)

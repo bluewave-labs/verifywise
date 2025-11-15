@@ -42,24 +42,24 @@ export const VENDOR_REVIEW_STATUS_ENUM = [
  */
 export const VENDOR_DATA_SENSITIVITY_ENUM = [
   'None',
-  'Internal Only',
-  'Personally Identifiable Information (PII)',
-  'Financial Data',
-  'Health Data (e.g. HIPAA)',
-  'Model Weights or AI Assets',
-  'Other Sensitive Data'
+  'Internal only',
+  'Personally identifiable information (PII)',
+  'Financial data',
+  'Health data (e.g. HIPAA)',
+  'Model weights or AI assets',
+  'Other sensitive data'
 ] as const;
 
 export const VENDOR_BUSINESS_CRITICALITY_ENUM = [
-  'Low (Vendor supports non-core functions)',
-  'Medium (Affects operations but is replaceable)',
-  'High (Critical to core services or products)'
+  'Low (vendor supports non-core functions)',
+  'Medium (affects operations but is replaceable)',
+  'High (critical to core services or products)'
 ] as const;
 
 export const VENDOR_PAST_ISSUES_ENUM = [
   'None',
-  'Minor Incident (e.g. small delay, minor bug)',
-  'Major Incident (e.g. data breach, legal issue)'
+  'Minor incident (e.g. small delay, minor bug)',
+  'Major incident (e.g. data breach, legal issue)'
 ] as const;
 
 export const VENDOR_REGULATORY_EXPOSURE_ENUM = [
@@ -68,8 +68,8 @@ export const VENDOR_REGULATORY_EXPOSURE_ENUM = [
   'HIPAA (US)',
   'SOC 2',
   'ISO 27001',
-  'EU AI Act',
-  'CCPA (California)',
+  'EU AI act',
+  'CCPA (california)',
   'Other'
 ] as const;
 

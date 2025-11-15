@@ -19,24 +19,24 @@ export enum ReviewStatus {
 
 export enum DataSensitivity {
   None = "None",
-  InternalOnly = "Internal Only", 
-  PII = "Personally Identifiable Information (PII)",
-  FinancialData = "Financial Data",
-  HealthData = "Health Data (e.g. HIPAA)",
-  ModelWeights = "Model Weights or AI Assets",
-  OtherSensitive = "Other Sensitive Data"
+  InternalOnly = "Internal only", 
+  PII = "Personally identifiable information (PII)",
+  FinancialData = "Financial data",
+  HealthData = "Health data (e.g. HIPAA)",
+  ModelWeights = "Model weights or AI assets",
+  OtherSensitive = "Other sensitive data"
 }
 
 export enum BusinessCriticality {
-  Low = "Low (Vendor supports non-core functions)",
-  Medium = "Medium (Affects operations but is replaceable)",
-  High = "High (Critical to core services or products)"
+  Low = "Low (vendor supports non-core functions)",
+  Medium = "Medium (affects operations but is replaceable)",
+  High = "High (critical to core services or products)"
 }
 
 export enum PastIssues {
   None = "None",
-  MinorIncident = "Minor Incident (e.g. small delay, minor bug)",
-  MajorIncident = "Major Incident (e.g. data breach, legal issue)"
+  MinorIncident = "Minor incident (e.g. small delay, minor bug)",
+  MajorIncident = "Major incident (e.g. data breach, legal issue)"
 }
 
 export enum RegulatoryExposure {
@@ -45,7 +45,7 @@ export enum RegulatoryExposure {
   HIPAA = "HIPAA (US)",
   SOC2 = "SOC 2",
   ISO27001 = "ISO 27001",
-  EUAIAct = "EU AI Act",
-  CCPA = "CCPA (California)",
+  EUAIAct = "EU AI act",
+  CCPA = "CCPA (california)",
   Other = "Other"
 }

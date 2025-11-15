@@ -30,6 +30,7 @@ const ISO27001Annex = ({
   statusFilter,
   ownerFilter,
   reviewerFilter,
+  dueDateFilter,
   applicabilityFilter,
   initialAnnexId,
   initialAnnexControlId,
@@ -40,6 +41,7 @@ const ISO27001Annex = ({
   statusFilter?: string;
   ownerFilter?: string;
   reviewerFilter?: string;
+  dueDateFilter?: string;
   applicabilityFilter?: string;
   initialAnnexId?: string | null;
   initialAnnexControlId?: string | null;
@@ -102,7 +104,7 @@ const ISO27001Annex = ({
     if (!searchTerm.trim()) {
       return annexes;
     }
-    return annexes.filter((annex) =>
+    return annexes.filter((annex: any) =>
       annex.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [annexes, searchTerm]);
@@ -278,6 +280,21 @@ const ISO27001Annex = ({
                         filteredControls = filteredControls.filter(
                           (control: any) => control.reviewer?.toString() === reviewerFilter,
                         );
+                      }
+
+                      // Apply due date filter
+                      if (dueDateFilter && dueDateFilter !== "") {
+                        filteredControls = filteredControls.filter((control: any) => {
+                          if (control.due_date) {
+                            const dueDate = new Date(control.due_date);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                            const filterDays = parseInt(dueDateFilter);
+                            return daysUntilDue >= 0 && daysUntilDue <= filterDays;
+                          }
+                          return false;
+                        });
                       }
 
                       // Apply applicability filter

@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Select from "../Inputs/Select";
 import { SearchBox } from "../Search";
 
@@ -9,14 +9,21 @@ interface TabFilterBarProps {
   applicabilityFilter?: string;
   onApplicabilityChange?: (val: string) => void;
   ownerFilter?: string;
+  approverFilter?: string;
   onOwnerChange?: (val: string) => void;
   reviewerFilter?: string;
   onReviewerChange?: (val: string) => void;
+  onApproverChange?: (val: string) => void;
+  dueDateFilter?: string;
+  onDueDateChange?: (val: string) => void;
   showStatusFilter?: boolean;
   showApplicabilityFilter?: boolean;
   showOwnerFilter?: boolean;
   showReviewerFilter?: boolean;
+  showApproverFilter?: boolean;
+  showDueDateFilter?: boolean;
   statusOptions?: { label: string; value: string }[];
+  approverOptions?: { label: string; value: string }[];
   ownerOptions?: { label: string; value: string }[];
   reviewerOptions?: { label: string; value: string }[];
   showSearchBar?: boolean;
@@ -40,12 +47,32 @@ const TabFilterBar = ({
   statusOptions = [],
   ownerOptions = [],
   reviewerOptions = [],
+  approverOptions = [],
+  approverFilter,
+  onApproverChange,
+  showApproverFilter,
+  dueDateFilter,
+  onDueDateChange,
+  showDueDateFilter,
   showSearchBar = false,
   searchTerm,
   setSearchTerm,
 }: TabFilterBarProps) => {
   const mapToSelectItems = (options: { label: string; value: string }[]) =>
     options.map((opt) => ({ _id: opt.value, name: opt.label }));
+
+  const theme = useTheme();
+
+  const dueDateOptions = [
+    { _id: "", name: "All Due Dates" },
+    { _id: "1", name: "Due in 1 day" },
+    { _id: "3", name: "Due in 3 days" },
+    { _id: "7", name: "Due in 1 week" },
+    { _id: "14", name: "Due in 2 weeks" },
+    { _id: "21", name: "Due in 3 weeks" },
+    { _id: "30", name: "Due in 1 month" },
+    { _id: "60", name: "Due in 2 months" },
+  ];
 
   return (
     <Box
@@ -71,6 +98,9 @@ const TabFilterBar = ({
               }
               return "Status: All";
             }}
+            sx={{
+              backgroundColor: statusFilter ? theme.palette.background.fill : 'inherit'
+            }}
           />
         )}
 
@@ -86,6 +116,9 @@ const TabFilterBar = ({
               { _id: "false", name: "Not Applicable" },
             ]}
             getOptionValue={(item) => item._id}
+            sx={{
+              backgroundColor: applicabilityFilter ? theme.palette.background.fill : 'inherit'
+            }}
           />
         )}
 
@@ -100,6 +133,9 @@ const TabFilterBar = ({
               ...mapToSelectItems(ownerOptions),
             ]}
             getOptionValue={(item) => item._id}
+            sx={{
+              backgroundColor: ownerFilter ? theme.palette.background.fill : 'inherit'
+            }}
           />
         )}
 
@@ -114,6 +150,40 @@ const TabFilterBar = ({
               ...mapToSelectItems(reviewerOptions),
             ]}
             getOptionValue={(item) => item._id}
+            sx={{
+              backgroundColor: reviewerFilter ? theme.palette.background.fill : 'inherit'
+            }}
+          />
+        )}
+        
+        {showApproverFilter && (
+          <Select
+            id="approver-filter"
+            placeholder="All approvers"
+            value={approverFilter ?? ""}
+            onChange={(e) => onApproverChange?.(e.target.value as string)}
+            items={[
+              { _id: "", name: "All Approvers" },
+              ...mapToSelectItems(approverOptions),
+            ]}
+            getOptionValue={(item) => item._id}
+            sx={{
+              backgroundColor: approverFilter ? theme.palette.background.fill : 'inherit'
+            }}
+          />
+        )}
+
+        {showDueDateFilter && (
+          <Select
+            id="due-date-filter"
+            placeholder="All Due Dates"
+            value={dueDateFilter ?? ""}
+            onChange={(e) => onDueDateChange?.(e.target.value as string)}
+            items={dueDateOptions}
+            getOptionValue={(item) => item._id}
+            sx={{
+              backgroundColor: dueDateFilter ? theme.palette.background.fill : 'inherit'
+            }}
           />
         )}
 
@@ -127,14 +197,36 @@ const TabFilterBar = ({
             />
           </Box>
         )}
-
-        {(statusFilter ||
+      </Box>
+      <Stack mt={4}>
+        {(statusFilter || ownerFilter || approverFilter || reviewerFilter || dueDateFilter ||
           applicabilityFilter === "true" ||
           applicabilityFilter === "false") && (
           <Stack direction="row" spacing={10}>
+            <Typography variant="body2" sx={{ color: "gray" }}>Showing:</Typography>
             {statusFilter && (
               <Typography variant="body2" sx={{ color: "gray" }}>
-                Showing: {statusFilter[0].toUpperCase() + statusFilter.slice(1)}
+                Status: {statusFilter[0].toUpperCase() + statusFilter.slice(1)}
+              </Typography>
+            )}
+            {ownerFilter && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Owner: {ownerOptions.find((option) => option.value === ownerFilter)?.label}
+              </Typography>
+            )}
+            {approverFilter && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Approver: {approverOptions.find((option) => option.value === approverFilter)?.label}
+              </Typography>
+            )}
+            {reviewerFilter && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Reviewer: {reviewerOptions.find((option) => option.value === reviewerFilter)?.label}
+              </Typography>
+            )}
+            {dueDateFilter && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Due Date: {dueDateOptions.find((option) => option._id === dueDateFilter)?.name}
               </Typography>
             )}
             {(applicabilityFilter === "true" ||
@@ -148,7 +240,7 @@ const TabFilterBar = ({
             )}
           </Stack>
         )}
-      </Box>
+      </Stack>
     </Box>
   );
 };

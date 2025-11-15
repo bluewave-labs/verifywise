@@ -281,6 +281,7 @@ const Framework = () => {
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
   const [ownerFilter, setOwnerFilter] = useState<string>("");
   const [reviewerFilter, setReviewerFilter] = useState<string>("");
+  const [dueDateFilter, setDueDateFilter] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
@@ -426,6 +427,7 @@ const Framework = () => {
     setSearchTerm("");
     setOwnerFilter("");
     setReviewerFilter("");
+    setDueDateFilter("");
   }
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
@@ -592,18 +594,21 @@ const Framework = () => {
               onOwnerChange={setOwnerFilter}
               reviewerFilter={reviewerFilter}
               onReviewerChange={setReviewerFilter}
+              dueDateFilter={dueDateFilter}
+              onDueDateChange={setDueDateFilter}
               showStatusFilter={
                 iso27001TabValue === "clause" || iso27001TabValue === "annex"
               }
               showApplicabilityFilter={iso27001TabValue === "annex"}
               showOwnerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
               showReviewerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
+              showDueDateFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
               statusOptions={iso27001StatusOptions}
               ownerOptions={userOptions}
               reviewerOptions={userOptions}
               showSearchBar
               searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}  
+              setSearchTerm={setSearchTerm}
             />
 
             <TabPanel value="clause" sx={tabPanelStyle}>
@@ -615,6 +620,7 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 ownerFilter={ownerFilter}
                 reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clause27001Id}
                 initialSubClauseId={subClause27001Id}
                 searchTerm={searchTerm}
@@ -629,6 +635,7 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annex27001Id}
                 initialAnnexControlId={annexControl27001Id}
                 searchTerm={searchTerm}
@@ -677,12 +684,15 @@ const Framework = () => {
               onOwnerChange={setOwnerFilter}
               reviewerFilter={reviewerFilter}
               onReviewerChange={setReviewerFilter}
+              dueDateFilter={dueDateFilter}
+              onDueDateChange={setDueDateFilter}
               showStatusFilter={
                 iso42001TabValue === "clauses" || iso42001TabValue === "annexes"
               }
               showApplicabilityFilter={iso42001TabValue === "annexes"}
               showOwnerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
               showReviewerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
+              showDueDateFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
               statusOptions={iso42001StatusOptions}
               ownerOptions={userOptions}
               reviewerOptions={userOptions}
@@ -700,6 +710,7 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 ownerFilter={ownerFilter}
                 reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clauseId}
                 initialSubClauseId={subClauseId}
                 searchTerm={searchTerm}
@@ -714,6 +725,7 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annexId}
                 initialAnnexCategoryId={annexCategoryId}
                 searchTerm={searchTerm}

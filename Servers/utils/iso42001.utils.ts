@@ -264,7 +264,7 @@ export const getSubClausesByClauseIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const subClauses = await sequelize.query(
-    `SELECT scs.*, sc.owner AS owner, sc.reviewer AS reviewer 
+    `SELECT scs.*, sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date
     FROM "${tenant}".subclauses_iso sc JOIN public.subclauses_struct_iso scs ON 
     sc.subclause_meta_id = scs.id WHERE scs.clause_id = :id ORDER BY scs.id;`,
     {
@@ -413,7 +413,10 @@ export const getAllAnnexesWithCategoriesQuery = async (
 
   for (let annex of annexes[0]) {
     const annexCategories = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.owner, ac.is_applicable, ac.reviewer FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.owner, ac.is_applicable, ac.reviewer, ac.due_date 
+      FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac 
+      ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id 
+      AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,

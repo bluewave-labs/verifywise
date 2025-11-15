@@ -31,6 +31,7 @@ const ISO27001Clause = ({
   statusFilter,
   ownerFilter,
   reviewerFilter,
+  dueDateFilter,
   initialClauseId,
   initialSubClauseId,
   searchTerm,
@@ -40,6 +41,7 @@ const ISO27001Clause = ({
   statusFilter?: string;
   ownerFilter?: string;
   reviewerFilter?: string;
+  dueDateFilter?: string;
   initialClauseId?: string | null;
   initialSubClauseId?: string | null;
   searchTerm: string;
@@ -260,6 +262,21 @@ const ISO27001Clause = ({
       filteredSubClauses = filteredSubClauses.filter(
         (sc) => sc.reviewer?.toString() === reviewerFilter,
       );
+    }
+
+    // Filter by due date
+    if (dueDateFilter && dueDateFilter !== "") {
+      filteredSubClauses = filteredSubClauses.filter((sc) => {
+        if (sc.due_date) {
+          const dueDate = new Date(sc.due_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          const filterDays = parseInt(dueDateFilter);
+          return daysUntilDue >= 0 && daysUntilDue <= filterDays;
+        }
+        return false;
+      });
     }
 
     return (

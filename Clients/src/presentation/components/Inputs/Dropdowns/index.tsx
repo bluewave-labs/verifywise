@@ -122,7 +122,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
     <Stack
       id={elementId}
       style={{
-        gap: theme.spacing(8),
+        gap: theme.spacing(6),
       }}
     >
       <Stack
@@ -130,7 +130,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
-        gap={theme.spacing(15)}
+        gap={theme.spacing(4)}
       >
         <Select
           id="status"
@@ -183,7 +183,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
-        gap={theme.spacing(15)}
+        gap={theme.spacing(4)}
       >
         <Select
           id="Owner"

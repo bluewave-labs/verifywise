@@ -14,6 +14,8 @@ from controllers.deepeval import (
     get_available_deepeval_metrics_controller,
     get_evaluation_dataset_info_controller,
     upload_deepeval_dataset_controller,
+    list_deepeval_datasets_controller,
+    read_deepeval_dataset_controller,
 )
 
 router = APIRouter()
@@ -220,4 +222,19 @@ async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
         dataset=dataset,
         tenant=request.headers.get("x-tenant-id", "default"),
     )
+
+@router.get("/datasets/list")
+async def list_datasets():
+    """
+    List available built-in datasets grouped by use case.
+    """
+    return await list_deepeval_datasets_controller()
+
+@router.get("/datasets/read")
+async def read_dataset(path: str):
+    """
+    Read and return the JSON content of a dataset file by relative path.
+    Example: /deepeval/datasets/read?path=chatbot/chatbot_basic.json
+    """
+    return await read_deepeval_dataset_controller(path)
 

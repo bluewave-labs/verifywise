@@ -83,6 +83,13 @@ export default function NewExperimentModal({
   const [customDatasetFile, setCustomDatasetFile] = useState<File | null>(null);
   const [customDatasetPath, setCustomDatasetPath] = useState<string>("");
   const [uploadingDataset, setUploadingDataset] = useState(false);
+  const [availableDatasets, setAvailableDatasets] = useState<Record<"chatbot" | "rag" | "agent" | "safety", { key: string; name: string; path: string; use_case: "chatbot" | "rag" | "agent" | "safety" }[]>>({
+    chatbot: [],
+    rag: [],
+    agent: [],
+    safety: [],
+  });
+  const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
 
   // Configuration state
   const [config, setConfig] = useState({
@@ -162,118 +169,33 @@ export default function NewExperimentModal({
 
   const handleLoadBuiltinDataset = useCallback(async () => {
     try {
-      // Built-in dataset matching the Python evaluation_dataset.py
-      const builtinDataset: DatasetPrompt[] = [
-        // Coding Tasks
-        {
-          id: "code_001",
-          category: "coding",
-          prompt: "Write a Python function to calculate the factorial of a number using recursion.",
-          expected_keywords: ["def", "factorial", "return", "if"],
-          expected_output: "A recursive Python function that calculates factorial, with a base case checking if n is 0 or 1, and a recursive case that returns n * factorial(n-1).",
-          difficulty: "easy",
-        },
-        {
-          id: "code_002",
-          category: "coding",
-          prompt: "Explain how to implement a binary search algorithm in Python with time complexity analysis.",
-          expected_keywords: ["binary", "search", "O(log n)", "sorted"],
-          expected_output: "Binary search works on sorted arrays by repeatedly dividing the search interval in half.",
-          difficulty: "medium",
-        },
-        {
-          id: "code_003",
-          category: "coding",
-          prompt: "Create a Python class for a stack data structure with push, pop, and peek methods.",
-          expected_keywords: ["class", "Stack", "push", "pop", "peek"],
-          expected_output: "A Stack class with an internal list implementing LIFO principle.",
-          difficulty: "easy",
-        },
-        // Mathematics
-        {
-          id: "math_001",
-          category: "mathematics",
-          prompt: "Solve: If x + 5 = 12, what is x?",
-          expected_keywords: ["7", "x = 7"],
-          expected_output: "x = 7 (by subtracting 5 from both sides)",
-          difficulty: "easy",
-        },
-        {
-          id: "math_002",
-          category: "mathematics",
-          prompt: "Explain the Pythagorean theorem and provide an example.",
-          expected_keywords: ["a^2 + b^2 = c^2", "right triangle", "hypotenuse"],
-          expected_output: "The Pythagorean theorem states that in a right triangle, a² + b² = c².",
-          difficulty: "medium",
-        },
-        // Reasoning & Logic
-        {
-          id: "logic_001",
-          category: "reasoning",
-          prompt: "If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly?",
-          expected_keywords: ["no", "cannot", "logical", "fallacy"],
-          expected_output: "No, we cannot conclude that. This is a logical fallacy.",
-          difficulty: "medium",
-        },
-        {
-          id: "logic_002",
-          category: "reasoning",
-          prompt: "A farmer has 17 sheep, and all but 9 die. How many sheep are left?",
-          expected_keywords: ["9", "nine"],
-          expected_output: "9 sheep are left. 'All but 9' means all except 9 die.",
-          difficulty: "easy",
-        },
-        // Creative Writing
-        {
-          id: "creative_001",
-          category: "creative",
-          prompt: "Write a haiku about artificial intelligence.",
-          expected_keywords: ["haiku", "5-7-5"],
-          expected_output: "A haiku (5-7-5 syllable pattern) about AI themes.",
-          difficulty: "medium",
-        },
-        {
-          id: "creative_002",
-          category: "creative",
-          prompt: "Create a short story opening that includes a mysterious door.",
-          expected_keywords: ["door", "story", "mystery"],
-          expected_output: "An engaging story opening featuring a mysterious door.",
-          difficulty: "medium",
-        },
-        // Knowledge & Facts
-        {
-          id: "knowledge_001",
-          category: "knowledge",
-          prompt: "What is the capital of France and what is it known for?",
-          expected_keywords: ["Paris", "Eiffel Tower", "culture"],
-          expected_output: "Paris is the capital of France, known for the Eiffel Tower, art, culture, and cuisine.",
-          difficulty: "easy",
-        },
-        {
-          id: "knowledge_002",
-          category: "knowledge",
-          prompt: "Explain photosynthesis in simple terms.",
-          expected_keywords: ["plants", "sunlight", "oxygen", "glucose"],
-          expected_output: "Photosynthesis is how plants convert sunlight into energy, producing oxygen.",
-          difficulty: "medium",
-        },
-      ];
-
-      // Apply category filters and limits if provided
-      let filtered = builtinDataset;
-      if (config.dataset.categories && config.dataset.categories.length > 0) {
-        filtered = filtered.filter((p) => config.dataset.categories.includes(p.category));
+      // If we already have a selected preset path, load it; otherwise select first by use case
+      if (!selectedPresetPath) {
+        const list = await deepEvalDatasetsService.list();
+        setAvailableDatasets(list);
+        const options = list[config.taskType] || [];
+        if (options.length > 0) {
+          setSelectedPresetPath(options[0].path);
+        }
       }
-      if (config.dataset.limit && config.dataset.limit > 0) {
-        filtered = filtered.slice(0, config.dataset.limit);
+      const pathToLoad = selectedPresetPath;
+      if (pathToLoad) {
+        const { prompts } = await deepEvalDatasetsService.read(pathToLoad);
+        // Apply category filters and limits if provided
+        let filtered = prompts as DatasetPrompt[];
+        if (config.dataset.categories && config.dataset.categories.length > 0) {
+          filtered = filtered.filter((p) => config.dataset.categories.includes(p.category));
+        }
+        if (config.dataset.limit && config.dataset.limit > 0) {
+          filtered = filtered.slice(0, config.dataset.limit);
+        }
+        setDatasetPrompts(filtered as DatasetPrompt[]);
+        setDatasetLoaded(true);
       }
-
-      setDatasetPrompts(filtered);
-      setDatasetLoaded(true);
     } catch (err) {
       console.error("Failed to load dataset:", err);
     }
-  }, [config.dataset.categories, config.dataset.limit]);
+  }, [config.dataset.categories, config.dataset.limit, config.taskType, selectedPresetPath]);
 
   const handleRemovePrompt = (id: string) => {
     setDatasetPrompts((prev) => prev.filter((p) => p.id !== id));
@@ -959,20 +881,45 @@ export default function NewExperimentModal({
                 <Typography sx={{ fontSize: "13px", color: "#374151" }}>Built-in preset</Typography>
                 <Select
                   size="small"
-                  value={config.dataset.preset || config.taskType}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      taskType: e.target.value as "chatbot" | "rag" | "agent",
-                      dataset: { ...prev.dataset, preset: String(e.target.value) },
-                    }))
-                  }
-                  sx={{ minWidth: 200 }}
+                  value={selectedPresetPath || ""}
+                  onOpen={async () => {
+                    try {
+                      const list = await deepEvalDatasetsService.list();
+                      setAvailableDatasets(list);
+                      // If selected preset path is empty, pick first
+                      if (!selectedPresetPath) {
+                        const opts = list[config.taskType] || [];
+                        if (opts.length > 0) setSelectedPresetPath(opts[0].path);
+                      }
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                  onChange={async (e) => {
+                    const newPath = String(e.target.value);
+                    setSelectedPresetPath(newPath);
+                    try {
+                      const { prompts } = await deepEvalDatasetsService.read(newPath);
+                      let filtered = prompts as DatasetPrompt[];
+                      if (config.dataset.categories && config.dataset.categories.length > 0) {
+                        filtered = filtered.filter((p) => config.dataset.categories.includes(p.category));
+                      }
+                      if (config.dataset.limit && config.dataset.limit > 0) {
+                        filtered = filtered.slice(0, config.dataset.limit);
+                      }
+                      setDatasetPrompts(filtered as DatasetPrompt[]);
+                      setDatasetLoaded(true);
+                    } catch (err) {
+                      console.error("Failed to read preset dataset:", err);
+                    }
+                  }}
+                  sx={{ minWidth: 260 }}
                 >
-                  <MenuItem value="chatbot">chatbot</MenuItem>
-                  <MenuItem value="rag">rag</MenuItem>
-                  <MenuItem value="agent">agent</MenuItem>
-                  <MenuItem value="safety">safety</MenuItem>
+                  {(availableDatasets[config.taskType] || []).slice(0, 12).map((ds) => (
+                    <MenuItem key={ds.key} value={ds.path}>
+                      {ds.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </Box>
             )}

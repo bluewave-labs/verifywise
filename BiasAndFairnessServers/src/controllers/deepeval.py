@@ -619,3 +619,87 @@ async def upload_deepeval_dataset_controller(
             detail=f"Failed to upload dataset: {str(e)}"
         )
 
+
+def _safe_evalmodule_data_root() -> Path:
+    root_path = Path(__file__).parent.parent.parent.parent
+    evaluation_module_path = root_path / "EvaluationModule"
+    # Prefer new datasets folder; fall back to presets
+    data_root = evaluation_module_path / "data"
+    datasets_dir = data_root / "datasets"
+    if datasets_dir.exists():
+        return datasets_dir
+    return data_root / "presets"
+
+
+async def list_deepeval_datasets_controller() -> JSONResponse:
+    """
+    List available built-in datasets grouped by use case.
+    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    """
+    base = _safe_evalmodule_data_root()
+    result = {
+        "chatbot": [],
+        "rag": [],
+        "agent": [],
+        "safety": [],
+    }
+    try:
+        if (base / "chatbot").exists():
+            subdirs = ["chatbot", "rag", "agent", "safety"]
+            for sub in subdirs:
+                sd = base / sub
+                if not sd.exists():
+                    continue
+                for f in sd.glob("*.json"):
+                    result[sub].append({
+                        "key": f"{sub}/{f.name}",
+                        "name": f.stem.replace("_", " ").title(),
+                        "path": str(f.relative_to(base)),
+                        "use_case": sub,
+                    })
+        else:
+            # Flat presets folder fallback
+            for f in base.glob("*.json"):
+                name = f.stem
+                use_case = "chatbot"
+                lowered = name.lower()
+                if "rag" in lowered:
+                    use_case = "rag"
+                elif "agent" in lowered:
+                    use_case = "agent"
+                elif "safety" in lowered:
+                    use_case = "safety"
+                result[use_case].append({
+                    "key": f.name,
+                    "name": name.replace("_", " ").title(),
+                    "path": str(f.relative_to(base)),
+                    "use_case": use_case,
+                })
+        return JSONResponse(status_code=200, content={"datasets": result})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list datasets: {e}")
+
+
+async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
+    """
+    Return the JSON contents of a dataset at a relative path within EvaluationModule/data/datasets or data/presets.
+    """
+    try:
+        base = _safe_evalmodule_data_root()
+        target = (base / path).resolve()
+        # Ensure target is inside base
+        if base.resolve() not in target.parents and base.resolve() != target.parent:
+            raise HTTPException(status_code=400, detail="Invalid dataset path")
+        if not target.is_file():
+            raise HTTPException(status_code=404, detail="Dataset file not found")
+        with open(target, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="Dataset file is not a list of prompts")
+        return JSONResponse(status_code=200, content={"path": str(target.relative_to(base)), "prompts": data})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read dataset: {e}")
+    # End of read_deepeval_dataset_controller
+

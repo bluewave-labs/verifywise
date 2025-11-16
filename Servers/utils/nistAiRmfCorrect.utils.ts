@@ -458,14 +458,18 @@ export const deleteProjectFrameworkNISTQuery = async (
     {
       replacements: { project_id: projectId },
       transaction,
+      type: QueryTypes.SELECT,
     }
-  )) as [{ id: number }[], number];
+  )) as Array<{ id: number }>;
 
-  const subcategoriesDeleted = await deleteSubcategoriesNISTByProjectIdQuery(
-    projectFrameworkId[0][0].id,
-    tenant,
-    transaction
-  );
+  // Check if the project has a NIST AI RMF framework before trying to delete subcategories
+  if (projectFrameworkId && projectFrameworkId.length > 0) {
+    const subcategoriesDeleted = await deleteSubcategoriesNISTByProjectIdQuery(
+      projectFrameworkId[0].id,
+      tenant,
+      transaction
+    );
+  }
 
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 4 RETURNING *`,
@@ -474,5 +478,5 @@ export const deleteProjectFrameworkNISTQuery = async (
       transaction,
     }
   );
-  return result.length > 0 && subcategoriesDeleted;
+  return result.length > 0;
 };

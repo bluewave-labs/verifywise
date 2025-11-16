@@ -44,6 +44,7 @@ export default function EvalsDashboard() {
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
   const [orgCreateOpen, setOrgCreateOpen] = useState(false);
   const [orgCreating, setOrgCreating] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
@@ -51,7 +52,11 @@ export default function EvalsDashboard() {
   // Load orgs and current org (re-run when URL search changes to support "Manage organizations" from children)
   useEffect(() => {
     const loadOrgs = async () => {
-      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      const [{ orgs }, { org }] = await Promise.all([
+        deepEvalOrgsService.getAllOrgs(),
+        deepEvalOrgsService.getCurrentOrg(),
+      ]);
+      setOrgs(orgs);
       setOrgId(org?.id || null);
     };
     loadOrgs();
@@ -217,6 +222,45 @@ export default function EvalsDashboard() {
 
           {/* Spacer pushes settings to the right */}
           <Box sx={{ flex: 1 }} />
+          {/* Organization dropdown (quick access) */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mr: 1 }}>
+            <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
+              Organization
+            </Box>
+            <Select
+              value={orgId || ""}
+              onChange={async (e) => {
+                const val = String(e.target.value);
+                if (val === "manage_orgs") {
+                  await deepEvalOrgsService.clearCurrentOrg();
+                  setOrgId(null);
+                  navigate("/evals"); // shows org selector
+                  return;
+                }
+                await deepEvalOrgsService.setCurrentOrg(val);
+                setOrgId(val);
+                navigate("/evals");
+              }}
+              displayEmpty
+              IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
+              sx={{
+                fontSize: "14px",
+                fontWeight: 600,
+                minWidth: "220px",
+                border: "1px solid #E5E7EB",
+                borderRadius: "6px",
+                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
+              }}
+            >
+              <MenuItem value="manage_orgs">Manage organizations</MenuItem>
+              <Divider sx={{ my: 0.5 }} />
+              {orgs.map((o) => (
+                <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+
           {/* Settings icon navigates directly to configuration */}
           <IconButton
             aria-label="settings"

@@ -13,7 +13,7 @@ import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsSer
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
-import { Beaker } from "lucide-react";
+import { Beaker, CirclePlus } from "lucide-react";
 
 interface Props {
   onSelected: () => void;
@@ -53,6 +53,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
           <CustomizableButton
             variant="contained"
             onClick={() => setCreateOpen(true)}
+            startIcon={<CirclePlus size={18} />}
             sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
           >
             Create organization
@@ -88,6 +89,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
           <CustomizableButton
             variant="contained"
             onClick={() => setCreateOpen(true)}
+            startIcon={<CirclePlus size={18} />}
             sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
           >
             Create your first organization

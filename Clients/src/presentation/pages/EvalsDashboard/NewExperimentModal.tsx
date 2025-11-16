@@ -15,6 +15,9 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
+  Button,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Check, ChevronDown, Trash2 } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
@@ -33,6 +36,7 @@ import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_filled.svg";
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
@@ -88,6 +92,8 @@ export default function NewExperimentModal({
 
   // Configuration state
   const [config, setConfig] = useState({
+    // High-level task type for builtin dataset presets
+    taskType: "chatbot" as "chatbot" | "rag" | "agent",
     // Step 1: Model to be evaluated
     model: {
       name: "",
@@ -109,6 +115,7 @@ export default function NewExperimentModal({
       useBuiltin: true,
       categories: [] as string[],
       limit: 10,
+      benchmark: "",
     },
     // Step 4: Metrics
     metrics: {
@@ -265,6 +272,7 @@ export default function NewExperimentModal({
     setDatasetLoaded(false);
     setExpandedPrompts([]);
     setConfig({
+      taskType: "chatbot",
       model: {
         name: "",
         accessMethod: "",
@@ -283,6 +291,7 @@ export default function NewExperimentModal({
         useBuiltin: true,
         categories: [],
         limit: 10,
+        benchmark: "",
       },
       metrics: {
         answerRelevancy: true,

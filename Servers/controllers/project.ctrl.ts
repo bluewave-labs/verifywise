@@ -12,6 +12,7 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
   getCurrentProjectMembers,
+  ensureProjectInfrastructure,
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -128,7 +129,6 @@ export async function getProjectById(
 }
 
 export async function createProject(req: Request, res: Response): Promise<any> {
-  const transaction = await sequelize.transaction();
   const projectData = {
     ...req.body,
     framework: req.body.framework,
@@ -141,114 +141,124 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   });
 
   try {
-    const newProject: Partial<ProjectModel> & {
-      members: number[] | undefined;
-      framework: number[];
-      enable_ai_data_insertion: boolean;
-    } = projectData;
+    // Pre-check: Ensure tenant infrastructure exists before starting main transaction
+    await ensureProjectInfrastructure(req.tenantId!);
 
-    const createdProject = await createNewProjectQuery(
-      newProject,
-      newProject.members ?? [],
-      newProject.framework,
-      req.tenantId!,
-      req.userId!,
-      transaction,
-    );
-    const frameworks: { [key: string]: Object } = {};
-    for (const framework of newProject.framework) {
-      if (framework === 1) {
-        const eu = await createEUFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction,
-        );
-        frameworks["eu"] = eu;
-      } else if (framework === 2) {
-        const iso42001 = await createISOFrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction,
-        );
-        frameworks["iso42001"] = iso42001;
-      } else if (framework === 3) {
-        const iso27001 = await createISO27001FrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction,
-        );
-        frameworks["iso27001"] = iso27001;
+    // Now start the main transaction for project creation
+    const transaction = await sequelize.transaction();
+
+    try {
+      const newProject: Partial<ProjectModel> & {
+        members: number[] | undefined;
+        framework: number[];
+        enable_ai_data_insertion: boolean;
+      } = projectData;
+
+      const createdProject = await createNewProjectQuery(
+        newProject,
+        newProject.members ?? [],
+        newProject.framework,
+        req.tenantId!,
+        req.userId!,
+        transaction,
+      );
+      const frameworks: { [key: string]: Object } = {};
+      for (const framework of newProject.framework) {
+        if (framework === 1) {
+          const eu = await createEUFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction,
+          );
+          frameworks["eu"] = eu;
+        } else if (framework === 2) {
+          const iso42001 = await createISOFrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction,
+          );
+          frameworks["iso42001"] = iso42001;
+        } else if (framework === 3) {
+          const iso27001 = await createISO27001FrameworkQuery(
+            createdProject.id!,
+            newProject.enable_ai_data_insertion,
+            req.tenantId!,
+            transaction,
+          );
+          frameworks["iso27001"] = iso27001;
+        }
       }
-    }
 
-    if (createdProject) {
-      await transaction.commit();
+      if (createdProject) {
+        await transaction.commit();
 
-      await logSuccess({
-        eventType: "Create",
-        description: "Created new project",
-        functionName: "createProject",
-        fileName: "project.ctrl.ts",
-      });
-
-      // Send project creation notification to admin (fire-and-forget, don't block response)
-      sendProjectCreatedNotification({
-        projectId: createdProject.id!,
-        projectName: createdProject.project_title,
-        adminId: createdProject.owner,
-      }).catch(async (emailError) => {
-        // Log the email error but don't fail the project creation
-        await logFailure({
+        await logSuccess({
           eventType: "Create",
-          description: "Failed to send project creation notification email",
+          description: "Created new project",
           functionName: "createProject",
           fileName: "project.ctrl.ts",
-          error: emailError as Error,
         });
-      });
 
-      const actor = await getUserByIdQuery(req.userId!);
-
-      sendSlackNotification(
-        {
-          userId: actor.id!,
-          routingType: SlackNotificationRoutingType.PROJECTS_AND_ORGANIZATIONS,
-        },
-        {
-          title: `Project created`,
-          message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
-        },
-      ).catch(async (slackError) => {
-        await logFailure({
-          eventType: "Create",
-          description: "Failed to send Slack notification for project creation",
-          functionName: "createProject",
-          fileName: "project.ctrl.ts",
-          error: slackError as Error,
+        // Send project creation notification to admin (fire-and-forget, don't block response)
+        sendProjectCreatedNotification({
+          projectId: createdProject.id!,
+          projectName: createdProject.project_title,
+          adminId: createdProject.owner,
+        }).catch(async (emailError) => {
+          // Log the email error but don't fail the project creation
+          await logFailure({
+            eventType: "Create",
+            description: "Failed to send project creation notification email",
+            functionName: "createProject",
+            fileName: "project.ctrl.ts",
+            error: emailError as Error,
+          });
         });
-      });
 
-      return res.status(201).json(
-        STATUS_CODE[201]({
-          project: createdProject,
-          frameworks,
+        const actor = await getUserByIdQuery(req.userId!);
+
+        sendSlackNotification(
+          {
+            userId: actor.id!,
+            routingType: SlackNotificationRoutingType.PROJECTS_AND_ORGANIZATIONS,
+          },
+          {
+            title: `Project created`,
+            message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
+          },
+        ).catch(async (slackError) => {
+          await logFailure({
+            eventType: "Create",
+            description: "Failed to send Slack notification for project creation",
+            functionName: "createProject",
+            fileName: "project.ctrl.ts",
+            error: slackError as Error,
+          });
+        });
+
+        return res.status(201).json(
+          STATUS_CODE[201]({
+            project: createdProject,
+            frameworks,
         }),
       );
     }
 
     await logSuccess({
-      eventType: "Create",
-      description: "Project creation returned null",
-      functionName: "createProject",
-      fileName: "project.ctrl.ts",
-    });
+        eventType: "Create",
+        description: "Project creation returned null",
+        functionName: "createProject",
+        fileName: "project.ctrl.ts",
+      });
 
-    return res.status(503).json(STATUS_CODE[503]({}));
+      return res.status(503).json(STATUS_CODE[503]({}));
+    } catch (transactionError) {
+      await transaction.rollback();
+      throw transactionError;
+    }
   } catch (error) {
-    await transaction.rollback();
 
     if (error instanceof ValidationException) {
       await logFailure({

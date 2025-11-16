@@ -814,7 +814,7 @@ const AITrustCenterSettings: React.FC = () => {
       {/* Remove Logo Confirmation Modal */}
       {isRemoveLogoModalOpen && (
         <DualButtonModal
-          title="Confirm Logo Removal"
+          title="Confirm logo removal"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove the company logo? This action

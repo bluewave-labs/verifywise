@@ -16,5 +16,6 @@ export type Control = {
   numberOfSubcontrols?: number;
   numberOfDoneSubcontrols?: number;
   subControls?: Subcontrol[];
-  risks: number[];
+  /** @deprecated Control-level risks removed. Use subcontrol-level risks instead. */
+  risks?: number[];
 };

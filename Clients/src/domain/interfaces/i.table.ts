@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
 import { FileModel } from "../models/Common/file/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
-import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
+import { EventModel } from "../models/Common/evenTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -76,7 +77,7 @@ export interface IEvaluationTableProps {
 }
 
 export interface IEventsTableProps {
-  data: IEvent[];
+  data: EventModel[];
   users?: IUser[];
   isLoading?: boolean;
   paginated?: boolean;

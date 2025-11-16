@@ -558,7 +558,7 @@ const Framework = () => {
       />
       <PageBreadcrumbs />
       <PageHeader
-        title="Frameworks"
+        title="Organizational Frameworks"
         description="This page provides an overview of available AI and data governance frameworks to your organization."
         rightContent={
           <HelperIcon

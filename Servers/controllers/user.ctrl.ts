@@ -134,14 +134,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -154,16 +154,20 @@ async function getUserById(req: Request, res: Response) {
 
   try {
     const user = (await getUserByIdQuery(id)) as UserModel;
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${id}`, 'getUserById', 'user.ctrl.ts');
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -399,10 +403,10 @@ async function loginUser(req: Request, res: Response): Promise<any> {
 
         // Generate JWT tokens (access + refresh)
         const { accessToken } = generateUserTokens({
-            id: user.id!,
-            email: email,
-            roleName: (userData as any).role_name,
-            organizationId: (userData as any).organization_id,
+          id: user.id!,
+          email: email,
+          roleName: (userData as any).role_name,
+          organizationId: (userData as any).organization_id,
         }, res);
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
@@ -575,6 +579,12 @@ async function updateUserById(req: Request, res: Response) {
     const currentUserId = (req as any).user?.id;
     const user = await getUserByIdQuery(id);
 
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
+
     if (user) {
       // Capture the old role before updating (if roleId is being changed)
       const oldRoleId = user.role_id;
@@ -690,6 +700,12 @@ async function deleteUserById(req: Request, res: Response) {
 
   try {
     const user = await getUserByIdQuery(id);
+
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
 
     if (user) {
       if (user.isDemoUser()) {
@@ -818,7 +834,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -829,7 +845,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -1012,6 +1028,13 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
   logger.debug(`📸 Uploading profile photo for user ID ${userId}`);
 
   try {
+    const user = await getUserByIdQuery(userId);
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${userId}`, 'uploadUserProfilePhoto', 'user.ctrl.ts');
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
+
     if (!attachment) {
       await transaction.rollback();
       logStructured(
@@ -1122,6 +1145,12 @@ async function getUserProfilePhoto(req: Request, res: Response) {
   logger.debug(`📸 Fetching profile photo for user ID ${userId}`);
 
   try {
+    const user = await getUserByIdQuery(userId);
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${userId}`, 'getUserProfilePhoto', 'user.ctrl.ts');
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
+
     const photo = await getUserProfilePhotoQuery(userId, req.tenantId!);
 
     if (!photo) {
@@ -1175,6 +1204,13 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
   logger.debug(`🗑️ Deleting profile photo for user ID ${userId}`);
 
   try {
+    const user = await getUserByIdQuery(userId);
+    if (user.organization_id !== req.organizationId) {
+      logStructured('error', `access denied to user ID ${userId}`, 'deleteUserProfilePhoto', 'user.ctrl.ts');
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
+    }
+
     const isDeleted = await deleteUserProfilePhotoQuery(
       userId,
       req.tenantId!,

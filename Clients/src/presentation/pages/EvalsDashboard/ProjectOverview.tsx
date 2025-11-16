@@ -12,7 +12,7 @@ import {
   Paper,
   Chip,
 } from "@mui/material";
-import { Play, Beaker } from "lucide-react";
+import { Play, Beaker, Eye } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService, type Experiment } from "../../../infrastructure/api/evaluationLogsService";
@@ -138,7 +138,7 @@ export default function ProjectOverview({
             }}
           >
             <Box sx={{ mb: 3 }}>
-              <Beaker size={36} color="#9CA3AF" strokeWidth={1} />
+              <Eye size={36} color="#9CA3AF" strokeWidth={1} />
             </Box>
             <Typography
               variant="subtitle2"
@@ -230,7 +230,7 @@ export default function ProjectOverview({
             /* Empty state */
             <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
               <Box sx={{ mb: 3 }}>
-                <Play size={48} color="#9CA3AF" strokeWidth={1.5} />
+                <Beaker size={36} color="#9CA3AF" strokeWidth={1} />
               </Box>
               <Typography
                 variant="subtitle2"

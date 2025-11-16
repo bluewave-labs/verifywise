@@ -98,7 +98,7 @@ export const evaluationLogsService = {
     limit?: number;
     offset?: number;
   }) {
-    const response = await CustomAxios.get("/deepeval/logs", { params });
+    const response = await CustomAxios.get("/deepeval/logs", { params, timeout: 60000 });
     return response.data;
   },
 
@@ -172,7 +172,7 @@ export const experimentsService = {
     limit?: number;
     offset?: number;
   }) {
-    const response = await CustomAxios.get("/deepeval/experiments", { params });
+    const response = await CustomAxios.get("/deepeval/experiments", { params, timeout: 60000 });
     return response.data;
   },
 
@@ -181,7 +181,7 @@ export const experimentsService = {
     project_id?: string;
     status?: string;
   }) {
-    const response = await CustomAxios.get("/deepeval/experiments/all", { params });
+    const response = await CustomAxios.get("/deepeval/experiments/all", { params, timeout: 60000 });
     return response.data;
   },
 

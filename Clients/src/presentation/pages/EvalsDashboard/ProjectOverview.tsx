@@ -10,8 +10,9 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
 } from "@mui/material";
-import { Play, Beaker, TrendingUp } from "lucide-react";
+import { Play, Beaker } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService, type Experiment } from "../../../infrastructure/api/evaluationLogsService";
@@ -32,15 +33,13 @@ export default function ProjectOverview({
 }: ProjectOverviewProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<{ totalExperiments: number; lastRunDate: string | null; avgMetrics: Record<string, number> } | null>(null);
   const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
-  const loadOverviewData = useCallback(async (background: boolean = false) => {
+  const loadOverviewData = useCallback(async () => {
     try {
-      if (background) setRefreshing(true);
-      else setLoading(true);
+      setLoading(true);
 
       // Load project if not provided
       if (!project) {
@@ -60,16 +59,11 @@ export default function ProjectOverview({
       console.error("Failed to load overview data:", err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [projectId, project, onProjectUpdate]);
 
   useEffect(() => {
-    // Initial load (shows page spinner)
-    loadOverviewData(false);
-    // Background refresh every 10s without blocking UI
-    const interval = setInterval(() => loadOverviewData(true), 10000);
-    return () => clearInterval(interval);
+    loadOverviewData();
   }, [loadOverviewData]);
 
   const handleNewExperiment = () => {
@@ -77,8 +71,8 @@ export default function ProjectOverview({
   };
 
   const handleExperimentSuccess = () => {
-    // Refresh in background so UI stays responsive
-    loadOverviewData(true);
+    // Reload stats after experiment is created
+    loadOverviewData();
   };
 
   if (loading) {
@@ -93,8 +87,8 @@ export default function ProjectOverview({
   const totalEvals = experiments.length > 0 ? experiments.length : (stats?.totalExperiments ?? 0);
 
   return (
-    <Box sx={{ userSelect: "none" }}>
-      {/* Header with New Experiment button */}
+    <Box>
+      {/* Header with New Eval button */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
           <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600 }}>
@@ -115,11 +109,6 @@ export default function ProjectOverview({
             },
           }}
         />
-        {refreshing && (
-          <Box sx={{ ml: 2, display: "flex", alignItems: "center" }}>
-            <CircularProgress size={18} sx={{ color: "#13715B" }} />
-          </Box>
-        )}
       </Box>
 
       {/* Two-column layout like Braintrust */}
@@ -129,7 +118,7 @@ export default function ProjectOverview({
           sx={{
             border: "1px solid #E5E7EB",
             borderRadius: 2,
-            p: 3,
+            p: 4,
             backgroundColor: "#FFFFFF",
           }}
         >
@@ -149,7 +138,7 @@ export default function ProjectOverview({
             }}
           >
             <Box sx={{ mb: 3 }}>
-              <Beaker size={48} color="#9CA3AF" strokeWidth={1.5} />
+              <Beaker size={36} color="#9CA3AF" strokeWidth={1} />
             </Box>
             <Typography
               variant="subtitle2"
@@ -187,43 +176,51 @@ export default function ProjectOverview({
           sx={{
             border: "1px solid #E5E7EB",
             borderRadius: 2,
-            p: 3,
+            p: 4,
             backgroundColor: "#FFFFFF",
           }}
         >
           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "15px" }}>
-              Evaluation
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "15px" }}>
+                Evaluation
+              </Typography>
               {hasExperiments && (
-                <CustomizableButton
-                  variant="contained"
-                  text="Experiments"
-                  onClick={() => navigate(`/evals/${projectId}#experiments`)}
+                <Chip
+                  label={totalEvals}
+                  size="small"
                   sx={{
-                    textTransform: "none",
-                    fontSize: "12px",
-                    height: 30,
-                    px: 1.5,
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    "&:hover": { backgroundColor: "#0f5a47" },
+                    backgroundColor: "#e0e0e0",
+                    color: "#424242",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    height: "20px",
+                    minWidth: "20px",
+                    borderRadius: "10px",
+                    "& .MuiChip-label": {
+                      padding: "0 6px",
+                    },
                   }}
                 />
               )}
-              <CustomizableButton
-                variant="outlined"
-                text="Configuration"
-                onClick={() => navigate(`/evals/${projectId}/configuration`)}
-                sx={{
-                  textTransform: "none",
-                  fontSize: "12px",
-                  height: 30,
-                  px: 1.5,
-                }}
-              />
             </Box>
+            {hasExperiments && (
+              <Typography
+                variant="body2"
+                onClick={() => navigate(`/evals/${projectId}#experiments`)}
+                sx={{
+                  color: "#13715B",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                View all evals
+              </Typography>
+            )}
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: "13px" }}>
             Eval score progress
@@ -239,7 +236,7 @@ export default function ProjectOverview({
                 variant="subtitle2"
                 sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
               >
-                No experiments yet
+                No evals yet
               </Typography>
               <Typography
                 variant="body2"
@@ -264,21 +261,14 @@ export default function ProjectOverview({
               />
             </Box>
           ) : (
-            /* Experiments list (Braintrust style) */
+            /* Evals list (Braintrust style) */
             <Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                <TrendingUp size={16} color="#13715B" />
-                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "12px" }}>
-                  {totalEvals} experiment{totalEvals !== 1 ? "s" : ""}
-                </Typography>
-              </Box>
-              
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151" }}>Eval id</TableCell>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151" }}>Created</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>EVAL ID</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>CREATED</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -301,7 +291,9 @@ export default function ProjectOverview({
                         <TableCell sx={{ fontSize: "11px", color: "#6B7280" }}>
                           {new Date(exp.created_at).toLocaleDateString("en-US", {
                             month: "short",
-                            day: "numeric"
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
                           })}
                         </TableCell>
                       </TableRow>
@@ -320,18 +312,6 @@ export default function ProjectOverview({
         onClose={() => setNewExperimentModalOpen(false)}
         projectId={projectId}
         onSuccess={handleExperimentSuccess}
-        onStarted={(exp) => {
-          // Optimistically show running eval
-          setExperiments((prev) => [
-            {
-              id: exp.id,
-              status: exp.status,
-              created_at: exp.created_at || new Date().toISOString(),
-              config: exp.config,
-            } as Experiment,
-            ...prev,
-          ]);
-        }}
       />
     </Box>
   );

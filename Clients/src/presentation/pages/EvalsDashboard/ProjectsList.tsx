@@ -2,40 +2,31 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  Button,
   Card,
   CardContent,
-  CardActions,
-  Grid,
   Typography,
   Chip,
   Stack,
-  Divider,
-  Select,
-  MenuItem,
+  useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, Settings, Trash2, ChevronDown, Plus, Workflow, FileSearch, Bot } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
+import EmptyState from "../../components/EmptyState";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
-import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDeleteIconButton";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 export default function ProjectsList() {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [projects, setProjects] = useState<DeepEvalProject[]>([]);
   const [runsByProject, setRunsByProject] = useState<Record<string, number>>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
-  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
-  const [orgCreateOpen, setOrgCreateOpen] = useState(false);
-  const [orgCreating, setOrgCreating] = useState(false);
-  const [newOrgName, setNewOrgName] = useState("");
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [alert, setAlert] = useState<{
     variant: "success" | "error";
     body: string;
@@ -44,52 +35,45 @@ export default function ProjectsList() {
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
-    useCase: "chatbot" as "chatbot" | "rag" | "agent",
   });
-  const [createStep, setCreateStep] = useState(0); // 0: details, 1: use case
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<DeepEvalProject | null>(null);
+  const [editProjectData, setEditProjectData] = useState({
+    name: "",
+    description: "",
+  });
+
+  // Color palette for project icons
+  const iconColors = [
+    { bg: "rgba(19, 113, 91, 0.1)", color: "#13715B" },     // Green (default)
+    { bg: "rgba(59, 130, 246, 0.1)", color: "#3B82F6" },    // Blue
+    { bg: "rgba(168, 85, 247, 0.1)", color: "#A855F7" },    // Purple
+    { bg: "rgba(249, 115, 22, 0.1)", color: "#F97316" },    // Orange
+    { bg: "rgba(236, 72, 153, 0.1)", color: "#EC4899" },    // Pink
+    { bg: "rgba(20, 184, 166, 0.1)", color: "#14B8A6" },    // Teal
+    { bg: "rgba(245, 158, 11, 0.1)", color: "#F59E0B" },    // Amber
+    { bg: "rgba(99, 102, 241, 0.1)", color: "#6366F1" },    // Indigo
+  ];
+
+  const getIconColor = (projectId: string) => {
+    // Use project ID to deterministically pick a color
+    let hash = 0;
+    for (let i = 0; i < projectId.length; i++) {
+      hash = projectId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % iconColors.length;
+    return iconColors[index];
+  };
 
   useEffect(() => {
     loadProjects();
-    // Load orgs for inline org picker
-    (async () => {
-      const [{ orgs }, { org }] = await Promise.all([
-        deepEvalOrgsService.getAllOrgs(),
-        deepEvalOrgsService.getCurrentOrg(),
-      ]);
-      setOrgs(orgs);
-      setCurrentOrgId(org?.id || null);
-    })();
   }, []);
 
   const loadProjects = async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
-      let fetched = data.projects;
-      // Filter by org when available
-      try {
-        const { org } = await deepEvalOrgsService.getCurrentOrg();
-        const orgId = org?.id || null;
-        if (orgId) {
-          // If we're in VerifyWiseEvals, ensure all existing projects are attached to this org (one-time, idempotent)
-          let allowedIds = await deepEvalOrgsService.getProjectsForOrg(orgId);
-          if (org?.name === "VerifyWiseEvals") {
-            const toAdd = (data.projects || [])
-              .map((p) => p.id)
-              .filter((id) => !allowedIds.includes(id));
-            await Promise.all(
-              toAdd.map((id) => deepEvalOrgsService.addProjectToOrg(orgId, id))
-            );
-            // refresh allowed list
-            allowedIds = await deepEvalOrgsService.getProjectsForOrg(orgId);
-          }
-          fetched = (data.projects || []).filter(
-            (p) => p.orgId === orgId || allowedIds.includes(p.id)
-          );
-        }
-      } catch {
-        // ignore filtering errors
-      }
-      setProjects(fetched);
+      setProjects(data.projects);
 
       // Fetch run counts for each project in parallel (using experiments API)
       const statsArray = await Promise.all(
@@ -129,17 +113,9 @@ export default function ProjectsList() {
       const projectConfig = {
         name: newProject.name,
         description: newProject.description,
-        useCase: newProject.useCase,
-        defaultDataset: newProject.useCase,
-        orgId: currentOrgId || undefined,
       };
 
-      const { project } = await deepEvalProjectsService.createProject(projectConfig);
-
-      // Link project to current organization if available
-      if (currentOrgId && project?.id) {
-        await deepEvalOrgsService.addProjectToOrg(currentOrgId, project.id);
-      }
+      await deepEvalProjectsService.createProject(projectConfig);
 
       setAlert({
         variant: "success",
@@ -148,11 +124,9 @@ export default function ProjectsList() {
       setTimeout(() => setAlert(null), 5000);
 
       setCreateModalOpen(false);
-      setCreateStep(0);
       setNewProject({
         name: "",
         description: "",
-        useCase: "chatbot",
       });
 
       loadProjects();
@@ -171,18 +145,37 @@ export default function ProjectsList() {
     navigate(`/evals/${projectId}#overview`);
   };
 
-  const handleDeleteProject = async (projectId: string) => {
+  const handleEditClick = (e: React.MouseEvent, project: DeepEvalProject) => {
+    e.stopPropagation();
+    setEditingProject(project);
+    setEditProjectData({
+      name: project.name,
+      description: project.description || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleUpdateProject = async () => {
+    if (!editingProject) return;
+    setLoading(true);
     try {
-      await deepEvalProjectsService.deleteProject(projectId);
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
-      const updated = { ...runsByProject };
-      delete updated[projectId];
-      setRunsByProject(updated);
-      setAlert({ variant: "success", body: "Project deleted" });
-      setTimeout(() => setAlert(null), 4000);
+      await deepEvalProjectsService.updateProject(editingProject.id, editProjectData);
+      setAlert({
+        variant: "success",
+        body: `Project "${editProjectData.name}" updated successfully!`,
+      });
+      setTimeout(() => setAlert(null), 5000);
+      setEditModalOpen(false);
+      setEditingProject(null);
+      loadProjects();
     } catch (err) {
-      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
-      setTimeout(() => setAlert(null), 6000);
+      setAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to update project",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -196,64 +189,31 @@ export default function ProjectsList() {
           Comprehensive LLM evaluation platform powered by LLM-as-a-Judge methodology. Create projects to organize your evaluations, configure models and judge LLMs, select datasets, and run experiments with multiple fairness and performance metrics. Each project can contain multiple evaluation runs with different configurations to help you systematically assess model behavior, detect bias, and ensure quality outputs.
         </Typography>
 
-        <Divider sx={{ mt: 3 }} />
-
-        {/* Organization selector below divider */}
-        {currentOrgId && (
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1 }}>
-            <Box>
-              <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
-                Organization
-              </Box>
-              <Select
-                value={currentOrgId}
-                onChange={async (e) => {
-                  const val = e.target.value as string;
-                  if (val === "manage_orgs") {
-                    await deepEvalOrgsService.clearCurrentOrg();
-                    setCurrentOrgId(null);
-                    navigate("/evals?org=none"); // trigger parent to re-check org and show selector
-                    return;
-                  }
-                  if (val === "create_new_org") {
-                    setOrgCreateOpen(true);
-                    return;
-                  }
-                  await deepEvalOrgsService.setCurrentOrg(val);
-                  setCurrentOrgId(val);
-                  navigate("/evals");
-                }}
-                IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  minWidth: "260px",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "6px",
-                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                  "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
-                }}
-              >
-                <MenuItem value="manage_orgs">Manage organizations</MenuItem>
-                <Divider sx={{ my: 0.5 }} />
-                {orgs.map((o) => (
-                  <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
-                ))}
-                <Divider sx={{ my: 0.5 }} />
-                <MenuItem value="create_new_org">
-                  <Plus size={16} style={{ marginRight: 8 }} />
-                  Create organization
-                </MenuItem>
-              </Select>
-            </Box>
-          </Box>
-        )}
-
-        {/* Projects Title - Below Divider */}
+        {/* Projects Title */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Projects
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+              Projects
+            </Typography>
+            {projects.length > 0 && (
+              <Chip
+                label={projects.length}
+                size="small"
+                sx={{
+                  backgroundColor: "#e0e0e0",
+                  color: "#424242",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  height: "20px",
+                  minWidth: "20px",
+                  borderRadius: "10px",
+                  "& .MuiChip-label": {
+                    padding: "0 6px",
+                  },
+                }}
+              />
+            )}
+          </Box>
           
           {/* Create Project Button - Right Aligned */}
           <CustomizableButton
@@ -273,333 +233,277 @@ export default function ProjectsList() {
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            py: 12,
-            px: 3,
-            border: "1px solid #E5E7EB",
-            borderRadius: 2,
-            backgroundColor: "#FFFFFF",
-            minHeight: 400,
-          }}
-        >
-          <Box sx={{ mb: 3 }}>
-            <Beaker size={64} color="#9CA3AF" strokeWidth={1.5} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: "18px", color: "#111827" }}>
-            No projects yet
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 4, fontSize: "14px", maxWidth: 480, lineHeight: 1.6, color: "#6B7280" }}
-          >
-            Create your first project to start evaluating LLMs. Each project can contain multiple experiments with different configurations.
-          </Typography>
-          <CustomizableButton
-            variant="contained"
-            startIcon={<CirclePlus size={18} />}
-            onClick={() => setCreateModalOpen(true)}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "0f5a47" },
-              fontSize: "14px",
-              fontWeight: 500,
-              px: 3,
-              py: 1.25,
-            }}
-          >
-            Create your first project
-          </CustomizableButton>
-        </Box>
+        <EmptyState
+          message="No projects yet. Create your first project to start evaluating LLMs."
+          showBorder
+        />
       ) : (
-        <Grid container spacing={3}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
           {projects.map((project) => (
-            <Grid item xs={12} sm={6} md={4} key={project.id}>
+            <Box
+              key={project.id}
+              sx={{
+                width: { xs: "100%", md: "calc(50% - 8px)", lg: "calc(33.333% - 11px)" }
+              }}
+            >
               <Card
                 sx={{
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  border: "1px solid #E5E7EB",
-                  boxShadow: "none",
-                  userSelect: "none",
+                  overflow: "hidden",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: theme.shape.borderRadius,
+                  boxShadow: "none",
+                  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
                   "&:hover": {
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                    transform: "translateY(-2px)",
-                    borderColor: "#13715B",
+                    background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
+                    borderColor: "#D1D5DB",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
                   },
                 }}
+                onMouseEnter={() => setHoveredCard(project.id)}
+                onMouseLeave={() => setHoveredCard(null)}
                 onClick={() => handleOpenProject(project.id)}
               >
-                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                    <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
-                      {project.name}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {/* Delete project */}
-                      <Box
-                        onClick={(e) => e.stopPropagation()}
-                        sx={{ ml: 0.5 }}
+                <CardContent
+                  sx={{
+                    p: 2,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    position: "relative",
+                    backgroundColor: "transparent",
+                    "&:last-child": {
+                      paddingBottom: 2,
+                    },
+                  }}
+                >
+                  {/* Header Section: Icon and Name */}
+                  <Box sx={{ p: 2, m: 3, backgroundColor: "transparent" }}>
+                    {/* Project Icon */}
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        mb: 3,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: getIconColor(project.id).bg,
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <Beaker size={24} color={getIconColor(project.id).color} strokeWidth={2} />
+                    </Box>
+
+                    {/* Project Name */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          color: theme.palette.text.primary,
+                          fontSize: "15px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: "calc(100% - 30px)",
+                        }}
                       >
-                        <ConfirmableDeleteIconButton
-                          id={project.id}
-                          title="Delete this project?"
-                          message="This will remove the project and all its eval runs."
-                          onConfirm={() => handleDeleteProject(project.id)}
-                          customIcon={<Trash2 size={16} color="#D32F2F" />}
-                        />
+                        {project.name}
+                      </Typography>
+                      {/* Edit Button */}
+                      <Box
+                        onClick={(e) => handleEditClick(e, project)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          p: 0.5,
+                          borderRadius: "4px",
+                          color: "#6b7280",
+                          cursor: "pointer",
+                          flexShrink: 0,
+                          opacity: hoveredCard === project.id ? 1 : 0,
+                          transition: "opacity 0.2s ease",
+                          "&:hover": {
+                            color: theme.palette.primary.main,
+                            backgroundColor: "rgba(19, 113, 91, 0.1)",
+                          },
+                        }}
+                      >
+                        <Pencil size={14} />
                       </Box>
                     </Box>
                   </Box>
 
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 3, minHeight: 40, fontSize: "13px", lineHeight: 1.5, color: "#6B7280" }}
-                  >
-                    {project.description || "No description provided"}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box display="flex" alignItems="center" gap={0.5}>
-                      <Calendar size={13} color="#9CA3AF" />
-                      <Typography variant="caption" sx={{ fontSize: "12px", color: "#9CA3AF" }}>
-                        {new Date(project.createdAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={`${runsByProject[project.id] ?? 0} ${
-                        (runsByProject[project.id] ?? 0) === 1 ? "run" : "runs"
-                      }`}
-                      size="small"
+                  {/* Content Section: Description and Date */}
+                  <Box sx={{ backgroundColor: "transparent", mx: 3, mb: 4, px: 2, flexGrow: 1 }}>
+                    {/* Project Description */}
+                    <Typography
+                      variant="body2"
                       sx={{
-                        fontSize: "11px",
-                        height: 22,
-                        backgroundColor: "#F3F4F6",
-                        color: "#6B7280",
+                        color: theme.palette.text.secondary,
+                        fontSize: "13px",
+                        mb: 2,
+                        minHeight: 40,
+                        lineHeight: 1.5,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {project.description || "No description provided"}
+                    </Typography>
+
+                    {/* Bottom Row: Date and Runs Count */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+                      <Chip
+                        size="small"
+                        icon={<Calendar size={12} />}
+                        label={new Date(project.createdAt).toLocaleDateString()}
+                        sx={{
+                          backgroundColor: "#f5f5f5",
+                          color: "#616161",
+                          fontWeight: 500,
+                          fontSize: "11px",
+                          letterSpacing: "0.5px",
+                          borderRadius: "4px",
+                          "& .MuiChip-label": {
+                            padding: "4px 8px",
+                          },
+                          "& .MuiChip-icon": {
+                            color: "#616161",
+                          },
+                        }}
+                      />
+                      <Chip
+                        size="small"
+                        label={`${runsByProject[project.id] ?? 0} ${
+                          (runsByProject[project.id] ?? 0) === 1 ? "run" : "runs"
+                        }`}
+                        sx={{
+                          backgroundColor: "#e0e0e0",
+                          color: "#424242",
+                          fontWeight: 500,
+                          fontSize: "11px",
+                          letterSpacing: "0.5px",
+                          borderRadius: "4px",
+                          "& .MuiChip-label": {
+                            padding: "4px 8px",
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Top Right: Open Button */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 20,
+                      right: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      color: theme.palette.primary.main,
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 500,
+                        fontSize: "13px",
+                        opacity: hoveredCard === project.id ? 1 : 0,
+                        transform: hoveredCard === project.id ? "translateX(0)" : "translateX(10px)",
+                        transition: "all 0.3s ease",
+                        whiteSpace: "nowrap",
+                        mr: hoveredCard === project.id ? 1 : 0,
+                      }}
+                    >
+                      Open
+                    </Typography>
+                    <ChevronRight
+                      size={20}
+                      style={{
+                        transition: "all 0.3s ease",
                       }}
                     />
                   </Box>
                 </CardContent>
-
-                <CardActions sx={{ justifyContent: "flex-end", p: 2, pt: 0, gap: 1, borderTop: "1px solid #F3F4F6" }}>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    sx={{
-                      textTransform: "none",
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      backgroundColor: "#13715B",
-                      "&:hover": { backgroundColor: "#0f5a47" },
-                      px: 2.5,
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenProject(project.id);
-                    }}
-                  >
-                    Open
-                  </Button>
-                  <Button
-                    size="small"
-                    sx={{
-                      textTransform: "none",
-                      fontSize: "13px",
-                      color: "#6B7280",
-                      fontWeight: 500,
-                      "&:hover": { backgroundColor: "F9FAFB" },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/evals/${project.id}/configuration`);
-                    }}
-                    startIcon={<Settings size={14} />}
-                  >
-                    Settings
-                  </Button>
-                </CardActions>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       )}
 
       {/* Create Project Modal */}
       <StandardModal
         isOpen={createModalOpen}
-        onClose={() => {
-          setCreateModalOpen(false);
-          setCreateStep(0);
-          setNewProject({ name: "", description: "", useCase: "chatbot" });
-        }}
-        title={createStep === 0 ? "Create project" : "Select use case"}
-        description={
-          createStep === 0
-            ? "Create a new project to organize your LLM evaluations"
-            : "Choose the primary LLM use case for this project. You can change this later in Configuration."
-        }
-        onSubmit={async () => {
-          if (createStep === 0) {
-            if (!newProject.name.trim()) return;
-            setCreateStep(1);
-            return;
-          }
-          await handleCreateProject();
-        }}
-        submitButtonText={createStep === 0 ? "Next" : "Create project"}
-        isSubmitting={loading || (createStep === 0 && !newProject.name)}
+        onClose={() => setCreateModalOpen(false)}
+        title="Create project"
+        description="Create a new project to organize your LLM evaluations"
+        onSubmit={handleCreateProject}
+        submitButtonText="Create project"
+        isSubmitting={loading || !newProject.name}
       >
-        {createStep === 0 ? (
-          <Stack spacing={3}>
-            <Typography variant="body2" color="text.secondary">
-              Projects help you organize your LLM evaluations. You'll configure the model, 
-              dataset, and metrics when creating individual evaluation runs within the project.
-            </Typography>
+        <Stack spacing={3}>
+          <Typography variant="body2" color="text.secondary">
+            Projects help you organize your LLM evaluations. You'll configure the model, 
+            dataset, and metrics when creating individual evaluation runs within the project.
+          </Typography>
 
-            <Field
-              label="Project Name"
-              value={newProject.name}
-              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-              placeholder="e.g., Coding Tasks Evaluation"
-              isRequired
-            />
+          <Field
+            label="Project Name"
+            value={newProject.name}
+            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+            placeholder="e.g., Coding Tasks Evaluation"
+            isRequired
+          />
 
-            <Field
-              label="Description"
-              value={newProject.description}
-              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-              placeholder="Brief description of this project..."
-            />
-          </Stack>
-        ) : (
-          <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
-              LLM Use Case
-            </Box>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <Card
-                  onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                  sx={{
-                    cursor: "pointer",
-                    border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    height: "100%",
-                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ mb: 1.5 }}><Bot size={24} color="#13715B" /></Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
-                      Chatbots
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                      Multi-turn conversations, coherence, correctness, safety.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Card
-                  onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                  sx={{
-                    cursor: "pointer",
-                    border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    height: "100%",
-                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ mb: 1.5 }}><FileSearch size={24} color="#13715B" /></Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
-                      RAG
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                      Contextual recall/precision, relevancy, faithfulness.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Card
-                  onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
-                  sx={{
-                    cursor: "pointer",
-                    border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    height: "100%",
-                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ mb: 1.5 }}><Workflow size={24} color="#13715B" /></Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
-                      AI Agents
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                      Task completion, tool usage, safety, role adherence.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        )}
+          <Field
+            label="Description"
+            value={newProject.description}
+            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+            placeholder="Brief description of this project..."
+          />
+        </Stack>
       </StandardModal>
 
-      {/* Inline Create Organization Modal */}
+      {/* Edit Project Modal */}
       <StandardModal
-        isOpen={orgCreateOpen}
+        isOpen={editModalOpen}
         onClose={() => {
-          setOrgCreateOpen(false);
-          setNewOrgName("");
+          setEditModalOpen(false);
+          setEditingProject(null);
         }}
-        title="Create organization"
-        description="Name your organization to begin organizing projects and experiments."
-        onSubmit={async () => {
-          if (!newOrgName.trim()) return;
-          setOrgCreating(true);
-          const { org } = await deepEvalOrgsService.createOrg(newOrgName.trim());
-          setOrgCreating(false);
-          setOrgCreateOpen(false);
-          setNewOrgName("");
-          const [{ orgs }, { org: current }] = await Promise.all([
-            deepEvalOrgsService.getAllOrgs(),
-            deepEvalOrgsService.getCurrentOrg(),
-          ]);
-          setOrgs(orgs);
-          setCurrentOrgId(current?.id || org.id);
-          navigate("/evals");
-        }}
-        submitButtonText="Create organization"
-        isSubmitting={orgCreating || !newOrgName.trim()}
+        title="Edit project"
+        description="Update the project name and description"
+        onSubmit={handleUpdateProject}
+        submitButtonText="Save changes"
+        isSubmitting={loading || !editProjectData.name}
       >
         <Stack spacing={3}>
           <Field
-            label="Organization name"
-            value={newOrgName}
-            onChange={(e) => setNewOrgName(e.target.value)}
-            placeholder="e.g., VerifyEvals"
+            label="Project name"
+            value={editProjectData.name}
+            onChange={(e) => setEditProjectData({ ...editProjectData, name: e.target.value })}
+            placeholder="e.g., Coding Tasks Evaluation"
             isRequired
+          />
+
+          <Field
+            label="Description"
+            value={editProjectData.description}
+            onChange={(e) => setEditProjectData({ ...editProjectData, description: e.target.value })}
+            placeholder="Brief description of this project..."
           />
         </Stack>
       </StandardModal>

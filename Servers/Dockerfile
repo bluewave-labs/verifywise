@@ -1,8 +1,12 @@
 FROM node:20-alpine
 
 WORKDIR /app
-COPY ./package.json ./
-RUN npm install
+COPY ./package.json ./package-lock.json* ./
+
+# Increase timeout and use cache for cross-platform builds
+RUN npm config set fetch-timeout 600000 && \
+    npm config set fetch-retries 5 && \
+    npm ci --prefer-offline --no-audit || npm install
 
 COPY ./ ./
 COPY ./SQL_Commands.sql ./SQL_Commands.sql

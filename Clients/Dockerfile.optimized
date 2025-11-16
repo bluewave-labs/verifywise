@@ -1,4 +1,4 @@
-# Step 1: Use a Node.js base image
+# Step 1: Use a Node.js base image with more memory
 FROM node:20-alpine AS build
 
 # Increase Node.js memory limit for the build
@@ -7,10 +7,10 @@ ENV NODE_OPTIONS="--max_old_space_size=4096"
 # Step 2: Set the working directory
 WORKDIR /app
 
-# Step 3: Copy package.json and package-lock.json
+# Step 3: Copy package files
 COPY package.json package-lock.json ./
 
-# Step 4: Install dependencies with optimizations for cross-platform builds
+# Step 4: Install dependencies with optimizations
 RUN npm config set fetch-timeout 600000 && \
     npm config set fetch-retries 5 && \
     npm ci --prefer-offline --no-audit --legacy-peer-deps || npm install --legacy-peer-deps
@@ -36,9 +36,6 @@ FROM nginx:1.25-alpine
 
 # Step 9: Copy the build output to NGINX's default public directory
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# Step 9: Copy the custom error page
-# COPY upgrade.html /usr/share/nginx/html/upgrade.html
 
 # Step 10: Copy the custom NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

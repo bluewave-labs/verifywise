@@ -236,16 +236,32 @@ export default function ProjectMonitor({ projectId }: ProjectMonitorProps) {
                         <Chip
                           label={exp.status}
                           size="small"
-                          color={
-                            exp.status === "completed"
-                              ? "success"
-                              : exp.status === "running"
-                              ? "warning"
-                              : exp.status === "failed"
-                              ? "error"
-                              : "default"
-                          }
-                          sx={{ fontSize: "11px", height: 22 }}
+                          sx={{
+                            backgroundColor:
+                              exp.status === "completed"
+                                ? "#c8e6c9"
+                                : exp.status === "running"
+                                ? "#fff3e0"
+                                : exp.status === "failed"
+                                ? "#ffebee"
+                                : "#e0e0e0",
+                            color:
+                              exp.status === "completed"
+                                ? "#388e3c"
+                                : exp.status === "running"
+                                ? "#ef6c00"
+                                : exp.status === "failed"
+                                ? "#c62828"
+                                : "#616161",
+                            fontWeight: 500,
+                            fontSize: "11px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            borderRadius: "4px",
+                            "& .MuiChip-label": {
+                              padding: "4px 8px",
+                            },
+                          }}
                         />
                       </Box>
                       <Typography variant="caption" color="text.secondary">

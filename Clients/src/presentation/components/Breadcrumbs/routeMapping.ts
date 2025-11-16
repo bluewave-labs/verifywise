@@ -27,6 +27,7 @@ import {
   Puzzle,
   Zap,
   Activity,
+  FlaskConical,
 } from "lucide-react";
 
 /**
@@ -82,6 +83,9 @@ export const routeMapping: Record<string, string> = {
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
+
+  // LLM Evals
+  "/evals": "LLM Evals",
 
   // Authentication
   "/login": "Sign In",
@@ -161,6 +165,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // MLFlow
   "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
+
+  // LLM Evals
+  "/evals": () => React.createElement(FlaskConical, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, MenuItem, Select, Divider, Stack, IconButton } from "@mui/material";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
-import Tab from "@mui/material/Tab";
-import { LayoutDashboard, FlaskConical, Activity, ChevronDown, Plus, Settings, Bot, FileSearch, Workflow } from "lucide-react";
+import { Box, MenuItem, Select, Divider, Stack, IconButton, Typography, useTheme } from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
+import { ChevronDown, Plus, Settings, Bot, FileSearch, Workflow, Home, FlaskConical } from "lucide-react";
+import { getSelectStyles } from "../../utils/inputStyles";
+import TabBar from "../../components/TabBar";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -23,7 +24,8 @@ export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const theme = useTheme();
+
   // Determine tab from URL hash or default (only when viewing a project)
   const [tab, setTab] = useState(() => {
     if (!projectId) return "overview"; // Default, but won't be used
@@ -144,21 +146,35 @@ export default function EvalsDashboard() {
   const breadcrumbItems =
     !orgId
       ? [
-          { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: "Organizations" },
         ]
       : projectId && currentProject
       ? [
-          { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: currentProject.name },
         ]
-      : [{ label: "LLM Evals Dashboard" }];
+      : [
+          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+        ];
 
   return (
     <Box>
-      <Box sx={{ mb: 2, userSelect: "none" }}>
-        <PageBreadcrumbs items={breadcrumbItems} />
-        
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{ userSelect: "none" }}>
+          <PageBreadcrumbs items={breadcrumbItems} />
+        </Box>
+
+        {/* Page header (only for projects list view) */}
+        {!projectId && orgId && (
+          <Box sx={{ mt: 4 }}>
+            <PageHeader title="LLM Evals" />
+          </Box>
+        )}
+
         {/* Top row: Project selector (when in project), Settings on right */}
         <Box
           sx={{
@@ -169,52 +185,126 @@ export default function EvalsDashboard() {
             mb: 2,
           }}
         >
+        {projectId && allProjects.length > 0 ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 2,
+              mb: 2,
+            }}
+          >
 
-          {/* Project selector (only when in a project context) */}
-          {projectId && allProjects.length > 0 ? (
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
-              Project
-            </Box>
-            <Select
-              value={projectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-              IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
-              sx={{
-                fontSize: "16px",
-                fontWeight: 600,
-                maxWidth: "300px",
-                border: "1px solid #E5E7EB",
-                borderRadius: "6px",
-                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                "&:hover": { 
-                  borderColor: "#13715B",
-                },
-                "&.Mui-focused": { 
-                  borderColor: "#13715B",
-                },
-                "& .MuiSelect-select": {
-                  py: 0.75,
-                  px: 1.5,
+            {/* Project selector (only when in a project context) */}
+            <Stack gap={theme.spacing(2)} className="select-wrapper" sx={{ mb: 2 }}>
+              <Typography
+                component="p"
+                variant="body1"
+                color={theme.palette.text.secondary}
+                fontWeight={500}
+                fontSize="13px"
+                sx={{
+                  margin: 0,
+                  height: "22px",
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                },
-              }}
-            >
-              {allProjects.map((proj) => (
-                <MenuItem key={proj.id} value={proj.id}>
-                  {proj.name}
-                </MenuItem>
-              ))}
-              <Divider sx={{ my: 0.5 }} />
-              <MenuItem 
-                value="create_new"
+                }}
               >
-                <Plus size={16} style={{ marginRight: 8 }} />
-                Create project
-              </MenuItem>
-            </Select>
+                Project
+              </Typography>
+              <Select
+                className="select-component"
+                value={projectId}
+                onChange={(e) => handleProjectChange(e.target.value)}
+                displayEmpty
+                IconComponent={() => (
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      pointerEvents: "none",
+                      color: theme.palette.text.tertiary,
+                    }}
+                  />
+                )}
+                MenuProps={{
+                  disableScrollLock: true,
+                  PaperProps: {
+                    sx: {
+                      borderRadius: theme.shape.borderRadius,
+                      boxShadow: theme.boxShadow,
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        fontSize: 13,
+                        color: theme.palette.text.primary,
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.accent,
+                        },
+                        "&.Mui-selected": {
+                          backgroundColor: theme.palette.background.accent,
+                          "&:hover": {
+                            backgroundColor: theme.palette.background.accent,
+                          },
+                        },
+                        "& .MuiTouchRipple-root": {
+                          display: "none",
+                        },
+                      },
+                    },
+                  },
+                }}
+                sx={{
+                  fontSize: 13,
+                  minWidth: "200px",
+                  maxWidth: "300px",
+                  backgroundColor: theme.palette.background.main,
+                  position: "relative",
+                  cursor: "pointer",
+                  "& .MuiSelect-select": {
+                    padding: "0 32px 0 10px !important",
+                    height: "34px",
+                    display: "flex",
+                    alignItems: "center",
+                    lineHeight: 2,
+                  },
+                  ...getSelectStyles(theme),
+                }}
+              >
+                {allProjects.map((proj) => (
+                  <MenuItem
+                    key={proj.id}
+                    value={proj.id}
+                    sx={{
+                      fontSize: 13,
+                      color: theme.palette.text.tertiary,
+                      borderRadius: theme.shape.borderRadius,
+                      margin: theme.spacing(2),
+                    }}
+                  >
+                    {proj.name}
+                  </MenuItem>
+                ))}
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem
+                  value="create_new"
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: theme.palette.primary.main,
+                    borderRadius: theme.shape.borderRadius,
+                    margin: theme.spacing(2),
+                  }}
+                >
+                  <Plus size={14} style={{ marginRight: 8 }} />
+                  Create project
+                </MenuItem>
+              </Select>
+            </Stack>
           </Box>
           ) : (
             <PageHeader title="LLM Evals" />
@@ -297,67 +387,35 @@ export default function EvalsDashboard() {
         ) : (
           // Project detail view with tabs
           <TabContext value={tab}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-              <TabList
-                onChange={handleTabChange}
-                TabIndicatorProps={{
-                  style: { backgroundColor: "#13715B", height: "2px" },
-                }}
-                sx={{
-                  minHeight: 40,
-                  "& .MuiTab-root": {
-                    minHeight: 40,
-                    py: 1,
-                    px: 4,
-                    mr: 4,
-                  },
-                }}
-              >
-                <Tab
-                  icon={<LayoutDashboard size={16} />}
-                  iconPosition="start"
-                  label="Overview"
-                  value="overview"
-                  disableRipple
-                  sx={{ textTransform: "none !important", fontSize: "14px", gap: 1.5 }}
-                />
-                <Tab
-                  icon={<FlaskConical size={16} />}
-                  iconPosition="start"
-                  label="Experiments"
-                  value="experiments"
-                  disableRipple
-                  sx={{ textTransform: "none !important", fontSize: "14px", gap: 1.5 }}
-                />
-                <Tab
-                  icon={<Activity size={16} />}
-                  iconPosition="start"
-                  label="Monitor"
-                  value="monitor"
-                  disableRipple
-                  sx={{ textTransform: "none !important", fontSize: "14px", gap: 1.5 }}
-                />
-              </TabList>
-            </Box>
+          <Box sx={{ mb: 3 }}>
+            <TabBar
+              tabs={[
+                { label: "Overview", value: "overview", icon: "LayoutDashboard" },
+                { label: "Evals", value: "experiments", icon: "FlaskConical" },
+                { label: "Monitor", value: "monitor", icon: "Activity" },
+              ]}
+              activeTab={tab}
+              onChange={handleTabChange}
+            />
+          </Box>
 
-            <TabPanel value="overview" sx={{ p: 0 }}>
-              <ProjectOverview
-                projectId={projectId}
-                project={currentProject}
-                onProjectUpdate={setCurrentProject}
-              />
-            </TabPanel>
+          <TabPanel value="overview" sx={{ p: 0 }}>
+            <ProjectOverview
+              projectId={projectId}
+              project={currentProject}
+              onProjectUpdate={setCurrentProject}
+            />
+          </TabPanel>
 
-            <TabPanel value="experiments" sx={{ p: 0 }}>
-              <ProjectExperiments projectId={projectId} />
-            </TabPanel>
+          <TabPanel value="experiments" sx={{ p: 0 }}>
+            <ProjectExperiments projectId={projectId} />
+          </TabPanel>
 
-            <TabPanel value="monitor" sx={{ p: 0 }}>
-              <ProjectMonitor projectId={projectId} />
-            </TabPanel>
-          </TabContext>
-        )}
-      </Box>
+          <TabPanel value="monitor" sx={{ p: 0 }}>
+            <ProjectMonitor projectId={projectId} />
+          </TabPanel>
+        </TabContext>
+      )}
 
       {/* Create Project Modal */}
       <ModalStandard
@@ -503,6 +561,7 @@ export default function EvalsDashboard() {
           />
         </Stack>
       </ModalStandard>
+    </Box>
     </Box>
   );
 }

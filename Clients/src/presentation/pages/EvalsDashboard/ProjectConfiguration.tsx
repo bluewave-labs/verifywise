@@ -6,7 +6,7 @@ import PageHeader from "../../components/Layout/PageHeader";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import type { DeepEvalProject } from "./types";
-import { Bot, FileSearch, Workflow } from "lucide-react";
+import { Bot, FileSearch, Workflow, Home, FlaskConical } from "lucide-react";
 
 export default function ProjectConfiguration() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -58,7 +58,8 @@ export default function ProjectConfiguration() {
   };
 
   const breadcrumbs = [
-    { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
     { label: project?.name || "Project", onClick: () => navigate(`/evals/${projectId}#overview`) },
     { label: "Configuration" },
   ];

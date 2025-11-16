@@ -9,12 +9,13 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, Bot, FileSearch, Workflow } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
+import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDeleteIconButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
@@ -32,9 +33,10 @@ export default function ProjectsList() {
     body: string;
   } | null>(null);
 
-  const [newProject, setNewProject] = useState({
+  const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({
     name: "",
     description: "",
+    useCase: "chatbot",
   });
 
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -108,11 +110,12 @@ export default function ProjectsList() {
   const handleCreateProject = async () => {
     setLoading(true);
     try {
-      // Create project with only name and description
-      // Model configs, datasets, and metrics will be configured per eval run
+      // Create project with selected use case; default dataset follows use case
       const projectConfig = {
         name: newProject.name,
         description: newProject.description,
+        useCase: newProject.useCase,
+        defaultDataset: newProject.useCase,
       };
 
       await deepEvalProjectsService.createProject(projectConfig);
@@ -124,10 +127,7 @@ export default function ProjectsList() {
       setTimeout(() => setAlert(null), 5000);
 
       setCreateModalOpen(false);
-      setNewProject({
-        name: "",
-        description: "",
-      });
+      setNewProject({ name: "", description: "", useCase: "chatbot" });
 
       loadProjects();
     } catch (err) {
@@ -179,6 +179,32 @@ export default function ProjectsList() {
     }
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    setLoading(true);
+    try {
+      await deepEvalProjectsService.deleteProject(projectId);
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      setRunsByProject((prev) => {
+        const next = { ...prev };
+        delete next[projectId];
+        return next;
+      });
+      setAlert({
+        variant: "success",
+        body: "Project deleted.",
+      });
+      setTimeout(() => setAlert(null), 4000);
+    } catch (err) {
+      setAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to delete project",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
@@ -215,23 +241,8 @@ export default function ProjectsList() {
             )}
           </Box>
           
-          {/* Organization Settings and Create Project Button - Right Aligned */}
+          {/* Create Project Button - Right Aligned */}
           <Box display="flex" alignItems="center" gap={1}>
-            <CustomizableButton
-              onClick={() => navigate("/evals/settings")}
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                borderColor: "#D0D5DD",
-                color: "#344054",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                  borderColor: "#D0D5DD",
-                },
-              }}
-            >
-              Organization settings
-            </CustomizableButton>
             <CustomizableButton
               onClick={() => setCreateModalOpen(true)}
               variant="contained"
@@ -355,6 +366,28 @@ export default function ProjectsList() {
                       >
                         <Pencil size={14} />
                       </Box>
+                      {/* Delete Button */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          p: 0.5,
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          opacity: hoveredCard === project.id ? 1 : 0,
+                          transition: "opacity 0.2s ease",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ConfirmableDeleteIconButton
+                          id={project.id}
+                          onConfirm={(id) => handleDeleteProject(String(id))}
+                          title="Delete this project?"
+                          message="This will remove the project and its experiments. This action cannot be undone."
+                          customIcon={<Trash2 size={14} color="#D32F2F" />}
+                        />
+                      </Box>
                     </Box>
                   </Box>
 
@@ -473,8 +506,7 @@ export default function ProjectsList() {
       >
         <Stack spacing={3}>
           <Typography variant="body2" color="text.secondary">
-            Projects help you organize your LLM evaluations. You'll configure the model, 
-            dataset, and metrics when creating individual evaluation runs within the project.
+            Projects help you organize your LLM evaluations. You'll configure the model, dataset, and metrics when creating individual evaluation runs within the project.
           </Typography>
 
           <Field
@@ -491,6 +523,87 @@ export default function ProjectsList() {
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
             placeholder="Brief description of this project..."
           />
+
+          {/* LLM Use Case - card selection */}
+          <Box>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+              LLM Use Case
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                sx={{
+                  border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <Workflow size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
+                sx={{
+                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <FileSearch size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box
+                onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
+                sx={{
+                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: "#FFFFFF",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <Bot size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate conversational experiences for coherence, correctness and safety.
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Stack>
       </StandardModal>
 

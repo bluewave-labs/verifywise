@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, MenuItem, Select, Divider, Stack, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, MenuItem, Select, Divider, Stack, Typography, useTheme, IconButton } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown, Plus, Settings, Bot, FileSearch, Workflow, Home, FlaskConical } from "lucide-react";
+import { ChevronDown, Plus, Bot, FileSearch, Workflow, Home, FlaskConical, Settings } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import TabBar from "../../components/TabBar";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -147,7 +147,27 @@ export default function EvalsDashboard() {
     !orgId
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          {
+            label: "LLM Evals",
+            path: "/evals",
+            icon: <FlaskConical size={14} strokeWidth={1.5} />,
+            onClick: async () => {
+              // When in Organizations view with no org selected, choose first org so ProjectsList can render
+              try {
+                const { org } = await deepEvalOrgsService.getCurrentOrg();
+                if (!org) {
+                  const { orgs } = await deepEvalOrgsService.getAllOrgs();
+                  if (orgs && orgs.length > 0) {
+                    await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+                    setOrgId(orgs[0].id);
+                  }
+                }
+              } catch {
+                // ignore
+              }
+              navigate("/evals");
+            },
+          },
           { label: "Organizations" },
         ]
       : projectId && currentProject
@@ -167,13 +187,6 @@ export default function EvalsDashboard() {
         <Box sx={{ userSelect: "none" }}>
           <PageBreadcrumbs items={breadcrumbItems} />
         </Box>
-
-        {/* Page header (only for projects list view) */}
-        {!projectId && orgId && (
-          <Box sx={{ mt: 4 }}>
-            <PageHeader title="LLM Evals" />
-          </Box>
-        )}
 
         {/* Top row: Project selector (when in project), Settings on right */}
         <Box
@@ -310,69 +323,66 @@ export default function EvalsDashboard() {
             <PageHeader title="LLM Evals" />
           )}
 
-          {/* Spacer pushes settings to the right */}
+          {/* Spacer pushes right-side controls */}
           <Box sx={{ flex: 1 }} />
-          {/* Organization dropdown (quick access) */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mr: 1 }}>
-            <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
-              Organization
+          {/* Organization dropdown only on LLM Evals root (no project selected) */}
+          {!projectId && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mr: 1 }}>
+              <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
+                Organization
+              </Box>
+              <Select
+                value={orgId || ""}
+                onChange={async (e) => {
+                  const val = String(e.target.value);
+                  if (val === "manage_orgs") {
+                    await deepEvalOrgsService.clearCurrentOrg();
+                    setOrgId(null);
+                    navigate("/evals"); // shows org selector
+                    return;
+                  }
+                  await deepEvalOrgsService.setCurrentOrg(val);
+                  setOrgId(val);
+                  navigate("/evals");
+                }}
+                displayEmpty
+                IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  minWidth: "220px",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "6px",
+                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
+                }}
+              >
+                <MenuItem value="manage_orgs">Manage organizations</MenuItem>
+                <Divider sx={{ my: 0.5 }} />
+                {orgs.map((o) => (
+                  <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
+                ))}
+              </Select>
             </Box>
-            <Select
-              value={orgId || ""}
-              onChange={async (e) => {
-                const val = String(e.target.value);
-                if (val === "manage_orgs") {
-                  await deepEvalOrgsService.clearCurrentOrg();
-                  setOrgId(null);
-                  navigate("/evals"); // shows org selector
-                  return;
-                }
-                await deepEvalOrgsService.setCurrentOrg(val);
-                setOrgId(val);
-                navigate("/evals");
-              }}
-              displayEmpty
-              IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
+          )}
+          {/* Project settings button (visible when in a project) */}
+          {projectId && (
+            <IconButton
+              aria-label="project-settings"
+              onClick={() => navigate(`/evals/${projectId}/configuration`)}
               sx={{
-                fontSize: "14px",
-                fontWeight: 600,
-                minWidth: "220px",
                 border: "1px solid #E5E7EB",
-                borderRadius: "6px",
-                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
+                width: 36,
+                height: 36,
+                borderRadius: "8px",
+                backgroundColor: "#FFFFFF",
+                "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
               }}
+              title="Project settings"
             >
-              <MenuItem value="manage_orgs">Manage organizations</MenuItem>
-              <Divider sx={{ my: 0.5 }} />
-              {orgs.map((o) => (
-                <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
-              ))}
-            </Select>
-          </Box>
-
-          {/* Settings icon navigates directly to configuration */}
-          <IconButton
-            aria-label="settings"
-            onClick={() => {
-              if (projectId) {
-                navigate(`/evals/${projectId}/configuration`);
-              } else {
-                navigate("/evals/settings");
-              }
-            }}
-            sx={{
-              border: "1px solid #E5E7EB",
-              width: 36,
-              height: 36,
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-              "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
-            }}
-            title="Settings"
-          >
-            <Settings size={20} />
-          </IconButton>
+              <Settings size={20} />
+            </IconButton>
+          )}
         </Box>
       </Box>
 
@@ -391,7 +401,7 @@ export default function EvalsDashboard() {
             <TabBar
               tabs={[
                 { label: "Overview", value: "overview", icon: "LayoutDashboard" },
-                { label: "Evals", value: "experiments", icon: "FlaskConical" },
+                { label: "Experiments", value: "experiments", icon: "FlaskConical" },
                 { label: "Monitor", value: "monitor", icon: "Activity" },
               ]}
               activeTab={tab}

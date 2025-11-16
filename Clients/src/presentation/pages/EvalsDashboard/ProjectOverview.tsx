@@ -88,7 +88,7 @@ export default function ProjectOverview({
 
   return (
     <Box>
-      {/* Header with New Eval button */}
+      {/* Header with New Experiment button */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
           <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600 }}>
@@ -98,7 +98,7 @@ export default function ProjectOverview({
         <CustomizableButton
           onClick={handleNewExperiment}
           variant="contained"
-          text="New eval"
+          text="New experiment"
           icon={<Play size={16} />}
           sx={{
             backgroundColor: "#13715B",
@@ -218,12 +218,12 @@ export default function ProjectOverview({
                   },
                 }}
               >
-                View all evals
+                View all experiments
               </Typography>
             )}
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: "13px" }}>
-            Eval score progress
+            Experiment score progress
           </Typography>
 
           {!hasExperiments ? (
@@ -236,19 +236,19 @@ export default function ProjectOverview({
                 variant="subtitle2"
                 sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
               >
-                No evals yet
+                No experiments yet
               </Typography>
               <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
               >
-                Run your first eval to start evaluating your LLM. Configure your model, dataset, and metrics to get started.
+                Run your first experiment to start evaluating your LLM. Configure your model, dataset, and metrics to get started.
               </Typography>
               <CustomizableButton
                 onClick={handleNewExperiment}
                 variant="contained"
-                text="Run first eval"
+                text="Run first experiment"
                 icon={<Play size={16} />}
                 sx={{
                   backgroundColor: "#13715B",
@@ -261,13 +261,13 @@ export default function ProjectOverview({
               />
             </Box>
           ) : (
-            /* Evals list (Braintrust style) */
+            /* Experiments list (Braintrust style) */
             <Box>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>EVAL ID</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>EXPERIMENT ID</TableCell>
                       <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>CREATED</TableCell>
                     </TableRow>
                   </TableHead>

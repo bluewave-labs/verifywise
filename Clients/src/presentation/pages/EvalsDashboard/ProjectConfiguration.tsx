@@ -4,6 +4,7 @@ import { Box, Stack, Card, CardContent, Typography, Grid } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import Field from "../../components/Inputs/Field";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import type { DeepEvalProject } from "./types";
 import { Bot, FileSearch, Workflow, Home, FlaskConical } from "lucide-react";
@@ -20,6 +21,14 @@ export default function ProjectConfiguration() {
     useCase: "chatbot",
     defaultDataset: "chatbot",
   });
+  const [apiKeys, setApiKeys] = useState<{
+    openai?: string;
+    anthropic?: string;
+    gemini?: string;
+    xai?: string;
+    mistral?: string;
+    huggingface?: string;
+  }>({});
 
   useEffect(() => {
     const load = async () => {
@@ -33,6 +42,13 @@ export default function ProjectConfiguration() {
             (project.defaultDataset as "chatbot" | "rag" | "agent" | "safety") ||
             ((project.useCase as "chatbot" | "rag" | "agent") || "chatbot"),
         });
+        // Load API keys from local storage (project-level)
+        try {
+          const raw = localStorage.getItem(`deepeval_project_api_keys_${projectId}`);
+          if (raw) setApiKeys(JSON.parse(raw));
+        } catch {
+          // ignore
+        }
       } catch (e) {
         console.error("Failed to load project", e);
       }
@@ -44,6 +60,12 @@ export default function ProjectConfiguration() {
     if (!projectId) return;
     setSaving(true);
     try {
+      // Persist API keys locally for now (used during experiment runs)
+      try {
+        localStorage.setItem(`deepeval_project_api_keys_${projectId}`, JSON.stringify(apiKeys || {}));
+      } catch {
+        // ignore storage errors
+      }
       await deepEvalProjectsService.updateProject(projectId, {
         useCase: state.useCase,
         defaultDataset: state.defaultDataset,
@@ -157,6 +179,72 @@ export default function ProjectConfiguration() {
                   </Box>
                 </CardContent>
               </Card>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* API Keys Section */}
+        <Box>
+          <Box sx={{ fontSize: "13px", color: "#374151", fontWeight: 700, mb: 1 }}>
+            API Keys (optional)
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
+            These keys are used at run-time for experiments in this project. They are stored locally in your browser.
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="OpenAI API Key"
+                type="password"
+                value={apiKeys.openai || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, openai: e.target.value }))}
+                placeholder="sk-..."
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="Anthropic API Key"
+                type="password"
+                value={apiKeys.anthropic || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, anthropic: e.target.value }))}
+                placeholder="anthropic-key"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="Google (Gemini) API Key"
+                type="password"
+                value={apiKeys.gemini || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, gemini: e.target.value }))}
+                placeholder="AIza..."
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="xAI API Key"
+                type="password"
+                value={apiKeys.xai || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, xai: e.target.value }))}
+                placeholder="xai-key"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="Mistral API Key"
+                type="password"
+                value={apiKeys.mistral || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, mistral: e.target.value }))}
+                placeholder="mistral-key"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Field
+                label="Hugging Face Access Token"
+                type="password"
+                value={apiKeys.huggingface || ""}
+                onChange={(e) => setApiKeys((k) => ({ ...k, huggingface: e.target.value }))}
+                placeholder="hf_..."
+              />
             </Grid>
           </Grid>
         </Box>

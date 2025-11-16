@@ -162,7 +162,7 @@ class ModelRunner:
         prompt: str,
         max_tokens: int = 500,
         temperature: float = 0.7,
-        top_p: float = 0.9,
+        top_p: Optional[float] = None,
     ) -> str:
         """
         Generate a response to the given prompt.
@@ -224,16 +224,23 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using OpenAI API."""
-        response = self.openai_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
+        # Some OpenAI models (e.g., o-series) do not allow temperature and top_p together.
+        # Prefer temperature and include top_p only when provided and not an o-series model.
+        params: Dict[str, Any] = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        model_lower = (self.model_name or "").lower()
+        is_o_series = model_lower.startswith("o")  # covers o1, o3, etc.
+        if (top_p is not None) and not is_o_series:
+            params["top_p"] = top_p
+
+        response = self.openai_client.chat.completions.create(**params)
         
         return response.choices[0].message.content.strip()
     
@@ -242,18 +249,22 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using Anthropic API."""
-        message = self.anthropic_client.messages.create(
-            model=self.model_name,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        # Anthropic does not allow specifying both temperature and top_p simultaneously.
+        kwargs: Dict[str, Any] = {
+            "model": self.model_name,
+            "max_tokens": max_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if top_p is not None:
+            # If top_p is provided explicitly, use it and omit temperature
+            kwargs["top_p"] = top_p
+        else:
+            kwargs["temperature"] = temperature
+
+        message = self.anthropic_client.messages.create(**kwargs)
         return message.content[0].text.strip()
     
     def _generate_gemini(
@@ -261,14 +272,15 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using Google Gemini API."""
         generation_config = {
             "max_output_tokens": max_tokens,
             "temperature": temperature,
-            "top_p": top_p,
         }
+        if top_p is not None:
+            generation_config["top_p"] = top_p
         response = self.gemini_client.generate_content(
             prompt,
             generation_config=generation_config
@@ -280,7 +292,7 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using xAI official SDK (gRPC-based)."""
         from xai_sdk.chat import user
@@ -298,21 +310,18 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using Mistral official SDK."""
-        chat_response = self.mistral_client.chat.complete(
-            model=self.model_name,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
+        params: Dict[str, Any] = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if top_p is not None:
+            params["top_p"] = top_p
+        chat_response = self.mistral_client.chat.complete(**params)
         return chat_response.choices[0].message.content.strip()
     
     def _generate_ollama(
@@ -320,18 +329,16 @@ class ModelRunner:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        top_p: float,
+        top_p: Optional[float],
     ) -> str:
         """Generate using Ollama."""
-        response = self.ollama_client.generate(
-            model=self.model_name,
-            prompt=prompt,
-            options={
-                "num_predict": max_tokens,
-                "temperature": temperature,
-                "top_p": top_p,
-            }
-        )
+        options = {
+            "num_predict": max_tokens,
+            "temperature": temperature,
+        }
+        if top_p is not None:
+            options["top_p"] = top_p
+        response = self.ollama_client.generate(model=self.model_name, prompt=prompt, options=options)
         
         return response['response'].strip()
     
@@ -340,7 +347,7 @@ class ModelRunner:
         prompts: list[str],
         max_tokens: int = 500,
         temperature: float = 0.7,
-        top_p: float = 0.9,
+        top_p: Optional[float] = None,
     ) -> list[str]:
         """
         Generate responses for multiple prompts.

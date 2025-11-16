@@ -1,15 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface PerformanceChartProps {
   projectId: string;
@@ -26,34 +17,43 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const [data, setData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
-// Static imports for Vite
+  // Load experiments and compute metric averages from logs (backend metrics GET is not implemented yet)
   const loadPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
-      const { experimentsService, metricsService } = await import("../../../../infrastructure/api/evaluationLogsService");
+      const { experimentsService } = await import("../../../../infrastructure/api/evaluationLogsService");
       const expsResp = await experimentsService.getAllExperiments({ project_id: projectId });
-      const metsResp = await metricsService.getMetrics({ project_id: projectId });
-      const experiments = expsResp.experiments || [];
-      const metrics = metsResp.metrics || [];
+      const list: Array<{ id: string; created_at: string }> = expsResp.experiments || [];
 
-      // Group metrics by experiment
-      const byExp: Record<string, Record<string, number>> = {};
-      metrics.forEach((m: { experiment_id?: string; metric_name: string; value: number }) => {
-        const expId = m.experiment_id;
-        if (!expId) return;
-        if (!byExp[expId]) byExp[expId] = {};
-        byExp[expId][m.metric_name] = m.value;
-      });
+      const sorted = [...list]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .slice(-10); // limit to last 10 runs for performance
 
-      const sorted = [...experiments].sort((a: { created_at: string }, b: { created_at: string }) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-      const chart: ChartPoint[] = sorted.map((exp: { id: string }, idx: number) => {
-        const m = byExp[exp.id] || {};
+      // Fetch full experiment details to ensure 'results.avg_scores' is available
+      const detailed = await Promise.all(
+        sorted.map(async (exp) => {
+          try {
+            const detail = await experimentsService.getExperiment(exp.id);
+            return { ...exp, ...(detail?.experiment || {}) } as {
+              id: string;
+              created_at: string;
+              results?: { avg_scores?: Record<string, number> };
+            };
+          } catch {
+            return { ...exp } as { id: string; created_at: string };
+          }
+        })
+      );
+
+      type DetailedExp = { id: string; created_at: string; results?: { avg_scores?: Record<string, number> } };
+      const chart: ChartPoint[] = (detailed as DetailedExp[]).map((exp, idx) => {
+        const avg = exp.results?.avg_scores || {};
         return {
           name: `Run ${idx + 1}`,
-          answerCorrectness: m["g_eval_correctness"] ?? null,
-          coherence: m["g_eval_coherence"] ?? null,
-          tonality: m["g_eval_tonality"] ?? null,
-          safety: m["g_eval_safety"] ?? null,
+          answerCorrectness: typeof avg["g_eval_correctness"] === "number" ? avg["g_eval_correctness"] : null,
+          coherence: typeof avg["g_eval_coherence"] === "number" ? avg["g_eval_coherence"] : null,
+          tonality: typeof avg["g_eval_tonality"] === "number" ? avg["g_eval_tonality"] : null,
+          safety: typeof avg["g_eval_safety"] === "number" ? avg["g_eval_safety"] : null,
         };
       });
 

@@ -1,5 +1,5 @@
 export const inputStyles = {
-  minWidth: 200,
-  flexGrow: 1,
+  flex: 1,
+  minWidth: 0,
   height: 34,
 };

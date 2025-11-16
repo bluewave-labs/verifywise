@@ -48,7 +48,7 @@ import {
   Layers,
   AlertCircle,
   FolderCog,
-  // Database,
+  Database,
   Heart,
 } from "lucide-react";
 
@@ -161,10 +161,11 @@ const topItems = (openTasksCount: number): IMenuItem[] => [
   },
 ];
 
-const getManagementItems = (): // hasDemoData: boolean,
-// onOpenCreateDemoData?: () => void,
-// onOpenDeleteDemoData?: () => void
-IMenuItem[] => [
+const getManagementItems = (
+  hasDemoData: boolean,
+  onOpenCreateDemoData?: () => void,
+  onOpenDeleteDemoData?: () => void
+): IMenuItem[] => [
   {
     name: "Event Tracker",
     icon: <Telescope size={16} strokeWidth={1.5} />,
@@ -175,21 +176,21 @@ IMenuItem[] => [
     icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/settings",
   },
-  // ...(hasDemoData
-  //   ? [
-  //       {
-  //         name: "Delete demo data",
-  //         icon: <Database size={16} strokeWidth={1.5} />,
-  //         action: onOpenDeleteDemoData,
-  //       },
-  //     ]
-  //   : [
-  //       {
-  //         name: "Create demo data",
-  //         icon: <Database size={16} strokeWidth={1.5} />,
-  //         action: onOpenCreateDemoData,
-  //       },
-  //     ]),
+  ...(hasDemoData
+    ? [
+        {
+          name: "Delete demo data",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          action: onOpenDeleteDemoData,
+        },
+      ]
+    : [
+        {
+          name: "Create demo data",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          action: onOpenCreateDemoData,
+        },
+      ]),
 ];
 
 // Reserved for future use
@@ -216,13 +217,11 @@ interface SidebarProps {
   hasDemoData?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = (
-  {
-    // onOpenCreateDemoData,
-    // onOpenDeleteDemoData,
-    // hasDemoData = false,
-  }
-) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  onOpenCreateDemoData,
+  onOpenDeleteDemoData,
+  hasDemoData = false,
+}) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -984,20 +983,22 @@ const Sidebar: React.FC<SidebarProps> = (
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
-              background: getManagementItems().some(
-                // hasDemoData,
-                // onOpenCreateDemoData,
-                // onOpenDeleteDemoData
+              background: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
                 (item) =>
                   location.pathname.startsWith(`${item.path}/`) ||
                   location.pathname === item.path
               )
                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                 : "transparent",
-              border: getManagementItems().some(
-                // hasDemoData,
-                // onOpenCreateDemoData,
-                // onOpenDeleteDemoData
+              border: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
                 (item) =>
                   location.pathname.startsWith(`${item.path}/`) ||
                   location.pathname === item.path
@@ -1005,20 +1006,22 @@ const Sidebar: React.FC<SidebarProps> = (
                 ? "1px solid #D8D8D8"
                 : "1px solid transparent",
               "&:hover": {
-                background: getManagementItems().some(
-                  // hasDemoData,
-                  // onOpenCreateDemoData,
-                  // onOpenDeleteDemoData
+                background: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
                   (item) =>
                     location.pathname.startsWith(`${item.path}/`) ||
                     location.pathname === item.path
                 )
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: getManagementItems().some(
-                  // hasDemoData,
-                  // onOpenCreateDemoData,
-                  // onOpenDeleteDemoData
+                border: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
                   (item) =>
                     location.pathname.startsWith(`${item.path}/`) ||
                     location.pathname === item.path
@@ -1044,18 +1047,20 @@ const Sidebar: React.FC<SidebarProps> = (
                 width: "16px",
                 mr: 0,
                 "& svg": {
-                  color: getManagementItems().some(
-                    // hasDemoData,
-                    // onOpenCreateDemoData,
-                    // onOpenDeleteDemoData
+                  color: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
                     (item) => item.path && location.pathname.includes(item.path)
                   )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
-                  stroke: getManagementItems().some(
-                    // hasDemoData,
-                    // onOpenCreateDemoData,
-                    // onOpenDeleteDemoData
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
                     (item) => item.path && location.pathname.includes(item.path)
                   )
                     ? "#13715B !important"
@@ -1063,10 +1068,11 @@ const Sidebar: React.FC<SidebarProps> = (
                   transition: "color 0.2s ease, stroke 0.2s ease",
                 },
                 "& svg path": {
-                  stroke: getManagementItems().some(
-                    // hasDemoData,
-                    // onOpenCreateDemoData,
-                    // onOpenDeleteDemoData
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
                     (item) => item.path && location.pathname.includes(item.path)
                   )
                     ? "#13715B !important"
@@ -1133,10 +1139,11 @@ const Sidebar: React.FC<SidebarProps> = (
             },
           }}
         >
-          {getManagementItems().map((item) => (
-            // hasDemoData,
-            // onOpenCreateDemoData,
-            // onOpenDeleteDemoData
+          {getManagementItems(
+            hasDemoData,
+            onOpenCreateDemoData,
+            onOpenDeleteDemoData
+          ).map((item) => (
             <MenuItem
               key={item.path || item.name}
               onClick={() => {

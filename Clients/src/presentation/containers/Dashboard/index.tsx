@@ -6,7 +6,10 @@ import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
-import { postAutoDrivers, deleteAutoDrivers } from "../../../application/repository/entity.repository";
+import {
+  postAutoDrivers,
+  deleteAutoDrivers,
+} from "../../../application/repository/entity.repository";
 import { logEngine } from "../../../application/tools/log.engine";
 import StandardModal from "../../components/Modals/StandardModal";
 import CustomizableToast from "../../components/Toast";
@@ -20,27 +23,32 @@ interface DashboardProps {
 }
 
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
-  const {
-    setDashboardValues,
-    setProjects,
-  } = useContext(VerifyWiseContext);
+  const { setDashboardValues, setProjects } = useContext(VerifyWiseContext);
   const location = useLocation();
 
   // Demo data state
-  const [showToastNotification, setShowToastNotification] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>("Generating demo data. Please wait, this process may take some time...");
+  const [showToastNotification, setShowToastNotification] =
+    useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>(
+    "Generating demo data. Please wait, this process may take some time..."
+  );
   const [openDemoDataModal, setOpenDemoDataModal] = useState<boolean>(false);
-  const [openDeleteDemoDataModal, setOpenDeleteDemoDataModal] = useState<boolean>(false);
+  const [openDeleteDemoDataModal, setOpenDeleteDemoDataModal] =
+    useState<boolean>(false);
   const [hasDemoData, setHasDemoData] = useState<boolean>(false);
   const [alertState, setAlertState] = useState<AlertState>();
-  const [refreshProjectsFlag, setRefreshProjectsFlag] = useState<boolean>(false);
+  const [refreshProjectsFlag, setRefreshProjectsFlag] =
+    useState<boolean>(false);
 
   const { dashboard, fetchDashboard } = useDashboard();
 
   // Check for demo data existence
   useEffect(() => {
     if (dashboard?.projects_list) {
-      const demoProjectTitles = ["AI Compliance Checker", "Information Security & AI Governance Framework"];
+      const demoProjectTitles = [
+        "AI Compliance Checker",
+        "Information Security & AI Governance Framework",
+      ];
       const hasDemoProjects = dashboard.projects_list.some((project) =>
         demoProjectTitles.includes(project.project_title)
       );
@@ -65,12 +73,19 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     };
 
     fetchProjects();
-  }, [setDashboardValues, reloadTrigger, location.pathname, refreshProjectsFlag]);
+  }, [
+    setDashboardValues,
+    reloadTrigger,
+    location.pathname,
+    refreshProjectsFlag,
+  ]);
 
   // Handle create demo data
   const handleCreateDemoData = async () => {
     setOpenDemoDataModal(false);
-    setToastMessage("Generating demo data. Please wait, this process may take some time...");
+    setToastMessage(
+      "Generating demo data. Please wait, this process may take some time..."
+    );
     setShowToastNotification(true);
 
     const startTime = Date.now();
@@ -83,7 +98,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
       if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
       if (response.status === 201) {
@@ -95,7 +110,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Refresh dashboard and projects data
         await Promise.all([
           fetchDashboard(),
-          getAllProjects().then(projectsResponse => {
+          getAllProjects().then((projectsResponse) => {
             if (projectsResponse?.data) {
               setProjects(projectsResponse.data);
               setDashboardValues((prevValues: any) => ({
@@ -104,7 +119,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
                 selectedProjectId: projectsResponse.data[0]?.id || "",
               }));
             }
-          })
+          }),
         ]);
 
         // Force refresh projects flag to trigger updates in child components
@@ -118,7 +133,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-        }, 3000);
+          // Refresh the page to ensure all components reflect the changes
+          window.location.reload();
+        }, 500);
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -138,7 +155,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
       if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
       setShowToastNotification(false);
@@ -173,7 +190,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
       if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
       if (response.status === 200 || response.status === 204) {
@@ -185,7 +202,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         // Refresh dashboard and projects data
         await Promise.all([
           fetchDashboard(),
-          getAllProjects().then(projectsResponse => {
+          getAllProjects().then((projectsResponse) => {
             if (projectsResponse?.data) {
               setProjects(projectsResponse.data);
               setDashboardValues((prevValues: any) => ({
@@ -194,7 +211,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
                 selectedProjectId: projectsResponse.data[0]?.id || "",
               }));
             }
-          })
+          }),
         ]);
 
         // Force refresh projects flag to trigger updates in child components
@@ -208,7 +225,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-        }, 3000);
+          // Refresh the page to ensure all components reflect the changes
+          window.location.reload();
+        }, 500);
       } else {
         setShowToastNotification(false);
         logEngine({
@@ -228,7 +247,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
       if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
 
       setShowToastNotification(false);
@@ -271,9 +290,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             onClick={() => setAlertState(undefined)}
           />
         )}
-        {showToastNotification && (
-          <CustomizableToast title={toastMessage} />
-        )}
+        {showToastNotification && <CustomizableToast title={toastMessage} />}
         <Outlet />
       </Stack>
 
@@ -297,7 +314,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             }}
           >
             <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-              This will generate demo (mock) data for you, allowing you to explore and get a hands-on understanding of how VerifyWise works. We highly recommend this option.
+              This will generate demo (mock) data for you, allowing you to
+              explore and get a hands-on understanding of how VerifyWise works.
+              We highly recommend this option.
             </Typography>
           </Box>
 
@@ -310,31 +329,52 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
                 • 2 sample use cases/frameworks:
               </Typography>
               <Stack gap="2px" sx={{ pl: 2 }}>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "13px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "13px" }}
+                >
                   - "AI Compliance Checker"
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "13px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "13px" }}
+                >
                   - "Information Security & AI Governance Framework"
                 </Typography>
               </Stack>
-              <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mt: 1 }}
+              >
                 • 2 demo users:
               </Typography>
               <Stack gap="2px" sx={{ pl: 2 }}>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "13px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "13px" }}
+                >
                   - John Doe
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "13px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "13px" }}
+                >
                   - Alice Smith
                 </Typography>
               </Stack>
-              <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mt: 1 }}
+              >
                 • Sample risks, vendors, and AI Trust Centre data
               </Typography>
             </Stack>
           </Stack>
 
-          <Typography variant="body2" sx={{ color: "text.secondary", fontStyle: "italic" }}>
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontStyle: "italic" }}
+          >
             Note: You can remove this demo data at any time.
           </Typography>
         </Stack>
@@ -394,7 +434,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             }}
           >
             <Typography variant="body2" sx={{ color: "rgba(0, 0, 0, 0.87)" }}>
-              This action will permanently delete all demo data from your workspace. This cannot be undone.
+              This action will permanently delete all demo data from your
+              workspace. This cannot be undone.
             </Typography>
           </Box>
 
@@ -415,8 +456,12 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             </Stack>
           </Stack>
 
-          <Typography variant="body2" sx={{ color: "text.secondary", fontStyle: "italic" }}>
-            Note: Only demo data will be removed. Your real data will remain untouched.
+          <Typography
+            variant="body2"
+            sx={{ color: "text.secondary", fontStyle: "italic" }}
+          >
+            Note: Only demo data will be removed. Your real data will remain
+            untouched.
           </Typography>
         </Stack>
       </StandardModal>

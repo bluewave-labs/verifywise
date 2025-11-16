@@ -108,7 +108,7 @@ export default function NewExperimentModal({
       model: "",
       apiKey: "",
       temperature: 0.7,
-      maxTokens: 500,
+      maxTokens: 2048,
     },
     // Step 3: Dataset
     dataset: {
@@ -285,7 +285,7 @@ export default function NewExperimentModal({
         model: "",
         apiKey: "",
         temperature: 0.7,
-        maxTokens: 500,
+        maxTokens: 2048,
       },
       dataset: {
         useBuiltin: true,
@@ -587,14 +587,13 @@ export default function NewExperimentModal({
                 <FormControlLabel
                   value="upload"
                   control={<Radio size="small" />}
-                  disabled
                   label={
                     <Box>
-                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>
+                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
                         Upload custom dataset
                       </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mt: 0.5 }}>
-                        Coming soon - Upload your own JSON dataset file
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
+                        Upload your own JSON dataset file (same schema as presets)
                       </Typography>
                     </Box>
                   }
@@ -603,8 +602,8 @@ export default function NewExperimentModal({
                     borderRadius: "8px",
                     p: 1.5,
                     m: 0,
-                    bgcolor: "#FAFAFA",
-                    opacity: 0.6,
+                    bgcolor: !config.dataset.useBuiltin ? "#F0FDF4" : "#FFFFFF",
+                    borderColor: !config.dataset.useBuiltin ? "#10B981" : "#E0E0E0",
                   }}
                 />
               </RadioGroup>
@@ -633,6 +632,14 @@ export default function NewExperimentModal({
                           setUploadingDataset(true);
                           const resp = await deepEvalDatasetsService.uploadDataset(file);
                           setCustomDatasetPath(resp.path);
+                          // Load prompts from uploaded dataset for preview
+                          try {
+                            const { prompts } = await deepEvalDatasetsService.read(resp.path);
+                            setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                            setDatasetLoaded(true);
+                          } catch {
+                            // ignore preview load errors
+                          }
                           setAlert({
                             show: true,
                             variant: "success",
@@ -693,6 +700,10 @@ export default function NewExperimentModal({
                 <Select
                   size="small"
                   value={selectedPresetPath || ""}
+                  renderValue={(val) => {
+                    const ds = (availableDatasets[config.taskType] || []).find(d => d.path === val);
+                    return ds ? `${ds.name}` : "Select a preset";
+                  }}
                   onOpen={async () => {
                     try {
                       const list = await deepEvalDatasetsService.list();
@@ -728,7 +739,14 @@ export default function NewExperimentModal({
                 >
                   {(availableDatasets[config.taskType] || []).slice(0, 12).map((ds) => (
                     <MenuItem key={ds.key} value={ds.path}>
-                      {ds.name}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Chip
+                          label={ds.use_case}
+                          size="small"
+                          sx={{ textTransform: "capitalize", height: 20 }}
+                        />
+                        <Typography sx={{ fontSize: "13px" }}>{ds.name}</Typography>
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>

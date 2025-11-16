@@ -37,6 +37,7 @@ import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_fi
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
+import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
@@ -79,6 +80,9 @@ export default function NewExperimentModal({
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPrompt[]>([]);
   const [datasetLoaded, setDatasetLoaded] = useState(false);
   const [expandedPrompts, setExpandedPrompts] = useState<number[]>([]); // Track which prompts are expanded
+  const [customDatasetFile, setCustomDatasetFile] = useState<File | null>(null);
+  const [customDatasetPath, setCustomDatasetPath] = useState<string>("");
+  const [uploadingDataset, setUploadingDataset] = useState(false);
 
   // Configuration state
   const [config, setConfig] = useState({
@@ -278,6 +282,36 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validate custom dataset if upload mode is selected
+      const isUploadMode = !config.dataset.useBuiltin && !config.dataset.benchmark;
+      if (isUploadMode && !customDatasetPath) {
+        setAlert({
+          show: true,
+          variant: "error",
+          title: "Dataset required",
+          body: "Please upload a JSON dataset before starting the evaluation.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Build dataset spec for backend
+      const datasetSpec = isUploadMode
+        ? {
+            useBuiltin: false,
+            path: customDatasetPath,
+            prompts: [],
+            count: 0,
+          }
+        : {
+            useBuiltin: config.dataset.useBuiltin
+              ? (config.dataset.preset || config.taskType || "chatbot")
+              : false,
+            prompts: config.dataset.benchmark ? [] : datasetPrompts,
+            count: (config.dataset.benchmark ? [] : datasetPrompts).length,
+            benchmark: config.dataset.benchmark || undefined,
+          };
+
       // Prepare experiment configuration
       const experimentConfig = {
         project_id: projectId,
@@ -300,14 +334,7 @@ export default function NewExperimentModal({
             temperature: config.judgeLlm.temperature,
             maxTokens: config.judgeLlm.maxTokens,
           },
-          dataset: {
-            useBuiltin: config.dataset.useBuiltin
-              ? (config.dataset.preset || config.taskType || "chatbot")
-              : false,
-                prompts: config.dataset.benchmark ? [] : datasetPrompts,
-            count: datasetPrompts.length,
-                benchmark: config.dataset.benchmark || undefined,
-          },
+          dataset: datasetSpec,
           metrics: config.metrics,
           thresholds: config.thresholds,
         },
@@ -828,14 +855,13 @@ export default function NewExperimentModal({
                 <FormControlLabel
                   value="upload"
                   control={<Radio size="small" />}
-                  disabled
                   label={
                     <Box>
-                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#9CA3AF" }}>
-                        Upload custom dataset
+                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
+                        Upload custom dataset (JSON)
                       </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mt: 0.5 }}>
-                        Coming soon - Upload your own JSON dataset file
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
+                        Provide your own prompts in JSON array format
                       </Typography>
                     </Box>
                   }
@@ -844,12 +870,67 @@ export default function NewExperimentModal({
                     borderRadius: "8px",
                     p: 1.5,
                     m: 0,
-                    bgcolor: "#FAFAFA",
-                    opacity: 0.6,
+                    bgcolor: !config.dataset.useBuiltin && !config.dataset.benchmark ? "#F0F9FF" : "#FFFFFF",
+                    borderColor: !config.dataset.useBuiltin && !config.dataset.benchmark ? "#3B82F6" : "#E0E0E0",
                   }}
                 />
               </RadioGroup>
             </FormControl>
+
+            {/* Upload custom dataset controls */}
+            {!config.dataset.useBuiltin && !config.dataset.benchmark && (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, ml: 4 }}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  sx={{ textTransform: "none" }}
+                >
+                  {customDatasetFile ? "Choose another file" : "Choose JSON file"}
+                  <input
+                    type="file"
+                    accept="application/json"
+                    hidden
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0] || null;
+                      setCustomDatasetFile(file);
+                      setCustomDatasetPath("");
+                      if (file) {
+                        try {
+                          setUploadingDataset(true);
+                          const resp = await deepEvalDatasetsService.uploadDataset(file);
+                          setCustomDatasetPath(resp.path);
+                          setAlert({
+                            show: true,
+                            variant: "success",
+                            title: "Dataset uploaded",
+                            body: `${resp.filename} uploaded (${resp.size} bytes)`,
+                          });
+                        } catch (err) {
+                          setAlert({
+                            show: true,
+                            variant: "error",
+                            title: "Upload failed",
+                            body: err instanceof Error ? err.message : "Failed to upload dataset",
+                          });
+                        } finally {
+                          setUploadingDataset(false);
+                        }
+                      }
+                    }}
+                  />
+                </Button>
+                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                  {uploadingDataset
+                    ? "Uploading..."
+                    : customDatasetPath
+                      ? `Ready: ${customDatasetFile?.name}`
+                      : customDatasetFile
+                        ? `Selected: ${customDatasetFile.name}`
+                        : "No file selected"}
+                </Typography>
+              </Box>
+            )}
 
             {/* Benchmark selector */}
             {config.dataset.benchmark && (

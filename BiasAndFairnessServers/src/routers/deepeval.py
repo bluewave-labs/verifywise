@@ -4,7 +4,7 @@ DeepEval Router
 Endpoints for running DeepEval LLM evaluations.
 """
 
-from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File
 from controllers.deepeval import (
     create_deepeval_evaluation_controller,
     get_deepeval_evaluation_status_controller,
@@ -13,6 +13,7 @@ from controllers.deepeval import (
     delete_deepeval_evaluation_controller,
     get_available_deepeval_metrics_controller,
     get_evaluation_dataset_info_controller,
+    upload_deepeval_dataset_controller,
 )
 
 router = APIRouter()
@@ -199,4 +200,24 @@ async def get_dataset_info():
     }
     """
     return await get_evaluation_dataset_info_controller()
+
+
+@router.post("/datasets/upload")
+async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
+    """
+    Upload a custom JSON dataset to be used in evaluations.
+    
+    Returns:
+    {
+        "message": "Dataset uploaded successfully",
+        "path": "data/uploads/{tenant}/{filename}.json",
+        "filename": "{filename}.json",
+        "size": 12345,
+        "tenant": "default"
+    }
+    """
+    return await upload_deepeval_dataset_controller(
+        dataset=dataset,
+        tenant=request.headers.get("x-tenant-id", "default"),
+    )
 

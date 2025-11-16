@@ -12,7 +12,7 @@ import asyncio
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException, BackgroundTasks, UploadFile
 from fastapi.responses import JSONResponse
 
 # Add BiasAndFairnessModule to path
@@ -553,5 +553,69 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get dataset info: {str(e)}"
+        )
+
+
+async def upload_deepeval_dataset_controller(
+    dataset: UploadFile,
+    tenant: str,
+) -> JSONResponse:
+    """
+    Upload a custom dataset JSON file for DeepEval and return a server-relative path
+    that can be referenced in evaluation configs as dataset.path.
+    """
+    try:
+        if not dataset:
+            raise HTTPException(status_code=400, detail="No dataset file provided")
+
+        # Basic content-type check (best-effort)
+        content_type = (dataset.content_type or "").lower()
+        if "json" not in content_type and not dataset.filename.lower().endswith(".json"):
+            raise HTTPException(status_code=400, detail="Dataset must be a JSON file")
+
+        # Read and validate JSON
+        content_bytes = await dataset.read()
+        try:
+            data = json.loads(content_bytes.decode("utf-8"))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
+
+        # Minimal schema check: expect a list of prompt objects
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="Dataset JSON must be an array of prompt objects")
+
+        # Build upload path within EvaluationModule
+        root_path = Path(__file__).parent.parent.parent.parent
+        evaluation_module_path = root_path / "EvaluationModule"
+        uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_name = dataset.filename.replace("/", "_").replace("\\", "_")
+        filename = f"{timestamp}_{safe_name or 'dataset'}.json"
+        full_path = uploads_dir / filename
+
+        # Save pretty JSON back to disk to ensure UTF-8 and normalized formatting
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        # Return path relative to EvaluationModule for runner consumption
+        relative_path = str(Path("data") / "uploads" / tenant / filename)
+        return JSONResponse(
+            status_code=201,
+            content={
+                "message": "Dataset uploaded successfully",
+                "path": relative_path,
+                "filename": filename,
+                "size": len(content_bytes),
+                "tenant": tenant,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload dataset: {str(e)}"
         )
 

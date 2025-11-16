@@ -14,7 +14,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, Settings, Trash2, ChevronDown, Plus } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, Settings, Trash2, ChevronDown, Plus, Workflow, FileSearch, Bot } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -44,7 +44,9 @@ export default function ProjectsList() {
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
+    useCase: "chatbot" as "chatbot" | "rag" | "agent",
   });
+  const [createStep, setCreateStep] = useState(0); // 0: details, 1: use case
 
   useEffect(() => {
     loadProjects();
@@ -127,9 +129,17 @@ export default function ProjectsList() {
       const projectConfig = {
         name: newProject.name,
         description: newProject.description,
+        useCase: newProject.useCase,
+        defaultDataset: newProject.useCase,
+        orgId: currentOrgId || undefined,
       };
 
-      await deepEvalProjectsService.createProject(projectConfig);
+      const { project } = await deepEvalProjectsService.createProject(projectConfig);
+
+      // Link project to current organization if available
+      if (currentOrgId && project?.id) {
+        await deepEvalOrgsService.addProjectToOrg(currentOrgId, project.id);
+      }
 
       setAlert({
         variant: "success",
@@ -138,9 +148,11 @@ export default function ProjectsList() {
       setTimeout(() => setAlert(null), 5000);
 
       setCreateModalOpen(false);
+      setCreateStep(0);
       setNewProject({
         name: "",
         description: "",
+        useCase: "chatbot",
       });
 
       loadProjects();
@@ -427,34 +439,131 @@ export default function ProjectsList() {
       {/* Create Project Modal */}
       <StandardModal
         isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Create project"
-        description="Create a new project to organize your LLM evaluations"
-        onSubmit={handleCreateProject}
-        submitButtonText="Create project"
-        isSubmitting={loading || !newProject.name}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setCreateStep(0);
+          setNewProject({ name: "", description: "", useCase: "chatbot" });
+        }}
+        title={createStep === 0 ? "Create project" : "Select use case"}
+        description={
+          createStep === 0
+            ? "Create a new project to organize your LLM evaluations"
+            : "Choose the primary LLM use case for this project. You can change this later in Configuration."
+        }
+        onSubmit={async () => {
+          if (createStep === 0) {
+            if (!newProject.name.trim()) return;
+            setCreateStep(1);
+            return;
+          }
+          await handleCreateProject();
+        }}
+        submitButtonText={createStep === 0 ? "Next" : "Create project"}
+        isSubmitting={loading || (createStep === 0 && !newProject.name)}
       >
-        <Stack spacing={3}>
-          <Typography variant="body2" color="text.secondary">
-            Projects help you organize your LLM evaluations. You'll configure the model, 
-            dataset, and metrics when creating individual evaluation runs within the project.
-          </Typography>
+        {createStep === 0 ? (
+          <Stack spacing={3}>
+            <Typography variant="body2" color="text.secondary">
+              Projects help you organize your LLM evaluations. You'll configure the model, 
+              dataset, and metrics when creating individual evaluation runs within the project.
+            </Typography>
 
-          <Field
-            label="Project Name"
-            value={newProject.name}
-            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-            placeholder="e.g., Coding Tasks Evaluation"
-            isRequired
-          />
+            <Field
+              label="Project Name"
+              value={newProject.name}
+              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+              placeholder="e.g., Coding Tasks Evaluation"
+              isRequired
+            />
 
-          <Field
-            label="Description"
-            value={newProject.description}
-            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            placeholder="Brief description of this project..."
-          />
-        </Stack>
+            <Field
+              label="Description"
+              value={newProject.description}
+              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+              placeholder="Brief description of this project..."
+            />
+          </Stack>
+        ) : (
+          <Box>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+              LLM Use Case
+            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <Card
+                  onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
+                  sx={{
+                    cursor: "pointer",
+                    border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "none",
+                    transition: "all 0.2s ease",
+                    height: "100%",
+                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ mb: 1.5 }}><Bot size={24} color="#13715B" /></Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
+                      Chatbots
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                      Multi-turn conversations, coherence, correctness, safety.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card
+                  onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
+                  sx={{
+                    cursor: "pointer",
+                    border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "none",
+                    transition: "all 0.2s ease",
+                    height: "100%",
+                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ mb: 1.5 }}><FileSearch size={24} color="#13715B" /></Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
+                      RAG
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                      Contextual recall/precision, relevancy, faithfulness.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card
+                  onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
+                  sx={{
+                    cursor: "pointer",
+                    border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "none",
+                    transition: "all 0.2s ease",
+                    height: "100%",
+                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.08)", transform: "translateY(-2px)" },
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ mb: 1.5 }}><Workflow size={24} color="#13715B" /></Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
+                      AI Agents
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
+                      Task completion, tool usage, safety, role adherence.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
       </StandardModal>
 
       {/* Inline Create Organization Modal */}

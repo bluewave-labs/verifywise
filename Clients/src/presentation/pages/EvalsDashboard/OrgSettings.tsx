@@ -5,10 +5,15 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import Field from "../../components/Inputs/Field";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import Alert from "../../components/Alert";
 
 export default function OrgSettings() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "error";
+    body: string;
+  } | null>(null);
   const [keys, setKeys] = useState({
     openai: "",
     anthropic: "",
@@ -31,7 +36,17 @@ export default function OrgSettings() {
         ...keys,
         openai: keys.openai ? "***" : "",
       });
-      alert("Saved organization settings");
+      setAlert({
+        variant: "success",
+        body: "Organization settings saved successfully",
+      });
+      setTimeout(() => setAlert(null), 5000);
+    } catch (err) {
+      setAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to save settings",
+      });
+      setTimeout(() => setAlert(null), 8000);
     } finally {
       setSaving(false);
     }
@@ -39,6 +54,7 @@ export default function OrgSettings() {
 
   return (
     <Box sx={{ p: 3 }}>
+      {alert && <Alert variant={alert.variant} body={alert.body} />}
       <Box sx={{ mb: 2, userSelect: "none" }}>
         <PageBreadcrumbs items={breadcrumbs} />
         <PageHeader title="Organization settings" />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Stack } from "@mui/material";
+import { Home, FlaskConical } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import Field from "../../components/Inputs/Field";
@@ -24,7 +25,8 @@ export default function OrgSettings() {
   });
 
   const breadcrumbs = [
-    { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
+    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
     { label: "Organization settings" },
   ];
 

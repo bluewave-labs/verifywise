@@ -215,19 +215,36 @@ export default function ProjectsList() {
             )}
           </Box>
           
-          {/* Create Project Button - Right Aligned */}
-          <CustomizableButton
-            onClick={() => setCreateModalOpen(true)}
-            variant="contained"
-            startIcon={<CirclePlus size={20} />}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "0f5a47" },
-            }}
-          >
-            Create project
-          </CustomizableButton>
+          {/* Organization Settings and Create Project Button - Right Aligned */}
+          <Box display="flex" alignItems="center" gap={1}>
+            <CustomizableButton
+              onClick={() => navigate("/evals/settings")}
+              variant="outlined"
+              sx={{
+                textTransform: "none",
+                borderColor: "#D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#D0D5DD",
+                },
+              }}
+            >
+              Organization settings
+            </CustomizableButton>
+            <CustomizableButton
+              onClick={() => setCreateModalOpen(true)}
+              variant="contained"
+              startIcon={<CirclePlus size={20} />}
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#13715B",
+                "&:hover": { backgroundColor: "0f5a47" },
+              }}
+            >
+              Create project
+            </CustomizableButton>
+          </Box>
         </Stack>
       </Stack>
 

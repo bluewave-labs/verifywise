@@ -17,7 +17,7 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
-import { TrendingUp, X } from "lucide-react";
+import { TrendingUp, X, Home, FlaskConical } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
@@ -73,9 +73,10 @@ export default function ExperimentDetail() {
   }
 
   const breadcrumbItems = [
-    { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
-    { label: "Experiments", onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Experiment" },
+    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+    { label: "Evals", onClick: () => navigate(`/evals/${projectId}#experiments`) },
+    { label: experiment.name || "Eval" },
   ];
 
   // Lightweight Markdown -> HTML converter for common syntax
@@ -127,13 +128,32 @@ export default function ExperimentDetail() {
           <Chip
             label={experiment.status}
             size="small"
-            color={
-              experiment.status === "completed" ? "success" :
-              experiment.status === "failed" ? "error" :
-              experiment.status === "running" ? "warning" :
-              "default"
-            }
-            sx={{ textTransform: "capitalize" }}
+            sx={{
+              backgroundColor:
+                experiment.status === "completed"
+                  ? "#c8e6c9"
+                  : experiment.status === "failed"
+                  ? "#ffebee"
+                  : experiment.status === "running"
+                  ? "#fff3e0"
+                  : "#e0e0e0",
+              color:
+                experiment.status === "completed"
+                  ? "#388e3c"
+                  : experiment.status === "failed"
+                  ? "#c62828"
+                  : experiment.status === "running"
+                  ? "#ef6c00"
+                  : "#616161",
+              fontWeight: 500,
+              fontSize: "11px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              borderRadius: "4px",
+              "& .MuiChip-label": {
+                padding: "4px 8px",
+              },
+            }}
           />
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
             Created {new Date(experiment.created_at).toLocaleString()}
@@ -297,8 +317,18 @@ export default function ExperimentDetail() {
                           <Chip
                             label={log.status || "success"}
                             size="small"
-                            color={log.status === "success" ? "success" : "error"}
-                            sx={{ fontSize: "11px", height: 20 }}
+                            sx={{
+                              backgroundColor: log.status === "success" || !log.status ? "#c8e6c9" : "#ffebee",
+                              color: log.status === "success" || !log.status ? "#388e3c" : "#c62828",
+                              fontWeight: 500,
+                              fontSize: "11px",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              borderRadius: "4px",
+                              "& .MuiChip-label": {
+                                padding: "4px 8px",
+                              },
+                            }}
                           />
                         </TableCell>
                       </TableRow>
@@ -374,11 +404,15 @@ export default function ExperimentDetail() {
                                  label={typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
                                  size="small"
                                  sx={{
-                                   fontSize: "12px",
-                                   fontWeight: 600,
-                                   height: 24,
-                                   backgroundColor: passed ? "#D1FAE5" : "#FEE2E2",
-                                   color: passed ? "#065F46" : "#991B1B",
+                                   backgroundColor: passed ? "#c8e6c9" : "#ffebee",
+                                   color: passed ? "#388e3c" : "#c62828",
+                                   fontWeight: 500,
+                                   fontSize: "11px",
+                                   letterSpacing: "0.5px",
+                                   borderRadius: "4px",
+                                   "& .MuiChip-label": {
+                                     padding: "4px 8px",
+                                   },
                                  }}
                                />
                              </Box>

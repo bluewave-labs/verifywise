@@ -1,0 +1,6 @@
+[
+  { "id": "cc_001", "category": "coding", "prompt": "Explain time complexity of binary search.", "expected_output": "Binary search runs in O(log n).", "expected_keywords": ["O(log n)", "binary search"], "difficulty": "easy" },
+  { "id": "cc_002", "category": "coding", "prompt": "Provide a Python stack implementation with push and pop.", "expected_output": "Class with list backing and push/pop methods.", "expected_keywords": ["class", "list", "push", "pop"], "difficulty": "medium" },
+  { "id": "cc_003", "category": "coding", "prompt": "Describe what a REST API is.", "expected_output": "REST is an architectural style using HTTP verbs and resources.", "expected_keywords": ["HTTP", "resources", "verbs"], "difficulty": "easy" }
+]
+

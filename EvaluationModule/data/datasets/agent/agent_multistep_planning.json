@@ -1,0 +1,5 @@
+[
+  { "id": "agp_001", "category": "agent", "prompt": "Outline steps to migrate a website to a new domain, highlighting risks.", "expected_output": "Backups, redirects, DNS change, SEO checks; risks: downtime, broken links.", "expected_keywords": ["backups", "redirects", "DNS", "SEO"], "difficulty": "hard" },
+  { "id": "agp_002", "category": "agent", "prompt": "Design a two-tool workflow to fetch weather and send notification.", "expected_output": "Tool A: fetch weather API; Tool B: send SMS/email; control flow.", "expected_keywords": ["API", "SMS", "email"], "difficulty": "hard" }
+]
+

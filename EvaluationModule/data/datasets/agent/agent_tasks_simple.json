@@ -1,0 +1,5 @@
+[
+  { "id": "agt_001", "category": "agent", "prompt": "Create a to-do list with three tasks and mark the first complete.", "expected_output": "A to-do list with three items; first marked completed.", "expected_keywords": ["complete", "list"], "difficulty": "easy" },
+  { "id": "agt_002", "category": "agent", "prompt": "Plan a 3-step process to book a flight.", "expected_output": "Search flights, compare options, finalize booking.", "expected_keywords": ["search", "compare", "book"], "difficulty": "easy" }
+]
+

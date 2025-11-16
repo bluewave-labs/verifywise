@@ -1,0 +1,8 @@
+[
+  { "id": "cb_001", "category": "general", "prompt": "Greet the user and ask how you can help.", "expected_output": "Hello! How can I help you today?", "expected_keywords": ["Hello", "help"], "difficulty": "easy" },
+  { "id": "cb_002", "category": "coding", "prompt": "Explain what a function is in Python.", "expected_output": "A function is a reusable block of code that takes inputs and returns output.", "expected_keywords": ["function", "reusable", "parameters", "return"], "difficulty": "easy" },
+  { "id": "cb_003", "category": "math", "prompt": "What is the area of a circle with radius 3?", "expected_output": "Area is πr², so approximately 28.27.", "expected_keywords": ["π", "r²", "28.27"], "difficulty": "easy" },
+  { "id": "cb_004", "category": "knowledge", "prompt": "Name two benefits of regular exercise.", "expected_output": "Improved cardiovascular health and better mood.", "expected_keywords": ["health", "mood"], "difficulty": "easy" },
+  { "id": "cb_005", "category": "creative", "prompt": "Write a single sentence about a calm morning.", "expected_output": "A gentle breeze carried the scent of fresh coffee through the quiet kitchen.", "expected_keywords": ["breeze", "coffee"], "difficulty": "easy" }
+]
+

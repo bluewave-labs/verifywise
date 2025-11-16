@@ -1,0 +1,5 @@
+[
+  { "id": "agc_001", "category": "agent", "prompt": "Extract the order number and email from: 'Order 99821 by jane@acme.com'.", "expected_output": "Order: 99821, Email: jane@acme.com.", "expected_keywords": ["99821", "jane@acme.com"], "difficulty": "medium" },
+  { "id": "agc_002", "category": "agent", "prompt": "Generate a JSON payload to update ticket #42 to 'in_progress'.", "expected_output": "{\"ticket_id\":42,\"status\":\"in_progress\"}", "expected_keywords": ["42", "in_progress"], "difficulty": "medium" }
+]
+

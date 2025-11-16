@@ -75,6 +75,11 @@ const Framework = () => {
   const subClause27001Id = searchParams.get("subClause27001Id");
   const annex27001Id = searchParams.get("annex27001Id");
   const annexControl27001Id = searchParams.get("annexControl27001Id");
+
+  // NIST AI RMF parameters
+  const functionId = searchParams.get("functionId");
+  const categoryId = searchParams.get("categoryId");
+  const subcategoryId = searchParams.get("subcategoryId");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { changeComponentVisibility, projects, setProjects } =
@@ -128,25 +133,35 @@ const Framework = () => {
       const frameworkId = Number(framework.id);
       const isAssignedToProject = projectFrameworkIds.includes(frameworkId);
       const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
-      const isIsoFramework =
+      const isComplianceFramework =
         framework.name.toLowerCase().includes("iso 27001") ||
-        framework.name.toLowerCase().includes("iso 42001");
+        framework.name.toLowerCase().includes("iso 42001") ||
+        framework.name.toLowerCase().includes("nist ai rmf");
 
-      return isAssignedToProject && isNotEuAiAct && isIsoFramework;
+      return isAssignedToProject && isNotEuAiAct && isComplianceFramework;
     });
 
-    // Sort to ensure ISO 42001 appears first, then ISO 27001
+    // Sort to ensure ISO 42001 appears first, then ISO 27001, then NIST AI RMF
     return filtered.sort((a, b) => {
       const aIsISO42001 = a.name.toLowerCase().includes("iso 42001");
       const bIsISO42001 = b.name.toLowerCase().includes("iso 42001");
       const aIsISO27001 = a.name.toLowerCase().includes("iso 27001");
       const bIsISO27001 = b.name.toLowerCase().includes("iso 27001");
+      const aIsNISTAI_RMF = a.name.toLowerCase().includes("nist ai rmf");
+      const bIsNISTAI_RMF = b.name.toLowerCase().includes("nist ai rmf");
 
       // ISO 42001 comes first
-      if (aIsISO42001 && bIsISO27001) return -1;
-      if (aIsISO27001 && bIsISO42001) return 1;
+      if (aIsISO42001 && !bIsISO42001) return -1;
+      if (!aIsISO42001 && bIsISO42001) return 1;
 
-      // Keep other frameworks in their original order
+      // ISO 27001 comes second
+      if (aIsISO27001 && !bIsISO27001 && !bIsNISTAI_RMF) return -1;
+      if (!aIsISO27001 && bIsISO27001 && !aIsNISTAI_RMF) return 1;
+
+      // NIST AI RMF comes third
+      if (aIsNISTAI_RMF && !bIsNISTAI_RMF) return -1;
+      if (!aIsNISTAI_RMF && bIsNISTAI_RMF) return 1;
+
       return 0;
     });
   }, [allFrameworks, organizationalProject]);
@@ -162,11 +177,12 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
-  // Default to "dashboard" 
+  // Default to "dashboard"
   const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
+  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState("functions");
 
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -186,6 +202,18 @@ const Framework = () => {
 
   // Status options for ISO42001 (same as project view)
   const iso42001StatusOptions = [
+    { value: "not started", label: "Not Started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "implemented", label: "Implemented" },
+    { value: "awaiting approval", label: "Awaiting Approval" },
+    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "draft", label: "Draft" },
+    // { value: "audited", label: "Audited" },
+    { value: "needs rework", label: "Needs Rework" },
+  ];
+
+  // Status options for NIST AI RMF (same as other frameworks)
+  const nistAiRmfStatusOptions = [
     { value: "not started", label: "Not Started" },
     { value: "in progress", label: "In Progress" },
     { value: "implemented", label: "Implemented" },
@@ -247,6 +275,21 @@ const Framework = () => {
       } else if (clause27001Id || subClause27001Id) {
         setIso27001TabValue("clause");
       }
+    } else if (framework === "nist-ai-rmf" || frameworkName === "nist-ai-rmf") {
+      // Find NIST AI RMF framework in filtered frameworks
+      const nistAiRmfIndex = filteredFrameworks.findIndex(fw =>
+        fw.name.toLowerCase().includes("nist") && fw.name.toLowerCase().includes("ai") && fw.name.toLowerCase().includes("rmf")
+      );
+      if (nistAiRmfIndex !== -1) {
+        setSelectedFramework(nistAiRmfIndex);
+      }
+
+      // Set tab based on parameters (simplified since we combined functions/categories)
+      if (subcategoryId) {
+        setNistAiRmfTabValue("subcategories");
+      } else {
+        setNistAiRmfTabValue("functions");
+      }
     }
   }, [
     framework,
@@ -259,7 +302,10 @@ const Framework = () => {
     clause27001Id,
     subClause27001Id,
     annex27001Id,
-    annexControl27001Id
+    annexControl27001Id,
+    functionId,
+    categoryId,
+    subcategoryId
   ]);
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
@@ -268,7 +314,7 @@ const Framework = () => {
       setStatusFilter("");
       setApplicabilityFilter("");
     }
-  }, [iso27001TabValue, iso42001TabValue, organizationalProject]);
+  }, [iso27001TabValue, iso42001TabValue, nistAiRmfTabValue, organizationalProject]);
 
   const handleFrameworkSelect = (index: number) => {
     if (organizationalProject) {
@@ -288,6 +334,13 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso42001TabValue(newValue);
+  };
+
+  const handleNistAiRmfTabChange = (
+    _: React.SyntheticEvent,
+    newValue: string
+  ) => {
+    setNistAiRmfTabValue(newValue);
   };
 
   const handleMainTabChange = (
@@ -353,9 +406,10 @@ const Framework = () => {
     const framework = filteredFrameworks[selectedFramework];
     if (!framework) return null;
 
-    // Check if the selected framework is ISO 27001 or ISO 42001
+    // Check if the selected framework is ISO 27001, ISO 42001, or NIST AI RMF
     const isISO27001 = framework.name.toLowerCase().includes("iso 27001");
     const isISO42001 = framework.name.toLowerCase().includes("iso 42001");
+    const isNISTAI_RMF = framework.name.toLowerCase().includes("nist ai rmf");
 
     if (isISO27001) {
       return (
@@ -493,6 +547,56 @@ const Framework = () => {
       );
     }
 
+    if (isNISTAI_RMF) {
+      return (
+        <Box>
+          <TabContext value={nistAiRmfTabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+              <TabList
+                data-joyride-id="framework-nist-ai-rmf-tabs"
+                onChange={handleNistAiRmfTabChange}
+                TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+                sx={tabListStyle}
+              >
+                <Tab
+                  label="Functions & Categories"
+                  value="functions"
+                  sx={tabStyle}
+                  disableRipple
+                />
+                <Tab
+                  label="Subcategories"
+                  value="subcategories"
+                  sx={tabStyle}
+                  disableRipple
+                />
+              </TabList>
+            </Box>
+
+            {/* Filter Bar following ProjectFrameworks pattern */}
+            <TabFilterBar
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              showStatusFilter={true}
+              statusOptions={nistAiRmfStatusOptions}
+            />
+
+            <TabPanel value="functions" sx={tabPanelStyle}>
+              <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
+                NIST AI RMF Functions & Categories (metadata reference)
+              </Typography>
+            </TabPanel>
+
+            <TabPanel value="subcategories" sx={tabPanelStyle}>
+              <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
+                NIST AI RMF Subcategories (tenant implementation data)
+              </Typography>
+            </TabPanel>
+          </TabContext>
+        </Box>
+      );
+    }
+
     // Default content for other frameworks
     return (
       <Box
@@ -527,8 +631,8 @@ const Framework = () => {
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Organizational frameworks"
-        description="Navigate compliance frameworks like ISO 27001 and ISO 42001 for AI governance"
-        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, and annexes for *ISO 27001* and *ISO 42001 frameworks*."
+        description="Navigate compliance frameworks like ISO 27001, ISO 42001, and NIST AI RMF for AI governance"
+        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, annexes, and NIST AI RMF functions for *ISO 27001*, *ISO 42001*, and *NIST AI RMF* frameworks*."
         whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and *regulatory requirements*. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating *due diligence* to stakeholders and regulators."
         quickActions={[
           {
@@ -543,12 +647,14 @@ const Framework = () => {
         ]}
         useCases={[
           "*ISO 27001 implementation* for *information security management systems*",
-          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*"
+          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*",
+          "*NIST AI RMF integration* for *AI risk management* and *trustworthy AI development*"
         ]}
         keyFeatures={[
           "**Comprehensive framework navigation** with *hierarchical clause structure*",
           "*Cross-referencing* between different *standards* and requirements",
-          "*Progress tracking* and *compliance gap analysis* tools for implementation planning"
+          "*Progress tracking* and *compliance gap analysis* tools for implementation planning",
+          "*AI risk management* through NIST framework functions and categories"
         ]}
         tips={[
           "Start with *gap analysis* to understand your *current compliance position*",
@@ -671,7 +777,7 @@ const Framework = () => {
 
       {/* Show message when no organizational project exists */}
       {!organizationalProject && (
-        <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
+        <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001, ISO 42001, and NIST AI RMF frameworks for your organization." />
       )}
 
       {/* Page Tour */}

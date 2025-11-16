@@ -131,7 +131,8 @@ const StepperModal: React.FC<StepperModalProps> = ({
             background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
             borderBottom: "1px solid #E0E4E9",
             padding: "16px 24px",
-            paddingBottom: "24px",
+            paddingBottom: "36px",
+            marginBottom: "-20px",
             zIndex: 0,
           }}
         >
@@ -140,46 +141,52 @@ const StepperModal: React.FC<StepperModalProps> = ({
             justifyContent="space-between"
             alignItems="flex-start"
           >
-            <Box>
+            <Stack spacing={0.5}>
               <Typography
                 sx={{
-                  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-                  fontSize: "15px",
+                  fontSize: 15,
                   fontWeight: 600,
                   color: "#101828",
-                  lineHeight: 1.5,
+                  lineHeight: "28px",
                 }}
               >
                 {title}
               </Typography>
               <Typography
                 sx={{
-                  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-                  fontSize: "12px",
+                  fontSize: 13,
+                  fontWeight: 400,
                   color: "#475467",
-                  marginTop: "4px",
-                  lineHeight: 1.5,
+                  lineHeight: "20px",
                 }}
               >
-                Step {activeStep + 1} of {steps.length}: {steps[activeStep]}
+                Step {activeStep + 1} of {steps.length}
               </Typography>
-            </Box>
+            </Stack>
 
             <Box
-              component="button"
-              onClick={onClose}
+              component="span"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onClose();
+                }
+              }}
               sx={{
-                background: "none",
-                border: "none",
-                padding: "4px",
                 cursor: "pointer",
+                color: "#98A2B3",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                color: "#667085",
-                transition: "color 0.2s",
+                padding: "4px",
+                borderRadius: "4px",
                 "&:hover": {
-                  color: "#101828",
+                  backgroundColor: "#F2F4F7",
                 },
               }}
             >
@@ -188,40 +195,13 @@ const StepperModal: React.FC<StepperModalProps> = ({
           </Stack>
         </Stack>
 
-        {/* Stepper */}
-        <Box sx={{ px: 3, pt: 3, pb: 2, backgroundColor: "#FAFBFC" }}>
-          <Stepper activeStep={activeStep}>
-            {steps.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    "& .MuiStepLabel-label": {
-                      fontSize: "13px",
-                      fontWeight: activeStep === index ? 600 : 400,
-                    },
-                    "& .MuiStepIcon-root": {
-                      color: activeStep >= index ? "#13715B" : "#E0E4E9",
-                    },
-                    "& .MuiStepIcon-text": {
-                      fill: "#FFFFFF",
-                      fontSize: "12px",
-                    },
-                  }}
-                >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Box>
-
         {/* Content Section */}
         <Box
           sx={{
             padding: "24px",
             flex: 1,
             overflow: "auto",
-            maxHeight: "calc(90vh - 240px)",
+            maxHeight: "calc(90vh - 180px)",
             border: "1px solid #E0E4E9",
             borderRadius: "16px",
             backgroundColor: "#FFFFFF",
@@ -229,6 +209,33 @@ const StepperModal: React.FC<StepperModalProps> = ({
             position: "relative",
           }}
         >
+          {/* Stepper inside content */}
+          <Box sx={{ mb: "24px" }}>
+            <Stepper activeStep={activeStep}>
+              {steps.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel
+                    sx={{
+                      "& .MuiStepLabel-label": {
+                        fontSize: "13px",
+                        fontWeight: activeStep === index ? 600 : 400,
+                      },
+                      "& .MuiStepIcon-root": {
+                        color: activeStep >= index ? "#13715B" : "#E0E4E9",
+                      },
+                      "& .MuiStepIcon-text": {
+                        fill: "#FFFFFF",
+                        fontSize: "12px",
+                      },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+
           {children}
         </Box>
 
@@ -240,8 +247,9 @@ const StepperModal: React.FC<StepperModalProps> = ({
           sx={{
             background: "linear-gradient(180deg, #F3F5F8 0%, #F8FAFB 100%)",
             borderTop: "1px solid #E0E4E9",
-            padding: "10px 24px",
-            paddingTop: "16px",
+            padding: "12px 24px",
+            paddingTop: "32px",
+            marginTop: "-20px",
             zIndex: 0,
           }}
         >

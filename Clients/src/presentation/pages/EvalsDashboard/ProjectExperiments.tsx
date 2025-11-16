@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { Play, TrendingUp } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
@@ -31,31 +31,68 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadExperiments();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  // Auto-poll when there are running experiments
+  useEffect(() => {
+    const hasRunningExperiments = experiments.some(
+      (exp) => exp.status === "running" || exp.status === "pending"
+    );
+
+    // Clear existing interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+
+    // Start polling if there are running experiments
+    if (hasRunningExperiments) {
+      pollIntervalRef.current = setInterval(() => {
+        loadExperiments();
+      }, 10000); // Poll every 10 seconds
+    }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [experiments]);
+
   const loadExperiments = async () => {
     try {
       setLoading(true);
-      const data = await experimentsService.getAllExperiments({ 
+      const data = await experimentsService.getAllExperiments({
         project_id: projectId
       });
-      
-      // Load metrics for each experiment
+
+      // Load metrics for each experiment (skip for running/pending experiments)
       const experimentsWithMetrics = await Promise.all(
         (data.experiments || []).map(async (exp: Experiment) => {
+          // Skip log fetching for running/pending experiments to avoid timeout
+          if (exp.status === "running" || exp.status === "pending") {
+            return {
+              ...exp,
+              avgMetrics: {},
+              sampleCount: 0,
+            };
+          }
+
           try {
             // Get logs for this experiment to calculate metrics
-            const logsData = await evaluationLogsService.getLogs({ 
-              experiment_id: exp.id, 
-              limit: 1000 
+            const logsData = await evaluationLogsService.getLogs({
+              experiment_id: exp.id,
+              limit: 1000
             });
-            
+
             const logs = logsData.logs || [];
-            
+
             // Calculate average metrics from logs
             const metricsSum: Record<string, { sum: number; count: number }> = {};
             logs.forEach((log: EvaluationLog) => {
@@ -74,12 +111,12 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
                 });
               }
             });
-            
+
             const avgMetrics: Record<string, number> = {};
             Object.entries(metricsSum).forEach(([key, { sum, count }]) => {
               avgMetrics[key] = count > 0 ? sum / count : 0;
             });
-            
+
             return {
               ...exp,
               avgMetrics,
@@ -94,7 +131,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
           }
         })
       );
-      
+
       setExperiments(experimentsWithMetrics);
     } catch (err) {
       console.error("Failed to load experiments:", err);

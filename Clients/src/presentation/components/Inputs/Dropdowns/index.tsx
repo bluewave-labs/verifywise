@@ -129,7 +129,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
         display="flex"
         flexDirection="row"
         justifyContent="space-between"
-        alignItems="center"
+        alignItems="flex-end"
         gap={theme.spacing(4)}
       >
         <Select
@@ -182,7 +182,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
         display="flex"
         flexDirection="row"
         justifyContent="space-between"
-        alignItems="center"
+        alignItems="flex-end"
         gap={theme.spacing(4)}
       >
         <Select

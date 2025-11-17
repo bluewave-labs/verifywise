@@ -41,6 +41,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         $$ LANGUAGE plpgsql;`,
       { transaction });
     await Promise.all([
+      `CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".project_uc_id_seq;`,
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
         id serial NOT NULL,

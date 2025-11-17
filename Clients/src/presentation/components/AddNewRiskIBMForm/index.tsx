@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import EmptyState from "../EmptyState";
-import riskData from "../../assets/MITAIRISKDB.json";
+import riskData from "../../assets/IBMAIRISKDB.json";
 import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
@@ -64,7 +64,7 @@ const MODAL_CONFIG = {
 } as const;
 
 const TITLE_OF_COLUMNS = [
-  "",
+  "SELECT",
   "ID",
   "RISK NAME",
   "DESCRIPTION",
@@ -73,42 +73,35 @@ const TITLE_OF_COLUMNS = [
   "CATEGORY",
 ] as const;
 
-interface AddNewRiskMITModalProps {
+interface AddNewRiskIBMModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onRiskSelected?: (riskData: SelectedRiskData) => void;
 }
 
-// Utility functions
+// Utility functions - IBM uses Minor/Moderate/Major severity scale
 const mapSeverity = (severity: string): Severity => {
   switch (severity.toLowerCase()) {
-    case "negligible":
-      return Severity.Negligible;
     case "minor":
       return Severity.Minor;
     case "moderate":
       return Severity.Moderate;
     case "major":
       return Severity.Major;
-    case "catastrophic":
-      return Severity.Catastrophic;
     default:
       return Severity.Moderate;
   }
 };
 
+// IBM uses Unlikely/Possible/Likely likelihood scale
 const mapLikelihood = (likelihood: string): Likelihood => {
   switch (likelihood.toLowerCase()) {
-    case "rare":
-      return Likelihood.Rare;
     case "unlikely":
       return Likelihood.Unlikely;
     case "possible":
       return Likelihood.Possible;
     case "likely":
       return Likelihood.Likely;
-    case "almost certain":
-      return Likelihood.AlmostCertain;
     default:
       return Likelihood.Possible;
   }
@@ -144,11 +137,11 @@ const filterRisks = (risks: RiskData[], searchTerm: string): RiskData[] => {
   );
 };
 
-const AddNewRiskMITModal = ({
+const AddNewRiskIBMModal = ({
   isOpen,
   setIsOpen,
   onRiskSelected,
-}: AddNewRiskMITModalProps) => {
+}: AddNewRiskIBMModalProps) => {
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -194,7 +187,8 @@ const AddNewRiskMITModal = ({
       (risk) => risk.Id === selectedId
     );
     if (!selectedRisk) {
-      console.error(`Risk with ID ${selectedId} not found`);
+      console.error(`Risk with ID ${selectedId} not found in IBM database`);
+      alert("Selected risk not found. Please try again.");
       return;
     }
 
@@ -211,7 +205,7 @@ const AddNewRiskMITModal = ({
         likelihood: mapLikelihood(selectedRisk.Likelihood),
         riskSeverity: mapSeverity(selectedRisk["Risk Severity"]),
         riskLevel: DEFAULT_VALUES.RISK_LEVEL,
-        reviewNotes: `Imported from MIT AI Risk Database - Category: ${selectedRisk["Risk Category"]}`,
+        reviewNotes: `Imported from IBM AI Risk Database - Category: ${selectedRisk["Risk Category"]}`,
         applicableProjects: [],
         applicableFrameworks: [],
       };
@@ -220,6 +214,7 @@ const AddNewRiskMITModal = ({
       handleClose();
     } catch (error) {
       console.error("Error mapping risk data:", error);
+      alert("Failed to process risk data. Please try again.");
     }
   }, [selectedId, onRiskSelected, handleClose]);
 
@@ -227,12 +222,12 @@ const AddNewRiskMITModal = ({
     <StandardModal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Add a new risk from risk database"
-      description="Search and select a risk from the MIT AI Risk Database"
+      title="Add a new risk from IBM risk database"
+      description="Search and select a risk from the IBM AI Risk Database"
       onSubmit={handleUseSelectedRisk}
       submitButtonText="Use selected risk and edit"
       isSubmitting={selectedId === null}
-      maxWidth="1000px"
+      maxWidth={`${MODAL_CONFIG.MAX_WIDTH}px`}
     >
       <Stack spacing={6}>
         <Stack
@@ -314,8 +309,8 @@ const AddNewRiskMITModal = ({
                   ))}
                 </TableRow>
               </TableHead>
-              {filteredRisks.length === 0 && (
-                <TableBody>
+              <TableBody>
+                {filteredRisks.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={TITLE_OF_COLUMNS.length}
@@ -325,126 +320,133 @@ const AddNewRiskMITModal = ({
                       <EmptyState message="No risks found in database" />
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              )}
-              <TableBody>
-                {filteredRisks.map((risk) => (
-                  <TableRow
-                    key={risk.Id}
-                    onClick={() => handleRowClick(risk.Id)}
-                    sx={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        selectedId === risk.Id
-                          ? theme.palette.action.selected
-                          : "inherit",
-                      "&:hover": {
-                        backgroundColor: theme.palette.action.hover,
-                      },
-                      "&:focus": {
-                        backgroundColor: theme.palette.action.focus,
-                        outline: `2px solid ${theme.palette.primary.main}`,
-                        outlineOffset: -2,
-                      },
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Select risk: ${risk.Summary}`}
-                  >
-                    <TableCell>
-                      <Radio
-                        checked={selectedId === risk.Id}
-                        onChange={() => handleRadioChange(risk.Id)}
-                        slotProps={{
-                          input: {
-                            "aria-label": `Select risk ${risk.Id}: ${risk.Summary}`,
-                          },
+                ) : (
+                  filteredRisks.map((risk) => (
+                    <TableRow
+                      key={risk.Id}
+                      onClick={() => handleRowClick(risk.Id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleRowClick(risk.Id);
+                        }
+                      }}
+                      sx={{
+                        cursor: "pointer",
+                        backgroundColor:
+                          selectedId === risk.Id
+                            ? theme.palette.action.selected
+                            : "inherit",
+                        "&:hover": {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                        "&:focus": {
+                          backgroundColor: theme.palette.action.focus,
+                          outline: `2px solid ${theme.palette.primary.main}`,
+                          outlineOffset: -2,
+                        },
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Select risk: ${risk.Summary}`}
+                    >
+                      <TableCell>
+                        <Radio
+                          checked={selectedId === risk.Id}
+                          onChange={() => handleRadioChange(risk.Id)}
+                          slotProps={{
+                            input: {
+                              "aria-label": `Select risk ${risk.Id}: ${risk.Summary}`,
+                            },
+                          }}
+                          color="primary"
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>{risk.Id}</TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 200,
                         }}
-                        color="primary"
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 500 }}>{risk.Id}</TableCell>
-                    <TableCell
-                      sx={{
-                        maxWidth: 200,
-                      }}
-                    >
-                      <span style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}>
-                        {risk.Summary}
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        maxWidth: 250,
-                      }}
-                    >
-                      <Tooltip title={risk.Description} arrow placement="top-start">
+                      >
                         <span style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                        }}>{risk.Description}</span>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
+                        }}>
+                          {risk.Summary}
+                        </span>
+                      </TableCell>
+                      <TableCell
                         sx={{
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          bgcolor: theme.palette.warning.light,
-                          color: theme.palette.warning.contrastText,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          textAlign: "center",
+                          maxWidth: 250,
                         }}
                       >
-                        {risk["Risk Severity"]}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
+                        <Tooltip title={risk.Description} arrow placement="top-start">
+                          <span style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}>{risk.Description}</span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            bgcolor: theme.palette.warning.light,
+                            color: theme.palette.warning.contrastText,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {risk["Risk Severity"]}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            bgcolor: theme.palette.info.light,
+                            color: theme.palette.info.contrastText,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {risk.Likelihood}
+                        </Typography>
+                      </TableCell>
+                      <TableCell
                         sx={{
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          bgcolor: theme.palette.info.light,
-                          color: theme.palette.info.contrastText,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          textAlign: "center",
+                          maxWidth: 150,
                         }}
                       >
-                        {risk.Likelihood}
-                      </Typography>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        maxWidth: 150,
-                      }}
-                    >
-                      <span style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}>
-                        {risk["Risk Category"]}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        <span style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}>
+                          {risk["Risk Category"]}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -454,4 +456,4 @@ const AddNewRiskMITModal = ({
   );
 };
 
-export default AddNewRiskMITModal;
+export default AddNewRiskIBMModal;

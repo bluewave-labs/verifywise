@@ -7,7 +7,7 @@ import {
   getNISTAIRMFfunctionById,
 } from "../controllers/nist_ai_rmf.function.ctrl";
 import { getAllNISTAIRMFCategoriesByfunctionId } from "../controllers/nist_ai_rmf.category.ctrl";
-import { getAllNISTAIRMFSubcategoriesBycategoryId } from "../controllers/nist_ai_rmf.subcategory.ctrl";
+import { getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle } from "../controllers/nist_ai_rmf.subcategory.ctrl";
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -29,11 +29,11 @@ router.get(
 
 // CRUD requests for NIST AI RMF subcategories
 router.get(
-  "/subcategories/:categoryId",
+  "/subcategories/:categoryId/:title",
   authenticateJWT,
   validateId("categoryId"),
-  getAllNISTAIRMFSubcategoriesBycategoryId
-); // getting all NIST AI RMF subcategories of the organization by category id
+  getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle
+); // getting all NIST AI RMF subcategories of the organization by category id and title
 router.patch(
   "/subcategories/:id",
   authenticateJWT,

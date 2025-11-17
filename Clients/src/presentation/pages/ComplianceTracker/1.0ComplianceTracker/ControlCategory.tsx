@@ -28,6 +28,9 @@ interface ControlCategoryProps {
   projectId: number;
   projectFrameworkId: number;
   statusFilter?: string;
+  ownerFilter?: string;
+  approverFilter?: string;
+  dueDateFilter?: string;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
@@ -36,6 +39,9 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   projectId,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  approverFilter,
+  dueDateFilter
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -97,6 +103,9 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             projectId={projectId}
             projectFrameworkId={projectFrameworkId}
             statusFilter={statusFilter}
+            ownerFilter={ownerFilter}
+            approverFilter={approverFilter}
+            dueDateFilter={dueDateFilter}
           />
         </AccordionDetails>
       </Accordion>

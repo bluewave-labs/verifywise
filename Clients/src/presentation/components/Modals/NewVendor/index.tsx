@@ -37,6 +37,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../StandardModal";
+import EnhancedTooltip from "../../EnhancedTooltip";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
@@ -750,10 +751,79 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           onClick={() => setIsScorecardExpanded(!isScorecardExpanded)}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
               Vendor scorecard (advanced)
             </Typography>
+            <EnhancedTooltip
+              title="Vendor Risk Score Calculation"
+              content={
+                <>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.85)",
+                      fontSize: "13px",
+                      lineHeight: 1.6,
+                      mb: 2,
+                    }}
+                  >
+                    The risk score is calculated using a weighted formula:
+                  </Typography>
+                  <Box
+                    sx={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderRadius: "4px",
+                      padding: "12px",
+                      mb: 2,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "#16C784",
+                        fontSize: "12px",
+                        lineHeight: 1.8,
+                      }}
+                    >
+                      Risk Score = <br />
+                      &nbsp;&nbsp;(Data Sensitivity × 30%) +<br />
+                      &nbsp;&nbsp;(Business Criticality × 30%) +<br />
+                      &nbsp;&nbsp;(Past Issues × 20%) +<br />
+                      &nbsp;&nbsp;(Regulatory Exposure × 20%)
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.7)",
+                      fontSize: "12px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Each factor is normalized to a 0-1 scale before applying weights. The final score ranges from 0% (lowest risk) to 100% (highest risk).
+                  </Typography>
+                </>
+              }
+            >
+              <Typography
+                component="span"
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  fontSize: "12px",
+                  color: theme.palette.primary.main,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  ml: "auto",
+                  mr: 2,
+                  "&:hover": {
+                    color: theme.palette.primary.dark,
+                  },
+                }}
+              >
+                How is this calculated?
+              </Typography>
+            </EnhancedTooltip>
             {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (() => {
               const riskScore = calculateVendorRiskScore({
                 data_sensitivity: values.dataSensitivity || undefined,

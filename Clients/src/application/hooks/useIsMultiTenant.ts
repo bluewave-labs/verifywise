@@ -24,7 +24,7 @@ export const useIsMultiTenant = () => {
         // Use cached value
         if (
           !organizationCheckCache.exists || (
-            window.location.host === "app.verifywise.ai" ||
+            window.location.hostname === "app.verifywise.ai" ||
             window.location.hostname === "test.verifywise.ai"
           )
         ) {
@@ -45,15 +45,15 @@ export const useIsMultiTenant = () => {
 
         if (
           !exists || (
-            window.location.host === "app.verifywise.ai" ||
+            window.location.hostname === "app.verifywise.ai" ||
             window.location.hostname === "test.verifywise.ai"
           )
         ) {
           setIsMultiTenant(true);
         }
       } catch (error) {
-        console.error("Error checking organization existence:", error);
         // Default to multi-tenant on error for safety
+        // Error logging handled by server-side monitoring
         setIsMultiTenant(true);
       }
     };

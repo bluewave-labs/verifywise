@@ -22,9 +22,8 @@ router.get(
 
 // CRUD requests for NIST AI RMF categories
 router.get(
-  "/categories/:functionId",
+  "/categories/:title",
   authenticateJWT,
-  validateId("functionId"),
   getAllNISTAIRMFCategoriesByfunctionId
 ); // getting all NIST AI RMF categories of the organization by function id
 

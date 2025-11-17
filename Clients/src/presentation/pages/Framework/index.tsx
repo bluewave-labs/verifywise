@@ -26,6 +26,7 @@ import FrameworkLinkedModels from "./FrameworkLinkedModels";
 import PageTour from "../../components/PageTour";
 import FrameworkSteps from "./FrameworkSteps";
 import TabBar from "../../components/TabBar";
+import NISTAIRMFGovern from "./NIST-AI-RMF/Govern";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -591,9 +592,7 @@ const Framework = () => {
             />
 
             <TabPanel value="govern" sx={tabPanelStyle}>
-              <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
-                NIST AI RMF Govern (metadata reference)
-              </Typography>
+              <NISTAIRMFGovern />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
               <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>

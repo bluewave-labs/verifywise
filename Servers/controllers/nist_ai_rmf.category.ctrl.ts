@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { getAllNISTAIRMFCategoriesByfunctionIdQuery } from "../utils/nist_ai_rmf.category.utils";
+import { getAllNISTAIRMFCategoriesBytitleQuery } from "../utils/nist_ai_rmf.category.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logEvent } from "../utils/logger/dbLogger";
 
@@ -16,8 +16,8 @@ export async function getAllNISTAIRMFCategoriesByfunctionId(
   );
   logger.debug("🔍 Fetching all NIST AI RMF categories by function ID");
   try {
-    const categories = await getAllNISTAIRMFCategoriesByfunctionIdQuery(
-      req.params.functionId,
+    const categories = await getAllNISTAIRMFCategoriesBytitleQuery(
+      req.params.title,
       req.tenantId!
     );
     if (categories && categories.length > 0) {

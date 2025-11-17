@@ -42,7 +42,7 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
         const userExists = response ?? false;
 
         // If we have a token, validate it's still valid
-        if (authState.authToken && authState.authToken.trim() !== "") {
+        if (authState.authToken) {
           const user = extractUserToken(authState.authToken);
           try {
             // Test token validity with a simple API call
@@ -71,9 +71,7 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
 
     // Only run the check if we're not on public auth pages and we have a valid token
     // This prevents unnecessary API calls during logout
-    const shouldRunCheck = !isPublicRoute && authState.authToken && authState.authToken.trim() !== "";
-
-    if (shouldRunCheck) {
+    if (!isPublicRoute && authState.authToken) {
       checkUserExistsInDatabase();
     } else {
       setLoading(false);
@@ -95,7 +93,7 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
   }
 
   // If users exist and we have an auth token, allow access to protected routes
-  if (authState.authToken && authState.authToken.trim() !== "") {
+  if (authState.authToken) {
     return <Component {...rest} />;
   }
 
@@ -108,10 +106,7 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
   }
 
   // Check authentication for protected routes (including root '/')
-  if (
-    (!authState.authToken || authState.authToken.trim() === "") &&
-    !isPublicRoute
-  ) {
+  if (!authState.authToken && !isPublicRoute) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

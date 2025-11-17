@@ -10,25 +10,8 @@
 
 import { useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { Project } from "../../domain/types/Project";
-
-export interface GeneratedReports {
-  id: number;
-  filename: string,
-  type: string,
-  uploaded_time: string,
-  project_id: string | number | null,
-  project_title: string,
-  source: string,
-  uploader_name: string,
-  uploader_surname: string
-}
-
-interface UseGeneratedReportsParams {
-  projectId: string;
-  projects: Project[];
-  refreshKey?: any;
-}
+import { UseGeneratedReportsParams } from "../../domain/interfaces/iReports";
+import { GeneratedReports } from "../../domain/interfaces/iReports";
 
 const useGeneratedReports = ({
   projectId, 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, useTheme } from "@mui/material";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import { IRiskFiltersProps } from "../../../domain/interfaces/i.risk";
@@ -17,6 +17,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
   risks,
   onFilterChange,
 }) => {
+  const theme = useTheme();
   const [filters, setFilters] = useState<IFilterState>(initialFilterState);
   const [users, setUsers] = useState<User[]>([]);
 
@@ -163,7 +164,10 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             { _id: "veryLow", name: "Very Low" },
           ]}
           onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ 
+            minWidth: 140, 
+            backgroundColor: filters.riskLevel && filters.riskLevel !== "all" ? theme.palette.background.fill : 'inherit',
+          }}
         />
 
         <Select
@@ -178,7 +182,10 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             })),
           ]}
           onChange={(e) => handleFilterChange("owner", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ 
+            minWidth: 140,
+            backgroundColor: filters.owner && filters.owner !== "all" ? theme.palette.background.fill : 'inherit',
+          }}
         />
 
         <Select
@@ -195,7 +202,10 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
           onChange={(e) =>
             handleFilterChange("mitigationStatus", e.target.value)
           }
-          sx={{ minWidth: 160 }}
+          sx={{ 
+            minWidth: 160,
+            backgroundColor: filters.mitigationStatus && filters.mitigationStatus !== "all" ? theme.palette.background.fill : 'inherit',
+          }}
         />
 
         <Select
@@ -208,7 +218,10 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             { _id: "deleted", name: "Deleted only" },
           ]}
           onChange={(e) => handleFilterChange("deletionStatus", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ 
+            minWidth: 140,
+            backgroundColor: filters.deletionStatus ? theme.palette.background.fill : 'inherit',
+          }}
         />
       </Stack>
     </Box>

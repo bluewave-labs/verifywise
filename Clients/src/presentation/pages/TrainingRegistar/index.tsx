@@ -6,6 +6,7 @@ import {
   Stack,
   Fade,
   SelectChangeEvent,
+  useTheme,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -79,6 +80,7 @@ const createAlert = (variant: AlertVariant, body: string, title?: string): Alert
 });
 
 const Training: React.FC = () => {
+  const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [trainingData, setTrainingData] = useState<TrainingRegistarModel[]>([]);
@@ -469,7 +471,7 @@ const Training: React.FC = () => {
                   sx={{
                     minWidth: "180px",
                     height: "34px",
-                    bgcolor: "#fff",
+                    backgroundColor: statusFilter && statusFilter !== "all" ? theme.palette.background.fill : "#fff",
                   }}
                 />
               </div>

@@ -1,8 +1,4 @@
-import {
-  Stack,
-  Typography,
-  Box,
-} from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
@@ -56,7 +52,6 @@ const tabListStyle = {
   },
 };
 
-
 const Framework = () => {
   const [searchParams] = useSearchParams();
   const { tab } = useParams<{ tab?: string }>();
@@ -93,7 +88,6 @@ const Framework = () => {
     return projects.find((project) => project.is_organizational === true);
   }, [projects]);
 
-
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
     try {
@@ -109,7 +103,6 @@ const Framework = () => {
       console.error("Error refreshing projects:", error);
     }
   };
-
 
   // Fetch all frameworks
   const { allFrameworks, loading, error, refreshFilteredFrameworks } =
@@ -247,8 +240,10 @@ const Framework = () => {
     }
     if (framework === "iso-42001" || frameworkName === "iso-42001") {
       // Find ISO 42001 framework in filtered frameworks
-      const iso42001Index = filteredFrameworks.findIndex(fw =>
-        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("42001")
+      const iso42001Index = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("iso") &&
+          fw.name.toLowerCase().includes("42001")
       );
       if (iso42001Index !== -1) {
         setSelectedFramework(iso42001Index);
@@ -262,8 +257,10 @@ const Framework = () => {
       }
     } else if (framework === "iso-27001" || frameworkName === "iso-27001") {
       // Find ISO 27001 framework in filtered frameworks
-      const iso27001Index = filteredFrameworks.findIndex(fw =>
-        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("27001")
+      const iso27001Index = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("iso") &&
+          fw.name.toLowerCase().includes("27001")
       );
       if (iso27001Index !== -1) {
         setSelectedFramework(iso27001Index);
@@ -277,8 +274,11 @@ const Framework = () => {
       }
     } else if (framework === "nist-ai-rmf" || frameworkName === "nist-ai-rmf") {
       // Find NIST AI RMF framework in filtered frameworks
-      const nistAiRmfIndex = filteredFrameworks.findIndex(fw =>
-        fw.name.toLowerCase().includes("nist") && fw.name.toLowerCase().includes("ai") && fw.name.toLowerCase().includes("rmf")
+      const nistAiRmfIndex = filteredFrameworks.findIndex(
+        (fw) =>
+          fw.name.toLowerCase().includes("nist") &&
+          fw.name.toLowerCase().includes("ai") &&
+          fw.name.toLowerCase().includes("rmf")
       );
       if (nistAiRmfIndex !== -1) {
         setSelectedFramework(nistAiRmfIndex);
@@ -305,7 +305,7 @@ const Framework = () => {
     annexControl27001Id,
     functionId,
     categoryId,
-    subcategoryId
+    subcategoryId,
   ]);
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
@@ -314,7 +314,12 @@ const Framework = () => {
       setStatusFilter("");
       setApplicabilityFilter("");
     }
-  }, [iso27001TabValue, iso42001TabValue, nistAiRmfTabValue, organizationalProject]);
+  }, [
+    iso27001TabValue,
+    iso42001TabValue,
+    nistAiRmfTabValue,
+    organizationalProject,
+  ]);
 
   const handleFrameworkSelect = (index: number) => {
     if (organizationalProject) {
@@ -343,10 +348,7 @@ const Framework = () => {
     setNistAiRmfTabValue(newValue);
   };
 
-  const handleMainTabChange = (
-    _: React.SyntheticEvent,
-    newValue: string
-  ) => {
+  const handleMainTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setMainTabValue(newValue);
     if (newValue === "dashboard") {
       navigate("/framework");
@@ -559,14 +561,21 @@ const Framework = () => {
                 sx={tabListStyle}
               >
                 <Tab
-                  label="Functions & Categories"
-                  value="functions"
+                  label="Govern"
+                  value="govern"
+                  sx={tabStyle}
+                  disableRipple
+                />
+                <Tab label="Map" value="map" sx={tabStyle} disableRipple />
+                <Tab
+                  label="Measure"
+                  value="measure"
                   sx={tabStyle}
                   disableRipple
                 />
                 <Tab
-                  label="Subcategories"
-                  value="subcategories"
+                  label="Manage"
+                  value="manage"
                   sx={tabStyle}
                   disableRipple
                 />
@@ -581,15 +590,24 @@ const Framework = () => {
               statusOptions={nistAiRmfStatusOptions}
             />
 
-            <TabPanel value="functions" sx={tabPanelStyle}>
+            <TabPanel value="govern" sx={tabPanelStyle}>
               <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
-                NIST AI RMF Functions & Categories (metadata reference)
+                NIST AI RMF Govern (metadata reference)
               </Typography>
             </TabPanel>
-
-            <TabPanel value="subcategories" sx={tabPanelStyle}>
+            <TabPanel value="map" sx={tabPanelStyle}>
               <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
-                NIST AI RMF Subcategories (tenant implementation data)
+                NIST AI RMF Map (metadata reference)
+              </Typography>
+            </TabPanel>
+            <TabPanel value="measure" sx={tabPanelStyle}>
+              <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
+                NIST AI RMF Measure (metadata reference)
+              </Typography>
+            </TabPanel>
+            <TabPanel value="manage" sx={tabPanelStyle}>
+              <Typography sx={{ textAlign: "center", py: 8, color: "#666" }}>
+                NIST AI RMF Manage (metadata reference)
               </Typography>
             </TabPanel>
           </TabContext>
@@ -637,29 +655,31 @@ const Framework = () => {
         quickActions={[
           {
             label: "Explore Framework Requirements",
-            description: "Browse detailed clauses and implementation guidelines for each framework",
-            primary: true
+            description:
+              "Browse detailed clauses and implementation guidelines for each framework",
+            primary: true,
           },
           {
             label: "Check Compliance Status",
-            description: "Review your organization's current compliance progress and gaps"
-          }
+            description:
+              "Review your organization's current compliance progress and gaps",
+          },
         ]}
         useCases={[
           "*ISO 27001 implementation* for *information security management systems*",
           "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*",
-          "*NIST AI RMF integration* for *AI risk management* and *trustworthy AI development*"
+          "*NIST AI RMF integration* for *AI risk management* and *trustworthy AI development*",
         ]}
         keyFeatures={[
           "**Comprehensive framework navigation** with *hierarchical clause structure*",
           "*Cross-referencing* between different *standards* and requirements",
           "*Progress tracking* and *compliance gap analysis* tools for implementation planning",
-          "*AI risk management* through NIST framework functions and categories"
+          "*AI risk management* through NIST framework functions and categories",
         ]}
         tips={[
           "Start with *gap analysis* to understand your *current compliance position*",
           "Focus on *foundational clauses* before moving to *specific technical requirements*",
-          "Document your *implementation decisions* and evidence for *audit readiness*"
+          "Document your *implementation decisions* and evidence for *audit readiness*",
         ]}
       />
       <PageBreadcrumbs />
@@ -668,110 +688,110 @@ const Framework = () => {
         description="This page provides an overview of available AI and data governance frameworks to your organization."
         rightContent={
           <HelperIcon
-              onClick={() =>
-              setIsHelperDrawerOpen(!isHelperDrawerOpen)
-              }
-              size="small"
-            />
-          }
-       />
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
+          />
+        }
+      />
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <>
-        <TabContext value={mainTabValue}>
-          <TabBar
-            tabs={[
-              {
-                label: "Dashboard",
-                value: "dashboard",
-                icon: "LayoutDashboard",
-              },
-              {
-                label: "Framework risks",
-                value: "framework-risks",
-                icon: "AlertTriangle",
-              },
-              {
-                label: "Linked models",
-                value: "linked-models",
-                icon: "Link",
-              },
-              {
-                label: "Controls and Requirements",
-                value: "controls",
-                icon: "FileCode",
-              },
-              {
-                label: "Settings",
-                value: "settings",
-                icon: "Settings",
-              },
-            ]}
-            activeTab={mainTabValue}
-            onChange={handleMainTabChange}
-            dataJoyrideId="framework-main-tabs"
-          />
+          <TabContext value={mainTabValue}>
+            <TabBar
+              tabs={[
+                {
+                  label: "Dashboard",
+                  value: "dashboard",
+                  icon: "LayoutDashboard",
+                },
+                {
+                  label: "Framework risks",
+                  value: "framework-risks",
+                  icon: "AlertTriangle",
+                },
+                {
+                  label: "Linked models",
+                  value: "linked-models",
+                  icon: "Link",
+                },
+                {
+                  label: "Controls and Requirements",
+                  value: "controls",
+                  icon: "FileCode",
+                },
+                {
+                  label: "Settings",
+                  value: "settings",
+                  icon: "Settings",
+                },
+              ]}
+              activeTab={mainTabValue}
+              onChange={handleMainTabChange}
+              dataJoyrideId="framework-main-tabs"
+            />
 
-          <TabPanel value="dashboard" sx={tabPanelStyle}>
-            <Box data-joyride-id="framework-dashboard">
-              <FrameworkDashboard
+            <TabPanel value="dashboard" sx={tabPanelStyle}>
+              <Box data-joyride-id="framework-dashboard">
+                <FrameworkDashboard
+                  organizationalProject={organizationalProject}
+                  filteredFrameworks={filteredFrameworks}
+                />
+              </Box>
+            </TabPanel>
+
+            <TabPanel value="controls" sx={tabPanelStyle}>
+              <Stack className="frameworks-switch" spacing={3}>
+                {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
+                {organizationalProject && filteredFrameworks.length > 0 && (
+                  <Box data-joyride-id="framework-toggle">
+                    <ButtonToggle
+                      options={filteredFrameworks.map((framework, index) => ({
+                        value: index.toString(),
+                        label: framework.name,
+                      }))}
+                      value={selectedFramework.toString()}
+                      onChange={(value) =>
+                        handleFrameworkSelect(parseInt(value))
+                      }
+                      height={34}
+                    />
+                  </Box>
+                )}
+                {/* Content that changes based on selected framework */}
+                {renderFrameworkContent()}
+              </Stack>
+            </TabPanel>
+
+            <TabPanel value="framework-risks" sx={tabPanelStyle}>
+              <FrameworkRisks
                 organizationalProject={organizationalProject}
                 filteredFrameworks={filteredFrameworks}
+                selectedFramework={selectedFramework}
+                onFrameworkSelect={handleFrameworkSelect}
               />
-            </Box>
-          </TabPanel>
+            </TabPanel>
 
-          <TabPanel value="controls" sx={tabPanelStyle}>
-            <Stack className="frameworks-switch" spacing={3}>
-              {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
-              {organizationalProject && filteredFrameworks.length > 0 && (
-                <Box data-joyride-id="framework-toggle">
-                  <ButtonToggle
-                    options={filteredFrameworks.map((framework, index) => ({
-                      value: index.toString(),
-                      label: framework.name,
-                    }))}
-                    value={selectedFramework.toString()}
-                    onChange={(value) => handleFrameworkSelect(parseInt(value))}
-                    height={34}
-                  />
-                </Box>
-              )}
-              {/* Content that changes based on selected framework */}
-              {renderFrameworkContent()}
-            </Stack>
-          </TabPanel>
+            <TabPanel value="linked-models" sx={tabPanelStyle}>
+              <FrameworkLinkedModels
+                organizationalProject={organizationalProject}
+                filteredFrameworks={filteredFrameworks}
+                selectedFramework={selectedFramework}
+                onFrameworkSelect={handleFrameworkSelect}
+              />
+            </TabPanel>
 
-          <TabPanel value="framework-risks" sx={tabPanelStyle}>
-            <FrameworkRisks
-              organizationalProject={organizationalProject}
-              filteredFrameworks={filteredFrameworks}
-              selectedFramework={selectedFramework}
-              onFrameworkSelect={handleFrameworkSelect}
-            />
-          </TabPanel>
-
-          <TabPanel value="linked-models" sx={tabPanelStyle}>
-            <FrameworkLinkedModels
-              organizationalProject={organizationalProject}
-              filteredFrameworks={filteredFrameworks}
-              selectedFramework={selectedFramework}
-              onFrameworkSelect={handleFrameworkSelect}
-            />
-          </TabPanel>
-
-          <TabPanel value="settings" sx={tabPanelStyle}>
-            <FrameworkSettings
-              organizationalProject={organizationalProject}
-              allFrameworks={allFrameworks}
-              filteredFrameworks={filteredFrameworks}
-              onProjectDataChanged={refreshProjectData}
-              onFrameworksChanged={refreshFilteredFrameworks}
-              setProjects={setProjects}
-            />
-          </TabPanel>
-        </TabContext>
+            <TabPanel value="settings" sx={tabPanelStyle}>
+              <FrameworkSettings
+                organizationalProject={organizationalProject}
+                allFrameworks={allFrameworks}
+                filteredFrameworks={filteredFrameworks}
+                onProjectDataChanged={refreshProjectData}
+                onFrameworksChanged={refreshFilteredFrameworks}
+                setProjects={setProjects}
+              />
+            </TabPanel>
+          </TabContext>
         </>
       )}
 

@@ -595,7 +595,11 @@ const Framework = () => {
             />
 
             <TabPanel value="govern" sx={tabPanelStyle}>
-              <NISTAIRMFGovern />
+              <NISTAIRMFGovern
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
               <NISTAIRMFMap />

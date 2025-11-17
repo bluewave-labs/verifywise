@@ -608,7 +608,11 @@ const Framework = () => {
               <NISTAIRMFMeasure />
             </TabPanel>
             <TabPanel value="manage" sx={tabPanelStyle}>
-              <NISTAIRMFManage />
+              <NISTAIRMFManage
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId("4") || ""}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
           </TabContext>
         </Box>

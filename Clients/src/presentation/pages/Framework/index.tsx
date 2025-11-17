@@ -179,7 +179,7 @@ const Framework = () => {
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
-  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState("functions");
+  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState("govern");
 
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");

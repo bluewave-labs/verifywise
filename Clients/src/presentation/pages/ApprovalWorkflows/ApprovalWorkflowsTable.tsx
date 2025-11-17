@@ -13,7 +13,7 @@ import {
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import {
     ApprovalStatus
-} from "../../../domain/enums/approvalWorkflow.enum";
+} from "../../../domain/enums/aiApprovalWorkflow.enum";
 
 import {
     workflowRowHover,

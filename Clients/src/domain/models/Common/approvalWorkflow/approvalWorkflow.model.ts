@@ -2,7 +2,7 @@ import {
     ApprovalStatus,
     // approvalWorkflow,
     // Severity,
-} from "../../../enums/approvalWorkflow.enum";
+} from "../../../enums/aiApprovalWorkflow.enum";
 
 export class ApprovalWorkflowModel {
     id!: number;

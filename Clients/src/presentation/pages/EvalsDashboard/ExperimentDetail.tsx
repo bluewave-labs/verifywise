@@ -16,8 +16,10 @@ import {
   CardContent,
   Stack,
   Divider,
+  IconButton,
+  TextField,
 } from "@mui/material";
-import { TrendingUp, X, Home, FlaskConical } from "lucide-react";
+import { TrendingUp, X, Home, FlaskConical, Pencil, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
@@ -28,6 +30,11 @@ export default function ExperimentDetail() {
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<EvaluationLog | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadExperimentData();
@@ -36,24 +43,80 @@ export default function ExperimentDetail() {
 
   const loadExperimentData = async () => {
     if (!experimentId) return;
-    
+
     try {
       setLoading(true);
       const [expData, logsData] = await Promise.all([
         experimentsService.getExperiment(experimentId),
         evaluationLogsService.getLogs({ experiment_id: experimentId, limit: 1000 }),
       ]);
-      
+
       setExperiment(expData.experiment);
       const loadedLogs = logsData.logs || [];
       setLogs(loadedLogs);
-      
+
       // Don't auto-select - let user choose
     } catch (err) {
       console.error("Failed to load experiment data:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartEditName = () => {
+    setEditedName(experiment?.name || "");
+    setIsEditingName(true);
+  };
+
+  const handleStartEditDescription = () => {
+    setEditedDescription(experiment?.description || "");
+    setIsEditingDescription(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!experimentId || !editedName.trim()) return;
+
+    try {
+      setSaving(true);
+      await experimentsService.updateExperiment(experimentId, {
+        name: editedName.trim(),
+      });
+
+      setExperiment((prev) => prev ? { ...prev, name: editedName.trim() } : prev);
+      setIsEditingName(false);
+    } catch (err) {
+      console.error("Failed to update experiment name:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDescription = async () => {
+    if (!experimentId) return;
+
+    try {
+      setSaving(true);
+      await experimentsService.updateExperiment(experimentId, {
+        description: editedDescription.trim(),
+      });
+
+      setExperiment((prev) => prev ? { ...prev, description: editedDescription.trim() } : prev);
+      setIsEditingDescription(false);
+    } catch (err) {
+      console.error("Failed to update experiment description:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditedName("");
+  };
+
+  const handleCancelEditDescription = () => {
+    setIsEditingDescription(false);
+    setEditedDescription("");
   };
 
   if (loading) {
@@ -109,22 +172,180 @@ export default function ExperimentDetail() {
   };
 
   return (
-    <Box sx={{ userSelect: "none" }}>
-      <PageBreadcrumbs items={breadcrumbItems} />
+    <Box>
+      <Box sx={{ userSelect: "none" }}>
+        <PageBreadcrumbs items={breadcrumbItems} />
+      </Box>
       
       {/* Header */}
       <Box sx={{ mb: 3, mt: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px", mb: 1 }}>
-          {experiment.name}
-        </Typography>
-        {experiment.description && (
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px", mb: 2 }}>
-            {experiment.description}
-          </Typography>
-        )}
+        {/* Experiment Name with inline editing */}
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            mb: 1,
+            "&:hover .edit-icon": {
+              opacity: 1,
+            },
+          }}
+        >
+          {isEditingName ? (
+            <>
+              <TextField
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName();
+                  if (e.key === "Escape") handleCancelEditName();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "18px",
+                    fontWeight: 600,
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveName}
+                disabled={saving || !editedName.trim()}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditName}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
+                {experiment.name}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditName}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
+        </Box>
+
+        {/* Experiment Description with inline editing */}
+        <Box
+          sx={{
+            display: "block",
+            mb: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              "&:hover .edit-icon": {
+                opacity: 1,
+              },
+            }}
+          >
+          {isEditingDescription ? (
+            <>
+              <TextField
+                value={editedDescription}
+                onChange={(e) => setEditedDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveDescription();
+                  if (e.key === "Escape") handleCancelEditDescription();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                placeholder="Add a description..."
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "13px",
+                    color: "text.secondary",
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveDescription}
+                disabled={saving}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditDescription}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: "13px",
+                  fontStyle: experiment.description ? "normal" : "italic",
+                  color: experiment.description ? "text.secondary" : "#9CA3AF",
+                }}
+              >
+                {experiment.description || "No description"}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditDescription}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
+          </Box>
+        </Box>
 
         {/* Status and metadata */}
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
           <Chip
             label={experiment.status}
             size="small"

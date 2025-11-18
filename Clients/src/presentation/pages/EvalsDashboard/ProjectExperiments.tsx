@@ -189,13 +189,14 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
 
   // Transform to table format (exact match to Bias & Fairness structure)
   const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
-  
+
   const tableRows: IEvaluationRow[] = experiments.map((exp) => ({
     id: exp.id,
+    name: exp.name,
     model: exp.config?.model?.name || exp.name || "Unknown",
     judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
     dataset: `${exp.sampleCount || 0} samples`,
-    status: 
+    status:
       exp.status === "completed" ? "Completed" :
       exp.status === "failed" ? "Failed" :
       exp.status === "running" ? "Running" :
@@ -203,7 +204,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   }));
 
   return (
-    <Box sx={{ userSelect: "none" }}>
+    <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4} gap={2}>
@@ -223,9 +224,8 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       {/* Performance Chart */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
-          <Box display="flex" alignItems="center" gap={1} mb={2}>
-            <TrendingUp size={20} color="#13715B" />
-            <Typography variant="h6">Performance Tracking</Typography>
+          <Box display="flex" alignItems="center" mb={2}>
+            <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance Tracking</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Track metric scores across eval runs

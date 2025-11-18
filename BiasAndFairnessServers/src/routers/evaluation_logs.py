@@ -329,6 +329,39 @@ async def get_experiment(
     )
 
 
+@router.patch("/experiments/{experiment_id}")
+async def update_experiment(
+    request: Request,
+    experiment_id: str = Path(...),
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+):
+    """Update experiment name and/or description"""
+    from database.db import get_db
+    from crud import evaluation_logs as crud
+
+    tenant = request.headers.get("x-tenant-id")
+    if not tenant:
+        raise HTTPException(status_code=400, detail="Missing tenant ID")
+
+    # Parse request body
+    body = await request.json()
+    name = body.get("name")
+    description = body.get("description")
+
+    if name is None and description is None:
+        raise HTTPException(status_code=400, detail="Must provide at least one field to update (name or description)")
+
+    async with get_db() as db:
+        return await controller.update_experiment_controller(
+            db=db,
+            experiment_id=experiment_id,
+            tenant=tenant,
+            name=name,
+            description=description,
+        )
+
+
 @router.put("/experiments/{experiment_id}/status")
 async def update_experiment_status(
     request: Request,

@@ -287,7 +287,9 @@ export default function ProjectOverview({
                           },
                         }}
                       >
-                        <TableCell sx={{ fontSize: "12px", fontFamily: "monospace" }}>{exp.id}</TableCell>
+                        <TableCell sx={{ fontSize: "12px", fontFamily: exp.name ? "inherit" : "monospace" }}>
+                          {exp.name || exp.id}
+                        </TableCell>
                         <TableCell sx={{ fontSize: "11px", color: "#6B7280" }}>
                           {new Date(exp.created_at).toLocaleDateString("en-US", {
                             month: "short",

@@ -537,7 +537,7 @@ export default function NewExperimentModal({
               <Box ref={formFieldsRef}>
                 <Stack spacing={3}>
                   <Field
-                    label="Model Name"
+                    label="Model name"
                     value={config.model.name}
                     onChange={(e) =>
                       setConfig((prev) => ({
@@ -792,7 +792,7 @@ export default function NewExperimentModal({
                           {/* Editable Expected Output */}
                           <Field
                             type="description"
-                            label="Expected Output"
+                            label="Expected output"
                             value={prompt.expected_output}
                             onChange={(e) => {
                               setDatasetPrompts((prev) =>
@@ -1026,7 +1026,7 @@ export default function NewExperimentModal({
                     }
                   />
                   <Field
-                    label="Max Tokens"
+                    label="Max tokens"
                     type="number"
                     value={String(config.judgeLlm.maxTokens)}
                     onChange={(e) =>
@@ -1150,7 +1150,7 @@ export default function NewExperimentModal({
           resetForm();
           setAlert(null);
         }}
-        title="Create New Eval"
+        title="Create new eval"
         steps={steps}
         activeStep={activeStep}
         onNext={handleNext}

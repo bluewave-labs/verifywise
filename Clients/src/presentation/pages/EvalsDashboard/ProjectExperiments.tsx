@@ -209,7 +209,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4} gap={2}>
         <CustomizableButton
           variant="contained"
-          text="New Experiment"
+          text="New experiment"
           icon={<Play size={16} />}
           sx={{
             backgroundColor: "#13715B",
@@ -225,7 +225,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
         <CardContent>
           <Box display="flex" alignItems="center" gap={1} mb={2}>
             <TrendingUp size={20} color="#13715B" />
-            <Typography variant="h6">Performance Tracking</Typography>
+            <Typography variant="h6">Performance tracking</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Track metric scores across eval runs

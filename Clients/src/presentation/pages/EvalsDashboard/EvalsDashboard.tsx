@@ -142,18 +142,18 @@ export default function EvalsDashboard() {
     !orgId
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
           { label: "Organizations" },
         ]
       : projectId && currentProject
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-          { label: currentProject.name },
+          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: currentProject.name, icon: <Workflow size={14} strokeWidth={1.5} /> },
         ]
       : [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
         ];
 
   return (
@@ -166,7 +166,7 @@ export default function EvalsDashboard() {
         {/* Page header (only for projects list view) */}
         {!projectId && orgId && (
           <Box sx={{ mt: 4 }}>
-            <PageHeader title="LLM Evals" />
+            <PageHeader title="LLM evals" />
           </Box>
         )}
 
@@ -368,7 +368,7 @@ export default function EvalsDashboard() {
       >
         <Stack spacing={3}>
           <Field
-            label="Project Name"
+            label="Project name"
             value={newProject.name}
             onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
             placeholder="e.g., Coding Tasks Evaluation"
@@ -385,7 +385,7 @@ export default function EvalsDashboard() {
           {/* LLM Use Case - card selection */}
           <Box>
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
-              LLM Use Case
+              LLM use case
             </Box>
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
               <Box
@@ -405,7 +405,7 @@ export default function EvalsDashboard() {
                     <Workflow size={20} color="#13715B" />
                   </Box>
                   <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents</Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents</Box>
                     <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
                       Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
                     </Box>

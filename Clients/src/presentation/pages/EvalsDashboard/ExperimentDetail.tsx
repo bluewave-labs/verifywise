@@ -195,7 +195,7 @@ export default function ExperimentDetail() {
         return (
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, fontSize: "14px" }}>
-              Overall Statistics
+              Overall statistics
             </Typography>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
               {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
@@ -240,7 +240,7 @@ export default function ExperimentDetail() {
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", height: "100%", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
               <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, p: 2, pb: 1 }}>
-                All Samples
+                All samples
               </Typography>
 
               <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>

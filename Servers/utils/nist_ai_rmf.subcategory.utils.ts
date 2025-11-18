@@ -16,3 +16,18 @@ export const getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery = async (
   );
   return subcategories;
 };
+
+export const getNISTAIRMFSubcategoryByIdQuery = async (
+  id: number,
+  tenant: string
+) => {
+  const subcategory = await sequelize.query(
+    `SELECT * FROM "${tenant}".nist_ai_rmf_subcategories WHERE id = :id`,
+    {
+      replacements: { id: id },
+      mapToModel: true,
+      model: NISTAIMRFSubcategoryModel,
+    }
+  );
+  return subcategory[0];
+};

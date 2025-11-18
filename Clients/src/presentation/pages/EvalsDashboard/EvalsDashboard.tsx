@@ -109,11 +109,12 @@ export default function EvalsDashboard() {
 
         // Load datasets count
         const datasetsData = await deepEvalDatasetsService.list();
-        const useCase = currentProject.useCase as "chatbot" | "rag" | "agent" | "safety";
-        const projectDatasets = datasetsData[useCase] || [];
+        const useCase = (currentProject.useCase || "chatbot") as "chatbot" | "rag" | "agent" | "safety";
+        const projectDatasets = Array.isArray(datasetsData[useCase]) ? datasetsData[useCase] : [];
         setDatasetsCount(projectDatasets.length);
       } catch (err) {
         console.error("Failed to load counts:", err);
+        setDatasetsCount(0);
       }
     };
 

@@ -752,7 +752,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              Vendor Scorecard (Advanced)
+              Vendor scorecard (advanced)
             </Typography>
             {(values.dataSensitivity || values.businessCriticality || values.pastIssues || values.regulatoryExposure) && (() => {
               const riskScore = calculateVendorRiskScore({
@@ -803,7 +803,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             <Stack direction="row" justifyContent="space-between">
               <Select
                 items={DATA_SENSITIVITY_OPTIONS}
-                label="Data Sensitivity"
+                label="Data sensitivity"
                 placeholder="Select data sensitivity level"
                 isHidden={false}
                 id="dataSensitivity"
@@ -815,7 +815,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               />
               <Select
                 items={BUSINESS_CRITICALITY_OPTIONS}
-                label="Business Criticality"
+                label="Business criticality"
                 placeholder="Select business criticality"
                 isHidden={false}
                 id="businessCriticality"
@@ -829,7 +829,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             <Stack direction="row" justifyContent="space-between">
               <Select
                 items={PAST_ISSUES_OPTIONS}
-                label="Past Issues"
+                label="Past issues"
                 placeholder="Select past issues level"
                 isHidden={false}
                 id="pastIssues"
@@ -841,7 +841,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               />
               <Select
                 items={REGULATORY_EXPOSURE_OPTIONS}
-                label="Regulatory Exposure"
+                label="Regulatory exposure"
                 placeholder="Select regulatory exposure"
                 isHidden={false}
                 id="regulatoryExposure"

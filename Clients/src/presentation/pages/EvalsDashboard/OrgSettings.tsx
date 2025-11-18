@@ -8,6 +8,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
+import CustomAxios from "../../../infrastructure/api/customAxios";
 
 interface SavedKey {
   provider: string;
@@ -53,13 +54,10 @@ export default function OrgSettings() {
 
   const fetchSavedKeys = async () => {
     try {
-      const response = await fetch('/api/evaluation-llm-keys', {
-        credentials: 'include',
-      });
-      const result = await response.json();
+      const response = await CustomAxios.get('/evaluation-llm-keys');
 
-      if (result.success && result.data) {
-        setSavedKeys(result.data.map((key: any) => ({
+      if (response.data.success && response.data.data) {
+        setSavedKeys(response.data.data.map((key: any) => ({
           provider: key.provider,
           apiKey: '', // Never sent to frontend
           maskedKey: key.maskedKey,
@@ -102,19 +100,13 @@ export default function OrgSettings() {
 
     setSaving(true);
     try {
-      const response = await fetch('/api/evaluation-llm-keys', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ provider: selectedProvider, apiKey: newApiKey }),
+      const response = await CustomAxios.post('/evaluation-llm-keys', {
+        provider: selectedProvider,
+        apiKey: newApiKey,
       });
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to add API key');
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to add API key');
       }
 
       // Refresh the list
@@ -147,15 +139,10 @@ export default function OrgSettings() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/evaluation-llm-keys/${confirmDelete.provider}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      const response = await CustomAxios.delete(`/evaluation-llm-keys/${confirmDelete.provider}`);
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to remove API key');
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to remove API key');
       }
 
       // Refresh the list

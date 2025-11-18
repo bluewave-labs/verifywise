@@ -275,6 +275,7 @@ export default function OrgSettings() {
               onChange={(e) => setNewApiKey(e.target.value)}
               placeholder="Enter your API key..."
               type="password"
+              autoComplete="off"
               disabled={!selectedProvider}
             />
             <Box sx={{ pt: 3 }}>

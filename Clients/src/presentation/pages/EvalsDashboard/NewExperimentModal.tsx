@@ -579,6 +579,7 @@ export default function NewExperimentModal({
                         }))
                       }
                       placeholder="Enter your API key"
+                      autoComplete="off"
                     />
                   )}
                 </Stack>
@@ -998,6 +999,7 @@ export default function NewExperimentModal({
                       }))
                     }
                     placeholder={`Enter your ${selectedProvider.name} API key`}
+                    autoComplete="off"
                   />
                 )}
 

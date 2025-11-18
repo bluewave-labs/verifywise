@@ -191,6 +191,18 @@ export const experimentsService = {
     return response.data;
   },
 
+  // Update experiment
+  async updateExperiment(
+    experimentId: string,
+    data: {
+      name?: string;
+      description?: string;
+    }
+  ) {
+    const response = await CustomAxios.patch(`/deepeval/experiments/${experimentId}`, data);
+    return response.data;
+  },
+
   // Update experiment status
   async updateExperimentStatus(
     experimentId: string,

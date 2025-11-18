@@ -216,7 +216,7 @@ export default function ProjectsList() {
           </Box>
           
           {/* Organization Settings and Create Project Button - Right Aligned */}
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center" gap="8px">
             <CustomizableButton
               onClick={() => navigate("/evals/settings")}
               variant="outlined"

@@ -89,7 +89,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               {row.status === "Running" || row.status === "In Progress"
                 ? "Pending..."
-                : row.id}
+                : row.name || row.id}
             </TableCell>
             <TableCell
               sx={{

@@ -9,7 +9,7 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, Bot, FileSearch, Workflow } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -19,6 +19,7 @@ import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDele
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
+import NewProjectModal from "./NewProjectModal";
 
 export default function ProjectsList() {
   const navigate = useNavigate();
@@ -206,12 +207,12 @@ export default function ProjectsList() {
   };
 
   return (
-    <Box>
+    <>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Header with Description */}
-      <Stack spacing={2} mb={4}>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+      <Box sx={{ mb: 4, px: 0 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px", mb: 2 }}>
           Comprehensive LLM evaluation platform powered by LLM-as-a-Judge methodology. Create projects to organize your evaluations, configure models and judge LLMs, select datasets, and run experiments with multiple fairness and performance metrics. Each project can contain multiple evaluation runs with different configurations to help you systematically assess model behavior, detect bias, and ensure quality outputs.
         </Typography>
 
@@ -257,7 +258,7 @@ export default function ProjectsList() {
             </CustomizableButton>
           </Box>
         </Stack>
-      </Stack>
+      </Box>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
@@ -329,7 +330,7 @@ export default function ProjectsList() {
                     </Box>
 
                     {/* Project Name */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 2 }}>
                       <Typography
                         variant="h6"
                         sx={{
@@ -339,7 +340,7 @@ export default function ProjectsList() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          maxWidth: "calc(100% - 30px)",
+                          maxWidth: "calc(100% - 60px)",
                         }}
                       >
                         {project.name}
@@ -351,20 +352,21 @@ export default function ProjectsList() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          p: 0.5,
+                          width: "24px",
+                          height: "24px",
                           borderRadius: "4px",
                           color: "#6b7280",
                           cursor: "pointer",
                           flexShrink: 0,
                           opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease",
+                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
                           "&:hover": {
-                            color: theme.palette.primary.main,
+                            color: "#13715B",
                             backgroundColor: "rgba(19, 113, 91, 0.1)",
                           },
                         }}
                       >
-                        <Pencil size={14} />
+                        <Pencil size={14} strokeWidth={2} />
                       </Box>
                       {/* Delete Button */}
                       <Box
@@ -372,11 +374,18 @@ export default function ProjectsList() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          p: 0.5,
+                          width: "24px",
+                          height: "24px",
                           borderRadius: "4px",
+                          color: "#6b7280",
+                          cursor: "pointer",
                           flexShrink: 0,
                           opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease",
+                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
+                          "&:hover": {
+                            color: "#D32F2F",
+                            backgroundColor: "rgba(211, 47, 47, 0.1)",
+                          },
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -385,7 +394,7 @@ export default function ProjectsList() {
                           onConfirm={(id) => handleDeleteProject(String(id))}
                           title="Delete this project?"
                           message="This will remove the project and its experiments. This action cannot be undone."
-                          customIcon={<Trash2 size={14} color="#D32F2F" />}
+                          customIcon={<Trash2 size={14} strokeWidth={2} />}
                         />
                       </Box>
                     </Box>
@@ -495,117 +504,14 @@ export default function ProjectsList() {
       )}
 
       {/* Create Project Modal */}
-      <StandardModal
+      <NewProjectModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title="Create project"
-        description="Create a new project to organize your LLM evaluations"
         onSubmit={handleCreateProject}
-        submitButtonText="Create project"
-        isSubmitting={loading || !newProject.name}
-      >
-        <Stack spacing={3}>
-          <Typography variant="body2" color="text.secondary">
-            Projects help you organize your LLM evaluations. You'll configure the model, dataset, and metrics when creating individual evaluation runs within the project.
-          </Typography>
-
-          <Field
-            label="Project name"
-            value={newProject.name}
-            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-            placeholder="e.g., Coding Tasks Evaluation"
-            isRequired
-          />
-
-          <Field
-            label="Description"
-            value={newProject.description}
-            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            placeholder="Brief description of this project..."
-          />
-
-          {/* LLM Use Case - card selection */}
-          <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
-              LLM Use Case
-            </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-              <Box
-                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
-                sx={{
-                  border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Workflow size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
-                onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                sx={{
-                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <FileSearch size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
-                onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                sx={{
-                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Bot size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate conversational experiences for coherence, correctness and safety.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </Stack>
-      </StandardModal>
+        loading={loading}
+        newProject={newProject}
+        onProjectChange={(updates) => setNewProject({ ...newProject, ...updates })}
+      />
 
       {/* Edit Project Modal */}
       <StandardModal
@@ -637,6 +543,6 @@ export default function ProjectsList() {
           />
         </Stack>
       </StandardModal>
-    </Box>
+    </>
   );
 }

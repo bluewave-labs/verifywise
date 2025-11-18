@@ -66,8 +66,10 @@ export default function ProjectConfiguration() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 2, userSelect: "none" }}>
-        <PageBreadcrumbs items={breadcrumbs} />
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{ userSelect: "none" }}>
+          <PageBreadcrumbs items={breadcrumbs} />
+        </Box>
         <PageHeader title="Project configuration" />
       </Box>
 

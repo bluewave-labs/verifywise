@@ -510,7 +510,7 @@ export default function ProjectsList() {
           </Typography>
 
           <Field
-            label="Project Name"
+            label="Project name"
             value={newProject.name}
             onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
             placeholder="e.g., Coding Tasks Evaluation"

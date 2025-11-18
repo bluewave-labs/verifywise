@@ -12,7 +12,6 @@
 import { Request, Response } from 'express';
 import { EvaluationLlmApiKeyModel, LLMProvider } from '../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model';
 import { ValidationException } from '../domain.layer/exceptions/custom.exception';
-import { logEngine } from './logEngine.ctrl';
 
 // Extend Request type to include auth properties
 interface AuthenticatedRequest extends Request {
@@ -46,11 +45,7 @@ export const getAllKeys = async (req: Request, res: Response) => {
       data: keys,
     });
   } catch (error: any) {
-    logEngine({
-      type: 'error',
-      message: `Error fetching LLM API keys: ${error.message}`,
-      user: (req as AuthenticatedRequest).userId?.toString(),
-    });
+    console.error('Error fetching LLM API keys:', error);
 
     return res.status(500).json({
       success: false,
@@ -96,11 +91,7 @@ export const addKey = async (req: Request, res: Response) => {
       apiKey
     );
 
-    logEngine({
-      type: 'info',
-      message: `LLM API key added for provider: ${provider}`,
-      user: (req as AuthenticatedRequest).userId?.toString(),
-    });
+    console.log(`LLM API key added for provider: ${provider} by user: ${authReq.userId}`);
 
     return res.status(201).json({
       success: true,
@@ -108,17 +99,13 @@ export const addKey = async (req: Request, res: Response) => {
       data: keyModel.toJSON(),
     });
   } catch (error: any) {
-    logEngine({
-      type: 'error',
-      message: `Error adding LLM API key: ${error.message}`,
-      user: (req as AuthenticatedRequest).userId?.toString(),
-    });
+    console.error('Error adding LLM API key:', error);
 
     if (error instanceof ValidationException) {
       return res.status(400).json({
         success: false,
         message: error.message,
-        field: error.field,
+        field: error.metadata.field,
       });
     }
 
@@ -165,28 +152,20 @@ export const deleteKey = async (req: Request, res: Response) => {
       });
     }
 
-    logEngine({
-      type: 'info',
-      message: `LLM API key deleted for provider: ${provider}`,
-      user: (req as AuthenticatedRequest).userId?.toString(),
-    });
+    console.log(`LLM API key deleted for provider: ${provider} by user: ${authReq.userId}`);
 
     return res.status(200).json({
       success: true,
       message: 'API key deleted successfully',
     });
   } catch (error: any) {
-    logEngine({
-      type: 'error',
-      message: `Error deleting LLM API key: ${error.message}`,
-      user: (req as AuthenticatedRequest).userId?.toString(),
-    });
+    console.error('Error deleting LLM API key:', error);
 
     if (error instanceof ValidationException) {
       return res.status(400).json({
         success: false,
         message: error.message,
-        field: error.field,
+        field: error.metadata.field,
       });
     }
 

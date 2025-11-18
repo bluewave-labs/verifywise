@@ -8,7 +8,7 @@
 
 import express from 'express';
 import { getAllKeys, addKey, deleteKey } from '../controllers/evaluationLlmApiKey.ctrl';
-import { authenticateJWT } from '../middleware/auth.middleware';
+import authenticateJWT from '../middleware/auth.middleware';
 
 const router = express.Router();
 

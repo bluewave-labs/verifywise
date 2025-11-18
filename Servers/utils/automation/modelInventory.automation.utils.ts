@@ -15,7 +15,7 @@ export function buildModelReplacements(model: any): Record<string, any> {
     'model.biases': model.biases,
     'model.limitations': model.limitations,
     'model.hosting_provider': model.hosting_provider,
-    'model.used_in_projects': model.used_in_projects,
+    'model.security_assessment_data': model.security_assessment_data,
     'model.created_at': model.created_at ? new Date(model.created_at).toLocaleDateString('en-US', { dateStyle: 'long' }) : '',
     'date_and_time': new Date().toLocaleString('en-US', {
       dateStyle: 'long',
@@ -113,12 +113,6 @@ export function buildModelUpdateReplacements(oldModel: any, newModel: any): Reco
     changes.push(`• Hosting Provider: ${newModel.hosting_provider}`);
   }
 
-  if (oldModel.used_in_projects !== newModel.used_in_projects) {
-    changes.push(`• Used in Projects: ${oldModel.used_in_projects || '(empty)'} → ${newModel.used_in_projects || '(empty)'}`);
-  } else if (newModel.used_in_projects) {
-    changes.push(`• Used in Projects: ${newModel.used_in_projects}`);
-  }
-
   if (oldCreatedAt !== createdAt) {
     changes.push(`• Created At: ${oldCreatedAt || '(empty)'} → ${createdAt || '(empty)'}`);
   } else if (createdAt) {
@@ -143,7 +137,7 @@ export function buildModelUpdateReplacements(oldModel: any, newModel: any): Reco
     'model.biases': newModel.biases,
     'model.limitations': newModel.limitations,
     'model.hosting_provider': newModel.hosting_provider,
-    'model.used_in_projects': newModel.used_in_projects,
+    'model.security_assessment_data': newModel.security_assessment_data,
     'model.created_at': createdAt,
 
     // Old model values
@@ -161,7 +155,7 @@ export function buildModelUpdateReplacements(oldModel: any, newModel: any): Reco
     'old_model.biases': oldModel.biases,
     'old_model.limitations': oldModel.limitations,
     'old_model.hosting_provider': oldModel.hosting_provider,
-    'old_model.used_in_projects': oldModel.used_in_projects,
+    'old_model.security_assessment_data': oldModel.security_assessment_data,
     'old_model.created_at': oldCreatedAt,
 
     // Changes summary

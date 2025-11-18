@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import { IModelInventory } from "../../interfaces/i.modelInventory";
+import { Filedata, IModelInventory } from "../../interfaces/i.modelInventory";
 import { ModelInventoryStatus } from "../../enums/model-inventory-status.enum";
 import { ValidationException } from "../../exceptions/custom.exception";
 
@@ -97,6 +97,13 @@ export class ModelInventoryModel
     allowNull: false,
   })
   hosting_provider!: string;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true, // Optional
+    defaultValue: [], // Initialize as empty array
+  })
+  security_assessment_data!: Filedata[];
 
   @Column({
     type: DataType.BOOLEAN,
@@ -302,6 +309,7 @@ export class ModelInventoryModel
       biases: this.biases,
       limitations: this.limitations,
       hosting_provider: this.hosting_provider,
+      security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
@@ -339,6 +347,7 @@ export class ModelInventoryModel
       biases: this.biases,
       limitations: this.limitations,
       hosting_provider: this.hosting_provider,
+      security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
@@ -414,6 +423,7 @@ export class ModelInventoryModel
       biases: data.biases || "",
       limitations: data.limitations || "",
       hosting_provider: data.hosting_provider || "",
+      security_assessment_data : data.security_assessment_data || [],
       is_demo: data.is_demo || false,
       created_at: new Date(),
       updated_at: new Date(),
@@ -470,6 +480,9 @@ export class ModelInventoryModel
     }
     if (data.hosting_provider !== undefined) {
       existingModel.hosting_provider = data.hosting_provider;
+    }
+    if (data.security_assessment_data !== undefined) {
+      existingModel.security_assessment_data = data.security_assessment_data;
     }
     if (data.is_demo !== undefined) {
       existingModel.is_demo = data.is_demo;

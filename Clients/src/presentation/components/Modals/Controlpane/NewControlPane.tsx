@@ -1,26 +1,20 @@
 import {
   Box,
   Button,
-  Dialog,
-  Divider,
-  Modal,
   Stack,
   Tab,
   Tabs,
   Typography,
-  useTheme,
 } from "@mui/material";
-import { X as CloseIcon } from "lucide-react";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, Suspense, useEffect } from "react";
+import { useState, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import { Save as SaveIcon } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import StandardModal from "../StandardModal";
 
 import {
   AlertBox,
@@ -29,8 +23,6 @@ import {
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
-import LinkedRisksPopup from "../../LinkedRisks";
-import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import { updateControl } from "../../../../application/repository/control_eu_act.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useSearchParams } from "react-router-dom";
@@ -66,7 +58,6 @@ const NewControlPane = ({
   onComplianceUpdate?: () => void;
   projectId: number;
 }) => {
-  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [alert, setAlert] = useState<AlertProps | null>(null);
@@ -78,12 +69,6 @@ const NewControlPane = ({
       feedback: FileData[];
     };
   }>({});
-  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
-    useState<boolean>(false);
-  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
-  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-  const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
-    useState<boolean>(false);
   const { userRoleName, userId } = useAuth();
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -123,20 +108,12 @@ const NewControlPane = ({
     }));
 
   const [state, setState] = useState<Control>(() => ({
-    order_no: data.order_no,
     id: data.id,
     title: data.title,
     description: data.description,
-    status: data.status,
-    approver: data.approver,
-    risk_review: data.risk_review,
-    owner: data.owner,
-    reviewer: data.reviewer,
-    implementation_details: data.implementation_details,
-    due_date: data.due_date,
-    control_category_id: data.control_category_id, // Added missing property
+    order_no: data.order_no,
+    control_category_id: data.control_category_id,
     subControls: initialSubControlState || [],
-    risks: data.risks || [],
   }));
 
   useEffect(() => {
@@ -250,24 +227,9 @@ const NewControlPane = ({
     try {
       const formData = new FormData();
 
-      // Add control level fields
+      // Add control level fields (structural fields only - status fields removed)
       formData.append("title", state.title || "");
       formData.append("description", state.description || "");
-      formData.append("status", state.status || "");
-      formData.append("approver", state.approver?.toString() || "");
-      formData.append("risk_review", state.risk_review || "");
-      formData.append("owner", state.owner?.toString() || "");
-      formData.append("reviewer", state.reviewer?.toString() || "");
-      formData.append(
-        "due_date",
-        state.due_date
-          ? new Date(state.due_date).toISOString().split("T")[0]
-          : ""
-      );
-      formData.append(
-        "implementation_details",
-        state.implementation_details || ""
-      );
       formData.append("order_no", state.order_no?.toString() || "");
 
       // Add subcontrols as a JSON string
@@ -339,9 +301,6 @@ const NewControlPane = ({
       // Add delete array if needed (you might want to track deleted files)
       formData.append("delete", JSON.stringify(deletedFilesIds));
 
-      formData.append("risksDelete", JSON.stringify(deletedRisks));
-      formData.append("risksMitigated", JSON.stringify(selectedRisks));
-
       const response = await updateControl({
         controlId: state.id,
         body: formData,
@@ -380,10 +339,6 @@ const NewControlPane = ({
     }
   };
 
-  const handleCloseWrapper = () => {
-    handleClose();
-  };
-
   return (
     <>
       {alert && (
@@ -402,174 +357,19 @@ const NewControlPane = ({
         <CustomizableToast title="Saving control. Please wait..." />
       )}
 
-      <Modal
-        id={`${data.id}-modal`}
-        open={isOpen}
-        onClose={handleCloseWrapper}
-        className="new-control-pane-modal"
-        sx={{ zIndex: 1100 }}
+      <StandardModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={`${controlCategoryId}.${data.order_no} ${data.title}`}
+        description={data.description || ""}
+        onSubmit={confirmSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting}
+        maxWidth="800px"
       >
-        <Stack
-          className="new-control-pane-modal-frame"
-          sx={{
-            gap: theme.spacing(4),
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            bgcolor: theme.palette.background.alt,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            paddingY: theme.spacing(15),
-            paddingX: theme.spacing(20),
-            "&:focus": {
-              outline: "none",
-            },
-            maxHeight: "90vh",
-            overflowY: "auto",
-          }}
-        >
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              component="span"
-              fontSize={16}
-              fontWeight={600}
-              sx={{ textAlign: "left" }}
-            >
-              {`${controlCategoryId + "." + data.order_no}`} {data.title}
-            </Typography>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseWrapper();
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <CloseIcon size={20} />
-            </Box>
-          </Stack>
-          <Typography component="span" fontSize={13}>
-            {data.description}
-          </Typography>
-          <DropDowns
-            projectId={projectId}
-            key={`control-${data.id}`}
-            isControl={true}
-            elementId={`control-${data.id}`}
-            state={state} // Fallback to `data` if `initialValues` isn't set yet
-            setState={(newState) =>
-              setState((prevState) => ({
-                ...prevState,
-                ...newState,
-              }))
-            }
-            readOnly={isEditingDisabled}
-            setAuditedStatusModalOpen={(open: boolean) => {
-              if (
-                selectedRisks.length > 0 ||
-                state.risks.length > 0 ||
-                (state.risks.length > 0 &&
-                  deletedRisks.length === state.risks.length)
-              ) {
-                setAuditedStatusModalOpen(open);
-              }
-            }}
-          />
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              sx={{
-                mt: 2,
-                borderRadius: 2,
-                width: 155,
-                height: 25,
-                fontSize: 11,
-                border: "1px solid #D0D5DD",
-                backgroundColor: "white",
-                color: "#344054",
-              }}
-              disableRipple
-              onClick={() => setIsLinkedRisksModalOpen(true)}
-              disabled={isEditingDisabled}
-            >
-              Add/remove risks
-            </Button>
-            <Stack direction="row" spacing={10}>
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
-                }}
-              >
-                {`${state.risks.length || 0} risks linked`}
-              </Typography>
-              {selectedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${selectedRisks.length} ${
-                    selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending save`}
-                </Typography>
-              )}
-              {deletedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${deletedRisks.length} ${
-                    deletedRisks.length === 1 ? "risk" : "risks"
-                  } pending delete`}
-                </Typography>
-              )}
-            </Stack>
-          </Stack>
-
-          {/* this is working fine */}
-          <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-          <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
+        <Stack spacing={6}>
+          {/* Control-level fields removed - only subcontrols have these fields now */}
+          <Box sx={{ width: "100%", bgcolor: "#FCFCFD", mt: -3 }}>
             <Tabs
               value={selectedTab}
               onChange={handleSelectedTab}
@@ -736,71 +536,8 @@ const NewControlPane = ({
               />
             )}
           </Box>
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              mt: 2,
-            }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text="Save"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={confirmSave}
-              icon={<SaveIcon size={16} />}
-            />
-          </Stack>
         </Stack>
-      </Modal>
-      <Dialog
-        open={isLinkedRisksModalOpen}
-        onClose={() => setIsLinkedRisksModalOpen(false)}
-        PaperProps={{
-          sx: {
-            width: "1500px",
-            maxWidth: "1500px",
-          },
-        }}
-      >
-        <Suspense fallback={"loading..."}>
-          <LinkedRisksPopup
-            onClose={() => setIsLinkedRisksModalOpen(false)}
-            currentRisks={state.risks
-              .concat(selectedRisks)
-              .filter((risk) => !deletedRisks.includes(risk))}
-            setSelectecRisks={setSelectedRisks}
-            _setDeletedRisks={setDeletedRisks}
-            projectId={projectId}
-          />
-        </Suspense>
-      </Dialog>
-      <Dialog
-        open={auditedStatusModalOpen}
-        onClose={() => setAuditedStatusModalOpen(false)}
-        PaperProps={{
-          sx: {
-            width: "800px",
-            maxWidth: "800px",
-          },
-        }}
-      >
-        <Suspense fallback={"loading..."}>
-          <AuditRiskPopup
-            onClose={() => setAuditedStatusModalOpen(false)}
-            risks={state.risks.concat(selectedRisks)}
-            _deletedRisks={deletedRisks}
-            _setDeletedRisks={setDeletedRisks}
-            _selectedRisks={selectedRisks}
-            _setSelectedRisks={setSelectedRisks}
-          />
-        </Suspense>
-      </Dialog>
+      </StandardModal>
     </>
   );
 };

@@ -9,7 +9,9 @@ import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalPro
 import type { DeepEvalProject } from "./types";
 import { Bot, FileSearch, Workflow, Home, FlaskConical } from "lucide-react";
 
-export default function ProjectConfiguration() {
+type ProjectConfigurationProps = { hideHeader?: boolean };
+
+export default function ProjectConfiguration({ hideHeader = false }: ProjectConfigurationProps) {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const [project, setProject] = useState<DeepEvalProject | null>(null);
@@ -88,12 +90,14 @@ export default function ProjectConfiguration() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ userSelect: "none" }}>
-          <PageBreadcrumbs items={breadcrumbs} />
+      {!hideHeader && (
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ userSelect: "none" }}>
+            <PageBreadcrumbs items={breadcrumbs} />
+          </Box>
+          <PageHeader title="Project configuration" />
         </Box>
-        <PageHeader title="Project configuration" />
-      </Box>
+      )}
 
       <Stack spacing={4}>
         <Box>

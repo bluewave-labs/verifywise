@@ -441,7 +441,7 @@ export default function EvalsDashboard() {
           </TabPanel>
 
           <TabPanel value="configuration" sx={{ p: 0 }}>
-            <ProjectConfiguration />
+            <ProjectConfiguration hideHeader />
           </TabPanel>
         </TabContext>
       )}

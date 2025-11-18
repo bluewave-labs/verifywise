@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import Select from "../Inputs/Select";
 import { SearchBox } from "../Search";
 
@@ -60,8 +60,6 @@ const TabFilterBar = ({
 }: TabFilterBarProps) => {
   const mapToSelectItems = (options: { label: string; value: string }[]) =>
     options.map((opt) => ({ _id: opt.value, name: opt.label }));
-
-  const theme = useTheme();
 
   const dueDateOptions = [
     { _id: "", name: "All Due Dates" },

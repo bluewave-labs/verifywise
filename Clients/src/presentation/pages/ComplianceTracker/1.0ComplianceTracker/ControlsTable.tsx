@@ -14,7 +14,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { Dispatch, useCallback, useEffect, useState } from "react";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../components/Skeletons";
@@ -44,6 +44,7 @@ interface ControlsTableProps {
   ownerFilter?: string;
   approverFilter?: string;
   dueDateFilter?: string;
+  setFilteredControlsCount: Dispatch<React.SetStateAction<number | null>>;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -56,7 +57,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   statusFilter,
   ownerFilter,
   approverFilter,
-  dueDateFilter
+  dueDateFilter,
+  setFilteredControlsCount
 }) => {
   const { users } = useUsers();
   const currentProjectId = projectId;
@@ -96,6 +98,12 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           );
         });
 
+        if (ownerFilter || approverFilter || dueDateFilter || statusFilter) {
+          setFilteredControlsCount?.(filteredControls.length);
+        } else {
+          setFilteredControlsCount(null);
+        }
+
         setControls(filteredControls);
       } catch (err) {
         setError(err);
@@ -113,7 +121,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     ownerFilter, 
     approverFilter, 
     dueDateFilter, 
-    statusFilter
+    statusFilter,
+    setFilteredControlsCount
   ]);
 
   useEffect(() => {
@@ -149,7 +158,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setAlert(null);
   }, [currentProjectId]);
 
-  const handleRowClick = async (control: any) => {
+  const handleRowClick = async (control: Control) => {
     const subControlsResponse = await getControlByIdAndProject({
       controlId: control.id!,
       projectFrameworkId,
@@ -159,7 +168,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     });
 
     setSelectedControl(subControlsResponse.data);
-    setSelectedRow(control.id);
+    setSelectedRow(control.id!);
     setModalOpen(true);
   };
 

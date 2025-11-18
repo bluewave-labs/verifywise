@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, useEffect, useCallback } from "react";
-import { Stack, Box, Typography, useTheme } from "@mui/material";
+import { Stack, Box, Typography } from "@mui/material";
 const ReportTable = lazy(() => import("../../../components/Table/ReportTable"));
 import { TITLE_OF_COLUMNS } from "./constants";
 import useGeneratedReports from "../../../../application/hooks/useGeneratedReports";
@@ -25,7 +25,6 @@ const Reports: React.FC<ReportsProps> = ({
   refreshKey: externalRefreshKey = 0,
   generateReportButton,
 }) => {
-  const theme = useTheme();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const [currentPage, setCurrentPage] = useState(0);
@@ -212,8 +211,8 @@ const Reports: React.FC<ReportsProps> = ({
                 sx={{
                   minWidth: 200,
                   maxWidth: 300,
-                  backgroundColor: selectedProject && selectedProject !== "all" ? theme.palette.background.fill : 'inherit',
                 }}
+                isFilterApplied={!!selectedProject && selectedProject !== "all"}
               />
             </span>
             {generateReportButton}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useMemo, Suspense } from "react";
-import { Box, Stack, Fade, useTheme } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { SearchBox } from "../../components/Search";
@@ -47,7 +47,6 @@ import { ExportMenu } from "../../components/Table/ExportMenu";
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const IncidentManagement: React.FC = () => {
-    const theme = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
     const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -557,8 +556,8 @@ const IncidentManagement: React.FC = () => {
                                 }
                                 sx={{
                                     ...incidentStatusSelect,
-                                    backgroundColor: statusFilter && statusFilter !== "all" ? theme.palette.background.fill : 'inherit',
                                 }}
+                                isFilterApplied={!!statusFilter && statusFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -578,8 +577,8 @@ const IncidentManagement: React.FC = () => {
                                 }
                                 sx={{
                                     ...incidentStatusSelect,
-                                    backgroundColor: severityFilter && severityFilter !== "all" ? theme.palette.background.fill : 'inherit',
                                 }}
+                                isFilterApplied={!!severityFilter && severityFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -599,8 +598,8 @@ const IncidentManagement: React.FC = () => {
                                 }
                                 sx={{
                                     ...incidentStatusSelect,
-                                    backgroundColor: approvalFilter && approvalFilter !== "all" ? theme.palette.background.fill : 'inherit',
                                 }}
+                                isFilterApplied={!!approvalFilter && approvalFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;

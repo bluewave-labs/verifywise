@@ -4,7 +4,6 @@ import {
   Box,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
@@ -63,7 +62,6 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
 // Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
-  const theme = useTheme();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -480,10 +478,8 @@ const Tasks: React.FC = () => {
                       setStatusFilters([value as TaskStatus]);
                     }
                   }}
-                  sx={{
-                    width: 140,
-                    backgroundColor: statusFilters.length > 0 ? theme.palette.background.fill : 'inherit',
-                  }}
+                  sx={{ width: 140 }}
+                  isFilterApplied={statusFilters.length > 0}
                 />
 
                 <Select
@@ -507,10 +503,8 @@ const Tasks: React.FC = () => {
                       setPriorityFilters([value as TaskPriority]);
                     }
                   }}
-                  sx={{
-                    width: 140,
-                    backgroundColor: priorityFilters.length > 0 ? theme.palette.background.fill : 'inherit',
-                  }}
+                  sx={{ width: 140}}
+                  isFilterApplied={priorityFilters.length > 0 }
                 />
 
                 <Select
@@ -536,10 +530,8 @@ const Tasks: React.FC = () => {
                       setAssigneeFilters([Number(value)]);
                     }
                   }}
-                  sx={{
-                    width: 160,
-                    backgroundColor: assigneeFilters.length > 0 ? theme.palette.background.fill : 'inherit',
-                  }}
+                  sx={{ width: 160 }}
+                  isFilterApplied={assigneeFilters.length > 0}
                 />
 
                 <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">

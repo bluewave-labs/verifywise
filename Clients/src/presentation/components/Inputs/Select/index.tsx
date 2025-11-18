@@ -41,6 +41,7 @@ const Select: React.FC<SelectProps> = ({
   getOptionValue,
   disabled,
   customRenderValue,
+  isFilterApplied = false,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -184,7 +185,7 @@ const Select: React.FC<SelectProps> = ({
           fontSize: 13,
           minWidth: "125px",
           width: "100%",
-          backgroundColor: theme.palette.background.main,
+          backgroundColor: isFilterApplied ? theme.palette.background.fill : theme.palette.background.main,
           position: "relative",
           cursor: "pointer",
           ...getSelectStyles(theme, { hasError: !!error }),

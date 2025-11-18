@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Stack, Box, Typography, SelectChangeEvent, useTheme } from "@mui/material";
+import { Stack, Box, Typography, SelectChangeEvent } from "@mui/material";
 import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
@@ -60,7 +60,6 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -262,8 +261,8 @@ const FileManager: React.FC = (): JSX.Element => {
                   width: "fit-content",
                   minWidth: "200px",
                   height: "34px",
-                  backgroundColor: selectedProject && selectedProject !== "all" ? theme.palette.background.fill : '#fff',
                 }}
+                isFilterApplied={!!selectedProject && selectedProject !== "all"}
               />
               <Box sx={{ width: "300px" }}>
                 <SearchBox

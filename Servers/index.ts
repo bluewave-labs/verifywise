@@ -53,6 +53,7 @@ import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -145,6 +146,7 @@ try {
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
 
   // Adding background jobs in the Queue
   (async () => {

@@ -330,7 +330,7 @@ const ISO42001Annex = ({
           const count = filteredControlsCountMemo[annex.id ?? 0];
           const chipColor = count !== undefined && count > 0
             ? { bg: "#E6F4EA", color: "#138A5E" }
-            : { bg: "#FFD6D6", color: "#D32F2F" };
+            : { bg: "#FFF8E1", color: "#795548" };
           return (
             <Stack key={annex.id} sx={styles.container}>
               <Accordion

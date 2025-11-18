@@ -54,7 +54,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
 
   const chipColor = filteredControlsCount !== null && filteredControlsCount > 0
   ? { bg: "#E6F4EA", color: "#138A5E" }
-  : { bg: "#FFD6D6", color: "#D32F2F" };
+  : { bg: "#FFF8E1", color: "#795548" };
 
   return (
     <Stack className="control-category">

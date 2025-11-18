@@ -1,4 +1,4 @@
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Divider, Link, Stack, Typography, useTheme } from "@mui/material";
 import { FC, useState } from "react";
 import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
@@ -7,6 +7,7 @@ import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
 import {
     addNewStep,
+    stepNumberStyle,
 } from "./style";
 
 
@@ -37,94 +38,129 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     const handleNewStepClick = () => setStepsCount(stepsCount + 1);
 
     return (
-        <Stack >
-            <StandardModal
-                isOpen={isOpen}
-                onClose={() => {
-                    setIsOpen();
-                }}
-                title="Add new workflow"
-                description="Define a structured approval workflow with multiple steps, approvers, and conditions to ensure proper oversight and compliance."
-                maxWidth="1000px">
+        <StandardModal
+            isOpen={isOpen}
+            onClose={() => {
+                setIsOpen();
+            }}
+            title="Add new workflow"
+            description="Define a structured approval workflow with multiple steps, approvers, and conditions to ensure proper oversight and compliance."
+            maxWidth="680px">
+            <Stack spacing={8}>
+                <Stack direction="row" spacing={6}>
+                    <Field
+                        id="title"
+                        label="Workflow title"
+                        width="50%"
+                        isRequired
+                        sx={fieldStyle}
+                        placeholder="Enter workflow title"
+                    />
+                    <SelectComponent
+                        items={approverRoles}
+                        value={""}
+                        sx={{
+                            width: "50%",
+                            backgroundColor: theme.palette.background.main,
+                        }}
+                        id="entity"
+                        label="Entity"
+                        isRequired
+                        onChange={() => { }}
+                        placeholder="Select entity"
+                    />
+                </Stack>
                 {[...Array(stepsCount)].map((_, step) => (
-
-                    <Stack spacing={12}>
-                        {/* Row 1: Task title | Entity */}
-                        <Stack direction="row" spacing={6}>
-                            <Field
-                                id="title"
-                                label="Workflow title"
-                                width="350px"
-                                isRequired
-                                sx={fieldStyle}
-                                placeholder="Enter workflow title"
-                            />
-
-                            <SelectComponent
-                                items={approverRoles}
-                                value={""}
-                                sx={{
-                                    width: "350px",
-                                    backgroundColor: theme.palette.background.main,
-                                }}
-                                id="status"
-                                label="Entity"
-                                isRequired
-                                onChange={() => { }}
-                                placeholder="Select entity"
-                            />
-                        </Stack>
+                    <Stack spacing={8}>
                         {/* STEPS */}
-                        <Stack spacing={16}>
-                            {/* STEP 1 */}
-                            <Stack spacing={6}>
-                                <Typography
-                                    fontWeight={500}
-                                    fontSize={16}
-                                >
+                        <Stack spacing={4}
+                            sx={{
+                                pt: step > 0 ? 8 : 0
+                            }}>
+                            <Stack direction="row" alignItems="center" spacing={8}>
+                                <Box sx={stepNumberStyle}>{step + 1}</Box>
+                                <Typography fontWeight={500} fontSize={16}>
                                     {"STEP " + (step + 1)}
                                 </Typography>
-                                <Field
-                                    id="title"
-                                    label="Step name"
-                                    width="350px"
-                                    isRequired
-                                    sx={fieldStyle}
-                                    placeholder="Enter step name"
-                                />
-
-                                {/* Row 2: Status | Categories */}
-                                <Stack direction="row" spacing={6}>
-                                    <SelectComponent
-                                        items={approverRoles}
-                                        value={""}
+                                <Box sx={{ 
+                                    flex: 1,
+                                    ml: -4,
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                 }}>
+                                    <Link
+                                        component="button"
+                                        onClick={() => { }
+                                        }
                                         sx={{
-                                            width: "350px",
-                                            backgroundColor: theme.palette.background.main,
+                                            color: "#13715B",
+                                            textDecoration: "underline",
+                                            cursor: "pointer",
+                                            fontSize: 13,
+                                            fontWeight: 500,
+                                            "&:hover": {
+                                                color: "#0F5A47",
+                                            },
+                                            visibility: step === 0 ? "hidden" : "visible",
                                         }}
-                                        id="status"
-                                        label="Approver"
-                                        isRequired
-                                        onChange={() => { }}
-                                        placeholder="Select status"
+                                    >
+                                        Remove step
+                                    </Link>
+                                </Box>
+                            </Stack>
+                            <Stack direction="row" alignItems="flex-start" >
+                                <Box>
+                                    <Divider
+                                        orientation="vertical"
+                                        flexItem
+                                        sx={{
+                                            borderRightWidth: "1px",
+                                            height: "248px",
+                                            borderColor: "#E0E0E0",
+                                            mt: 6,
+                                            ml: 6,
+                                            mr: 12,
+                                        }}
                                     />
 
-                                    <SelectComponent
-                                        items={conditions}
-                                        value={""}
-                                        sx={{
-                                            width: "350px",
-                                            backgroundColor: theme.palette.background.main,
-                                        }}
-                                        id="status"
-                                        label="Conditions"
+                                </Box>
+                                <Stack sx={{ flex: 1 }} spacing={6}>
+                                    <Field
+                                        id="title"
+                                        label="Step name"
+                                        width="100%"
                                         isRequired
-                                        onChange={() => { }}
-                                        placeholder="Select status"
+                                        sx={fieldStyle}
+                                        placeholder="Enter step name"
                                     />
-                                </Stack>
-                                {/* Row 3: Description */}
-                                <Stack>
+                                    <Stack direction="row" spacing={6}>
+                                        <SelectComponent
+                                            items={approverRoles}
+                                            value={""}
+                                            sx={{
+                                                width: "48%",
+                                                backgroundColor: theme.palette.background.main,
+                                            }}
+                                            id="approver"
+                                            label="Approver"
+                                            isRequired
+                                            onChange={() => { }}
+                                            placeholder="Select approver"
+                                        />
+                                        <SelectComponent
+                                            items={conditions}
+                                            value={""}
+                                            sx={{
+                                                width: "52%",
+                                                backgroundColor: theme.palette.background.main,
+                                            }}
+                                            id="status"
+                                            label="Conditions"
+                                            isRequired
+                                            onChange={() => { }}
+                                            placeholder="Select status"
+                                        />
+                                    </Stack>
                                     <Field
                                         id="description"
                                         label="Description"
@@ -137,9 +173,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                 </Stack>
                             </Stack>
                         </Stack>
-
                     </Stack>
-
                 ))}
                 <Box data-joyride-id="add-incident-button">
                     <CustomizableButton
@@ -149,8 +183,8 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         onClick={handleNewStepClick}
                     />
                 </Box>
-            </StandardModal>
-        </Stack>
+            </Stack>
+        </StandardModal>
     );
 }
 

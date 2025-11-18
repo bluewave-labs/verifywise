@@ -36,12 +36,11 @@ import { ChevronsUpDown } from "lucide-react";
 
 const TITLE_OF_COLUMNS = [
   { col: "ID", width: 100 },
-  { col: "TITLE", width: 200 },
+  { col: "TITLE", width: 300 },
   { col: "TAGS", width: 250 },
-  { col: "DESCRIPTION", width: 600 },
+  { col: "DESCRIPTION", width: 500 },
 ];
 
-const DEFAULT_ROWS_PER_PAGE = 5;
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -52,7 +51,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   fetchAll,
 }) => {
   const theme = useTheme();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedPolicyTemplate, setSelectedPolicyTemplate] = useState<
     PolicyTemplate | undefined
@@ -62,7 +60,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>
-    getPaginationRowCount("policyManager", DEFAULT_ROWS_PER_PAGE),
+    getPaginationRowCount("policyManager", 5),
   );
 
   const handleClose = () => {
@@ -71,7 +69,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   };
 
   const handleSelectPolicyTemplate = (id: number) => {
-    setSelectedId(id);
     if (id) {
       const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
       console.log(selectedPolicy);

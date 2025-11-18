@@ -16,6 +16,8 @@ import ProjectsList from "./ProjectsList";
 import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import ProjectMonitor from "./ProjectMonitor";
+import ProjectConfiguration from "./ProjectConfiguration";
+import { ProjectDatasets } from "./ProjectDatasets";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
@@ -402,7 +404,9 @@ export default function EvalsDashboard() {
               tabs={[
                 { label: "Overview", value: "overview", icon: "LayoutDashboard" },
                 { label: "Experiments", value: "experiments", icon: "FlaskConical" },
+                { label: "Datasets", value: "datasets", icon: "Database" },
                 { label: "Monitor", value: "monitor", icon: "Activity" },
+                { label: "Configuration", value: "configuration", icon: "Settings" },
               ]}
               activeTab={tab}
               onChange={handleTabChange}
@@ -421,8 +425,16 @@ export default function EvalsDashboard() {
             <ProjectExperiments projectId={projectId} />
           </TabPanel>
 
+          <TabPanel value="datasets" sx={{ p: 0 }}>
+            <ProjectDatasets projectId={projectId} />
+          </TabPanel>
+
           <TabPanel value="monitor" sx={{ p: 0 }}>
             <ProjectMonitor projectId={projectId} />
+          </TabPanel>
+
+          <TabPanel value="configuration" sx={{ p: 0 }}>
+            <ProjectConfiguration />
           </TabPanel>
         </TabContext>
       )}

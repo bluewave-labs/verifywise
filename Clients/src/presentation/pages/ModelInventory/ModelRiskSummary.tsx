@@ -6,11 +6,8 @@ import {
   projectRisksTileCardvalue,
 } from "../../components/Cards/RisksCard/style";
 
-import { IModelRisk, ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
-
-interface ModelRiskSummaryProps {
-  modelRisks: IModelRisk[];
-}
+import { ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
+import { ModelRiskSummaryProps } from "../../../domain/interfaces/i.modelInventory";
 
 const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({ modelRisks }) => {
   const riskLevels = [

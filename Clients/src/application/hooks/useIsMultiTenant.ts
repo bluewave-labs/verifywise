@@ -19,10 +19,14 @@ const shouldEnableMultiTenant = (organizationExists: boolean | null): boolean =>
 
 export const useIsMultiTenant = () => {
   const [isMultiTenant, setIsMultiTenant] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrganizationCount = async () => {
       const now = Date.now();
+      setLoading(true);
+      setError(null);
 
       // Check cache first
       if (
@@ -32,6 +36,7 @@ export const useIsMultiTenant = () => {
       ) {
         // Use cached value
         setIsMultiTenant(shouldEnableMultiTenant(organizationCheckCache.exists));
+        setLoading(false);
         return;
       }
 
@@ -47,13 +52,18 @@ export const useIsMultiTenant = () => {
 
         setIsMultiTenant(shouldEnableMultiTenant(exists));
       } catch (error) {
+        console.error("Failed to check organization existence:", error);
+
         // Default to multi-tenant on error for safety
-        // Error logging handled by server-side monitoring
-        setIsMultiTenant(true);
+        // Pass null to shouldEnableMultiTenant to trigger safe fallback behavior
+        setError("Failed to determine multi-tenant mode. Using safe default.");
+        setIsMultiTenant(shouldEnableMultiTenant(null));
+      } finally {
+        setLoading(false);
       }
     };
     fetchOrganizationCount();
   }, []);
 
-  return { isMultiTenant };
+  return { isMultiTenant, loading, error };
 }

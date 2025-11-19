@@ -14,12 +14,10 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
 import EmptyState from "../../EmptyState";
-import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
@@ -174,11 +172,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     localStorage.setItem(VENDORS_SORTING_KEY, JSON.stringify(sortConfig));
   }, [sortConfig]);
 
-  const [showVendorRisks, setShowVendorRisks] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
   const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -282,18 +275,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     []
   );
 
-  const openVendorRisksDialog = useCallback(
-    (vendorId: number, vendorName: string) => {
-      setSelectedVendor({ id: vendorId, name: vendorName });
-      setShowVendorRisks(true);
-    },
-    []
-  );
-
-  const closeVendorRisksDialog = useCallback(() => {
-    setShowVendorRisks(false);
-    setSelectedVendor(null);
-  }, []);
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
@@ -366,21 +347,16 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={1}>
-                    {/* <RiskChip label={row.risk_status} /> */}
-                    <CustomizableButton
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.button,
-                        width: 110,
-                      }}
-                      variant="contained"
-                      text="View risks"
-                      onClick={(e: React.MouseEvent<HTMLElement>) => {
-                        e.stopPropagation();
-                        openVendorRisksDialog(row.id!, row.vendor_name);
-                      }}
-                    />
-                  </Box>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: theme.palette.primary.main,
+                      fontSize: "13px",
+                      opacity: 0.7
+                    }}
+                  >
+                    view risks
+                  </Typography>
                 </TableCell>
                 <TableCell
                   sx={{
@@ -420,11 +396,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       page,
       rowsPerPage,
       cellStyle,
-      openVendorRisksDialog,
       formattedUsers,
       onEdit,
       onDelete,
       isDeletingAllowed,
+      theme,
+      sortConfig.key,
     ]
   );
 
@@ -531,15 +508,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         </TableContainer>
       )}
 
-      {/* Vendor Risks Dialog */}
-      {showVendorRisks && selectedVendor && (
-        <VendorRisksDialog
-          open={showVendorRisks}
-          onClose={closeVendorRisksDialog}
-          vendorId={selectedVendor.id}
-          vendorName={selectedVendor.name}
-        />
-      )}
     </>
   );
 };

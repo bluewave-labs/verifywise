@@ -287,9 +287,8 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       {/* Performance Chart */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
-          <Box display="flex" alignItems="center" gap={1} mb={2}>
-            <TrendingUp size={20} color="#13715B" />
-            <Typography variant="h6">Performance tracking</Typography>
+          <Box mb={2}>
+            <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Track metric scores across eval runs

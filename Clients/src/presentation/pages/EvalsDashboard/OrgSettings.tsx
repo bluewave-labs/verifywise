@@ -181,7 +181,7 @@ export default function OrgSettings() {
     <Box sx={{ p: 3 }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
       <Box sx={{ mb: 6 }}>
-        <Box sx={{ userSelect: "none" }}>
+        <Box>
           <PageBreadcrumbs items={breadcrumbs} />
         </Box>
         <PageHeader

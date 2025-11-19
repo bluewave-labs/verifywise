@@ -106,7 +106,6 @@ export default function OrganizationSelector({ onSelected }: Props) {
                   flexDirection: "column",
                   border: "1px solid #E5E7EB",
                   boxShadow: "none",
-                  userSelect: "none",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                   "&:hover": {

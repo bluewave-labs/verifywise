@@ -660,10 +660,61 @@ def _safe_evalmodule_data_root() -> Path:
     return data_root / "presets"
 
 
+def _extract_dataset_stats(file_path: Path) -> dict:
+    """
+    Extract statistics from a dataset JSON file.
+    Returns test count, categories, difficulty distribution, and topics.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        if not isinstance(data, list):
+            return {}
+
+        total_tests = len(data)
+        categories = set()
+        difficulties = {"easy": 0, "medium": 0, "hard": 0}
+
+        for item in data:
+            if isinstance(item, dict):
+                if "category" in item:
+                    categories.add(item["category"])
+                if "difficulty" in item:
+                    diff = item.get("difficulty", "").lower()
+                    if diff in difficulties:
+                        difficulties[diff] += 1
+
+        return {
+            "test_count": total_tests,
+            "categories": sorted(list(categories)),
+            "category_count": len(categories),
+            "difficulty": difficulties,
+        }
+    except Exception:
+        return {}
+
+
+def _load_dataset_metadata(file_path: Path) -> dict:
+    """
+    Load optional metadata from a companion .meta.json file.
+    Returns description, tags, and other metadata if available.
+    """
+    meta_path = file_path.with_suffix(".meta.json")
+    if meta_path.exists():
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
 async def list_deepeval_datasets_controller() -> JSONResponse:
     """
     List available built-in datasets grouped by use case.
     Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    Includes statistics (test count, categories, difficulty) and metadata.
     """
     base = _safe_evalmodule_data_root()
     result = {
@@ -680,15 +731,28 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
                 if not sd.exists():
                     continue
                 for f in sd.glob("*.json"):
-                    result[sub].append({
+                    # Skip metadata files
+                    if f.stem.endswith(".meta"):
+                        continue
+
+                    stats = _extract_dataset_stats(f)
+                    metadata = _load_dataset_metadata(f)
+
+                    dataset_info = {
                         "key": f"{sub}/{f.name}",
                         "name": f.stem.replace("_", " ").title(),
                         "path": str(f.relative_to(base)),
                         "use_case": sub,
-                    })
+                        **stats,
+                        **metadata,
+                    }
+                    result[sub].append(dataset_info)
         else:
             # Flat presets folder fallback
             for f in base.glob("*.json"):
+                if f.stem.endswith(".meta"):
+                    continue
+
                 name = f.stem
                 use_case = "chatbot"
                 lowered = name.lower()
@@ -698,12 +762,20 @@ async def list_deepeval_datasets_controller() -> JSONResponse:
                     use_case = "agent"
                 elif "safety" in lowered:
                     use_case = "safety"
-                result[use_case].append({
+
+                stats = _extract_dataset_stats(f)
+                metadata = _load_dataset_metadata(f)
+
+                dataset_info = {
                     "key": f.name,
                     "name": name.replace("_", " ").title(),
                     "path": str(f.relative_to(base)),
                     "use_case": use_case,
-                })
+                    **stats,
+                    **metadata,
+                }
+                result[use_case].append(dataset_info)
+
         return JSONResponse(status_code=200, content={"datasets": result})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list datasets: {e}")

@@ -1,0 +1,4 @@
+{
+  "description": "Evaluates retrieval-augmented generation with product documentation, testing accuracy of information retrieval and contextual response generation.",
+  "tags": ["RAG", "documentation", "product-knowledge"]
+}

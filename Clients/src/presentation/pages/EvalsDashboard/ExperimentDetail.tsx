@@ -19,9 +19,10 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-import { TrendingUp, X, Home, FlaskConical, Pencil, Check } from "lucide-react";
+import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap, Target, MessageSquare, Lightbulb, Shield } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import MetricCard from "../../components/Cards/MetricCard";
 
 export default function ExperimentDetail() {
   const { projectId, experimentId } = useParams<{ projectId: string; experimentId: string }>();
@@ -138,8 +139,8 @@ export default function ExperimentDetail() {
   const breadcrumbItems = [
     { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
     { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-    { label: "Evals", onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Eval" },
+    { label: "Experiments", icon: <List size={14} strokeWidth={1.5} />, onClick: () => navigate(`/evals/${projectId}#experiments`) },
+    { label: experiment.name || "Eval", icon: <Zap size={14} strokeWidth={1.5} /> },
   ];
 
   // Lightweight Markdown -> HTML converter for common syntax
@@ -147,16 +148,16 @@ export default function ExperimentDetail() {
     if (!md) return "";
     let html = md;
     // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, (_m, code) => `<pre style="background:#0F172A;color:#E5E7EB;padding:12px;border-radius:6px;overflow:auto"><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`);
+    html = html.replace(/```([\s\S]*?)```/g, (_m, code) => `<pre style="background:#0F172A;color:#E5E7EB;padding:12px;border-radius:6px;overflow:auto;font-size:12px"><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`);
     // Inline code
-    html = html.replace(/`([^`]+)`/g, (_m, code) => `<code style="background:#F3F4F6;padding:2px 4px;border-radius:4px;font-family:monospace">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code>`);
+    html = html.replace(/`([^`]+)`/g, (_m, code) => `<code style="background:#F3F4F6;padding:2px 4px;border-radius:4px;font-family:monospace;font-size:12px">${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code>`);
     // Headings
     html = html.replace(/^######\s?(.*)$/gm, '<h6 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h6>');
-    html = html.replace(/^#####\s?(.*)$/gm, '<h5 style="margin:8px 0 4px;font-size:13px;font-weight:600">$1</h5>');
-    html = html.replace(/^####\s?(.*)$/gm, '<h4 style="margin:10px 0 6px;font-size:14px;font-weight:600">$1</h4>');
-    html = html.replace(/^###\s?(.*)$/gm, '<h3 style="margin:12px 0 6px;font-size:15px;font-weight:700">$1</h3>');
-    html = html.replace(/^##\s?(.*)$/gm, '<h2 style="margin:14px 0 6px;font-size:16px;font-weight:700">$1</h2>');
-    html = html.replace(/^#\s?(.*)$/gm, '<h1 style="margin:16px 0 8px;font-size:18px;font-weight:700">$1</h1>');
+    html = html.replace(/^#####\s?(.*)$/gm, '<h5 style="margin:8px 0 4px;font-size:12px;font-weight:600">$1</h5>');
+    html = html.replace(/^####\s?(.*)$/gm, '<h4 style="margin:10px 0 6px;font-size:12px;font-weight:600">$1</h4>');
+    html = html.replace(/^###\s?(.*)$/gm, '<h3 style="margin:12px 0 6px;font-size:12px;font-weight:700">$1</h3>');
+    html = html.replace(/^##\s?(.*)$/gm, '<h2 style="margin:14px 0 6px;font-size:13px;font-weight:700">$1</h2>');
+    html = html.replace(/^#\s?(.*)$/gm, '<h1 style="margin:16px 0 8px;font-size:14px;font-weight:700">$1</h1>');
     // Bold / Italic
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -167,13 +168,13 @@ export default function ExperimentDetail() {
     html = html.replace(/(?:<li>.*<\/li>\n?)+/g, (m) => `<ul style="margin:6px 0 6px 18px">${m}</ul>`);
     // Paragraph breaks
     html = html.replace(/\n{2,}/g, '</p><p>');
-    html = `<p style="margin:0;line-height:1.6;font-size:13px">${html}</p>`;
+    html = `<p style="margin:0;line-height:1.6;font-size:12px">${html}</p>`;
     return html;
   };
 
   return (
     <Box>
-      <Box sx={{ userSelect: "none" }}>
+      <Box>
         <PageBreadcrumbs items={breadcrumbItems} />
       </Box>
       
@@ -399,19 +400,131 @@ export default function ExperimentDetail() {
           }
         });
 
-        // Determine enabled metrics from experiment config and map to display names
-        const enabled: Record<string, unknown> = (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
+        // Map to display names - add common metric variations
         const displayMap: Record<string, string> = {
-          answerCorrectness: "Answer Correctness",
+          answerCorrectness: "Answer correctness",
           coherence: "Coherence",
           tonality: "Tonality",
           safety: "Safety",
+          bias: "Bias",
+          toxicity: "Toxicity",
+          Bias: "Bias",
+          Toxicity: "Toxicity",
+          "Contextual Relevancy": "Contextual Relevancy",
+          "Answer Relevancy": "Answer Relevancy",
+          "Faithfulness": "Faithfulness",
+          "Hallucination": "Hallucination",
+          "Knowledge Retention": "Knowledge Retention",
+          "contextual_relevancy": "Contextual Relevancy",
+          "answer_relevancy": "Answer Relevancy",
+          "faithfulness": "Faithfulness",
+          "hallucination": "Hallucination",
+          "knowledge_retention": "Knowledge Retention",
+          "G-Eval (Coherence)": "Coherence",
+          "G-Eval (Fluency)": "Fluency",
+          "G-Eval (Consistency)": "Consistency",
+          "G-Eval (Relevance)": "Relevance",
+          "G-Eval (Correctness)": "Correctness",
         };
-        const orderedLabels = Object.keys(displayMap)
-          .filter((k) => !!enabled?.[k])
-          .map((k) => displayMap[k]);
 
-        if (orderedLabels.length === 0 && Object.keys(metricsSum).length === 0) return null;
+        // Always show all metrics found in the data
+        if (Object.keys(metricsSum).length === 0) return null;
+
+        // Map metric keys to appropriate icons
+        const metricIcons: Record<string, React.ComponentType<any>> = {
+          answerCorrectness: Target,
+          coherence: MessageSquare,
+          tonality: Lightbulb,
+          safety: Shield,
+          bias: Shield,
+          toxicity: Shield,
+          Bias: Shield,
+          Toxicity: Shield,
+          "Contextual Relevancy": Target,
+          "Answer Relevancy": Target,
+          "Faithfulness": Shield,
+          "Hallucination": Shield,
+          "Knowledge Retention": Lightbulb,
+          "contextual_relevancy": Target,
+          "knowledge_retention": Lightbulb,
+          "answer_relevancy": Target,
+          "faithfulness": Shield,
+          "hallucination": Shield,
+          "G-Eval (Coherence)": MessageSquare,
+          "G-Eval (Fluency)": Lightbulb,
+          "G-Eval (Consistency)": Target,
+          "G-Eval (Relevance)": Target,
+          "G-Eval (Correctness)": Target,
+        };
+
+        // Map metric keys to their explanations
+        const metricExplanations: Record<string, string> = {
+          answerCorrectness: "Measures how factually accurate and correct the AI's response is compared to the expected answer. Higher scores indicate the model provides accurate information without hallucinations or errors.",
+          coherence: "Evaluates how logically structured and well-organized the response is. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
+          tonality: "Assesses whether the AI's tone and style match the desired communication style. This includes checking for appropriate formality, empathy, and alignment with brand voice.",
+          safety: "Detects harmful, toxic, biased, or inappropriate content in the AI's responses. Higher scores indicate the model avoids generating unsafe or problematic outputs.",
+          bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
+          toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
+          Bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
+          Toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
+          "Contextual Relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
+          "Answer Relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
+          "Faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
+          "Hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
+          "Knowledge Retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
+          "Role Adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
+          "Conversation Relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
+          "Conversation Completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
+          "contextual_relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
+          "knowledge_retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
+          "role_adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
+          "conversation_relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
+          "conversation_completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
+          "answer_relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
+          "faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
+          "hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
+          "G-Eval (Coherence)": "Evaluates how logically structured and well-organized the response is using G-Eval framework. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
+          "G-Eval (Fluency)": "Assesses how natural and smooth the language flows in the AI's response. Higher scores indicate more human-like, grammatically correct, and easy-to-read text.",
+          "G-Eval (Consistency)": "Measures whether the response maintains logical consistency throughout, without contradicting itself or previous statements. Higher scores indicate better internal coherence.",
+          "G-Eval (Relevance)": "Evaluates how well the response addresses the user's question or prompt. Higher scores mean the response stays on-topic and provides pertinent information.",
+          "G-Eval (Correctness)": "Assesses the factual accuracy and correctness of the information provided in the response. Higher scores indicate more accurate and reliable answers.",
+        };
+
+        // Map metric keys to their evaluation direction (lower-is-better vs higher-is-better)
+        const metricTypeMap: Record<string, "lower-is-better" | "higher-is-better" | "neutral"> = {
+          // Lower is better (negative metrics)
+          bias: "lower-is-better",
+          toxicity: "lower-is-better",
+          Bias: "lower-is-better",
+          Toxicity: "lower-is-better",
+          "Hallucination": "lower-is-better",
+          "hallucination": "lower-is-better",
+
+          // Higher is better (positive metrics)
+          answerCorrectness: "higher-is-better",
+          coherence: "higher-is-better",
+          tonality: "higher-is-better",
+          safety: "higher-is-better",
+          "Contextual Relevancy": "higher-is-better",
+          "Answer Relevancy": "higher-is-better",
+          "Faithfulness": "higher-is-better",
+          "Knowledge Retention": "higher-is-better",
+          "Role Adherence": "higher-is-better",
+          "Conversation Relevancy": "higher-is-better",
+          "Conversation Completeness": "higher-is-better",
+          "contextual_relevancy": "higher-is-better",
+          "answer_relevancy": "higher-is-better",
+          "faithfulness": "higher-is-better",
+          "knowledge_retention": "higher-is-better",
+          "role_adherence": "higher-is-better",
+          "conversation_relevancy": "higher-is-better",
+          "conversation_completeness": "higher-is-better",
+          "G-Eval (Coherence)": "higher-is-better",
+          "G-Eval (Fluency)": "higher-is-better",
+          "G-Eval (Consistency)": "higher-is-better",
+          "G-Eval (Relevance)": "higher-is-better",
+          "G-Eval (Correctness)": "higher-is-better",
+        };
 
         return (
           <Box sx={{ mb: 3 }}>
@@ -419,28 +532,30 @@ export default function ExperimentDetail() {
               Overall statistics
             </Typography>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-              {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
-                const entry = metricsSum[label] || metricsSum[`G-Eval (${label})`];
+              {Object.keys(metricsSum).map((metricKey) => {
+                const entry = metricsSum[metricKey];
                 const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
                 const count = entry ? entry.count : 0;
-                const friendlyLabel = label;
+                const friendlyLabel = displayMap[metricKey] || metricKey;
+                const percentageValue = avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`;
+                const subtitleText = avgValue === undefined ? "No data yet" : `Average across ${count} samples`;
+                const BackgroundIcon = metricIcons[metricKey] || TrendingUp;
+                const explanation = metricExplanations[metricKey] || `Evaluation metric: ${friendlyLabel}`;
+                const metricType = metricTypeMap[metricKey] || "neutral";
+
                 return (
-                  <Card key={label} variant="outlined">
-                    <CardContent sx={{ p: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                        <TrendingUp size={14} color="#13715B" />
-                        <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 600, color: "#6B7280" }}>
-                          {friendlyLabel}
-                        </Typography>
-                      </Box>
-                      <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 700 }}>
-                        {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px" }}>
-                        {avgValue === undefined ? "No data yet" : `Average across ${count} samples`}
-                      </Typography>
-                    </CardContent>
-                  </Card>
+                  <Box key={metricKey} sx={{ border: "1px solid #E5E7EB", borderRadius: 2, overflow: "hidden" }}>
+                    <MetricCard
+                      title={friendlyLabel}
+                      value={percentageValue}
+                      subtitle={subtitleText}
+                      tooltipText={explanation}
+                      navigable={false}
+                      compact={true}
+                      backgroundIcon={BackgroundIcon}
+                      metricType={metricType}
+                    />
+                  </Box>
                 );
               })}
             </Box>
@@ -460,7 +575,7 @@ export default function ExperimentDetail() {
           }}>
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", height: "100%", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, p: 2, pb: 1 }}>
+              <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, pl: 2, pr: 2, pt: 2, pb: 1 }}>
                 All samples
               </Typography>
 
@@ -504,11 +619,11 @@ export default function ExperimentDetail() {
                         <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
                           {index + 1}
                         </TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
+                        <TableCell sx={{ fontSize: "12px" }}>
                           <Typography
                             variant="body2"
                             sx={{
-                              fontSize: "13px",
+                              fontSize: "12px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               display: "-webkit-box",
@@ -519,11 +634,11 @@ export default function ExperimentDetail() {
                             {log.input_text || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
+                        <TableCell sx={{ fontSize: "12px" }}>
                           <Typography
                             variant="body2"
                             sx={{
-                              fontSize: "13px",
+                              fontSize: "12px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               display: "-webkit-box",
@@ -563,16 +678,37 @@ export default function ExperimentDetail() {
 
             {/* Right: Expanded View */}
             {selectedLog && (
-              <Box sx={{ display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
-                {/* Close button header */}
-                <Box sx={{ 
-                  display: "flex", 
-                  justifyContent: "flex-end", 
-                  p: 1, 
+              <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                height: "100%",
+                animation: "slideInRight 0.3s ease-out",
+                "@keyframes slideInRight": {
+                  from: {
+                    opacity: 0,
+                    transform: "translateX(20px)",
+                  },
+                  to: {
+                    opacity: 1,
+                    transform: "translateX(0)",
+                  },
+                },
+              }}>
+                {/* Header with title and close button */}
+                <Box sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  p: 1.5,
+                  pl: 3,
                   borderBottom: "1px solid #E5E7EB",
                   backgroundColor: "#F9FAFB",
                   flexShrink: 0
                 }}>
+                  <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600 }}>
+                    Evaluation Metrics
+                  </Typography>
                   <Box
                     component="button"
                     onClick={() => setSelectedLog(null)}
@@ -597,17 +733,9 @@ export default function ExperimentDetail() {
 
                 {/* Scrollable content */}
                 <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", p: 3 }}>
-                  {/* Sample ID and Timestamp */}
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: "11px", fontFamily: "monospace" }}>
-                    {selectedLog.id}
-                  </Typography>
-                
                 {/* Metric Scores (Judge's Opinion) */}
                 {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
-                  <Box sx={{ mt: 3, mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
-                      % Scores
-                    </Typography>
+                  <Box sx={{ mb: 3 }}>
                     <Stack spacing={1.5}>
                        {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
                         const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
@@ -618,7 +746,7 @@ export default function ExperimentDetail() {
                          return (
                            <Box key={metricName} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                               <Typography variant="body2" sx={{ fontSize: "13px", textTransform: "capitalize" }}>
+                               <Typography variant="body2" sx={{ fontSize: "12px", textTransform: "capitalize" }}>
                                  {friendlyMetric.replace(/([A-Z])/g, " $1").trim()}
                                </Typography>
                                <Chip
@@ -658,7 +786,7 @@ export default function ExperimentDetail() {
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
                     <Box
-                      sx={{ fontSize: "13px" }}
+                      sx={{ fontSize: "12px" }}
                       dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.input_text || "No input") }}
                     />
                   </Paper>
@@ -671,7 +799,7 @@ export default function ExperimentDetail() {
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, backgroundColor: "#F9FAFB" }}>
                     <Box
-                      sx={{ fontSize: "13px" }}
+                      sx={{ fontSize: "12px" }}
                       dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedLog.output_text || "No output") }}
                     />
                   </Paper>
@@ -749,6 +877,13 @@ export default function ExperimentDetail() {
                     </Paper>
                   </Box>
                 )}
+
+                {/* Sample ID at bottom */}
+                <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #E5E7EB" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", fontFamily: "monospace", display: "block" }}>
+                    Sample ID: {selectedLog.id}
+                  </Typography>
+                </Box>
                 </Box>
               </Box>
             )}

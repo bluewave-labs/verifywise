@@ -417,9 +417,9 @@ async def get_experiments(
 ) -> List[Dict[str, Any]]:
     """Get experiments with optional filtering"""
     schema_name = "a4ayc80OGd" if tenant == "default" else tenant
-    
-    where_clauses = ["tenant = :tenant"]
-    params = {"tenant": tenant, "limit": limit, "offset": offset}
+
+    where_clauses = []
+    params = {"limit": limit, "offset": offset}
     
     if project_id:
         where_clauses.append("project_id = :project_id")
@@ -427,15 +427,15 @@ async def get_experiments(
     if status:
         where_clauses.append("status = :status")
         params["status"] = status
-    
-    where_clause = " AND ".join(where_clauses)
-    
+
+    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
     result = await db.execute(
         text(f'''
-            SELECT id, project_id, name, description, config, status, 
+            SELECT id, project_id, name, description, config, status,
                    results, created_at, updated_at, started_at, completed_at
             FROM "{schema_name}".experiments
-            WHERE {where_clause}
+            {where_clause}
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
         '''),
@@ -468,21 +468,21 @@ async def get_experiment_count(
 ) -> int:
     """Get total count of experiments"""
     schema_name = "a4ayc80OGd" if tenant == "default" else tenant
-    
-    where_clauses = ["tenant = :tenant"]
-    params = {"tenant": tenant}
-    
+
+    where_clauses = []
+    params = {}
+
     if project_id:
         where_clauses.append("project_id = :project_id")
         params["project_id"] = project_id
-    
-    where_clause = " AND ".join(where_clauses)
-    
+
+    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{schema_name}".experiments WHERE {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{schema_name}".experiments {where_clause}'),
         params
     )
-    
+
     row = result.mappings().first()
     return row["count"] if row else 0
 

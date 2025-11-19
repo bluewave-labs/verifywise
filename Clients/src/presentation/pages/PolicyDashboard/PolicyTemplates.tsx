@@ -71,7 +71,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const handleSelectPolicyTemplate = (id: number) => {
     if (id) {
       const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
-      console.log(selectedPolicy);
       if (selectedPolicy) {
         const template: PolicyTemplate = {
           title: selectedPolicy.title,
@@ -151,7 +150,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
             sx={{
               minWidth: "225px",
               height: "34px",
-              bgcolor: "#fff",
+              bgcolor: theme.palette.background.paper,
             }}
           />
         </div>
@@ -207,7 +206,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                       align="center"
                       sx={{ border: "none", p: 0 }}
                     >
-                      <EmptyState message="No policies found in database" />
+                      <EmptyState message="No policy templates found" />
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -279,7 +278,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                     }}
                     colSpan={3}
                   >
-                    Showing {page * rowsPerPage + 1} -{" "}
+                    Showing {filteredPolicyTemplates.length === 0 ? 0: page * rowsPerPage + 1} -{" "}
                     {Math.min(
                       page * rowsPerPage + rowsPerPage,
                       filteredPolicyTemplates.length,

@@ -37,6 +37,11 @@ export class NISTAIMRFSubcategoryModel extends Model<NISTAIMRFSubcategoryModel> 
   })
   description?: string;
 
+  @Column({
+    type: DataType.STRING,
+  })
+  implementation_description?: string;
+
   @ForeignKey(() => NISTAIMRFCategoryModel)
   @Column({
     type: DataType.INTEGER,

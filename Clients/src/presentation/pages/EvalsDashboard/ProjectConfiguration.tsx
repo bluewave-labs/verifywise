@@ -107,14 +107,13 @@ export default function ProjectConfiguration({ hideHeader = false }: ProjectConf
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4}>
               <Card
-                onClick={() => setState((s) => ({ ...s, useCase: "agent", defaultDataset: "agent" }))}
                 sx={{
-                  border: state.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  border: "1px solid #E5E7EB",
                   borderRadius: 2,
                   boxShadow: "none",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                  cursor: "not-allowed",
+                  opacity: 0.6,
+                  position: "relative",
                 }}
               >
                 <CardContent sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
@@ -123,10 +122,10 @@ export default function ProjectConfiguration({ hideHeader = false }: ProjectConf
                   </Box>
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: "14px", mb: 0.5 }}>
-                      AI Agents
+                      AI Agents (coming soon)
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12.5px", lineHeight: 1.6 }}>
-                      Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
+                      Agentic workflows and end-to-end task completion will be available shortly.
                     </Typography>
                   </Box>
                 </CardContent>

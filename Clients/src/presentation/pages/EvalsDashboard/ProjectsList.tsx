@@ -531,15 +531,13 @@ export default function ProjectsList() {
             </Box>
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
               <Box
-                onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
                 sx={{
-                  border: newProject.useCase === "agent" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  border: "1px solid #E5E7EB",
                   borderRadius: 2,
                   p: 2,
-                  cursor: "pointer",
+                  cursor: "not-allowed",
                   backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                  opacity: 0.6,
                 }}
               >
                 <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
@@ -547,9 +545,9 @@ export default function ProjectsList() {
                     <Workflow size={20} color="#13715B" />
                   </Box>
                   <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents</Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents (coming soon)</Box>
                     <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Evaluate agentic workflows and end-to-end task completion, including tool usage and planning.
+                      Agentic workflows and end-to-end task completion will be available shortly.
                     </Box>
                   </Box>
                 </Box>

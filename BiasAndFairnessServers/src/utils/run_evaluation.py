@@ -100,6 +100,11 @@ async def run_evaluation(
                 os.environ["XAI_API_KEY"] = judge_config["apiKey"]
             elif provider == "mistral":
                 os.environ["MISTRAL_API_KEY"] = judge_config["apiKey"]
+            # Expose judge provider/model for evaluator (provider-agnostic G‑Eval)
+            if provider:
+                os.environ["G_EVAL_PROVIDER"] = provider
+            if judge_config.get("model"):
+                os.environ["G_EVAL_MODEL"] = str(judge_config["model"])
         
         # Model API keys (for the model being tested)
         if model_config.get("apiKey") and model_config["apiKey"] != "***":

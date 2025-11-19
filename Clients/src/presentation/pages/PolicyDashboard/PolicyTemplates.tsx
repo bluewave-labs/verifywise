@@ -183,9 +183,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
       } else if (sortKey === "title") {
         aValue = a.title?.toLowerCase() || "";
         bValue = b.title?.toLowerCase() || "";
-      } else if (sortKey === "tags") {
-        aValue = a.tags?.join(", ")?.toLowerCase() || "";
-        bValue = b.tags?.join(", ")?.toLowerCase() || "";
       } else if (sortKey === "description") {
         aValue = a.description?.toLowerCase() || "";
         bValue = b.description?.toLowerCase() || "";
@@ -267,7 +264,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
               <TableHead>
                 <TableRow>
                   {TITLE_OF_COLUMNS.map((column) => {
-                    const sortable = true; // All columns are sortable
+                    const sortable = column.col !== "TAGS"; // All columns except TAGS are sortable
                     return (
                       <TableCell
                         key={column.col}
@@ -286,6 +283,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                           "&:hover": sortable ? {
                             backgroundColor: "rgba(0, 0, 0, 0.04)",
                           } : {},
+                          whiteSpace: "nowrap",
                         }}
                         onClick={() => sortable && handleSort(column.col)}
                       >
@@ -294,15 +292,19 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
-                            gap: theme.spacing(1),
+                            gap: 1,
+                            width: "100%",
                           }}
                         >
-                          <span>{column.col}</span>
+                          <Box component="span" sx={{ flexShrink: 0 }}>
+                            {column.col}
+                          </Box>
                           {sortable && (
                             <Box
                               sx={{
                                 display: "flex",
                                 alignItems: "center",
+                                flexShrink: 0,
                                 color: sortConfig.key === column.col ? theme.palette.primary.main : "#9CA3AF",
                               }}
                             >
@@ -373,11 +375,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                       >
                         {policy.title}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          backgroundColor: sortConfig.key === "TAGS" ? "#f5f5f5" : "inherit",
-                        }}
-                      >
+                      <TableCell>
                         <Stack direction="row" gap={1} flexWrap="wrap">
                           {policy.tags.map((tag, index) => (
                             <TagChip key={`${tag}-${index}`} tag={tag} />

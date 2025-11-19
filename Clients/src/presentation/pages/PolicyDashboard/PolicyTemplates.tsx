@@ -33,6 +33,7 @@ import {
 } from "../../../application/utils/paginationStorage";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { ChevronsUpDown } from "lucide-react";
+import TagChip from "../../components/Tags/TagChip";
 
 const TITLE_OF_COLUMNS = [
   { col: "ID", width: 100 },
@@ -60,7 +61,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>
-    getPaginationRowCount("policyManager", 5),
+    getPaginationRowCount("policyTemplates", 10),
   );
 
   const handleClose = () => {
@@ -130,7 +131,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount("policyManager", newRowsPerPage);
+      setPaginationRowCount("policyTemplates", newRowsPerPage);
       setPage(0);
     },
     [],
@@ -244,23 +245,9 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                         {policy.title}
                       </TableCell>
                       <TableCell>
-                        <Stack direction="row" gap={2}>
-                          {policy.tags.map((tag) => (
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                borderRadius: 1,
-                                bgcolor: theme.palette.primary.main,
-                                color: theme.palette.info.contrastText,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textAlign: "center",
-                                width: "fit-content",
-                                padding: "2px 8px",
-                              }}
-                            >
-                              {tag}
-                            </Typography>
+                        <Stack direction="row" gap={1} flexWrap="wrap">
+                          {policy.tags.map((tag, index) => (
+                            <TagChip key={`${tag}-${index}`} tag={tag} />
                           ))}
                         </Stack>
                       </TableCell>

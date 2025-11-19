@@ -55,15 +55,20 @@ const PolicyDashboard: React.FC = () => {
           open={isHelperDrawerOpen}
           onClose={() => setIsHelperDrawerOpen(false)}
           title="Policy manager"
-          description="Create and maintain AI governance policies aligned with regulatory requirements"
-          whatItDoes="Centralize *policy creation*, *version control*, and *distribution* for all *AI-related governance documentation*. Track *policy reviews*, *approvals*, and *acknowledgments* across your organization."
+          description="Create, manage, and maintain AI governance policies using pre-built templates or custom documentation"
+          whatItDoes="Centralize *policy creation*, *version control*, and *distribution* for all *AI-related governance documentation*. Start from *industry-standard templates* or create custom policies. Track *policy reviews*, *approvals*, and *acknowledgments* across your organization."
           whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to *responsible AI*, ensure *consistent practices* across teams, and satisfy *regulatory requirements* for documented controls."
           quickActions={[
             {
-              label: "Create New Policy",
+              label: "Browse Policy Templates",
               description:
-                "Draft governance policies using templates and best practices",
+                "Explore pre-built templates aligned with AI regulations and standards",
               primary: true,
+            },
+            {
+              label: "Create Custom Policy",
+              description:
+                "Draft custom governance policies for your organization",
             },
             {
               label: "Review Policy Status",
@@ -74,14 +79,17 @@ const PolicyDashboard: React.FC = () => {
           useCases={[
             "*AI ethics policies* defining *acceptable use* and *development principles*",
             "*Data governance policies* for handling *sensitive information* in *AI systems*",
+            "*Compliance templates* for *EU AI Act*, *ISO 42001*, and *NIST AI RMF*",
           ]}
           keyFeatures={[
+            "**Pre-built policy templates** covering *AI governance*, *model lifecycle*, *security*, and *compliance*",
             "**Policy lifecycle management** from *draft* through *approval* to *retirement*",
             "*Version control* with *change tracking* and *approval workflows*",
             "*Distribution tracking* to ensure all *stakeholders* have *acknowledged current policies*",
           ]}
           tips={[
-            "Start with *template policies* and customize them to your *organization's needs*",
+            "Start with *policy templates* and customize them to your *organization's needs*",
+            "Browse templates by category: *Core governance*, *Model lifecycle*, *Data security*, *Legal compliance*, and *Industry-specific*",
             "Schedule *regular policy reviews* to ensure they remain *current and relevant*",
             "Track *acknowledgments* to demonstrate *policy awareness* across your teams",
           ]}
@@ -89,8 +97,7 @@ const PolicyDashboard: React.FC = () => {
 
         <PageHeader
           title="Policy manager"
-          description="Policy Manager lets you create and update company AI policies in one
-               place to stay compliant and consistent."
+          description="Create and manage AI governance policies using pre-built templates or custom documentation to stay compliant and consistent."
           rightContent={
             <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

@@ -30,7 +30,7 @@ export enum NISTAIRMFFunction {
   GOVERN = "GOVERN",
   MAP = "MAP",
   MEASURE = "MEASURE",
-  MANAGE = "MANAGE"
+  MANAGE = "MANAGE",
 }
 
 export enum NISTAIRMFStatus {
@@ -39,7 +39,7 @@ export enum NISTAIRMFStatus {
   IMPLEMENTED = "Implemented",
   REQUIRES_ATTENTION = "Requires attention",
   AUDITED = "Audited",
-  NOT_APPLICABLE = "Not Applicable"
+  NOT_APPLICABLE = "Not Applicable",
 }
 
 export interface NISTAIRMFEvidenceFile {
@@ -55,8 +55,6 @@ export interface NISTAIRMFEvidenceFile {
 export interface NISTAIRMFDrawerProps {
   open: boolean;
   onClose: () => void;
-  projectFrameworkId: number;
-  project_id: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   subcategory?: NISTAIRMFSubcategory;
   category?: NISTAIRMFCategory;

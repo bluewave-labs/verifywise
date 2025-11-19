@@ -267,7 +267,7 @@ const NISTAIRMFGovern = ({
                       mt: 1,
                       color: "#666",
                       lineHeight: 1.4,
-                      fontWeight: 400
+                      fontWeight: 400,
                     }}
                   >
                     {subcategory.description}
@@ -306,7 +306,7 @@ const NISTAIRMFGovern = ({
           mb: 3,
           fontSize: 20,
           fontWeight: 600,
-          color: "#1a1a1a"
+          color: "#1a1a1a",
         }}
       >
         NIST AI RMF - Govern Categories
@@ -359,7 +359,7 @@ const NISTAIRMFGovern = ({
                         mt: 1,
                         color: "#666",
                         lineHeight: 1.4,
-                        fontWeight: 400
+                        fontWeight: 400,
                       }}
                     >
                       {category.description}
@@ -376,8 +376,6 @@ const NISTAIRMFGovern = ({
       <NISTAIRMFDrawerDialog
         open={drawerOpen}
         onClose={handleDrawerClose}
-        projectFrameworkId={Number(_projectFrameworkId)}
-        project_id={Number(_project.id)}
         onSaveSuccess={handleDrawerSaveSuccess}
         subcategory={selectedSubcategory}
         category={selectedCategory}

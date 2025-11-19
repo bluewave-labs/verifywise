@@ -33,7 +33,6 @@ export const inputStyles = {
 const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   open,
   onClose,
-  projectFrameworkId,
   onSaveSuccess,
   subcategory,
   category,
@@ -166,7 +165,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       };
 
       const response = await updateEntityById({
-        routeUrl: `/frameworks/${projectFrameworkId}/nist-ai-rmf/subcategories/${subcategory.id}`,
+        routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}`,
         body: updateData,
       });
 
@@ -204,7 +203,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         className="nist-ai-rmf-drawer-dialog"
         open={open}
         onClose={(_event, reason) => {
-          if (reason !== 'backdropClick') {
+          if (reason !== "backdropClick") {
             onClose();
           }
         }}

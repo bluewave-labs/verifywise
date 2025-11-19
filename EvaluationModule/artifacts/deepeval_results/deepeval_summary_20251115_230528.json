@@ -1,9 +1,0 @@
-{
-  "model": "claude-3-haiku-20240307",
-  "dataset": "experiment_dataset",
-  "total_samples": 11,
-  "timestamp": "2025-11-15T23:05:28.303553",
-  "metric_summaries": {},
-  "avg_word_count": 206.6,
-  "avg_response_length": 1239.2
-}

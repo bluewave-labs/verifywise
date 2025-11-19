@@ -9,6 +9,7 @@ import { X as CloseIcon, Save as SaveIcon } from "lucide-react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
+import ChipInput from "../../Inputs/ChipInput";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Alert from "../../Alert";
 import {
@@ -59,7 +60,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   }, [users]);
 
   const [formData, setFormData] = useState({
-    implementation_description: "",
     status: NISTAIRMFStatus.NOT_STARTED,
     owner: "",
     reviewer: "",
@@ -90,12 +90,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   useEffect(() => {
     if (subcategory) {
       setFormData({
-        implementation_description:
-          subcategory.implementation_description || "",
         status: subcategory.status || NISTAIRMFStatus.NOT_STARTED,
-        owner: subcategory.owner || "",
-        reviewer: subcategory.reviewer || "",
-        approver: subcategory.approver || "",
+        owner: subcategory.owner?.toString() || "",
+        reviewer: subcategory.reviewer?.toString() || "",
+        approver: subcategory.approver?.toString() || "",
         auditor_feedback: subcategory.auditor_feedback || "",
         tags: subcategory.tags || [],
       });
@@ -109,7 +107,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     } else {
       // Reset form when no subcategory
       setFormData({
-        implementation_description: "",
         status: NISTAIRMFStatus.NOT_STARTED,
         owner: "",
         reviewer: "",
@@ -160,10 +157,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       const updateData = {
         id: subcategory.id,
         status: formData.status,
-        implementation_description: formData.implementation_description,
-        owner: formData.owner,
-        reviewer: formData.reviewer,
-        approver: formData.approver,
+        owner: formData.owner ? parseInt(formData.owner) : null,
+        reviewer: formData.reviewer ? parseInt(formData.reviewer) : null,
+        approver: formData.approver ? parseInt(formData.approver) : null,
         due_date: date ? date.toISOString() : null,
         auditor_feedback: formData.auditor_feedback,
         tags: formData.tags,
@@ -268,31 +264,19 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
               <Divider />
 
-              {/* Implementation Description Section */}
+              {/* Description Section */}
               <Stack padding="15px 20px" gap="15px">
-                <Stack>
-                  <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-                    Implementation Description:
+                <Stack
+                  sx={{
+                    border: `1px solid #eee`,
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <Typography fontSize={13}>
+                    <strong>Description:</strong> {subcategory?.description}
                   </Typography>
-                  <Field
-                    type="description"
-                    value={formData.implementation_description}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        "implementation_description",
-                        e.target.value
-                      )
-                    }
-                    sx={{
-                      cursor: "text",
-                      "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
-                        {
-                          height: "73px",
-                        },
-                    }}
-                    placeholder="Describe how this requirement is implemented"
-                    disabled={isEditingDisabled}
-                  />
                 </Stack>
               </Stack>
 
@@ -393,6 +377,21 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                     disabled={isAuditingDisabled}
                   />
                 </Stack>
+
+                <ChipInput
+                  id="tags"
+                  label="Tags:"
+                  value={formData.tags}
+                  onChange={(newValue) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tags: newValue,
+                    }))
+                  }
+                  placeholder="Add tags..."
+                  disabled={isEditingDisabled}
+                  sx={inputStyles}
+                />
               </Stack>
 
               <Divider />

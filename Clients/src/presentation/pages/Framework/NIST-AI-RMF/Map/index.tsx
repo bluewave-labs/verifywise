@@ -18,6 +18,8 @@ import { Project } from "../../../../../domain/types/Project";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
+import { NISTAIRMFFunction } from "../types";
 
 interface NISTAIRMFMapProps {
   project: Project;
@@ -44,6 +46,11 @@ const NISTAIRMFMap = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const categoryId = searchParams.get("categoryId");
+
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -120,11 +127,25 @@ const NISTAIRMFMap = ({
 
   const handleSubcategoryClick = useCallback(
     (category: any, subcategory: any, _index: number) => {
-      // TODO: Implement drawer functionality for subcategory details
-      console.log("Subcategory clicked:", category, subcategory);
+      setSelectedCategory(category);
+      setSelectedSubcategory(subcategory);
+      setDrawerOpen(true);
     },
     []
   );
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedSubcategory(null);
+    setSelectedCategory(null);
+  };
+
+  const handleDrawerSaveSuccess = (success: boolean, _message?: string) => {
+    if (success) {
+      // Refresh the data after successful save
+      setRefreshTrigger((prev) => prev + 1);
+    }
+  };
 
   const handleStatusUpdate = async (
     updatedStatus: string,
@@ -350,6 +371,18 @@ const NISTAIRMFMap = ({
             </Accordion>
           </Stack>
         ))}
+
+      {/* NIST AI RMF Subcategory Details Drawer */}
+      <NISTAIRMFDrawerDialog
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        projectFrameworkId={Number(_projectFrameworkId)}
+        project_id={Number(_project.id)}
+        onSaveSuccess={handleDrawerSaveSuccess}
+        subcategory={selectedSubcategory}
+        category={selectedCategory}
+        function={NISTAIRMFFunction.MAP}
+      />
     </Stack>
   );
 };

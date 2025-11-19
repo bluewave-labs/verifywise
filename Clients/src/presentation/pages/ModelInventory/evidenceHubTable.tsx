@@ -204,7 +204,11 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                               onEdit?.(Number(evidence.id));
                             }}>
                                 <TableCell>{evidence.evidence_name}</TableCell>
-                                <TableCell>{evidence.evidence_type}</TableCell>
+                                <TableCell>
+                                    <TooltipCell
+                                        value={evidence.evidence_type}
+                                    />
+                                </TableCell>
                                 <TableCell>
                                     <TooltipCell
                                         value={

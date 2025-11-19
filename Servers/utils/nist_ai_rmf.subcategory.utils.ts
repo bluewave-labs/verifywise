@@ -45,6 +45,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   const setClause = [
     "title",
     "description",
+    "implementation_description",
     "status",
     "owner",
     "reviewer",

@@ -28,6 +28,7 @@ export const ensureNISTAI_RMFDInfrastructure = async (
         index INTEGER,
         title VARCHAR(255),
         description TEXT,
+        implementation_description TEXT,
         category_id INTEGER,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
@@ -171,7 +172,7 @@ export const getAllCategoriesWithSubcategoriesQuery = async (
   transaction: Transaction | null = null
 ) => {
   const subcategories = (await sequelize.query(
-    `SELECT ns.id as id, ns.title as title, ns.description as description, ns.index as index,
+    `SELECT ns.id as id, ns.title as title, ns.description as description, ns.implementation_description as implementation_description, ns.index as index,
             ns.category_id as category_id, nc.title as category_title, nc.description as category_description,
             ns.status, ns.owner, ns.reviewer, ns.approver, ns.due_date,
             ns.auditor_feedback, ns.evidence_links, ns.projects_frameworks_id, ns.created_at, ns.is_demo
@@ -201,6 +202,7 @@ export const getSubcategoryByIdQuery = async (
     `SELECT
       ns.title AS title,
       ns.description AS description,
+      ns.implementation_description AS implementation_description,
       ns.index AS index,
       ns.id AS id,
       ns.status AS status,
@@ -371,6 +373,7 @@ export const updateSubcategoryQuery = async (
   > = { id };
   const setClause = [
     "description",
+    "implementation_description",
     "evidence_links",
     "status",
     "owner",

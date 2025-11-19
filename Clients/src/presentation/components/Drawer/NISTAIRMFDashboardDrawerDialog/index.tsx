@@ -64,6 +64,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     reviewer: "",
     approver: "",
     auditor_feedback: "",
+    implementation_description: "",
     tags: [] as string[],
   });
 
@@ -94,6 +95,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         reviewer: subcategory.reviewer?.toString() || "",
         approver: subcategory.approver?.toString() || "",
         auditor_feedback: subcategory.auditor_feedback || "",
+        implementation_description: subcategory.implementation_description || "",
         tags: subcategory.tags || [],
       });
 
@@ -111,6 +113,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         reviewer: "",
         approver: "",
         auditor_feedback: "",
+        implementation_description: "",
         tags: [],
       });
       setDate(null);
@@ -161,6 +164,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         approver: formData.approver ? parseInt(formData.approver) : null,
         due_date: date ? date.toISOString() : null,
         auditor_feedback: formData.auditor_feedback,
+        implementation_description: formData.implementation_description,
         tags: formData.tags,
       };
 
@@ -280,6 +284,28 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   <Typography fontSize={13}>
                     <strong>Description:</strong> {subcategory?.description}
                   </Typography>
+                </Stack>
+
+                <Stack>
+                  <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                    Implementation Description:
+                  </Typography>
+                  <Field
+                    type="description"
+                    value={formData.implementation_description}
+                    onChange={(e) =>
+                      handleFieldChange("implementation_description", e.target.value)
+                    }
+                    sx={{
+                      cursor: "text",
+                      "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                        {
+                          height: "73px",
+                        },
+                    }}
+                    placeholder="Enter implementation details and how this subcategory is being addressed..."
+                    disabled={isEditingDisabled}
+                  />
                 </Stack>
               </Stack>
 

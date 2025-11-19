@@ -44,6 +44,7 @@ import {
   toastFadeStyle,
   statusFilterSelectStyle,
   addNewModelButtonStyle,
+  evidenceTypeFilterSelectStyle,
 } from "./style";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
@@ -52,6 +53,11 @@ import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
+import { EvidenceType } from "../../../domain/enums/evidenceHub.enum";
+import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
+import NewEvidenceHub from "../../components/Modals/EvidenceHub";
+import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
+import EvidenceHubTable from "./evidenceHubTable";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -67,9 +73,7 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
-  // const [selectedModelInventoryId, setSelectedModelInventoryId] = useState<
-  //   string | null
-  // >(null);
+ 
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
 
@@ -92,6 +96,7 @@ const ModelInventory: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
 
   // MLFlow data state
   const [mlflowData, setMlflowData] = useState<any[]>([]);
@@ -117,6 +122,24 @@ const ModelInventory: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+
+    const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
+
+    // Selected row for View/Edit modal
+    const [selectedEvidenceHub, setSelectedEvidenceHub] = useState<EvidenceHubModel | null>(null);
+
+    // Modal open/close flag
+    const [isEvidenceHubModalOpen, setIsEvidenceHubModalOpen] = useState(false);
+
+    // Filters
+    const [evidenceTypeFilter, setEvidenceTypeFilter] = useState("all");
+    const [searchTypeTerm, setSearchTypeTerm] = useState("");
+
+    const [isEvidenceLoading, setEvidenceLoading] = useState(false);
+
+    const [ deletingEvidenceId, setDeletingEvidenceId] = useState<number | null>(
+      null
+    );
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -171,6 +194,37 @@ const ModelInventory: React.FC = () => {
 
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
+
+   // Function to fetch evidence data
+   const fetchEvidenceData = async (showLoading = true) => {
+    if (showLoading) {
+      setEvidenceLoading(true);
+    }
+    try {
+      const response = await getAllEntities({ routeUrl: "/evidenceHub" });
+      if (response?.data) {
+        setEvidenceHubData(response.data);
+        if (showLoading) {
+          setTableKey((prev) => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching evidence data:", error);
+      logEngine({
+        type: "error",
+        message: `Failed to fetch evidence data: ${error}`,
+      });
+      setAlert({
+        variant: "error",
+        body: "Failed to load evidence data. Please try again later.",
+      });
+      setShowAlert(true);
+    } finally {
+      if (showLoading) {
+        setEvidenceLoading(false);
+      }
+    }
+  };
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -287,6 +341,7 @@ const ModelInventory: React.FC = () => {
     fetchModelRisksData();
     fetchMLFlowData();
     fetchUsersData();
+    fetchEvidenceData();
   }, []);
 
   // Refetch model risks when filter changes
@@ -365,6 +420,13 @@ const ModelInventory: React.FC = () => {
     setIsNewModelInventoryModalOpen(true);
   };
 
+  const handleNewUploadEvidenceClick = () => {
+    setIsEvidenceHubModalOpen(true);
+    setSelectedEvidenceHub(null);
+  };
+
+
+
   const handleEditModelInventory = async (id: string) => {
     try {
       // Fetch the model inventory data first
@@ -381,6 +443,25 @@ const ModelInventory: React.FC = () => {
       setAlert({
         variant: "error",
         body: "Failed to load model inventory details. Please try again.",
+      });
+    }
+  };
+
+  const handleEditEvidence = async (id: number) => {
+    try {
+      // Fetch the model inventory data first
+      const response = await getEntityById({
+        routeUrl: `/evidenceHub/${id}`,
+      });
+      if (response?.data) {
+        setSelectedEvidenceHub(response.data || null); // if row provided = edit, else new
+       setIsEvidenceHubModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching evidence model details:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to load evidence model details. Please try again.",
       });
     }
   };
@@ -412,6 +493,11 @@ const ModelInventory: React.FC = () => {
   const handleCloseModal = () => {
     setIsNewModelInventoryModalOpen(false);
     setSelectedModelInventory(null);
+  };
+
+  const handleClosEvidenceModal = () => {
+    setSelectedEvidenceHub(null);
+    setIsEvidenceHubModalOpen(false);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -493,6 +579,41 @@ const ModelInventory: React.FC = () => {
     });
   };
 
+  const handleEvidenceUploadModalError = (error: any) => {
+    console.error("Evidence operation error:", error);
+  
+    let errorMessage = selectedEvidenceHub
+      ? "Failed to update evidence. Please try again."
+      : "Failed to add new evidence. Please try again.";
+  
+    let errorData = null;
+  
+    if (error?.response?.data) {
+      errorData = error.response.data;
+    } else if (error?.response) {
+      errorData = error.response;
+    } else if (error?.status && error?.errors) {
+      errorData = error;
+    }
+  
+    if (errorData) {
+      if (errorData.status === "error" && Array.isArray(errorData.errors)) {
+        const validationMessages = errorData.errors
+          .map((err: any) => err.message || "Validation error")
+          .join(", ");
+        errorMessage = validationMessages;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+  
+    setAlert({
+      variant: "error",
+      body: errorMessage,
+    });
+  };
+  
+
   const handleDeleteModelInventory = async (
     id: string,
     deleteRisks: boolean = false
@@ -554,6 +675,42 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  const handleDeleteEvidence = async (
+    id: number
+  ) => {
+    try {
+      setDeletingEvidenceId(id);
+
+      // Optimistically remove the item from the local state
+      setEvidenceHubData((prevData) =>
+        prevData.filter((item) => item.id !== id)
+      );
+
+      // Perform the actual delete operation
+      await deleteEntityById({ routeUrl: `/evidenceHub/${id}` });
+
+      // Fetch fresh data to ensure consistency
+      await fetchEvidenceData(false);
+
+      setAlert({
+        variant: "success",
+        body: "Evidence deleted successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting evidence:", error);
+
+      // If delete failed, revert the optimistic update
+      await fetchEvidenceData(false);
+
+      setAlert({
+        variant: "error",
+        body: "Failed to delete evidence. Please try again.",
+      });
+    } finally {
+      setDeletingEvidenceId(null);
+    }
+  };
+
   const handleCheckModelHasRisks = async (id: string): Promise<boolean> => {
     try {
       // First check local data for immediate response
@@ -594,6 +751,27 @@ const ModelInventory: React.FC = () => {
     { _id: ModelInventoryStatus.BLOCKED, name: "Blocked" },
   ];
 
+  const evidenceTypeOptions = [
+    { _id: "all", name: "All evidence type" },
+    { _id: EvidenceType.MODEL_CARD, name: "Model Card" },
+    { _id: EvidenceType.RISK_ASSESSMENT_REPORT, name: "Risk Assessment Report" },
+    { _id: EvidenceType.BIAS_AND_FAIRNESS_REPORT, name: "Bias and Fairness Report" },
+    { _id: EvidenceType.SECURITY_ASSESSMENT_REPORT, name: "Security Assessment Report" },
+    { _id: EvidenceType.DATA_PROTECTION_IMPACT_ASSESSMENT, name: "Data Protection Impact Assessment" },
+    { _id: EvidenceType.ROBUSTNESS_AND_STRESS_TEST_REPORT, name: "Robustness and Stress Test Report" },
+    { _id: EvidenceType.EVALUATION_METRICS_SUMMARY, name: "Evaluation Metrics Summary" },
+    { _id: EvidenceType.HUMAN_OVERSIGHT_PLAN, name: "Human Oversight Plan" },
+    { _id: EvidenceType.POST_MARKET_MONITORING_PLAN, name: "Post-Market Monitoring Plan" },
+    { _id: EvidenceType.VERSION_CHANGE_LOG, name: "Version Change Log" },
+    { _id: EvidenceType.THIRD_PARTY_AUDIT_REPORT, name: "Third-Party Audit Report" },
+    { _id: EvidenceType.CONFORMITY_ASSESSMENT_REPORT, name: "Conformity Assessment Report" },
+    { _id: EvidenceType.TECHNICAL_FILE, name: "Technical File / CE Documentation" },
+    { _id: EvidenceType.VENDOR_MODEL_DOCUMENTATION, name: "Vendor Model Documentation" },
+    { _id: EvidenceType.INTERNAL_APPROVAL_RECORD, name: "Internal Approval Record" },
+  ];
+  
+
+
   // Filter model risks based on category and level
   const filteredModelRisks = useMemo(() => {
     let filtered = modelRisksData;
@@ -613,6 +791,28 @@ const ModelInventory: React.FC = () => {
     return filtered;
   }, [modelRisksData, modelRiskCategoryFilter, modelRiskLevelFilter]);
 
+  const filteredEvidenceHub = useMemo(() => {
+    let filtered = evidenceHubData;
+  
+    if (evidenceTypeFilter && evidenceTypeFilter !== "all") {
+      filtered = filtered.filter(
+        (e) => e.evidence_type === evidenceTypeFilter
+      );
+    }
+  
+    if (searchTypeTerm?.trim()) {
+      const lower = searchTypeTerm.toLowerCase();
+      filtered = filtered.filter((e) =>
+        e.evidence_name?.toLowerCase().includes(lower)
+      );
+    }
+  
+    return filtered;
+  }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
+  
+  
+  
+
   // Model Risk handlers
   const handleNewModelRiskClick = () => {
     setIsNewModelRiskModalOpen(true);
@@ -628,6 +828,60 @@ const ModelInventory: React.FC = () => {
     setSelectedModelRisk(null);
     setSelectedModelRiskId(null);
   };
+
+  const handleEvidenceUploadModalSuccess = async (formData: EvidenceHubModel) => {
+    try {
+      if (selectedEvidenceHub) {
+        // Update existing Evidence
+        await updateEntityById({
+          routeUrl: `/evidenceHub/${selectedEvidenceHub.id}`,
+          body: formData,
+        });
+  
+        setEvidenceHubData((prev) =>
+          prev.map((item) =>
+            item.id === selectedEvidenceHub.id ? formData : item
+          )
+        );
+  
+        setAlert({
+          variant: "success",
+          body: "Evidence updated successfully!",
+        });
+      } else {
+
+        // Create new Evidence
+        const response = await createEvidenceHub("/evidenceHub", formData);
+        console.log("response", response)
+
+        if (response?.data) {
+          setEvidenceHubData((prev) => [...prev, response.data]);
+        } else {
+          setEvidenceHubData((prev) => [...prev, formData]);
+        }
+
+        await fetchEvidenceData();
+  
+        setAlert({
+          variant: "success",
+          body: "New evidence added successfully!",
+        });
+      }
+  
+      // Close the modal and clear selected evidence
+      setSelectedEvidenceHub(null);
+      setIsEvidenceHubModalOpen(false);
+    } catch (error) {
+  
+      setAlert({
+        variant: "error",
+        body: selectedEvidenceHub
+          ? "Failed to update evidence. Please try again."
+          : "Failed to add new evidence. Please try again.",
+      });
+    }
+  };
+  
 
   const handleModelRiskSuccess = async (formData: IModelRiskFormData) => {
     try {
@@ -702,6 +956,10 @@ const ModelInventory: React.FC = () => {
     setModelRiskCategoryFilter(event.target.value);
   };
 
+  const handleEvidenceTypeFilterChange = (event: any) => {
+    setEvidenceTypeFilter(event.target.value);
+  };
+
   const handleModelRiskLevelFilterChange = (event: any) => {
     setModelRiskLevelFilter(event.target.value);
   };
@@ -718,372 +976,508 @@ const ModelInventory: React.FC = () => {
       navigate("/model-inventory/model-risks");
     } else if (newValue === "mlflow") {
       navigate("/model-inventory/mlflow");
+    } else if (newValue === "evidence-hub") {
+      navigate("/model-inventory/evidence-hub");
     }
   };
 
   return (
-    <Stack className="vwhome" sx={mainStackStyle}>
-      {/* <PageBreadcrumbs /> */}
+      <Stack className="vwhome" sx={mainStackStyle}>
+          {/* <PageBreadcrumbs /> */}
 
-      <PageBreadcrumbs />
+          <PageBreadcrumbs />
 
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Model inventory & risk management"
-        description="Track and assess AI models and their associated risks throughout their lifecycle"
-        whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
-        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
-        quickActions={[
-          {
-            label: "Add New Model",
-            description:
-              "Register a new AI model with comprehensive metadata and risk assessment",
-            primary: true,
-          },
-          {
-            label: "Assess Model Risk",
-            description:
-              "Evaluate potential risks for existing models using our assessment framework",
-          },
-        ]}
-        useCases={[
-          "*Machine learning models* in production environments requiring *monitoring and governance*",
-          "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
-        ]}
-        keyFeatures={[
-          "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
-          "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
-          "*Advanced filtering* by status, risk category, risk level, and search functionality",
-        ]}
-        tips={[
-          "Use *status filters* to focus on models that need approval or attention",
-          "Categorize *model risks* to better understand different types of potential issues",
-          "Set *target dates* for risk mitigation to track resolution progress",
-        ]}
-      />
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
-            <Box mb={2}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-
-      <Stack sx={mainStackStyle}>
-        <PageHeader
-          title="Model Inventory"
-          description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
-          rightContent={
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          }
-        />
-
-        {/* Summary Cards */}
-        {activeTab === "models" && (
-          <div data-joyride-id="model-summary-cards">
-            <ModelInventorySummary summary={summary} />
-          </div>
-        )}
-        {activeTab === "model-risks" && (
-          <ModelRiskSummary modelRisks={modelRisksData} />
-        )}
-
-        {/* Tab Bar */}
-        <TabContext value={activeTab}>
-          <Box sx={{ marginBottom: 3 }}>
-            <TabBar
-              tabs={[
-                {
-                  label: "Models",
-                  value: "models",
-                  icon: "Box",
-                  count: modelInventoryData.length,
-                  isLoading: isLoading,
-                },
-                {
-                  label: "Model risks",
-                  value: "model-risks",
-                  icon: "AlertTriangle",
-                  count: modelRisksData.length,
-                  isLoading: isModelRisksLoading,
-                },
-                {
-                  label: "MLFlow data",
-                  value: "mlflow",
-                  icon: "Database",
-                  count: mlflowData.length,
-                  isLoading: isMlflowLoading,
-                },
+          <HelperDrawer
+              open={isHelperDrawerOpen}
+              onClose={() => setIsHelperDrawerOpen(false)}
+              title="Model inventory & risk management"
+              description="Track and assess AI models and their associated risks throughout their lifecycle"
+              whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
+              whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
+              quickActions={[
+                  {
+                      label: "Add New Model",
+                      description:
+                          "Register a new AI model with comprehensive metadata and risk assessment",
+                      primary: true,
+                  },
+                  {
+                      label: "Assess Model Risk",
+                      description:
+                          "Evaluate potential risks for existing models using our assessment framework",
+                  },
               ]}
-              activeTab={activeTab}
-              onChange={handleTabChange}
-              dataJoyrideId="model-tabs"
-            />
-          </Box>
-        </TabContext>
+              useCases={[
+                  "*Machine learning models* in production environments requiring *monitoring and governance*",
+                  "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
+              ]}
+              keyFeatures={[
+                  "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
+                  "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
+                  "*Advanced filtering* by status, risk category, risk level, and search functionality",
+              ]}
+              tips={[
+                  "Use *status filters* to focus on models that need approval or attention",
+                  "Categorize *model risks* to better understand different types of potential issues",
+                  "Set *target dates* for risk mitigation to track resolution progress",
+              ]}
+          />
+          {alert && (
+              <Suspense fallback={<div>Loading...</div>}>
+                  <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
+                      <Box mb={2}>
+                          <Alert
+                              variant={alert.variant}
+                              title={alert.title}
+                              body={alert.body}
+                              isToast={true}
+                              onClick={() => {
+                                  setShowAlert(false);
+                                  setTimeout(() => setAlert(null), 300);
+                              }}
+                          />
+                      </Box>
+                  </Fade>
+              </Suspense>
+          )}
 
-        {activeTab === "models" && (
-          <>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={filterButtonRowStyle}
-            >
-              {/* Left side: Status dropdown + Search */}
-              <Stack direction="row" spacing={2} alignItems="center">
-                <div data-joyride-id="model-status-filter">
-                  <SelectComponent
-                    id="status-filter"
-                    value={statusFilter}
-                    items={statusFilterOptions}
-                    onChange={handleStatusFilterChange}
-                    sx={statusFilterSelectStyle}
-                    customRenderValue={(value, selectedItem) => {
-                      if (value === "all") {
-                        return selectedItem.name;
-                      }
-                      return `Status: ${selectedItem.name.toLowerCase()}`;
-                    }}
-                  />
-                </div>
+          <Stack sx={mainStackStyle}>
+              <PageHeader
+                  title="Model Inventory"
+                  description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+                  rightContent={
+                      <HelperIcon
+                          onClick={() =>
+                              setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                          }
+                          size="small"
+                      />
+                  }
+              />
 
-                {/* Search */}
-                <Box sx={{ width: 300 }} data-joyride-id="model-search">
-                  <SearchBox
-                    placeholder="Search models..."
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                    inputProps={{ "aria-label": "Search models" }}
-                  />
-                </Box>
-              </Stack>
+              {/* Summary Cards */}
+              {activeTab === "models" && (
+                  <div data-joyride-id="model-summary-cards">
+                      <ModelInventorySummary summary={summary} />
+                  </div>
+              )}
+              {activeTab === "model-risks" && (
+                  <ModelRiskSummary modelRisks={modelRisksData} />
+              )}
 
-              {/* Right side: Analytics & Add Model buttons */}
-              <Stack direction="row" spacing={2}>
-                <CustomizableButton
-                  variant="contained"
-                  onClick={() => setIsAnalyticsDrawerOpen(true)}
-                  sx={addNewModelButtonStyle}
-                  icon={<TrendingUp size={16} />}
-                  text="Analytics"
-                />
-                <div data-joyride-id="add-model-button">
-                  <CustomizableButton
-                    variant="contained"
-                    sx={addNewModelButtonStyle}
-                    text="Add new model"
-                    icon={<AddCircleOutlineIcon size={16} />}
-                    onClick={handleNewModelInventoryClick}
-                    isDisabled={isCreatingDisabled}
-                  />
-                </div>
-              </Stack>
-            </Stack>
+              {/* Tab Bar */}
+              <TabContext value={activeTab}>
+                  <Box sx={{ marginBottom: 3 }}>
+                      <TabBar
+                          tabs={[
+                              {
+                                  label: "Models",
+                                  value: "models",
+                                  icon: "Box",
+                                  count: modelInventoryData.length,
+                                  isLoading: isLoading,
+                              },
+                              {
+                                  label: "Model risks",
+                                  value: "model-risks",
+                                  icon: "AlertTriangle",
+                                  count: modelRisksData.length,
+                                  isLoading: isModelRisksLoading,
+                              },
+                              {
+                                  label: "MLFlow data",
+                                  value: "mlflow",
+                                  icon: "Database",
+                                  count: mlflowData.length,
+                                  isLoading: isMlflowLoading,
+                              },
+                              {
+                                  label: "Evidence hub",
+                                  value: "evidence-hub",
+                                  icon: "Database",
+                                  count: evidenceHubData.length,
+                                  isLoading: isEvidenceLoading,
+                              },
+                          ]}
+                          activeTab={activeTab}
+                          onChange={handleTabChange}
+                          dataJoyrideId="model-tabs"
+                      />
+                  </Box>
+              </TabContext>
 
-            <ModelInventoryTable
-              key={tableKey}
-              data={filteredData}
-              isLoading={isLoading}
-              onEdit={handleEditModelInventory}
-              onDelete={handleDeleteModelInventory}
-              onCheckModelHasRisks={handleCheckModelHasRisks}
-              deletingId={deletingId}
-            />
-          </>
-        )}
+              {activeTab === "models" && (
+                  <>
+                      <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={filterButtonRowStyle}
+                      >
+                          {/* Left side: Status dropdown + Search */}
+                          <Stack
+                              direction="row"
+                              spacing={2}
+                              alignItems="center"
+                          >
+                              <div data-joyride-id="model-status-filter">
+                                  <SelectComponent
+                                      id="status-filter"
+                                      value={statusFilter}
+                                      items={statusFilterOptions}
+                                      onChange={handleStatusFilterChange}
+                                      sx={statusFilterSelectStyle}
+                                      customRenderValue={(
+                                          value,
+                                          selectedItem
+                                      ) => {
+                                          if (value === "all") {
+                                              return selectedItem.name;
+                                          }
+                                          return `Status: ${selectedItem.name.toLowerCase()}`;
+                                      }}
+                                  />
+                              </div>
 
-        {activeTab === "model-risks" && (
-          <>
-            {/* Model Risks Tab Content */}
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={filterButtonRowStyle}
-            >
-              <Stack direction="row" gap={2}>
-                <div data-joyride-id="risk-category-filter">
-                  <SelectComponent
-                    id="risk-category-filter"
-                    value={modelRiskCategoryFilter}
-                    items={[
-                      { _id: "all", name: "All categories" },
-                      { _id: "Performance", name: "Performance" },
-                      { _id: "Bias & Fairness", name: "Bias & Fairness" },
-                      { _id: "Security", name: "Security" },
-                      { _id: "Data Quality", name: "Data Quality" },
-                      { _id: "Compliance", name: "Compliance" },
-                    ]}
-                    onChange={handleModelRiskCategoryFilterChange}
-                    sx={statusFilterSelectStyle}
-                    customRenderValue={(value, selectedItem) => {
-                      if (value === "all") {
-                        return selectedItem.name;
-                      }
-                      return `Category: ${selectedItem.name.toLowerCase()}`;
-                    }}
-                  />
-                </div>
-                <SelectComponent
-                  id="risk-level-filter"
-                  value={modelRiskLevelFilter}
-                  items={[
-                    { _id: "all", name: "All risk levels" },
-                    { _id: "Low", name: "Low" },
-                    { _id: "Medium", name: "Medium" },
-                    { _id: "High", name: "High" },
-                    { _id: "Critical", name: "Critical" },
-                  ]}
-                  onChange={handleModelRiskLevelFilterChange}
-                  sx={statusFilterSelectStyle}
-                  customRenderValue={(value, selectedItem) => {
-                    if (value === "all") {
-                      return selectedItem.name;
-                    }
-                    return `Risk level: ${selectedItem.name.toLowerCase()}`;
-                  }}
-                />
-                <SelectComponent
-                  id="risk-status-filter"
-                  value={modelRiskStatusFilter}
-                  items={[
-                    { _id: "active", name: "Active only" },
-                    { _id: "all", name: "Active + deleted" },
-                    { _id: "deleted", name: "Deleted only" },
-                  ]}
-                  onChange={handleModelRiskStatusFilterChange}
-                  sx={statusFilterSelectStyle}
-                  customRenderValue={(value, selectedItem) => {
-                    if (value === "active") {
-                      return selectedItem.name;
-                    }
-                    return `Status: ${selectedItem.name.toLowerCase()}`;
-                  }}
-                />
-              </Stack>
-              <div data-joyride-id="add-model-risk-button">
-                <CustomizableButton
-                  variant="contained"
-                  sx={addNewModelButtonStyle}
-                  text="Add model risk"
-                  icon={<AddCircleOutlineIcon size={16} />}
-                  onClick={handleNewModelRiskClick}
-                  isDisabled={isCreatingDisabled}
-                />
-              </div>
-            </Stack>
+                              {/* Search */}
+                              <Box
+                                  sx={{ width: 300 }}
+                                  data-joyride-id="model-search"
+                              >
+                                  <SearchBox
+                                      placeholder="Search models..."
+                                      value={searchTerm}
+                                      onChange={setSearchTerm}
+                                      inputProps={{
+                                          "aria-label": "Search models",
+                                      }}
+                                  />
+                              </Box>
+                          </Stack>
 
-            <ModelRisksTable
-              data={filteredModelRisks}
-              isLoading={isModelRisksLoading}
-              onEdit={handleEditModelRisk}
-              onDelete={handleDeleteModelRisk}
-              deletingId={deletingModelRiskId}
-              users={users}
-              models={modelInventoryData}
-            />
-          </>
-        )}
+                          {/* Right side: Analytics & Add Model buttons */}
+                          <Stack direction="row" spacing={2}>
+                              <CustomizableButton
+                                  variant="contained"
+                                  onClick={() => setIsAnalyticsDrawerOpen(true)}
+                                  sx={addNewModelButtonStyle}
+                                  icon={<TrendingUp size={16} />}
+                                  text="Analytics"
+                              />
+                              <div data-joyride-id="add-model-button">
+                                  <CustomizableButton
+                                      variant="contained"
+                                      sx={addNewModelButtonStyle}
+                                      text="Add new model"
+                                      icon={<AddCircleOutlineIcon size={16} />}
+                                      onClick={handleNewModelInventoryClick}
+                                      isDisabled={isCreatingDisabled}
+                                  />
+                              </div>
+                          </Stack>
+                      </Stack>
 
-        {activeTab === "mlflow" && (
-          <MLFlowDataTable />
-        )}
+                      <ModelInventoryTable
+                          key={tableKey}
+                          data={filteredData}
+                          isLoading={isLoading}
+                          onEdit={handleEditModelInventory}
+                          onDelete={handleDeleteModelInventory}
+                          onCheckModelHasRisks={handleCheckModelHasRisks}
+                          deletingId={deletingId}
+                      />
+                  </>
+              )}
+
+              {activeTab === "model-risks" && (
+                  <>
+                      {/* Model Risks Tab Content */}
+                      <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={filterButtonRowStyle}
+                      >
+                          <Stack direction="row" gap={2}>
+                              <div data-joyride-id="risk-category-filter">
+                                  <SelectComponent
+                                      id="risk-category-filter"
+                                      value={modelRiskCategoryFilter}
+                                      items={[
+                                          {
+                                              _id: "all",
+                                              name: "All categories",
+                                          },
+                                          {
+                                              _id: "Performance",
+                                              name: "Performance",
+                                          },
+                                          {
+                                              _id: "Bias & Fairness",
+                                              name: "Bias & Fairness",
+                                          },
+                                          { _id: "Security", name: "Security" },
+                                          {
+                                              _id: "Data Quality",
+                                              name: "Data Quality",
+                                          },
+                                          {
+                                              _id: "Compliance",
+                                              name: "Compliance",
+                                          },
+                                      ]}
+                                      onChange={
+                                          handleModelRiskCategoryFilterChange
+                                      }
+                                      sx={statusFilterSelectStyle}
+                                      customRenderValue={(
+                                          value,
+                                          selectedItem
+                                      ) => {
+                                          if (value === "all") {
+                                              return selectedItem.name;
+                                          }
+                                          return `Category: ${selectedItem.name.toLowerCase()}`;
+                                      }}
+                                  />
+                              </div>
+                              <SelectComponent
+                                  id="risk-level-filter"
+                                  value={modelRiskLevelFilter}
+                                  items={[
+                                      { _id: "all", name: "All risk levels" },
+                                      { _id: "Low", name: "Low" },
+                                      { _id: "Medium", name: "Medium" },
+                                      { _id: "High", name: "High" },
+                                      { _id: "Critical", name: "Critical" },
+                                  ]}
+                                  onChange={handleModelRiskLevelFilterChange}
+                                  sx={statusFilterSelectStyle}
+                                  customRenderValue={(value, selectedItem) => {
+                                      if (value === "all") {
+                                          return selectedItem.name;
+                                      }
+                                      return `Risk level: ${selectedItem.name.toLowerCase()}`;
+                                  }}
+                              />
+                              <SelectComponent
+                                  id="risk-status-filter"
+                                  value={modelRiskStatusFilter}
+                                  items={[
+                                      { _id: "active", name: "Active only" },
+                                      { _id: "all", name: "Active + deleted" },
+                                      { _id: "deleted", name: "Deleted only" },
+                                  ]}
+                                  onChange={handleModelRiskStatusFilterChange}
+                                  sx={statusFilterSelectStyle}
+                                  customRenderValue={(value, selectedItem) => {
+                                      if (value === "active") {
+                                          return selectedItem.name;
+                                      }
+                                      return `Status: ${selectedItem.name.toLowerCase()}`;
+                                  }}
+                              />
+                          </Stack>
+                          <div data-joyride-id="add-model-risk-button">
+                              <CustomizableButton
+                                  variant="contained"
+                                  sx={addNewModelButtonStyle}
+                                  text="Add model risk"
+                                  icon={<AddCircleOutlineIcon size={16} />}
+                                  onClick={handleNewModelRiskClick}
+                                  isDisabled={isCreatingDisabled}
+                              />
+                          </div>
+                      </Stack>
+
+                      <ModelRisksTable
+                          data={filteredModelRisks}
+                          isLoading={isModelRisksLoading}
+                          onEdit={handleEditModelRisk}
+                          onDelete={handleDeleteModelRisk}
+                          deletingId={deletingModelRiskId}
+                          users={users}
+                          models={modelInventoryData}
+                      />
+                  </>
+              )}
+
+              {activeTab === "mlflow" && <MLFlowDataTable />}
+
+              {activeTab === "evidence-hub" && (
+                  <>
+                      <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={filterButtonRowStyle}
+                      >
+                          {/* Left side: Search + evidence Type Filter */}
+                          <Stack
+                              direction="row"
+                              spacing={6}
+                              alignItems="center"
+                          >
+                              {/* Search */}
+                              <Box
+                                  sx={{ width: 300 }}
+                                  data-joyride-id="evidence-search"
+                              >
+                                  <SearchBox
+                                      placeholder="Search evidence..."
+                                      value={searchTypeTerm}
+                                      onChange={setSearchTypeTerm}
+                                      inputProps={{
+                                          "aria-label": "Search evidence",
+                                      }}
+                                  />
+                              </Box>
+                              <div data-joyride-id="evidence-type-filter">
+                                  <SelectComponent
+                                      id="type-filter"
+                                      value={evidenceTypeFilter}
+                                      items={evidenceTypeOptions}
+                                      onChange={handleEvidenceTypeFilterChange}
+                                      sx={evidenceTypeFilterSelectStyle}
+                                      customRenderValue={(value, selectedItem) => {
+                                        if (!selectedItem) return "Select Evidence Type";
+                                        return value === "all"
+                                          ? selectedItem.name
+                                          : `evidence: ${selectedItem.name.toLowerCase()}`;
+                                      }}
+                                      
+                                    
+                                  />
+                              </div>
+                          </Stack>
+
+                          {/* Right side: Add Upload Evidence */}
+                          <Stack direction="row" spacing={2}>
+                              <div data-joyride-id="add-model-button">
+                                  <CustomizableButton
+                                      variant="contained"
+                                      sx={addNewModelButtonStyle}
+                                      text="Upload evidence"
+                                      icon={<AddCircleOutlineIcon size={16} />}
+                                      onClick={handleNewUploadEvidenceClick}
+                                      isDisabled={isCreatingDisabled}
+                                  />
+                              </div>
+                          </Stack>
+                      </Stack>
+
+                      <EvidenceHubTable
+                        key={tableKey}
+                        isLoading={isLoading}
+                        data={filteredEvidenceHub}
+                        onEdit={handleEditEvidence}
+                        onDelete={handleDeleteEvidence}
+                        modelInventoryData={modelInventoryData}
+                        deletingId={deletingEvidenceId}
+                      />
+                  </>
+              )}
+          </Stack>
+
+          {/* Analytics Drawer */}
+          <AnalyticsDrawer
+              open={isAnalyticsDrawerOpen}
+              onClose={() => setIsAnalyticsDrawerOpen(false)}
+              title="Analytics & Trends"
+              description="Track your model inventory history over time"
+              entityName="Model"
+              availableParameters={[
+                  { value: "status", label: "Status" },
+                  // Add more parameters here as needed
+              ]}
+              defaultParameter="status"
+          />
+
+          <NewModelInventory
+              isOpen={isNewModelInventoryModalOpen}
+              setIsOpen={handleCloseModal}
+              onSuccess={handleModelInventorySuccess}
+              onError={handleModelInventoryError}
+              selectedModelInventoryId={selectedModelInventory?.id}
+              initialData={
+                  selectedModelInventory
+                      ? {
+                            provider_model:
+                                selectedModelInventory.provider_model || "",
+                            provider: selectedModelInventory.provider || "",
+                            model: selectedModelInventory.model || "",
+                            version: selectedModelInventory.version || "",
+                            approver: selectedModelInventory.approver,
+                            capabilities: selectedModelInventory.capabilities,
+                            security_assessment:
+                                selectedModelInventory.security_assessment,
+                            status: selectedModelInventory.status,
+                            status_date: selectedModelInventory.status_date
+                                ? new Date(selectedModelInventory.status_date)
+                                      .toISOString()
+                                      .split("T")[0]
+                                : new Date().toISOString().split("T")[0],
+                            reference_link:
+                                selectedModelInventory.reference_link || "",
+                            biases: selectedModelInventory.biases || "",
+                            limitations:
+                                selectedModelInventory.limitations || "",
+                            hosting_provider:
+                                selectedModelInventory.hosting_provider || "",
+                            projects: selectedModelInventory.projects || [],
+                            frameworks: selectedModelInventory.frameworks || [],
+                            security_assessment_data:
+                                selectedModelInventory.security_assessment_data ||
+                                [],
+                        }
+                      : undefined
+              }
+              isEdit={!!selectedModelInventory}
+          />
+
+          <NewModelRisk
+              isOpen={isNewModelRiskModalOpen}
+              setIsOpen={handleCloseModelRiskModal}
+              onSuccess={handleModelRiskSuccess}
+              initialData={
+                  selectedModelRisk
+                      ? {
+                            risk_name: selectedModelRisk.risk_name || "",
+                            risk_category: selectedModelRisk.risk_category,
+                            risk_level: selectedModelRisk.risk_level,
+                            status: selectedModelRisk.status,
+                            owner: selectedModelRisk.owner,
+                            target_date: selectedModelRisk.target_date
+                                ? new Date(selectedModelRisk.target_date)
+                                      .toISOString()
+                                      .split("T")[0]
+                                : new Date().toISOString().split("T")[0],
+                            description: selectedModelRisk.description || "",
+                            mitigation_plan:
+                                selectedModelRisk.mitigation_plan || "",
+                            impact: selectedModelRisk.impact || "",
+                            model_id: selectedModelRisk.model_id,
+                        }
+                      : undefined
+              }
+              isEdit={!!selectedModelRisk}
+          />
+
+          <NewEvidenceHub
+              isOpen={isEvidenceHubModalOpen}
+              setIsOpen={handleClosEvidenceModal}
+              onSuccess={handleEvidenceUploadModalSuccess}
+              onError={handleEvidenceUploadModalError}
+              isEdit={!!selectedEvidenceHub}
+              initialData={selectedEvidenceHub || undefined}
+          />
+
+          <PageTour
+              steps={ModelInventorySteps}
+              run={true}
+              tourKey="model-inventory-tour"
+          />
       </Stack>
-
-      {/* Analytics Drawer */}
-      <AnalyticsDrawer
-        open={isAnalyticsDrawerOpen}
-        onClose={() => setIsAnalyticsDrawerOpen(false)}
-        title="Analytics & Trends"
-        description="Track your model inventory history over time"
-        entityName="Model"
-        availableParameters={[
-          { value: "status", label: "Status" },
-          // Add more parameters here as needed
-        ]}
-        defaultParameter="status"
-      />
-
-      <NewModelInventory
-        isOpen={isNewModelInventoryModalOpen}
-        setIsOpen={handleCloseModal}
-        onSuccess={handleModelInventorySuccess}
-        onError={handleModelInventoryError}
-        selectedModelInventoryId={selectedModelInventory?.id}
-        initialData={
-          selectedModelInventory
-            ? {
-                provider_model: selectedModelInventory.provider_model || "",
-                provider: selectedModelInventory.provider || "",
-                model: selectedModelInventory.model || "",
-                version: selectedModelInventory.version || "",
-                approver: selectedModelInventory.approver,
-                capabilities: selectedModelInventory.capabilities,
-                security_assessment: selectedModelInventory.security_assessment,
-                status: selectedModelInventory.status,
-                status_date: selectedModelInventory.status_date
-                  ? new Date(selectedModelInventory.status_date)
-                      .toISOString()
-                      .split("T")[0]
-                  : new Date().toISOString().split("T")[0],
-                reference_link: selectedModelInventory.reference_link || "",
-                biases: selectedModelInventory.biases || "",
-                limitations: selectedModelInventory.limitations || "",
-                hosting_provider: selectedModelInventory.hosting_provider || "",
-                projects: selectedModelInventory.projects || [],
-                frameworks: selectedModelInventory.frameworks || [],
-                security_assessment_data: selectedModelInventory.security_assessment_data || [],
-              }
-            : undefined
-        }
-        isEdit={!!selectedModelInventory}
-      />
-
-      <NewModelRisk
-        isOpen={isNewModelRiskModalOpen}
-        setIsOpen={handleCloseModelRiskModal}
-        onSuccess={handleModelRiskSuccess}
-        initialData={
-          selectedModelRisk
-            ? {
-                risk_name: selectedModelRisk.risk_name || "",
-                risk_category: selectedModelRisk.risk_category,
-                risk_level: selectedModelRisk.risk_level,
-                status: selectedModelRisk.status,
-                owner: selectedModelRisk.owner,
-                target_date: selectedModelRisk.target_date
-                  ? new Date(selectedModelRisk.target_date)
-                      .toISOString()
-                      .split("T")[0]
-                  : new Date().toISOString().split("T")[0],
-                description: selectedModelRisk.description || "",
-                mitigation_plan: selectedModelRisk.mitigation_plan || "",
-                impact: selectedModelRisk.impact || "",
-                model_id: selectedModelRisk.model_id,
-              }
-            : undefined
-        }
-        isEdit={!!selectedModelRisk}
-      />
-
-      <PageTour steps={ModelInventorySteps} run={true} tourKey="model-inventory-tour" />
-    </Stack>
   );
 };
 

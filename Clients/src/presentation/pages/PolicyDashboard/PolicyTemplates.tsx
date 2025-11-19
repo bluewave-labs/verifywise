@@ -11,7 +11,6 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
 } from "@mui/material";
 import EmptyState from "../../components/EmptyState";

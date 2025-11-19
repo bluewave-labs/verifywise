@@ -1,14 +1,16 @@
 import { Box, Divider, Link, Stack, Typography, useTheme } from "@mui/material";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
 import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
 import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
 import {
     addNewStep,
     stepNumberStyle,
 } from "./style";
+import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 
 
 const approverRoles = [
@@ -16,26 +18,70 @@ const approverRoles = [
     { _id: 2, name: "Product owner" },
 ];
 
+const entities = [
+    { _id: 1, name: "Use case" }
+];
+
 const conditions = [
-    { _id: 1, name: "Any" },
-    { _id: 2, name: "One can approve" },
+    { _id: 1, name: "All" },
+    { _id: 2, name: "Any" },
 ];
 
 interface ICreateApprovalWorkflowProps {
     isOpen: boolean;
     setIsOpen: () => void;
+    initialData?: {
+        workflow_title: string;
+        entity_name: string;
+        steps: ApprovalWorkflowStepModel[];
+    }
+    isEdit?: boolean;
+    mode?: "create" | "edit";
 }
 
 const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     isOpen,
     setIsOpen,
+    initialData,
+    isEdit = false,
+    mode,
 }) => {
 
     const theme = useTheme();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [stepsCount, setStepsCount] = useState(1);
+    const [workflowTitle, setWorkflowTitle] = useState("");
+    const [entityName, setEntityName] = useState("");
+    const [workflowSteps, setWorkflowSteps] = useState<ApprovalWorkflowStepModel[]>([]);
+
+    useEffect(() => {
+        if (initialData && isEdit) {
+            setWorkflowTitle(initialData.workflow_title || "");
+            setEntityName(initialData.entity_name || "");
+            if (initialData.steps && initialData.steps.length > 0) {
+                setWorkflowSteps(initialData.steps.map(step =>
+                    new ApprovalWorkflowStepModel(step)
+                ));
+                setStepsCount(initialData.steps.length)
+            } else {
+                setWorkflowSteps([new ApprovalWorkflowStepModel()]);
+                setStepsCount(1)
+            }
+        } else {
+            setWorkflowTitle("");
+            setEntityName("");
+            setWorkflowSteps([new ApprovalWorkflowStepModel()]);
+            setStepsCount(1)
+        }
+    }, [initialData, isEdit]);
 
     const handleNewStepClick = () => setStepsCount(stepsCount + 1);
+    const removeStep = (step: number) => {
+        if (stepsCount > 1) {
+            setStepsCount(stepsCount - 1);
+        }
+    }
 
     return (
         <StandardModal
@@ -45,7 +91,10 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
             }}
             title="Add new workflow"
             description="Define a structured approval workflow with multiple steps, approvers, and conditions to ensure proper oversight and compliance."
-            maxWidth="680px">
+            maxWidth="680px"
+            onSubmit={() => { }}
+            submitButtonText="Create workflow"
+            isSubmitting={isSubmitting}>
             <Stack spacing={8}>
                 <Stack direction="row" spacing={6}>
                     <Field
@@ -55,9 +104,11 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         isRequired
                         sx={fieldStyle}
                         placeholder="Enter workflow title"
+                        value={workflowTitle}
+                        onChange={(e) => setWorkflowTitle(e.target.value)}
                     />
                     <SelectComponent
-                        items={approverRoles}
+                        items={entities}
                         value={""}
                         sx={{
                             width: "50%",
@@ -66,7 +117,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         id="entity"
                         label="Entity"
                         isRequired
-                        onChange={() => { }}
+                        onChange={(e: any) => setEntityName(e.target.value)}
                         placeholder="Select entity"
                     />
                 </Stack>
@@ -77,21 +128,19 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                             sx={{
                                 pt: step > 0 ? 8 : 0
                             }}>
-                            <Stack direction="row" alignItems="center" spacing={8}>
+                            <Stack direction="row" spacing={8}>
                                 <Box sx={stepNumberStyle}>{step + 1}</Box>
                                 <Typography fontWeight={500} fontSize={16}>
                                     {"STEP " + (step + 1)}
                                 </Typography>
-                                <Box sx={{ 
+                                <Box sx={{
                                     flex: 1,
-                                    ml: -4,
                                     display: "flex",
-                                    justifyContent: "flex-end",
-                                 }}>
+                                    justifyContent: "flex-start",
+                                }}>
                                     <Link
                                         component="button"
-                                        onClick={() => { }
-                                        }
+                                        onClick={() => removeStep(step)}
                                         sx={{
                                             color: "#13715B",
                                             textDecoration: "underline",
@@ -115,14 +164,13 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         flexItem
                                         sx={{
                                             borderRightWidth: "1px",
-                                            height: "248px",
+                                            height: "216px",
                                             borderColor: "#E0E0E0",
-                                            mt: 6,
+                                            mt: 4,
                                             ml: 6,
                                             mr: 12,
                                         }}
                                     />
-
                                 </Box>
                                 <Stack sx={{ flex: 1 }} spacing={6}>
                                     <Field
@@ -165,6 +213,8 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         id="description"
                                         label="Description"
                                         width="100%"
+                                        max-height="115px"
+                                        rows={2}
                                         type="description"
                                         onChange={() => { }}
                                         sx={fieldStyle}
@@ -175,12 +225,13 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         </Stack>
                     </Stack>
                 ))}
-                <Box data-joyride-id="add-incident-button">
+                <Box data-joyride-id="add-step-button">
                     <CustomizableButton
-                        variant="contained"
-                        sx={addNewStep}
+                        variant="outlined"
                         text="Add step"
                         onClick={handleNewStepClick}
+                        icon={<AddCircleOutlineIcon />}
+                        sx={addNewStep}
                     />
                 </Box>
             </Stack>

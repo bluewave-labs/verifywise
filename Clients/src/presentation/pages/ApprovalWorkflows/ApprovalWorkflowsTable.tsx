@@ -67,8 +67,7 @@ const cellStyle = singleTheme.tableStyles.primary.body.cell;
 const TABLE_COLUMNS = [
     { id: "workflow_title", label: "TITLE" },
     { id: "entity_name", label: "ENTITY" },
-    { id: "steps", label: "STEPS" },
-    { id: "conditions", label: "CONDITIONS" },
+    { id: "steps", label: "STEPS COUNT" },
     { id: "approval_status", label: "APPROVAL STATUS" },
     { id: "date_updated", label: "DATE UPDATED" },
     { id: "actions", label: "ACTIONS" },
@@ -113,8 +112,8 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 sx={{
                                     ...singleTheme.tableStyles.primary.header.cell,
                                     ...(column.id === "workflow_id" && {
-                                        width: "110px",
-                                        maxWidth: "110px",
+                                        //width: "110px",
+                                        //maxWidth: "110px",
                                     }),
                                     ...(column.id === "actions" && {
                                         position: "sticky",
@@ -172,8 +171,8 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    width: "110px",
-                                    maxWidth: "110px",
+                                    //width: "110px",
+                                    //maxWidth: "110px",
                                     backgroundColor: "#fafafa",
                                 }}
                             >
@@ -193,15 +192,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                     backgroundColor: "#ffffff",
                                 }}
                             >
-                                {workflow.steps}
-                            </TableCell>
-                            <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    backgroundColor: "#ffffff",
-                                }}
-                            >
-                                {workflow.conditions}
+                                {workflow.steps?.length}
                             </TableCell>
                             <TableCell
                                 sx={{

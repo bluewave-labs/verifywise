@@ -52,30 +52,25 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     "approver",
     "due_date",
     "auditor_feedback",
-    "evidence_links",
     "tags",
   ]
     .filter((f) => {
-      if (f === "evidence_links") {
-        updateSubcategory["evidence_links"] = JSON.stringify(
-          subcategory.evidence_links
-        );
-        return true;
-      }
-      if (f === "tags") {
-        updateSubcategory["tags"] = subcategory.tags;
-        return true;
-      }
       if (
         subcategory[f as keyof NISTAIMRFSubcategoryModel] !== undefined &&
-        subcategory[f as keyof NISTAIMRFSubcategoryModel]
+        subcategory[f as keyof NISTAIMRFSubcategoryModel] !== null &&
+        subcategory[f as keyof NISTAIMRFSubcategoryModel] !== ""
       ) {
         updateSubcategory[f as keyof NISTAIMRFSubcategoryModel] =
           subcategory[f as keyof NISTAIMRFSubcategoryModel];
         return true;
       }
     })
-    .map((f) => `${f} = :${f}`)
+    .map((f) => {
+      if (f === "tags") {
+        return `${f} = ARRAY[:${f}]`;  // 🎯 Use Policy Manager approach
+      }
+      return `${f} = :${f}`;
+    })
     .join(", ");
 
   const query = `UPDATE "${tenant}".nist_ai_rmf_subcategories SET ${setClause}, updated_at = NOW() WHERE id = :id RETURNING *;`;

@@ -203,7 +203,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       <Drawer
         className="nist-ai-rmf-drawer-dialog"
         open={open}
-        onClose={onClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            onClose();
+          }
+        }}
         sx={{
           width: 600,
           margin: 0,
@@ -378,20 +382,36 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   />
                 </Stack>
 
-                <ChipInput
-                  id="tags"
-                  label="Tags:"
-                  value={formData.tags}
-                  onChange={(newValue) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      tags: newValue,
-                    }))
-                  }
-                  placeholder="Add tags..."
-                  disabled={isEditingDisabled}
-                  sx={inputStyles}
-                />
+                <Stack>
+                  <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                    Tags:
+                  </Typography>
+                  <ChipInput
+                    id="tags"
+                    value={formData.tags}
+                    onChange={(newValue) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        tags: newValue,
+                      }))
+                    }
+                    placeholder="Add tags..."
+                    disabled={isEditingDisabled}
+                    sx={{
+                      ...inputStyles,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "5px",
+                        minHeight: "34px",
+                      },
+                      "& .MuiChip-root": {
+                        borderRadius: "4px",
+                        height: "22px",
+                        margin: "1px 2px",
+                        fontSize: "13px",
+                      },
+                    }}
+                  />
+                </Stack>
               </Stack>
 
               <Divider />
@@ -404,15 +424,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   flexDirection: "row",
                   justifyContent: "flex-end",
                   padding: "15px 20px",
+                  marginTop: "auto",
                 }}
               >
-                <CustomizableButton
-                  variant="outlined"
-                  onClick={onClose}
-                  isDisabled={isLoading}
-                >
-                  Cancel
-                </CustomizableButton>
                 <CustomizableButton
                   variant="contained"
                   text="Save"
@@ -420,9 +434,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",
                     gap: 2,
+                    minWidth: "120px",
+                    height: "36px",
                   }}
                   onClick={handleSave}
-                  isDisabled={isLoading || isEditingDisabled}
                   icon={<SaveIcon size={16} />}
                 />
               </Stack>

@@ -29,16 +29,8 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
-
+import { Subprocessor } from "../../../../domain/interfaces/iAITrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
-
-interface Subprocessor {
-  id: number;
-  name: string;
-  purpose: string;
-  location: string;
-  url: string;
-}
 
 interface FormData {
   info?: {

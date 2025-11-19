@@ -146,6 +146,7 @@ const ModelInventory: React.FC = () => {
     const currentPath = location.pathname;
     if (currentPath.includes("model-risks")) return "model-risks";
     if (currentPath.includes("mlflow")) return "mlflow";
+    if (currentPath.includes("evidence-hub")) return "evidence-hub";
     return "models";
   };
 

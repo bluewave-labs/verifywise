@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, MenuItem, Select, Divider, Stack, Typography, useTheme, IconButton } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown, Plus, Bot, FileSearch, Workflow, Home, FlaskConical, Settings } from "lucide-react";
+import { ChevronDown, Plus, Workflow, Home, FlaskConical, Settings } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import TabBar from "../../components/TabBar";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -10,6 +10,8 @@ import PageHeader from "../../components/Layout/PageHeader";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
+import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
+import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -21,6 +23,7 @@ import { ProjectDatasets } from "./ProjectDatasets";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
+import NewProjectModal from "./NewProjectModal";
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -52,6 +55,8 @@ export default function EvalsDashboard() {
   const [orgCreateOpen, setOrgCreateOpen] = useState(false);
   const [orgCreating, setOrgCreating] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
+  const [experimentsCount, setExperimentsCount] = useState<number>(0);
+  const [datasetsCount, setDatasetsCount] = useState<number>(0);
 
   // Load orgs and current org (re-run when URL search changes to support "Manage organizations" from children)
   useEffect(() => {
@@ -73,7 +78,7 @@ export default function EvalsDashboard() {
         const data = await deepEvalProjectsService.getAllProjects();
         // In future, filter by orgId if backend supports it or project.orgId is set.
         setAllProjects(data.projects);
-        
+
         // Find and set the current project
         if (projectId) {
           const project = data.projects.find((p) => p.id === projectId);
@@ -89,6 +94,33 @@ export default function EvalsDashboard() {
       loadProjects();
     }
   }, [projectId]);
+
+  // Load experiments and datasets counts for the current project
+  useEffect(() => {
+    const loadCounts = async () => {
+      if (!projectId || !currentProject) return;
+
+      try {
+        // Load experiments count
+        const experimentsData = await experimentsService.getAllExperiments({
+          project_id: projectId
+        });
+        setExperimentsCount(experimentsData.experiments?.length || 0);
+
+        // Load datasets count - count all datasets across all categories
+        const datasetsData = await deepEvalDatasetsService.list();
+        const totalCount = Object.values(datasetsData).reduce((sum, datasets) => {
+          return sum + (Array.isArray(datasets) ? datasets.length : 0);
+        }, 0);
+        setDatasetsCount(totalCount);
+      } catch (err) {
+        console.error("Failed to load counts:", err);
+        setDatasetsCount(0);
+      }
+    };
+
+    loadCounts();
+  }, [projectId, currentProject]);
 
   const handleTabChange = (_: unknown, newValue: string) => {
     setTab(newValue);
@@ -186,7 +218,7 @@ export default function EvalsDashboard() {
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        <Box sx={{ userSelect: "none" }}>
+        <Box>
           <PageBreadcrumbs items={breadcrumbItems} />
         </Box>
 
@@ -207,7 +239,7 @@ export default function EvalsDashboard() {
             mb: 2,
           }}
         >
-        {projectId && allProjects.length > 0 ? (
+        {projectId && allProjects.length > 0 && (
           <Box
             sx={{
               display: "flex",
@@ -328,8 +360,6 @@ export default function EvalsDashboard() {
               </Select>
             </Stack>
           </Box>
-          ) : (
-            <PageHeader title="LLM Evals" />
           )}
 
           {/* Spacer pushes right-side controls */}
@@ -395,7 +425,7 @@ export default function EvalsDashboard() {
         </Box>
       </Box>
 
-      <Box sx={{ px: 3, py: 2, userSelect: "none" }}>
+      <Box sx={{ px: !projectId && orgId ? 0 : 3, py: 2 }}>
         {!orgId ? (
           <OrganizationSelector onSelected={async () => {
             const { org } = await deepEvalOrgsService.getCurrentOrg();
@@ -410,9 +440,8 @@ export default function EvalsDashboard() {
             <TabBar
               tabs={[
                 { label: "Overview", value: "overview", icon: "LayoutDashboard" },
-                { label: "Experiments", value: "experiments", icon: "FlaskConical" },
-                { label: "Datasets", value: "datasets", icon: "Database" },
-                { label: "Monitor", value: "monitor", icon: "Activity" },
+                { label: "Experiments", value: "experiments", icon: "FlaskConical", count: experimentsCount },
+                { label: "Datasets", value: "datasets", icon: "Database", count: datasetsCount },
                 { label: "Configuration", value: "configuration", icon: "Settings" },
               ]}
               activeTab={tab}
@@ -436,10 +465,6 @@ export default function EvalsDashboard() {
             <ProjectDatasets projectId={projectId} />
           </TabPanel>
 
-          <TabPanel value="monitor" sx={{ p: 0 }}>
-            <ProjectMonitor projectId={projectId} />
-          </TabPanel>
-
           <TabPanel value="configuration" sx={{ p: 0 }}>
             <ProjectConfiguration hideHeader />
           </TabPanel>
@@ -447,14 +472,12 @@ export default function EvalsDashboard() {
       )}
 
       {/* Create Project Modal */}
-      <ModalStandard
+      <NewProjectModal
         isOpen={createProjectModalOpen}
         onClose={() => {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "", useCase: "chatbot" });
         }}
-        title="Create project"
-        description="Create a new project to organize your LLM evaluations"
         onSubmit={handleCreateProject}
         submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}

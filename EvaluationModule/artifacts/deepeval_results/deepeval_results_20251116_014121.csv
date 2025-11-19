@@ -1,0 +1,295 @@
+sample_id,category,difficulty,word_count,response_length,actual_output,expected_output
+code_001,Unknown,Unknown,211,1274,"Here's a Python function that calculates the factorial of a number using recursion:
+
+```python
+def factorial(n):
+    """"""
+    Calculates the factorial of a given number using recursion.
+
+    Args:
+        n (int): The number to calculate the factorial for.
+
+    Returns:
+        int: The factorial of the given number.
+    """"""
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorial(n - 1)
+```
+
+Here's how the function works:
+
+1. The function takes a single argument `n`, which is the number for which the factorial needs to be calculated.
+2. The base case for the recursion is when `n` is 0 or 1, in which case the function returns 1 (as the factorial of 0 and 1 is 1).
+3. For all other values of `n`, the function recursively calls itself with `n - 1` as the argument, and multiplies the result by `n`.
+4. The function continues to call itself until the base case is reached, at which point the recursion unwinds, and the final result is calculated.
+
+Here's an example of how to use the `factorial()` function:
+
+```python
+print(factorial(5))  # Output: 120
+print(factorial(0))  # Output: 1
+print(factorial(10)) # Output: 3628800
+```
+
+In the above example, the function is called with different values of `n`, and the resulting factorial is printed.","A recursive Python function that calculates factorial, with a base case checking if n is 0 or 1, and a recursive case that returns n * factorial(n-1)."
+code_002,Unknown,Unknown,431,2654,"The binary search algorithm is a powerful technique for searching for a specific element in a sorted array or list. It works by repeatedly dividing the search interval in half until the target element is found or the search interval becomes empty.
+
+Here's how to implement a binary search algorithm in Python:
+
+```python
+def binary_search(arr, target):
+    """"""
+    Performs a binary search on a sorted array.
+    
+    Args:
+        arr (list): A sorted list of elements.
+        target (any): The element to search for.
+        
+    Returns:
+        int: The index of the target element if found, otherwise -1.
+    """"""
+    left = 0
+    right = len(arr) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return -1
+```
+
+Here's how the algorithm works:
+
+1. Initialize the `left` and `right` pointers to the start and end of the array, respectively.
+2. While `left` is less than or equal to `right`, calculate the middle index `mid`.
+3. Compare the element at the middle index `arr[mid]` with the target element.
+   - If they are equal, return the middle index.
+   - If the middle element is less than the target, update `left` to `mid + 1` to search the right half.
+   - If the middle element is greater than the target, update `right` to `mid - 1` to search the left half.
+4. If the target element is not found, return `-1`.
+
+Time Complexity Analysis:
+
+The time complexity of the binary search algorithm is **O(log n)**, where `n` is the size of the input array. This is because the algorithm repeatedly divides the search interval in half, reducing the search space by half with each iteration.
+
+The best-case scenario occurs when the target element is found in the first comparison, resulting in a time complexity of O(1). The worst-case scenario occurs when the target element is not found, and the algorithm has to search the entire array, resulting in a time complexity of O(log n).
+
+The binary search algorithm is efficient for large, sorted arrays, as it can quickly narrow down the search space and find the target element (if present) in a relatively small number of comparisons.
+
+Here's an example usage of the `binary_search` function:
+
+```python
+sorted_list = [1, 3, 5, 7, 9, 11, 13, 15]
+print(binary_search(sorted_list, 7))  # Output: 3
+print(binary_search(sorted_list, 10))  # Output: -1
+```
+
+In the first example, the target element `7` is found at index `3`. In the second example, the target element `10` is not found, so the function returns `-1`.",Binary search works on sorted arrays by repeatedly dividing the search interval in half.
+code_003,Unknown,Unknown,350,2466,"Sure, here's a Python class for a stack data structure with push, pop, and peek methods:
+
+```python
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, item):
+        """"""
+        Adds an item to the top of the stack.
+        """"""
+        self.stack.append(item)
+
+    def pop(self):
+        """"""
+        Removes and returns the top item from the stack.
+        Raises an IndexError if the stack is empty.
+        """"""
+        if not self.is_empty():
+            return self.stack.pop()
+        else:
+            raise IndexError(""Stack is empty"")
+
+    def peek(self):
+        """"""
+        Returns the top item from the stack without removing it.
+        Raises an IndexError if the stack is empty.
+        """"""
+        if not self.is_empty():
+            return self.stack[-1]
+        else:
+            raise IndexError(""Stack is empty"")
+
+    def is_empty(self):
+        """"""
+        Returns True if the stack is empty, False otherwise.
+        """"""
+        return len(self.stack) == 0
+
+    def __len__(self):
+        """"""
+        Returns the number of items in the stack.
+        """"""
+        return len(self.stack)
+
+    def __str__(self):
+        """"""
+        Returns a string representation of the stack.
+        """"""
+        return str(self.stack)
+```
+
+Here's how you can use this `Stack` class:
+
+```python
+# Create a new stack
+stack = Stack()
+
+# Push items onto the stack
+stack.push(1)
+stack.push(2)
+stack.push(3)
+
+# Print the stack
+print(stack)  # Output: [1, 2, 3]
+
+# Peek at the top item
+print(stack.peek())  # Output: 3
+
+# Pop an item from the stack
+print(stack.pop())  # Output: 3
+
+# Print the stack again
+print(stack)  # Output: [1, 2]
+
+# Check if the stack is empty
+print(stack.is_empty())  # Output: False
+
+# Get the size of the stack
+print(len(stack))  # Output: 2
+```
+
+The `Stack` class has the following methods:
+
+- `push(item)`: Adds an item to the top of the stack.
+- `pop()`: Removes and returns the top item from the stack. Raises an `IndexError` if the stack is empty.
+- `peek()`: Returns the top item from the stack without removing it. Raises an `IndexError` if the stack is empty.
+- `is_empty()`: Returns `True` if the stack is empty, `False` otherwise.
+- `__len__()`: Returns the number of items in the stack.
+- `__str__()`: Returns a string representation of the stack.
+
+The implementation uses a Python list to store the items in the stack, with the `append()` and `pop()` methods used to push and pop items, respectively.",A Stack class with an internal list implementing LIFO principle.
+math_001,Unknown,Unknown,53,218,"To solve for x, we need to isolate the variable x in the equation.
+
+Given equation: x + 5 = 12
+
+Step 1: Subtract 5 from both sides of the equation to isolate x.
+x + 5 - 5 = 12 - 5
+x = 7
+
+Therefore, the value of x is 7.",x = 7 (by subtracting 5 from both sides)
+math_002,Unknown,Unknown,202,1077,"The Pythagorean Theorem is a fundamental principle in geometry that relates the lengths of the sides of a right triangle. It states that in a right triangle, the square of the length of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the lengths of the other two sides.
+
+Mathematically, the Pythagorean Theorem can be expressed as:
+
+a^2 + b^2 = c^2
+
+Where:
+- 'a' and 'b' are the lengths of the two sides that form the right angle.
+- 'c' is the length of the hypotenuse.
+
+Example:
+
+Let's consider a right triangle with the following side lengths:
+- Side 'a' = 3 units
+- Side 'b' = 4 units
+- Hypotenuse 'c' = unknown
+
+To find the length of the hypotenuse 'c', we can apply the Pythagorean Theorem:
+
+a^2 + b^2 = c^2
+3^2 + 4^2 = c^2
+9 + 16 = c^2
+25 = c^2
+c = √25
+c = 5 units
+
+Therefore, the length of the hypotenuse 'c' is 5 units.
+
+The Pythagorean Theorem is widely used in various fields, such as engineering, construction, navigation, and many other applications where the relationship between the sides of a right triangle is important.","The Pythagorean theorem states that in a right triangle, a² + b² = c²."
+logic_001,Unknown,Unknown,200,1225,"To determine if we can conclude that some roses fade quickly based on the given information, we need to analyze the logical relationship between the premises.
+
+Given information:
+1. All roses are flowers.
+2. Some flowers fade quickly.
+
+To conclude that some roses fade quickly, we need to establish a connection between roses and the flowers that fade quickly.
+
+The first premise tells us that all roses are a subset of the set of flowers. However, the second premise only tells us that some flowers fade quickly, without specifying which particular flowers.
+
+From the information provided, we cannot conclude that some roses fade quickly. The fact that some flowers fade quickly does not necessarily mean that the subset of roses also includes flowers that fade quickly.
+
+For example, it is possible that the flowers that fade quickly are not roses, but rather other types of flowers. Or it could be that some roses fade quickly, but the second premise does not provide enough information to make that inference.
+
+Therefore, based on the given information, we cannot conclude that some roses fade quickly. We would need additional information to establish a direct connection between roses and the flowers that fade quickly.","No, we cannot conclude that. This is a logical fallacy."
+logic_002,Unknown,Unknown,98,454,"To solve this problem, we need to find the number of sheep that are left after all but 9 of them die.
+
+Given information:
+- The farmer has 17 sheep.
+- All but 9 of the sheep die.
+
+Step 1: Find the number of sheep that died.
+Total sheep - Sheep that survived = Sheep that died
+17 - 9 = 8 sheep died
+
+Step 2: Find the number of sheep that are left.
+Total sheep - Sheep that died = Sheep that are left
+17 - 8 = 9 sheep are left
+
+Therefore, 9 sheep are left.",9 sheep are left. 'All but 9' means all except 9 die.
+creative_001,Unknown,Unknown,18,117,"Here is a haiku about artificial intelligence:
+
+Circuits and code dance,
+Algorithms learn and grow,
+AI's vast wonder.",A haiku (5-7-5 syllable pattern) about AI themes.
+creative_002,Unknown,Unknown,187,1068,"Here is a short story opening that includes a mysterious door:
+
+The old wooden door stood before me, its weathered surface etched with strange symbols that seemed to shift and dance in the flickering light. I ran my fingers over the intricate carvings, feeling the grooves and ridges, wondering what secrets they might hold. A cool breeze drifted through the cracks, carrying the faint scent of damp earth and forgotten things. 
+
+My heart pounded as I gripped the rusted iron handle, half-tempted to turn it and see what lay beyond. What mysteries did this door conceal? What wonders or terrors might it reveal? I knew I should walk away, return to the safety of the world I knew. And yet, a part of me ached to push it open, to step through into the unknown. 
+
+The choice seemed to hang in the air, a tangible weight pressing down on me. I took a deep breath, steeling my nerves. Slowly, with a creak of protest, the door swung inward, beckoning me forward into the darkness beyond. Without a moment's hesitation, I stepped through, leaving the familiar world behind.",An engaging story opening featuring a mysterious door.
+knowledge_001,Unknown,Unknown,187,1147,"The capital of France is Paris.
+
+Paris is known for many things, including:
+
+- Architecture - Paris is famous for its iconic landmarks like the Eiffel Tower, Notre-Dame Cathedral, the Louvre, and the Arc de Triomphe.
+
+- Art and Culture - Paris is a global center of art, fashion, gastronomy, and intellectual thought. It is home to world-renowned museums like the Louvre and the Musée d'Orsay.
+
+- Romantic Atmosphere - Paris is often referred to as the ""City of Love"" and is a popular destination for romantic getaways.
+
+- Cafe Culture - Paris is renowned for its vibrant cafe culture, with people enjoying coffee, conversation, and people-watching at sidewalk cafes.
+
+- Fashion - Paris is considered one of the global fashion capitals, hosting major fashion weeks and being home to many prestigious fashion houses.
+
+- Cuisine - French cuisine, with its emphasis on fresh, high-quality ingredients, is world-famous. Paris is a hub of gourmet dining and culinary innovation.
+
+So in summary, Paris is the capital of France and it is best known for its iconic architecture, rich art and culture, romantic ambiance, cafe culture, fashion, and cuisine.","Paris is the capital of France, known for the Eiffel Tower, art, culture, and cuisine."
+knowledge_002,Unknown,Unknown,139,798,"Photosynthesis is the process by which plants and some other organisms use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.
+
+Here's a simple explanation:
+
+1. Plants take in carbon dioxide (CO2) from the air through their leaves.
+2. They also take in water (H2O) from the soil through their roots.
+3. Using the energy from sunlight, the plant combines the carbon dioxide and water to produce glucose (sugar) and oxygen.
+4. The plant uses the glucose as food to grow and thrive.
+5. The oxygen is released into the air as a byproduct of this process.
+
+So, in simple terms, photosynthesis is how plants convert sunlight, water, and carbon dioxide into the food they need to live and grow, while also producing oxygen that we and other living things need to breathe.","Photosynthesis is how plants convert sunlight into energy, producing oxygen."

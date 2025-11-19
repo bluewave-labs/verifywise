@@ -1,0 +1,123 @@
+[
+  {
+    "sample_id": "code_001",
+    "protected_attributes": {},
+    "input": "Write a Python function to calculate the factorial of a number using recursion.",
+    "actual_output": "Here's a Python function to calculate the factorial of a number using recursion:\n\n```python\ndef factorial(n):\n    \"\"\"\n    Calculate the factorial of a number using recursion.\n    \n    Args:\n        n (int): A non-negative integer\n        \n    Returns:\n        int: The factorial of n\n        \n    Raises:\n        ValueError: If n is negative\n        TypeError: If n is not an integer\n    \"\"\"\n    # Input validation\n    if not isinstance(n, int):\n        raise TypeError(\"Input must be an integer\")\n    if n < 0:\n        raise ValueError(\"Factorial is not defined for negative numbers\")\n    \n    # Base case: factorial of 0 or 1 is 1\n    if n == 0 or n == 1:\n        return 1\n    \n    # Recursive case: n! = n * (n-1)!\n    else:\n        return n * factorial(n - 1)\n\n\n# Example usage:\nif __name__ == \"__main__\":\n    # Test the function with various inputs\n    test_values = [0, 1, 5, 10]\n    \n    for num in test_values:\n        result = factorial(num)\n        print(f\"{num}! = {result}\")\n    \n    # Example of handling errors\n    try:\n        print(factorial(-5))\n    except ValueError as e:\n        print(f\"Error: {e}\")\n    \n    try:\n        print(factorial(3.5))\n    except TypeError as e:\n        print(f\"Error: {e}\")\n```\n\nHere's also a more concise version without error handling:\n\n```python\ndef factorial_simple(n):\n    \"\"\"Calculate factorial of n recursively.\"\"\"\n    if n <= 1:\n        return 1\n    return n * factorial_simple(n - 1)\n```\n\n**How the recursion works:**\n\n1. **Base Case**: When n is 0 or 1, the function returns 1 (since 0! = 1 and 1! = 1)\n2. **Recursive Case**: For any other positive integer n, the function returns n multiplied by the factorial of (n-1)\n\n**Example execution for factorial(5):**\n- `factorial(5)` returns `5 * factorial(4)`\n- `factorial(4)` returns `4 * factorial(3)`\n- `factorial(3)` returns `3 * factorial(2)`\n- `factorial(2)` returns `2 * factorial(1)`\n- `factorial(1)` returns `1` (base case)\n- Working backwards: 2×1=2, 3×2=6, 4×6=24, 5×24=120\n\n**Output of the example code:**\n```\n0! = 1\n1! = 1\n5! = 120\n10! = 3628800\nError: Factorial is not defined for negative numbers\nError: Input must be an integer\n```\n\n**Note**: For large values of n, this recursive approach may cause a stack overflow. Python has a default recursion limit (usually 1000). For calculating factorials of large numbers, an iterative approach or using `math.factorial()` would be more appropriate.",
+    "expected_output": "A recursive Python function that calculates factorial, with a base case checking if n is 0 or 1, and a recursive case that returns n * factorial(n-1).",
+    "response_length": 2409,
+    "word_count": 349,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278689"
+  },
+  {
+    "sample_id": "code_002",
+    "protected_attributes": {},
+    "input": "Explain how to implement a binary search algorithm in Python with time complexity analysis.",
+    "actual_output": "I'll explain how to implement binary search in Python, along with its time complexity analysis.\n\n## What is Binary Search?\n\nBinary search is an efficient algorithm for finding a target value in a **sorted** array by repeatedly dividing the search interval in half.\n\n## Implementation Approaches\n\n### 1. Iterative Implementation\n\n```python\ndef binary_search_iterative(arr, target):\n    \"\"\"\n    Performs binary search iteratively.\n    \n    Args:\n        arr: Sorted list of elements\n        target: Element to search for\n    \n    Returns:\n        Index of target if found, -1 otherwise\n    \"\"\"\n    left = 0\n    right = len(arr) - 1\n    \n    while left <= right:\n        # Calculate middle index (avoiding overflow)\n        mid = left + (right - left) // 2\n        \n        # Check if target is at mid\n        if arr[mid] == target:\n            return mid\n        \n        # If target is greater, ignore left half\n        elif arr[mid] < target:\n            left = mid + 1\n        \n        # If target is smaller, ignore right half\n        else:\n            right = mid - 1\n    \n    # Target not found\n    return -1\n```\n\n### 2. Recursive Implementation\n\n```python\ndef binary_search_recursive(arr, target, left=0, right=None):\n    \"\"\"\n    Performs binary search recursively.\n    \n    Args:\n        arr: Sorted list of elements\n        target: Element to search for\n        left: Starting index\n        right: Ending index\n    \n    Returns:\n        Index of target if found, -1 otherwise\n    \"\"\"\n    if right is None:\n        right = len(arr) - 1\n    \n    # Base case: element not found\n    if left > right:\n        return -1\n    \n    # Calculate middle index\n    mid = left + (right - left) // 2\n    \n    # Check if target is at mid\n    if arr[mid] == target:\n        return mid\n    \n    # If target is greater, search right half\n    elif arr[mid] < target:\n        return binary_search_recursive(arr, target, mid + 1, right)\n    \n    # If target is smaller, search left half\n    else:\n        return binary_search_recursive(arr, target, left, mid - 1)\n```\n\n### 3. Using Python's bisect Module\n\n```python\nimport bisect\n\ndef binary_search_bisect(arr, target):\n    \"\"\"\n    Performs binary search using Python's bisect module.\n    \n    Args:\n        arr: Sorted list of elements\n        target: Element to search for\n    \n    Returns:\n        Index of target if found, -1 otherwise\n    \"\"\"\n    index = bisect.bisect_left(arr, target)\n    \n    if index < len(arr) and arr[index] == target:\n        return index\n    return -1\n```\n\n## Time Complexity Analysis\n\n### Best Case: O(1)\n- The target element is found at the middle position on the first comparison\n\n### Average and Worst Case: O(log n)\n- In each iteration, we eliminate half of the remaining elements\n- Maximum number of comparisons = log₂(n) + 1\n\n**Mathematical Proof:**\n- Start with n elements\n- After 1st iteration: n/2 elements\n- After 2nd iteration: n/4 elements\n- After kth iteration: n/2^k elements\n- Search ends when n/2^k = 1\n- Therefore: k = log₂(n)\n\n### Space Complexity:\n- **Iterative**: O(1) - only uses a constant amount of extra space\n- **Recursive**: O(log n) - due to the recursive call stack\n\n## Complete Example with Testing\n\n```python\ndef binary_search_with_details(arr, target):\n    \"\"\"\n    Binary search with step-by-step details for learning purposes.\n    \"\"\"\n    left = 0\n    right = len(arr) - 1\n    steps = 0\n    \n    print(f\"Searching for {target} in {arr}\")\n    \n    while left <= right:\n        steps += 1\n        mid = left + (right - left) // 2\n        \n        print(f\"Step {steps}: left={left}, right={right}, mid={mid}, arr[mid]={arr[mid]}\")\n        \n        if arr[mid] == target:\n            print(f\"Found {target} at index {mid} in {steps} steps\")\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n            print(f\"  Target is greater, searching right half\")\n        else:\n            right = mid - 1\n            print(f\"  Target is smaller, searching left half\")\n    \n    print(f\"Target {target} not found after {steps} steps\")\n    return -1\n\n# Example usage\nif __name__ == \"__main__\":\n    # Test array\n    test_arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]\n    \n    # Test cases\n    print(\"=== Binary Search Examples ===\\n\")\n    \n    # Found case\n    binary_search_with_details(test_arr, 7)\n    print(\"\\n\" + \"-\"*40 + \"\\n\")\n    \n    # Not found case\n    binary_search_with_details(test_arr, 8)\n```\n\n## Advantages and Limitations\n\n### Advantages:\n1. Very efficient for large datasets - O(log n)\n2. Simple to implement\n3. Works well with sorted data\n\n### Limitations:\n1. **Requires sorted array** - sorting takes O(n log n) time\n2. Not efficient for small datasets\n3. Not suitable for linked lists (no random access)\n\n## When to Use Binary Search\n\nUse binary search when:\n- Data is sorted or can be sorted\n- Multiple searches will be performed (sorting cost amortized)\n- Dataset is large enough that O(log n) vs O(n) matters\n- Random access to elements is available\n\n## Performance Comparison\n\n```python\nimport time\nimport random\n\ndef performance_comparison():\n    # Generate sorted array\n    arr = sorted([random.randint(1, 1000000) for _ in range(100000)])\n    target = arr[len(arr)//2]  # Middle element\n    \n    # Linear search\n    start = time.time()\n    for i in range(len(arr)):\n        if arr[i] == target:\n            break\n    linear_time = time.time() - start\n    \n    # Binary search\n    start = time.time()\n    binary_search_iterative(arr, target)\n    binary_time = time.time() - start\n    \n    print(f\"Array size: {len(arr)}\")\n    print(f\"Linear search time: {linear_time:.6f} seconds\")\n    print(f\"Binary search time: {binary_time:.6f} seconds\")\n    print(f\"Binary search is {linear_time/binary_time:.0f}x faster\")\n```\n\nBinary search is a fundamental algorithm that demonstrates the power of the divide-and-conquer approach, providing logarithmic time complexity for searching in sorted arrays.",
+    "expected_output": "Binary search works on sorted arrays by repeatedly dividing the search interval in half.",
+    "response_length": 5926,
+    "word_count": 807,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278735"
+  },
+  {
+    "sample_id": "code_003",
+    "protected_attributes": {},
+    "input": "Create a Python class for a stack data structure with push, pop, and peek methods.",
+    "actual_output": "Here's a Python implementation of a stack data structure with push, pop, and peek methods:\n\n```python\nclass Stack:\n    def __init__(self):\n        \"\"\"Initialize an empty stack\"\"\"\n        self.items = []\n    \n    def push(self, item):\n        \"\"\"Add an item to the top of the stack\"\"\"\n        self.items.append(item)\n    \n    def pop(self):\n        \"\"\"Remove and return the top item from the stack\"\"\"\n        if self.is_empty():\n            raise IndexError(\"Stack is empty\")\n        return self.items.pop()\n    \n    def peek(self):\n        \"\"\"Return the top item without removing it\"\"\"\n        if self.is_empty():\n            raise IndexError(\"Stack is empty\")\n        return self.items[-1]\n    \n    def is_empty(self):\n        \"\"\"Check if the stack is empty\"\"\"\n        return len(self.items) == 0\n    \n    def size(self):\n        \"\"\"Return the number of items in the stack\"\"\"\n        return len(self.items)\n    \n    def __str__(self):\n        \"\"\"String representation of the stack\"\"\"\n        return f\"Stack({self.items})\"\n    \n    def __repr__(self):\n        \"\"\"Official string representation of the stack\"\"\"\n        return self.__str__()\n\n\n# Example usage:\nif __name__ == \"__main__\":\n    # Create a new stack\n    stack = Stack()\n    \n    # Push some items\n    stack.push(10)\n    stack.push(20)\n    stack.push(30)\n    print(f\"Stack after pushing: {stack}\")\n    \n    # Peek at the top item\n    print(f\"Top item: {stack.peek()}\")\n    \n    # Pop items\n    print(f\"Popped: {stack.pop()}\")\n    print(f\"Stack after pop: {stack}\")\n    \n    # Check size and emptiness\n    print(f\"Stack size: {stack.size()}\")\n    print(f\"Is empty: {stack.is_empty()}\")\n    \n    # Pop remaining items\n    print(f\"Popped: {stack.pop()}\")\n    print(f\"Popped: {stack.pop()}\")\n    print(f\"Is empty: {stack.is_empty()}\")\n    \n    # Try to pop from empty stack (will raise exception)\n    try:\n        stack.pop()\n    except IndexError as e:\n        print(f\"Error: {e}\")\n```\n\nHere's also an alternative implementation using a maximum size limit:\n\n```python\nclass BoundedStack:\n    def __init__(self, max_size=None):\n        \"\"\"Initialize a stack with optional maximum size\"\"\"\n        self.items = []\n        self.max_size = max_size\n    \n    def push(self, item):\n        \"\"\"Add an item to the top of the stack\"\"\"\n        if self.max_size and len(self.items) >= self.max_size:\n            raise OverflowError(\"Stack is full\")\n        self.items.append(item)\n    \n    def pop(self):\n        \"\"\"Remove and return the top item from the stack\"\"\"\n        if self.is_empty():\n            raise IndexError(\"Stack is empty\")\n        return self.items.pop()\n    \n    def peek(self):\n        \"\"\"Return the top item without removing it\"\"\"\n        if self.is_empty():\n            raise IndexError(\"Stack is empty\")\n        return self.items[-1]\n    \n    def is_empty(self):\n        \"\"\"Check if the stack is empty\"\"\"\n        return len(self.items) == 0\n    \n    def is_full(self):\n        \"\"\"Check if the stack is full (only for bounded stacks)\"\"\"\n        if self.max_size is None:\n            return False\n        return len(self.items) >= self.max_size\n    \n    def size(self):\n        \"\"\"Return the number of items in the stack\"\"\"\n        return len(self.items)\n    \n    def clear(self):\n        \"\"\"Remove all items from the stack\"\"\"\n        self.items = []\n    \n    def __str__(self):\n        \"\"\"String representation of the stack\"\"\"\n        return f\"BoundedStack({self.items}, max_size={self.max_size})\"\n\n\n# Example usage of BoundedStack:\nif __name__ == \"__main__\":\n    # Create a bounded stack with max size of 3\n    bounded_stack = BoundedStack(max_size=3)\n    \n    # Push items\n    bounded_stack.push(\"A\")\n    bounded_stack.push(\"B\")\n    bounded_stack.push(\"C\")\n    print(f\"Bounded stack: {bounded_stack}\")\n    print(f\"Is full: {bounded_stack.is_full()}\")\n    \n    # Try to push to a full stack\n    try:\n        bounded_stack.push(\"D\")\n    except OverflowError as e:\n        print(f\"Error: {e}\")\n```\n\n**Key Features:**\n\n1. **Basic Operations:**\n   - `push()`: Adds an element to the top of the stack\n   - `pop()`: Removes and returns the top element\n   - `peek()`: Returns the top element without removing it\n\n2. **Helper Methods:**\n   - `is_empty()`: Checks if the stack is empty\n   - `size()`: Returns the number of elements in the stack\n   - `__str__()` and `__repr__()`: Provide string representations\n\n3. **Error Handling:**\n   - Raises `IndexError` when trying to pop or peek from an empty stack\n   - The bounded version raises `OverflowError` when trying to push to a full stack\n\n4. **Time Complexity:**\n   - Push: O(1)\n   - Pop: O(1)\n   - Peek: O(1)\n   - Size: O(1)\n   - Is Empty: O(1)\n\nThis implementation uses Python's built-in list as the underlying data structure, which provides efficient append and pop operations from the end.",
+    "expected_output": "A Stack class with an internal list implementing LIFO principle.",
+    "response_length": 4804,
+    "word_count": 541,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278759"
+  },
+  {
+    "sample_id": "math_001",
+    "protected_attributes": {},
+    "input": "Solve: If x + 5 = 12, what is x?",
+    "actual_output": "To solve for x, I need to isolate x on one side of the equation.\n\nGiven: x + 5 = 12\n\nI'll subtract 5 from both sides:\nx + 5 - 5 = 12 - 5\nx = 7\n\nTherefore, x = 7.\n\nTo verify: 7 + 5 = 12 ✓",
+    "expected_output": "x = 7 (by subtracting 5 from both sides)",
+    "response_length": 186,
+    "word_count": 51,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278764"
+  },
+  {
+    "sample_id": "math_002",
+    "protected_attributes": {},
+    "input": "Explain the Pythagorean theorem and provide an example.",
+    "actual_output": "## The Pythagorean Theorem\n\nThe Pythagorean theorem is a fundamental principle in geometry that describes the relationship between the three sides of a right triangle (a triangle with one 90-degree angle).\n\n### The Theorem States:\n**In a right triangle, the square of the hypotenuse (the longest side opposite the right angle) equals the sum of squares of the other two sides.**\n\n### Mathematical Formula:\n**a² + b² = c²**\n\nWhere:\n- c = length of the hypotenuse\n- a and b = lengths of the other two sides (called legs)\n\n### Example:\nLet's say we have a right triangle with legs measuring 3 units and 4 units. We can find the hypotenuse:\n\n- a = 3\n- b = 4\n- c = ?\n\nUsing the formula:\n- 3² + 4² = c²\n- 9 + 16 = c²\n- 25 = c²\n- c = √25\n- c = 5\n\nSo the hypotenuse is 5 units long.\n\n### Practical Application:\nThis theorem is incredibly useful in real life. For example, if you need to find the shortest distance across a rectangular field that's 30 meters wide and 40 meters long, you'd calculate:\n\n- 30² + 40² = c²\n- 900 + 1,600 = 2,500\n- c = √2,500 = 50 meters\n\nThe diagonal path across the field would be 50 meters long.",
+    "expected_output": "The Pythagorean theorem states that in a right triangle, a² + b² = c².",
+    "response_length": 1117,
+    "word_count": 223,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278779"
+  },
+  {
+    "sample_id": "logic_001",
+    "protected_attributes": {},
+    "input": "If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly?",
+    "actual_output": "No, we cannot conclude that some roses fade quickly.\n\nHere's why:\n\n- We know: All roses are flowers\n- We know: Some flowers fade quickly\n- But we don't know which specific flowers fade quickly\n\nThe flowers that fade quickly might be completely different types of flowers (like daisies, tulips, or lilies) and not roses at all. \n\nTo illustrate with an example:\n- All roses are flowers ✓\n- Some flowers (only daisies) fade quickly ✓\n- In this case, no roses fade quickly\n\nSo while it's *possible* that some roses fade quickly, we cannot logically conclude this from the given information alone. The statements provided don't give us enough information to make that determination.",
+    "expected_output": "No, we cannot conclude that. This is a logical fallacy.",
+    "response_length": 677,
+    "word_count": 115,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278786"
+  },
+  {
+    "sample_id": "logic_002",
+    "protected_attributes": {},
+    "input": "A farmer has 17 sheep, and all but 9 die. How many sheep are left?",
+    "actual_output": "The farmer has 9 sheep left.\n\nThe key to this riddle is in the phrase \"all but 9 die.\" This means that all the sheep died EXCEPT for 9 of them. So 9 sheep survived and are still alive.",
+    "expected_output": "9 sheep are left. 'All but 9' means all except 9 die.",
+    "response_length": 184,
+    "word_count": 39,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278791"
+  },
+  {
+    "sample_id": "creative_001",
+    "protected_attributes": {},
+    "input": "Write a haiku about artificial intelligence.",
+    "actual_output": "Silicon neurons\nLearning from human patterns—\nMind without a soul",
+    "expected_output": "A haiku (5-7-5 syllable pattern) about AI themes.",
+    "response_length": 65,
+    "word_count": 10,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278797"
+  },
+  {
+    "sample_id": "creative_002",
+    "protected_attributes": {},
+    "input": "Create a short story opening that includes a mysterious door.",
+    "actual_output": "The brass numbers on the door read 7½.\n\nMaya had walked down this hallway every morning for three years on her way to the copy room, past doors numbered 5, 6, 7, and 8. But today, wedged in the narrow space between 7 and 8, stood a door that had never been there before—or at least, one she'd never noticed.\n\nIt was smaller than the others, painted the same institutional beige, with a tarnished brass handle that looked far older than anything else in the renovated office building. A thin line of golden light seeped from beneath it, pulsing gently like a sleeping heartbeat.\n\nShe glanced at her phone: 7:42 AM. Nobody else would arrive for at least fifteen minutes. Her hand hovered over the handle, trembling slightly. The sensible part of her brain insisted she should walk away, report it to building maintenance, let someone else deal with whatever construction project or storage closet this was.\n\nBut the light beneath the door flared brighter, and she heard it—a sound like wind chimes mixed with distant laughter, barely audible but unmistakably coming from the other side.\n\nMaya wrapped her fingers around the cold brass handle and turned.",
+    "expected_output": "An engaging story opening featuring a mysterious door.",
+    "response_length": 1151,
+    "word_count": 197,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278814"
+  },
+  {
+    "sample_id": "knowledge_001",
+    "protected_attributes": {},
+    "input": "What is the capital of France and what is it known for?",
+    "actual_output": "The capital of France is **Paris**.\n\nParis is known for many things, including:\n\n**Iconic Landmarks:**\n- The Eiffel Tower - the city's most famous symbol\n- Notre-Dame Cathedral (currently under restoration)\n- Arc de Triomphe\n- Louvre Museum - home to the Mona Lisa\n- Sacré-Cœur Basilica\n\n**Culture & Arts:**\n- World-renowned museums and art galleries\n- Fashion capital - home to haute couture and Fashion Week\n- Historic literary and artistic heritage (Hemingway, Picasso, etc.)\n- Café culture and philosophical traditions\n\n**Other Notable Features:**\n- Romantic atmosphere - nicknamed \"City of Light\" and \"City of Love\"\n- Exquisite cuisine and Michelin-starred restaurants\n- Beautiful architecture mixing historic and modern styles\n- The Seine River and its scenic bridges\n- Charming neighborhoods like Montmartre and the Latin Quarter\n\nParis serves as France's political, economic, and cultural center, attracting millions of visitors annually.",
+    "expected_output": "Paris is the capital of France, known for the Eiffel Tower, art, culture, and cuisine.",
+    "response_length": 946,
+    "word_count": 142,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278822"
+  },
+  {
+    "sample_id": "knowledge_002",
+    "protected_attributes": {},
+    "input": "Explain photosynthesis in simple terms.",
+    "actual_output": "Photosynthesis is how plants make their own food using sunlight. Here's the simple version:\n\n**What plants need:**\n- Sunlight\n- Water (from their roots)\n- Carbon dioxide (from the air)\n\n**What happens:**\n1. Plant leaves capture sunlight\n2. The sunlight powers a chemical reaction\n3. Water and carbon dioxide are combined\n4. This creates glucose (sugar) - the plant's food\n5. Oxygen is released as a waste product\n\n**The simple equation:**\nSunlight + Water + Carbon dioxide → Sugar + Oxygen\n\n**Why it matters:**\n- Plants get the energy they need to grow\n- We get oxygen to breathe\n- It removes carbon dioxide from the air\n- It's the base of most food chains on Earth\n\nThink of it like a recipe where plants use sunlight as their oven to cook up sugar from basic ingredients, and oxygen is the delicious smell that comes out!",
+    "expected_output": "Photosynthesis is how plants convert sunlight into energy, producing oxygen.",
+    "response_length": 823,
+    "word_count": 146,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:07:15.278829"
+  }
+]

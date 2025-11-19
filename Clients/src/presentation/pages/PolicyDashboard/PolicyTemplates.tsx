@@ -32,8 +32,16 @@ import {
   setPaginationRowCount,
 } from "../../../application/utils/paginationStorage";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import TagChip from "../../components/Tags/TagChip";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
+const POLICY_TEMPLATES_SORTING_KEY = "verifywise_policy_templates_sorting";
 
 const TITLE_OF_COLUMNS = [
   { col: "ID", width: 100 },
@@ -63,6 +71,24 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("policyTemplates", 10),
   );
+
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(POLICY_TEMPLATES_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(POLICY_TEMPLATES_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
 
   const handleClose = () => {
     setShowModal(false);
@@ -108,6 +134,22 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     })),
   ];
 
+  // Sorting handler
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        // Toggle direction if same column, or clear if already descending
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      // New column or first sort
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
   // Filter + search
   const filteredPolicyTemplates = useMemo(() => {
     return policyTemplates.filter((p) => {
@@ -120,7 +162,51 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     });
   }, [categoryFilter, searchTerm]);
 
-  useEffect(() => setPage(0), [filteredPolicyTemplates.length]);
+  // Sort the filtered data
+  const sortedPolicyTemplates = useMemo(() => {
+    if (!filteredPolicyTemplates || !sortConfig.key || !sortConfig.direction) {
+      return filteredPolicyTemplates || [];
+    }
+
+    const sortableData = [...filteredPolicyTemplates];
+
+    return sortableData.sort((a: PolicyTemplate, b: PolicyTemplate) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      const sortKey = sortConfig.key.trim().toLowerCase();
+
+      // Handle different column types
+      if (sortKey === "id") {
+        aValue = a.id;
+        bValue = b.id;
+      } else if (sortKey === "title") {
+        aValue = a.title?.toLowerCase() || "";
+        bValue = b.title?.toLowerCase() || "";
+      } else if (sortKey === "tags") {
+        aValue = a.tags?.join(", ")?.toLowerCase() || "";
+        bValue = b.tags?.join(", ")?.toLowerCase() || "";
+      } else if (sortKey === "description") {
+        aValue = a.description?.toLowerCase() || "";
+        bValue = b.description?.toLowerCase() || "";
+      } else {
+        return 0;
+      }
+
+      // Handle string comparisons
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      // Handle number comparisons
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredPolicyTemplates, sortConfig]);
+
+  useEffect(() => setPage(0), [sortedPolicyTemplates.length, sortConfig]);
 
   const handleChangePage = useCallback(
     (_: unknown, newPage: number) => setPage(newPage),
@@ -180,27 +266,64 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
             <Table>
               <TableHead>
                 <TableRow>
-                  {TITLE_OF_COLUMNS.map((column) => (
-                    <TableCell
-                      key={column.col}
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 400,
-                        color: theme.palette.text.secondary,
-                        bgcolor: theme.palette.grey[50],
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 1,
-                        minWidth: column.width,
-                        width: column.col === 'ID' ? column.width : 'auto',
-                      }}
-                    >
-                      {column.col}
-                    </TableCell>
-                  ))}
+                  {TITLE_OF_COLUMNS.map((column) => {
+                    const sortable = true; // All columns are sortable
+                    return (
+                      <TableCell
+                        key={column.col}
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 400,
+                          color: sortConfig.key === column.col ? theme.palette.primary.main : theme.palette.text.secondary,
+                          bgcolor: theme.palette.grey[50],
+                          position: "sticky",
+                          top: 0,
+                          zIndex: 1,
+                          minWidth: column.width,
+                          width: column.col === 'ID' ? column.width : 'auto',
+                          cursor: sortable ? "pointer" : "default",
+                          userSelect: sortable ? "none" : "auto",
+                          "&:hover": sortable ? {
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          } : {},
+                        }}
+                        onClick={() => sortable && handleSort(column.col)}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: theme.spacing(1),
+                          }}
+                        >
+                          <span>{column.col}</span>
+                          {sortable && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                color: sortConfig.key === column.col ? theme.palette.primary.main : "#9CA3AF",
+                              }}
+                            >
+                              {sortConfig.key === column.col && sortConfig.direction === "asc" && (
+                                <ChevronUp size={16} />
+                              )}
+                              {sortConfig.key === column.col && sortConfig.direction === "desc" && (
+                                <ChevronDown size={16} />
+                              )}
+                              {sortConfig.key !== column.col && (
+                                <ChevronsUpDown size={16} />
+                              )}
+                            </Box>
+                          )}
+                        </Box>
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               </TableHead>
-              {filteredPolicyTemplates.length === 0 && (
+              {sortedPolicyTemplates.length === 0 && (
                 <TableBody>
                   <TableRow>
                     <TableCell
@@ -214,7 +337,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                 </TableBody>
               )}
               <TableBody>
-                {filteredPolicyTemplates
+                {sortedPolicyTemplates
                   ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((policy) => (
                     <TableRow
@@ -232,7 +355,12 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                       role="button"
                       aria-label={`Select policy: ${policy.title}`}
                     >
-                      <TableCell sx={{ fontWeight: 500 }}>
+                      <TableCell
+                        sx={{
+                          fontWeight: 500,
+                          backgroundColor: sortConfig.key === "ID" ? "#f5f5f5" : "inherit",
+                        }}
+                      >
                         {policy.id}
                       </TableCell>
                       <TableCell
@@ -240,11 +368,16 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                           maxWidth: 200,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
+                          backgroundColor: sortConfig.key === "TITLE" ? "#f5f5f5" : "inherit",
                         }}
                       >
                         {policy.title}
                       </TableCell>
-                      <TableCell>
+                      <TableCell
+                        sx={{
+                          backgroundColor: sortConfig.key === "TAGS" ? "#f5f5f5" : "inherit",
+                        }}
+                      >
                         <Stack direction="row" gap={1} flexWrap="wrap">
                           {policy.tags.map((tag, index) => (
                             <TagChip key={`${tag}-${index}`} tag={tag} />
@@ -256,6 +389,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                           maxWidth: 250,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
+                          backgroundColor: sortConfig.key === "DESCRIPTION" ? "#f5f5f5" : "inherit",
                         }}
                       >
                         {policy.description}
@@ -283,12 +417,12 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                     Showing {page * rowsPerPage + 1} -{" "}
                     {Math.min(
                       page * rowsPerPage + rowsPerPage,
-                      filteredPolicyTemplates.length,
+                      sortedPolicyTemplates.length,
                     )}{" "}
-                    of {filteredPolicyTemplates.length} items
+                    of {sortedPolicyTemplates.length} items
                   </TableCell>
                   <TablePagination
-                    count={filteredPolicyTemplates.length}
+                    count={sortedPolicyTemplates.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

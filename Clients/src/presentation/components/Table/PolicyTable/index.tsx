@@ -194,7 +194,7 @@ const CustomizablePolicyTable = ({
           return (
             <TableCell
               key={col.id}
-              style={{
+              sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...(isLastColumn && {
                   position: "sticky",

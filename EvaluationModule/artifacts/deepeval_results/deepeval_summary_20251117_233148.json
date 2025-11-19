@@ -1,0 +1,9 @@
+{
+  "model": "claude-3-opus-20240229",
+  "dataset": "experiment_dataset",
+  "total_samples": 10,
+  "timestamp": "2025-11-17T23:31:48.955501",
+  "metric_summaries": {},
+  "avg_word_count": 334.5,
+  "avg_response_length": 2090.7
+}

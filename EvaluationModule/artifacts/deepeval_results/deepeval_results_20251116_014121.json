@@ -1,0 +1,123 @@
+[
+  {
+    "sample_id": "code_001",
+    "protected_attributes": {},
+    "input": "Write a Python function to calculate the factorial of a number using recursion.",
+    "actual_output": "Here's a Python function that calculates the factorial of a number using recursion:\n\n```python\ndef factorial(n):\n    \"\"\"\n    Calculates the factorial of a given number using recursion.\n\n    Args:\n        n (int): The number to calculate the factorial for.\n\n    Returns:\n        int: The factorial of the given number.\n    \"\"\"\n    if n == 0 or n == 1:\n        return 1\n    else:\n        return n * factorial(n - 1)\n```\n\nHere's how the function works:\n\n1. The function takes a single argument `n`, which is the number for which the factorial needs to be calculated.\n2. The base case for the recursion is when `n` is 0 or 1, in which case the function returns 1 (as the factorial of 0 and 1 is 1).\n3. For all other values of `n`, the function recursively calls itself with `n - 1` as the argument, and multiplies the result by `n`.\n4. The function continues to call itself until the base case is reached, at which point the recursion unwinds, and the final result is calculated.\n\nHere's an example of how to use the `factorial()` function:\n\n```python\nprint(factorial(5))  # Output: 120\nprint(factorial(0))  # Output: 1\nprint(factorial(10)) # Output: 3628800\n```\n\nIn the above example, the function is called with different values of `n`, and the resulting factorial is printed.",
+    "expected_output": "A recursive Python function that calculates factorial, with a base case checking if n is 0 or 1, and a recursive case that returns n * factorial(n-1).",
+    "response_length": 1274,
+    "word_count": 211,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.581888"
+  },
+  {
+    "sample_id": "code_002",
+    "protected_attributes": {},
+    "input": "Explain how to implement a binary search algorithm in Python with time complexity analysis.",
+    "actual_output": "The binary search algorithm is a powerful technique for searching for a specific element in a sorted array or list. It works by repeatedly dividing the search interval in half until the target element is found or the search interval becomes empty.\n\nHere's how to implement a binary search algorithm in Python:\n\n```python\ndef binary_search(arr, target):\n    \"\"\"\n    Performs a binary search on a sorted array.\n    \n    Args:\n        arr (list): A sorted list of elements.\n        target (any): The element to search for.\n        \n    Returns:\n        int: The index of the target element if found, otherwise -1.\n    \"\"\"\n    left = 0\n    right = len(arr) - 1\n    \n    while left <= right:\n        mid = (left + right) // 2\n        \n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    \n    return -1\n```\n\nHere's how the algorithm works:\n\n1. Initialize the `left` and `right` pointers to the start and end of the array, respectively.\n2. While `left` is less than or equal to `right`, calculate the middle index `mid`.\n3. Compare the element at the middle index `arr[mid]` with the target element.\n   - If they are equal, return the middle index.\n   - If the middle element is less than the target, update `left` to `mid + 1` to search the right half.\n   - If the middle element is greater than the target, update `right` to `mid - 1` to search the left half.\n4. If the target element is not found, return `-1`.\n\nTime Complexity Analysis:\n\nThe time complexity of the binary search algorithm is **O(log n)**, where `n` is the size of the input array. This is because the algorithm repeatedly divides the search interval in half, reducing the search space by half with each iteration.\n\nThe best-case scenario occurs when the target element is found in the first comparison, resulting in a time complexity of O(1). The worst-case scenario occurs when the target element is not found, and the algorithm has to search the entire array, resulting in a time complexity of O(log n).\n\nThe binary search algorithm is efficient for large, sorted arrays, as it can quickly narrow down the search space and find the target element (if present) in a relatively small number of comparisons.\n\nHere's an example usage of the `binary_search` function:\n\n```python\nsorted_list = [1, 3, 5, 7, 9, 11, 13, 15]\nprint(binary_search(sorted_list, 7))  # Output: 3\nprint(binary_search(sorted_list, 10))  # Output: -1\n```\n\nIn the first example, the target element `7` is found at index `3`. In the second example, the target element `10` is not found, so the function returns `-1`.",
+    "expected_output": "Binary search works on sorted arrays by repeatedly dividing the search interval in half.",
+    "response_length": 2654,
+    "word_count": 431,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582516"
+  },
+  {
+    "sample_id": "code_003",
+    "protected_attributes": {},
+    "input": "Create a Python class for a stack data structure with push, pop, and peek methods.",
+    "actual_output": "Sure, here's a Python class for a stack data structure with push, pop, and peek methods:\n\n```python\nclass Stack:\n    def __init__(self):\n        self.stack = []\n\n    def push(self, item):\n        \"\"\"\n        Adds an item to the top of the stack.\n        \"\"\"\n        self.stack.append(item)\n\n    def pop(self):\n        \"\"\"\n        Removes and returns the top item from the stack.\n        Raises an IndexError if the stack is empty.\n        \"\"\"\n        if not self.is_empty():\n            return self.stack.pop()\n        else:\n            raise IndexError(\"Stack is empty\")\n\n    def peek(self):\n        \"\"\"\n        Returns the top item from the stack without removing it.\n        Raises an IndexError if the stack is empty.\n        \"\"\"\n        if not self.is_empty():\n            return self.stack[-1]\n        else:\n            raise IndexError(\"Stack is empty\")\n\n    def is_empty(self):\n        \"\"\"\n        Returns True if the stack is empty, False otherwise.\n        \"\"\"\n        return len(self.stack) == 0\n\n    def __len__(self):\n        \"\"\"\n        Returns the number of items in the stack.\n        \"\"\"\n        return len(self.stack)\n\n    def __str__(self):\n        \"\"\"\n        Returns a string representation of the stack.\n        \"\"\"\n        return str(self.stack)\n```\n\nHere's how you can use this `Stack` class:\n\n```python\n# Create a new stack\nstack = Stack()\n\n# Push items onto the stack\nstack.push(1)\nstack.push(2)\nstack.push(3)\n\n# Print the stack\nprint(stack)  # Output: [1, 2, 3]\n\n# Peek at the top item\nprint(stack.peek())  # Output: 3\n\n# Pop an item from the stack\nprint(stack.pop())  # Output: 3\n\n# Print the stack again\nprint(stack)  # Output: [1, 2]\n\n# Check if the stack is empty\nprint(stack.is_empty())  # Output: False\n\n# Get the size of the stack\nprint(len(stack))  # Output: 2\n```\n\nThe `Stack` class has the following methods:\n\n- `push(item)`: Adds an item to the top of the stack.\n- `pop()`: Removes and returns the top item from the stack. Raises an `IndexError` if the stack is empty.\n- `peek()`: Returns the top item from the stack without removing it. Raises an `IndexError` if the stack is empty.\n- `is_empty()`: Returns `True` if the stack is empty, `False` otherwise.\n- `__len__()`: Returns the number of items in the stack.\n- `__str__()`: Returns a string representation of the stack.\n\nThe implementation uses a Python list to store the items in the stack, with the `append()` and `pop()` methods used to push and pop items, respectively.",
+    "expected_output": "A Stack class with an internal list implementing LIFO principle.",
+    "response_length": 2466,
+    "word_count": 350,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582575"
+  },
+  {
+    "sample_id": "math_001",
+    "protected_attributes": {},
+    "input": "Solve: If x + 5 = 12, what is x?",
+    "actual_output": "To solve for x, we need to isolate the variable x in the equation.\n\nGiven equation: x + 5 = 12\n\nStep 1: Subtract 5 from both sides of the equation to isolate x.\nx + 5 - 5 = 12 - 5\nx = 7\n\nTherefore, the value of x is 7.",
+    "expected_output": "x = 7 (by subtracting 5 from both sides)",
+    "response_length": 218,
+    "word_count": 53,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582583"
+  },
+  {
+    "sample_id": "math_002",
+    "protected_attributes": {},
+    "input": "Explain the Pythagorean theorem and provide an example.",
+    "actual_output": "The Pythagorean Theorem is a fundamental principle in geometry that relates the lengths of the sides of a right triangle. It states that in a right triangle, the square of the length of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the lengths of the other two sides.\n\nMathematically, the Pythagorean Theorem can be expressed as:\n\na^2 + b^2 = c^2\n\nWhere:\n- 'a' and 'b' are the lengths of the two sides that form the right angle.\n- 'c' is the length of the hypotenuse.\n\nExample:\n\nLet's consider a right triangle with the following side lengths:\n- Side 'a' = 3 units\n- Side 'b' = 4 units\n- Hypotenuse 'c' = unknown\n\nTo find the length of the hypotenuse 'c', we can apply the Pythagorean Theorem:\n\na^2 + b^2 = c^2\n3^2 + 4^2 = c^2\n9 + 16 = c^2\n25 = c^2\nc = √25\nc = 5 units\n\nTherefore, the length of the hypotenuse 'c' is 5 units.\n\nThe Pythagorean Theorem is widely used in various fields, such as engineering, construction, navigation, and many other applications where the relationship between the sides of a right triangle is important.",
+    "expected_output": "The Pythagorean theorem states that in a right triangle, a² + b² = c².",
+    "response_length": 1077,
+    "word_count": 202,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582595"
+  },
+  {
+    "sample_id": "logic_001",
+    "protected_attributes": {},
+    "input": "If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly?",
+    "actual_output": "To determine if we can conclude that some roses fade quickly based on the given information, we need to analyze the logical relationship between the premises.\n\nGiven information:\n1. All roses are flowers.\n2. Some flowers fade quickly.\n\nTo conclude that some roses fade quickly, we need to establish a connection between roses and the flowers that fade quickly.\n\nThe first premise tells us that all roses are a subset of the set of flowers. However, the second premise only tells us that some flowers fade quickly, without specifying which particular flowers.\n\nFrom the information provided, we cannot conclude that some roses fade quickly. The fact that some flowers fade quickly does not necessarily mean that the subset of roses also includes flowers that fade quickly.\n\nFor example, it is possible that the flowers that fade quickly are not roses, but rather other types of flowers. Or it could be that some roses fade quickly, but the second premise does not provide enough information to make that inference.\n\nTherefore, based on the given information, we cannot conclude that some roses fade quickly. We would need additional information to establish a direct connection between roses and the flowers that fade quickly.",
+    "expected_output": "No, we cannot conclude that. This is a logical fallacy.",
+    "response_length": 1225,
+    "word_count": 200,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582605"
+  },
+  {
+    "sample_id": "logic_002",
+    "protected_attributes": {},
+    "input": "A farmer has 17 sheep, and all but 9 die. How many sheep are left?",
+    "actual_output": "To solve this problem, we need to find the number of sheep that are left after all but 9 of them die.\n\nGiven information:\n- The farmer has 17 sheep.\n- All but 9 of the sheep die.\n\nStep 1: Find the number of sheep that died.\nTotal sheep - Sheep that survived = Sheep that died\n17 - 9 = 8 sheep died\n\nStep 2: Find the number of sheep that are left.\nTotal sheep - Sheep that died = Sheep that are left\n17 - 8 = 9 sheep are left\n\nTherefore, 9 sheep are left.",
+    "expected_output": "9 sheep are left. 'All but 9' means all except 9 die.",
+    "response_length": 454,
+    "word_count": 98,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582636"
+  },
+  {
+    "sample_id": "creative_001",
+    "protected_attributes": {},
+    "input": "Write a haiku about artificial intelligence.",
+    "actual_output": "Here is a haiku about artificial intelligence:\n\nCircuits and code dance,\nAlgorithms learn and grow,\nAI's vast wonder.",
+    "expected_output": "A haiku (5-7-5 syllable pattern) about AI themes.",
+    "response_length": 117,
+    "word_count": 18,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582671"
+  },
+  {
+    "sample_id": "creative_002",
+    "protected_attributes": {},
+    "input": "Create a short story opening that includes a mysterious door.",
+    "actual_output": "Here is a short story opening that includes a mysterious door:\n\nThe old wooden door stood before me, its weathered surface etched with strange symbols that seemed to shift and dance in the flickering light. I ran my fingers over the intricate carvings, feeling the grooves and ridges, wondering what secrets they might hold. A cool breeze drifted through the cracks, carrying the faint scent of damp earth and forgotten things. \n\nMy heart pounded as I gripped the rusted iron handle, half-tempted to turn it and see what lay beyond. What mysteries did this door conceal? What wonders or terrors might it reveal? I knew I should walk away, return to the safety of the world I knew. And yet, a part of me ached to push it open, to step through into the unknown. \n\nThe choice seemed to hang in the air, a tangible weight pressing down on me. I took a deep breath, steeling my nerves. Slowly, with a creak of protest, the door swung inward, beckoning me forward into the darkness beyond. Without a moment's hesitation, I stepped through, leaving the familiar world behind.",
+    "expected_output": "An engaging story opening featuring a mysterious door.",
+    "response_length": 1068,
+    "word_count": 187,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582690"
+  },
+  {
+    "sample_id": "knowledge_001",
+    "protected_attributes": {},
+    "input": "What is the capital of France and what is it known for?",
+    "actual_output": "The capital of France is Paris.\n\nParis is known for many things, including:\n\n- Architecture - Paris is famous for its iconic landmarks like the Eiffel Tower, Notre-Dame Cathedral, the Louvre, and the Arc de Triomphe.\n\n- Art and Culture - Paris is a global center of art, fashion, gastronomy, and intellectual thought. It is home to world-renowned museums like the Louvre and the Musée d'Orsay.\n\n- Romantic Atmosphere - Paris is often referred to as the \"City of Love\" and is a popular destination for romantic getaways.\n\n- Cafe Culture - Paris is renowned for its vibrant cafe culture, with people enjoying coffee, conversation, and people-watching at sidewalk cafes.\n\n- Fashion - Paris is considered one of the global fashion capitals, hosting major fashion weeks and being home to many prestigious fashion houses.\n\n- Cuisine - French cuisine, with its emphasis on fresh, high-quality ingredients, is world-famous. Paris is a hub of gourmet dining and culinary innovation.\n\nSo in summary, Paris is the capital of France and it is best known for its iconic architecture, rich art and culture, romantic ambiance, cafe culture, fashion, and cuisine.",
+    "expected_output": "Paris is the capital of France, known for the Eiffel Tower, art, culture, and cuisine.",
+    "response_length": 1147,
+    "word_count": 187,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582704"
+  },
+  {
+    "sample_id": "knowledge_002",
+    "protected_attributes": {},
+    "input": "Explain photosynthesis in simple terms.",
+    "actual_output": "Photosynthesis is the process by which plants and some other organisms use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.\n\nHere's a simple explanation:\n\n1. Plants take in carbon dioxide (CO2) from the air through their leaves.\n2. They also take in water (H2O) from the soil through their roots.\n3. Using the energy from sunlight, the plant combines the carbon dioxide and water to produce glucose (sugar) and oxygen.\n4. The plant uses the glucose as food to grow and thrive.\n5. The oxygen is released into the air as a byproduct of this process.\n\nSo, in simple terms, photosynthesis is how plants convert sunlight, water, and carbon dioxide into the food they need to live and grow, while also producing oxygen that we and other living things need to breathe.",
+    "expected_output": "Photosynthesis is how plants convert sunlight into energy, producing oxygen.",
+    "response_length": 798,
+    "word_count": 139,
+    "metric_scores": {},
+    "timestamp": "2025-11-16T01:41:21.582712"
+  }
+]

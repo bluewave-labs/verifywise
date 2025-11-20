@@ -22,7 +22,7 @@ const ProgressDots: React.FC<ProgressDotsProps> = ({ totalSteps, currentStep }) 
           sx={{
             width: currentStep === index ? 48 : 16,
             height: 8,
-            borderRadius: currentStep === index ? 4 : "50%",
+            borderRadius: 4,
             backgroundColor: currentStep === index ? "#13715B" : "rgba(0, 0, 0, 0.3)",
             transition: "all 0.3s ease",
           }}

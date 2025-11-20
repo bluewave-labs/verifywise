@@ -227,62 +227,64 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </Box>
           </Box>
 
-          {/* Footer with progress and navigation */}
-          <Box
-            sx={{
-              padding: "32px",
-              paddingTop: 0,
-            }}
-          >
-            <Stack spacing={3}>
-              <ProgressDots totalSteps={totalSteps} currentStep={currentStepIndex} />
+          {/* Footer with progress and navigation - Hidden on completion step */}
+          {currentStepConfig.componentName !== "CompletionStep" && (
+            <Box
+              sx={{
+                padding: "32px",
+                paddingTop: 0,
+              }}
+            >
+              <Stack spacing={3}>
+                <ProgressDots totalSteps={totalSteps} currentStep={currentStepIndex} />
 
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <CustomizableButton
-                  variant="text"
-                  text="Skip onboarding"
-                  onClick={handleSkipStep}
-                  sx={{
-                    color: "#6B7280",
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                      color: "#374151",
-                    },
-                  }}
-                />
-
-                <Stack direction="row" gap={2}>
-                  {!stepProps.isFirstStep && (
-                    <CustomizableButton
-                      variant="outlined"
-                      text="Back"
-                      onClick={handleBack}
-                      startIcon={<ArrowLeft size={16} />}
-                      sx={{
-                        borderColor: "#D0D5DD",
-                        color: "#344054",
-                        "&:hover": {
-                          borderColor: "#98A2B3",
-                        },
-                      }}
-                    />
-                  )}
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <CustomizableButton
-                    variant="contained"
-                    text={stepProps.isLastStep ? "Finish" : "Next"}
-                    onClick={handleNext}
-                    endIcon={stepProps.isLastStep ? <Check size={16} /> : <ArrowRight size={16} />}
+                    variant="text"
+                    text="Skip onboarding"
+                    onClick={handleSkipStep}
                     sx={{
-                      backgroundColor: "#13715B",
+                      color: "#6B7280",
                       "&:hover": {
-                        backgroundColor: "#0F5A47",
+                        backgroundColor: "transparent",
+                        color: "#374151",
                       },
                     }}
                   />
+
+                  <Stack direction="row" gap={2}>
+                    {!stepProps.isFirstStep && (
+                      <CustomizableButton
+                        variant="outlined"
+                        text="Back"
+                        onClick={handleBack}
+                        startIcon={<ArrowLeft size={16} />}
+                        sx={{
+                          borderColor: "#D0D5DD",
+                          color: "#344054",
+                          "&:hover": {
+                            borderColor: "#98A2B3",
+                          },
+                        }}
+                      />
+                    )}
+                    <CustomizableButton
+                      variant="contained"
+                      text={stepProps.isLastStep ? "Finish" : "Next"}
+                      onClick={handleNext}
+                      endIcon={stepProps.isLastStep ? <Check size={16} /> : <ArrowRight size={16} />}
+                      sx={{
+                        backgroundColor: "#13715B",
+                        "&:hover": {
+                          backgroundColor: "#0F5A47",
+                        },
+                      }}
+                    />
+                  </Stack>
                 </Stack>
               </Stack>
-            </Stack>
-          </Box>
+            </Box>
+          )}
         </Box>
       </Box>
 

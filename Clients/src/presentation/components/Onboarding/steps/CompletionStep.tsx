@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import CustomizableButton from "../../Button/CustomizableButton";
 
-const CompletionStep: React.FC<OnboardingStepProps> = () => {
+const CompletionStep: React.FC<OnboardingStepProps> = ({ onNext }) => {
   useEffect(() => {
     // Fire confetti when component mounts
     const duration = 3000;
@@ -88,27 +89,45 @@ const CompletionStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Stack>
 
-      <Box
-        sx={{
-          backgroundColor: "#F0FDF4",
-          border: "1px solid #D1FAE5",
-          borderRadius: "4px",
-          padding: 3,
-          width: "100%",
-          maxWidth: "500px",
-        }}
-      >
-        <Typography
+      <Stack alignItems="center" sx={{ width: "100%" }}>
+        <Box
           sx={{
-            fontSize: "13px",
-            color: "#13715B",
-            textAlign: "center",
-            lineHeight: 1.6,
+            backgroundColor: "#F0FDF4",
+            border: "1px solid #D1FAE5",
+            borderRadius: "4px",
+            padding: 3,
+            width: "100%",
+            maxWidth: "500px",
           }}
         >
-          Click "Finish" below to start exploring VerifyWise and begin your AI governance journey
-        </Typography>
-      </Box>
+          <Typography
+            sx={{
+              fontSize: "13px",
+              color: "#13715B",
+              textAlign: "center",
+              lineHeight: 1.6,
+            }}
+          >
+            Click "Finish" below to start exploring VerifyWise and begin your AI governance journey
+          </Typography>
+        </Box>
+
+        <CustomizableButton
+          variant="contained"
+          text="Finish"
+          onClick={onNext}
+          endIcon={<Check size={16} />}
+          sx={{
+            marginTop: "32px",
+            backgroundColor: "#13715B",
+            fontSize: "14px",
+            padding: "10px 24px",
+            "&:hover": {
+              backgroundColor: "#0F5A47",
+            },
+          }}
+        />
+      </Stack>
     </Stack>
   );
 };

@@ -66,7 +66,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}
@@ -107,7 +107,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
             padding: 2,
             backgroundColor: "#FEF3C7",
             border: "1px solid #FDE68A",
-            borderRadius: "8px",
+            borderRadius: "4px",
           }}
         >
           <Typography sx={{ fontSize: "18px" }}>{DEMO_PROJECT_BANNER.icon}</Typography>
@@ -187,7 +187,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
                     margin: 0,
                     padding: 2,
                     border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
+                    borderRadius: "4px",
                     "&:hover": {
                       backgroundColor: "#F9FAFB",
                     },
@@ -200,7 +200,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
                   padding: 2,
                   backgroundColor: "#FEF2F2",
                   border: "1px solid #FECACA",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                 }}
               >
                 <Typography sx={{ fontSize: "12px", color: "#991B1B" }}>
@@ -221,7 +221,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
             padding: 3,
             backgroundColor: "#F0FDF4",
             border: "1px solid #D1FAE5",
-            borderRadius: "8px",
+            borderRadius: "4px",
           }}
         >
           <Typography
@@ -265,7 +265,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
               padding: 2,
               backgroundColor: "#FEF2F2",
               border: "1px solid #FECACA",
-              borderRadius: "8px",
+              borderRadius: "4px",
             }}
           >
             <Typography sx={{ fontSize: "12px", color: "#991B1B" }}>

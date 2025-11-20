@@ -21,7 +21,7 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}
@@ -90,10 +90,10 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
           <Box
             key={index}
             sx={{
-              padding: 6,
-              backgroundColor: "white",
+              padding: 12,
+              background: `linear-gradient(135deg, ${feature.color}08 0%, transparent 100%)`,
               border: "1px solid #E5E7EB",
-              borderRadius: "8px",
+              borderRadius: "4px",
               display: "flex",
               flexDirection: "column",
               gap: 1.5,
@@ -108,7 +108,7 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
               sx={{
                 width: "40px",
                 height: "40px",
-                borderRadius: "8px",
+                borderRadius: "4px",
                 backgroundColor: `${feature.color}15`,
                 color: feature.color,
                 display: "flex",

@@ -45,7 +45,7 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}
@@ -89,10 +89,10 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
           <Box
             key={index}
             sx={{
-              padding: 5,
-              backgroundColor: "white",
+              padding: 10,
+              background: "linear-gradient(135deg, #13715B08 0%, transparent 100%)",
               border: "1px solid #E5E7EB",
-              borderRadius: "8px",
+              borderRadius: "4px",
               display: "flex",
               flexDirection: "column",
               gap: 1,

@@ -46,7 +46,7 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}
@@ -87,7 +87,7 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
               padding: 3,
               backgroundColor: "white",
               border: "2px solid #E5E7EB",
-              borderRadius: "8px",
+              borderRadius: "4px",
               transition: "all 0.2s",
               "&:hover": {
                 borderColor: task.color,
@@ -100,7 +100,7 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
                 sx={{
                   width: "48px",
                   height: "48px",
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   backgroundColor: `${task.color}15`,
                   color: task.color,
                   display: "flex",

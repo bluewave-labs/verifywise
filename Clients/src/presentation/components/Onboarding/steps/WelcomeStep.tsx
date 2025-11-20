@@ -27,7 +27,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}
@@ -64,7 +64,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
         sx={{
           backgroundColor: "#F0FDF4",
           border: "1px solid #D1FAE5",
-          borderRadius: "8px",
+          borderRadius: "4px",
           padding: 4,
           width: "100%",
         }}

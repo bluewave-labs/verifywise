@@ -56,7 +56,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
             width: "100%",
             height: "auto",
             maxHeight: "200px",
-            borderRadius: "8px",
+            borderRadius: "4px",
             objectFit: "cover",
             display: "block",
           }}

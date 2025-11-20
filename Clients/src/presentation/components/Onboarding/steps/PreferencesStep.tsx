@@ -94,6 +94,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
           <Select
             id="role-select"
             label=""
+            placeholder="Select your role"
             value={selectedRoleId}
             onChange={handleRoleChange}
             items={roleItems}
@@ -117,6 +118,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
           <Select
             id="industry-select"
             label=""
+            placeholder="Select your industry"
             value={selectedIndustryId}
             onChange={handleIndustryChange}
             items={industryItems}

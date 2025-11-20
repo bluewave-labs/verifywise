@@ -13,6 +13,7 @@ import {
   Avatar,
   Fade,
   Modal,
+  Button,
 } from "@mui/material";
 import {
   Upload as UploadIcon,
@@ -92,6 +93,28 @@ const formatFileSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// Delete modal button styles (matching uploader component patterns)
+const BasicModalCancelButtonStyle = {
+  textTransform: "none",
+  fontSize: 13,
+  borderRadius: "4px",
+  color: "#344054",
+  "&:hover": {
+    backgroundColor: "rgba(19, 113, 91, 0.04)",
+  },
+};
+
+const BasicModalDeleteButtonStyle = {
+  fontSize: 13,
+  backgroundColor: "#DB504A",
+  border: "1px solid #DB504A",
+  boxShadow: "none",
+  borderRadius: "4px",
+  "&:hover": {
+    boxShadow: "none",
+  },
 };
 
 const generateFileId = (): string => {
@@ -805,7 +828,11 @@ const Uploader: React.FC<UploaderProps> = ({
         {/* Delete Confirmation Modal */}
         <Modal
           open={deleteModal.isOpen}
-          onClose={() => setDeleteModal({ isOpen: false, file: null })}
+          onClose={(_event, reason) => {
+            if (reason !== "backdropClick") {
+              setDeleteModal({ isOpen: false, file: null });
+            }
+          }}
           aria-labelledby="delete-modal-title"
           aria-describedby="delete-modal-description"
         >
@@ -815,39 +842,71 @@ const Uploader: React.FC<UploaderProps> = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '100%',
-              maxWidth: 400,
-              backgroundColor: '#FCFCFD',
-              borderRadius: '8px',
-              boxShadow: '0px 10px 25px -5px rgba(16, 24, 40, 0.1), 0px 4px 6px -2px rgba(16, 24, 40, 0.05)',
-              p: 3,
+              width: 450,
+              bgcolor: '#FCFCFD',
+              border: `1px solid #EAECF0`,
+              borderRadius: '4px',
+              boxShadow: 'none',
               outline: 'none',
+              overflow: 'hidden',
             }}
           >
-            <Stack spacing={3}>
-              <Box textAlign="center">
-                <Typography id="delete-modal-title" variant="h6" sx={{ fontWeight: 600, fontSize: '18px', color: '#1A1919' }}>
-                  Delete File
-                </Typography>
-                <Typography id="delete-modal-description" variant="body2" sx={{ fontSize: '14px', color: '#344054', mt: 1 }}>
-                  Are you sure you want to delete "{deleteModal.file?.name}"? This action cannot be undone.
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <CustomizableButton
-                  variant="text"
-                  onClick={() => setDeleteModal({ isOpen: false, file: null })}
-                  text="Cancel"
-                  sx={{ color: "#344054" }}
-                />
-                <CustomizableButton
-                  variant="contained"
-                  color="error"
-                  onClick={confirmDeleteFile}
-                  text="Delete"
-                />
-              </Stack>
-            </Stack>
+            {/* Content */}
+            <Box sx={{ p: 3 }}>
+              <Typography
+                id="delete-modal-title"
+                variant="body1"
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  mb: 2,
+                }}
+              >
+                Delete this file?
+              </Typography>
+
+              <Typography
+                id="delete-modal-description"
+                variant="body2"
+                sx={{
+                  fontSize: '13px',
+                  color: '#344054',
+                  mb: 2,
+                  lineHeight: 1.5,
+                }}
+              >
+                This action is non-recoverable and the file "{deleteModal.file?.name}" will be permanently removed.
+              </Typography>
+            </Box>
+
+            {/* Actions */}
+            <Box
+              sx={{
+                p: 3,
+                pt: 0,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 2,
+                borderTop: `1px solid #EAECF0`,
+              }}
+            >
+              <Button
+                variant="text"
+                onClick={() => setDeleteModal({ isOpen: false, file: null })}
+                sx={BasicModalCancelButtonStyle}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={confirmDeleteFile}
+                sx={BasicModalDeleteButtonStyle}
+              >
+                Delete file
+              </Button>
+            </Box>
           </Box>
         </Modal>
       </Paper>

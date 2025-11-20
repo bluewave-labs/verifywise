@@ -9,25 +9,25 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
   const capabilities = [
     {
       icon: <AlertTriangle size={18} />,
-      title: "Identify Risks",
+      title: "Identify risks",
       description: "Catalog potential risks across your AI systems",
       color: "#EF4444",
     },
     {
       icon: <Users size={18} />,
-      title: "Assign Ownership",
+      title: "Assign ownership",
       description: "Delegate risk mitigation to responsible teams",
       color: "#F59E0B",
     },
     {
       icon: <Clock size={18} />,
-      title: "Track Progress",
+      title: "Track progress",
       description: "Monitor mitigation efforts in real-time",
       color: "#3B82F6",
     },
     {
       icon: <CheckCircle size={18} />,
-      title: "Close Risks",
+      title: "Close risks",
       description: "Mark risks as resolved when mitigation is complete",
       color: "#10B981",
     },

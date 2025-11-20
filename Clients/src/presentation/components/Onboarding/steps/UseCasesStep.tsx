@@ -64,25 +64,25 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
         {[
           {
             icon: <FolderPlus size={20} />,
-            title: "Create Use Cases",
+            title: "Create use cases",
             description: "Document your AI projects with detailed information about goals, teams, and timelines.",
             color: "#3B82F6",
           },
           {
             icon: <Users size={20} />,
-            title: "Assign Teams",
+            title: "Assign teams",
             description: "Collaborate with team members by assigning owners and stakeholders to each project.",
             color: "#F59E0B",
           },
           {
             icon: <TrendingUp size={20} />,
-            title: "Track Status",
+            title: "Track status",
             description: "Monitor progress from initiation to completion with real-time status updates.",
             color: "#8B5CF6",
           },
           {
             icon: <Shield size={20} />,
-            title: "Ensure Compliance",
+            title: "Ensure compliance",
             description: "Link projects to relevant frameworks and ensure regulatory requirements are met.",
             color: "#10B981",
           },

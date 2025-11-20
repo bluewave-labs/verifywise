@@ -9,12 +9,12 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
   const workflowSteps = [
     {
       icon: <Bell size={20} />,
-      title: "Receive Notifications",
+      title: "Receive notifications",
       description: "Get alerted when tasks are assigned to you or when updates are made to your projects.",
     },
     {
       icon: <CheckSquare size={20} />,
-      title: "Complete Tasks",
+      title: "Complete tasks",
       description: "Review assigned compliance and risk mitigation tasks from your dashboard.",
     },
     {
@@ -24,7 +24,7 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
     },
     {
       icon: <BarChart3 size={20} />,
-      title: "Track Progress",
+      title: "Track progress",
       description: "Monitor your task completion and contribution to organizational compliance.",
     },
   ];

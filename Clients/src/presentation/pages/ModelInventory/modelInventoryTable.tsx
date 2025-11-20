@@ -24,7 +24,7 @@ import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import EmptyState from "../../components/EmptyState";
-import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryTableProps } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
 import {
@@ -61,16 +61,6 @@ const TABLE_COLUMNS = [
   { id: "status_date", label: "STATUS DATE" },
   { id: "actions", label: "" },
 ];
-
-interface ModelInventoryTableProps {
-  data: IModelInventory[];
-  isLoading?: boolean;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string, deleteRisks?: boolean) => void;
-  onCheckModelHasRisks?: (id: string) => Promise<boolean>;
-  paginated?: boolean;
-  deletingId?: string | null;
-}
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 

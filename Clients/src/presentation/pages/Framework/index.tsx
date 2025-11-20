@@ -1,7 +1,25 @@
-import { Stack, Typography, Box } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Modal
+} from "@mui/material";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  Settings as SettingsIcon,
+  Trash2 as DeleteIconRed,
+  Pencil as EditIconGrey,
+  ChevronDown as WhiteDownArrowIcon,
+} from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
@@ -14,8 +32,15 @@ import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
+import ProjectForm from "../../components/Forms/ProjectForm";
+import AddFrameworkModal from "../ProjectView/AddNewFramework";
+import allowedRoles from "../../../application/constants/permissions";
+import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import { deleteProject } from "../../../application/repository/project.repository";
+import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import singleTheme from "../../themes/v1SingleTheme";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
@@ -60,6 +85,7 @@ const Framework = () => {
   const [searchParams] = useSearchParams();
   const { tab } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
+  const dropDownStyle = singleTheme.dropDownStyles.primary;
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -81,7 +107,7 @@ const Framework = () => {
   const subcategoryId = searchParams.get("subcategoryId");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  const { changeComponentVisibility, projects, setProjects } =
+  const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
@@ -91,6 +117,17 @@ const Framework = () => {
   const organizationalProject = useMemo(() => {
     return projects.find((project) => project.is_organizational === true);
   }, [projects]);
+
+  // State for modals
+  const [isProjectFormModalOpen, setIsProjectFormModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // State for dropdown menu
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
+  const [rotated, setRotated] = useState(false);
 
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
@@ -105,6 +142,60 @@ const Framework = () => {
       }
     } catch (error) {
       console.error("Error refreshing projects:", error);
+    }
+  };
+
+  // Handle dropdown menu
+  const handleManageProjectClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setRotated(false);
+  };
+
+  const handleManageFrameworksClick = () => {
+    setIsFrameworkModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleEditProjectClick = () => {
+    setIsEditProjectModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteProjectClick = () => {
+    setIsDeleteModalOpen(true);
+    handleMenuClose();
+  };
+
+  // Function to handle project deletion
+  const handleDeleteProject = async () => {
+    if (!organizationalProject) return;
+
+    try {
+      const response = await deleteProject({
+        id: organizationalProject.id,
+      });
+
+      if (response.status >= 200 && response.status < 300) {
+        // Remove the project from context
+        setProjects((prevProjects) =>
+          prevProjects.filter(
+            (project) => project.id !== organizationalProject.id
+          )
+        );
+        // Stay on the Framework page - the UI will automatically show "No Organizational Project Found"
+      } else {
+        console.error("Failed to delete project");
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    } finally {
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -695,16 +786,339 @@ const Framework = () => {
         ]}
       />
       <PageBreadcrumbs />
-      <PageHeader
-        title="Organizational Frameworks"
-        description="This page provides an overview of available AI and data governance frameworks to your organization."
-        rightContent={
-          <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
-        }
-      />
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <PageHeader
+          title="Organizational Frameworks"
+          description="This page provides an overview of available AI and data governance frameworks to your organization."
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
+        {/* Manage Project / New Project Button */}
+        <Box>
+          {organizationalProject ? (
+            <>
+              <Button
+                variant="contained"
+                endIcon={<WhiteDownArrowIcon size={16} />}
+                onClick={(event: React.MouseEvent<any>) => {
+                  setRotated((prev) => !prev);
+                  handleManageProjectClick(event);
+                }}
+                disableRipple
+                disabled={
+                  !allowedRoles.frameworks.manage.includes(userRoleName) &&
+                  !allowedRoles.projects.edit.includes(userRoleName) &&
+                  !allowedRoles.projects.delete.includes(userRoleName)
+                }
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#0e5c47",
+                    boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#cccccc",
+                    color: "#666666",
+                    boxShadow: "none",
+                  },
+                  "& .MuiButton-endIcon": {
+                    marginLeft: 1,
+                    transition: "transform 0.2s ease",
+                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
+                  },
+                }}
+              >
+                Manage Project
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={isMenuOpen}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      ...dropDownStyle,
+                      width: 200,
+                      mt: 1,
+                    },
+                  },
+                }}
+              >
+                <MenuItem
+                  onClick={handleManageFrameworksClick}
+                  disabled={
+                    !allowedRoles.frameworks.manage.includes(userRoleName)
+                  }
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <SettingsIcon
+                      size={16}
+                      style={{
+                        color: "text.secondary",
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Manage Frameworks"
+                    primaryTypographyProps={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      color: "text.primary",
+                    }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={handleEditProjectClick}
+                  disabled={!allowedRoles.projects.edit.includes(userRoleName)}
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <EditIconGrey
+                      size={16}
+                      style={{
+                        color: "text.secondary",
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Edit Project"
+                    primaryTypographyProps={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      color: "text.primary",
+                    }}
+                  />
+                </MenuItem>
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem
+                  onClick={handleDeleteProjectClick}
+                  disabled={
+                    !allowedRoles.projects.delete.includes(userRoleName)
+                  }
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <DeleteIconRed
+                      size={16}
+                      style={{
+                        color: "#DB504A",
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Delete Project"
+                    primaryTypographyProps={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      color: "error.main",
+                    }}
+                  />
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              startIcon={<AddCircleOutlineIcon size={16} />}
+              onClick={() => setIsProjectFormModalOpen(true)}
+              disabled={!allowedRoles.projects.create.includes(userRoleName)}
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "#0e5c47",
+                },
+                "&:disabled": {
+                  backgroundColor: "#cccccc",
+                  color: "#666666",
+                },
+              }}
+            >
+              New Project
+            </Button>
+          )}
+        </Box>
+      </Stack>
+
+      {/* <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          mb: 2,
+        }}
+      >
+        {organizationalProject ? (
+          <>
+            <Button
+              variant="contained"
+              endIcon={<WhiteDownArrowIcon size={16} />}
+              onClick={(event: React.MouseEvent<any>) => {
+                setRotated((prev) => !prev);
+                handleManageProjectClick(event);
+              }}
+              disableRipple
+              disabled={
+                !allowedRoles.frameworks.manage.includes(userRoleName) &&
+                !allowedRoles.projects.edit.includes(userRoleName) &&
+                !allowedRoles.projects.delete.includes(userRoleName)
+              }
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "#0e5c47",
+                  boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
+                },
+                "&:disabled": {
+                  backgroundColor: "#cccccc",
+                  color: "#666666",
+                  boxShadow: "none",
+                },
+                "& .MuiButton-endIcon": {
+                  marginLeft: 1,
+                  transition: "transform 0.2s ease",
+                  transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
+                },
+              }}
+            >
+              Manage Project
+            </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={isMenuOpen}
+              onClose={handleMenuClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    ...dropDownStyle,
+                    width: 200,
+                    mt: 1,
+                  },
+                },
+              }}
+            >
+              <MenuItem
+                onClick={handleManageFrameworksClick}
+                disabled={
+                  !allowedRoles.frameworks.manage.includes(userRoleName)
+                }
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <SettingsIcon
+                    size={16}
+                    style={{
+                      color: "text.secondary",
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Manage Frameworks"
+                  primaryTypographyProps={{
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "text.primary",
+                  }}
+                />
+              </MenuItem>
+              <MenuItem
+                onClick={handleEditProjectClick}
+                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <EditIconGrey
+                    size={16}
+                    style={{
+                      color: "text.secondary",
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Edit Project"
+                  primaryTypographyProps={{
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "text.primary",
+                  }}
+                />
+              </MenuItem>
+              <Divider sx={{ my: 0.5 }} />
+              <MenuItem
+                onClick={handleDeleteProjectClick}
+                disabled={
+                  !allowedRoles.projects.delete.includes(userRoleName)
+                }
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <DeleteIconRed
+                    size={16}
+                    style={{
+                      color: "#DB504A",
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Delete Project"
+                  primaryTypographyProps={{
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "error.main",
+                  }}
+                />
+              </MenuItem>
+            </Menu>
+          </>
+        ) : (
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlineIcon size={16} />}
+            onClick={() => setIsProjectFormModalOpen(true)}
+            disabled={!allowedRoles.projects.create.includes(userRoleName)}
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#0e5c47",
+              },
+              "&:disabled": {
+                backgroundColor: "#cccccc",
+                color: "#666666",
+              },
+            }}
+          >
+            New Project
+          </Button>
+        )}
+      </Box> */}
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
@@ -810,6 +1224,134 @@ const Framework = () => {
       {/* Show message when no organizational project exists */}
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001, ISO 42001, and NIST AI RMF frameworks for your organization." />
+      )}
+
+      {/* Modals */}
+      {isProjectFormModalOpen && (
+        <Modal
+          open={isProjectFormModalOpen}
+          onClose={(_event: any, reason: string) => {
+            // Prevent closing on backdrop click
+            if (reason === "backdropClick") {
+              return;
+            }
+            setIsProjectFormModalOpen(false);
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: 24,
+              maxHeight: "90vh",
+              maxWidth: "90vw",
+              overflow: "auto",
+              outline: "none",
+              p: 0,
+            }}
+          >
+            <ProjectForm
+              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+              onClose={async () => {
+                setIsProjectFormModalOpen(false);
+                // Refresh project data after creating a new project
+                await refreshProjectData();
+              }}
+            />
+          </Box>
+        </Modal>
+      )}
+
+      {isEditProjectModalOpen && organizationalProject && (
+        <Modal
+          open={isEditProjectModalOpen}
+          onClose={(_event: any, reason: string) => {
+            // Prevent closing on backdrop click
+            if (reason === "backdropClick") {
+              return;
+            }
+            setIsEditProjectModalOpen(false);
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: 24,
+              maxHeight: "90vh",
+              maxWidth: "90vw",
+              overflow: "auto",
+              outline: "none",
+              p: 0,
+            }}
+          >
+            <ProjectForm
+              projectToEdit={organizationalProject}
+              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+              onClose={async () => {
+                setIsEditProjectModalOpen(false);
+                // Refresh project data after editing the project
+                await refreshProjectData();
+              }}
+            />
+          </Box>
+        </Modal>
+      )}
+
+      {isFrameworkModalOpen && organizationalProject && (
+        <AddFrameworkModal
+          open={isFrameworkModalOpen}
+          onClose={() => setIsFrameworkModalOpen(false)}
+          frameworks={allFrameworks.filter((framework) => {
+            // Only show organizational frameworks (ISO 27001 and ISO 42001) for organizational projects
+            const isNotEuAiAct = !framework.name
+              .toLowerCase()
+              .includes("eu ai act");
+            const isIsoFramework =
+              framework.name.toLowerCase().includes("iso 27001") ||
+              framework.name.toLowerCase().includes("iso 42001");
+            return isNotEuAiAct && isIsoFramework;
+          })}
+          project={organizationalProject}
+          onFrameworksChanged={async () => {
+            // Refresh both frameworks and project data
+            await refreshProjectData();
+            refreshFilteredFrameworks();
+            setIsFrameworkModalOpen(false);
+          }}
+        />
+      )}
+
+      {isDeleteModalOpen && organizationalProject && (
+        <DualButtonModal
+          title="Confirm Delete"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to delete the project "
+              {organizationalProject.project_title}"? This action cannot be
+              undone and will remove all associated data.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={() => setIsDeleteModalOpen(false)}
+          onProceed={handleDeleteProject}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
       )}
 
       {/* Page Tour */}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio } from "@mui/material";
+import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { OnboardingRole, OnboardingIndustry, OnboardingUseCase } from "../../../../domain/enums/onboarding.enum";
 import Illustration from "../Illustrations";
@@ -21,18 +21,18 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
     name: industry,
   }));
 
-  const handleRoleChange = (event: any) => {
-    const selectedRole = Object.values(OnboardingRole).find(
-      (role) => roleItems.find(item => item._id === Number(event.target.value))?.name === role
-    );
-    updatePreferences?.({ role: selectedRole });
+  const handleRoleChange = (event: SelectChangeEvent<string | number>) => {
+    const selectedItem = roleItems.find(item => item._id === Number(event.target.value));
+    if (selectedItem) {
+      updatePreferences?.({ role: selectedItem.name });
+    }
   };
 
-  const handleIndustryChange = (event: any) => {
-    const selectedIndustry = Object.values(OnboardingIndustry).find(
-      (industry) => industryItems.find(item => item._id === Number(event.target.value))?.name === industry
-    );
-    updatePreferences?.({ industry: selectedIndustry });
+  const handleIndustryChange = (event: SelectChangeEvent<string | number>) => {
+    const selectedItem = industryItems.find(item => item._id === Number(event.target.value));
+    if (selectedItem) {
+      updatePreferences?.({ industry: selectedItem.name });
+    }
   };
 
   const handleUseCaseChange = (event: React.ChangeEvent<HTMLInputElement>) => {

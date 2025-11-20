@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Stack, FormControl, Checkbox, FormControlLabel } from "@mui/material";
+import { Box, Typography, Stack, FormControl, Checkbox, FormControlLabel, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
@@ -7,6 +7,14 @@ import { DEMO_PROJECT_BANNER } from "../onboardingConstants";
 import Select from "../../../components/Inputs/Select";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
+
+const USE_CASE_TEMPLATES = [
+  { _id: "demo-chatbot", name: "AI Chatbot for Customer Support" },
+  { _id: "demo-analytics", name: "Predictive Analytics System" },
+  { _id: "demo-cv", name: "Computer Vision for Quality Control" },
+  { _id: "demo-nlp", name: "Document Processing with NLP" },
+  { _id: "demo-recommendation", name: "Recommendation Engine" },
+];
 
 const SampleProjectStep: React.FC<OnboardingStepProps> = ({
   sampleProject,
@@ -17,9 +25,11 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
     sampleProject?.selectedFrameworks || []
   );
 
+  const hasFrameworks = allFrameworks && allFrameworks.length > 0;
+
   // Handle use case selection
-  const handleUseCaseChange = (event: any) => {
-    updateSampleProject?.({ useCaseName: event.target.value });
+  const handleUseCaseChange = (event: SelectChangeEvent<string | number>) => {
+    updateSampleProject?.({ useCaseName: String(event.target.value) });
   };
 
   // Handle framework checkbox changes
@@ -105,13 +115,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
             label=""
             value={sampleProject?.useCaseName || ""}
             onChange={handleUseCaseChange}
-            items={[
-              { _id: "demo-chatbot", name: "AI Chatbot for Customer Support" },
-              { _id: "demo-analytics", name: "Predictive Analytics System" },
-              { _id: "demo-cv", name: "Computer Vision for Quality Control" },
-              { _id: "demo-nlp", name: "Document Processing with NLP" },
-              { _id: "demo-recommendation", name: "Recommendation Engine" },
-            ]}
+            items={USE_CASE_TEMPLATES}
             sx={{ width: "100%" }}
           />
           <Typography sx={{ fontSize: "12px", color: "#6B7280", marginTop: 1 }}>
@@ -133,42 +137,57 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
           </Typography>
 
           <Stack spacing={1.5}>
-            {allFrameworks?.map((framework: Framework) => (
-              <FormControlLabel
-                key={framework.id}
-                control={
-                  <Checkbox
-                    checked={selectedFrameworks.includes(Number(framework.id))}
-                    onChange={() => handleFrameworkToggle(Number(framework.id))}
-                    sx={{
-                      color: "#D0D5DD",
-                      "&.Mui-checked": {
-                        color: "#13715B",
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography sx={{ fontSize: "13px", color: "#111827", fontWeight: 500 }}>
-                      {framework.name}
-                    </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                      {framework.description || "Compliance framework for AI governance"}
-                    </Typography>
-                  </Box>
-                }
+            {hasFrameworks ? (
+              allFrameworks.map((framework: Framework) => (
+                <FormControlLabel
+                  key={framework.id}
+                  control={
+                    <Checkbox
+                      checked={selectedFrameworks.includes(Number(framework.id))}
+                      onChange={() => handleFrameworkToggle(Number(framework.id))}
+                      sx={{
+                        color: "#D0D5DD",
+                        "&.Mui-checked": {
+                          color: "#13715B",
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography sx={{ fontSize: "13px", color: "#111827", fontWeight: 500 }}>
+                        {framework.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        {framework.description || "Compliance framework for AI governance"}
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    margin: 0,
+                    padding: 2,
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "8px",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                    },
+                  }}
+                />
+              ))
+            ) : (
+              <Box
                 sx={{
-                  margin: 0,
                   padding: 2,
-                  border: "1px solid #E5E7EB",
+                  backgroundColor: "#FEF2F2",
+                  border: "1px solid #FECACA",
                   borderRadius: "8px",
-                  "&:hover": {
-                    backgroundColor: "#F9FAFB",
-                  },
                 }}
-              />
-            ))}
+              >
+                <Typography sx={{ fontSize: "12px", color: "#991B1B" }}>
+                  No frameworks available. Please contact support if this issue persists.
+                </Typography>
+              </Box>
+            )}
           </Stack>
 
           <Typography sx={{ fontSize: "12px", color: "#6B7280", marginTop: 1 }}>

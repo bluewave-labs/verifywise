@@ -5,6 +5,13 @@ import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { ONBOARDING_DURATION } from "../onboardingConstants";
 
+const WELCOME_FEATURES = [
+  "How to manage AI use cases and projects",
+  "Applying compliance frameworks like EU AI Act",
+  "Tracking and mitigating AI risks",
+  "Setting up your organization for success",
+] as const;
+
 const WelcomeStep: React.FC<OnboardingStepProps> = () => {
   return (
     <Stack spacing={4} alignItems="center">
@@ -64,12 +71,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
           What you'll learn:
         </Typography>
         <Stack spacing={1} sx={{ paddingLeft: 2 }}>
-          {[
-            "How to manage AI use cases and projects",
-            "Applying compliance frameworks like EU AI Act",
-            "Tracking and mitigating AI risks",
-            "Setting up your organization for success",
-          ].map((item, index) => (
+          {WELCOME_FEATURES.map((item, index) => (
             <Box key={index} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Box
                 sx={{

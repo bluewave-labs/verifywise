@@ -11,11 +11,12 @@ import {
     stepNumberStyle,
 } from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 
-const approverRoles = [
-    { _id: 1, name: "Bussiness owner" },
-    { _id: 2, name: "Product owner" },
+const APPROVERS = [
+    { _id: 1, name: "James Smith" },
+    { _id: 2, name: "John Doe" },
 ];
 
 const entities = [
@@ -36,7 +37,12 @@ interface ICreateApprovalWorkflowProps {
         steps: ApprovalWorkflowStepModel[];
     }
     isEdit?: boolean;
-    mode?: "create" | "edit";
+    mode?: string;
+    onSuccess?: (data: {
+        workflow_title: string;
+        entity_name: string;
+        steps: ApprovalWorkflowStepModel[];
+    }) => void;
 }
 
 const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
@@ -45,6 +51,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     initialData,
     isEdit = false,
     mode,
+    onSuccess
 }) => {
 
     const theme = useTheme();
@@ -76,11 +83,83 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         }
     }, [initialData, isEdit]);
 
-    const handleNewStepClick = () => setStepsCount(stepsCount + 1);
-    const removeStep = (step: number) => {
-        if (stepsCount > 1) {
-            setStepsCount(stepsCount - 1);
+
+    const validateForm = (): boolean => {
+        if (!workflowTitle.trim()) {
+            logEngine({
+                type: "error",
+                message: "Workflow title is required.",
+            });
+            return false;
         }
+        if (!entityName.trim()) {
+            logEngine({
+                type: "error",
+                message: "Entity is required.",
+            });
+            return false;
+        }
+        if (!workflowSteps || workflowSteps.length === 0) {
+            logEngine({
+                type: "error",
+                message: "At least one workflow step is required.",
+            });
+            return false;
+        }
+        for (let i = 0; i < workflowSteps.length; i++) {
+            const step = workflowSteps[i];
+            if (!step.step_name || !step.step_name.trim()) {
+                logEngine({
+                    type: "error",
+                    message: `Step ${i + 1}: Step name is required.`,
+                });
+                return false;
+            }
+            if (!step.approver) {
+                logEngine({
+                    type: "error",
+                    message: `Step ${i + 1}: Approver is required.`,
+                });
+                return false;
+            }
+            if (!step.conditions) {
+                logEngine({
+                    type: "error",
+                    message: `Step ${i + 1}: Conditions are required.`,
+                });
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const handleSave = () => {
+        if (validateForm()) {
+            const formData = {
+                workflow_title: workflowTitle.trim(),
+                entity_name: entityName,
+                steps: workflowSteps.map(
+                    step =>  new ApprovalWorkflowStepModel ({
+                    step_name: step.step_name?.trim() || "",
+                    approver: step.approver,
+                    conditions: step.conditions,
+                    description: step.description?.trim() || ""
+                })),
+            };
+
+            onSuccess?.(formData);
+        }
+    };
+
+    const handleNewStepClick = () => {
+        setWorkflowSteps([...workflowSteps, new ApprovalWorkflowStepModel()]);
+        setStepsCount(stepsCount + 1);
+    };
+
+    const removeStep = (stepIndex: number) => {
+        const updatedSteps = workflowSteps.filter((_, index) => index !== stepIndex);
+        setWorkflowSteps(updatedSteps);
+        setStepsCount(updatedSteps.length);
     }
 
     return (
@@ -89,11 +168,11 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
             onClose={() => {
                 setIsOpen();
             }}
-            title="Add new workflow"
+            title={isEdit ? "Edit approval workflow" : "New approval workflow"}
             description="Define a structured approval workflow with multiple steps, approvers, and conditions to ensure proper oversight and compliance."
             maxWidth="680px"
-            onSubmit={() => { }}
-            submitButtonText="Create workflow"
+            onSubmit={handleSave}
+            submitButtonText={isEdit ? "Update" : "Create workflow"}
             isSubmitting={isSubmitting}>
             <Stack spacing={8}>
                 <Stack direction="row" spacing={6}>
@@ -109,7 +188,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                     />
                     <SelectComponent
                         items={entities}
-                        value={""}
+                        value={entityName}
                         sx={{
                             width: "50%",
                             backgroundColor: theme.palette.background.main,
@@ -121,17 +200,17 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         placeholder="Select entity"
                     />
                 </Stack>
-                {[...Array(stepsCount)].map((_, step) => (
-                    <Stack spacing={8}>
+                {workflowSteps.map((step, stepIndex) => (
+                    <Stack key={stepIndex} spacing={8}>
                         {/* STEPS */}
                         <Stack spacing={4}
                             sx={{
-                                pt: step > 0 ? 8 : 0
+                                pt: stepIndex > 0 ? 8 : 0
                             }}>
                             <Stack direction="row" spacing={8}>
-                                <Box sx={stepNumberStyle}>{step + 1}</Box>
+                                <Box sx={stepNumberStyle}>{stepIndex + 1}</Box>
                                 <Typography fontWeight={500} fontSize={16}>
-                                    {"STEP " + (step + 1)}
+                                    {"STEP " + (stepIndex + 1)}
                                 </Typography>
                                 <Box sx={{
                                     flex: 1,
@@ -140,7 +219,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                 }}>
                                     <Link
                                         component="button"
-                                        onClick={() => removeStep(step)}
+                                        onClick={() => removeStep(stepIndex)}
                                         sx={{
                                             color: "#13715B",
                                             textDecoration: "underline",
@@ -150,7 +229,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                             "&:hover": {
                                                 color: "#0F5A47",
                                             },
-                                            visibility: step === 0 ? "hidden" : "visible",
+                                            visibility: stepIndex === 0 ? "hidden" : "visible",
                                         }}
                                     >
                                         Remove step
@@ -174,50 +253,68 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                 </Box>
                                 <Stack sx={{ flex: 1 }} spacing={6}>
                                     <Field
-                                        id="title"
+                                        id={`step_name_${stepIndex}`}
                                         label="Step name"
                                         width="100%"
                                         isRequired
                                         sx={fieldStyle}
                                         placeholder="Enter step name"
+                                        value={step.step_name || ""}
+                                        onChange={(e) => {
+                                            const newSteps = [...workflowSteps];
+                                            newSteps[stepIndex].step_name = e.target.value;
+                                            setWorkflowSteps(newSteps);
+                                        }}
                                     />
                                     <Stack direction="row" spacing={6}>
                                         <SelectComponent
-                                            items={approverRoles}
-                                            value={""}
+                                            items={APPROVERS}
+                                            value={step.approver || ""}
                                             sx={{
                                                 width: "48%",
                                                 backgroundColor: theme.palette.background.main,
                                             }}
-                                            id="approver"
+                                            id={`approver-${stepIndex}`}
                                             label="Approver"
                                             isRequired
-                                            onChange={() => { }}
+                                            onChange={(e: any) => {
+                                                const newSteps = [...workflowSteps];
+                                                newSteps[stepIndex].approver = Number(e.target.value);
+                                                setWorkflowSteps(newSteps);
+                                            }}
                                             placeholder="Select approver"
                                         />
                                         <SelectComponent
                                             items={conditions}
-                                            value={""}
+                                            value={step.conditions || ""}
                                             sx={{
                                                 width: "52%",
                                                 backgroundColor: theme.palette.background.main,
                                             }}
-                                            id="status"
+                                            id={`conditions-${stepIndex}`}
                                             label="Conditions"
                                             isRequired
-                                            onChange={() => { }}
-                                            placeholder="Select status"
+                                            onChange={(e: any) => {
+                                                const newSteps = [...workflowSteps];
+                                                newSteps[stepIndex].conditions = Number(e.target.value);
+                                                setWorkflowSteps(newSteps);
+                                            }}
+                                            placeholder="Select conditions"
                                         />
                                     </Stack>
                                     <Field
-                                        id="description"
+                                        id={`description_${stepIndex}`}
                                         label="Description"
                                         width="100%"
-                                        max-height="115px"
                                         rows={2}
                                         type="description"
-                                        onChange={() => { }}
-                                        sx={fieldStyle}
+                                        value={step.description || ""}
+                                        onChange={(e) => {
+                                            const newSteps = [...workflowSteps];
+                                            newSteps[stepIndex].description = e.target.value;
+                                            setWorkflowSteps(newSteps);
+                                        }}
+                                        sx={{ ...fieldStyle, maxHeight: "115px" }}
                                         placeholder="Enter description"
                                     />
                                 </Stack>

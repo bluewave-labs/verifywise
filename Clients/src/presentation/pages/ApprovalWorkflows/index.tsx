@@ -12,7 +12,7 @@ import {
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
-import { log } from "console";
+import { ApprovalWorkflowStepModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 
 const ApprovalWorkflows: React.FC = () => {
     const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
@@ -30,14 +30,14 @@ const ApprovalWorkflows: React.FC = () => {
             steps: [
                 {
                     step_name: "Initial Review",
-                    approver: "Business owner",
-                    conditions: "Any",
+                    approver: 1,
+                    conditions: 1,
                     description: "Review the model deployment request and initial documentation"
                 },
                 {
                     step_name: "Technical Validation",
-                    approver: "John Doe",
-                    conditions: "One can approve",
+                    approver: 2,
+                    conditions: 2,
                     description: "Validate technical requirements and compliance"
                 }
             ],
@@ -52,8 +52,8 @@ const ApprovalWorkflows: React.FC = () => {
             steps: [
                 {
                     step_name: "Risk Analysis",
-                    approver: "John Doe",
-                    conditions: "Any",
+                    approver: 2,
+                    conditions: 1,
                     description: "Analyze potential risks and impacts"
                 }
             ],
@@ -76,12 +76,9 @@ const ApprovalWorkflows: React.FC = () => {
     const fetchApprovalWorkflowData = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
         try {
-            const formatted = MOCK_WORKFLOWS;
+            setWorkflowData(MOCK_WORKFLOWS);
 
             //TO-DO: fetch approval workflows from API
-
-
-            setWorkflowData(formatted);
 
         } catch (error) {
             logEngine({
@@ -137,7 +134,7 @@ const ApprovalWorkflows: React.FC = () => {
     /** -------------------- WORKFLOW MODAL HANDLERS -------------------- */
     const handleNewWorkflowClick = () => setIsNewWorkflowModalOpen(true);
 
-    const handleEditWorkflowClick =  async (id: string, mode: string) => {
+    const handleEditWorkflowClick = async (id: string, mode: string) => {
         setSelectWorkflowId(id);
         setModalMode(mode);
         const workflow = await fetchWorkflowDataById(id);
@@ -145,6 +142,68 @@ const ApprovalWorkflows: React.FC = () => {
             setIsNewWorkflowModalOpen(true);
         }
     }
+
+    const handleWorkflowSuccess = async (formData: {
+        workflow_title: string;
+        entity_name: string;
+        steps: ApprovalWorkflowStepModel[];
+    }) => {
+        try {
+            if (selectWorkflow) {
+                logEngine({
+                    type: "info",
+                    message: `Would update workflow ${selectWorkflow.id} with: ${JSON.stringify(formData)}`,
+                });
+
+                //TO-DO: call API to update workflow
+                const updatedWorkflow = new ApprovalWorkflowModel({
+                    ...selectWorkflow,
+                    workflow_title: formData.workflow_title,
+                    entity_name: formData.entity_name,
+                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
+                    date_updated: new Date(),
+                });
+
+                setWorkflowData(prev => prev.map(w => w.id === selectWorkflow.id ? updatedWorkflow : w)
+                );
+
+                logEngine({
+                    type: "info",
+                    message: "Workflow updated successfully!",
+                });
+            } else {
+                logEngine({
+                    type: "info",
+                    message: `Would create new workflow with: ${JSON.stringify(formData)}`,
+                });
+
+                const newWorkflow = new ApprovalWorkflowModel({
+                    id: workflowData.length > 0
+                        ? Math.max(...workflowData.map(w => w.id || 0)) + 1
+                        : 1,
+                    type: "approval",
+                    workflow_title: formData.workflow_title,
+                    entity_name: formData.entity_name,
+                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
+                    approval_status: "Pending" as any,
+                    date_updated: new Date(),
+                });
+
+                setWorkflowData(prev => [...prev, newWorkflow]);
+                logEngine({
+                    type: "info",
+                    message: "Workflow created successfully!",
+                });
+            }
+            handleCloseModal();
+            await fetchApprovalWorkflowData(false);
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to save workflow: ${error}`,
+            });
+        }
+    };
 
     const handleCloseModal = () => {
         setIsNewWorkflowModalOpen(false);
@@ -183,12 +242,24 @@ const ApprovalWorkflows: React.FC = () => {
                 <ApprovalWorkflowsTable
                     data={filteredData}
                     isLoading={isLoading}
-                    onEdit={handleCloseModal}
+                    onEdit={handleEditWorkflowClick}
                 />
             </Stack>
             <CreateNewApprovalWorkflow
                 isOpen={isNewWorkflowModalOpen}
                 setIsOpen={handleCloseModal}
+                initialData={
+                    selectWorkflow
+                        ? {
+                            workflow_title: selectWorkflow.workflow_title || "",
+                            entity_name: selectWorkflow.entity_name || "",
+                            steps: selectWorkflow?.steps || [],
+                        }
+                        : undefined
+                }
+                isEdit={!!selectWorkflow}
+                mode={modalMode}
+                onSuccess={handleWorkflowSuccess}
             />
         </Stack>
     )

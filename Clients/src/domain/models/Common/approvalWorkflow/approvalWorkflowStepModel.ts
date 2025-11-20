@@ -1,7 +1,7 @@
 export class ApprovalWorkflowStepModel {
     step_name?: string;
-    approver?: string;
-    conditions?: string;
+    approver?: number;
+    conditions?: number;
     description?: string;
 
     constructor(data?: ApprovalWorkflowStepModel) {

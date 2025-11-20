@@ -112,8 +112,6 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 sx={{
                                     ...singleTheme.tableStyles.primary.header.cell,
                                     ...(column.id === "workflow_id" && {
-                                        //width: "110px",
-                                        //maxWidth: "110px",
                                     }),
                                     ...(column.id === "actions" && {
                                         position: "sticky",
@@ -171,8 +169,6 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    //width: "110px",
-                                    //maxWidth: "110px",
                                     backgroundColor: "#fafafa",
                                 }}
                             >

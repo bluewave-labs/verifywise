@@ -426,7 +426,10 @@ const ModelInventory: React.FC = () => {
     setSelectedEvidenceHub(null);
   };
 
-
+  const handleAddEvidence = () => {
+    setIsEvidenceHubModalOpen(true);
+    setSelectedEvidenceHub(null);
+  };
 
   const handleEditModelInventory = async (id: string) => {
     try {
@@ -1400,6 +1403,11 @@ const ModelInventory: React.FC = () => {
               onSuccess={handleModelInventorySuccess}
               onError={handleModelInventoryError}
               selectedModelInventoryId={selectedModelInventory?.id}
+              evidenceData={evidenceHubData}
+              handleEditEvidence={handleEditEvidence}
+              handleDeleteEvidence={handleDeleteEvidence}
+              handleAddEvidence={handleAddEvidence}
+              modelInventoryData={modelInventoryData}
               initialData={
                   selectedModelInventory
                       ? {

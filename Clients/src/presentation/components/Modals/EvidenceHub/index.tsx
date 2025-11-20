@@ -283,7 +283,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
         <StandardModal
             isOpen={isOpen}
             onClose={() => setIsOpen(false)}
-            title={isEdit ? "Edit Evidence" : "Add New Evidence"}
+            title={isEdit ? "Edit evidence" : "Add new evidence"}
             description={
                 isEdit
                     ? "Update evidence details, mapped models, and files"
@@ -300,7 +300,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                     <Suspense fallback={<div>Loading...</div>}>
                         <Field
                             id="evidence-name"
-                            label="Evidence Name"
+                            label="Evidence name"
                             sx={{ width: 300 }}
                             value={values.evidence_name}
                             onChange={handleTextChange("evidence_name")}
@@ -311,7 +311,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                     </Suspense>
                     <SelectComponent
                         id="evidence-type"
-                        label="Evidence Type"
+                        label="Evidence type"
                         items={evidenceTypes}
                         value={values.evidence_type}
                         onChange={handleSelectChange("evidence_type")}
@@ -340,7 +340,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                                     color: theme.palette.text.primary,
                                 }}
                             >
-                                Mapped Models
+                                Mapped models
                             </Typography>
 
                             <Autocomplete
@@ -499,7 +499,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 >
                     <Suspense fallback={<div>Loading...</div>}>
                         <DatePicker
-                            label="Expiry Date"
+                            label="Expiry date"
                             date={
                                 values.expiry_date
                                     ? dayjs(values.expiry_date)
@@ -521,8 +521,8 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                         variant="contained"
                         text={
                             values.evidence_files?.length
-                                ? "Add More Files"
-                                : "Upload Files"
+                                ? "Add more files"
+                                : "Upload files"
                         }
                         icon={<UploadIcon size={16} />}
                         onClick={() => setIsUploadModalOpen(true)}

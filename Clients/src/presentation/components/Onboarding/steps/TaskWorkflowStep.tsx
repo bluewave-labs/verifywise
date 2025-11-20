@@ -1,10 +1,9 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { CheckSquare, MessageSquare, BarChart3, Bell } from "lucide-react";
 import Alert from "../../Alert";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
   const workflowSteps = [
@@ -32,7 +31,18 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
 
   return (
     <Stack spacing={4}>
-      <Illustration type={IllustrationType.FLOW_DIAGRAM} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box>
         <Typography

@@ -2,10 +2,9 @@ import React from "react";
 import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { OnboardingRole, OnboardingIndustry, OnboardingUseCase } from "../../../../domain/enums/onboarding.enum";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import Select from "../../../components/Inputs/Select";
 import Alert from "../../Alert";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const PreferencesStep: React.FC<OnboardingStepProps> = ({
   preferences,
@@ -44,7 +43,18 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
 
   return (
     <Stack spacing={4}>
-      <Illustration type={IllustrationType.ICON_GRID} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box>
         <Typography

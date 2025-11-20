@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Stack, FormControl, Checkbox, FormControlLabel, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { DEMO_PROJECT_BANNER } from "../onboardingConstants";
 import Select from "../../../components/Inputs/Select";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const USE_CASE_TEMPLATES = [
   { _id: "demo-chatbot", name: "AI Chatbot for Customer Support" },
@@ -53,7 +52,18 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
 
   return (
     <Stack spacing={4}>
-      <Illustration type={IllustrationType.GEOMETRIC_SHAPES} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box>
         <Typography

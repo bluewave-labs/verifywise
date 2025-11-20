@@ -1,9 +1,8 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { ONBOARDING_DURATION } from "../onboardingConstants";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const WELCOME_FEATURES = [
   "How to manage AI use cases and projects",
@@ -15,7 +14,18 @@ const WELCOME_FEATURES = [
 const WelcomeStep: React.FC<OnboardingStepProps> = () => {
   return (
     <Stack spacing={4} alignItems="center">
-      <Illustration type={IllustrationType.GRADIENT_CIRCLES} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box textAlign="center">
         <Typography

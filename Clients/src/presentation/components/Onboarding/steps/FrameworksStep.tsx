@@ -1,10 +1,9 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { Shield, FileText, Scale, Activity } from "lucide-react";
 import Alert from "../../Alert";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const FrameworksStep: React.FC<OnboardingStepProps> = () => {
   const frameworks = [
@@ -36,7 +35,18 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
 
   return (
     <Stack spacing={4}>
-      <Illustration type={IllustrationType.GEOMETRIC_SHAPES} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box>
         <Typography

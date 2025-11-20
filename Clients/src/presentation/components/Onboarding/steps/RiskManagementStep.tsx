@@ -1,10 +1,9 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import Illustration from "../Illustrations";
-import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
 import Alert from "../../Alert";
+import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
   const capabilities = [
@@ -36,7 +35,18 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
 
   return (
     <Stack spacing={4}>
-      <Illustration type={IllustrationType.ABSTRACT_WAVES} />
+      <Box
+        component="img"
+        src={onboardingBanner}
+        alt="Onboarding"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "200px",
+          borderRadius: "8px",
+          objectFit: "cover",
+        }}
+      />
 
       <Box>
         <Typography

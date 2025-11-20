@@ -20,7 +20,7 @@ const ProgressDots: React.FC<ProgressDotsProps> = ({ totalSteps, currentStep }) 
         <Box
           key={index}
           sx={{
-            width: currentStep === index ? 24 : 8,
+            width: currentStep === index ? 48 : 16,
             height: 8,
             borderRadius: currentStep === index ? 4 : "50%",
             backgroundColor: currentStep === index ? "#13715B" : "rgba(0, 0, 0, 0.3)",

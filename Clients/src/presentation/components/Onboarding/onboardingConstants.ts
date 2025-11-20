@@ -99,7 +99,7 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     componentName: "InviteTeamStep",
     illustration: IllustrationType.ICON_GRID,
     showForAdmin: true,
-    showForUser: false,
+    showForUser: true,
     canSkip: true,
     requiresInput: false,
   },

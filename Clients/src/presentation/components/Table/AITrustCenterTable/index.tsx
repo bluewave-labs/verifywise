@@ -11,7 +11,6 @@ import {
   Typography,
   useTheme,
   Stack,
-  Paper,
   Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -338,7 +337,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   }
 
   return (
-    <TableContainer component={Paper} id={tableId}>
+    <TableContainer sx={{ overflowX: "auto" }} id={tableId}>
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}

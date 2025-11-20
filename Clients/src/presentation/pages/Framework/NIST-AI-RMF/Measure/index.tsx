@@ -140,8 +140,12 @@ const NISTAIRMFMeasure = ({
     setSelectedCategory(null);
   };
 
-  const handleDrawerSaveSuccess = (success: boolean, _message?: string) => {
-    if (success) {
+  const handleDrawerSaveSuccess = (success: boolean, _message?: string, savedSubcategoryId?: number) => {
+    if (success && savedSubcategoryId) {
+      // Set flashing row ID for green highlighting
+      setFlashingRowId(savedSubcategoryId);
+      setTimeout(() => setFlashingRowId(null), 2000);
+
       // Refresh the data after successful save
       setRefreshTrigger((prev) => prev + 1);
     }

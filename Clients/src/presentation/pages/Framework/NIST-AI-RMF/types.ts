@@ -55,7 +55,7 @@ export interface NISTAIRMFEvidenceFile {
 export interface NISTAIRMFDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSaveSuccess?: (success: boolean, message?: string) => void;
+  onSaveSuccess?: (success: boolean, message?: string, savedSubcategoryId?: number) => void;
   subcategory?: NISTAIRMFSubcategory;
   category?: NISTAIRMFCategory;
   function?: NISTAIRMFFunction;

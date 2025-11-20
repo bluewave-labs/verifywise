@@ -15,8 +15,8 @@ import Alert from "../../Alert";
 import {
   NISTAIRMFDrawerProps,
   NISTAIRMFStatus,
-  AlertProps,
 } from "../../../pages/Framework/NIST-AI-RMF/types";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -174,12 +174,13 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       });
 
       if (response.status === 200) {
-        handleAlert({
+        setAlert({
           variant: "success",
           body: "Subcategory updated successfully",
         });
+        setTimeout(() => setAlert(null), 3000);  // 3 seconds
 
-        onSaveSuccess?.(true, "Subcategory updated successfully");
+        onSaveSuccess?.(true, "Subcategory updated successfully", subcategory.id);
         onClose();
       } else {
         throw new Error(
@@ -191,10 +192,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         error.response?.data?.message ||
         error.message ||
         "Failed to update subcategory";
-      handleAlert({
+      setAlert({
         variant: "error",
         body: errorMessage,
       });
+      setTimeout(() => setAlert(null), 3000);  // 3 seconds
       onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);

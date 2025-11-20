@@ -35,6 +35,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   } = useOnboarding();
 
   const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Filter steps based on user role and invited status
   const availableSteps = useMemo(() => {
@@ -77,10 +78,13 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       completeStep(currentStepConfig.id);
       setCurrentStep(currentStepIndex + 1);
     } else {
-      // Last step - complete onboarding
+      // Last step - complete onboarding with fade out
       completeStep(currentStepConfig.id);
       completeOnboarding();
-      onComplete?.();
+      setIsClosing(true);
+      setTimeout(() => {
+        onComplete?.();
+      }, 400); // Match fade duration
     }
   }, [currentStepIndex, totalSteps, currentStepConfig, completeStep, setCurrentStep, completeOnboarding, onComplete]);
 
@@ -162,6 +166,23 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           justifyContent: "center",
           zIndex: 9999,
           padding: 2,
+          animation: isClosing ? "fadeOut 0.4s ease-out" : "fadeIn 0.3s ease-in",
+          "@keyframes fadeOut": {
+            from: {
+              opacity: 1,
+            },
+            to: {
+              opacity: 0,
+            },
+          },
+          "@keyframes fadeIn": {
+            from: {
+              opacity: 0,
+            },
+            to: {
+              opacity: 1,
+            },
+          },
         }}
       >
         <Box

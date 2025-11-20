@@ -8,13 +8,6 @@ const CompletionStep: React.FC<OnboardingStepProps> = () => {
     <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ minHeight: "400px" }}>
       <Box
         sx={{
-          width: "80px",
-          height: "80px",
-          borderRadius: "50%",
-          backgroundColor: "#D1FAE5",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           animation: "scaleIn 0.5s ease-out",
           "@keyframes scaleIn": {
             from: {
@@ -28,7 +21,7 @@ const CompletionStep: React.FC<OnboardingStepProps> = () => {
           },
         }}
       >
-        <CheckCircle2 size={48} color="#13715B" />
+        <CheckCircle2 size={56} color="#13715B" strokeWidth={1.5} />
       </Box>
 
       <Stack spacing={2} alignItems="center">

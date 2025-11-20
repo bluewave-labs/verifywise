@@ -15,6 +15,7 @@ import RiskManagementStep from "./steps/RiskManagementStep";
 import AdminSetupStep from "./steps/AdminSetupStep";
 import TaskWorkflowStep from "./steps/TaskWorkflowStep";
 import SampleProjectStep from "./steps/SampleProjectStep";
+import InviteTeamStep from "./steps/InviteTeamStep";
 import CompletionStep from "./steps/CompletionStep";
 
 const OnboardingModal: React.FC<OnboardingModalProps> = ({
@@ -129,6 +130,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
         return TaskWorkflowStep;
       case "SampleProjectStep":
         return SampleProjectStep;
+      case "InviteTeamStep":
+        return InviteTeamStep;
       case "CompletionStep":
         return CompletionStep;
       default:

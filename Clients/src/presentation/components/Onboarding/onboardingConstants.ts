@@ -94,6 +94,17 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
   },
   {
     id: 9,
+    title: "Invite Team Members",
+    description: "Invite up to 5 people to your organization",
+    componentName: "InviteTeamStep",
+    illustration: IllustrationType.ICON_GRID,
+    showForAdmin: true,
+    showForUser: false,
+    canSkip: true,
+    requiresInput: false,
+  },
+  {
+    id: 10,
     title: "Congratulations",
     description: "You are ready to work with VerifyWise",
     componentName: "CompletionStep",

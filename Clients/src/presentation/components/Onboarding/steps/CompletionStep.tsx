@@ -1,9 +1,47 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { CheckCircle2 } from "lucide-react";
+import confetti from "canvas-confetti";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 
 const CompletionStep: React.FC<OnboardingStepProps> = () => {
+  useEffect(() => {
+    // Fire confetti when component mounts
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min;
+    };
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      // Fire confetti from two sides
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ["#13715B", "#10B981", "#D1FAE5", "#34D399", "#6EE7B7"],
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ["#13715B", "#10B981", "#D1FAE5", "#34D399", "#6EE7B7"],
+      });
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ minHeight: "400px" }}>
       <Box

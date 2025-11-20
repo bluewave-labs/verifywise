@@ -33,30 +33,40 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
   return (
     <Stack spacing={4}>
       <Box
-        component="img"
-        src={onboardingBanner}
-        alt="Onboarding"
         sx={{
+          position: "relative",
           width: "100%",
-          height: "auto",
-          maxHeight: "200px",
-          borderRadius: "8px",
-          objectFit: "cover",
         }}
-      />
-
-      <Box>
+      >
+        <Box
+          component="img"
+          src={onboardingBanner}
+          alt="Onboarding"
+          sx={{
+            width: "100%",
+            height: "auto",
+            maxHeight: "200px",
+            borderRadius: "8px",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
         <Typography
           variant="h5"
           sx={{
+            position: "absolute",
+            top: "40px",
+            left: "50px",
             fontWeight: 600,
             fontSize: "24px",
-            color: "#111827",
-            marginBottom: 1,
+            color: "#FFFFFF",
           }}
         >
           Set up your organization
         </Typography>
+      </Box>
+
+      <Box>
         <Typography
           sx={{
             fontSize: "14px",

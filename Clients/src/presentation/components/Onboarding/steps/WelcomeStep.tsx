@@ -14,30 +14,40 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
   return (
     <Stack spacing={4} alignItems="center">
       <Box
-        component="img"
-        src={onboardingBanner}
-        alt="Onboarding"
         sx={{
+          position: "relative",
           width: "100%",
-          height: "auto",
-          maxHeight: "200px",
-          borderRadius: "8px",
-          objectFit: "cover",
         }}
-      />
-
-      <Box textAlign="center">
+      >
+        <Box
+          component="img"
+          src={onboardingBanner}
+          alt="Onboarding"
+          sx={{
+            width: "100%",
+            height: "auto",
+            maxHeight: "200px",
+            borderRadius: "8px",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
         <Typography
           variant="h4"
           sx={{
+            position: "absolute",
+            top: "40px",
+            left: "50px",
             fontWeight: 600,
             fontSize: "28px",
-            color: "#13715B",
-            marginBottom: 2,
+            color: "#FFFFFF",
           }}
         >
           Welcome to VerifyWise
         </Typography>
+      </Box>
+
+      <Box textAlign="center">
         <Typography
           sx={{
             fontSize: "15px",
@@ -55,7 +65,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
           backgroundColor: "#F0FDF4",
           border: "1px solid #D1FAE5",
           borderRadius: "8px",
-          padding: 3,
+          padding: 4,
           width: "100%",
         }}
       >

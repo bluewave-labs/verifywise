@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Box, Stack } from "@mui/material";
 import { useOnboarding } from "../../../application/hooks/useOnboarding";
 import { ONBOARDING_STEPS } from "./onboardingConstants";
@@ -33,7 +33,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   } = useOnboarding();
 
   const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
 
   // Filter steps based on user role and invited status
   const availableSteps = useMemo(() => {
@@ -55,11 +54,25 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const currentStepConfig = availableSteps[currentStepIndex];
   const totalSteps = availableSteps.length;
 
+  // Handle ESC key to show skip confirmation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !showSkipConfirmation) {
+        event.preventDefault();
+        setShowSkipConfirmation(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showSkipConfirmation]);
+
   // Navigation handlers
   const handleNext = useCallback(() => {
     if (currentStepIndex < totalSteps - 1) {
       completeStep(currentStepConfig.id);
-      setSlideDirection("left");
       setCurrentStep(currentStepIndex + 1);
     } else {
       // Last step - complete onboarding
@@ -71,7 +84,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   const handleBack = useCallback(() => {
     if (currentStepIndex > 0) {
-      setSlideDirection("right");
       setCurrentStep(currentStepIndex - 1);
     }
   }, [currentStepIndex, setCurrentStep]);
@@ -81,17 +93,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   }, []);
 
   const confirmSkip = useCallback(() => {
-    skipStep(currentStepConfig.id);
+    // Mark all steps as skipped
+    availableSteps.forEach((step) => skipStep(step.id));
     setShowSkipConfirmation(false);
-
-    if (currentStepIndex < totalSteps - 1) {
-      setSlideDirection("left");
-      setCurrentStep(currentStepIndex + 1);
-    } else {
-      completeOnboarding();
-      onSkip?.();
-    }
-  }, [currentStepConfig, currentStepIndex, totalSteps, skipStep, setCurrentStep, completeOnboarding, onSkip]);
+    completeOnboarding();
+    onSkip?.();
+  }, [availableSteps, skipStep, completeOnboarding, onSkip]);
 
   const cancelSkip = useCallback(() => {
     setShowSkipConfirmation(false);
@@ -165,7 +172,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             position: "relative",
           }}
         >
-          {/* Step content with slide animation */}
+          {/* Step content with fade animation */}
           <Box
             sx={{
               padding: "32px",
@@ -177,24 +184,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <Box
               key={currentStepIndex}
               sx={{
-                animation: `slide-${slideDirection} 0.4s cubic-bezier(0.4, 0, 0.2, 1)`,
-                "@keyframes slide-left": {
+                animation: "fadeIn 0.4s ease-in-out",
+                "@keyframes fadeIn": {
                   from: {
-                    transform: "translateX(100%)",
                     opacity: 0,
                   },
                   to: {
-                    transform: "translateX(0)",
-                    opacity: 1,
-                  },
-                },
-                "@keyframes slide-right": {
-                  from: {
-                    transform: "translateX(-100%)",
-                    opacity: 0,
-                  },
-                  to: {
-                    transform: "translateX(0)",
                     opacity: 1,
                   },
                 },

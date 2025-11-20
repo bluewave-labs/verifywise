@@ -15,7 +15,7 @@ const frameworkTabsContainerStyle = (height: number) => ({
   gap: "2px",
 });
 
-const getFrameworkTabStyle = (isActive: boolean) => ({
+const getFrameworkTabStyle = () => ({
   cursor: "pointer",
   px: 5,
   display: "flex",
@@ -62,11 +62,11 @@ const ButtonToggle: React.FC<IButtonToggleProps> = ({
       <Box sx={getSliderStyle(activeIndex, options.length)} />
 
       {/* Button options */}
-      {options.map((option, index) => (
+      {options.map((option) => (
         <Box
           key={option.value}
           onClick={() => onChange(option.value)}
-          sx={getFrameworkTabStyle(value === option.value)}
+          sx={getFrameworkTabStyle()}
         >
           {option.label}
         </Box>

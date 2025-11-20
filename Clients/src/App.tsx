@@ -26,6 +26,7 @@ import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
+import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -57,6 +58,7 @@ function App() {
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
+  const { shouldShowOnboarding } = useOnboarding();
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -192,6 +194,9 @@ function App() {
                   onOpenChange={commandPalette.close}
                 />
               </CommandPaletteErrorBoundary>
+              {token && userId && shouldShowOnboarding() && (
+                <OnboardingModal />
+              )}
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>

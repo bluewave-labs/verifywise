@@ -1,0 +1,140 @@
+import React from "react";
+import { Box, Typography, Stack } from "@mui/material";
+import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import Illustration from "../Illustrations";
+import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
+import { AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
+
+const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
+  const capabilities = [
+    {
+      icon: <AlertTriangle size={18} />,
+      title: "Identify Risks",
+      description: "Catalog potential risks across your AI systems",
+      color: "#EF4444",
+    },
+    {
+      icon: <Users size={18} />,
+      title: "Assign Ownership",
+      description: "Delegate risk mitigation to responsible teams",
+      color: "#F59E0B",
+    },
+    {
+      icon: <Clock size={18} />,
+      title: "Track Progress",
+      description: "Monitor mitigation efforts in real-time",
+      color: "#3B82F6",
+    },
+    {
+      icon: <CheckCircle size={18} />,
+      title: "Close Risks",
+      description: "Mark risks as resolved when mitigation is complete",
+      color: "#10B981",
+    },
+  ];
+
+  return (
+    <Stack spacing={4}>
+      <Illustration type={IllustrationType.ABSTRACT_WAVES} />
+
+      <Box>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+            fontSize: "24px",
+            color: "#111827",
+            marginBottom: 1,
+          }}
+        >
+          Identify and Mitigate Risks
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "14px",
+            color: "#667085",
+            marginBottom: 3,
+            lineHeight: 1.6,
+          }}
+        >
+          Track risks, assign mitigation tasks, and monitor progress to maintain control over your AI systems.
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 2,
+        }}
+      >
+        {capabilities.map((capability, index) => (
+          <Box
+            key={index}
+            sx={{
+              padding: 2.5,
+              backgroundColor: "white",
+              border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+            }}
+          >
+            <Box
+              sx={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                backgroundColor: `${capability.color}15`,
+                color: capability.color,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {capability.icon}
+            </Box>
+            <Typography
+              sx={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#111827",
+              }}
+            >
+              {capability.title}
+            </Typography>
+            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+              {capability.description}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      <Box
+        sx={{
+          padding: 3,
+          backgroundColor: "#F0FDF4",
+          border: "1px solid #D1FAE5",
+          borderRadius: "8px",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#13715B",
+            marginBottom: 1,
+          }}
+        >
+          Risk Classification
+        </Typography>
+        <Typography sx={{ fontSize: "12px", color: "#344054", lineHeight: 1.6 }}>
+          Risks are automatically categorized by severity (Negligible, Minor, Moderate, Major, Catastrophic) and likelihood to help you prioritize mitigation efforts effectively.
+        </Typography>
+      </Box>
+    </Stack>
+  );
+};
+
+export default RiskManagementStep;

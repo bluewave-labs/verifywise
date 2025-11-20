@@ -3,6 +3,7 @@ import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
+import { ONBOARDING_DURATION } from "../onboardingConstants";
 
 const WelcomeStep: React.FC<OnboardingStepProps> = () => {
   return (
@@ -27,9 +28,19 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
             color: "#667085",
             maxWidth: "600px",
             lineHeight: 1.6,
+            marginBottom: 1,
           }}
         >
           Your AI governance and compliance platform. In 3 minutes, we'll help you get started with managing AI risks, compliance frameworks, and building trust.
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "13px",
+            color: "#6B7280",
+            marginTop: 1,
+          }}
+        >
+          We strongly recommend viewing this onboarding • Takes {ONBOARDING_DURATION}
         </Typography>
       </Box>
 
@@ -52,7 +63,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
         >
           What you'll learn:
         </Typography>
-        <Stack spacing={1}>
+        <Stack spacing={1} sx={{ paddingLeft: 2 }}>
           {[
             "How to manage AI use cases and projects",
             "Applying compliance frameworks like EU AI Act",

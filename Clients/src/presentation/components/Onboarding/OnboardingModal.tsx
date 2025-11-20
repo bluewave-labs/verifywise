@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { useOnboarding } from "../../../application/hooks/useOnboarding";
-import { ONBOARDING_STEPS, ONBOARDING_DURATION } from "./onboardingConstants";
+import { ONBOARDING_STEPS } from "./onboardingConstants";
 import ProgressDots from "./ProgressDots";
 import SkipConfirmation from "./SkipConfirmation";
 import CustomizableButton from "../Button/CustomizableButton";
@@ -165,27 +165,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             position: "relative",
           }}
         >
-          {/* Header with time estimate */}
-          {currentStepIndex === 0 && (
-            <Box
-              sx={{
-                padding: 2,
-                paddingBottom: 1,
-                borderBottom: "1px solid #E5E7EB",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "13px",
-                  color: "#6B7280",
-                  textAlign: "center",
-                }}
-              >
-                We strongly recommend viewing this onboarding • Takes {ONBOARDING_DURATION}
-              </Typography>
-            </Box>
-          )}
-
           {/* Step content with slide animation */}
           <Box
             sx={{

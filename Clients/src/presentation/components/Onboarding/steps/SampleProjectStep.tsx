@@ -195,7 +195,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
           >
             What's included in your demo project:
           </Typography>
-          <Stack spacing={0.5}>
+          <Stack spacing={0.5} sx={{ paddingLeft: 2 }}>
             {[
               "Sample risks mapped to your selected framework(s)",
               "Pre-configured risk severity and likelihood levels",

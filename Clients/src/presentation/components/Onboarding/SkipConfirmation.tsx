@@ -29,6 +29,9 @@ const SkipConfirmation: React.FC<SkipConfirmationProps> = ({
           onCancel();
         }
       }}
+      sx={{
+        zIndex: 10001,
+      }}
     >
       <Stack
         gap={theme.spacing(2)}
@@ -98,17 +101,13 @@ const SkipConfirmation: React.FC<SkipConfirmationProps> = ({
             disableFocusRipple
             disableTouchRipple
             variant="contained"
-            color="warning"
+            color="error"
             onClick={onConfirm}
             sx={{
               borderRadius: theme.shape.borderRadius,
               fontSize: 13,
               fontWeight: 500,
               textTransform: "none",
-              backgroundColor: "#DC6803",
-              "&:hover": {
-                backgroundColor: "#B54708",
-              },
             }}
           >
             {SKIP_CONFIRMATION_TEXT.confirmButton}

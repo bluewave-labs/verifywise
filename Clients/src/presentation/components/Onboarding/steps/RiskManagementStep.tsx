@@ -4,6 +4,7 @@ import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding"
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
+import Alert from "../../Alert";
 
 const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
   const capabilities = [
@@ -111,28 +112,16 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
         ))}
       </Box>
 
-      <Box
+      <Alert
+        variant="success"
+        title="Risk Classification"
+        body="Risks are automatically categorized by severity (Negligible, Minor, Moderate, Major, Catastrophic) and likelihood to help you prioritize mitigation efforts effectively."
+        hasIcon={false}
         sx={{
-          padding: 3,
-          backgroundColor: "#F0FDF4",
-          border: "1px solid #D1FAE5",
-          borderRadius: "8px",
+          position: "static",
+          padding: "16px",
         }}
-      >
-        <Typography
-          sx={{
-            fontSize: "13px",
-            fontWeight: 500,
-            color: "#13715B",
-            marginBottom: 1,
-          }}
-        >
-          Risk Classification
-        </Typography>
-        <Typography sx={{ fontSize: "12px", color: "#344054", lineHeight: 1.6 }}>
-          Risks are automatically categorized by severity (Negligible, Minor, Moderate, Major, Catastrophic) and likelihood to help you prioritize mitigation efforts effectively.
-        </Typography>
-      </Box>
+      />
     </Stack>
   );
 };

@@ -4,6 +4,7 @@ import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding"
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { UserPlus, Settings, Shield } from "lucide-react";
+import Alert from "../../Alert";
 
 const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
   const setupTasks = [
@@ -122,18 +123,15 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
         ))}
       </Stack>
 
-      <Box
+      <Alert
+        variant="info"
+        body="You can complete these setup tasks at any time after onboarding. They're available in your Settings menu."
+        hasIcon={false}
         sx={{
-          backgroundColor: "#EFF6FF",
-          border: "1px solid #DBEAFE",
-          borderRadius: "8px",
-          padding: 2,
+          position: "static",
+          padding: "12px 16px",
         }}
-      >
-        <Typography sx={{ fontSize: "12px", color: "#1E40AF" }}>
-          <strong>Note:</strong> You can complete these setup tasks at any time after onboarding. They're available in your Settings menu.
-        </Typography>
-      </Box>
+      />
     </Stack>
   );
 };

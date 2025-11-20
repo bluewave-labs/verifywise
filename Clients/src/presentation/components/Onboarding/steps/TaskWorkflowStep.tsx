@@ -4,6 +4,7 @@ import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding"
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import { CheckSquare, MessageSquare, BarChart3, Bell } from "lucide-react";
+import Alert from "../../Alert";
 
 const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
   const workflowSteps = [
@@ -72,23 +73,6 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
           >
             <Box
               sx={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                backgroundColor: "#13715B",
-                color: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                fontSize: "14px",
-                fontWeight: 600,
-              }}
-            >
-              {index + 1}
-            </Box>
-            <Box
-              sx={{
                 width: "40px",
                 height: "40px",
                 borderRadius: "8px",
@@ -122,36 +106,15 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
         ))}
       </Stack>
 
-      <Box
+      <Alert
+        variant="success"
+        body="Use the dashboard to get a quick overview of all your pending tasks, upcoming deadlines, and recent activity across your projects."
+        hasIcon={false}
         sx={{
-          display: "flex",
-          gap: 2,
-          padding: 3,
-          backgroundColor: "#F0FDF4",
-          border: "1px solid #D1FAE5",
-          borderRadius: "8px",
+          position: "static",
+          padding: "12px 16px",
         }}
-      >
-        <Box
-          sx={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "50%",
-            backgroundColor: "#13715B",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            fontSize: "14px",
-          }}
-        >
-          💡
-        </Box>
-        <Typography sx={{ fontSize: "12px", color: "#13715B", lineHeight: 1.6 }}>
-          <strong>Pro tip:</strong> Use the dashboard to get a quick overview of all your pending tasks, upcoming deadlines, and recent activity across your projects.
-        </Typography>
-      </Box>
+      />
     </Stack>
   );
 };

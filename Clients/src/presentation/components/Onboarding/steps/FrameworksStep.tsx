@@ -3,7 +3,8 @@ import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
-import { Shield, FileText, Scale } from "lucide-react";
+import { Shield, FileText, Scale, Activity } from "lucide-react";
+import Alert from "../../Alert";
 
 const FrameworksStep: React.FC<OnboardingStepProps> = () => {
   const frameworks = [
@@ -12,6 +13,12 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
       icon: <Scale size={20} />,
       description: "Comply with the European Union's comprehensive AI regulation framework.",
       color: "#3B82F6",
+    },
+    {
+      name: "NIST AI RMF",
+      icon: <Activity size={20} />,
+      description: "Follow NIST's AI Risk Management Framework for trustworthy AI systems.",
+      color: "#F59E0B",
     },
     {
       name: "ISO 42001",
@@ -55,7 +62,13 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Box>
 
-      <Stack spacing={2}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 2,
+        }}
+      >
         {frameworks.map((framework, index) => (
           <Box
             key={index}
@@ -65,7 +78,8 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
               border: "1px solid #E5E7EB",
               borderRadius: "8px",
               display: "flex",
-              gap: 2,
+              flexDirection: "column",
+              gap: 1.5,
               transition: "all 0.2s",
               "&:hover": {
                 borderColor: framework.color,
@@ -105,20 +119,17 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
             </Box>
           </Box>
         ))}
-      </Stack>
-
-      <Box
-        sx={{
-          backgroundColor: "#FEF3C7",
-          border: "1px solid #FDE68A",
-          borderRadius: "8px",
-          padding: 2,
-        }}
-      >
-        <Typography sx={{ fontSize: "12px", color: "#92400E" }}>
-          <strong>Tip:</strong> You can map a single project to multiple frameworks to meet various regulatory requirements simultaneously.
-        </Typography>
       </Box>
+
+      <Alert
+        variant="warning"
+        body="You can map a single project to multiple frameworks to meet various regulatory requirements simultaneously."
+        hasIcon={false}
+        sx={{
+          position: "static",
+          padding: "12px 16px",
+        }}
+      />
     </Stack>
   );
 };

@@ -33,7 +33,13 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Box>
 
-      <Stack spacing={2}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 2,
+        }}
+      >
         {[
           {
             title: "Create Use Cases",
@@ -76,7 +82,7 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
             </Typography>
           </Box>
         ))}
-      </Stack>
+      </Box>
     </Stack>
   );
 };

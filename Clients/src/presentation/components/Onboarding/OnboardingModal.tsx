@@ -169,8 +169,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {currentStepIndex === 0 && (
             <Box
               sx={{
-                padding: 4,
-                paddingBottom: 2,
+                padding: 2,
+                paddingBottom: 1,
                 borderBottom: "1px solid #E5E7EB",
               }}
             >
@@ -228,7 +228,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {/* Footer with progress and navigation */}
           <Box
             sx={{
-              padding: 4,
+              padding: "32px",
               paddingTop: 0,
             }}
           >

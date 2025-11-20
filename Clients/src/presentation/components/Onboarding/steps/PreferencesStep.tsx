@@ -5,6 +5,7 @@ import { OnboardingRole, OnboardingIndustry, OnboardingUseCase } from "../../../
 import Illustration from "../Illustrations";
 import { IllustrationType } from "../../../../domain/enums/onboarding.enum";
 import Select from "../../../components/Inputs/Select";
+import Alert from "../../Alert";
 
 const PreferencesStep: React.FC<OnboardingStepProps> = ({
   preferences,
@@ -70,7 +71,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
 
       <Stack spacing={4}>
         {/* Role Selection */}
-        <FormControl fullWidth>
+        <FormControl fullWidth required>
           <Typography
             sx={{
               fontSize: "13px",
@@ -79,7 +80,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
               marginBottom: 1,
             }}
           >
-            What is your role?
+            What is your role? <span style={{ color: "#DC2626" }}>*</span>
           </Typography>
           <Select
             id="role-select"
@@ -88,11 +89,12 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
             onChange={handleRoleChange}
             items={roleItems}
             sx={{ width: "100%" }}
+            isRequired
           />
         </FormControl>
 
         {/* Industry Selection */}
-        <FormControl fullWidth>
+        <FormControl fullWidth required>
           <Typography
             sx={{
               fontSize: "13px",
@@ -101,7 +103,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
               marginBottom: 1,
             }}
           >
-            Which industry do you work in?
+            Which industry do you work in? <span style={{ color: "#DC2626" }}>*</span>
           </Typography>
           <Select
             id="industry-select"
@@ -110,6 +112,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
             onChange={handleIndustryChange}
             items={industryItems}
             sx={{ width: "100%" }}
+            isRequired
           />
         </FormControl>
 
@@ -151,20 +154,19 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
               />
             ))}
           </RadioGroup>
+
+          <Alert
+            variant="info"
+            body="This information helps us customize your dashboard. You can skip this step or update these preferences later in settings."
+            hasIcon={false}
+            sx={{
+              position: "static",
+              marginTop: 2,
+              padding: "12px 16px",
+            }}
+          />
         </FormControl>
       </Stack>
-
-      <Box
-        sx={{
-          backgroundColor: "#F9FAFB",
-          borderRadius: "8px",
-          padding: 2,
-        }}
-      >
-        <Typography sx={{ fontSize: "12px", color: "#6B7280", fontStyle: "italic" }}>
-          This information helps us customize your dashboard. You can skip this step or update these preferences later in settings.
-        </Typography>
-      </Box>
     </Stack>
   );
 };

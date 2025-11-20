@@ -1,7 +1,7 @@
 import React from "react";
-import { Box, Typography, Stack } from "@mui/material";
-import CustomizableButton from "../Button/CustomizableButton";
+import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 import { SKIP_CONFIRMATION_TEXT } from "./onboardingConstants";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
 interface SkipConfirmationProps {
   open: boolean;
@@ -14,78 +14,108 @@ const SkipConfirmation: React.FC<SkipConfirmationProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  if (!open) return null;
+  const theme = useTheme();
+
+  useModalKeyHandling({
+    isOpen: open,
+    onClose: onCancel,
+  });
 
   return (
-    <Box
-      sx={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 10000,
+    <Modal
+      open={open}
+      onClose={(_event, reason) => {
+        if (reason !== "backdropClick") {
+          onCancel();
+        }
       }}
     >
-      <Box
+      <Stack
+        gap={theme.spacing(2)}
+        color={theme.palette.text.secondary}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         sx={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: 6,
-          maxWidth: "400px",
-          width: "90%",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 450,
+          bgcolor: theme.palette.background.modal,
+          border: 1,
+          borderColor: theme.palette.border.dark,
+          borderRadius: theme.shape.borderRadius,
+          boxShadow: 24,
+          p: theme.spacing(15),
+          "&:focus": {
+            outline: "none",
+          },
         }}
       >
         <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            fontSize: "16px",
-            marginBottom: 2,
-          }}
+          id="modal-skip-onboarding"
+          fontSize={16}
+          fontWeight={600}
         >
           {SKIP_CONFIRMATION_TEXT.title}
         </Typography>
         <Typography
-          sx={{
-            fontSize: "13px",
-            color: "#667085",
-            marginBottom: 4,
-          }}
+          id="skip-onboarding-confirmation"
+          fontSize={13}
+          textAlign={"left"}
         >
           {SKIP_CONFIRMATION_TEXT.message}
         </Typography>
-        <Stack direction="row" gap={2} justifyContent="flex-end">
-          <CustomizableButton
-            variant="outlined"
-            text={SKIP_CONFIRMATION_TEXT.cancelButton}
+        <Stack
+          direction="row"
+          gap={theme.spacing(4)}
+          mt={theme.spacing(12)}
+          justifyContent="flex-end"
+        >
+          <Button
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
+            variant="text"
+            color="inherit"
             onClick={onCancel}
             sx={{
-              borderColor: "#D0D5DD",
-              color: "#344054",
+              borderRadius: theme.shape.borderRadius,
+              fontSize: 13,
+              fontWeight: 500,
+              textTransform: "none",
               "&:hover": {
-                borderColor: "#98A2B3",
+                backgroundColor: "transparent",
               },
             }}
-          />
-          <CustomizableButton
+          >
+            {SKIP_CONFIRMATION_TEXT.cancelButton}
+          </Button>
+          <Button
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
             variant="contained"
-            text={SKIP_CONFIRMATION_TEXT.confirmButton}
+            color="warning"
             onClick={onConfirm}
             sx={{
+              borderRadius: theme.shape.borderRadius,
+              fontSize: 13,
+              fontWeight: 500,
+              textTransform: "none",
               backgroundColor: "#DC6803",
               "&:hover": {
                 backgroundColor: "#B54708",
               },
             }}
-          />
+          >
+            {SKIP_CONFIRMATION_TEXT.confirmButton}
+          </Button>
         </Stack>
-      </Box>
-    </Box>
+      </Stack>
+    </Modal>
   );
 };
 

@@ -189,7 +189,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {/* Step content with slide animation */}
           <Box
             sx={{
-              padding: 6,
+              padding: "32px",
               minHeight: "400px",
               position: "relative",
               overflow: "hidden",
@@ -230,7 +230,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             sx={{
               padding: 4,
               paddingTop: 0,
-              borderTop: "1px solid #E5E7EB",
             }}
           >
             <Stack spacing={3}>

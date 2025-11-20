@@ -4,8 +4,6 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { getMitigationStatusColor } from "../../../constants/statusColors";
-import RiskChip from "../../RiskLevel/RiskChip";
 import IconButton from "../../IconButton";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";

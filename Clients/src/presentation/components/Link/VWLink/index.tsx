@@ -57,14 +57,16 @@ const VWLink: React.FC<IVWLinkProps> = memo(({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // If onClick is provided, use button component, otherwise use link
-  const component = onClick ? "button" : undefined;
-
   const linkProps = url && openInNewTab
     ? {
         target: "_blank",
         rel: "noopener noreferrer",
       }
+    : {};
+
+  // Build component props conditionally
+  const componentProps = onClick
+    ? { component: "button" as const }
     : {};
 
   return (
@@ -76,7 +78,7 @@ const VWLink: React.FC<IVWLinkProps> = memo(({
     >
       <Link
         href={url}
-        component={component}
+        {...componentProps}
         onClick={onClick}
         {...linkProps}
         className={className}

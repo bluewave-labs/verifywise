@@ -17,10 +17,10 @@ export enum OnboardingIndustry {
 }
 
 export enum OnboardingUseCase {
-  COMPLIANCE = "Compliance Management",
-  RISK_MANAGEMENT = "Risk Management",
-  AI_GOVERNANCE = "AI Governance",
-  ALL = "All of the Above",
+  COMPLIANCE = "Compliance management",
+  RISK_MANAGEMENT = "Risk management",
+  AI_GOVERNANCE = "AI governance",
+  ALL = "All of the above",
 }
 
 export enum IllustrationType {

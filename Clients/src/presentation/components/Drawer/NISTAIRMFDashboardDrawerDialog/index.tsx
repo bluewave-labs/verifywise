@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { Box } from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
 import { Button, CircularProgress } from "@mui/material";
 import { Stack } from "@mui/material";
 import { Divider, Drawer, Typography } from "@mui/material";
@@ -12,6 +14,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import ChipInput from "../../Inputs/ChipInput";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Alert from "../../Alert";
+import TabBar from "../../TabBar";
 import {
   NISTAIRMFDrawerProps,
   NISTAIRMFStatus,
@@ -41,6 +44,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [activeTab, setActiveTab] = useState("details");
 
   const { userRoleName } = useAuth();
   const { users } = useUsers();
@@ -79,6 +83,33 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     { id: NISTAIRMFStatus.IMPLEMENTED, name: "Implemented" },
     { id: NISTAIRMFStatus.NEEDS_REWORK, name: "Needs rework" },
   ];
+
+  const tabs = [
+    {
+      label: "Details",
+      value: "details",
+      icon: "FileText" as const,
+    },
+    {
+      label: "Evidences",
+      value: "evidences",
+      icon: "FolderOpen" as const,
+    },
+    {
+      label: "Cross mappings",
+      value: "cross-mappings",
+      icon: "GitBranch" as const,
+    },
+    {
+      label: "Notes",
+      value: "notes",
+      icon: "StickyNote" as const,
+    },
+  ];
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+  };
 
   const inputStyles = {
     minWidth: 200,
@@ -274,8 +305,19 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
               <Divider />
 
-              {/* Description Section */}
-              <Stack padding="15px 20px" gap="15px">
+              {/* Tabs */}
+              <TabContext value={activeTab}>
+                <Box sx={{ padding: "0 20px" }}>
+                  <TabBar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onChange={handleTabChange}
+                  />
+                </Box>
+
+                {/* Description Section - Details Tab */}
+                <TabPanel value="details" sx={{ padding: 0 }}>
+                  <Stack padding="15px 20px" gap="15px">
                 <Stack
                   sx={{
                     border: `1px solid #eee`,
@@ -441,6 +483,27 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   />
                 </Stack>
               </Stack>
+                  </TabPanel>
+
+                {/* Empty Tab Panels for Tabs 2-4 */}
+                <TabPanel value="evidences" sx={{ padding: "15px 20px" }}>
+                  <Typography color="text.secondary" textAlign="center">
+                    Evidences tab content will be implemented here.
+                  </Typography>
+                </TabPanel>
+
+                <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
+                  <Typography color="text.secondary" textAlign="center">
+                    Cross mappings tab content will be implemented here.
+                  </Typography>
+                </TabPanel>
+
+                <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
+                  <Typography color="text.secondary" textAlign="center">
+                    Notes tab content will be implemented here.
+                  </Typography>
+                </TabPanel>
+              </TabContext>
 
               <Divider />
 

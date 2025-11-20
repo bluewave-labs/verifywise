@@ -134,7 +134,7 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
 
       <Alert
         variant="success"
-        title="Risk Classification"
+        title="Risk classification"
         body="Risks are automatically categorized by severity (Negligible, Minor, Moderate, Major, Catastrophic) and likelihood to help you prioritize mitigation efforts effectively."
         hasIcon={false}
         sx={{

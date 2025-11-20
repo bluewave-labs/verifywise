@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
+import { SkipForward } from "lucide-react";
 import { SKIP_CONFIRMATION_TEXT } from "./onboardingConstants";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
@@ -101,13 +102,17 @@ const SkipConfirmation: React.FC<SkipConfirmationProps> = ({
             disableFocusRipple
             disableTouchRipple
             variant="contained"
-            color="error"
+            startIcon={<SkipForward size={16} />}
             onClick={onConfirm}
             sx={{
               borderRadius: theme.shape.borderRadius,
               fontSize: 13,
               fontWeight: 500,
               textTransform: "none",
+              backgroundColor: "#13715B",
+              "&:hover": {
+                backgroundColor: "#0F5A47",
+              },
             }}
           >
             {SKIP_CONFIRMATION_TEXT.confirmButton}

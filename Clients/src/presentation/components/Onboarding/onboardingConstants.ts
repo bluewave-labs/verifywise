@@ -92,13 +92,24 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     canSkip: true,
     requiresInput: true,
   },
+  {
+    id: 9,
+    title: "Congratulations",
+    description: "You are ready to work with VerifyWise",
+    componentName: "CompletionStep",
+    illustration: IllustrationType.GRADIENT_CIRCLES,
+    showForAdmin: true,
+    showForUser: true,
+    canSkip: false,
+    requiresInput: false,
+  },
 ];
 
 export const SKIP_CONFIRMATION_TEXT = {
   title: "Are you sure you want to skip?",
   message: "You can always revisit this onboarding from your profile menu.",
   confirmButton: "Skip",
-  cancelButton: "Continue Onboarding",
+  cancelButton: "Continue onboarding",
 };
 
 export const DEMO_PROJECT_BANNER = {

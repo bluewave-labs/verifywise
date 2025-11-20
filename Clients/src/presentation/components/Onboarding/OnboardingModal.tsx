@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Box, Stack } from "@mui/material";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useOnboarding } from "../../../application/hooks/useOnboarding";
 import { ONBOARDING_STEPS } from "./onboardingConstants";
 import ProgressDots from "./ProgressDots";
@@ -14,6 +15,7 @@ import RiskManagementStep from "./steps/RiskManagementStep";
 import AdminSetupStep from "./steps/AdminSetupStep";
 import TaskWorkflowStep from "./steps/TaskWorkflowStep";
 import SampleProjectStep from "./steps/SampleProjectStep";
+import CompletionStep from "./steps/CompletionStep";
 
 const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onComplete,
@@ -123,6 +125,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
         return TaskWorkflowStep;
       case "SampleProjectStep":
         return SampleProjectStep;
+      case "CompletionStep":
+        return CompletionStep;
       default:
         return WelcomeStep;
     }
@@ -212,7 +216,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <CustomizableButton
                   variant="text"
-                  text="Skip Onboarding"
+                  text="Skip onboarding"
                   onClick={handleSkipStep}
                   sx={{
                     color: "#6B7280",
@@ -229,6 +233,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       variant="outlined"
                       text="Back"
                       onClick={handleBack}
+                      startIcon={<ArrowLeft size={16} />}
                       sx={{
                         borderColor: "#D0D5DD",
                         color: "#344054",
@@ -242,6 +247,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     variant="contained"
                     text={stepProps.isLastStep ? "Finish" : "Next"}
                     onClick={handleNext}
+                    endIcon={stepProps.isLastStep ? <Check size={16} /> : <ArrowRight size={16} />}
                     sx={{
                       backgroundColor: "#13715B",
                       "&:hover": {

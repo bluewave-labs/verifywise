@@ -44,6 +44,16 @@ class DeepEvalDatasetsService {
     const res = await CustomAxios.get("/deepeval/datasets/read", { params: { path } });
     return res.data as { path: string; prompts: DatasetPromptRecord[] };
   }
+
+  async listUploads(): Promise<{ uploads: { name: string; path: string; size: number; modifiedAt: number }[] }> {
+    const res = await CustomAxios.get("/deepeval/datasets/uploads");
+    return res.data as { uploads: { name: string; path: string; size: number; modifiedAt: number }[] };
+  }
+
+  async listMy(): Promise<{ datasets: { id: number; name: string; path: string; size: number; createdAt: string }[] }> {
+    const res = await CustomAxios.get("/deepeval/datasets/user");
+    return res.data as { datasets: { id: number; name: string; path: string; size: number; createdAt: string }[] };
+  }
 }
 
 export const deepEvalDatasetsService = new DeepEvalDatasetsService();

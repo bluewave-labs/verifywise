@@ -29,6 +29,8 @@ import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboa
 import ExperimentDetail from "../../presentation/pages/EvalsDashboard/ExperimentDetail";
 import ProjectConfiguration from "../../presentation/pages/EvalsDashboard/ProjectConfiguration";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
+import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
+import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
@@ -83,6 +85,8 @@ export const createRoutes = (
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId/configuration" element={<ProjectConfiguration />} />
+    <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
+    <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
     <Route path="/evals/settings" element={<OrgSettings />} />
     <Route path="/evals/:projectId/experiment/:experimentId" element={<ExperimentDetail />} />
     <Route path="/training" element={<Training />} />

@@ -82,12 +82,62 @@ export default function NewExperimentModal({
   const [customDatasetFile, setCustomDatasetFile] = useState<File | null>(null);
   const [customDatasetPath, setCustomDatasetPath] = useState<string>("");
   const [uploadingDataset, setUploadingDataset] = useState(false);
-  const [availableDatasets, setAvailableDatasets] = useState<Record<"chatbot" | "rag" | "agent" | "safety", { key: string; name: string; path: string; use_case: "chatbot" | "rag" | "agent" | "safety" }[]>>({
-    chatbot: [],
-    rag: [],
-    agent: [],
-    safety: [],
-  });
+  // No local cache needed; we fetch on demand when picking defaults
+  // Dataset mode for chatbot: single-turn vs conversational (multi-turn).
+  // Backend auto-detects shape; this toggle guides preset selection and UX copy.
+  const [datasetMode, setDatasetMode] = useState<"single" | "conversational">("single");
+
+  // Helper: auto-pick a default preset for the current taskType and datasetMode
+  const pickDefaultPresetForMode = async (mode: "single" | "conversational") => {
+    try {
+      const list = await deepEvalDatasetsService.list();
+      let opts = list[config.taskType] || [];
+      if (config.taskType === "chatbot") {
+        const isConv = (s: string) => /conversation|conversational|multi/.test(s);
+        const isSingle = (s: string) => /singleturn|single|st_/.test(s);
+        const filtered = opts.filter(ds => {
+          const s = (ds.name + ds.path).toLowerCase();
+          return mode === "conversational" ? isConv(s) : isSingle(s);
+        });
+        if (filtered.length > 0) opts = filtered;
+      }
+      if (opts.length > 0) {
+        setSelectedPresetPath(opts[0].path);
+        try {
+          const { prompts } = await deepEvalDatasetsService.read(opts[0].path);
+          let filtered = prompts as Array<{ category?: string }>;
+          if (config.dataset.categories && config.dataset.categories.length > 0) {
+            filtered = filtered.filter((p) => !!p && config.dataset.categories.includes(p.category || ""));
+          }
+          if (config.dataset.limit && config.dataset.limit > 0) {
+            filtered = filtered.slice(0, config.dataset.limit);
+          }
+          setDatasetPrompts(filtered as DatasetPrompt[]);
+          setDatasetLoaded(true);
+        } catch {
+          /* ignore read errors */
+        }
+      } else {
+        // Fallback to known example presets if filtering didn’t find any
+        if (config.taskType === "chatbot") {
+          const fallbackPath =
+            mode === "conversational"
+              ? "chatbot/chatbot_conversations_example.json"
+              : "chatbot/chatbot_singleturn_example.json";
+          try {
+            setSelectedPresetPath(fallbackPath);
+            const { prompts } = await deepEvalDatasetsService.read(fallbackPath);
+            setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+            setDatasetLoaded(true);
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  };
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
 
   // Configuration state
@@ -140,6 +190,28 @@ export default function NewExperimentModal({
     setActiveStep((prev) => prev + 1);
   };
 
+  // Auto-select recommended mode + default preset when entering dataset step
+  useEffect(() => {
+    if (activeStep !== 1) return;
+    if (!config.dataset.useBuiltin) return;
+    if (config.taskType !== "chatbot") return;
+    const recommended: "single" | "conversational" = "conversational";
+    // If user hasn't interacted yet, align selection and preview.
+    if (datasetMode !== recommended) {
+      setDatasetMode(recommended);
+    }
+    void pickDefaultPresetForMode(recommended);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStep, config.taskType, config.dataset.useBuiltin]);
+
+  // When dataset mode changes (user click), refresh preview from corresponding preset
+  useEffect(() => {
+    if (activeStep !== 1) return;
+    if (!config.dataset.useBuiltin) return;
+    if (config.taskType !== "chatbot") return;
+    void pickDefaultPresetForMode(datasetMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datasetMode]);
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
   };
@@ -149,7 +221,6 @@ export default function NewExperimentModal({
       // If we already have a selected preset path, load it; otherwise select first by use case
       if (!selectedPresetPath) {
         const list = await deepEvalDatasetsService.list();
-        setAvailableDatasets(list);
         const options = list[config.taskType] || [];
         if (options.length > 0) {
           setSelectedPresetPath(options[0].path);
@@ -541,34 +612,127 @@ export default function NewExperimentModal({
               </Typography>
             </Box>
 
+            {/* Dataset form (mode) - rendered first */}
+            {config.taskType === "chatbot" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1 }}>
+                  Dataset form
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                  <Chip
+                    label={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                        <span>Single‑turn</span>
+                        {("single" === (config.taskType === "chatbot" ? "conversational" : "single") ? null : null)}
+                      </Box>
+                    }
+                    color={datasetMode === "single" ? "success" : "default"}
+                    onClick={async () => {
+                      setDatasetMode("single");
+                      if (config.dataset.useBuiltin) await pickDefaultPresetForMode("single");
+                    }}
+                    sx={{ height: 26, fontSize: "12px", cursor: "pointer" }}
+                  />
+                  <Chip
+                    label={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                        <span>Conversational (multi‑turn)</span>
+                        {config.taskType === "chatbot" && (
+                          <Chip label="Recommended" size="small" color="primary" sx={{ height: 16, fontSize: "10px" }} />
+                        )}
+                      </Box>
+                    }
+                    color={datasetMode === "conversational" ? "success" : "default"}
+                    onClick={async () => {
+                      setDatasetMode("conversational");
+                      if (config.dataset.useBuiltin) await pickDefaultPresetForMode("conversational");
+                    }}
+                    sx={{ height: 26, fontSize: "12px", cursor: "pointer" }}
+                  />
+                </Stack>
+                <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280" }}>
+                  Single‑turn evaluates isolated prompts. Conversational evaluates assistant turns within a chat history (multi‑turn).
+                </Typography>
+              </Box>
+            )}
+
             {/* Dataset Source Selection - Radio Group */}
             <FormControl component="fieldset">
               <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
                 Dataset Source
               </Typography>
               <RadioGroup
-                value={config.dataset.useBuiltin ? "default" : "upload"}
+                value={
+                  config.dataset.useBuiltin
+                    ? "builtin"
+                    : customDatasetPath
+                    ? "upload"
+                    : "my"
+                }
                 onChange={(e) => {
-                  const useBuiltin = e.target.value === "default";
-                  setConfig((prev) => ({
-                    ...prev,
-                    dataset: { ...prev.dataset, useBuiltin },
-                  }));
-                  if (useBuiltin && !datasetLoaded) {
-                    handleLoadBuiltinDataset();
+                  const val = e.target.value;
+                  if (val === "builtin") {
+                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
+                    void handleLoadBuiltinDataset();
+                  } else if (val === "my") {
+                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
+                    // Auto-select last uploaded from DB
+                    (async () => {
+                      try {
+                        const res = await deepEvalDatasetsService.listMy();
+                        const last = (res.datasets || [])[0];
+                        if (last) {
+                          setCustomDatasetPath(last.path);
+                          const { prompts } = await deepEvalDatasetsService.read(last.path);
+                          setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                          setDatasetLoaded(true);
+                        }
+                      } catch { /* ignore */ }
+                    })();
+                  } else {
+                    // upload now - set to custom flow (no path yet)
+                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
+                    setCustomDatasetFile(null);
+                    setCustomDatasetPath("");
                   }
                 }}
               >
                 <FormControlLabel
-                  value="default"
+                  value="my"
                   control={<Radio size="small" />}
                   label={
                     <Box>
                       <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
-                        Default dataset
+                        My datasets
                       </Typography>
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
-                        Diverse prompts across multiple categories
+                        Use one of your uploaded datasets (stored in Datasets tab)
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    border: "1px solid #E0E0E0",
+                    borderRadius: "8px",
+                    p: 1.5,
+                    m: 0,
+                    mb: 1,
+                    bgcolor: !config.dataset.useBuiltin && customDatasetPath ? "#F0F9FF" : "#FFFFFF",
+                    borderColor: !config.dataset.useBuiltin && customDatasetPath ? "#3B82F6" : "#E0E0E0",
+                    "&:hover": {
+                      bgcolor: "#F9FAFB",
+                    },
+                  }}
+                />
+                <FormControlLabel
+                  value="builtin"
+                  control={<Radio size="small" />}
+                  label={
+                    <Box>
+                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
+                        Built‑in dataset
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
+                        Curated presets maintained by VerifyWise
                       </Typography>
                     </Box>
                   }
@@ -580,9 +744,6 @@ export default function NewExperimentModal({
                     mb: 1,
                     bgcolor: config.dataset.useBuiltin ? "#F0F9FF" : "#FFFFFF",
                     borderColor: config.dataset.useBuiltin ? "#3B82F6" : "#E0E0E0",
-                    "&:hover": {
-                      bgcolor: "#F9FAFB",
-                    },
                   }}
                 />
                 <FormControlLabel
@@ -591,10 +752,10 @@ export default function NewExperimentModal({
                   label={
                     <Box>
                       <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
-                        Upload custom dataset
+                        Upload now
                       </Typography>
                       <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
-                        Upload your own JSON dataset file (same schema as presets)
+                        Upload a JSON dataset file and use it immediately
                       </Typography>
                     </Box>
                   }
@@ -694,65 +855,7 @@ export default function NewExperimentModal({
               </Box>
             )}
 
-            {/* Built-in preset selector when using default datasets */}
-            {config.dataset.useBuiltin && !config.dataset.benchmark && (
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <Typography sx={{ fontSize: "13px", color: "#374151" }}>Built-in preset</Typography>
-                <Select
-                  size="small"
-                  value={selectedPresetPath || ""}
-                  renderValue={(val) => {
-                    const ds = (availableDatasets[config.taskType] || []).find(d => d.path === val);
-                    return ds ? `${ds.name}` : "Select a preset";
-                  }}
-                  onOpen={async () => {
-                    try {
-                      const list = await deepEvalDatasetsService.list();
-                      setAvailableDatasets(list);
-                      // If selected preset path is empty, pick first
-                      if (!selectedPresetPath) {
-                        const opts = list[config.taskType] || [];
-                        if (opts.length > 0) setSelectedPresetPath(opts[0].path);
-                      }
-                    } catch {
-                      // ignore
-                    }
-                  }}
-                  onChange={async (e) => {
-                    const newPath = String(e.target.value);
-                    setSelectedPresetPath(newPath);
-                    try {
-                      const { prompts } = await deepEvalDatasetsService.read(newPath);
-                      let filtered = prompts as DatasetPrompt[];
-                      if (config.dataset.categories && config.dataset.categories.length > 0) {
-                        filtered = filtered.filter((p) => config.dataset.categories.includes(p.category));
-                      }
-                      if (config.dataset.limit && config.dataset.limit > 0) {
-                        filtered = filtered.slice(0, config.dataset.limit);
-                      }
-                      setDatasetPrompts(filtered as DatasetPrompt[]);
-                      setDatasetLoaded(true);
-                    } catch (err) {
-                      console.error("Failed to read preset dataset:", err);
-                    }
-                  }}
-                  sx={{ minWidth: 260 }}
-                >
-                  {(availableDatasets[config.taskType] || []).slice(0, 12).map((ds) => (
-                    <MenuItem key={ds.key} value={ds.path}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Chip
-                          label={ds.use_case}
-                          size="small"
-                          sx={{ textTransform: "capitalize", height: 20 }}
-                        />
-                        <Typography sx={{ fontSize: "13px" }}>{ds.name}</Typography>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-            )}
+            {/* Built-in preset selector removed; we auto-pick based on dataset mode */}
 
             {/* Dataset Category Selection and Limit */}
             {config.dataset.useBuiltin && (

@@ -5,6 +5,9 @@ Endpoints for running DeepEval LLM evaluations.
 """
 
 from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
+from pathlib import Path
+import json
 from controllers.deepeval import (
     create_deepeval_evaluation_controller,
     get_deepeval_evaluation_status_controller,
@@ -16,6 +19,7 @@ from controllers.deepeval import (
     upload_deepeval_dataset_controller,
     list_deepeval_datasets_controller,
     read_deepeval_dataset_controller,
+    list_user_datasets_controller,
 )
 
 router = APIRouter()
@@ -237,4 +241,34 @@ async def read_dataset(path: str):
     Example: /deepeval/datasets/read?path=chatbot/chatbot_basic.json
     """
     return await read_deepeval_dataset_controller(path)
+
+@router.get("/datasets/uploads")
+async def list_uploaded_datasets(request: Request):
+    """
+    List uploaded JSON datasets for the current tenant from EvaluationModule/data/uploads/{tenant}.
+    """
+    try:
+        tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        uploads_dir = Path(__file__).parents[2] / "EvaluationModule" / "data" / "uploads" / tenant
+        uploads = []
+        if uploads_dir.is_dir():
+            for p in uploads_dir.glob("*.json"):
+                stat = p.stat()
+                uploads.append({
+                    "name": p.name,
+                    "path": str((Path("data") / "uploads" / tenant / p.name).as_posix()),
+                    "size": stat.st_size,
+                    "modifiedAt": stat.st_mtime,
+                })
+        return JSONResponse(status_code=200, content={"uploads": uploads})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list uploads: {e}")
+
+@router.get("/datasets/user")
+async def list_user_datasets(request: Request):
+    """
+    List user-uploaded datasets from DB for the current tenant.
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await list_user_datasets_controller(tenant=tenant)
 

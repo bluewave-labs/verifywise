@@ -76,15 +76,16 @@ export default function ProjectsList() {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
       let list = data.projects || [];
-      // If an organization is selected, filter projects by org
+      // If an organization is selected, filter projects strictly to that org
       if (currentOrgId) {
         try {
           const ids = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
-          if (ids.length > 0) {
-            const byId = new Set(ids);
-            list = list.filter((p) => byId.has(p.id));
-          }
-        } catch { /* ignore and show all for tenant */ }
+          const byId = new Set(ids);
+          list = list.filter((p) => byId.has(p.id));
+        } catch {
+          // On any error fetching org->projects mapping, show none rather than leaking other orgs
+          list = [];
+        }
       }
       setProjects(list);
 

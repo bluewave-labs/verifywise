@@ -381,7 +381,14 @@ export default function EvalsDashboard() {
                   }
                   await deepEvalOrgsService.setCurrentOrg(val);
                   setOrgId(val);
+                  // Hard reload to ensure all project lists reflect the newly selected organization
+                  // This avoids stale caches in nested components that only load on mount.
                   navigate("/evals");
+                  setTimeout(() => {
+                    if (typeof window !== "undefined") {
+                      window.location.reload();
+                    }
+                  }, 0);
                 }}
                 displayEmpty
                 IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}

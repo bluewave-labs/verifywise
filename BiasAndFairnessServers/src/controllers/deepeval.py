@@ -21,6 +21,8 @@ if bias_fairness_path not in sys.path:
     sys.path.insert(0, bias_fairness_path)
 
 from database.redis import get_job_status, set_job_status, delete_job_status
+from database.db import get_db
+from crud.deepeval_datasets import create_user_dataset, list_user_datasets
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -601,6 +603,14 @@ async def upload_deepeval_dataset_controller(
 
         # Return path relative to EvaluationModule for runner consumption
         relative_path = str(Path("data") / "uploads" / tenant / filename)
+        # Also persist metadata in DB for Datasets tab
+        try:
+            async with get_db() as db:
+                await create_user_dataset(tenant=tenant, db=db, name=filename, path=relative_path, size=len(content_bytes))
+                await db.commit()
+        except Exception:
+            pass
+
         return JSONResponse(
             status_code=201,
             content={
@@ -702,4 +712,16 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to read dataset: {e}")
     # End of read_deepeval_dataset_controller
+
+
+async def list_user_datasets_controller(tenant: str) -> JSONResponse:
+    """
+    List user-uploaded datasets from the database (tenant-scoped).
+    """
+    try:
+        async with get_db() as db:
+            items = await list_user_datasets(tenant=tenant, db=db)
+            return JSONResponse(status_code=200, content={"datasets": items})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list user datasets: {e}")
 

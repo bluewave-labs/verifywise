@@ -174,10 +174,11 @@ async def run_evaluation(
         if runner_provider == "ollama" and isinstance(model_name, str):
             ensure_ollama_model(model_name)
         
-        # 2. Load Dataset (builtin by name, custom path, prompts, or benchmarks)
+        # 2. Load Dataset (builtin by name, custom path, prompts, conversations, or benchmarks)
         print(f"\n📊 Loading dataset...")
 
         prompts = dataset_config.get("prompts", [])
+        conversations = []  # list[dict]: { scenario?: str, turns: [{role, content}] }
         # Built-in preset by name (chatbot | rag | agent | safety)
         builtin_value = dataset_config.get("useBuiltin")
         if not prompts and isinstance(builtin_value, str):
@@ -193,7 +194,12 @@ async def run_evaluation(
                 print(f"📦 Using built-in dataset: {name} -> {preset_path}")
                 try:
                     with open(preset_path, "r", encoding="utf-8") as f:
-                        prompts = json.load(f)
+                        loaded = json.load(f)
+                        # Accept either prompts (single-turn) or conversational scenarios
+                        if isinstance(loaded, list) and loaded and isinstance(loaded[0], dict) and "turns" in loaded[0]:
+                            conversations = loaded
+                        else:
+                            prompts = loaded
                 except Exception as e:
                     print(f"⚠️  Failed to load builtin dataset '{name}': {e}")
         # Custom dataset path if provided
@@ -204,7 +210,11 @@ async def run_evaluation(
             print(f"📄 Using custom dataset: {custom_path}")
             try:
                 with open(custom_path, "r", encoding="utf-8") as f:
-                    prompts = json.load(f)
+                    loaded = json.load(f)
+                    if isinstance(loaded, list) and loaded and isinstance(loaded[0], dict) and "turns" in loaded[0]:
+                        conversations = loaded
+                    else:
+                        prompts = loaded
             except Exception as e:
                 print(f"⚠️  Failed to load custom dataset '{custom_path}': {e}")
         # DeepEval benchmark (fallback)
@@ -249,8 +259,8 @@ async def run_evaluation(
                     print(f"⚠️  Could not extract prompts from benchmark '{bench_name}', falling back to provided prompts")
             except Exception as be:
                 print(f"⚠️  Benchmark load failed: {be}")
-        if not prompts:
-            error_msg = "No prompts in dataset"
+        if not prompts and not conversations:
+            error_msg = "No prompts or conversations in dataset"
             print(f"❌ {error_msg}")
             await crud.update_experiment_status(
                 db=db,
@@ -261,115 +271,158 @@ async def run_evaluation(
             )
             return {"error": error_msg}
         
-        # 3. Generate Responses
-        print(f"\n🤖 Generating {len(prompts)} responses...\n")
-        
         test_cases_data = []
-        
-        for idx, prompt_data in enumerate(prompts, 1):
-            try:
-                print(f"  [{idx}/{len(prompts)}] Processing: {prompt_data['prompt'][:50]}...")
-                
-                start_time = datetime.now()
-                
-                # Generate response (first attempt)
-                response = model_runner.generate(
-                    prompt=prompt_data["prompt"],
-                    max_tokens=2048,
-                    temperature=0.7,
-                )
-                
-                # If response is empty/whitespace, retry once with safer params
-                if not response or not str(response).strip():
-                    print("     • Empty response, retrying with higher max_tokens/lower temperature...")
-                    try:
-                        response = model_runner.generate(
-                            prompt=prompt_data["prompt"],
-                            max_tokens=2048,
-                            temperature=0.2,
+
+        if conversations:
+            # 3A. Conversational (multi-turn) evaluation: judge existing assistant replies per turn
+            print(f"\n🗣️ Detected conversational dataset with {len(conversations)} scenarios. Building per-turn test cases...\n")
+            sample_counter = 0
+            for s_idx, convo in enumerate(conversations, 1):
+                scenario = convo.get("scenario") or f"scenario_{s_idx}"
+                turns = convo.get("turns") or []
+                # Evaluate assistant turns; build history up to each assistant reply
+                history: list[dict] = []
+                for t_idx, t in enumerate(turns, 1):
+                    role = (t.get("role") or "").lower()
+                    content = t.get("content") or ""
+                    if not content:
+                        continue
+                    # When we hit an assistant turn, create a test case using prior history
+                    if role == "assistant":
+                        # The last user message (if any) is the immediate input; include compact history for judge context
+                        # Build a compact, readable transcript
+                        history_text = []
+                        for h in history[-6:]:  # keep the last few turns for brevity
+                            history_text.append(f"{h['role'].capitalize()}: {h['content']}")
+                        input_block = "\n".join(history_text) if history_text else ""
+                        last_user = ""
+                        if history and history[-1]["role"] == "user":
+                            last_user = history[-1]["content"]
+                        judge_input = f"{input_block}\n\nUser: {last_user}".strip() if last_user else input_block
+
+                        test_case = LLMTestCase(
+                            input=judge_input,
+                            actual_output=content,
+                            expected_output="",  # optional; can be set if gold assistant is provided separately
                         )
-                    except Exception as retry_err:
-                        print(f"     • Retry failed: {retry_err}")
-                
-                # If still empty, mark as error and continue
-                if not response or not str(response).strip():
+                        sample_counter += 1
+                        test_cases_data.append({
+                            "test_case": test_case,
+                            "metadata": {
+                                "sample_id": f"{scenario}#turn_{t_idx}",
+                                "protected_attributes": {"category": scenario, "difficulty": "conversation"},
+                            }
+                        })
+                    # Always extend history
+                    history.append({"role": role, "content": content})
+            print(f"✓ Built {len(test_cases_data)} assistant-turn test cases from conversations.")
+        else:
+            # 3B. Single-turn path (existing)
+            print(f"\n🤖 Generating {len(prompts)} responses...\n")
+            for idx, prompt_data in enumerate(prompts, 1):
+                try:
+                    print(f"  [{idx}/{len(prompts)}] Processing: {prompt_data['prompt'][:50]}...")
+                    
+                    start_time = datetime.now()
+                    
+                    # Generate response (first attempt)
+                    response = model_runner.generate(
+                        prompt=prompt_data["prompt"],
+                        max_tokens=2048,
+                        temperature=0.7,
+                    )
+                    
+                    # If response is empty/whitespace, retry once with safer params
+                    if not response or not str(response).strip():
+                        print("     • Empty response, retrying with higher max_tokens/lower temperature...")
+                        try:
+                            response = model_runner.generate(
+                                prompt=prompt_data["prompt"],
+                                max_tokens=2048,
+                                temperature=0.2,
+                            )
+                        except Exception as retry_err:
+                            print(f"     • Retry failed: {retry_err}")
+                    
+                    # If still empty, mark as error and continue
+                    if not response or not str(response).strip():
+                        await crud.create_log(
+                            db=db,
+                            project_id=config.get("project_id"),
+                            tenant=tenant,
+                            experiment_id=experiment_id,
+                            input_text=prompt_data["prompt"],
+                            output_text="",
+                            model_name=model_name,
+                            latency_ms=int((datetime.now() - start_time).total_seconds() * 1000),
+                            token_count=0,
+                            status="error",
+                            error_message="empty_output",
+                        )
+                        print("     ✗ Empty output after retry - logged as error")
+                        continue
+                    
+                    latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+                    
+                    # Create test case
+                    test_case = LLMTestCase(
+                        input=prompt_data["prompt"],
+                        actual_output=response,
+                        expected_output=prompt_data.get("expected_output", ""),
+                    )
+                    
+                    # Log the interaction
+                    created_log = await crud.create_log(
+                        db=db,
+                        project_id=config.get("project_id"),
+                        tenant=tenant,
+                        experiment_id=experiment_id,
+                        input_text=prompt_data["prompt"],
+                        output_text=response,
+                        model_name=model_name,
+                        latency_ms=latency_ms,
+                        token_count=len(response.split()) if isinstance(response, str) else 0,  # Rough estimate
+                        status="success",
+                    )
+                    
+                    # Record latency metric
+                    await crud.create_metric(
+                        db=db,
+                        project_id=config.get("project_id"),
+                        metric_name="latency",
+                        metric_type="performance",
+                        value=float(latency_ms),
+                        tenant=tenant,
+                        experiment_id=experiment_id,
+                    )
+                    
+                    test_cases_data.append({
+                        "test_case": test_case,
+                        "metadata": {
+                            "sample_id": prompt_data.get("id"),
+                            "category": prompt_data.get("category"),
+                            "difficulty": prompt_data.get("difficulty"),
+                            "log_id": created_log.get("id") if created_log else None,
+                        }
+                    })
+                    
+                    print(f"     ✓ Generated ({latency_ms}ms)")
+                    
+                except Exception as e:
+                    print(f"     ❌ Error: {e}")
+                    
+                    # Log the error
                     await crud.create_log(
                         db=db,
                         project_id=config.get("project_id"),
                         tenant=tenant,
                         experiment_id=experiment_id,
                         input_text=prompt_data["prompt"],
-                        output_text="",
                         model_name=model_name,
-                        latency_ms=int((datetime.now() - start_time).total_seconds() * 1000),
-                        token_count=0,
                         status="error",
-                        error_message="empty_output",
+                        error_message=str(e),
                     )
-                    print("     ✗ Empty output after retry - logged as error")
                     continue
-                
-                latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
-                
-                # Create test case
-                test_case = LLMTestCase(
-                    input=prompt_data["prompt"],
-                    actual_output=response,
-                    expected_output=prompt_data.get("expected_output", ""),
-                )
-                
-                # Log the interaction
-                created_log = await crud.create_log(
-                    db=db,
-                    project_id=config.get("project_id"),
-                    tenant=tenant,
-                    experiment_id=experiment_id,
-                    input_text=prompt_data["prompt"],
-                    output_text=response,
-                    model_name=model_name,
-                    latency_ms=latency_ms,
-                    token_count=len(response.split()) if isinstance(response, str) else 0,  # Rough estimate
-                    status="success",
-                )
-                
-                # Record latency metric
-                await crud.create_metric(
-                    db=db,
-                    project_id=config.get("project_id"),
-                    metric_name="latency",
-                    metric_type="performance",
-                    value=float(latency_ms),
-                    tenant=tenant,
-                    experiment_id=experiment_id,
-                )
-                
-                test_cases_data.append({
-                    "test_case": test_case,
-                    "metadata": {
-                        "sample_id": prompt_data.get("id"),
-                        "category": prompt_data.get("category"),
-                        "difficulty": prompt_data.get("difficulty"),
-                        "log_id": created_log.get("id") if created_log else None,
-                    }
-                })
-                
-                print(f"     ✓ Generated ({latency_ms}ms)")
-                
-            except Exception as e:
-                print(f"     ❌ Error: {e}")
-                
-                # Log the error
-                await crud.create_log(
-                    db=db,
-                    project_id=config.get("project_id"),
-                    tenant=tenant,
-                    experiment_id=experiment_id,
-                    input_text=prompt_data["prompt"],
-                    model_name=model_name,
-                    status="error",
-                    error_message=str(e),
-                )
-                continue
         
         if not test_cases_data:
             error_msg = "No responses generated"
@@ -382,7 +435,7 @@ async def run_evaluation(
             )
             return {"error": error_msg}
         
-        # 4. Run DeepEval Metrics (if OpenAI key available)
+        # 4. Run DeepEval Metrics (if keys available)
         print(f"\n🔍 Running evaluation metrics...\n")
         
         # Create minimal config for evaluator

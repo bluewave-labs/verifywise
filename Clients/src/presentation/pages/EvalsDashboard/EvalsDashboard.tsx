@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, MenuItem, Select, Divider, Stack, Typography, useTheme, IconButton } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown, Plus, Workflow, Home, FlaskConical, Settings } from "lucide-react";
+import { ChevronDown, Plus, Workflow, Home, FlaskConical, Settings, FileSearch, Bot } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import TabBar from "../../components/TabBar";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -17,13 +17,12 @@ import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDat
 import ProjectsList from "./ProjectsList";
 import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
-import ProjectMonitor from "./ProjectMonitor";
 import ProjectConfiguration from "./ProjectConfiguration";
 import { ProjectDatasets } from "./ProjectDatasets";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
-import NewProjectModal from "./NewProjectModal";
+// (duplicate removed) ModalStandard is already imported above
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -472,12 +471,14 @@ export default function EvalsDashboard() {
       )}
 
       {/* Create Project Modal */}
-      <NewProjectModal
+      <ModalStandard
         isOpen={createProjectModalOpen}
         onClose={() => {
           setCreateProjectModalOpen(false);
           setNewProject({ name: "", description: "", useCase: "chatbot" });
         }}
+        title="Create project"
+        description="Create a new project to organize your LLM evaluations"
         onSubmit={handleCreateProject}
         submitButtonText="Create project"
         isSubmitting={loading || !newProject.name}

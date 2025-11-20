@@ -64,7 +64,7 @@ async def create_deepeval_evaluation(
     return await create_deepeval_evaluation_controller(
         background_tasks=background_tasks,
         config_data=config_data,
-        tenant=request.headers.get("x-tenant-id", "default")
+        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -84,7 +84,7 @@ async def get_evaluation_status(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_status_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -117,7 +117,7 @@ async def get_evaluation_results(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_results_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -142,7 +142,7 @@ async def get_all_evaluations(request: Request):
     }
     """
     return await get_all_deepeval_evaluations_controller(
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -159,7 +159,7 @@ async def delete_evaluation(eval_id: str, request: Request):
     """
     return await delete_deepeval_evaluation_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -220,7 +220,7 @@ async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
     """
     return await upload_deepeval_dataset_controller(
         dataset=dataset,
-        tenant=request.headers.get("x-tenant-id", "default"),
+        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
     )
 
 @router.get("/datasets/list")

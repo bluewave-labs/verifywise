@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -17,6 +17,7 @@ import Alert from "../../components/Alert";
 import EmptyState from "../../components/EmptyState";
 import ConfirmableDeleteIconButton from "../../components/Modals/ConfirmableDeleteIconButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
 // NewProjectModal was merged into StandardModal-based flow
@@ -69,18 +70,27 @@ export default function ProjectsList() {
     return iconColors[index];
   };
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const data = await deepEvalProjectsService.getAllProjects();
-      setProjects(data.projects);
+      let list = data.projects || [];
+      // If an organization is selected, filter projects by org
+      if (currentOrgId) {
+        try {
+          const ids = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
+          if (ids.length > 0) {
+            const byId = new Set(ids);
+            list = list.filter((p) => byId.has(p.id));
+          }
+        } catch { /* ignore and show all for tenant */ }
+      }
+      setProjects(list);
 
       // Fetch run counts for each project in parallel (using experiments API)
       const statsArray = await Promise.all(
-        (data.projects || []).map(async (p) => {
+        (list || []).map(async (p) => {
           try {
             const res = await experimentsService.getAllExperiments({ project_id: p.id });
             const total = Array.isArray(res?.experiments) ? res.experiments.length : (res?.length ?? 0);
@@ -106,7 +116,18 @@ export default function ProjectsList() {
       setProjects([]);
       setRunsByProject({});
     }
-  };
+  }, [currentOrgId]);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        setCurrentOrgId(org?.id || null);
+      } catch { /* ignore */ }
+      await loadProjects();
+    };
+    void init();
+  }, [loadProjects]);
 
   const handleCreateProject = async () => {
     setLoading(true);
@@ -117,6 +138,7 @@ export default function ProjectsList() {
         description: newProject.description,
         useCase: newProject.useCase,
         defaultDataset: newProject.useCase,
+        orgId: currentOrgId || undefined,
       };
 
       await deepEvalProjectsService.createProject(projectConfig);
@@ -190,16 +212,10 @@ export default function ProjectsList() {
         delete next[projectId];
         return next;
       });
-      setAlert({
-        variant: "success",
-        body: "Project deleted.",
-      });
+      setAlert({ variant: "success", body: "Project deleted" });
       setTimeout(() => setAlert(null), 4000);
     } catch (err) {
-      setAlert({
-        variant: "error",
-        body: err instanceof Error ? err.message : "Failed to delete project",
-      });
+      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
       setTimeout(() => setAlert(null), 8000);
     } finally {
       setLoading(false);

@@ -86,7 +86,7 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
         sx={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: 2,
+          gap: 3,
         }}
       >
         {capabilities.map((capability, index) => (

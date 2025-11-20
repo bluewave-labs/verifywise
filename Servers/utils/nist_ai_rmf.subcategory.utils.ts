@@ -55,6 +55,23 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     "tags",
   ]
     .filter((f) => {
+      if (f === "tags") {
+        // Handle tags array specifically
+        const tags = subcategory[f as keyof NISTAIMRFSubcategoryModel] as string[];
+        if (tags !== undefined && tags !== null) {
+          // For empty arrays, use PostgreSQL explicit type casting
+          if (tags.length === 0) {
+            updateSubcategory[f as keyof NISTAIMRFSubcategoryModel] = [];
+            return `${f} = ARRAY[]::TEXT[]`;  // Explicit type for empty array
+          } else {
+            updateSubcategory[f as keyof NISTAIMRFSubcategoryModel] = tags;
+            return `${f} = ARRAY[:${f}]`;  // Array with content
+          }
+        }
+        return false;
+      }
+
+      // Handle other fields
       if (
         subcategory[f as keyof NISTAIMRFSubcategoryModel] !== undefined &&
         subcategory[f as keyof NISTAIMRFSubcategoryModel] !== null &&
@@ -64,10 +81,16 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
           subcategory[f as keyof NISTAIMRFSubcategoryModel];
         return true;
       }
+      return false;
     })
     .map((f) => {
       if (f === "tags") {
-        return `${f} = ARRAY[:${f}]`;  // 🎯 Use Policy Manager approach
+        const tags = subcategory[f as keyof NISTAIMRFSubcategoryModel] as string[];
+        if (tags && tags.length === 0) {
+          return `${f} = ARRAY[]::TEXT[]`;  // Already handled in filter
+        } else {
+          return `${f} = ARRAY[:${f}]`;
+        }
       }
       return `${f} = :${f}`;
     })

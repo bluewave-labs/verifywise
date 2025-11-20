@@ -180,7 +180,8 @@ const AITrustCenterTable = <T extends { id: number }>({
                   ...singleTheme.tableStyles.primary.header.cell,
                   // Remove width constraints to match original AI Trust Center behavior
                   minWidth: "auto",
-                  width: "auto",
+                  width: (column as any).width || "auto",
+                  maxWidth: (column as any).width || "auto",
                   ...(isLastColumn && {
                     position: "sticky",
                     right: 0,

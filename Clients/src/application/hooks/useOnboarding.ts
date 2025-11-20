@@ -47,7 +47,27 @@ export const useOnboarding = () => {
       lastUpdated: new Date().toISOString(),
     };
     localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+
+    // Dispatch custom event to notify other instances
+    window.dispatchEvent(new CustomEvent('onboarding-state-changed', { detail: stateToSave }));
   }, [state, userId]);
+
+  // Listen for storage changes from other instances
+  useEffect(() => {
+    if (!userId) return;
+
+    const handleStorageChange = (event: CustomEvent) => {
+      const newState = event.detail;
+      if (newState && newState.lastUpdated !== state.lastUpdated) {
+        setState(newState);
+      }
+    };
+
+    window.addEventListener('onboarding-state-changed', handleStorageChange as EventListener);
+    return () => {
+      window.removeEventListener('onboarding-state-changed', handleStorageChange as EventListener);
+    };
+  }, [userId, state.lastUpdated]);
 
   // Check if user is first in organization
   const isFirstUserInOrg = useCallback(() => {

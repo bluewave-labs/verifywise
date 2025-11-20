@@ -3,7 +3,6 @@ import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radi
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { OnboardingRole, OnboardingIndustry, OnboardingUseCase } from "../../../../domain/enums/onboarding.enum";
 import Select from "../../../components/Inputs/Select";
-import Alert from "../../Alert";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const PreferencesStep: React.FC<OnboardingStepProps> = ({
@@ -75,7 +74,7 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
             marginBottom: 3,
           }}
         >
-          Help us personalize your experience by sharing a bit about your role and focus.
+          Help us personalize your experience by sharing a bit about your role and focus. This information helps us customize your dashboard. You can skip this step or update these preferences later in settings.
         </Typography>
       </Box>
 
@@ -164,17 +163,6 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
               />
             ))}
           </RadioGroup>
-
-          <Alert
-            variant="info"
-            body="This information helps us customize your dashboard. You can skip this step or update these preferences later in settings."
-            hasIcon={false}
-            sx={{
-              position: "static",
-              marginTop: 2,
-              padding: "12px 16px",
-            }}
-          />
         </FormControl>
       </Stack>
     </Stack>

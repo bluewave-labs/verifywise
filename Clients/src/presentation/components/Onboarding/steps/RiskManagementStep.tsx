@@ -58,7 +58,7 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Identify and Mitigate Risks
+          Identify and mitigate risks
         </Typography>
         <Typography
           sx={{
@@ -83,7 +83,7 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
           <Box
             key={index}
             sx={{
-              padding: 2.5,
+              padding: 5,
               backgroundColor: "white",
               border: "1px solid #E5E7EB",
               borderRadius: "8px",

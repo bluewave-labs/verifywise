@@ -75,7 +75,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
             marginBottom: 1,
           }}
         >
-          Create Your First Demo Project
+          Create your first demo project
         </Typography>
         <Typography
           sx={{

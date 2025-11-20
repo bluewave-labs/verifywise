@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { Shield, FileText, Scale, Activity } from "lucide-react";
-import Alert from "../../Alert";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const FrameworksStep: React.FC<OnboardingStepProps> = () => {
@@ -58,7 +57,7 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Apply Compliance Frameworks
+          Apply compliance frameworks
         </Typography>
         <Typography
           sx={{
@@ -83,7 +82,7 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
           <Box
             key={index}
             sx={{
-              padding: 3,
+              padding: 6,
               backgroundColor: "white",
               border: "1px solid #E5E7EB",
               borderRadius: "8px",
@@ -112,7 +111,7 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
             >
               {framework.icon}
             </Box>
-            <Box>
+            <Box sx={{ padding: 1 }}>
               <Typography
                 sx={{
                   fontSize: "14px",
@@ -130,16 +129,6 @@ const FrameworksStep: React.FC<OnboardingStepProps> = () => {
           </Box>
         ))}
       </Box>
-
-      <Alert
-        variant="warning"
-        body="You can map a single project to multiple frameworks to meet various regulatory requirements simultaneously."
-        hasIcon={false}
-        sx={{
-          position: "static",
-          padding: "12px 16px",
-        }}
-      />
     </Stack>
   );
 };

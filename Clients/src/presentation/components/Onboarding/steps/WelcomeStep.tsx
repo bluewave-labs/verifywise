@@ -48,7 +48,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Your AI governance and compliance platform. In 3 minutes, we'll help you get started with managing AI risks, compliance frameworks, and building trust.
+          VerifyWise is your AI governance and compliance platform. In 3 minutes, we'll help you get started with managing AI risks, compliance frameworks, and building trust.
         </Typography>
         <Typography
           sx={{

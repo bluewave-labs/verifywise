@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
+import { FolderPlus, Users, TrendingUp, Shield } from "lucide-react";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const UseCasesStep: React.FC<OnboardingStepProps> = () => {
@@ -29,7 +30,7 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Manage Your AI Use Cases
+          Manage your AI use cases
         </Typography>
         <Typography
           sx={{
@@ -52,44 +53,77 @@ const UseCasesStep: React.FC<OnboardingStepProps> = () => {
       >
         {[
           {
+            icon: <FolderPlus size={20} />,
             title: "Create Use Cases",
             description: "Document your AI projects with detailed information about goals, teams, and timelines.",
+            color: "#3B82F6",
           },
           {
+            icon: <Users size={20} />,
             title: "Assign Teams",
             description: "Collaborate with team members by assigning owners and stakeholders to each project.",
+            color: "#F59E0B",
           },
           {
+            icon: <TrendingUp size={20} />,
             title: "Track Status",
             description: "Monitor progress from initiation to completion with real-time status updates.",
+            color: "#8B5CF6",
           },
           {
+            icon: <Shield size={20} />,
             title: "Ensure Compliance",
             description: "Link projects to relevant frameworks and ensure regulatory requirements are met.",
+            color: "#10B981",
           },
         ].map((feature, index) => (
           <Box
             key={index}
             sx={{
-              padding: 3,
-              backgroundColor: "#F9FAFB",
+              padding: 6,
+              backgroundColor: "white",
+              border: "1px solid #E5E7EB",
               borderRadius: "8px",
-              borderLeft: "4px solid #13715B",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1.5,
+              transition: "all 0.2s",
+              "&:hover": {
+                borderColor: feature.color,
+                boxShadow: `0 0 0 3px ${feature.color}15`,
+              },
             }}
           >
-            <Typography
+            <Box
               sx={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#111827",
-                marginBottom: 0.5,
+                width: "40px",
+                height: "40px",
+                borderRadius: "8px",
+                backgroundColor: `${feature.color}15`,
+                color: feature.color,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              {feature.title}
-            </Typography>
-            <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-              {feature.description}
-            </Typography>
+              {feature.icon}
+            </Box>
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#111827",
+                  marginBottom: 0.5,
+                }}
+              >
+                {feature.title}
+              </Typography>
+              <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                {feature.description}
+              </Typography>
+            </Box>
           </Box>
         ))}
       </Box>

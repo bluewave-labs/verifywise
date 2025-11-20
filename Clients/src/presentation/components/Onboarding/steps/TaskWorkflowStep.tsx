@@ -54,7 +54,7 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Your Daily Workflow
+          Your daily workflow
         </Typography>
         <Typography
           sx={{
@@ -68,53 +68,55 @@ const TaskWorkflowStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Box>
 
-      <Stack spacing={2}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 2,
+        }}
+      >
         {workflowSteps.map((step, index) => (
           <Box
             key={index}
             sx={{
-              display: "flex",
-              gap: 2,
-              padding: 2,
-              backgroundColor: index % 2 === 0 ? "#F9FAFB" : "white",
-              borderRadius: "8px",
+              padding: 5,
+              backgroundColor: "white",
               border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
             }}
           >
             <Box
               sx={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "8px",
-                backgroundColor: "white",
-                border: "1px solid #E5E7EB",
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                backgroundColor: "#13715B15",
                 color: "#13715B",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
               }}
             >
               {step.icon}
             </Box>
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#111827",
-                  marginBottom: 0.5,
-                }}
-              >
-                {step.title}
-              </Typography>
-              <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                {step.description}
-              </Typography>
-            </Box>
+            <Typography
+              sx={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#111827",
+              }}
+            >
+              {step.title}
+            </Typography>
+            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+              {step.description}
+            </Typography>
           </Box>
         ))}
-      </Stack>
+      </Box>
 
       <Alert
         variant="success"

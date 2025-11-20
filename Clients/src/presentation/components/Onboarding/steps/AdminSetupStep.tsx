@@ -55,7 +55,7 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
             marginBottom: 1,
           }}
         >
-          Set Up Your Organization
+          Set up your organization
         </Typography>
         <Typography
           sx={{

@@ -1,44 +1,24 @@
 import React from "react";
-import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio, SelectChangeEvent } from "@mui/material";
+import { Box, Typography, Stack, FormControl, RadioGroup, FormControlLabel, Radio, SelectChangeEvent, Select, MenuItem } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { OnboardingRole, OnboardingIndustry, OnboardingUseCase } from "../../../../domain/enums/onboarding.enum";
-import Select from "../../../components/Inputs/Select";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const PreferencesStep: React.FC<OnboardingStepProps> = ({
   preferences,
   updatePreferences,
 }) => {
-  const roleItems = Object.values(OnboardingRole).map((role, index) => ({
-    _id: index + 1,
-    name: role,
-  }));
-
-  const industryItems = Object.values(OnboardingIndustry).map((industry, index) => ({
-    _id: index + 1,
-    name: industry,
-  }));
-
-  const handleRoleChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedItem = roleItems.find(item => item._id === Number(event.target.value));
-    if (selectedItem) {
-      updatePreferences?.({ role: selectedItem.name });
-    }
+  const handleRoleChange = (event: SelectChangeEvent<string>) => {
+    updatePreferences?.({ role: event.target.value as OnboardingRole });
   };
 
-  const handleIndustryChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedItem = industryItems.find(item => item._id === Number(event.target.value));
-    if (selectedItem) {
-      updatePreferences?.({ industry: selectedItem.name });
-    }
+  const handleIndustryChange = (event: SelectChangeEvent<string>) => {
+    updatePreferences?.({ industry: event.target.value as OnboardingIndustry });
   };
 
   const handleUseCaseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updatePreferences?.({ primaryUseCase: event.target.value as OnboardingUseCase });
   };
-
-  const selectedRoleId = roleItems.find((item) => item.name === preferences?.role)?._id || "";
-  const selectedIndustryId = industryItems.find((item) => item.name === preferences?.industry)?._id || "";
 
   return (
     <Stack spacing={4}>
@@ -103,14 +83,33 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
           </Typography>
           <Select
             id="role-select"
-            label=""
-            placeholder="Select your role"
-            value={selectedRoleId}
+            value={preferences?.role || ""}
             onChange={handleRoleChange}
-            items={roleItems}
-            sx={{ width: "100%" }}
-            isRequired
-          />
+            displayEmpty
+            sx={{
+              width: "100%",
+              fontSize: "13px",
+              backgroundColor: "#FFFFFF",
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#D0D5DD",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#13715B",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#13715B",
+              },
+            }}
+          >
+            <MenuItem value="" disabled sx={{ fontSize: "13px", color: "#9CA3AF" }}>
+              Select your role
+            </MenuItem>
+            {Object.values(OnboardingRole).map((role) => (
+              <MenuItem key={role} value={role} sx={{ fontSize: "13px" }}>
+                {role}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
 
         {/* Industry Selection */}
@@ -127,14 +126,33 @@ const PreferencesStep: React.FC<OnboardingStepProps> = ({
           </Typography>
           <Select
             id="industry-select"
-            label=""
-            placeholder="Select your industry"
-            value={selectedIndustryId}
+            value={preferences?.industry || ""}
             onChange={handleIndustryChange}
-            items={industryItems}
-            sx={{ width: "100%" }}
-            isRequired
-          />
+            displayEmpty
+            sx={{
+              width: "100%",
+              fontSize: "13px",
+              backgroundColor: "#FFFFFF",
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#D0D5DD",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#13715B",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#13715B",
+              },
+            }}
+          >
+            <MenuItem value="" disabled sx={{ fontSize: "13px", color: "#9CA3AF" }}>
+              Select your industry
+            </MenuItem>
+            {Object.values(OnboardingIndustry).map((industry) => (
+              <MenuItem key={industry} value={industry} sx={{ fontSize: "13px" }}>
+                {industry}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
 
         {/* Primary Use Case */}

@@ -64,6 +64,8 @@ const SubprocessorTableRow: React.FC<{
           cursor: "pointer",
           textTransform: "none !important",
           backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("company name") ? "#e8e8e8" : "#fafafa",
+          maxWidth: "200px",
+          width: "200px",
         }}
       >
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>

@@ -1,5 +1,5 @@
 export const TABLE_COLUMNS = [
-  { id: 'company', label: 'COMPANY NAME' },
+  { id: 'company', label: 'COMPANY NAME', width: '200px' },
   { id: 'url', label: 'URL' },
   { id: 'purpose', label: 'PURPOSE' },
   { id: 'location', label: 'LOCATION' },

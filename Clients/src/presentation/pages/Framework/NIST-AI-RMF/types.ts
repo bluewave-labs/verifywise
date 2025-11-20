@@ -35,11 +35,12 @@ export enum NISTAIRMFFunction {
 
 export enum NISTAIRMFStatus {
   NOT_STARTED = "Not started",
+  DRAFT = "Draft",
   IN_PROGRESS = "In progress",
+  AWAITING_REVIEW = "Awaiting review",
+  AWAITING_APPROVAL = "Awaiting approval",
   IMPLEMENTED = "Implemented",
-  REQUIRES_ATTENTION = "Requires attention",
-  AUDITED = "Audited",
-  NOT_APPLICABLE = "Not Applicable",
+  NEEDS_REWORK = "Needs rework",
 }
 
 export interface NISTAIRMFEvidenceFile {

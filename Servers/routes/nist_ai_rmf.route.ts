@@ -11,6 +11,7 @@ import {
   getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle,
   getNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryById,
+  updateNISTAIRMFSubcategoryStatus,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -51,5 +52,11 @@ router.patch(
   upload.any(),
   updateNISTAIRMFSubcategoryById
 ); // updating a specific NIST AI RMF subcategory by id
+router.patch(
+  "/subcategories/:id/status",
+  authenticateJWT,
+  validateId("id"),
+  updateNISTAIRMFSubcategoryStatus
+); // updating status of a specific NIST AI RMF subcategory by id
 
 export default router;

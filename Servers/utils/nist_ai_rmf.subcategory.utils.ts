@@ -106,3 +106,41 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   })) as [NISTAIMRFSubcategoryModel[], number];
   return result[0][0] as NISTAIMRFSubcategoryModel;
 };
+
+export const updateNISTAIRMFSubcategoryStatusByIdQuery = async (
+  id: number,
+  status: string,
+  tenant: string,
+  transaction: Transaction
+): Promise<NISTAIMRFSubcategoryModel> => {
+  // Validate status against allowed values from the frontend StatusDropdown component
+  const validStatuses = [
+    "Not started",
+    "Draft",
+    "In progress",
+    "Awaiting review",
+    "Awaiting approval",
+    "Implemented",
+    "Needs rework"
+  ];
+
+  if (!validStatuses.includes(status)) {
+    throw new Error(`Invalid status value: ${status}. Must be one of: ${validStatuses.join(", ")}`);
+  }
+
+  const query = `
+    UPDATE "${tenant}".nist_ai_rmf_subcategories
+    SET status = :status, updated_at = NOW()
+    WHERE id = :id
+    RETURNING *
+  `;
+
+  const result = (await sequelize.query(query, {
+    replacements: { id, status },
+    transaction,
+    mapToModel: true,
+    model: NISTAIMRFSubcategoryModel,
+  })) as unknown as [NISTAIMRFSubcategoryModel[], number];
+
+  return result[0][0] as NISTAIMRFSubcategoryModel;
+};

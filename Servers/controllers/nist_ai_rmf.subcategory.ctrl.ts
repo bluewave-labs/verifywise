@@ -4,6 +4,7 @@ import {
   getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery,
   getNISTAIRMFSubcategoryByIdQuery,
   updateNISTAIRMFSubcategoryByIdQuery,
+  updateNISTAIRMFSubcategoryStatusByIdQuery,
 } from "../utils/nist_ai_rmf.subcategory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logEvent } from "../utils/logger/dbLogger";
@@ -158,6 +159,83 @@ export async function updateNISTAIRMFSubcategoryById(
       fileName: "nist_ai_rmf.subcategory.ctrl.ts",
       error: error as Error,
     });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function updateNISTAIRMFSubcategoryStatus(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  const subcategoryId = parseInt(req.params.id);
+  const { status } = req.body;
+
+  logProcessing({
+    description: `starting updateNISTAIRMFSubcategoryStatus for subcategory ID ${subcategoryId} with status: ${status}`,
+    functionName: "updateNISTAIRMFSubcategoryStatus",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug(`🔄 Updating NIST AI RMF subcategory status: ID ${subcategoryId}, status: ${status}`);
+
+  try {
+    // Validate request body
+    if (!status) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Failed to update NIST AI RMF subcategory status: Status is required`,
+        functionName: "updateNISTAIRMFSubcategoryStatus",
+        fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+        error: new Error("Status is required"),
+      });
+      return res.status(400).json(STATUS_CODE[400]("Status is required"));
+    }
+
+    const updatedSubcategory = await updateNISTAIRMFSubcategoryStatusByIdQuery(
+      subcategoryId,
+      status,
+      req.tenantId!,
+      transaction
+    );
+
+    await transaction.commit();
+    await logEvent(
+      "Update",
+      `NIST AI RMF subcategory status updated: ID ${subcategoryId}, status: ${status}`
+    );
+    logStructured(
+      "successful",
+      `NIST AI RMF subcategory status updated: ID ${subcategoryId}, status: ${status}`,
+      "updateNISTAIRMFSubcategoryStatus",
+      "nist_ai_rmf.subcategory.ctrl.ts"
+    );
+    await logSuccess({
+      eventType: "Update",
+      description: `Successfully updated NIST AI RMF subcategory status: ID ${subcategoryId}, status: ${status}`,
+      functionName: "updateNISTAIRMFSubcategoryStatus",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+    return res.status(200).json(STATUS_CODE[200](updatedSubcategory));
+  } catch (error) {
+    await transaction.rollback();
+    await logEvent(
+      "Error",
+      `Failed to update NIST AI RMF subcategory status: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Update",
+      description: `Failed to update NIST AI RMF subcategory status: ${(error as Error).message}`,
+      functionName: "updateNISTAIRMFSubcategoryStatus",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
+
+    // Handle validation errors differently
+    if (error instanceof Error && error.message.includes("Invalid status value")) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

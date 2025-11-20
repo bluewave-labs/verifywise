@@ -72,11 +72,12 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
   const statusOptions = [
     { id: NISTAIRMFStatus.NOT_STARTED, name: "Not started" },
+    { id: NISTAIRMFStatus.DRAFT, name: "Draft" },
     { id: NISTAIRMFStatus.IN_PROGRESS, name: "In progress" },
+    { id: NISTAIRMFStatus.AWAITING_REVIEW, name: "Awaiting review" },
+    { id: NISTAIRMFStatus.AWAITING_APPROVAL, name: "Awaiting approval" },
     { id: NISTAIRMFStatus.IMPLEMENTED, name: "Implemented" },
-    { id: NISTAIRMFStatus.REQUIRES_ATTENTION, name: "Requires attention" },
-    { id: NISTAIRMFStatus.AUDITED, name: "Audited" },
-    { id: NISTAIRMFStatus.NOT_APPLICABLE, name: "Not Applicable" },
+    { id: NISTAIRMFStatus.NEEDS_REWORK, name: "Needs rework" },
   ];
 
   const inputStyles = {

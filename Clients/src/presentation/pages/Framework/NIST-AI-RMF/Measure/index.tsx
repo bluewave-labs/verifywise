@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useCallback, useEffect, useState } from "react";
+import { updateNISTAIRMFSubcategoryStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -174,24 +175,33 @@ const NISTAIRMFMeasure = ({
       setFlashingRowId(subcategory.id);
       setTimeout(() => setFlashingRowId(null), 2000);
 
-      // TODO: Implement the API call to update status
-      // await updateNISTAIRMFSubcategoryStatus(subcategory.id, updatedStatus);
-      console.log(
-        "Status updated:",
-        updatedStatus,
-        "for subcategory:",
-        subcategory.title
-      );
-
-      // Show success alert
-      handleAlert({
-        variant: "success",
-        body: "Status updated successfully",
-        setAlert,
+      // Call the API to update status
+      const success = await updateNISTAIRMFSubcategoryStatus({
+        id: subcategory.id,
+        newStatus: updatedStatus,
+        projectFrameworkId: Number(_projectFrameworkId),
+        userId: _userId || 1,
+        currentData: subcategory,
       });
 
-      // Trigger a refresh to ensure data consistency
-      setRefreshTrigger((prev) => prev + 1);
+      if (success) {
+        // Show success alert
+        handleAlert({
+          variant: "success",
+          body: "Status updated successfully",
+          setAlert,
+        });
+
+        // Trigger a refresh to ensure data consistency
+        setRefreshTrigger((prev) => prev + 1);
+      } else {
+        // Show error alert if update failed
+        handleAlert({
+          variant: "error",
+          body: "Failed to update status",
+          setAlert,
+        });
+      }
 
       return true;
     } catch (error) {

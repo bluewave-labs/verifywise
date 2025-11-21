@@ -235,8 +235,6 @@ export const getAllAnnexesWithSubAnnexQuery = async (
       }
     )) as [any[], number];
 
-    console.log(`🔍 ISO 42001 Debug - Annex ${annex.id} categories raw from DB:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
-
     (annex as any).annexcategories = annexCategories[0];
   }
   return annexes[0];
@@ -430,7 +428,6 @@ export const getAllAnnexesWithCategoriesQuery = async (
         number,
       ];
 
-    console.log(`🔍 ISO 42001 Debug getAllAnnexesWithCategoriesQuery - Annex ${annex.id} categories:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
     (
       annex as AnnexStructISOModel & {
         annexCategories: Partial<

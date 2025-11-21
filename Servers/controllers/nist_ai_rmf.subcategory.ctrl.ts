@@ -18,6 +18,8 @@ import {
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { UploadedFile, RequestWithFile } from "../utils/question.utils";
 import { Transaction } from "sequelize";
+import { getUserProjects } from "../utils/user.utils";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 // helper function to delete files
 async function deleteFiles(
@@ -161,6 +163,17 @@ export async function updateNISTAIRMFSubcategoryById(
     // Delete files from database (ISO pattern)
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
+    // Get user's project ID for file uploads
+    let userProjectId = 1; // Default fallback
+    try {
+      const userProjects = await getUserProjects(Number(req.userId), req.tenantId!);
+      if (userProjects && userProjects.length > 0) {
+        userProjectId = userProjects[0].id!; // Use first project user has access to
+      }
+    } catch (error) {
+      logger.warn("Could not fetch user projects, using default project ID 1");
+    }
+
     // Handle file uploads
     let uploadedFiles: {
       id: string;
@@ -176,8 +189,8 @@ export async function updateNISTAIRMFSubcategoryById(
       for (const file of req.files as UploadedFile[]) {
         const uploadedFile = await uploadFile(
           file,
-          subcategory.user_id ? parseInt(subcategory.user_id) : 1,
-          subcategory.project_id ? parseInt(subcategory.project_id) : 1,
+          subcategory.user_id ? parseInt(subcategory.user_id) : Number(req.userId),
+          subcategory.project_id ? parseInt(subcategory.project_id) : userProjectId,
           "Main clauses group",
           req.tenantId!,
           transaction

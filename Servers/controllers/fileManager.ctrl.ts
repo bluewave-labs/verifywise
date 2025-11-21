@@ -25,6 +25,7 @@ import {
 } from "../utils/fileManager.utils";
 import { validateFileUpload, formatFileSize } from "../utils/validations/fileManagerValidation.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import { getUserProjects } from "../utils/user.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -309,15 +310,35 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         }
 
         // Verify file belongs to user's organization (ensure type consistency)
-        if (Number(file.org_id) !== orgId) {
-            await logFailure({
-                eventType: "Error",
-                description: `Unauthorized access attempt to file ${fileId}`,
-                functionName: "downloadFile",
-                fileName: "fileManager.ctrl.ts",
-                error: new Error("Access denied"),
-            });
-            return res.status(403).json(STATUS_CODE[403]("Access denied"));
+        // For file_manager table files, check org_id
+        // For regular files table, check project_id against user's projects
+        if (isFileManagerFile) {
+            if (Number(file.org_id) !== orgId) {
+                await logFailure({
+                    eventType: "Error",
+                    description: `Unauthorized access attempt to file ${fileId}`,
+                    functionName: "downloadFile",
+                    fileName: "fileManager.ctrl.ts",
+                    error: new Error("Access denied"),
+                });
+                return res.status(403).json(STATUS_CODE[403]("Access denied"));
+            }
+        } else {
+            // For regular files table, verify user has access to the project
+            // Get user's projects and check if file.project_id matches
+            const userProjects = await getUserProjects(userId, tenant);
+            const userProjectIds = userProjects.map(p => p.id);
+
+            if (!userProjectIds.includes(file.project_id)) {
+                await logFailure({
+                    eventType: "Error",
+                    description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id}`,
+                    functionName: "downloadFile",
+                    fileName: "fileManager.ctrl.ts",
+                    error: new Error("Access denied"),
+                });
+                return res.status(403).json(STATUS_CODE[403]("Access denied"));
+            }
         }
 
         // Log file access
@@ -426,15 +447,35 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
         }
 
         // Verify file belongs to user's organization (ensure type consistency)
-        if (Number(file.org_id) !== orgId) {
-            await logFailure({
-                eventType: "Error",
-                description: `Unauthorized deletion attempt for file ${fileId}`,
-                functionName: "removeFile",
-                fileName: "fileManager.ctrl.ts",
-                error: new Error("Access denied"),
-            });
-            return res.status(403).json(STATUS_CODE[403]("Access denied"));
+        // For file_manager table files, check org_id
+        // For regular files table, check project_id against user's projects
+        if (isFileManagerFile) {
+            if (Number(file.org_id) !== orgId) {
+                await logFailure({
+                    eventType: "Error",
+                    description: `Unauthorized deletion attempt for file ${fileId}`,
+                    functionName: "removeFile",
+                    fileName: "fileManager.ctrl.ts",
+                    error: new Error("Access denied"),
+                });
+                return res.status(403).json(STATUS_CODE[403]("Access denied"));
+            }
+        } else {
+            // For regular files table, verify user has access to the project
+            // Get user's projects and check if file.project_id matches
+            const userProjects = await getUserProjects(userId, tenant);
+            const userProjectIds = userProjects.map(p => p.id);
+
+            if (!userProjectIds.includes(file.project_id)) {
+                await logFailure({
+                    eventType: "Error",
+                    description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id}`,
+                    functionName: "removeFile",
+                    fileName: "fileManager.ctrl.ts",
+                    error: new Error("Access denied"),
+                });
+                return res.status(403).json(STATUS_CODE[403]("Access denied"));
+            }
         }
 
         // Delete the file from database

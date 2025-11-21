@@ -16,6 +16,7 @@ import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
+import CEMarking from "../CEMarking";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -202,6 +203,11 @@ const VWProjectView = () => {
                 icon: "Shield",
               },
               {
+                label: "CE Marking",
+                value: "ce-marking",
+                icon: "Award",
+              },
+              {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
@@ -261,6 +267,17 @@ const VWProjectView = () => {
                     : project.framework[0].framework_id
                 }
               />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="ce-marking" sx={tabPanelStyle}>
+            {project ? (
+              <CEMarking projectId={projectId} />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

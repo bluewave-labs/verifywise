@@ -18,7 +18,7 @@ import {
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
@@ -537,9 +537,9 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                         <TableCell
                             colSpan={TABLE_COLUMNS.length}
                             align="center"
-                            sx={{ py: 4 }}
+                            sx={{ border: "none", p: 0 }}
                         >
-                            No incident data available.
+                            <EmptyState message="No incidents found." />
                         </TableCell>
                     </TableRow>
                 )}
@@ -561,18 +561,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     }
 
     if (!sortedData || sortedData.length === 0) {
-        return (
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={incidentEmptyContainer()}
-            >
-                <img src={Placeholder} alt="Placeholder" />
-                <Typography sx={incidentEmptyText}>
-                    There is currently no data in this table.
-                </Typography>
-            </Stack>
-        );
+        return <EmptyState message="There is currently no data in this table." />;
     }
 
     return (

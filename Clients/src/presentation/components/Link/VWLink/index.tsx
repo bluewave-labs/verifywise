@@ -92,10 +92,33 @@ const VWLink: React.FC<IVWLinkProps> = memo(({
           fontSize: 13,
           fontWeight: 500,
           cursor: "pointer",
+          outline: "none !important",
+          border: "none !important",
+          background: "none",
+          padding: 0,
+          boxShadow: "none !important",
           "&:hover": {
             textDecoration: showUnderline ? "underline" : "none",
             textDecorationStyle: showUnderline ? "dashed" : undefined,
             color: "#0F5A47",
+            border: "none !important",
+            outline: "none !important",
+          },
+          "&:focus": {
+            outline: "none !important",
+            border: "none !important",
+            boxShadow: "none !important",
+          },
+          "&:active": {
+            outline: "none !important",
+            border: "none !important",
+            boxShadow: "none !important",
+          },
+          "&:focus-visible": {
+            outline: "2px solid #13715B",
+            outlineOffset: "2px",
+            borderRadius: "2px",
+            border: "none !important",
           },
           ...sx,
         }}

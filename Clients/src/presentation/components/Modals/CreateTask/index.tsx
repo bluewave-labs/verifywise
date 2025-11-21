@@ -304,7 +304,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
           : "Create a new task by filling in the following details."
       }
       onSubmit={handleSubmit}
-      submitButtonText={mode === "edit" ? "Update Task" : "Create Task"}
+      submitButtonText={mode === "edit" ? "Update task" : "Create task"}
       isSubmitting={isSubmitting}
       maxWidth="800px"
     >

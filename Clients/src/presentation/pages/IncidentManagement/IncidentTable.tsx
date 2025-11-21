@@ -31,8 +31,6 @@ import {
 import {
     incidentRowHover,
     incidentLoadingContainer,
-    incidentEmptyContainer,
-    incidentEmptyText,
     incidentFooterRow,
     incidentShowingText,
     incidentPaginationMenu,

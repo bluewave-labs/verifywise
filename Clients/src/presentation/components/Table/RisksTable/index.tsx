@@ -19,7 +19,6 @@ import EmptyState from "../../EmptyState";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";

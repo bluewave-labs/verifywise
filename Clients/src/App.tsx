@@ -58,7 +58,25 @@ function App() {
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { shouldShowOnboarding } = useOnboarding();
+  const { shouldShowOnboarding, completeOnboarding } = useOnboarding();
+  const [showModal, setShowModal] = useState(false);
+
+  // Initialize modal visibility based on onboarding state
+  useEffect(() => {
+    if (token && userId && shouldShowOnboarding()) {
+      setShowModal(true);
+    }
+  }, [token, userId, shouldShowOnboarding]);
+
+  const handleOnboardingComplete = useCallback(() => {
+    completeOnboarding();
+    setShowModal(false);
+  }, [completeOnboarding]);
+
+  const handleOnboardingSkip = useCallback(() => {
+    completeOnboarding();
+    setShowModal(false);
+  }, [completeOnboarding]);
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -194,8 +212,11 @@ function App() {
                   onOpenChange={commandPalette.close}
                 />
               </CommandPaletteErrorBoundary>
-              {token && userId && shouldShowOnboarding() && (
-                <OnboardingModal />
+              {showModal && (
+                <OnboardingModal
+                  onComplete={handleOnboardingComplete}
+                  onSkip={handleOnboardingSkip}
+                />
               )}
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}

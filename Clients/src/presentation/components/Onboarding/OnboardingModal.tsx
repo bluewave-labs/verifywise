@@ -75,17 +75,23 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   // Navigation handlers
   const handleNext = useCallback(() => {
-    if (currentStepIndex < totalSteps - 1) {
-      completeStep(currentStepConfig.id);
-      setCurrentStep(currentStepIndex + 1);
-    } else {
-      // Last step - complete onboarding with fade out
+    // If we're on CompletionStep, just close the modal
+    if (currentStepConfig.componentName === "CompletionStep") {
       completeStep(currentStepConfig.id);
       completeOnboarding();
       setIsClosing(true);
       setTimeout(() => {
         onComplete?.();
       }, 400); // Match fade duration
+      return;
+    }
+
+    // Mark current step as complete
+    completeStep(currentStepConfig.id);
+
+    // Advance to next step if available
+    if (currentStepIndex < totalSteps - 1) {
+      setCurrentStep(currentStepIndex + 1);
     }
   }, [currentStepIndex, totalSteps, currentStepConfig, completeStep, setCurrentStep, completeOnboarding, onComplete]);
 
@@ -206,7 +212,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
               padding: "32px",
               minHeight: "400px",
               position: "relative",
-              overflow: "hidden",
+              overflow: "visible",
             }}
           >
             <Box

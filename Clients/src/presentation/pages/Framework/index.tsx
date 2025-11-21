@@ -9,7 +9,7 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useContext, useEffect, useState, useMemo, useRef } from "react";
-import { CirclePlus as AddCircleOutlineIcon, Settings as SettingsIcon, Trash2 as DeleteIconRed, Pencil as EditIconGrey, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
@@ -31,7 +31,6 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import singleTheme from "../../themes/v1SingleTheme";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";

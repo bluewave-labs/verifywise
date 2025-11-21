@@ -52,6 +52,7 @@ import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import ceMarkingRoutes from "./routes/ceMarking.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -149,6 +150,7 @@ try {
     await addAllJobs();
   })();
   app.use("/api/ai-incident-managements", aiIncidentRouter);
+  app.use("/api/ce-marking", ceMarkingRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

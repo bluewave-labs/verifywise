@@ -177,4 +177,35 @@ export const ceMarkingService = {
       evidenceLinked: evidenceIds.length
     } as any);
   },
+
+  /**
+   * Get all available incidents
+   */
+  async getAllIncidents(): Promise<any[]> {
+    try {
+      const response = await CustomAxios.get('/ai-incident-managements');
+      // The incidents API returns { message: "OK", data: [...] }
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      // Fallback in case the response format is different
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error("Error fetching incidents:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update linked incidents
+   */
+  async updateLinkedIncidents(
+    projectId: string,
+    incidentIds: number[]
+  ): Promise<CEMarkingData> {
+    return await this.updateCEMarking(projectId, {
+      linkedIncidents: incidentIds,
+      totalIncidents: incidentIds.length
+    } as any);
+  },
 };

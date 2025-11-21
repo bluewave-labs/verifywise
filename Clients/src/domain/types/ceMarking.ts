@@ -59,6 +59,7 @@ export interface CEMarkingData {
   totalIncidents: number;
   aiActReportableIncidents: number;
   lastIncident: string | null;
+  linkedIncidents?: number[]; // Array of incident IDs
 }
 
 // Types for policies and evidences
@@ -79,4 +80,21 @@ export interface Evidence {
   uploader_name?: string;
   uploader_surname?: string;
   project_title?: string;
+}
+
+export interface Incident {
+  id: number;
+  incident_id?: string;
+  ai_project: string;
+  type: string;
+  severity: string;
+  status: string;
+  occurred_date: string;
+  date_detected: string;
+  reporter: string;
+  description: string;
+  categories_of_harm?: string[];
+  approval_status: string;
+  created_at?: string;
+  updated_at?: string;
 }

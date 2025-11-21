@@ -1068,9 +1068,9 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 >
                   DECLARATION DOCUMENT
                 </Typography>
-                <VWLink onClick={() => console.log("Link declaration evidence clicked")}>
-                  {data.declarationDocument || "Link declaration evidence"}
-                </VWLink>
+                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  {data.declarationDocument || "No declaration document linked"}
+                </Typography>
               </Box>
 
               <Box sx={{ marginTop: "8px" }}>

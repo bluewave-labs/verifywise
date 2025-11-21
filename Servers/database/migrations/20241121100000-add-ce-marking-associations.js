@@ -2,15 +2,17 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Get all tenant schemas
-    const schemas = await queryInterface.sequelize.query(
-      `SELECT schema_name FROM information_schema.schemata
-       WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
-       AND schema_name NOT LIKE 'pg_%'`,
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      // Get all tenant schemas
+      const schemas = await queryInterface.sequelize.query(
+        `SELECT schema_name FROM information_schema.schemata
+         WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
+         AND schema_name NOT LIKE 'pg_%'`,
+        { type: Sequelize.QueryTypes.SELECT, transaction }
+      );
 
-    for (const { schema_name } of schemas) {
+      for (const { schema_name } of schemas) {
       // Create ce_marking_policies association table
       await queryInterface.createTable(
         'ce_marking_policies',
@@ -131,21 +133,35 @@ module.exports = {
           unique: true
         }
       );
+      }
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Get all tenant schemas
-    const schemas = await queryInterface.sequelize.query(
-      `SELECT schema_name FROM information_schema.schemata
-       WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
-       AND schema_name NOT LIKE 'pg_%'`,
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      // Get all tenant schemas
+      const schemas = await queryInterface.sequelize.query(
+        `SELECT schema_name FROM information_schema.schemata
+         WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
+         AND schema_name NOT LIKE 'pg_%'`,
+        { type: Sequelize.QueryTypes.SELECT, transaction }
+      );
 
-    for (const { schema_name } of schemas) {
-      await queryInterface.dropTable({ tableName: 'ce_marking_policies', schema: schema_name });
-      await queryInterface.dropTable({ tableName: 'ce_marking_evidences', schema: schema_name });
+      for (const { schema_name } of schemas) {
+        await queryInterface.dropTable({ tableName: 'ce_marking_policies', schema: schema_name }, { transaction });
+        await queryInterface.dropTable({ tableName: 'ce_marking_evidences', schema: schema_name }, { transaction });
+      }
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
   }
 };

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { sequelize } from "../database/db";
 import { QueryTypes } from 'sequelize';
 import { countSubControlsEUByProjectId, countAnswersEUByProjectId } from '../utils/eu.utils';
+import logger from '../utils/logger/fileLogger';
+import { logEvent } from '../utils/logger/dbLogger';
 
 // Default conformity steps - will be created for each new CE Marking record
 const DEFAULT_CONFORMITY_STEPS = [
@@ -37,62 +39,73 @@ export const getCEMarking = async (req: Request, res: Response) => {
 
     // If no record exists, create one with defaults
     if (!ceMarking) {
-      // Create CE Marking record
-      const createResult = await sequelize.query(
-        `INSERT INTO "${tenantId}".ce_markings (
-          project_id,
-          is_high_risk_ai_system,
-          role_in_product,
-          annex_iii_category,
-          declaration_status,
-          registration_status,
-          created_by,
-          updated_by
-        ) VALUES (:projectId, false, 'standalone', 'annex_iii_5', 'draft', 'not_registered', :userId, :userId)
-        RETURNING *`,
-        {
-          replacements: { projectId, userId },
-          type: QueryTypes.INSERT
-        }
-      );
-
-      ceMarking = (createResult as any[])[0][0];
-
-      // Create default conformity steps
-      for (const step of DEFAULT_CONFORMITY_STEPS) {
-        await sequelize.query(
-          `INSERT INTO "${tenantId}".ce_marking_conformity_steps (
-            ce_marking_id,
-            step_number,
-            step_name,
-            status
-          ) VALUES (:ceMarkingId, :stepNumber, :stepName, 'Not started')`,
+      const transaction = await sequelize.transaction();
+      try {
+        // Create CE Marking record
+        const createResult = await sequelize.query(
+          `INSERT INTO "${tenantId}".ce_markings (
+            project_id,
+            is_high_risk_ai_system,
+            role_in_product,
+            annex_iii_category,
+            declaration_status,
+            registration_status,
+            created_by,
+            updated_by
+          ) VALUES (:projectId, false, 'standalone', 'annex_iii_5', 'draft', 'not_registered', :userId, :userId)
+          RETURNING *`,
           {
-            replacements: {
-              ceMarkingId: ceMarking.id,
-              stepNumber: step.step_number,
-              stepName: step.step_name
-            },
-            type: QueryTypes.INSERT
+            replacements: { projectId, userId },
+            type: QueryTypes.INSERT,
+            transaction
           }
         );
-      }
 
-      // Log creation to audit trail
-      await sequelize.query(
-        `INSERT INTO "${tenantId}".ce_marking_audit_trail (
-          ce_marking_id,
-          field_name,
-          old_value,
-          new_value,
-          changed_by,
-          change_type
-        ) VALUES (:ceMarkingId, 'record', NULL, 'created', :userId, 'create')`,
-        {
-          replacements: { ceMarkingId: ceMarking.id, userId },
-          type: QueryTypes.INSERT
+        ceMarking = (createResult as any[])[0][0];
+
+        // Create default conformity steps
+        for (const step of DEFAULT_CONFORMITY_STEPS) {
+          await sequelize.query(
+            `INSERT INTO "${tenantId}".ce_marking_conformity_steps (
+              ce_marking_id,
+              step_number,
+              step_name,
+              status
+            ) VALUES (:ceMarkingId, :stepNumber, :stepName, 'Not started')`,
+            {
+              replacements: {
+                ceMarkingId: ceMarking.id,
+                stepNumber: step.step_number,
+                stepName: step.step_name
+              },
+              type: QueryTypes.INSERT,
+              transaction
+            }
+          );
         }
-      );
+
+        // Log creation to audit trail
+        await sequelize.query(
+          `INSERT INTO "${tenantId}".ce_marking_audit_trail (
+            ce_marking_id,
+            field_name,
+            old_value,
+            new_value,
+            changed_by,
+            change_type
+          ) VALUES (:ceMarkingId, 'record', NULL, 'created', :userId, 'create')`,
+          {
+            replacements: { ceMarkingId: ceMarking.id, userId },
+            type: QueryTypes.INSERT,
+            transaction
+          }
+        );
+
+        await transaction.commit();
+      } catch (error) {
+        await transaction.rollback();
+        throw error;
+      }
     }
 
     // Get conformity steps
@@ -178,7 +191,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
         assessmentsCompleted = parseInt(answeredAssessments) || 0;
       }
     } catch (error) {
-      console.error('Error calculating EU AI Act completion:', error);
+      logger.error('Error calculating EU AI Act completion:', error);
       // Continue with zeros if calculation fails
     }
 
@@ -236,8 +249,9 @@ export const getCEMarking = async (req: Request, res: Response) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error('Error in getCEMarking:', error);
-    res.status(500).json({ error: 'Failed to get CE Marking data' });
+    logger.error('Error in getCEMarking:', error);
+    await logEvent('Error', `Failed to get CE Marking data: ${(error as Error).message}`);
+    res.status(500).json({ error: 'Failed to get CE Marking data', details: (error as Error).message });
   }
 };
 
@@ -245,6 +259,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
  * Update CE Marking data for a project
  */
 export const updateCEMarking = async (req: Request, res: Response) => {
+  const transaction = await sequelize.transaction();
   try {
     const { projectId } = req.params;
     const userId = (req as any).userId;
@@ -256,11 +271,13 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       `SELECT * FROM "${tenantId}".ce_markings WHERE project_id = :projectId`,
       {
         replacements: { projectId },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
+        transaction
       }
     );
 
     if (!existingResult[0]) {
+      await transaction.rollback();
       return res.status(404).json({ error: 'CE Marking record not found' });
     }
 
@@ -339,7 +356,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
          WHERE project_id = :projectId`,
         {
           replacements,
-          type: QueryTypes.UPDATE
+          type: QueryTypes.UPDATE,
+          transaction
         }
       );
 
@@ -362,7 +380,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
               newValue: entry.newValue,
               userId
             },
-            type: QueryTypes.INSERT
+            type: QueryTypes.INSERT,
+            transaction
           }
         );
       }
@@ -375,7 +394,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         `DELETE FROM "${tenantId}".ce_marking_policies WHERE ce_marking_id = :ceMarkingId`,
         {
           replacements: { ceMarkingId: existing.id },
-          type: QueryTypes.DELETE
+          type: QueryTypes.DELETE,
+          transaction
         }
       );
 
@@ -386,7 +406,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
            VALUES (:ceMarkingId, :policyId, :userId, NOW())`,
           {
             replacements: { ceMarkingId: existing.id, policyId, userId },
-            type: QueryTypes.INSERT
+            type: QueryTypes.INSERT,
+            transaction
           }
         );
       }
@@ -403,7 +424,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             newValue: updates.linkedPolicies.length.toString(),
             userId
           },
-          type: QueryTypes.INSERT
+          type: QueryTypes.INSERT,
+          transaction
         }
       );
     }
@@ -415,7 +437,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         `DELETE FROM "${tenantId}".ce_marking_evidences WHERE ce_marking_id = :ceMarkingId`,
         {
           replacements: { ceMarkingId: existing.id },
-          type: QueryTypes.DELETE
+          type: QueryTypes.DELETE,
+          transaction
         }
       );
 
@@ -426,7 +449,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
            VALUES (:ceMarkingId, :fileId, :userId, NOW())`,
           {
             replacements: { ceMarkingId: existing.id, fileId, userId },
-            type: QueryTypes.INSERT
+            type: QueryTypes.INSERT,
+            transaction
           }
         );
       }
@@ -443,7 +467,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             newValue: updates.linkedEvidences.length.toString(),
             userId
           },
-          type: QueryTypes.INSERT
+          type: QueryTypes.INSERT,
+          transaction
         }
       );
     }
@@ -455,7 +480,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
         `DELETE FROM "${tenantId}".ce_marking_incidents WHERE ce_marking_id = :ceMarkingId`,
         {
           replacements: { ceMarkingId: existing.id },
-          type: QueryTypes.DELETE
+          type: QueryTypes.DELETE,
+          transaction
         }
       );
 
@@ -466,7 +492,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
            VALUES (:ceMarkingId, :incidentId, :userId, NOW())`,
           {
             replacements: { ceMarkingId: existing.id, incidentId, userId },
-            type: QueryTypes.INSERT
+            type: QueryTypes.INSERT,
+            transaction
           }
         );
       }
@@ -483,7 +510,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             newValue: updates.linkedIncidents.length.toString(),
             userId
           },
-          type: QueryTypes.INSERT
+          type: QueryTypes.INSERT,
+          transaction
         }
       );
     }
@@ -497,7 +525,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             `SELECT * FROM "${tenantId}".ce_marking_conformity_steps WHERE id = :stepId`,
             {
               replacements: { stepId: step.id },
-              type: QueryTypes.SELECT
+              type: QueryTypes.SELECT,
+              transaction
             }
           );
 
@@ -544,7 +573,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
                         newValue: newValue?.toString() || null,
                         userId
                       },
-                      type: QueryTypes.INSERT
+                      type: QueryTypes.INSERT,
+                      transaction
                     }
                   );
                 }
@@ -579,7 +609,8 @@ export const updateCEMarking = async (req: Request, res: Response) => {
                  WHERE id = :stepId`,
                 {
                   replacements: stepReplacements,
-                  type: QueryTypes.UPDATE
+                  type: QueryTypes.UPDATE,
+                  transaction
                 }
               );
             }
@@ -588,10 +619,15 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       }
     }
 
+    // Commit transaction
+    await transaction.commit();
+
     // Return updated data
     await getCEMarking(req, res);
   } catch (error) {
-    console.error('Error in updateCEMarking:', error);
-    res.status(500).json({ error: 'Failed to update CE Marking data' });
+    await transaction.rollback();
+    logger.error('Error in updateCEMarking:', error);
+    await logEvent('Error', `Failed to update CE Marking data: ${(error as Error).message}`);
+    res.status(500).json({ error: 'Failed to update CE Marking data', details: (error as Error).message });
   }
 };

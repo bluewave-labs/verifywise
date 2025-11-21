@@ -77,6 +77,7 @@ import { UserPreferencesModel } from "../domain.layer/models/userPreferences/use
 import { NISTAIMRFFunctionModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_function.model";
 import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_subcategory.model";
 import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
+import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 
 dotenv.config();
 
@@ -154,6 +155,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AutomationTriggerModel,
     AutomationTriggerActionModel,
     AIIncidentManagementModel,
+    EvidenceHubModel,
     MLFlowIntegrationModel,
     MLFlowModelRecordModel,
     AutomationExecutionLogModel,

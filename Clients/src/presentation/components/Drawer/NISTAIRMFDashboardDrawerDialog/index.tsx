@@ -195,6 +195,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     body: string;
   }) => {
     setAlert({ variant, body });
+    setTimeout(() => setAlert(null), 3000); // 3 seconds
   };
 
   // File handling functions

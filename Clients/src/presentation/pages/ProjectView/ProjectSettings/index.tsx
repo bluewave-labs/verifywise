@@ -1,6 +1,5 @@
 import {
   SelectChangeEvent,
-  Link,
   Stack,
   Typography,
   useTheme,
@@ -8,6 +7,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
+import { VWLink } from "../../../components/Link";
 import { ChevronDown } from "lucide-react";
 import React, {
   useState,
@@ -1349,21 +1349,11 @@ const ProjectSettings = React.memo(
                     </Typography>
                   </Box>
                   <Stack gap={1}>
-                    <CustomizableButton
-                      variant="contained"
-                      text="Calculate your AI risk classification"
-                      onClick={() => setIsRiskModalOpen(true)}
-                      sx={{
-                        width: "255px",
-                        mt: -4,
-                        mb: 4,
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        "&:hover": {
-                          backgroundColor: "#0F5A48",
-                        },
-                      }}
-                    />
+                    <Box sx={{ mt: -4, mb: 4 }}>
+                      <VWLink onClick={() => setIsRiskModalOpen(true)}>
+                        Calculate your AI risk classification
+                      </VWLink>
+                    </Box>
                     <Select
                       id="risk-classification-input"
                       label=""
@@ -1388,14 +1378,12 @@ const ProjectSettings = React.memo(
                       sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
                     >
                       If you are not sure about the high risk role,&nbsp;
-                      <Link
-                        href="https://artificialintelligenceact.eu/high-level-summary/"
-                        target="_blank"
-                        rel="noopener"
-                        color={theme.palette.text.secondary}
+                      <VWLink
+                        url="https://artificialintelligenceact.eu/high-level-summary/"
+                        openInNewTab={true}
                       >
                         please see this link
-                      </Link>
+                      </VWLink>
                     </Typography>
                   </Box>
                   <Select

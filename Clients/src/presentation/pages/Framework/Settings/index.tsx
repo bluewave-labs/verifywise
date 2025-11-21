@@ -218,8 +218,8 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           <Box
             sx={{
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-              border: "1px solid #eaecf0",
-              borderRadius: "8px",
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
               p: "24px",
               display: "flex",
               justifyContent: "space-between",
@@ -304,8 +304,8 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
                 key={fw.id}
                 sx={{
                   background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-                  border: "1px solid #eaecf0",
-                  borderRadius: "8px",
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
                   p: "24px",
                   display: "flex",
                   flexDirection: "column",

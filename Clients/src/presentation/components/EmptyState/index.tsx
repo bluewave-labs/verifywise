@@ -39,7 +39,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       alignItems="center"
       sx={{
         ...(showBorder && {
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           backgroundColor: "#FFFFFF",
         }),

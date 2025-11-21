@@ -97,7 +97,6 @@ const PageTour: React.FC<IPageTourProps> = ({
         disableScrolling={false}
         scrollToFirstStep={true}
         spotlightClicks={false}
-        disableBeacon={true}
         tooltipComponent={tooltipRenderer}
         locale={{
           last: "Finish",

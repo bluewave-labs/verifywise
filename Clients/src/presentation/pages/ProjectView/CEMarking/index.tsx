@@ -31,6 +31,7 @@ import VWTooltip from "../../../components/VWTooltip";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import { ceMarkingService } from "../../../../infrastructure/api/ceMarkingService";
 import { showAlert as showGlobalAlert } from "../../../../infrastructure/api/customAxios";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface CEMarkingProps {
   projectId: string;
@@ -54,14 +55,6 @@ const ROLE_IN_PRODUCT_OPTIONS = [
   { _id: "safety_component", name: "Safety component of a product" },
   { _id: "component_larger", name: "Component in a larger AI product or workflow" },
   { _id: "foundation_model", name: "General purpose or foundation model integrated into a downstream system" },
-];
-
-// Owner options - mock data (would come from API in production)
-const OWNER_OPTIONS = [
-  { _id: "alice_smith", name: "Alice Smith" },
-  { _id: "bob_lee", name: "Bob Lee" },
-  { _id: "carol_johnson", name: "Carol Johnson" },
-  { _id: "david_brown", name: "David Brown" },
 ];
 
 // Status options for dropdown
@@ -187,6 +180,7 @@ const getStatusBgColor = (status: ConformityStepStatus): string => {
 const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { users } = useUsers();
 
   // Loading and error states
   const [loading, setLoading] = useState(true);
@@ -264,7 +258,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setAnnexIIICategory(ceMarkingData.annexIIICategory || "annex_iii_5");
       setRoleInProduct(ceMarkingData.roleInProduct || "standalone");
     } catch (error) {
-      console.error("Error fetching CE Marking data:", error);
       showAlert("Failed to load CE Marking data", "error");
     } finally {
       setLoading(false);
@@ -297,7 +290,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setData(updatedData);
       showAlert("Annex III category updated successfully");
     } catch (error) {
-      console.error("Error updating Annex III category:", error);
       showAlert("Failed to update Annex III category", "error");
       // Revert on error
       setAnnexIIICategory(data?.annexIIICategory || "annex_iii_5");
@@ -318,7 +310,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setData(updatedData);
       showAlert("Role in product updated successfully");
     } catch (error) {
-      console.error("Error updating role in product:", error);
       showAlert("Failed to update role in product", "error");
       // Revert on error
       setRoleInProduct(data?.roleInProduct || "standalone");
@@ -372,7 +363,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("Conformity step updated successfully");
       handleStepModalClose();
     } catch (error) {
-      console.error("Error updating conformity step:", error);
       showAlert("Failed to update conformity step", "error");
     } finally {
       setSaving(false);
@@ -418,7 +408,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("Declaration details updated successfully");
       handleDeclarationModalClose();
     } catch (error) {
-      console.error("Error updating declaration:", error);
       showAlert("Failed to update declaration details", "error");
     } finally {
       setSaving(false);
@@ -464,7 +453,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("EU registration details updated successfully");
       handleRegistrationModalClose();
     } catch (error) {
-      console.error("Error updating registration:", error);
       showAlert("Failed to update EU registration details", "error");
     } finally {
       setSaving(false);
@@ -481,7 +469,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       // Set currently linked policies as selected
       setSelectedPolicies(data?.linkedPolicies || []);
     } catch (error) {
-      console.error("Error fetching policies:", error);
       showAlert("Failed to load policies", "error");
     } finally {
       setLoadingPolicies(false);
@@ -501,7 +488,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("Linked policies updated successfully");
       handleClosePoliciesModal();
     } catch (error) {
-      console.error("Error updating linked policies:", error);
       showAlert("Failed to update linked policies", "error");
     } finally {
       setSaving(false);
@@ -526,7 +512,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       // Set currently linked evidence as selected
       setSelectedEvidences(data?.linkedEvidences || []);
     } catch (error) {
-      console.error("Error fetching evidence:", error);
       showAlert("Failed to load evidence", "error");
     } finally {
       setLoadingEvidences(false);
@@ -546,7 +531,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("Linked evidence updated successfully");
       handleCloseEvidencesModal();
     } catch (error) {
-      console.error("Error updating linked evidence:", error);
       showAlert("Failed to update linked evidence", "error");
     } finally {
       setSaving(false);
@@ -571,7 +555,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       // Set currently linked incidents as selected
       setSelectedIncidents(data?.linkedIncidents || []);
     } catch (error) {
-      console.error("Error fetching incidents:", error);
       showAlert("Failed to load incidents", "error");
     } finally {
       setLoadingIncidents(false);
@@ -591,7 +574,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       showAlert("Linked incidents updated successfully");
       handleCloseIncidentsModal();
     } catch (error) {
-      console.error("Error updating linked incidents:", error);
       showAlert("Failed to update linked incidents", "error");
     } finally {
       setSaving(false);
@@ -1379,7 +1361,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
               <Select
                 id="conformity-step-owner"
                 label="Owner"
-                items={OWNER_OPTIONS}
+                items={users?.map(user => ({ _id: String(user.id), name: user.name })) || []}
                 value={stepEditForm.owner}
                 onChange={(e) =>
                   setStepEditForm({ ...stepEditForm, owner: String(e.target.value) })

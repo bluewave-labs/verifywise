@@ -166,7 +166,10 @@ export async function updateNISTAIRMFSubcategoryById(
     // Get user's project ID for file uploads
     let userProjectId = 1; // Default fallback
     try {
-      const userProjects = await getUserProjects(Number(req.userId), req.tenantId!);
+      const userProjects = await getUserProjects(
+        Number(req.userId),
+        req.tenantId!
+      );
       if (userProjects && userProjects.length > 0) {
         userProjectId = userProjects[0].id!; // Use first project user has access to
       }
@@ -189,8 +192,12 @@ export async function updateNISTAIRMFSubcategoryById(
       for (const file of req.files as UploadedFile[]) {
         const uploadedFile = await uploadFile(
           file,
-          subcategory.user_id ? parseInt(subcategory.user_id) : Number(req.userId),
-          subcategory.project_id ? parseInt(subcategory.project_id) : userProjectId,
+          subcategory.user_id
+            ? parseInt(subcategory.user_id)
+            : Number(req.userId),
+          subcategory.project_id
+            ? parseInt(subcategory.project_id)
+            : userProjectId,
           "Main clauses group",
           req.tenantId!,
           transaction

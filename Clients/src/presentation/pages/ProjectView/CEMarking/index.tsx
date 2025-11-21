@@ -238,6 +238,12 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const [selectedEvidences, setSelectedEvidences] = useState<number[]>([]);
   const [loadingEvidences, setLoadingEvidences] = useState(false);
 
+  // Modal state for linking incidents
+  const [isIncidentsModalOpen, setIsIncidentsModalOpen] = useState(false);
+  const [availableIncidents, setAvailableIncidents] = useState<any[]>([]);
+  const [selectedIncidents, setSelectedIncidents] = useState<number[]>([]);
+  const [loadingIncidents, setLoadingIncidents] = useState(false);
+
   // Fetch CE Marking data on mount
   useEffect(() => {
     fetchCEMarkingData();
@@ -552,6 +558,51 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       prev.includes(evidenceId)
         ? prev.filter(id => id !== evidenceId)
         : [...prev, evidenceId]
+    );
+  };
+
+  // Incidents modal handlers
+  const handleOpenIncidentsModal = async () => {
+    setIsIncidentsModalOpen(true);
+    setLoadingIncidents(true);
+    try {
+      const incidents = await ceMarkingService.getAllIncidents();
+      setAvailableIncidents(incidents || []);
+      // Set currently linked incidents as selected
+      setSelectedIncidents(data?.linkedIncidents || []);
+    } catch (error) {
+      console.error("Error fetching incidents:", error);
+      showAlert("Failed to load incidents", "error");
+    } finally {
+      setLoadingIncidents(false);
+    }
+  };
+
+  const handleCloseIncidentsModal = () => {
+    setIsIncidentsModalOpen(false);
+    setSelectedIncidents([]);
+  };
+
+  const handleSaveIncidents = async () => {
+    try {
+      setSaving(true);
+      const updatedData = await ceMarkingService.updateLinkedIncidents(projectId, selectedIncidents);
+      setData(updatedData);
+      showAlert("Linked incidents updated successfully");
+      handleCloseIncidentsModal();
+    } catch (error) {
+      console.error("Error updating linked incidents:", error);
+      showAlert("Failed to update linked incidents", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleIncident = (incidentId: number) => {
+    setSelectedIncidents(prev =>
+      prev.includes(incidentId)
+        ? prev.filter(id => id !== incidentId)
+        : [...prev, incidentId]
     );
   };
 
@@ -1250,23 +1301,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 >
                   TOTAL INCIDENTS
                 </Typography>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography
-                    sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
-                  >
-                    {data.totalIncidents}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      fontWeight: 400,
-                      color: theme.palette.text.tertiary,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    AI ACT REPORTABLE: {data.aiActReportableIncidents}
-                  </Typography>
-                </Stack>
+                <Typography
+                  sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
+                >
+                  {data.totalIncidents}
+                </Typography>
               </Box>
 
               <Box>
@@ -1288,7 +1327,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 </Typography>
               </Box>
 
-              <VWLink onClick={() => console.log("View incidents clicked")}>
+              <VWLink onClick={handleOpenIncidentsModal}>
                 View incidents for this use case
               </VWLink>
             </Stack>
@@ -1718,6 +1757,92 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                           </>
                         )}
                       </Stack>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
+      </StandardModal>
+
+      {/* Link Incidents Modal */}
+      <StandardModal
+        isOpen={isIncidentsModalOpen}
+        onClose={handleCloseIncidentsModal}
+        title="Link incidents to CE Marking"
+        description="Select incidents to link with this CE Marking process. These incidents will be included in your compliance documentation."
+        onSubmit={handleSaveIncidents}
+        submitButtonText={`Link ${selectedIncidents.length} ${selectedIncidents.length === 1 ? 'incident' : 'incidents'}`}
+        isSubmitting={saving}
+        maxWidth="800px"
+      >
+        {loadingIncidents ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+            {availableIncidents.length === 0 ? (
+              <Typography sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
+                No incidents available. Create incidents in the Incident Management section first.
+              </Typography>
+            ) : (
+              <Stack spacing={0}>
+                {availableIncidents.map((incident, index) => (
+                  <Box
+                    key={incident.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      padding: '12px',
+                      borderBottom: index < availableIncidents.length - 1 ? `1px solid ${theme.palette.border?.light || '#e0e0e0'}` : 'none',
+                      '&:hover': { backgroundColor: theme.palette.action?.hover || '#f5f5f5' },
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => toggleIncident(incident.id)}
+                  >
+                    <Box sx={{ marginRight: 2 }}>
+                      <Checkbox
+                        id={`incident-${incident.id}`}
+                        isChecked={selectedIncidents.includes(incident.id)}
+                        value={String(incident.id)}
+                        onChange={() => toggleIncident(incident.id)}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.primary }}>
+                        {incident.incident_id || `Incident #${incident.id}`}
+                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ marginTop: 0.5 }}>
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                          Type: {incident.type}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>•</Typography>
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                          Severity: {incident.severity}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>•</Typography>
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                          Status: {incident.status}
+                        </Typography>
+                        {incident.occurred_date && (
+                          <>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>•</Typography>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                              Occurred: {dayjs(incident.occurred_date).format('MMM DD, YYYY')}
+                            </Typography>
+                          </>
+                        )}
+                      </Stack>
+                      {incident.description && (
+                        <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary, marginTop: 0.5 }}>
+                          {incident.description.length > 100
+                            ? `${incident.description.substring(0, 100)}...`
+                            : incident.description}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 ))}

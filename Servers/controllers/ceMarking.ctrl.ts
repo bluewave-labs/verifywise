@@ -126,6 +126,16 @@ export const getCEMarking = async (req: Request, res: Response) => {
       }
     );
 
+    // Get linked incidents
+    const linkedIncidents = await sequelize.query(
+      `SELECT incident_id FROM "${tenantId}".ce_marking_incidents
+       WHERE ce_marking_id = :ceMarkingId`,
+      {
+        replacements: { ceMarkingId: ceMarking.id },
+        type: QueryTypes.SELECT
+      }
+    );
+
     // Calculate completed steps count
     const completedStepsCount = (conformitySteps as any[]).filter(
       step => step.status === 'Completed' || step.status === 'Not needed'
@@ -218,9 +228,10 @@ export const getCEMarking = async (req: Request, res: Response) => {
       linkedEvidences: (linkedEvidences as any[]).map(e => e.file_id),
 
       // Incidents
-      totalIncidents: ceMarking.total_incidents || 0,
+      totalIncidents: linkedIncidents.length,
       aiActReportableIncidents: ceMarking.ai_act_reportable_incidents || 0,
-      lastIncident: ceMarking.last_incident
+      lastIncident: ceMarking.last_incident,
+      linkedIncidents: (linkedIncidents as any[]).map(i => i.incident_id)
     };
 
     res.status(200).json(response);
@@ -430,6 +441,46 @@ export const updateCEMarking = async (req: Request, res: Response) => {
             ceMarkingId: existing.id,
             oldValue: existing.evidence_linked?.toString() || '0',
             newValue: updates.linkedEvidences.length.toString(),
+            userId
+          },
+          type: QueryTypes.INSERT
+        }
+      );
+    }
+
+    // Handle linked incidents updates
+    if (updates.linkedIncidents && Array.isArray(updates.linkedIncidents)) {
+      // Remove existing linked incidents
+      await sequelize.query(
+        `DELETE FROM "${tenantId}".ce_marking_incidents WHERE ce_marking_id = :ceMarkingId`,
+        {
+          replacements: { ceMarkingId: existing.id },
+          type: QueryTypes.DELETE
+        }
+      );
+
+      // Add new linked incidents
+      for (const incidentId of updates.linkedIncidents) {
+        await sequelize.query(
+          `INSERT INTO "${tenantId}".ce_marking_incidents (ce_marking_id, incident_id, linked_by, linked_at)
+           VALUES (:ceMarkingId, :incidentId, :userId, NOW())`,
+          {
+            replacements: { ceMarkingId: existing.id, incidentId, userId },
+            type: QueryTypes.INSERT
+          }
+        );
+      }
+
+      // Audit trail for incidents change
+      await sequelize.query(
+        `INSERT INTO "${tenantId}".ce_marking_audit_trail (
+          ce_marking_id, field_name, old_value, new_value, changed_by, change_type
+        ) VALUES (:ceMarkingId, 'linked_incidents', :oldValue, :newValue, :userId, 'update')`,
+        {
+          replacements: {
+            ceMarkingId: existing.id,
+            oldValue: existing.total_incidents?.toString() || '0',
+            newValue: updates.linkedIncidents.length.toString(),
             userId
           },
           type: QueryTypes.INSERT

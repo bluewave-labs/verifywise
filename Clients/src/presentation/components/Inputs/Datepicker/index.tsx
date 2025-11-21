@@ -21,9 +21,25 @@ const DatePicker = ({
 }: DatePickerProps) => {
   const theme = useTheme();
 
+  // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
+  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? {
+        width: (sx as any).width,
+        flexGrow: (sx as any).flexGrow,
+        minWidth: (sx as any).minWidth,
+        maxWidth: (sx as any).maxWidth,
+      }
+    : {};
+
+  // Create a copy of sx without layout props to pass to MuiDatePicker
+  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
+    : sx;
+
   return (
     <Stack
       gap={theme.spacing(2)}
+      sx={extractedLayoutProps}
     >
       {label && (
         <Typography
@@ -70,7 +86,7 @@ const DatePicker = ({
             '& .MuiInputBase-root': {
               cursor: 'pointer',
             },
-            ...sx,
+            ...sxWithoutLayoutProps,
           }}
           value={date ? dayjs(date) : null}
           onChange={(value) => handleDateChange(value)}

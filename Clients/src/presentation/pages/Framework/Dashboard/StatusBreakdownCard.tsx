@@ -2,6 +2,7 @@ import { Box, Typography, Stack, IconButton } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { frameworkDashboardCardStyles } from "./styles";
 
 interface FrameworkData {
   frameworkId: number;
@@ -141,7 +142,7 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
       <Box
         sx={{
           background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           p: "16px",
           display: "flex",
@@ -156,21 +157,9 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
   }
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #EEEEEE",
-        borderRadius: "4px",
-        overflow: "hidden",
-      }}
-    >
+    <Box sx={frameworkDashboardCardStyles.cardContainer}>
       {/* Header Section */}
-      <Box
-        sx={{
-          backgroundColor: "#F1F3F4",
-          p: "10px 16px",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
+      <Box sx={frameworkDashboardCardStyles.cardHeader}>
         <Typography
           sx={{
             fontSize: 15,

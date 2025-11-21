@@ -39,6 +39,13 @@ export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
   showAlertCallback = callback;
 };
 
+// Function to show an alert using the callback
+export const showAlert = (alert: AlertProps) => {
+  if (showAlertCallback) {
+    showAlertCallback(alert);
+  }
+};
+
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: `${ENV_VARs.URL}/api`,

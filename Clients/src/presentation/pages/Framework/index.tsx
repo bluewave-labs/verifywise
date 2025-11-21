@@ -3,17 +3,13 @@ import {
   Typography,
   Box,
   Button,
-  Modal,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
+  Popover,
 } from "@mui/material";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import { useContext, useEffect, useState, useMemo } from "react";
-import { CirclePlus as AddCircleOutlineIcon, Settings as SettingsIcon, Trash2 as DeleteIconRed, Pencil as EditIconGrey, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import { useContext, useEffect, useState, useMemo, useRef } from "react";
+import { CirclePlus as AddCircleOutlineIcon, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
@@ -30,11 +26,11 @@ import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import StandardModal from "../../components/Modals/StandardModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import singleTheme from "../../themes/v1SingleTheme";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
@@ -76,7 +72,6 @@ const Framework = () => {
   const [searchParams] = useSearchParams();
   const { tab } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
-  const dropDownStyle = singleTheme.dropDownStyles.primary;
   const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
 
@@ -109,11 +104,12 @@ const Framework = () => {
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const submitFormRef = useRef<(() => void) | undefined>();
+  const createFormRef = useRef<(() => void) | undefined>();
 
   // State for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
-  const [rotated, setRotated] = useState(false);
 
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
@@ -140,7 +136,6 @@ const Framework = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setRotated(false);
   };
 
   const handleManageFrameworksClick = () => {
@@ -653,15 +648,12 @@ const Framework = () => {
         <Box>
           {organizationalProject ? (
             <>
-              <Button
+              <CustomizableButton
                 variant="contained"
-                endIcon={<WhiteDownArrowIcon size={16} />}
-                onClick={(event) => {
-                  setRotated((prev) => !prev);
-                  handleManageProjectClick(event);
-                }}
-                disableRipple
-                disabled={
+                text="Manage frameworks"
+                icon={<WhiteDownArrowIcon size={16} />}
+                onClick={handleManageProjectClick}
+                isDisabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
                   !allowedRoles.projects.edit.includes(userRoleName) &&
                   !allowedRoles.projects.delete.includes(userRoleName)
@@ -669,26 +661,13 @@ const Framework = () => {
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
-                  textTransform: "none",
+                  gap: 2,
                   "&:hover": {
                     backgroundColor: "#0e5c47",
-                    boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                    color: "#666666",
-                    boxShadow: "none",
-                  },
-                  "& .MuiButton-endIcon": {
-                    marginLeft: 1,
-                    transition: "transform 0.2s ease",
-                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
                   },
                 }}
-              >
-                Manage Project
-              </Button>
-              <Menu
+              />
+              <Popover
                 anchorEl={anchorEl}
                 open={isMenuOpen}
                 onClose={handleMenuClose}
@@ -700,85 +679,86 @@ const Framework = () => {
                   vertical: "top",
                   horizontal: "right",
                 }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      ...dropDownStyle,
-                      width: 200,
-                      mt: 1,
-                    },
+                sx={{
+                  mt: 1,
+                  "& .MuiPopover-paper": {
+                    borderRadius: "4px",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+                    border: "1px solid #d0d5dd",
+                    overflow: "visible",
+                    backgroundColor: "#fff",
                   },
                 }}
               >
-                <MenuItem
-                  onClick={handleManageFrameworksClick}
-                  disabled={
-                    !allowedRoles.frameworks.manage.includes(userRoleName)
-                  }
+                <Stack
+                  sx={{
+                    p: 1,
+                    minWidth: 200,
+                  }}
                 >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <SettingsIcon
-                      size={16}
-                      style={{
-                        color: "text.secondary",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Manage Frameworks"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "text.primary",
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    onClick={handleManageFrameworksClick}
+                    sx={{
+                      p: "8px 12px",
+                      borderRadius: "4px",
+                      cursor: allowedRoles.frameworks.manage.includes(userRoleName) ? "pointer" : "not-allowed",
+                      opacity: allowedRoles.frameworks.manage.includes(userRoleName) ? 1 : 0.5,
+                      "&:hover": allowedRoles.frameworks.manage.includes(userRoleName) ? {
+                        backgroundColor: "#F4F4F4",
+                        "& .MuiTypography-root": {
+                          color: "#13715B",
+                        },
+                      } : {},
                     }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={handleEditProjectClick}
-                  disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-                >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EditIconGrey
-                      size={16}
-                      style={{
-                        color: "text.secondary",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Edit Project"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "text.primary",
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#344054", transition: "color 0.2s ease" }}>
+                      Add or remove frameworks
+                    </Typography>
+                  </Box>
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    onClick={handleEditProjectClick}
+                    sx={{
+                      p: "8px 12px",
+                      borderRadius: "4px",
+                      cursor: allowedRoles.projects.edit.includes(userRoleName) ? "pointer" : "not-allowed",
+                      opacity: allowedRoles.projects.edit.includes(userRoleName) ? 1 : 0.5,
+                      "&:hover": allowedRoles.projects.edit.includes(userRoleName) ? {
+                        backgroundColor: "#F4F4F4",
+                        "& .MuiTypography-root": {
+                          color: "#13715B",
+                        },
+                      } : {},
                     }}
-                  />
-                </MenuItem>
-                <Divider sx={{ my: 0.5 }} />
-                <MenuItem
-                  onClick={handleDeleteProjectClick}
-                  disabled={
-                    !allowedRoles.projects.delete.includes(userRoleName)
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <DeleteIconRed
-                      size={16}
-                      style={{
-                        color: "#DB504A",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Delete Project"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "error.main",
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#344054", transition: "color 0.2s ease" }}>
+                      Edit framework
+                    </Typography>
+                  </Box>
+                  <Box sx={{ borderBottom: "1px solid #d0d5dd", my: 1 }} />
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    onClick={handleDeleteProjectClick}
+                    sx={{
+                      p: "8px 12px",
+                      borderRadius: "4px",
+                      cursor: allowedRoles.projects.delete.includes(userRoleName) ? "pointer" : "not-allowed",
+                      opacity: allowedRoles.projects.delete.includes(userRoleName) ? 1 : 0.5,
+                      "&:hover": allowedRoles.projects.delete.includes(userRoleName) ? {
+                        backgroundColor: "#FEF2F2",
+                      } : {},
                     }}
-                  />
-                </MenuItem>
-              </Menu>
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#DC2626" }}>
+                      Delete framework
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Popover>
             </>
           ) : (
             <Button
@@ -814,15 +794,12 @@ const Framework = () => {
       >
         {organizationalProject ? (
           <>
-            <Button
+            <CustomizableButton
               variant="contained"
-              endIcon={<WhiteDownArrowIcon size={16} />}
-              onClick={(event) => {
-                setRotated((prev) => !prev);
-                handleManageProjectClick(event);
-              }}
-              disableRipple
-              disabled={
+              text="Manage frameworks"
+              icon={<WhiteDownArrowIcon size={16} />}
+              onClick={handleManageProjectClick}
+              isDisabled={
                 !allowedRoles.frameworks.manage.includes(userRoleName) &&
                 !allowedRoles.projects.edit.includes(userRoleName) &&
                 !allowedRoles.projects.delete.includes(userRoleName)
@@ -830,26 +807,13 @@ const Framework = () => {
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
-                textTransform: "none",
+                gap: 2,
                 "&:hover": {
                   backgroundColor: "#0e5c47",
-                  boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                  boxShadow: "none",
-                },
-                "& .MuiButton-endIcon": {
-                  marginLeft: 1,
-                  transition: "transform 0.2s ease",
-                  transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
                 },
               }}
-            >
-              Manage Project
-            </Button>
-            <Menu
+            />
+            <Popover
               anchorEl={anchorEl}
               open={isMenuOpen}
               onClose={handleMenuClose}
@@ -861,85 +825,80 @@ const Framework = () => {
                 vertical: "top",
                 horizontal: "right",
               }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    ...dropDownStyle,
-                    width: 200,
-                    mt: 1,
-                  },
+              sx={{
+                mt: 1,
+                "& .MuiPopover-paper": {
+                  borderRadius: "4px",
+                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+                  border: "1px solid #d0d5dd",
+                  overflow: "visible",
+                  backgroundColor: "#fff",
                 },
               }}
             >
-              <MenuItem
-                onClick={handleManageFrameworksClick}
-                disabled={
-                  !allowedRoles.frameworks.manage.includes(userRoleName)
-                }
+              <Stack
+                sx={{
+                  p: 1,
+                  minWidth: 200,
+                }}
               >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <SettingsIcon
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Manage Frameworks"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
+                <Box
+                  role="menuitem"
+                  tabIndex={0}
+                  onClick={handleManageFrameworksClick}
+                  sx={{
+                    p: "8px 12px",
+                    borderRadius: "4px",
+                    cursor: allowedRoles.frameworks.manage.includes(userRoleName) ? "pointer" : "not-allowed",
+                    opacity: allowedRoles.frameworks.manage.includes(userRoleName) ? 1 : 0.5,
+                    "&:hover": allowedRoles.frameworks.manage.includes(userRoleName) ? {
+                      backgroundColor: "#F4F4F4",
+                    } : {},
                   }}
-                />
-              </MenuItem>
-              <MenuItem
-                onClick={handleEditProjectClick}
-                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <EditIconGrey
-                    size={16}
-                    style={{
-                      color: "text.secondary",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Edit Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "text.primary",
+                >
+                  <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#344054" }}>
+                    Add or remove frameworks
+                  </Typography>
+                </Box>
+                <Box
+                  role="menuitem"
+                  tabIndex={0}
+                  onClick={handleEditProjectClick}
+                  sx={{
+                    p: "8px 12px",
+                    borderRadius: "4px",
+                    cursor: allowedRoles.projects.edit.includes(userRoleName) ? "pointer" : "not-allowed",
+                    opacity: allowedRoles.projects.edit.includes(userRoleName) ? 1 : 0.5,
+                    "&:hover": allowedRoles.projects.edit.includes(userRoleName) ? {
+                      backgroundColor: "#F4F4F4",
+                    } : {},
                   }}
-                />
-              </MenuItem>
-              <Divider sx={{ my: 0.5 }} />
-              <MenuItem
-                onClick={handleDeleteProjectClick}
-                disabled={
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-              >
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  <DeleteIconRed
-                    size={16}
-                    style={{
-                      color: "#DB504A",
-                    }}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Delete Project"
-                  primaryTypographyProps={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "error.main",
+                >
+                  <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#344054" }}>
+                    Edit framework
+                  </Typography>
+                </Box>
+                <Box sx={{ borderBottom: "1px solid #d0d5dd", my: 1 }} />
+                <Box
+                  role="menuitem"
+                  tabIndex={0}
+                  onClick={handleDeleteProjectClick}
+                  sx={{
+                    p: "8px 12px",
+                    borderRadius: "4px",
+                    cursor: allowedRoles.projects.delete.includes(userRoleName) ? "pointer" : "not-allowed",
+                    opacity: allowedRoles.projects.delete.includes(userRoleName) ? 1 : 0.5,
+                    "&:hover": allowedRoles.projects.delete.includes(userRoleName) ? {
+                      backgroundColor: "#FEF2F2",
+                    } : {},
                   }}
-                />
-              </MenuItem>
-            </Menu>
+                >
+                  <Typography sx={{ fontSize: 13, fontWeight: 400, color: "#DC2626" }}>
+                    Delete framework
+                  </Typography>
+                </Box>
+              </Stack>
+            </Popover>
           </>
         ) : (
           <Button
@@ -1071,86 +1030,62 @@ const Framework = () => {
 
       {/* Modals */}
       {isProjectFormModalOpen && (
-        <Modal
-          open={isProjectFormModalOpen}
-          onClose={(_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
+        <StandardModal
+          isOpen={isProjectFormModalOpen}
+          onClose={async () => {
             setIsProjectFormModalOpen(false);
+            await refreshProjectData();
           }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+          title="Create new framework"
+          description="Set up a new organizational framework below"
+          onSubmit={() => {
+            if (createFormRef.current) {
+              createFormRef.current();
+            }
           }}
+          submitButtonText="Create framework"
+          maxWidth="900px"
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
+          <ProjectForm
+            defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+            useStandardModal={true}
+            onSubmitRef={createFormRef}
+            onClose={async () => {
+              setIsProjectFormModalOpen(false);
+              await refreshProjectData();
             }}
-          >
-            <ProjectForm
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsProjectFormModalOpen(false);
-                // Refresh project data after creating a new project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
+          />
+        </StandardModal>
       )}
 
       {isEditProjectModalOpen && organizationalProject && (
-        <Modal
-          open={isEditProjectModalOpen}
-          onClose={(_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
+        <StandardModal
+          isOpen={isEditProjectModalOpen}
+          onClose={async () => {
             setIsEditProjectModalOpen(false);
+            await refreshProjectData();
           }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+          title="Edit framework"
+          description="Update your framework details below"
+          onSubmit={() => {
+            if (submitFormRef.current) {
+              submitFormRef.current();
+            }
           }}
+          submitButtonText="Update framework"
+          maxWidth="900px"
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
+          <ProjectForm
+            projectToEdit={organizationalProject}
+            defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+            useStandardModal={true}
+            onSubmitRef={submitFormRef}
+            onClose={async () => {
+              setIsEditProjectModalOpen(false);
+              await refreshProjectData();
             }}
-          >
-            <ProjectForm
-              projectToEdit={organizationalProject}
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsEditProjectModalOpen(false);
-                // Refresh project data after editing the project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
+          />
+        </StandardModal>
       )}
 
       {isFrameworkModalOpen && organizationalProject && (

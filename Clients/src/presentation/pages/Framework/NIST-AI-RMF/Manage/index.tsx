@@ -327,7 +327,7 @@ const NISTAIRMFManage = ({
       </Typography>
       {categories &&
         categories.map((category: any) => (
-          <Stack key={category.id} sx={{ ...styles.container, mb: 2 }}>
+          <Stack key={category.id} sx={{ ...styles.container, mb: "16px" }}>
             <Accordion
               key={category.id}
               expanded={expanded === category.id}

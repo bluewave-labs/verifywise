@@ -47,34 +47,27 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Box>
 
-      <Box textAlign="center">
-        <Typography
-          sx={{
-            fontSize: "15px",
-            color: "#667085",
-            maxWidth: "600px",
-            lineHeight: 1.6,
-          }}
-        >
-          VerifyWise is your AI governance and compliance platform. In 3 minutes, we'll help you get started with managing AI risks, compliance frameworks, and building trust.
-        </Typography>
-      </Box>
-
       <Box
         sx={{
-          backgroundColor: "#F0FDF4",
-          border: "1px solid #D1FAE5",
-          borderRadius: "4px",
-          padding: 4,
           width: "100%",
         }}
       >
         <Typography
           sx={{
-            fontSize: "13px",
-            color: "#13715B",
+            fontSize: "14px",
+            color: "#667085",
+            marginBottom: 4,
+            lineHeight: 1.6,
+          }}
+        >
+          VerifyWise is your AI governance and compliance platform. In 3 minutes, we'll help you get started with managing AI risks, compliance frameworks, and building trust.
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "14px",
+            color: "#667085",
             fontWeight: 500,
-            marginBottom: 1,
+            marginBottom: 4,
           }}
         >
           What you'll learn:
@@ -90,7 +83,7 @@ const WelcomeStep: React.FC<OnboardingStepProps> = () => {
                   backgroundColor: "#13715B",
                 }}
               />
-              <Typography sx={{ fontSize: "13px", color: "#344054" }}>
+              <Typography sx={{ fontSize: "14px", color: "#667085" }}>
                 {item}
               </Typography>
             </Box>

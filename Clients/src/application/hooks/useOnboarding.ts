@@ -33,7 +33,12 @@ export const useOnboarding = () => {
         setState(parsed);
       } catch (error) {
         console.error("Failed to parse onboarding state:", error);
+        // If parse fails, mark as complete to prevent showing broken state
+        setState({ ...initialState, isComplete: true });
       }
+    } else {
+      // First time for this user - initialize with default state
+      setState(initialState);
     }
   }, [userId]);
 
@@ -42,32 +47,44 @@ export const useOnboarding = () => {
     if (!userId) return;
 
     const storageKey = getStorageKey(userId);
-    const stateToSave = {
-      ...state,
-      lastUpdated: new Date().toISOString(),
-    };
-    localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+    localStorage.setItem(storageKey, JSON.stringify(state));
 
-    // Dispatch custom event to notify other instances
-    window.dispatchEvent(new CustomEvent('onboarding-state-changed', { detail: stateToSave }));
+    // Note: We removed cross-tab sync to prevent infinite loops
+    // If cross-tab sync is needed, it should use the native storage event instead
   }, [state, userId]);
 
-  // Listen for storage changes from other instances
+  // Listen for native storage events from other tabs
   useEffect(() => {
     if (!userId) return;
 
-    const handleStorageChange = (event: CustomEvent) => {
-      const newState = event.detail;
-      if (newState && newState.lastUpdated !== state.lastUpdated) {
-        setState(newState);
+    const handleStorageChange = (event: StorageEvent) => {
+      const storageKey = getStorageKey(userId);
+
+      // Only handle changes to our specific key
+      if (event.key !== storageKey) return;
+
+      // Only handle changes from other tabs (event.storageArea will be null for same tab)
+      if (!event.newValue) return;
+
+      try {
+        const newState = JSON.parse(event.newValue);
+        setState((currentState) => {
+          // Only update if the state actually changed
+          if (newState.lastUpdated !== currentState.lastUpdated) {
+            return newState;
+          }
+          return currentState;
+        });
+      } catch (error) {
+        console.error('Failed to parse storage event:', error);
       }
     };
 
-    window.addEventListener('onboarding-state-changed', handleStorageChange as EventListener);
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-      window.removeEventListener('onboarding-state-changed', handleStorageChange as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [userId, state.lastUpdated]);
+  }, [userId]);
 
   // Check if user is first in organization
   const isFirstUserInOrg = useCallback(() => {
@@ -93,6 +110,7 @@ export const useOnboarding = () => {
     setState((prev) => ({
       ...prev,
       currentStep: step,
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -101,6 +119,7 @@ export const useOnboarding = () => {
     setState((prev) => ({
       ...prev,
       completedSteps: [...new Set([...prev.completedSteps, step])],
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -109,6 +128,7 @@ export const useOnboarding = () => {
     setState((prev) => ({
       ...prev,
       skippedSteps: [...new Set([...prev.skippedSteps, step])],
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -120,6 +140,7 @@ export const useOnboarding = () => {
         ...prev.preferences,
         ...prefs,
       },
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -131,6 +152,7 @@ export const useOnboarding = () => {
         ...prev.sampleProject,
         ...data,
       },
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -139,6 +161,7 @@ export const useOnboarding = () => {
     setState((prev) => ({
       ...prev,
       isComplete: true,
+      lastUpdated: new Date().toISOString(),
     }));
   }, []);
 
@@ -153,8 +176,12 @@ export const useOnboarding = () => {
 
   // Check if onboarding should be shown
   const shouldShowOnboarding = useCallback(() => {
+    if (!userId) return false;
+
+    // Simply check if onboarding is complete in state
+    // No session storage needed - localStorage persistence handles everything
     return !state.isComplete;
-  }, [state.isComplete]);
+  }, [state.isComplete, userId]);
 
   return {
     state,

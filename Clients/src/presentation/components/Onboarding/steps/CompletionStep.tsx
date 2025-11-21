@@ -90,35 +90,12 @@ const CompletionStep: React.FC<OnboardingStepProps> = ({ onNext }) => {
       </Stack>
 
       <Stack alignItems="center" sx={{ width: "100%" }}>
-        <Box
-          sx={{
-            backgroundColor: "#F0FDF4",
-            border: "1px solid #D1FAE5",
-            borderRadius: "4px",
-            padding: 3,
-            width: "100%",
-            maxWidth: "500px",
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "13px",
-              color: "#13715B",
-              textAlign: "center",
-              lineHeight: 1.6,
-            }}
-          >
-            Click "Finish" below to start exploring VerifyWise and begin your AI governance journey
-          </Typography>
-        </Box>
-
         <CustomizableButton
           variant="contained"
           text="Finish"
           onClick={onNext}
           endIcon={<Check size={16} />}
           sx={{
-            marginTop: "32px",
             backgroundColor: "#13715B",
             fontSize: "14px",
             padding: "10px 24px",

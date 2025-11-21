@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { Box, Typography, Stack, TextField, MenuItem, Select, FormControl, SelectChangeEvent } from "@mui/material";
+import { Box, Typography, Stack, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
-import { UserPlus, Mail, Shield } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
+import Select from "../../Inputs/Select";
+import Field from "../../Inputs/Field";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import { useRoles } from "../../../../application/hooks/useRoles";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 interface TeamMemberInvite {
@@ -11,55 +16,101 @@ interface TeamMemberInvite {
 }
 
 const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
+  const { organizationId } = useAuth();
+  const { roles } = useRoles();
   const [invites, setInvites] = useState<TeamMemberInvite[]>([
     { email: "", role: "editor" },
   ]);
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleEmailChange = (index: number, value: string) => {
     const newInvites = [...invites];
     newInvites[index].email = value;
-    setInvites(newInvites);
+
+    // Auto-add new row when email is filled
+    const isLastRow = index === invites.length - 1;
+    if (isLastRow && value.trim() !== "" && invites.length < 5) {
+      newInvites.push({ email: "", role: "editor" });
+    }
+
+    // Auto-remove empty rows but keep at least 1 empty row
+    const filledInvites = newInvites.filter((inv) => inv.email.trim() !== "");
+    const emptyInvites = newInvites.filter((inv) => inv.email.trim() === "");
+
+    if (filledInvites.length > 0 && emptyInvites.length > 1) {
+      // Keep filled invites and only one empty row
+      const finalInvites: TeamMemberInvite[] = [...filledInvites, { email: "", role: "editor" as "editor" }];
+      setInvites(finalInvites);
+    } else {
+      setInvites(newInvites);
+    }
   };
 
-  const handleRoleChange = (index: number, event: SelectChangeEvent<string>) => {
+  const handleRoleChange = (index: number, event: SelectChangeEvent<string | number>) => {
     const newInvites = [...invites];
     newInvites[index].role = event.target.value as "admin" | "reviewer" | "editor";
     setInvites(newInvites);
   };
 
-  const handleAddAnother = () => {
-    if (invites.length < 5) {
-      setInvites([...invites, { email: "", role: "editor" }]);
-    }
+  const getRoleId = (roleName: string): string => {
+    const role = roles.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
+    return role ? role.id.toString() : "1"; // Default to first role if not found
   };
 
-  const handleRemove = (index: number) => {
-    if (invites.length > 1) {
-      const newInvites = invites.filter((_, i) => i !== index);
-      setInvites(newInvites);
-    }
-  };
-
-  const handleInvite = () => {
+  const handleInvite = async () => {
     const validInvites = invites.filter((invite) => invite.email.trim() !== "");
     if (validInvites.length > 0) {
-      // TODO: Implement actual invite logic
-      console.log("Inviting team members:", validInvites);
+      setIsSending(true);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+
+      try {
+        // Send all invites in parallel
+        const invitePromises = validInvites.map((invite) =>
+          apiServices.post("/mail/invite", {
+            to: invite.email,
+            email: invite.email,
+            name: "",
+            surname: "",
+            roleId: getRoleId(invite.role),
+            organizationId,
+          })
+        );
+
+        await Promise.all(invitePromises);
+        setSuccessMessage(`Successfully sent ${validInvites.length} invitation${validInvites.length > 1 ? 's' : ''}!`);
+
+        // Clear invites after successful send
+        setInvites([{ email: "", role: "editor" }]);
+
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (error: any) {
+        // Check if it's an email service configuration error (expected in local dev)
+        const isEmailConfigError = error?.message?.includes("email") || error?.message?.includes("mail");
+
+        if (isEmailConfigError) {
+          // Use console.warn for expected local development scenario
+          console.warn("Email service not available (expected in local development):", error?.message);
+          setErrorMessage("Email service not configured. Invitations cannot be sent in local development.");
+        } else {
+          // Use console.error for unexpected errors
+          console.error("Unexpected error sending invitations:", error);
+          setErrorMessage("An error occurred while sending invitations. Please try again.");
+        }
+      } finally {
+        setIsSending(false);
+      }
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "Admin";
-      case "reviewer":
-        return "Reviewer";
-      case "editor":
-        return "Editor";
-      default:
-        return role;
-    }
-  };
+  const roleOptions = [
+    { _id: "editor", name: "Editor" },
+    { _id: "reviewer", name: "Reviewer" },
+    { _id: "admin", name: "Admin" },
+  ];
 
   return (
     <Stack spacing={4}>
@@ -110,122 +161,42 @@ const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
         </Typography>
       </Box>
 
-      <Stack spacing={3}>
+      <Stack sx={{ gap: "8px" }}>
         {invites.map((invite, index) => (
-          <Box
-            key={index}
-            sx={{
-              padding: 3,
-              border: "1px solid #E5E7EB",
-              borderRadius: "4px",
-              backgroundColor: "#FAFAFA",
-            }}
-          >
-            <Stack spacing={2}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginBottom: 1 }}>
-                <Mail size={16} color="#6B7280" />
-                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#344054" }}>
-                  Team member {index + 1}
-                </Typography>
-              </Box>
+          <Box key={index} sx={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <Field
+              id={`email-${index}`}
+              type="text"
+              placeholder="Email address"
+              value={invite.email}
+              onChange={(e) => handleEmailChange(index, e.target.value)}
+              sx={{
+                flex: 1,
+              }}
+            />
 
-              <TextField
-                fullWidth
-                placeholder="Email address"
-                value={invite.email}
-                onChange={(e) => handleEmailChange(index, e.target.value)}
-                size="small"
+            <Box sx={{ minWidth: "150px", flexShrink: 0, pointerEvents: "auto", position: "relative", zIndex: 1 }}>
+              <Select
+                id={`role-${index}`}
+                value={invite.role}
+                onChange={(e) => handleRoleChange(index, e)}
+                items={roleOptions}
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    backgroundColor: "white",
-                    "&:hover fieldset": {
-                      borderColor: "#13715B",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#13715B",
-                    },
-                  },
+                  width: "100%",
+                  pointerEvents: "auto",
+                  cursor: "pointer",
                 }}
               />
-
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <FormControl size="small" sx={{ minWidth: 150 }}>
-                  <Select
-                    value={invite.role}
-                    onChange={(e) => handleRoleChange(index, e)}
-                    displayEmpty
-                    startAdornment={
-                      <Shield size={16} style={{ marginRight: 8, color: "#6B7280" }} />
-                    }
-                    sx={{
-                      fontSize: "13px",
-                      backgroundColor: "white",
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#13715B",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#13715B",
-                      },
-                    }}
-                  >
-                    <MenuItem value="editor" sx={{ fontSize: "13px" }}>
-                      {getRoleLabel("editor")}
-                    </MenuItem>
-                    <MenuItem value="reviewer" sx={{ fontSize: "13px" }}>
-                      {getRoleLabel("reviewer")}
-                    </MenuItem>
-                    <MenuItem value="admin" sx={{ fontSize: "13px" }}>
-                      {getRoleLabel("admin")}
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-
-                {invites.length > 1 && (
-                  <CustomizableButton
-                    variant="text"
-                    text="Remove"
-                    onClick={() => handleRemove(index)}
-                    sx={{
-                      color: "#DC2626",
-                      fontSize: "13px",
-                      padding: "4px 8px",
-                      minWidth: "auto",
-                      "&:hover": {
-                        backgroundColor: "#FEE2E2",
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </Stack>
+            </Box>
           </Box>
         ))}
 
-        {invites.length < 5 && (
-          <CustomizableButton
-            variant="outlined"
-            text="Add another"
-            onClick={handleAddAnother}
-            startIcon={<UserPlus size={16} />}
-            sx={{
-              borderColor: "#D0D5DD",
-              color: "#344054",
-              fontSize: "13px",
-              alignSelf: "flex-start",
-              "&:hover": {
-                borderColor: "#13715B",
-                backgroundColor: "#F0FDF4",
-              },
-            }}
-          />
-        )}
-
         <CustomizableButton
           variant="contained"
-          text="Invite teammates"
+          text={isSending ? "Sending..." : "Invite teammates"}
           onClick={handleInvite}
           startIcon={<UserPlus size={16} />}
+          isDisabled={isSending}
           sx={{
             backgroundColor: "#13715B",
             fontSize: "14px",
@@ -234,8 +205,42 @@ const InviteTeamStep: React.FC<OnboardingStepProps> = () => {
             "&:hover": {
               backgroundColor: "#0F5A47",
             },
+            "&:disabled": {
+              backgroundColor: "#9CA3AF",
+              color: "#FFFFFF",
+            },
           }}
         />
+
+        {successMessage && (
+          <Box
+            sx={{
+              backgroundColor: "#F0FDF4",
+              border: "1px solid #D1FAE5",
+              borderRadius: "4px",
+              padding: 2.5,
+            }}
+          >
+            <Typography sx={{ fontSize: "13px", color: "#13715B", lineHeight: 1.6 }}>
+              {successMessage}
+            </Typography>
+          </Box>
+        )}
+
+        {errorMessage && (
+          <Box
+            sx={{
+              backgroundColor: "#FEF2F2",
+              border: "1px solid #FECACA",
+              borderRadius: "4px",
+              padding: 2.5,
+            }}
+          >
+            <Typography sx={{ fontSize: "13px", color: "#DC2626", lineHeight: 1.6 }}>
+              {errorMessage}
+            </Typography>
+          </Box>
+        )}
 
         <Box
           sx={{

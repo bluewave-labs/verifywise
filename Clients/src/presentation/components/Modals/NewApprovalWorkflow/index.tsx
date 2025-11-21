@@ -28,6 +28,19 @@ const conditions = [
     { _id: 2, name: "Any" },
 ];
 
+interface NewApprovalWorkflowFormErrors {
+    workflow_title?: string;
+    entity?: string;
+    steps: NewApprovalWorkflowStepFormErrors[];
+}
+
+interface NewApprovalWorkflowStepFormErrors {
+
+    step_name?: string;
+    approver?: string;
+    conditions?: string;
+}
+
 interface ICreateApprovalWorkflowProps {
     isOpen: boolean;
     setIsOpen: () => void;
@@ -55,6 +68,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
 }) => {
 
     const theme = useTheme();
+    const [errors, setErrors] = useState<NewApprovalWorkflowFormErrors>({ steps: [] });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [stepsCount, setStepsCount] = useState(1);
@@ -89,54 +103,26 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
 
 
     const validateForm = (): boolean => {
-        if (!workflowTitle.trim()) {
-            logEngine({
-                type: "error",
-                message: "Workflow title is required.",
-            });
-            return false;
-        }
-        if (entity == 0) {
-            logEngine({
-                type: "error",
-                message: "Entity is required.",
-            });
-            return false;
-        }
-        if (!workflowSteps || workflowSteps.length === 0) {
-            logEngine({
-                type: "error",
-                message: "At least one workflow step is required.",
-            });
-            return false;
-        }
+        const newErrors: NewApprovalWorkflowFormErrors = {
+            steps: []
+        };
+        if (!workflowTitle.trim())
+            newErrors.workflow_title = "Workflow title is required."
+        if (entity < 1)
+            newErrors.entity = "Entity is required."
         for (let i = 0; i < workflowSteps.length; i++) {
             const step = workflowSteps[i];
-            if (!step.step_name || !step.step_name.trim()) {
-                logEngine({
-                    type: "error",
-                    message: `Step ${i + 1}: Step name is required.`,
-                });
-                return false;
-            }
-            if (!step.approver) {
-                logEngine({
-                    type: "error",
-                    message: `Step ${i + 1}: Approver is required.`,
-                });
-                return false;
-            }
-            if (!step.conditions) {
-                logEngine({
-                    type: "error",
-                    message: `Step ${i + 1}: Conditions are required.`,
-                });
-                return false;
-            }
+            newErrors.steps.push({})
+            if (!step.step_name || !step.step_name.trim())
+                newErrors.steps[i].step_name = "Step name is required."
+            if (!step.approver)
+                newErrors.steps[i].approver = "Approver is required."
+            if (!step.conditions)
+                newErrors.steps[i].conditions = "Conditions are required."
         }
-        return true;
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     }
-
     const handleSave = () => {
         if (validateForm()) {
             const formData = {
@@ -185,6 +171,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         id="title"
                         label="Workflow title"
                         width="50%"
+                        error={errors.workflow_title}
                         isRequired
                         sx={fieldStyle}
                         placeholder="Enter workflow title"
@@ -200,6 +187,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         }}
                         id="entity"
                         label="Entity"
+                        error={errors.entity}
                         isRequired
                         onChange={(e: any) => setEntity(e.target.value)}
                         placeholder="Select entity"
@@ -262,6 +250,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         label="Step name"
                                         width="100%"
                                         isRequired
+                                        error={errors.steps[stepIndex]?.step_name}
                                         sx={fieldStyle}
                                         placeholder="Enter step name"
                                         value={step.step_name || ""}
@@ -282,6 +271,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                             id={`approver-${stepIndex}`}
                                             label="Approver"
                                             isRequired
+                                            error={errors.steps[stepIndex]?.approver}
                                             onChange={(e: any) => {
                                                 const newSteps = [...workflowSteps];
                                                 newSteps[stepIndex].approver = Number(e.target.value);
@@ -299,6 +289,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                             id={`conditions-${stepIndex}`}
                                             label="Conditions"
                                             isRequired
+                                            error={errors.steps[stepIndex]?.conditions}
                                             onChange={(e: any) => {
                                                 const newSteps = [...workflowSteps];
                                                 newSteps[stepIndex].conditions = Number(e.target.value);

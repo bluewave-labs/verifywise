@@ -54,6 +54,7 @@ import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
+import evidenceHubRouter from "./routes/evidenceHub.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -147,6 +148,7 @@ try {
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
+  app.use("/api/evidenceHub", evidenceHubRouter);
 
   // Adding background jobs in the Queue
   (async () => {

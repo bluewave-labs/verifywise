@@ -3,6 +3,7 @@ import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-re
 import { useEffect, useState } from "react";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import { frameworkDashboardCardStyles } from "./styles";
 import {
   validateDataConsistency,
   createErrorLogData,
@@ -219,30 +220,10 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
     return <CircleCheck size={14} style={{ color: "#13715B" }} />;
   };
   return (
-    <Box
-      sx={{
-        border: "1px solid #EEEEEE",
-        borderRadius: "4px",
-        overflow: "hidden",
-      }}
-    >
+    <Box sx={frameworkDashboardCardStyles.cardContainer}>
       {/* Header Section */}
-      <Box
-        sx={{
-          backgroundColor: "#F1F3F4",
-          p: "10px 16px",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#000000",
-            lineHeight: "16px",
-            m: 0,
-          }}
-        >
+      <Box sx={frameworkDashboardCardStyles.cardHeader}>
+        <Typography sx={frameworkDashboardCardStyles.cardHeaderTitle}>
           Assignment status
         </Typography>
       </Box>

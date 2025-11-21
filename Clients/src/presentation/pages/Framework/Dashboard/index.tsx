@@ -268,7 +268,7 @@ const FrameworkDashboard = ({
           py: 8,
           backgroundColor: "#F9FAFB",
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
+          border: "1px solid #d0d5dd",
         }}
       >
         <Typography variant="body1" color="text.secondary">

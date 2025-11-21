@@ -21,13 +21,22 @@ const PageTour: React.FC<IPageTourProps> = ({
   }, [run, tourKey]);
 
   const handleCallback = (data: any) => {
-    const { status } = data;
+    const { status, action, type } = data;
+
+    // Handle tour completion
     if (status === "finished" || status === "skipped") {
       localStorage.setItem(tourKey, "true");
       setShouldRun(false);
       if (onFinish) {
         onFinish();
       }
+      return;
+    }
+
+    // Skip to next step if target is not mounted
+    if (type === "error:target_not_found" && action === "update") {
+      // Joyride will automatically skip to the next available step
+      console.warn("[PageTour] Target not found, skipping to next step");
     }
   };
 
@@ -85,6 +94,9 @@ const PageTour: React.FC<IPageTourProps> = ({
         showSkipButton={false}
         callback={handleCallback}
         disableOverlayClose
+        disableScrolling={false}
+        scrollToFirstStep={true}
+        spotlightClicks={false}
         tooltipComponent={tooltipRenderer}
         locale={{
           last: "Finish",

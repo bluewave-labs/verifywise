@@ -98,7 +98,13 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
           popper: {
             sx: {
               "& ul": { p: 0 },
-              "& li": { borderRadius: theme.shape.borderRadius },
+              "& li": {
+                borderRadius: theme.shape.borderRadius,
+                transition: "color 0.2s ease, background-color 0.2s ease",
+                "&:hover": {
+                  color: "#13715B",
+                },
+              },
             },
           },
           paper: {

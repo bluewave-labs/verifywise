@@ -75,6 +75,7 @@ import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventor
 import { RiskHistoryModel } from "../domain.layer/models/riskHistory/riskHistory.model";
 import { UserPreferencesModel } from "../domain.layer/models/userPreferences/userPreferences.model";
 import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 
 dotenv.config();
 
@@ -152,6 +153,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AutomationTriggerModel,
     AutomationTriggerActionModel,
     AIIncidentManagementModel,
+    EvidenceHubModel,
     MLFlowIntegrationModel,
     MLFlowModelRecordModel,
     AutomationExecutionLogModel,

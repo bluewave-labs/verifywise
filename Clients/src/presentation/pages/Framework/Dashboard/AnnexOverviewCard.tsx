@@ -288,7 +288,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
               <Box
                 key={category.id}
                 sx={{
-                  border: "1px solid #EEEEEE",
+                  border: "1px solid #d0d5dd",
                   borderRadius: "4px",
                   overflow: "hidden",
                   backgroundColor: "#FFFFFF",
@@ -299,7 +299,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
                   sx={{
                     backgroundColor: "#F1F3F4",
                     p: "10px 16px",
-                    borderBottom: "1px solid #EEEEEE",
+                    borderBottom: "1px solid #d0d5dd",
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -415,7 +415,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
           py: 4,
           backgroundColor: "#F9FAFB",
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
+          border: "1px solid #d0d5dd",
         }}
       >
         <Typography variant="body1" color="text.secondary">

@@ -75,7 +75,7 @@ const light = createTheme({
       grid: "#a2a3a3",
     },
     unresolved: { main: "#4e5ba6", light: "#e2eaf7", bg: "#f2f4f7" },
-    divider: "#eaecf0",
+    divider: "#d0d5dd",
   },
   shape: {
     borderRadius: 2,
@@ -210,7 +210,7 @@ const light = createTheme({
     MuiTableHead: {
       styleOverrides: {
         root: {
-          backgroundColor: background.accent,
+          background: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
         },
       },
     },

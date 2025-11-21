@@ -11,6 +11,7 @@ import {
   Box,
   Tooltip,
   TableFooter,
+  Chip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -23,6 +24,7 @@ import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
+import { VWLink } from "../../Link";
 
 const VENDOR_RISKS_ROWS_PER_PAGE_KEY = "verifywise_vendor_risks_rows_per_page";
 const VENDOR_RISKS_SORTING_KEY = "verifywise_vendor_risks_sorting";
@@ -539,7 +541,41 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     backgroundColor: sortConfig.key === "risk_severity" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <RiskChip label={row.risk_severity} />
+                  {row.risk_severity ? (
+                    <Chip
+                      label={row.risk_severity}
+                      size="small"
+                      sx={{
+                        backgroundColor: (() => {
+                          const severity = row.risk_severity.toLowerCase();
+                          if (severity.includes('catastrophic')) return '#ffcdd2';
+                          if (severity.includes('critical')) return '#ffcdd2';
+                          if (severity.includes('major')) return '#ffe0b2';
+                          if (severity.includes('moderate')) return '#fff9c4';
+                          if (severity.includes('minor')) return '#c8e6c9';
+                          if (severity.includes('negligible')) return '#b2dfdb';
+                          return '#e0e0e0';
+                        })(),
+                        color: (() => {
+                          const severity = row.risk_severity.toLowerCase();
+                          if (severity.includes('catastrophic')) return '#c62828';
+                          if (severity.includes('critical')) return '#c62828';
+                          if (severity.includes('major')) return '#e65100';
+                          if (severity.includes('moderate')) return '#f57f17';
+                          if (severity.includes('minor')) return '#2e7d32';
+                          if (severity.includes('negligible')) return '#00695c';
+                          return '#424242';
+                        })(),
+                        borderRadius: "4px !important",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -555,7 +591,16 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     backgroundColor: sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <RiskChip label={row.risk_level} />
+                  <VWLink
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(row.risk_id!);
+                    }}
+                    showUnderline={false}
+                    showIcon={false}
+                  >
+                    {row.risk_level}
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{

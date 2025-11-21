@@ -117,7 +117,7 @@ export const modalStyles = {
 export const cardStyles = {
   base: (theme: Theme): SxProps<Theme> => ({
     backgroundColor: theme.palette.background.main,
-    border: `1px solid ${theme.palette.border?.light || "#EAECF0"}`,
+    border: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
     borderRadius: theme.shape.borderRadius,
     boxShadow: "none",
     padding: theme.spacing(2),

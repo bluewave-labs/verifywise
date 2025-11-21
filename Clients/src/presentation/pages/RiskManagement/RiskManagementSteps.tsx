@@ -23,8 +23,8 @@ const RiskManagementSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="import-ai-risks-button"]',
     content: {
-      header: "MIT AI risk database",
-      body: "Import industry-standard risks from the MIT AI Risk Database for comprehensive coverage. Browse curated risks by lifecycle phase and category.",
+      header: "AI risk databases",
+      body: "Import industry-standard risks from IBM or MIT AI Risk Databases for comprehensive coverage. Browse curated risks by lifecycle phase and category.",
       icon: <Database size={20} color="#ffffff" />,
     },
     placement: "bottom",

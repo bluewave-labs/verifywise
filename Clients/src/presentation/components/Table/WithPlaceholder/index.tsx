@@ -26,6 +26,7 @@ import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.mode
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
+import { VWLink } from "../../Link";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -366,21 +367,15 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={1}>
-                    {/* <RiskChip label={row.risk_status} /> */}
-                    <CustomizableButton
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.button,
-                        width: 110,
-                      }}
-                      variant="contained"
-                      text="View risks"
-                      onClick={(e: React.MouseEvent<HTMLElement>) => {
-                        e.stopPropagation();
-                        openVendorRisksDialog(row.id!, row.vendor_name);
-                      }}
-                    />
-                  </Box>
+                  <VWLink
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openVendorRisksDialog(row.id!, row.vendor_name);
+                    }}
+                    showIcon={false}
+                  >
+                    View risks
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{

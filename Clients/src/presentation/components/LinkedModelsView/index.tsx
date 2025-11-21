@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   useTheme,
-  Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -17,6 +16,7 @@ import CustomizableSkeleton from "../Skeletons";
 import singleTheme from "../../themes/v1SingleTheme";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import EmptyState from "../EmptyState";
+import { VWLink } from "../Link";
 
 const TABLE_COLUMNS = [
   { id: "provider", label: "PROVIDER" },
@@ -122,29 +122,16 @@ const LinkedModelsView = ({
           <Typography
             sx={{
               color: theme.palette.text.tertiary,
-              fontSize: 12,
+              fontSize: 13,
               mt: 1,
               textAlign: "center",
               maxWidth: 500,
             }}
           >
             To link a model to this framework, you first need to add it to your model inventory. When adding a model, you can select which framework(s) to link it to.{" "}
-            <Link
-              onClick={() => navigate("/model-inventory")}
-              sx={{
-                color: "#13715B",
-                textDecoration: "underline",
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 500,
-                display: "inline",
-                "&:hover": {
-                  color: "#0F5A47",
-                },
-              }}
-            >
+            <VWLink onClick={() => navigate("/model-inventory")}>
               Go to Model Inventory
-            </Link>
+            </VWLink>
           </Typography>
         </Stack>
       </Stack>

@@ -13,16 +13,16 @@ import { getSelectStyles } from "../../utils/inputStyles";
 
 type ListedDataset = { key: string; name: string; path: string; use_case: "chatbot" | "rag" | "agent" | "safety" };
 
-type BuiltInEmbedProps = { embed?: boolean; onOpenEditor?: (path: string) => void };
+type BuiltInEmbedProps = { embed?: boolean; onOpenEditor?: (path: string, name: string) => void; onBack?: () => void };
 export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const theme = useTheme();
   const embed = Boolean(_props?.embed);
-  const openEditor = (path: string) => {
+  const openEditor = (path: string, name: string) => {
     if (_props?.embed && _props.onOpenEditor) {
-      _props.onOpenEditor(path);
+      _props.onOpenEditor(path, name);
     } else {
       navigate(`/evals/${projectId}/datasets/editor?path=${encodeURIComponent(path)}`);
     }
@@ -257,12 +257,22 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
       </TabContext>)}
       {!embed && <Divider sx={{ mb: 2 }} />}
 
-      {/* Title + back below tabs (hide when embedded inside tab) */}
-      {!embed && (
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-          <IconButton size="small" onClick={() => navigate(`/evals/${projectId}`)} aria-label="Back">
+      {/* Title with back button when embedded */}
+      {embed ? (
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+          <IconButton 
+            size="small" 
+            onClick={() => _props.onBack ? _props.onBack() : window.history.back()} 
+            aria-label="Back"
+          >
             <ArrowLeft size={18} />
           </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "16px" }}>
+            Built‑in datasets
+          </Typography>
+        </Stack>
+      ) : (
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "16px" }}>
             Built‑in datasets
           </Typography>
@@ -321,7 +331,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                     <IconButton size="small" onClick={() => setSelected(null)} title="Close viewer" aria-label="Close viewer">
                       <X size={16} />
                     </IconButton>
-                    <Button size="small" variant="contained" sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }} onClick={() => openEditor(selected.path)}>
+                    <Button size="small" variant="contained" sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }} onClick={() => openEditor(selected.path, selected.name)}>
                       Open in editor
                     </Button>
                   </Stack>
@@ -428,7 +438,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                             size="small"
                                 variant="contained"
                                 sx={{ textTransform: "none", bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-                                onClick={() => openEditor(ds.path)}
+                                onClick={() => openEditor(ds.path, ds.name)}
                           >
                             Open in editor
                           </Button>

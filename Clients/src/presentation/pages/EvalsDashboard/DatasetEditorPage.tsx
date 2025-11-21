@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Stack, Typography, TextField, Button, Paper, IconButton, Accordion, AccordionSummary, AccordionDetails, Chip, Tooltip } from "@mui/material";
+import { Box, Stack, Typography, TextField, Button, Paper, IconButton, Accordion, AccordionSummary, AccordionDetails, Chip } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
-import { ArrowLeft, Pencil, ChevronDown, Eye, Settings, Save as SaveIcon } from "lucide-react";
+import { ArrowLeft, ChevronDown, Settings, Save as SaveIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TabBar from "../../components/TabBar";
 import { TabContext } from "@mui/lab";
@@ -15,6 +15,10 @@ import { Select, MenuItem, useTheme } from "@mui/material";
 type DatasetEditorPageProps = {
   embed?: boolean;
   initialPath?: string;
+  isUserDataset?: boolean;
+  suggestedName?: string | null;
+  onSaved?: () => void;
+  onBack?: () => void;
 };
 
 export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
@@ -22,13 +26,12 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const path = props.initialPath || params.get("path") || "";
-  const [filename, setFilename] = useState<string>("");
+  const [datasetName, setDatasetName] = useState<string>(props.suggestedName || "");
   const [prompts, setPrompts] = useState<DatasetPromptRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
-  const [editing, setEditing] = useState<boolean>(false);
-  const datasetName = decodeURIComponent(path || "").split("/").pop()?.replace(/\.json$/i, "").replace(/[_-]+/g, " ") || "Dataset";
+  const isUserDataset = Boolean(props.isUserDataset);
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [allProjects, setAllProjects] = useState<{ id: string; name: string }[]>([]);
@@ -41,9 +44,14 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
         setLoading(true);
         const data = await deepEvalDatasetsService.read(path);
         setPrompts(data.prompts || []);
-        const base = path.split("/").pop() || "dataset.json";
-        setFilename(base.replace(/\.json$/i, "") + "-copy.json");
-        if (projectId) {
+        
+        // If no suggested name, derive from path
+        if (!props.suggestedName) {
+          const base = path.split("/").pop() || "dataset";
+          setDatasetName(base.replace(/\.json$/i, "").replace(/[_-]+/g, " ").replace(/^\d+\s+/, ""));
+        }
+        
+        if (projectId && !props.embed) {
           try {
             const ex = await experimentsService.getAllExperiments({ project_id: projectId });
             setExperimentsCount(ex.experiments?.length || 0);
@@ -55,8 +63,8 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
           } catch { setDatasetsCount(0); }
 
           try {
-            const data = await deepEvalProjectsService.getAllProjects();
-            setAllProjects(data.projects || []);
+            const projectData = await deepEvalProjectsService.getAllProjects();
+            setAllProjects(projectData.projects || []);
           } catch { setAllProjects([]); }
         }
       } catch (e) {
@@ -66,7 +74,7 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
         setLoading(false);
       }
     })();
-  }, [path, projectId]);
+  }, [path, projectId, props.embed, props.suggestedName]);
 
   const isValidToSave = useMemo(() => prompts && prompts.length > 0, [prompts]);
 
@@ -144,64 +152,78 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
       </Box>}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton size="small" onClick={() => navigate(`/evals/${projectId}/datasets/built-in?path=${encodeURIComponent(path)}`)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "16px" }}>
-            Dataset editor
-          </Typography>
-          {!editing ? (
-            <Tooltip title="View only">
-              <span>
-                <Chip size="small" icon={<Eye size={12} />} label="View only" sx={{ height: 22 }} />
-              </span>
-            </Tooltip>
+          {props.embed ? (
+            <IconButton 
+              size="small" 
+              onClick={() => props.onBack ? props.onBack() : window.history.back()} 
+              aria-label="Back"
+            >
+              <ArrowLeft size={18} />
+            </IconButton>
           ) : (
-            <Chip size="small" color="success" label="Editing copy" sx={{ height: 22 }} />
+            <IconButton size="small" onClick={() => navigate(`/evals/${projectId}#datasets`)} aria-label="Back">
+              <ArrowLeft size={18} />
+            </IconButton>
           )}
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "16px" }}>
+            {isUserDataset ? "Edit dataset" : "Copy dataset"}
+          </Typography>
         </Stack>
         <Stack direction="row" spacing={1}>
-          {!editing && (
-            <Button variant="contained" startIcon={<Pencil size={16} />} onClick={() => setEditing(true)} disabled={loading} sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}>
-              Duplicate to edit
-            </Button>
-          )}
           <Button
             variant="contained"
-            disabled={!isValidToSave || !editing || saving || loading}
+            disabled={!isValidToSave || saving || loading || !datasetName.trim()}
             sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
             startIcon={<SaveIcon size={16} />}
             onClick={async () => {
               try {
                 setSaving(true);
-                const json = JSON.stringify({ prompts }, null, 2);
+                // Backend expects the dataset JSON to be an array of prompt objects
+                const json = JSON.stringify(prompts, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
+                // Use the dataset name to create a clean filename
                 const slug = datasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-                const finalName = filename || (slug ? `${slug}-copy.json` : "dataset-copy.json");
+                const finalName = slug ? `${slug}.json` : "dataset.json";
                 const file = new File([blob], finalName, { type: "application/json" });
                 await deepEvalDatasetsService.uploadDataset(file);
-                setAlert({ variant: "success", body: "Saved as a new dataset in your uploads." });
-                setTimeout(() => setAlert(null), 4000);
+                setAlert({ variant: "success", body: `Dataset "${datasetName}" saved successfully!` });
+                setTimeout(() => {
+                  setAlert(null);
+                  if (props.onSaved) {
+                    props.onSaved();
+                  }
+                }, 2000);
               } catch (e) {
-                setAlert({ variant: "error", body: e instanceof Error ? e.message : "Save failed" });
+                type AxiosLike = { response?: { data?: unknown } };
+                const axiosErr = e as AxiosLike | Error;
+                const resData = (axiosErr as AxiosLike)?.response?.data as Record<string, unknown> | undefined;
+                const serverMsg =
+                  (resData && (String(resData.message ?? "") || String(resData.detail ?? ""))) ||
+                  (axiosErr instanceof Error ? axiosErr.message : null);
+                setAlert({ variant: "error", body: serverMsg || "Save failed. Check dataset structure." });
                 setTimeout(() => setAlert(null), 6000);
               } finally {
                 setSaving(false);
               }
             }}
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : isUserDataset ? "Save" : "Save copy"}
           </Button>
         </Stack>
       </Stack>
-      <Stack spacing={1} sx={{ mb: 1 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-          {datasetName}
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#6B7280" }}>
-          {editing
-            ? "You are editing a duplicate of the built‑in dataset. When you save, it will be stored in your uploads."
-            : "This is a read‑only view. Click 'Duplicate to edit' to make a copy you can modify."}
+      <Stack spacing={2} sx={{ mb: 2 }}>
+        <TextField
+          label="Dataset name"
+          value={datasetName}
+          onChange={(e) => setDatasetName(e.target.value)}
+          fullWidth
+          size="small"
+          placeholder="Enter a descriptive name for this dataset"
+        />
+        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
+          {isUserDataset
+            ? "Edit your dataset and click Save to update it."
+            : "This is a copy. Rename it and edit the prompts, then click Save to add it to your datasets."}
         </Typography>
       </Stack>
       <Stack spacing={1.25}>
@@ -216,26 +238,21 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
             <AccordionDetails>
               <Paper variant="outlined" sx={{ p: 1.25 }}>
                 <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt</Typography>
-                {editing ? (
-                  <TextField
-                    size="small"
-                    value={p.prompt}
-                    onChange={(e) => {
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], prompt: e.target.value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
-                ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#111827", whiteSpace: "pre-wrap" }}>{p.prompt}</Typography>
-                )}
+                <TextField
+                  size="small"
+                  value={p.prompt}
+                  onChange={(e) => {
+                    const next = [...prompts];
+                    next[idx] = { ...next[idx], prompt: e.target.value };
+                    setPrompts(next);
+                  }}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                />
 
                 <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Expected output</Typography>
-                {editing ? (
-                  <TextField
+                <TextField
                   size="small"
                   value={p.expected_output || ""}
                   onChange={(e) => {
@@ -246,50 +263,37 @@ export default function DatasetEditorPage(props: DatasetEditorPageProps = {}) {
                   fullWidth
                   multiline
                   minRows={2}
-                  />
-                ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#111827", whiteSpace: "pre-wrap" }}>{p.expected_output || "-"}</Typography>
-                )}
+                />
 
                 <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Keywords</Typography>
-                {editing ? (
-                  <TextField
-                    size="small"
-                    value={(p.expected_keywords || []).join(", ")}
-                    onChange={(e) => {
-                      const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], expected_keywords: value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    placeholder="Comma separated"
-                  />
-                ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#111827" }}>{(p.expected_keywords || []).join(", ") || "-"}</Typography>
-                )}
+                <TextField
+                  size="small"
+                  value={(p.expected_keywords || []).join(", ")}
+                  onChange={(e) => {
+                    const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+                    const next = [...prompts];
+                    next[idx] = { ...next[idx], expected_keywords: value };
+                    setPrompts(next);
+                  }}
+                  fullWidth
+                  placeholder="Comma separated"
+                />
 
                 <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Retrieval context</Typography>
-                {editing ? (
-                  <TextField
-                    size="small"
-                    value={(p.retrieval_context || []).join("\n")}
-                    onChange={(e) => {
-                      const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], retrieval_context: lines };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="One entry per line"
-                  />
-                ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#111827", whiteSpace: "pre-wrap" }}>
-                    {(p.retrieval_context || []).join("\n") || "-"}
-                  </Typography>
-                )}
+                <TextField
+                  size="small"
+                  value={(p.retrieval_context || []).join("\n")}
+                  onChange={(e) => {
+                    const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                    const next = [...prompts];
+                    next[idx] = { ...next[idx], retrieval_context: lines };
+                    setPrompts(next);
+                  }}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  placeholder="One entry per line"
+                />
               </Paper>
             </AccordionDetails>
           </Accordion>

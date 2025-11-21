@@ -54,6 +54,11 @@ class DeepEvalDatasetsService {
     const res = await CustomAxios.get("/deepeval/datasets/user");
     return res.data as { datasets: { id: number; name: string; path: string; size: number; createdAt: string }[] };
   }
+
+  async deleteDatasets(paths: string[]): Promise<{ message: string; deleted: number }> {
+    const res = await CustomAxios.delete("/deepeval/datasets/user", { data: { paths } });
+    return res.data as { message: string; deleted: number };
+  }
 }
 
 export const deepEvalDatasetsService = new DeepEvalDatasetsService();

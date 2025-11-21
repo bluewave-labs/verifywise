@@ -1,31 +1,36 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, Stack, Table, TableHead, TableRow, TableCell, TableBody, IconButton } from "@mui/material";
+import { Box, Typography, Button, Stack } from "@mui/material";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
-import { Database, Eye } from "lucide-react";
+import { Database } from "lucide-react";
 import StandardModal from "../../components/Modals/StandardModal";
 // no navigation needed when embedded
 // import { useNavigate } from "react-router-dom";
 import BuiltInDatasetsPage from "./BuiltInDatasetsPage";
 import DatasetEditorPage from "./DatasetEditorPage";
+import DatasetsTable, { DatasetsTableRow } from "../../components/Table/DatasetsTable";
 
 type ProjectDatasetsProps = { projectId: string };
 
-// kept for reference previously; no longer needed after moving built-ins to a page
-// type ListedDataset = { key: string; name: string; path: string; use_case: "chatbot" | "rag" | "agent" | "safety" };
-
 export function ProjectDatasets(_props: ProjectDatasetsProps) {
   const { projectId } = _props;
-  // const navigate = useNavigate();
   void projectId;
-  const [uploads, setUploads] = useState<{ id?: number; name: string; path: string; size: number; createdAt?: string; modifiedAt?: number }[]>([]);
+  const [uploads, setUploads] = useState<{ 
+    id?: number; 
+    name: string; 
+    path: string; 
+    size: number; 
+    promptCount?: number;
+    createdAt?: string; 
+  }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
-  // Built-ins are now shown in a dedicated page; no local modal/state needed
   const [uploadOpen, setUploadOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<"uploads" | "builtin" | "editor">("uploads");
   const [editorPath, setEditorPath] = useState<string | null>(null);
+  const [editorDatasetName, setEditorDatasetName] = useState<string | null>(null);
+  const [filter] = useState("");
 
   const load = async () => {
     try {
@@ -73,16 +78,34 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
         <Box sx={{ mt: 1 }}>
           <BuiltInDatasetsPage
             embed
-            onOpenEditor={(path: string) => {
+            onOpenEditor={(path: string, name: string) => {
               setEditorPath(path);
+              setEditorDatasetName(`Copy of ${name}`);
               setMode("editor");
             }}
+            onBack={() => setMode("uploads")}
           />
         </Box>
       )}
       {mode === "editor" && editorPath && (
         <Box sx={{ mt: 1 }}>
-          <DatasetEditorPage embed initialPath={editorPath} />
+          <DatasetEditorPage 
+            embed 
+            initialPath={editorPath}
+            isUserDataset={uploads.some(u => u.path === editorPath)}
+            suggestedName={editorDatasetName}
+            onSaved={() => {
+              setMode("uploads");
+              setEditorPath(null);
+              setEditorDatasetName(null);
+              load();
+            }}
+            onBack={() => {
+              setMode("uploads");
+              setEditorPath(null);
+              setEditorDatasetName(null);
+            }}
+          />
         </Box>
       )}
       {mode === "uploads" && (uploads.length === 0 ? (
@@ -109,32 +132,37 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
           </Stack>
         </Box>
       ) : (
-      <Table size="small" sx={{ border: "1px solid #E5E7EB", borderRadius: "8px", overflow: "hidden" }}>
-          <TableHead>
-            <TableRow sx={{ background: "#F9FAFB" }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: "12px" }}>File</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "12px" }}>Path</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "12px" }}>Size</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: "12px" }}>Created</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, fontSize: "12px" }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {uploads.map((u) => (
-              <TableRow key={u.path} hover>
-                <TableCell sx={{ fontSize: "13px" }}>{u.name}</TableCell>
-                <TableCell sx={{ fontFamily: "monospace", fontSize: "12px" }}>{u.path}</TableCell>
-                <TableCell sx={{ fontSize: "12px" }}>{(u.size / 1024).toFixed(1)} KB</TableCell>
-                <TableCell sx={{ fontSize: "12px" }}>{u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}</TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" title="Preview structure" onClick={() => window.open(`/api/deepeval/datasets/read?path=${encodeURIComponent(u.path)}`, "_blank")}>
-                    <Eye size={16} />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-      </Table>
+        <DatasetsTable
+          rows={
+            uploads.map<DatasetsTableRow>((u) => ({
+              id: u.path,
+              name: u.name,
+              description: "—",
+              prompts: u.promptCount ?? "—",
+              updated: u.createdAt,
+            }))
+          }
+          filter={filter}
+          onOpenRow={(row) => {
+            setEditorPath(String(row.id));
+            setEditorDatasetName(row.name);
+            setMode("editor");
+          }}
+          onDelete={async (selectedIds) => {
+            try {
+              setUploading(true);
+              await deepEvalDatasetsService.deleteDatasets(selectedIds);
+              setAlert({ variant: "success", body: `Deleted ${selectedIds.length} dataset(s)` });
+              setTimeout(() => setAlert(null), 3000);
+              await load();
+            } catch (err) {
+              setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete datasets" });
+              setTimeout(() => setAlert(null), 6000);
+            } finally {
+              setUploading(false);
+            }
+          }}
+        />
       ))}
 
       <StandardModal
@@ -156,7 +184,13 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
             setFile(null);
             await load();
           } catch (err) {
-            setAlert({ variant: "error", body: err instanceof Error ? err.message : "Upload failed" });
+            type AxiosLike = { response?: { data?: unknown } };
+            const axiosErr = err as AxiosLike | Error;
+            const resData = (axiosErr as AxiosLike)?.response?.data as Record<string, unknown> | undefined;
+            const serverMsg =
+              (resData && (String(resData.message ?? "") || resData.detail as string)) ||
+              (err instanceof Error ? err.message : null);
+            setAlert({ variant: "error", body: serverMsg || "Upload failed (400). Ensure valid JSON (prompts/turns)." });
             setTimeout(() => setAlert(null), 6000);
           } finally {
             setUploading(false);

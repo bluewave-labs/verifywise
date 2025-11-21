@@ -20,6 +20,7 @@ from controllers.deepeval import (
     list_deepeval_datasets_controller,
     read_deepeval_dataset_controller,
     list_user_datasets_controller,
+    delete_user_datasets_controller,
 )
 
 router = APIRouter()
@@ -271,4 +272,15 @@ async def list_user_datasets(request: Request):
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     return await list_user_datasets_controller(tenant=tenant)
+
+@router.delete("/datasets/user")
+async def delete_user_datasets(request: Request):
+    """
+    Delete user-uploaded datasets from DB and filesystem for the current tenant.
+    Expects JSON body with {"paths": ["path1", "path2", ...]}
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    body = await request.json()
+    paths = body.get("paths", [])
+    return await delete_user_datasets_controller(tenant=tenant, paths=paths)
 

@@ -30,8 +30,7 @@ import DatePicker from "../../../components/Inputs/Datepicker";
 import VWTooltip from "../../../components/VWTooltip";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import { ceMarkingService } from "../../../../infrastructure/api/ceMarkingService";
-import { setShowAlertCallback } from "../../../../infrastructure/api/customAxios";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { showAlert as showGlobalAlert } from "../../../../infrastructure/api/customAxios";
 
 interface CEMarkingProps {
   projectId: string;
@@ -193,7 +192,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<CEMarkingData | null>(null);
-  const [showAlertCallback, setShowAlertCallbackLocal] = useState<((alert: AlertProps) => void) | null>(null);
 
   // State for editable fields
   const [annexIIICategory, setAnnexIIICategory] = useState<string>("annex_iii_5");
@@ -240,20 +238,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const [selectedEvidences, setSelectedEvidences] = useState<number[]>([]);
   const [loadingEvidences, setLoadingEvidences] = useState(false);
 
-  // Set up alert callback
-  useEffect(() => {
-    // Get the global alert callback from customAxios
-    setShowAlertCallback((alert: AlertProps) => {
-      // This will trigger the global alert in App.tsx
-      const event = new CustomEvent('showAlert', { detail: alert });
-      window.dispatchEvent(event);
-    });
-    setShowAlertCallbackLocal(() => (alert: AlertProps) => {
-      const event = new CustomEvent('showAlert', { detail: alert });
-      window.dispatchEvent(event);
-    });
-  }, []);
-
   // Fetch CE Marking data on mount
   useEffect(() => {
     fetchCEMarkingData();
@@ -282,14 +266,12 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   };
 
   const showAlert = (message: string, variant: "success" | "error" | "info" | "warning" = "success") => {
-    if (showAlertCallback) {
-      showAlertCallback({
-        variant,
-        title: variant === "error" ? "Error" : "Success",
-        body: message,
-        isToast: true
-      });
-    }
+    showGlobalAlert({
+      variant,
+      title: variant === "error" ? "Error" : "Success",
+      body: message,
+      isToast: true
+    });
   };
 
   const handleViewChecklist = () => {

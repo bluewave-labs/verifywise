@@ -24,6 +24,7 @@ import { updateEntityById } from "../../../../application/repository/entity.repo
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
+import { FileData } from "../../../../domain/types/File";
 import allowedRoles from "../../../../application/constants/permissions";
 
 export const inputStyles = {
@@ -46,7 +47,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState("details");
 
-  const { userRoleName } = useAuth();
+  const { userRoleName, userId } = useAuth();
   const { users } = useUsers();
 
   const isEditingDisabled =
@@ -62,6 +63,18 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     }
   }, [users]);
 
+  // Load evidence files when subcategory changes
+  useEffect(() => {
+    if (subcategory?.evidence_links) {
+      setEvidenceFiles(subcategory.evidence_links as unknown as FileData[]);
+    } else {
+      setEvidenceFiles([]);
+    }
+    // Reset upload and deleted files
+    setUploadFiles([]);
+    setDeletedFiles([]);
+  }, [subcategory]);
+
   const [formData, setFormData] = useState({
     status: NISTAIRMFStatus.NOT_STARTED,
     owner: "",
@@ -73,6 +86,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   });
 
   const [date, setDate] = useState<Dayjs | null>(null);
+
+  // File upload state
+  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
+  const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
+  const [deletedFiles, setDeletedFiles] = useState<string[]>([]);
 
   const statusOptions = [
     { id: NISTAIRMFStatus.NOT_STARTED, name: "Not started" },
@@ -177,6 +195,42 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     setAlert({ variant, body });
   };
 
+  // File handling functions
+  const handleAddFiles = (files: File[]) => {
+    const newFiles: FileData[] = files.map(file => ({
+      id: (Date.now() + Math.random()).toString(), // Temporary string ID
+      fileName: file.name,
+      size: file.size,
+      type: file.type,
+      data: file,
+      uploadDate: new Date().toISOString(),
+      uploader: "Current User",
+    }));
+
+    setUploadFiles(prev => [...prev, ...newFiles]);
+    handleAlert({
+      variant: "info",
+      body: `${files.length} file(s) added. Please save to apply changes.`,
+    });
+  };
+
+  const handleDeleteEvidenceFile = (fileId: string) => {
+    setEvidenceFiles(prev => prev.filter(file => file.id !== fileId));
+    setDeletedFiles(prev => [...prev, fileId]);
+    handleAlert({
+      variant: "info",
+      body: "File marked for deletion. Please save to apply changes.",
+    });
+  };
+
+  const handleDeleteUploadFile = (fileId: string) => {
+    setUploadFiles(prev => prev.filter(file => file.id !== fileId));
+    handleAlert({
+      variant: "info",
+      body: "File removed from upload queue.",
+    });
+  };
+
   const handleSave = async () => {
     if (!subcategory?.id) {
       handleAlert({
@@ -188,27 +242,50 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
     setIsLoading(true);
     try {
-      const updateData = {
-        id: subcategory.id,
-        status: formData.status,
-        owner: formData.owner ? parseInt(formData.owner) : null,
-        reviewer: formData.reviewer ? parseInt(formData.reviewer) : null,
-        approver: formData.approver ? parseInt(formData.approver) : null,
-        due_date: date ? date.toISOString() : null,
-        auditor_feedback: formData.auditor_feedback,
-        implementation_description: formData.implementation_description,
-        tags: formData.tags,
-      };
+      // Always use FormData to support both file and regular updates (ISO pattern)
+      const formDataToSend = new FormData();
+
+      // Add form fields
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("implementation_description", formData.implementation_description);
+      formDataToSend.append("auditor_feedback", formData.auditor_feedback);
+      formDataToSend.append("tags", JSON.stringify(formData.tags));
+
+      if (formData.owner) formDataToSend.append("owner", formData.owner);
+      if (formData.reviewer) formDataToSend.append("reviewer", formData.reviewer);
+      if (formData.approver) formDataToSend.append("approver", formData.approver);
+      if (date) formDataToSend.append("due_date", date.toISOString());
+
+      // Add file handling fields (ISO pattern)
+      formDataToSend.append("user_id", userId?.toString() || "1");
+      formDataToSend.append("project_id", "1");
+      formDataToSend.append("delete", JSON.stringify(deletedFiles));
+
+      // Add uploaded files - use the exact same pattern as ISO frameworks
+      uploadFiles.forEach((file: FileData) => {
+        if (file.data instanceof Blob) {
+          const fileToUpload = file.data instanceof File
+            ? file.data
+            : new File([file.data!], file.fileName, { type: file.type });
+          formDataToSend.append("files", fileToUpload);
+        }
+      });
 
       const response = await updateEntityById({
         routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}`,
-        body: updateData,
+        body: formDataToSend,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       if (response.status === 200) {
+        const hasFiles = uploadFiles.length > 0 || deletedFiles.length > 0;
         setAlert({
           variant: "success",
-          body: "Subcategory updated successfully",
+          body: hasFiles
+            ? "Subcategory updated successfully with files"
+            : "Subcategory updated successfully",
         });
         setTimeout(() => setAlert(null), 3000);  // 3 seconds
 
@@ -485,11 +562,182 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
               </Stack>
                   </TabPanel>
 
-                {/* Empty Tab Panels for Tabs 2-4 */}
+                {/* Evidences Tab */}
                 <TabPanel value="evidences" sx={{ padding: "15px 20px" }}>
-                  <Typography color="text.secondary" textAlign="center">
-                    Evidences tab content will be implemented here.
-                  </Typography>
+                  <Stack spacing={3}>
+                    {/* Existing Evidence Files */}
+                    {evidenceFiles.length > 0 && (
+                      <Stack spacing={2}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          Attached Evidence Files ({evidenceFiles.length})
+                        </Typography>
+                        {evidenceFiles.map((file) => (
+                          <Box
+                            key={file.id}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: 2,
+                              border: `1px solid #EAECF0`,
+                              borderRadius: 1,
+                              backgroundColor: '#FFFFFF',
+                              '&:hover': {
+                                backgroundColor: '#F9FAFB',
+                              },
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                              <SaveIcon size={20} color="#475467" />
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography variant="body2" sx={{
+                                  fontWeight: 500,
+                                  color: '#1F2937',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  {file.fileName}
+                                </Typography>
+                                <Typography variant="caption" color="#6B7280">
+                                  {file.size && `${(file.size / 1024).toFixed(1)} KB`}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                size="small"
+                                variant="text"
+                                color="primary"
+                                onClick={() => {
+                                  window.open(`/api/files/download/${file.id}`, '_blank');
+                                }}
+                                sx={{ minWidth: 'auto', padding: '4px 8px' }}
+                              >
+                                Download
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="text"
+                                color="error"
+                                onClick={() => handleDeleteEvidenceFile(file.id)}
+                                disabled={isEditingDisabled}
+                                sx={{ minWidth: 'auto', padding: '4px 8px' }}
+                              >
+                                Delete
+                              </Button>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+
+                    {/* File Upload Section */}
+                    <Box sx={{ mt: 2 }}>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar"
+                        style={{ display: 'none' }}
+                        id="evidence-file-input"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            handleAddFiles(files);
+                          }
+                          e.target.value = ''; // Reset input
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        htmlFor="evidence-file-input"
+                        disabled={isEditingDisabled}
+                        sx={{
+                          borderColor: '#13715B',
+                          color: '#13715B',
+                          '&:hover': {
+                            borderColor: '#0e5c47',
+                            backgroundColor: 'rgba(19, 113, 91, 0.04)',
+                          },
+                          '&:disabled': {
+                            borderColor: '#cccccc',
+                            color: '#cccccc',
+                          },
+                        }}
+                      >
+                        Add Evidence Files
+                      </Button>
+                    </Box>
+
+                    {/* Upload Queue Files */}
+                    {uploadFiles.length > 0 && (
+                      <Stack spacing={2}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          Files Ready to Upload ({uploadFiles.length})
+                        </Typography>
+                        {uploadFiles.map((file) => (
+                          <Box
+                            key={file.id}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: 2,
+                              border: `1px solid #FEF3C7`,
+                              borderRadius: 1,
+                              backgroundColor: '#FFFBEB',
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                              <SaveIcon size={20} color="#D97706" />
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography variant="body2" sx={{
+                                  fontWeight: 500,
+                                  color: '#92400E',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  {file.fileName}
+                                </Typography>
+                                <Typography variant="caption" color="#B45309">
+                                  {file.size && `${(file.size / 1024).toFixed(1)} KB`}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Button
+                              size="small"
+                              variant="text"
+                              color="error"
+                              onClick={() => handleDeleteUploadFile(file.id)}
+                              sx={{ minWidth: 'auto', padding: '4px 8px' }}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+
+                    {evidenceFiles.length === 0 && uploadFiles.length === 0 && (
+                      <Box sx={{
+                        textAlign: 'center',
+                        py: 4,
+                        color: '#6B7280',
+                        border: `2px dashed #D1D5DB`,
+                        borderRadius: 1,
+                        backgroundColor: '#F9FAFB',
+                      }}>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          No evidence files uploaded yet
+                        </Typography>
+                        <Typography variant="caption" color="#9CA3AF">
+                          Click "Add Evidence Files" to upload documentation for this subcategory
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
                 </TabPanel>
 
                 <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>

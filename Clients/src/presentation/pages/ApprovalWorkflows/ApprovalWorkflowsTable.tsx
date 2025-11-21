@@ -25,6 +25,10 @@ import { singleTheme } from "../../themes";
 import { useMemo } from "react";
 import dayjs from "dayjs";
 
+const entities = [
+    { _id: 1, name: "Use case" }
+];
+
 //  badge style generator
 const getWorkflowChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
@@ -180,7 +184,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                     backgroundColor: "#ffffff",
                                 }}
                             >
-                                {workflow.entity_name}
+                                {entities.find(e => e._id == workflow.entity)?.name}
                             </TableCell>
                             <TableCell
                                 sx={{

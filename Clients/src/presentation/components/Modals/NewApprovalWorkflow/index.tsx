@@ -33,14 +33,14 @@ interface ICreateApprovalWorkflowProps {
     setIsOpen: () => void;
     initialData?: {
         workflow_title: string;
-        entity_name: string;
+        entity: number;
         steps: ApprovalWorkflowStepModel[];
     }
     isEdit?: boolean;
     mode?: string;
     onSuccess?: (data: {
         workflow_title: string;
-        entity_name: string;
+        entity: number;
         steps: ApprovalWorkflowStepModel[];
     }) => void;
 }
@@ -59,13 +59,13 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
 
     const [stepsCount, setStepsCount] = useState(1);
     const [workflowTitle, setWorkflowTitle] = useState("");
-    const [entityName, setEntityName] = useState("");
+    const [entity, setEntity] = useState(0);
     const [workflowSteps, setWorkflowSteps] = useState<ApprovalWorkflowStepModel[]>([]);
 
     useEffect(() => {
         if (initialData && isEdit) {
             setWorkflowTitle(initialData.workflow_title || "");
-            setEntityName(initialData.entity_name || "");
+            setEntity(initialData.entity);
             if (initialData.steps && initialData.steps.length > 0) {
                 setWorkflowSteps(initialData.steps.map(step =>
                     new ApprovalWorkflowStepModel(step)
@@ -76,12 +76,16 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                 setStepsCount(1)
             }
         } else {
-            setWorkflowTitle("");
-            setEntityName("");
-            setWorkflowSteps([new ApprovalWorkflowStepModel()]);
-            setStepsCount(1)
+            clearForm();
         }
     }, [initialData, isEdit]);
+
+    const clearForm = () => {
+        setWorkflowTitle("");
+        setEntity(0);
+        setWorkflowSteps([new ApprovalWorkflowStepModel()]);
+        setStepsCount(1)
+    }
 
 
     const validateForm = (): boolean => {
@@ -92,7 +96,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
             });
             return false;
         }
-        if (!entityName.trim()) {
+        if (entity == 0) {
             logEngine({
                 type: "error",
                 message: "Entity is required.",
@@ -137,16 +141,16 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         if (validateForm()) {
             const formData = {
                 workflow_title: workflowTitle.trim(),
-                entity_name: entityName,
+                entity: entity,
                 steps: workflowSteps.map(
-                    step =>  new ApprovalWorkflowStepModel ({
-                    step_name: step.step_name?.trim() || "",
-                    approver: step.approver,
-                    conditions: step.conditions,
-                    description: step.description?.trim() || ""
-                })),
+                    step => new ApprovalWorkflowStepModel({
+                        step_name: step.step_name?.trim() || "",
+                        approver: step.approver,
+                        conditions: step.conditions,
+                        description: step.description?.trim() || ""
+                    })),
             };
-
+            clearForm();
             onSuccess?.(formData);
         }
     };
@@ -166,6 +170,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         <StandardModal
             isOpen={isOpen}
             onClose={() => {
+                clearForm();
                 setIsOpen();
             }}
             title={isEdit ? "Edit approval workflow" : "New approval workflow"}
@@ -188,7 +193,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                     />
                     <SelectComponent
                         items={entities}
-                        value={entityName}
+                        value={entity}
                         sx={{
                             width: "50%",
                             backgroundColor: theme.palette.background.main,
@@ -196,7 +201,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                         id="entity"
                         label="Entity"
                         isRequired
-                        onChange={(e: any) => setEntityName(e.target.value)}
+                        onChange={(e: any) => setEntity(e.target.value)}
                         placeholder="Select entity"
                     />
                 </Stack>

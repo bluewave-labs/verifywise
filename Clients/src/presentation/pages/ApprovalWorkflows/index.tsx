@@ -26,7 +26,7 @@ const ApprovalWorkflows: React.FC = () => {
             id: 1,
             type: "approval",
             workflow_title: "Model Deployment Approval",
-            entity_name: "Use case",
+            entity: 1,
             steps: [
                 {
                     step_name: "Initial Review",
@@ -48,7 +48,7 @@ const ApprovalWorkflows: React.FC = () => {
             id: 2,
             type: "approval",
             workflow_title: "Risk Assessment Approval",
-            entity_name: "Use case",
+            entity: 1,
             steps: [
                 {
                     step_name: "Risk Analysis",
@@ -76,8 +76,9 @@ const ApprovalWorkflows: React.FC = () => {
     const fetchApprovalWorkflowData = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
         try {
-            setWorkflowData(MOCK_WORKFLOWS);
-
+            if (!workflowData || workflowData.length == 0) {
+                setWorkflowData(MOCK_WORKFLOWS);
+            }
             //TO-DO: fetch approval workflows from API
 
         } catch (error) {
@@ -145,7 +146,7 @@ const ApprovalWorkflows: React.FC = () => {
 
     const handleWorkflowSuccess = async (formData: {
         workflow_title: string;
-        entity_name: string;
+        entity: number;
         steps: ApprovalWorkflowStepModel[];
     }) => {
         try {
@@ -159,7 +160,7 @@ const ApprovalWorkflows: React.FC = () => {
                 const updatedWorkflow = new ApprovalWorkflowModel({
                     ...selectWorkflow,
                     workflow_title: formData.workflow_title,
-                    entity_name: formData.entity_name,
+                    entity: formData.entity,
                     steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
                     date_updated: new Date(),
                 });
@@ -183,7 +184,7 @@ const ApprovalWorkflows: React.FC = () => {
                         : 1,
                     type: "approval",
                     workflow_title: formData.workflow_title,
-                    entity_name: formData.entity_name,
+                    entity: formData.entity,
                     steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
                     approval_status: "Pending" as any,
                     date_updated: new Date(),
@@ -252,7 +253,7 @@ const ApprovalWorkflows: React.FC = () => {
                     selectWorkflow
                         ? {
                             workflow_title: selectWorkflow.workflow_title || "",
-                            entity_name: selectWorkflow.entity_name || "",
+                            entity: selectWorkflow.entity ?? 0,
                             steps: selectWorkflow?.steps || [],
                         }
                         : undefined

@@ -77,10 +77,25 @@ const RiskHistoryChart: React.FC<RiskHistoryChartProps> = ({
   parameter = "risk_level",
   height = 400,
 }) => {
-  const [timeframe, setTimeframe] = useState<string>("1month");
+  const storageKey = "analytics_timeframe_risk";
+
+  // Initialize timeframe from localStorage or default
+  const [timeframe, setTimeframe] = useState<string>(() => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored && TIMEFRAME_OPTIONS.some(opt => opt.value === stored)) {
+      return stored;
+    }
+    return "1month";
+  });
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [timeseriesData, setTimeseriesData] = useState<any[]>([]);
+
+  // Persist timeframe to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(storageKey, timeframe);
+  }, [timeframe]);
 
   useEffect(() => {
     fetchTimeseriesData();

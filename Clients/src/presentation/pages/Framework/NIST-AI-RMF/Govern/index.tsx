@@ -318,7 +318,7 @@ const NISTAIRMFGovern = ({
           ...styles.title,
           mt: 4,
           mb: 3,
-          fontSize: 20,
+          fontSize: 15,
           fontWeight: 600,
           color: "#1a1a1a",
         }}

@@ -356,7 +356,7 @@ const NISTAIRMFMeasure = ({
                 />
                 <Stack sx={{ paddingLeft: "2.5px", flex: 1 }}>
                   <Typography
-                    fontSize={14}
+                    fontSize={13}
                     fontWeight={600}
                     color="#1a1a1a"
                     sx={{ lineHeight: 1.3 }}

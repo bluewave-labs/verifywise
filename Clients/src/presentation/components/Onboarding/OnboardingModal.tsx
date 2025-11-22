@@ -241,7 +241,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 paddingTop: 0,
               }}
             >
-              <Stack spacing={3}>
+              <Stack spacing={1.5}>
                 <ProgressDots totalSteps={totalSteps} currentStep={currentStepIndex} />
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center">

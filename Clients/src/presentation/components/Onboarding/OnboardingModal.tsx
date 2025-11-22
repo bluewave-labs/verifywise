@@ -143,10 +143,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       default:
         return WelcomeStep;
     }
-  // Check if next step is the completion step
-  const nextStepIsCompletion = currentStepIndex < totalSteps - 1 && 
-    availableSteps[currentStepIndex + 1]?.componentName === "CompletionStep";
-
+  }, [currentStepConfig]);
 
   const stepProps = {
     onNext: handleNext,

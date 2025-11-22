@@ -1,15 +1,11 @@
 import {
   Box,
   Button,
-  Divider,
-  Modal,
   Stack,
   Tab,
   Tabs,
   Typography,
-  useTheme,
 } from "@mui/material";
-import { X as CloseIcon } from "lucide-react";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
@@ -18,8 +14,7 @@ import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import { Save as SaveIcon } from "lucide-react";
-import CustomizableButton from "../../Button/CustomizableButton";
+import StandardModal from "../StandardModal";
 
 import {
   AlertBox,
@@ -63,7 +58,6 @@ const NewControlPane = ({
   onComplianceUpdate?: () => void;
   projectId: number;
 }) => {
-  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [alert, setAlert] = useState<AlertProps | null>(null);
@@ -345,10 +339,6 @@ const NewControlPane = ({
     }
   };
 
-  const handleCloseWrapper = () => {
-    handleClose();
-  };
-
   return (
     <>
       {alert && (
@@ -367,78 +357,19 @@ const NewControlPane = ({
         <CustomizableToast title="Saving control. Please wait..." />
       )}
 
-      <Modal
-        id={`${data.id}-modal`}
-        open={isOpen}
-        onClose={handleCloseWrapper}
-        className="new-control-pane-modal"
-        sx={{ zIndex: 1100 }}
+      <StandardModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={`${controlCategoryId}.${data.order_no} ${data.title}`}
+        description={data.description || ""}
+        onSubmit={confirmSave}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting}
+        maxWidth="800px"
       >
-        <Stack
-          className="new-control-pane-modal-frame"
-          sx={{
-            gap: theme.spacing(4),
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            bgcolor: theme.palette.background.alt,
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: 24,
-            paddingY: theme.spacing(15),
-            paddingX: theme.spacing(20),
-            "&:focus": {
-              outline: "none",
-            },
-            maxHeight: "90vh",
-            overflowY: "auto",
-          }}
-        >
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              component="span"
-              fontSize={16}
-              fontWeight={600}
-              sx={{ textAlign: "left" }}
-            >
-              {`${controlCategoryId + "." + data.order_no}`} {data.title}
-            </Typography>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseWrapper();
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <CloseIcon size={20} />
-            </Box>
-          </Stack>
-          <Typography component="span" fontSize={13}>
-            {data.description}
-          </Typography>
-
+        <Stack spacing={6}>
           {/* Control-level fields removed - only subcontrols have these fields now */}
-          <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-          <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
+          <Box sx={{ width: "100%", bgcolor: "#FCFCFD", mt: -3 }}>
             <Tabs
               value={selectedTab}
               onChange={handleSelectedTab}
@@ -605,28 +536,8 @@ const NewControlPane = ({
               />
             )}
           </Box>
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              mt: 2,
-            }}
-          >
-            <CustomizableButton
-              variant="contained"
-              text="Save"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={confirmSave}
-              icon={<SaveIcon size={16} />}
-            />
-          </Stack>
         </Stack>
-      </Modal>
+      </StandardModal>
     </>
   );
 };

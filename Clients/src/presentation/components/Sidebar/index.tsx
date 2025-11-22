@@ -382,7 +382,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       sx={{
         height: "100vh",
         border: 1,
-        borderColor: theme.palette.border.light,
+        borderColor: theme.palette.border.dark,
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {

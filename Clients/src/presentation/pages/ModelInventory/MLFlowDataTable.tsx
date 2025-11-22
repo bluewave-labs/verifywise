@@ -30,6 +30,7 @@ import EmptyState from "../../components/EmptyState";
 import { vwhomeHeaderCards } from "../../pages/Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
+import { MLFlowModel } from "../../../domain/interfaces/i.modelInventory";
 import {
   tableFooterRowStyle,
   showingTextCellStyle,
@@ -39,27 +40,6 @@ import {
 } from "../ModelInventory/style";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-
-interface MLFlowModel {
-  id: string;
-  name: string;
-  version: string;
-  lifecycle_stage: string;
-  creation_timestamp: number;
-  last_updated_timestamp: number;
-  description?: string;
-  run_id?: string;
-  source?: string;
-  status?: string;
-  tags?: Record<string, string>;
-  metrics?: Record<string, number>;
-  parameters?: Record<string, string>;
-  experiment_info?: {
-    experiment_id: string;
-    experiment_name: string;
-    artifact_location: string;
-  };
-}
 
 const MLFlowDataTable: React.FC = () => {
   const [loading, setLoading] = useState(false);

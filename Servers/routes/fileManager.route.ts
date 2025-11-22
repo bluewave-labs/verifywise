@@ -132,7 +132,7 @@ router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
  * @returns {404} File not found
  * @returns {500} Server error
  */
-router.get("/:id", authenticateJWT, downloadFile);
+router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
 
 /**
  * @route   DELETE /file-manager/:id

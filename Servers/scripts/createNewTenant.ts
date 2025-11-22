@@ -28,6 +28,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         $$ LANGUAGE plpgsql;`,
       { transaction });
     await Promise.all([
+      `CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".project_uc_id_seq;`,
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
         id serial NOT NULL,
@@ -1002,6 +1003,21 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       triggered_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TABLE "${tenantHash}".evidence_hub (
+        id SERIAL PRIMARY KEY,
+        evidence_name VARCHAR(255) NOT NULL,
+        evidence_type VARCHAR(100) NOT NULL,
+        description TEXT,
+        evidence_files JSONB NOT NULL DEFAULT '[]',
+        expiry_date TIMESTAMP,
+        mapped_model_ids INTEGER[],
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });    
+    
   }
   catch (error) {
     throw error;

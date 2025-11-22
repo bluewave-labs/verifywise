@@ -24,6 +24,7 @@ import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.mode
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
+import { VWLink } from "../../Link";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -347,16 +348,15 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      color: theme.palette.primary.main,
-                      fontSize: "13px",
-                      opacity: 0.7
+                  <VWLink
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openVendorRisksDialog(row.id!, row.vendor_name);
                     }}
+                    showIcon={false}
                   >
-                    view risks
-                  </Typography>
+                    View risks
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{

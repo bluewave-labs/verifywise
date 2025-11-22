@@ -54,13 +54,14 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
   const [frameworkToRemove, setFrameworkToRemove] = useState<Framework | null>(null);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
 
-  // Get available frameworks for organizational projects (ISO 27001 and ISO 42001)
+  // Get available frameworks for organizational projects (ISO 27001, ISO 42001, and NIST AI RMF)
   const availableFrameworks = allFrameworks.filter((framework) => {
     const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
-    const isIsoFramework =
+    const isComplianceFramework =
       framework.name.toLowerCase().includes("iso 27001") ||
-      framework.name.toLowerCase().includes("iso 42001");
-    return isNotEuAiAct && isIsoFramework;
+      framework.name.toLowerCase().includes("iso 42001") ||
+      framework.name.toLowerCase().includes("nist ai rmf");
+    return isNotEuAiAct && isComplianceFramework;
   });
 
   const isFrameworkAdded = (fw: Framework) =>
@@ -217,8 +218,8 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           <Box
             sx={{
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-              border: "1px solid #eaecf0",
-              borderRadius: "8px",
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
               p: "24px",
               display: "flex",
               justifyContent: "space-between",
@@ -303,8 +304,8 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
                 key={fw.id}
                 sx={{
                   background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-                  border: "1px solid #eaecf0",
-                  borderRadius: "8px",
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
                   p: "24px",
                   display: "flex",
                   flexDirection: "column",

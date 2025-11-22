@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Stack, Typography, Link, CircularProgress } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress } from "@mui/material";
+import { VWLink } from "../../../../components/Link";
 import axios from "axios";
 import { ENV_VARs } from "../../../../../../env.vars";
 
@@ -82,40 +83,38 @@ const AITrustCentreHeader: React.FC<AITrustCentreHeaderProps> = ({
         {data?.terms_and_contact && (
           <Stack direction="row" spacing={2} alignItems="center">
             {data?.terms_and_contact?.terms && (
-              <Link
-                href={data?.terms_and_contact?.terms}
-                target="_blank"
-                rel="noopener"
-                sx={{ fontSize: 13 }}
+              <VWLink
+                url={data?.terms_and_contact?.terms}
+                openInNewTab={true}
+                showIcon={false}
               >
                 Terms of service
-              </Link>
+              </VWLink>
             )}
             {data?.terms_and_contact?.terms &&
               data?.terms_and_contact?.privacy && (
                 <Typography sx={{ fontSize: 13 }}>•</Typography>
               )}
             {data?.terms_and_contact?.privacy && (
-              <Link
-                href={data?.terms_and_contact?.privacy}
-                target="_blank"
-                rel="noopener"
-                sx={{ fontSize: 13 }}
+              <VWLink
+                url={data?.terms_and_contact?.privacy}
+                openInNewTab={true}
+                showIcon={false}
               >
                 Privacy policy
-              </Link>
+              </VWLink>
             )}
             {data?.terms_and_contact?.privacy &&
               data?.terms_and_contact?.email && (
                 <Typography sx={{ fontSize: 13 }}>•</Typography>
               )}
             {data?.terms_and_contact?.email && (
-              <Link
-                href={`mailto:${data?.terms_and_contact?.email}`}
-                sx={{ fontSize: 13 }}
+              <VWLink
+                url={`mailto:${data?.terms_and_contact?.email}`}
+                showIcon={false}
               >
                 {data?.terms_and_contact?.email}
-              </Link>
+              </VWLink>
             )}
           </Stack>
         )}

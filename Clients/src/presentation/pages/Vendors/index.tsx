@@ -48,6 +48,8 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
+import SearchBox from "../../components/Search/SearchBox";
+import { ReviewStatus } from "../../../domain/enums/status.enum";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -69,6 +71,8 @@ const Vendors = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -372,6 +376,18 @@ const Vendors = () => {
     setFilterStatus(status);
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
+
+  const handleStatusFilterChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const status = event.target.value as string;
+    setStatusFilter(status);
+  };
+
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
@@ -420,6 +436,33 @@ const Vendors = () => {
       setSelectedVendorId("all");
     }
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
+
+  // Filter vendors based on search query and status
+  const filteredVendors = useMemo(() => {
+    let filtered = [...vendors];
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter((vendor: VendorModel) =>
+        vendor.vendor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vendor.vendor_provides.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vendor.vendor_contact_person.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((vendor: VendorModel) => {
+        if (statusFilter === "not_started") return vendor.review_status === ReviewStatus.NotStarted;
+        if (statusFilter === "in_review") return vendor.review_status === ReviewStatus.InReview;
+        if (statusFilter === "reviewed") return vendor.review_status === ReviewStatus.Reviewed;
+        if (statusFilter === "requires_follow_up") return vendor.review_status === ReviewStatus.RequiresFollowUp;
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [vendors, searchQuery, statusFilter]);
 
   return (
     <Stack className="vwhome" gap={0}>
@@ -515,7 +558,7 @@ const Vendors = () => {
                   label: "Vendors",
                   value: "1",
                   icon: "Building",
-                  count: vendors.length,
+                  count: filteredVendors.length,
                   isLoading: isVendorsLoading,
                 },
                 {
@@ -550,45 +593,72 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Select
-                  id="projects"
-                  value={selectedProjectId ?? ""}
-                  items={[
-                    { _id: "all", name: "All Use Cases" },
-                    ...projects.map((project) => ({
-                      _id: project.id.toString(),
-                      name: project.project_title,
-                    })),
-                  ]}
-                  onChange={handleProjectChange}
-                  sx={{
-                    width: "180px",
-                    minHeight: "34px",
-                    borderRadius: theme.shape.borderRadius,
-                  }}
-                />
-                <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add new vendor"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      border: "1px solid #13715B",
-                      gap: 2,
-                    }}
-                    icon={<AddCircleOutlineIcon size={16} />}
-                    onClick={() => {
-                      openAddNewVendor();
-                      setSelectedVendor(null);
-                    }}
-                    isDisabled={isCreatingDisabled}
-                  />
-                </div>
+              <Stack spacing={2}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Stack direction="row" gap={2} alignItems="center">
+                    <Select
+                      id="projects"
+                      value={selectedProjectId ?? ""}
+                      items={[
+                        { _id: "all", name: "All Use Cases" },
+                        ...projects.map((project) => ({
+                          _id: project.id.toString(),
+                          name: project.project_title,
+                        })),
+                      ]}
+                      onChange={handleProjectChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                    <SearchBox
+                      placeholder="Search vendors..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      sx={{ width: "180px" }}
+                    />
+                    <Select
+                      id="status-filter"
+                      value={statusFilter}
+                      items={[
+                        { _id: "all", name: "All statuses" },
+                        { _id: "not_started", name: "Not started" },
+                        { _id: "in_review", name: "In review" },
+                        { _id: "reviewed", name: "Reviewed" },
+                        { _id: "requires_follow_up", name: "Requires follow-up" },
+                      ]}
+                      onChange={handleStatusFilterChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                  </Stack>
+                  <div data-joyride-id="add-new-vendor" ref={refs[0]}>
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add new vendor"
+                      sx={{
+                        backgroundColor: "#13715B",
+                        border: "1px solid #13715B",
+                        gap: 2,
+                      }}
+                      icon={<AddCircleOutlineIcon size={16} />}
+                      onClick={() => {
+                        openAddNewVendor();
+                        setSelectedVendor(null);
+                      }}
+                      isDisabled={isCreatingDisabled}
+                    />
+                  </div>
+                </Stack>
               </Stack>
             )
           )}
@@ -689,7 +759,7 @@ const Vendors = () => {
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
-                vendors={vendors}
+                vendors={filteredVendors}
                 users={users}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}

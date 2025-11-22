@@ -181,6 +181,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     id: number;
     name: string;
   } | null>(null);
+
   const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -467,6 +468,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       onEdit,
       onDelete,
       isDeletingAllowed,
+      theme,
+      sortConfig.key,
     ]
   );
 

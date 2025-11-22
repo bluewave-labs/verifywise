@@ -25,9 +25,11 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
     ...getSearchBoxStyles(theme),
     px: "10px",
     bgcolor: "#fff",
-    height: "34px",
+    height: "34px !important",
+    minHeight: "34px",
+    maxHeight: "34px",
     boxSizing: "border-box",
-    ...(fullWidth && { flex: 1 }),
+    ...(fullWidth && { width: "100%" }),
     ...sx,
   };
 

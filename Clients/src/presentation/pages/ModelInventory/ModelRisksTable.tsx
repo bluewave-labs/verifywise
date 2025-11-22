@@ -23,7 +23,7 @@ const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />
 import RiskChip from "../../components/RiskLevel/RiskChip";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { User } from "../../../domain/types/User";
-import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import { ModelRisksTableProps } from "../../../domain/interfaces/i.modelInventory";
 
 const titleOfTableColumns = [
   "risk name",
@@ -35,16 +35,6 @@ const titleOfTableColumns = [
   "target date",
   " ",
 ];
-
-interface ModelRisksTableProps {
-  data: IModelRisk[];
-  isLoading: boolean;
-  onEdit: (riskId: number) => void;
-  onDelete: (riskId: number) => void;
-  deletingId?: number | null;
-  users?: User[];
-  models?: IModelInventory[];
-}
 
 const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
   data,

@@ -23,7 +23,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 // Constants for validation (DRY + Maintainability)
 const VALIDATION_RULES = {
   MIN_PEOPLE: 1,
-  DURATION_PATTERN: /^\d+\s*(hour|hours|day|days|week|weeks|month|months|minute|minutes|h|hr|hrs|d|w|m)$/i,
+  // DURATION_PATTERN: /^\d+\s*(hour|hours|day|days|week|weeks|month|months|minute|minutes|h|hr|hrs|d|w|m)$/i,
 } as const;
 
 const ERROR_MESSAGES = {
@@ -68,10 +68,10 @@ const validateDuration = (duration: string): string | undefined => {
   const requiredError = validateRequiredField(duration, 'Duration');
   if (requiredError) return requiredError;
 
-  const parts = duration.split(",").map(p => p.trim()).filter(Boolean);
-  const invalidParts = parts.filter(part => !VALIDATION_RULES.DURATION_PATTERN.test(part));
+  // const parts = duration.split(",").map(p => p.trim()).filter(Boolean);
+  // const invalidParts = parts.filter(part => !VALIDATION_RULES.DURATION_PATTERN.test(part));
 
-  return invalidParts.length > 0 ? ERROR_MESSAGES.INVALID_DURATION : undefined;
+  // return invalidParts.length > 0 ? ERROR_MESSAGES.INVALID_DURATION : undefined;
 };
 
 // Utility: Validate people count (Single Responsibility)

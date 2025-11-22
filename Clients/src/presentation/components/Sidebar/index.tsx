@@ -73,13 +73,13 @@ const getMenuGroups = (): IMenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Use cases",
+        name: "Use Cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
         highlightPaths: ["/project-view"],
       },
       {
-        name: "Organizational view",
+        name: "Organizational View",
         icon: <Layers size={16} strokeWidth={1.5} />,
         path: "/framework",
       },
@@ -227,7 +227,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const dispatch = useDispatch();
   const [slideoverOpen, setSlideoverOpen] = useState(false);
-  const [managementAnchorEl, setManagementAnchorEl] = useState<null | HTMLElement>(null);
+  const [managementAnchorEl, setManagementAnchorEl] =
+    useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
@@ -381,7 +382,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       sx={{
         height: "100vh",
         border: 1,
-        borderColor: theme.palette.border.light,
+        borderColor: theme.palette.border.dark,
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
@@ -399,7 +400,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
-        sx={{ position: 'relative' }}
+        sx={{ position: "relative" }}
       >
         <Stack
           direction="row"
@@ -407,63 +408,60 @@ const Sidebar: React.FC<SidebarProps> = ({
           gap={theme.spacing(4)}
           className="app-title"
         >
-          <Box
-            onMouseEnter={handleLogoHover}
-            sx={{ position: 'relative' }}
-          >
+          <Box onMouseEnter={handleLogoHover} sx={{ position: "relative" }}>
             {/* Heart Icon - Rises behind and appears above logo */}
             {showHeartIcon && (
               <Tooltip title="Spread some love!">
                 <IconButton
                   onClick={handleHeartClick}
                   sx={{
-                    position: 'absolute',
-                    top: '-20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
+                    position: "absolute",
+                    top: "-20px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
                     padding: 0,
                     zIndex: 10,
-                    '&:hover': {
-                      backgroundColor: 'transparent',
+                    "&:hover": {
+                      backgroundColor: "transparent",
                     },
                     animation: heartReturning
-                      ? 'slideDownBehind 0.5s ease-in forwards'
-                      : 'slideUpFromBehind 0.5s ease-out',
-                    '@keyframes slideUpFromBehind': {
-                      '0%': {
+                      ? "slideDownBehind 0.5s ease-in forwards"
+                      : "slideUpFromBehind 0.5s ease-out",
+                    "@keyframes slideUpFromBehind": {
+                      "0%": {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(35px)',
+                        transform: "translateX(-50%) translateY(35px)",
                         zIndex: -1,
                       },
-                      '60%': {
+                      "60%": {
                         zIndex: -1,
                       },
-                      '70%': {
+                      "70%": {
                         opacity: 1,
                         zIndex: 10,
                       },
-                      '100%': {
+                      "100%": {
                         opacity: 1,
-                        transform: 'translateX(-50%) translateY(0)',
+                        transform: "translateX(-50%) translateY(0)",
                         zIndex: 10,
                       },
                     },
-                    '@keyframes slideDownBehind': {
-                      '0%': {
+                    "@keyframes slideDownBehind": {
+                      "0%": {
                         opacity: 1,
-                        transform: 'translateX(-50%) translateY(0)',
+                        transform: "translateX(-50%) translateY(0)",
                         zIndex: 10,
                       },
-                      '30%': {
+                      "30%": {
                         opacity: 0.7,
                         zIndex: 10,
                       },
-                      '40%': {
+                      "40%": {
                         zIndex: -1,
                       },
-                      '100%': {
+                      "100%": {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(35px)',
+                        transform: "translateX(-50%) translateY(35px)",
                         zIndex: -1,
                       },
                     },
@@ -479,7 +477,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Tooltip>
             )}
             <RouterLink to="/">
-              <img src={Logo} alt="Logo" width={32} height={30} style={{ position: 'relative', zIndex: 1 }} />
+              <img
+                src={Logo}
+                alt="Logo"
+                width={32}
+                height={30}
+                style={{ position: "relative", zIndex: 1 }}
+              />
             </RouterLink>
           </Box>
           <MuiLink
@@ -979,17 +983,49 @@ const Sidebar: React.FC<SidebarProps> = ({
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
-              background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+              background: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
+                (item) =>
+                  location.pathname.startsWith(`${item.path}/`) ||
+                  location.pathname === item.path
+              )
                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                 : "transparent",
-              border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+              border: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
+                (item) =>
+                  location.pathname.startsWith(`${item.path}/`) ||
+                  location.pathname === item.path
+              )
                 ? "1px solid #D8D8D8"
                 : "1px solid transparent",
               "&:hover": {
-                background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+                background: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
+                  (item) =>
+                    location.pathname.startsWith(`${item.path}/`) ||
+                    location.pathname === item.path
+                )
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item =>location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+                border: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
+                  (item) =>
+                    location.pathname.startsWith(`${item.path}/`) ||
+                    location.pathname === item.path
+                )
                   ? "1px solid #D8D8D8"
                   : "1px solid transparent",
               },
@@ -1011,16 +1047,34 @@ const Sidebar: React.FC<SidebarProps> = ({
                 width: "16px",
                 mr: 0,
                 "& svg": {
-                  color: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  color: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                   transition: "color 0.2s ease, stroke 0.2s ease",
                 },
                 "& svg path": {
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                 },
@@ -1048,7 +1102,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               size={16}
               strokeWidth={1.5}
               style={{
-                transform: managementAnchorEl ? "rotate(180deg)" : "rotate(0deg)",
+                transform: managementAnchorEl
+                  ? "rotate(180deg)"
+                  : "rotate(0deg)",
                 transition: "transform 0.2s ease",
               }}
             />
@@ -1071,7 +1127,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           slotProps={{
             paper: {
               sx: {
-                width: managementAnchorEl ? managementAnchorEl.offsetWidth : "auto",
+                width: managementAnchorEl
+                  ? managementAnchorEl.offsetWidth
+                  : "auto",
                 minWidth: collapsed ? "180px" : "auto",
                 borderRadius: theme.shape.borderRadius,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -1081,7 +1139,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             },
           }}
         >
-          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).map((item) => (
+          {getManagementItems(
+            hasDemoData,
+            onOpenCreateDemoData,
+            onOpenDeleteDemoData
+          ).map((item) => (
             <MenuItem
               key={item.path || item.name}
               onClick={() => {
@@ -1129,18 +1191,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                     height: "16px",
                     flexShrink: 0,
                     "& svg": {
-                      color: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
-                      stroke: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      color:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
+                      stroke:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
                       transition: "color 0.2s ease, stroke 0.2s ease",
                     },
                     "& svg path": {
-                      stroke: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      stroke:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
                     },
                   }}
                 >

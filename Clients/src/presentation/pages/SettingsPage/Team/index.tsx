@@ -700,7 +700,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
               {open && (
                 <DualButtonModal
-                  title="Confirm Delete"
+                  title="Confirm delete"
                   body={
                     <Typography fontSize={13}>
                       Are you sure you want to delete your account? This action

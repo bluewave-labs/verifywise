@@ -21,6 +21,7 @@ import {
 
 // Function to generate the next sequential UC ID
 // Using a database sequence to fetch the next value
+// Assumes infrastructure has been pre-checked via ensureProjectInfrastructure
 export const generateNextUcId = async (
   tenant: string,
   transaction: Transaction,

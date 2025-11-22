@@ -1,5 +1,6 @@
 import { Box, Typography, Stack, LinearProgress } from "@mui/material";
 import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-react";
+import { frameworkDashboardCardStyles } from "./styles";
 
 interface FrameworkData {
   frameworkId: number;
@@ -46,41 +47,16 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
   };
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #EEEEEE",
-        borderRadius: "4px",
-        overflow: "hidden",
-      }}
-    >
+    <Box sx={frameworkDashboardCardStyles.cardContainer}>
       {/* Header Section */}
-      <Box
-        sx={{
-          backgroundColor: "#F1F3F4",
-          p: "10px 16px",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#000000",
-            lineHeight: "16px",
-            m: 0,
-          }}
-        >
+      <Box sx={frameworkDashboardCardStyles.cardHeader}>
+        <Typography sx={frameworkDashboardCardStyles.cardHeaderTitle}>
           Framework progress
         </Typography>
       </Box>
 
       {/* Content Section */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-          p: "16px",
-        }}
-      >
+      <Box sx={frameworkDashboardCardStyles.cardContentWithGradient}>
         <Typography
           sx={{
             fontSize: 12,

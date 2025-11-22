@@ -1,10 +1,12 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, Popover, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
+import { CirclePlus as AddCircleOutlineIcon, TrendingUp, ChevronDown } from "lucide-react"
+import ibmLogo from "../../assets/ibm_logo.svg";
+import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
 import Popup from "../../components/Popup";
@@ -15,6 +17,7 @@ import CustomizableToast from "../../components/Toast";
 import CustomizableSkeleton from "../../components/Skeletons";
 import allowedRoles from "../../../application/constants/permissions";
 import AddNewRiskMITModal from "../../components/AddNewRiskMITForm";
+import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
@@ -26,6 +29,7 @@ import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
+import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 
 /**
  * Set initial loading status for all CRUD process
@@ -63,6 +67,8 @@ const RiskManagement = () => {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [aiRiskAnchor, setAiRiskAnchor] = useState<null | HTMLElement>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isIBMModalOpen, setIsIBMModalOpen] = useState(false);
+  const [insertFromMenuAnchor, setInsertFromMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedRiskData, setSelectedRiskData] = useState<{
     riskName: string;
     actionOwner: number;
@@ -84,6 +90,7 @@ const RiskManagement = () => {
   const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
   const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -162,8 +169,22 @@ const RiskManagement = () => {
     setSelectedRow([]);
   };
 
-  const handleAIModalOpen = () => {
+  const handleInsertFromMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setInsertFromMenuAnchor(event.currentTarget);
+  };
+
+  const handleInsertFromMenuClose = () => {
+    setInsertFromMenuAnchor(null);
+  };
+
+  const handleMITModalOpen = () => {
     setIsAIModalOpen(true);
+    handleInsertFromMenuClose();
+  };
+
+  const handleIBMModalOpen = () => {
+    setIsIBMModalOpen(true);
+    handleInsertFromMenuClose();
   };
 
   const handleAiRiskOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
@@ -385,21 +406,207 @@ const RiskManagement = () => {
             />
           </div>
           <Stack direction="row" gap={4}>
+            <div data-joyride-id="analytics-button">
+              <CustomizableButton
+                variant="contained"
+                text="Analytics"
+                sx={{
+                  backgroundColor: "#7F56D9",
+                  border: "1px solid #7F56D9",
+                  gap: 2,
+                  "&:hover": {
+                    backgroundColor: "#6941C6",
+                  },
+                }}
+                onClick={() => setIsAnalyticsDrawerOpen(true)}
+                icon={<TrendingUp size={16} />}
+              />
+            </div>
             <div data-joyride-id="import-ai-risks-button">
               <CustomizableButton
                 variant="contained"
-                text="Insert from AI risks database"
+                text="Insert risk from..."
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                onClick={handleAIModalOpen}
-                icon={<AddCircleOutlineIcon size={16} />}
+                onClick={handleInsertFromMenuOpen}
+                icon={<ChevronDown size={16} />}
                 isDisabled={
                   !allowedRoles.projectRisks.create.includes(userRoleName)
                 }
               />
+              <Popover
+                id="insert-risk-mega-dropdown"
+                open={Boolean(insertFromMenuAnchor)}
+                anchorEl={insertFromMenuAnchor}
+                onClose={handleInsertFromMenuClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                sx={{
+                  mt: 1,
+                  "& .MuiPopover-paper": {
+                    borderRadius: "4px",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+                    overflow: "visible",
+                    backgroundColor: "#fff",
+                  },
+                }}
+              >
+                <Box
+                  role="menu"
+                  aria-label="Insert risk from database menu"
+                  sx={{
+                    p: 2,
+                    width: "420px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: 2,
+                  }}
+                >
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    aria-label="Insert risk from IBM AI Risk database"
+                    onClick={handleIBMModalOpen}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleIBMModalOpen();
+                      }
+                    }}
+                    sx={{
+                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
+                      borderRadius: "4px",
+                      padding: "20px 16px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      gap: 1.5,
+                      border: "1px solid rgba(0, 0, 0, 0.04)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      minHeight: "140px",
+                      position: "relative",
+                      "&:hover": {
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+                        border: "1px solid rgba(0, 0, 0, 0.08)",
+                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
+                      },
+                      "&:active": {
+                        transform: "scale(0.98)",
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "#10B981",
+                        color: "white",
+                        fontSize: "9px",
+                        fontWeight: 600,
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Recommended
+                    </Box>
+                    <img src={ibmLogo} alt="IBM Logo" style={{ height: 24 }} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        color: "rgba(0, 0, 0, 0.85)",
+                        textAlign: "center",
+                      }}
+                    >
+                      IBM AI Risk database
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "11px",
+                        color: "rgba(0, 0, 0, 0.6)",
+                        textAlign: "center",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      113 risks covering agentic AI, data privacy, inference attacks, and operational failures
+                    </Typography>
+                  </Box>
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    aria-label="Insert risk from MIT AI Risk database"
+                    onClick={handleMITModalOpen}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleMITModalOpen();
+                      }
+                    }}
+                    sx={{
+                      background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
+                      borderRadius: "4px",
+                      padding: "20px 16px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      gap: 1.5,
+                      border: "1px solid rgba(0, 0, 0, 0.04)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      minHeight: "140px",
+                      "&:hover": {
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+                        border: "1px solid rgba(0, 0, 0, 0.08)",
+                        background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
+                      },
+                      "&:active": {
+                        transform: "scale(0.98)",
+                      },
+                    }}
+                  >
+                    <img src={mitLogo} alt="MIT Logo" style={{ height: 24 }} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        color: "rgba(0, 0, 0, 0.85)",
+                        textAlign: "center",
+                      }}
+                    >
+                      MIT AI Risk database
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "11px",
+                        color: "rgba(0, 0, 0, 0.6)",
+                        textAlign: "center",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Academic research-based risks covering AI safety, fairness, and societal impact
+                    </Typography>
+                  </Box>
+                </Box>
+              </Popover>
             </div>
             <div data-joyride-id="add-risk-button">
               <CustomizableButton
@@ -483,6 +690,11 @@ const RiskManagement = () => {
         setIsOpen={setIsAIModalOpen}
         onRiskSelected={handleRiskSelected}
       />
+      <AddNewRiskIBMModal
+        isOpen={isIBMModalOpen}
+        setIsOpen={setIsIBMModalOpen}
+        onRiskSelected={handleRiskSelected}
+      />
       {selectedRiskData && aiRiskAnchor && (
         <Popup
           popupId="add-risk-from-ai-popup"
@@ -508,6 +720,23 @@ const RiskManagement = () => {
           anchor={aiRiskAnchor}
         />
       )}
+
+      {/* Analytics Drawer */}
+      <AnalyticsDrawer
+        open={isAnalyticsDrawerOpen}
+        onClose={() => setIsAnalyticsDrawerOpen(false)}
+        title="Risk Analytics & Trends"
+        description="Track your project risks history over time"
+        entityName="Risk"
+        chartType="risk"
+        availableParameters={[
+          { value: "severity", label: "Severity" },
+          { value: "likelihood", label: "Likelihood" },
+          { value: "mitigation_status", label: "Mitigation Status" },
+          { value: "risk_level", label: "Risk Level" },
+        ]}
+        defaultParameter="risk_level"
+      />
 
       <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
       </Stack>

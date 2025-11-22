@@ -101,7 +101,6 @@ const AutomationList: React.FC<AutomationListProps> = ({
           placeholder="Find automations..."
           value={searchQuery}
           onChange={onSearchChange}
-          sx={{ mt: '8px' }}
         />
       </Stack>
 
@@ -174,13 +173,13 @@ const AutomationList: React.FC<AutomationListProps> = ({
                   mb: '8px',
                   py: '8px', // Reduce vertical padding
                   minHeight: '44px', // Reduced from default height
-                  border: `1px solid rgba(0, 0, 0, 0.06)`,
+                  border: `1px solid #d0d5dd`,
                   background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%)',
                   '&:hover': {
                     background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.02) 100%)',
                   },
                   '&.Mui-selected': {
-                    border: `1px solid rgba(25, 118, 210, 0.2)`,
+                    border: `1px solid ${theme.palette.primary.main}`,
                     background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.06) 0%, rgba(25, 118, 210, 0.03) 100%)',
                     '&:hover': {
                       background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.04) 100%)',

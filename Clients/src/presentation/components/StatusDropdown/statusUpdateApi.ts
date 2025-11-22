@@ -149,6 +149,36 @@ export async function updateISO27001AnnexStatus({
 }
 
 /**
+ * Update status for NIST AI RMF subcategories
+ */
+export async function updateNISTAIRMFSubcategoryStatus({
+  id,
+  newStatus,
+  projectFrameworkId: _projectFrameworkId,
+  userId: _userId,
+  currentData: _currentData,
+}: StatusUpdateParams): Promise<boolean> {
+  try {
+    // For NIST AI RMF, we can use a simple JSON request since it doesn't require FormData
+    // The backend endpoint handles status-only updates efficiently
+    const response = await updateEntityById({
+      routeUrl: `/nist-ai-rmf/subcategories/${id}/status`,
+      body: {
+        status: newStatus,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response?.status ? isSuccessResponse(response.status) : false;
+  } catch (error) {
+    console.error("Error updating NIST AI RMF subcategory status:", error);
+    return false;
+  }
+}
+
+/**
  * Update status for ISO42001 clause subclauses
  */
 export async function updateISO42001ClauseStatus({

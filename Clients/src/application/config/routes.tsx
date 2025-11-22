@@ -85,6 +85,7 @@ export const createRoutes = (
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/model-inventory/mlflow" element={<ModelInventory />} />
+    <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />

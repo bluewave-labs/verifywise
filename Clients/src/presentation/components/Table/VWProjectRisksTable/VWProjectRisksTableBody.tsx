@@ -1,12 +1,11 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme, Link } from "@mui/material";
+import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme } from "@mui/material";
+import { VWLink } from "../../Link";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { getMitigationStatusColor } from "../../../constants/statusColors";
-import RiskChip from "../../RiskLevel/RiskChip";
 import IconButton from "../../IconButton";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
 import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
@@ -179,7 +178,39 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <RiskChip label={row.severity} />
+                  {row.severity ? (
+                    <Chip
+                      label={row.severity}
+                      size="small"
+                      sx={{
+                        backgroundColor: (() => {
+                          const severity = row.severity.toLowerCase();
+                          if (severity.includes('catastrophic')) return '#ffcdd2';
+                          if (severity.includes('major')) return '#ffe0b2';
+                          if (severity.includes('moderate')) return '#fff9c4';
+                          if (severity.includes('minor')) return '#c8e6c9';
+                          if (severity.includes('negligible')) return '#b2dfdb';
+                          return '#e0e0e0';
+                        })(),
+                        color: (() => {
+                          const severity = row.severity.toLowerCase();
+                          if (severity.includes('catastrophic')) return '#c62828';
+                          if (severity.includes('major')) return '#e65100';
+                          if (severity.includes('moderate')) return '#f57f17';
+                          if (severity.includes('minor')) return '#2e7d32';
+                          if (severity.includes('negligible')) return '#00695c';
+                          return '#424242';
+                        })(),
+                        borderRadius: "4px !important",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -191,7 +222,39 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  {row.likelihood ? row.likelihood : "-"}
+                  {row.likelihood ? (
+                    <Chip
+                      label={row.likelihood}
+                      size="small"
+                      sx={{
+                        backgroundColor: (() => {
+                          const likelihood = row.likelihood.toLowerCase();
+                          if (likelihood.includes('almost certain')) return '#ffcdd2';
+                          if (likelihood.includes('likely')) return '#ffe0b2';
+                          if (likelihood.includes('possible')) return '#fff9c4';
+                          if (likelihood.includes('unlikely')) return '#c8e6c9';
+                          if (likelihood.includes('rare')) return '#b2dfdb';
+                          return '#e0e0e0';
+                        })(),
+                        color: (() => {
+                          const likelihood = row.likelihood.toLowerCase();
+                          if (likelihood.includes('almost certain')) return '#c62828';
+                          if (likelihood.includes('likely')) return '#e65100';
+                          if (likelihood.includes('possible')) return '#f57f17';
+                          if (likelihood.includes('unlikely')) return '#2e7d32';
+                          if (likelihood.includes('rare')) return '#00695c';
+                          return '#424242';
+                        })(),
+                        borderRadius: "4px !important",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -208,12 +271,32 @@ const VWProjectRisksTableBody = ({
                       label={row.mitigation_status}
                       size="small"
                       sx={{
-                        backgroundColor: getMitigationStatusColor(
-                          row.mitigation_status
-                        ),
-                        color: "white",
-                        fontWeight: 500,
-                        borderRadius: "4px",
+                        backgroundColor: (() => {
+                          const status = row.mitigation_status.toLowerCase();
+                          if (status.includes('completed')) return '#c8e6c9';
+                          if (status.includes('in progress')) return '#fff9c4';
+                          if (status.includes('not started')) return '#e0e0e0';
+                          if (status.includes('on hold')) return '#ffe0b2';
+                          if (status.includes('deferred')) return '#ffecb3';
+                          if (status.includes('canceled')) return '#ffcdd2';
+                          if (status.includes('requires review')) return '#e1bee7';
+                          return '#e0e0e0';
+                        })(),
+                        color: (() => {
+                          const status = row.mitigation_status.toLowerCase();
+                          if (status.includes('completed')) return '#2e7d32';
+                          if (status.includes('in progress')) return '#f57f17';
+                          if (status.includes('not started')) return '#616161';
+                          if (status.includes('on hold')) return '#e65100';
+                          if (status.includes('deferred')) return '#f57f17';
+                          if (status.includes('canceled')) return '#c62828';
+                          if (status.includes('requires review')) return '#6a1b9a';
+                          return '#424242';
+                        })(),
+                        borderRadius: "4px !important",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
                         height: 24,
                       }}
                     />
@@ -231,7 +314,39 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <RiskChip label={row.risk_level_autocalculated} />
+                  {row.risk_level_autocalculated ? (
+                    <Chip
+                      label={row.risk_level_autocalculated}
+                      size="small"
+                      sx={{
+                        backgroundColor: (() => {
+                          const level = row.risk_level_autocalculated.toLowerCase();
+                          if (level.includes('very high') || level.includes('critical')) return '#ffcdd2';
+                          if (level.includes('high')) return '#ffe0b2';
+                          if (level.includes('medium') || level.includes('moderate')) return '#fff9c4';
+                          if (level.includes('low')) return '#c8e6c9';
+                          if (level.includes('very low') || level.includes('no risk')) return '#b2dfdb';
+                          return '#e0e0e0';
+                        })(),
+                        color: (() => {
+                          const level = row.risk_level_autocalculated.toLowerCase();
+                          if (level.includes('very high') || level.includes('critical')) return '#c62828';
+                          if (level.includes('high')) return '#e65100';
+                          if (level.includes('medium') || level.includes('moderate')) return '#f57f17';
+                          if (level.includes('low')) return '#2e7d32';
+                          if (level.includes('very low') || level.includes('no risk')) return '#00695c';
+                          return '#424242';
+                        })(),
+                        borderRadius: "4px !important",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "uppercase",
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -243,7 +358,7 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
+                  {row.deadline ? displayFormattedDate(row.deadline.toString()) : "NA"}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -255,24 +370,13 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <Link
-                    component="button"
+                  <VWLink
                     onClick={(e: React.MouseEvent<HTMLElement>) =>
                       toggleMitigations(row, e)
                     }
-                    sx={{
-                      color: "#13715B",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      "&:hover": {
-                        color: "#0F5A47",
-                      },
-                    }}
                   >
                     View controls
-                  </Link>
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{

@@ -507,7 +507,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Select Risk Categories"
+                      placeholder="Select risk categories"
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           paddingTop: `${FORM_STYLES.chipPadding} !important`,

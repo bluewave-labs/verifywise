@@ -180,7 +180,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Users"
+                placeholder="Select users"
                 error={!!errors.assignedReviewers}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -267,7 +267,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Tags"
+                placeholder="Select tags"
                 error={!!errors.tags}
                 sx={{
                   "& .MuiOutlinedInput-root": {

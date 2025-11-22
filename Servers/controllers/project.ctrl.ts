@@ -34,7 +34,7 @@ import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
-import { sendProjectCreatedNotification, sendUserAddedToProjectNotification, ProjectRole} from "../services/userNotification/projectNotifications";
+import { sendProjectCreatedNotification, sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/projectNotifications";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 

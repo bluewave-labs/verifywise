@@ -32,6 +32,7 @@ import Checkbox from "../../../components/Inputs/Checkbox";
 import { ceMarkingService } from "../../../../infrastructure/api/ceMarkingService";
 import { showAlert as showGlobalAlert } from "../../../../infrastructure/api/customAxios";
 import useUsers from "../../../../application/hooks/useUsers";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 interface CEMarkingProps {
   projectId: string;
@@ -47,6 +48,12 @@ const ANNEX_III_OPTIONS = [
   { _id: "annex_iii_6", name: "Annex III 6 – Law enforcement" },
   { _id: "annex_iii_7", name: "Annex III 7 – Migration, asylum and border control management" },
   { _id: "annex_iii_8", name: "Annex III 8 – Administration of justice and democratic processes" },
+];
+
+// High Risk AI System options
+const HIGH_RISK_OPTIONS = [
+  { _id: "true", name: "Yes" },
+  { _id: "false", name: "No" },
 ];
 
 // Role in Product options
@@ -181,6 +188,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { users } = useUsers();
+  const { project } = useProjectData({ projectId });
 
   // Loading and error states
   const [loading, setLoading] = useState(true);
@@ -188,6 +196,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const [data, setData] = useState<CEMarkingData | null>(null);
 
   // State for editable fields
+  const [isHighRiskAISystem, setIsHighRiskAISystem] = useState<boolean>(false);
   const [annexIIICategory, setAnnexIIICategory] = useState<string>("annex_iii_5");
   const [roleInProduct, setRoleInProduct] = useState<string>("standalone");
 
@@ -255,6 +264,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
       setLoading(true);
       const ceMarkingData = await ceMarkingService.getCEMarking(projectId);
       setData(ceMarkingData);
+      setIsHighRiskAISystem(ceMarkingData.isHighRiskAISystem || false);
       setAnnexIIICategory(ceMarkingData.annexIIICategory || "annex_iii_5");
       setRoleInProduct(ceMarkingData.roleInProduct || "standalone");
     } catch (error) {
@@ -276,6 +286,26 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleViewChecklist = () => {
     // Navigate to the Frameworks/regulations tab with EU AI Act framework
     navigate(`/project-view?projectId=${projectId}&tab=frameworks&framework=eu-ai-act`);
+  };
+
+  const handleHighRiskChange = async (event: any) => {
+    const newValue = event.target.value === "true";
+    setIsHighRiskAISystem(newValue);
+
+    try {
+      setSaving(true);
+      const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
+        isHighRiskAISystem: newValue,
+      });
+      setData(updatedData);
+      showAlert("High risk classification updated successfully");
+    } catch (error) {
+      showAlert("Failed to update high risk classification", "error");
+      // Revert on error
+      setIsHighRiskAISystem(data?.isHighRiskAISystem || false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAnnexIIICategoryChange = async (event: any) => {
@@ -659,11 +689,14 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 >
                   HIGH RISK AI SYSTEM
                 </Typography>
-                <Typography
-                  sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
-                >
-                  {data.isHighRiskAISystem ? "Yes" : "No"}
-                </Typography>
+                <Select
+                  id="high-risk-ai-system"
+                  value={String(isHighRiskAISystem)}
+                  items={HIGH_RISK_OPTIONS}
+                  onChange={handleHighRiskChange}
+                  disabled={saving}
+                  sx={{ width: "100%" }}
+                />
               </Box>
 
               <Box>
@@ -720,12 +753,12 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     marginBottom: 0.5,
                   }}
                 >
-                  INTENDED PURPOSE
+                  DESCRIPTION
                 </Typography>
                 <Typography
                   sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
                 >
-                  {data.intendedPurpose}
+                  {project?.description || "No description provided"}
                 </Typography>
               </Box>
             </Stack>

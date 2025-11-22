@@ -77,7 +77,7 @@ const Vendors = () => {
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
-  const { data: vendors = [], isLoading: isVendorsLoading } = useVendors({
+  const { data: vendors = [], isLoading: isVendorsLoading, refetch: refetchVendors } = useVendors({
     projectId: selectedProjectId,
   });
   const {
@@ -725,6 +725,7 @@ const Vendors = () => {
         value={value}
         onSuccess={async () => {
           await refetchVendorRisks();
+          await refetchVendors();
         }}
         existingVendor={selectedVendor}
       />

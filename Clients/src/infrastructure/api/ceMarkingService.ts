@@ -69,7 +69,7 @@ export const ceMarkingService = {
         }]
       };
 
-      return await this.updateCEMarking(projectId, updateData);
+      return await this.updateCEMarking(projectId, updateData as any);
     } catch (error) {
       throw error;
     }

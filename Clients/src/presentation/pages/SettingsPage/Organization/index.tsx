@@ -9,7 +9,7 @@ import {
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
-import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
+import { useState, useCallback, ChangeEvent, useEffect } from "react";
 import {
   CreateMyOrganization,
   GetMyOrganization,
@@ -27,6 +27,7 @@ import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
 import { OrganizationModel } from "../../../../domain/models/Common/organization/organization.model";
+import Uploader from "../../../components/Uploader";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -65,8 +66,6 @@ const Organization = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoLoadError, setLogoLoadError] = useState(false);
 
-  // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
   const [alert, setAlert] = useState<AlertState | null>(null);
 
@@ -161,21 +160,16 @@ const Organization = () => {
   );
 
   // Handle logo file selection and upload
-  const handleLogoChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
+  // Custom upload handler for Uploader component
+  const handleLogoUpload = useCallback(
+    async (file: File): Promise<{ url: string; id?: string }> => {
       // Validate file using OrganizationModel business logic
       const validation = OrganizationModel.validateLogoFile(file);
       if (!validation.isValid) {
         showAlert("error", "Invalid File", validation.errorMessage!);
-        return;
+        throw new Error(validation.errorMessage!);
       }
 
-      // Create preview and upload
-      const previewUrl = URL.createObjectURL(file);
-      setSelectedLogoPreview(previewUrl);
       setLogoUploading(true);
 
       try {
@@ -206,37 +200,27 @@ const Organization = () => {
                 response.data.message ||
                   "Organization logo uploaded successfully"
               );
+
+              return { url: logoBlobUrl };
             } else {
-              showAlert(
-                "error",
-                "Upload Failed",
-                "Failed to load uploaded logo. Please try again."
-              );
+              throw new Error("Failed to load uploaded logo. Please try again.");
             }
           } else {
-            showAlert(
-              "error",
-              "Upload Failed",
-              "Failed to get tenant information"
-            );
+            throw new Error("Failed to get tenant information");
           }
+        } else {
+          throw new Error("Upload response missing logo data");
         }
       } catch (error: any) {
         console.error("Error uploading logo:", error);
-        showAlert(
-          "error",
-          "Upload Failed",
-          error.message || "Failed to upload logo"
-        );
+        const errorMessage = error.message || "Failed to upload logo";
+        showAlert("error", "Upload Failed", errorMessage);
+        throw new Error(errorMessage);
       } finally {
         setLogoUploading(false);
-        clearLogoPreview();
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
       }
     },
-    [fetchLogoAsBlobUrl, showAlert, clearLogoPreview]
+    [fetchLogoAsBlobUrl, showAlert, logoUrl]
   );
 
   // Logo removal handlers
@@ -523,13 +507,30 @@ const Organization = () => {
                 )}
               </Box>
             </Box>
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box sx={{ maxWidth: 400 }}>
+                <Uploader
+                  acceptedTypes={['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml']}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
+                  maxFiles={1}
+                  multiple={false}
+                  customUploadHandler={handleLogoUpload}
+                  showPreview={false}
+                  sx={{
+                    minHeight: '80px',
+                    '& .MuiPaper-root': {
+                      backgroundColor: logoUploading ? '#f5f5f5' : 'transparent',
+                    }
+                  }}
+                />
+              </Box>
               <MUIButton
                 variant="text"
                 sx={{
                   fontSize: 12,
                   textTransform: "none",
                   color: logoUrl ? "#666" : "#ccc",
+                  alignSelf: "flex-start",
                   "&:hover": {
                     backgroundColor: logoUrl
                       ? "rgba(102, 102, 102, 0.04)"
@@ -549,44 +550,6 @@ const Organization = () => {
                 ) : (
                   "Delete"
                 )}
-              </MUIButton>
-              <MUIButton
-                variant="text"
-                component="label"
-                disableRipple
-                sx={{
-                  fontSize: 12,
-                  textTransform: "none",
-                  color: "#13715B",
-                  "&:hover": {
-                    backgroundColor: "transparent !important",
-                  },
-                  "&:active": {
-                    backgroundColor: "transparent !important",
-                  },
-                }}
-                disabled={logoUploading || logoLoading}
-              >
-                {logoUploading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Uploading...
-                  </>
-                ) : logoLoading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Loading...
-                  </>
-                ) : (
-                  "Update"
-                )}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
-                  hidden
-                  ref={fileInputRef}
-                  onChange={handleLogoChange}
-                />
               </MUIButton>
             </Box>
             {/* Logo requirements info */}

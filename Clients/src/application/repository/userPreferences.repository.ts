@@ -10,7 +10,7 @@ export async function createNewUserPreferences(
   data: Partial<UserPreferencesModel>,
 ): Promise<any> {
   const response = await apiServices.post(`/user-preferences/`, data);
-  return response;
+  return response.data;
 }
 
 export async function updateUserPreferencesById({
@@ -21,5 +21,5 @@ export async function updateUserPreferencesById({
   data: Partial<UserPreferencesModel>;
 }): Promise<any> {
   const response = await apiServices.patch(`/user-preferences/${userId}`, data);
-  return response;
+  return response.data;
 }

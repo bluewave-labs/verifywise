@@ -34,26 +34,27 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   showHalo = false,
   showBorder = false,
 }) => {
-
   return (
     <Stack
       alignItems="center"
       sx={{
         ...(showBorder && {
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           backgroundColor: "#FFFFFF",
         }),
-        pt: '75px',
+        pt: "75px",
         pb: 16,
       }}
       role="img"
       aria-label={imageAlt}
     >
-      <Box sx={{ mb: '20px' }}>
+      <Box sx={{ mb: "20px" }}>
         <SkeletonCard showHalo={showHalo} />
       </Box>
-      <Typography sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}>
+      <Typography
+        sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400, paddingX: 10 }}
+      >
         {message}
       </Typography>
     </Stack>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Theme, SxProps } from "@mui/material/styles";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
@@ -19,6 +20,11 @@ export const toastFadeStyle = {
 };
 
 export const statusFilterSelectStyle = {
+  width: "200px",
+  minHeight: "34px",
+};
+
+export const evidenceTypeFilterSelectStyle = {
   width: "200px",
   minHeight: "34px",
 };

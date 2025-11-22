@@ -538,7 +538,7 @@ const Tasks: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <DualButtonModal
-        title="Archive Task"
+        title="Archive task"
         body={
           <Typography fontSize={13}>
             Are you sure you want to archive "{taskToDelete?.title}"? You can

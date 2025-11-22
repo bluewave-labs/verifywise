@@ -214,6 +214,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    security_assessment_data,
     is_demo,
     projects,
     frameworks,
@@ -245,6 +246,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
       biases,
       limitations,
       hosting_provider,
+      security_assessment_data,
       is_demo,
     });
 
@@ -318,6 +320,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    security_assessment_data,
     is_demo,
     projects,
     frameworks,
@@ -371,6 +374,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         biases,
         limitations,
         hosting_provider,
+        security_assessment_data,
         is_demo,
       }
     );

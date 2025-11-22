@@ -716,7 +716,7 @@ interface AlertState {
 
         {isDeleteModalOpen && (
           <DualButtonModal
-            title="Confirm Delete"
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to delete your account? This action is
@@ -855,7 +855,7 @@ interface AlertState {
       </Stack>
       {isRemoveImageModalOpen && (
         <DualButtonModal
-          title="Remove Profile Photo"
+          title="Remove profile photo"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove your profile photo?

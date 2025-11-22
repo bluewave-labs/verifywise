@@ -7,6 +7,7 @@ import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";
 import { IModelInventoryProjectFramework } from "../domain.layer/interfaces/i.modelInventoryProjectFramework";
+import { recordSnapshotIfChanged } from "./history/modelInventoryHistory.utils";
 
 export const getAllModelInventoriesQuery = async (tenant: string) => {
   const modelInventories = await sequelize.query(
@@ -145,8 +146,8 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, is_demo, created_at, updated_at)       
-      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :is_demo, :created_at, :updated_at) RETURNING *`,
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, security_assessment_data, is_demo, created_at, updated_at)       
+      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :security_assessment_data, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
           provider_model: modelInventory.provider_model || '',
@@ -164,6 +165,7 @@ export const createNewModelInventoryQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
           is_demo: modelInventory.is_demo,
           created_at: created_at,
           updated_at: created_at,
@@ -245,10 +247,18 @@ export const createNewModelInventoryQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot for status changes
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model creation
     }
 
     return createdModel;
@@ -274,7 +284,7 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, security_assessment_data = :security_assessment_data, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
@@ -293,6 +303,7 @@ export const updateModelInventoryByIdQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          security_assessment_data: JSON.stringify(modelInventory.security_assessment_data || []),
           is_demo: modelInventory.is_demo,
           updated_at,
         },
@@ -406,10 +417,20 @@ export const updateModelInventoryByIdQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot if status changed
+    try {
+      if (oldModel && oldModel.status !== updatedModel.status) {
+        await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+      }
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model update
     }
 
     return updatedModel;
@@ -470,10 +491,18 @@ export const deleteModelInventoryByIdQuery = async (
         };
 
         // Enqueue with processed params
-        await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+        await enqueueAutomationAction(automation.action_key, { ...processedParams, tenant });
       } else {
         console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
       }
+    }
+
+    // Record history snapshot after deletion
+    try {
+      await recordSnapshotIfChanged('status', tenant, undefined, transaction);
+    } catch (historyError) {
+      console.error("Error recording history snapshot:", historyError);
+      // Don't throw - history recording failure shouldn't block model deletion
     }
 
     return deletedModel;

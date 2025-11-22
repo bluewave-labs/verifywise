@@ -14,9 +14,8 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
 import EmptyState from "../../EmptyState";
-import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { formatDate } from "../../../tools/isoDateToString";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
@@ -26,6 +25,8 @@ import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.mode
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
+import { getRiskScoreColor } from "../../../../domain/utils/vendorScorecard.utils";
+import { VWLink } from "../../Link";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -41,6 +42,7 @@ const titleOfTableColumns = [
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
   { id: "risk", label: "risk", sortable: false },
+  { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },
 ];
@@ -179,6 +181,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     id: number;
     name: string;
   } | null>(null);
+
   const formattedUsers = users?.map((user: User) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -251,6 +254,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         case "review_date":
           aValue = new Date(a.review_date).getTime();
           bValue = new Date(b.review_date).getTime();
+          break;
+
+        case "scorecard":
+          aValue = a.risk_score ?? 0;
+          bValue = b.risk_score ?? 0;
           break;
 
         default:
@@ -366,20 +374,55 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
+                  <VWLink
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openVendorRisksDialog(row.id!, row.vendor_name);
+                    }}
+                    showIcon={false}
+                  >
+                    View risks
+                  </VWLink>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    backgroundColor: sortConfig.key === "scorecard" ? "#f5f5f5" : "inherit",
+                  }}
+                >
                   <Box display="flex" alignItems="center" gap={1}>
-                    {/* <RiskChip label={row.risk_status} /> */}
-                    <CustomizableButton
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.button,
-                        width: 110,
-                      }}
-                      variant="contained"
-                      text="View risks"
-                      onClick={(e: React.MouseEvent<HTMLElement>) => {
-                        e.stopPropagation();
-                        openVendorRisksDialog(row.id!, row.vendor_name);
-                      }}
-                    />
+                    {(() => {
+                      // Use only backend provided risk_score, no client-side calculations
+                      const riskScore = row.risk_score ?? 0;
+                      const riskColor = getRiskScoreColor(riskScore);
+                      
+                      return (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            backgroundColor: `${riskColor}20`,
+                            border: `1px solid ${riskColor}`,
+                            minWidth: "50px",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              backgroundColor: riskColor,
+                            }}
+                          />
+                          <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 500, color: riskColor }}>
+                            {riskScore}%
+                          </Typography>
+                        </Box>
+                      );
+                    })()}
                   </Box>
                 </TableCell>
                 <TableCell
@@ -389,7 +432,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   {row.review_date
-                    ? formatDate(row.review_date.toString())
+                    ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
                 <TableCell
@@ -425,6 +468,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       onEdit,
       onDelete,
       isDeletingAllowed,
+      theme,
+      sortConfig.key,
     ]
   );
 

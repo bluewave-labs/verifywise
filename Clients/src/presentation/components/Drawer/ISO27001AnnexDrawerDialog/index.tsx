@@ -475,7 +475,7 @@ const VWISO27001AnnexDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+              Add/remove evidence
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography
@@ -562,7 +562,7 @@ const VWISO27001AnnexDrawerDialog = ({
               onClick={() => setIsLinkedRisksModalOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove risks
+              Add/remove risks
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

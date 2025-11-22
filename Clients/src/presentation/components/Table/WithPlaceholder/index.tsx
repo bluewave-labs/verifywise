@@ -26,6 +26,7 @@ import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";
 import { VWLink } from "../../Link";
+import VendorLogo from "../../VendorLogo";
 
 const VENDORS_ROWS_PER_PAGE_KEY = "verifywise_vendors_rows_per_page";
 const VENDORS_SORTING_KEY = "verifywise_vendors_sorting";
@@ -338,7 +339,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
-                  {row.vendor_name}
+                  <VendorLogo
+                    website={row.website || ''}
+                    vendorName={row.vendor_name}
+                    size={32}
+                    showName={true}
+                  />
                 </TableCell>
                 <TableCell
                   sx={{

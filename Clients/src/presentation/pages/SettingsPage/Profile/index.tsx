@@ -99,9 +99,6 @@ interface AlertState {
   const [imageLoading, setImageLoading] = useState(false);
   const [imageRemoving, setImageRemoving] = useState(false);
   const [isRemoveImageModalOpen, setIsRemoveImageModalOpen] = useState(false);
-  const [selectedImagePreview, setSelectedImagePreview] = useState<
-    string | null
-  >(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageLoadError, setImageLoadError] = useState(false);
 
@@ -401,14 +398,6 @@ interface AlertState {
   }, [id, logout, showAlert]);
 
 
-  // Utility function to clear preview and revoke URLs
-  const clearImagePreview = useCallback(() => {
-    if (selectedImagePreview) {
-      URL.revokeObjectURL(selectedImagePreview);
-      setSelectedImagePreview(null);
-    }
-  }, [selectedImagePreview]);
-
   // Handle Image file selection and upload
   // Custom upload handler for Uploader component
   const handleProfilePhotoUpload = useCallback(
@@ -477,7 +466,6 @@ interface AlertState {
         }
         setImageUrl(null);
         setImageLoadError(false); // Reset error state
-        clearImagePreview();
 
         setIsRemoveImageModalOpen(false);
         showAlert(
@@ -501,7 +489,7 @@ interface AlertState {
     } finally {
       setImageRemoving(false);
     }
-  }, [id, imageUrl, clearImagePreview, showAlert]);
+  }, [id, imageUrl, showAlert]);
 
   return (
     <Box
@@ -748,7 +736,7 @@ interface AlertState {
                 }}
               >
                 <Avatar
-                  user={{ firstname, lastname, pathToImage: !imageLoadError ? selectedImagePreview ?? imageUrl ?? "" : undefined }}
+                  user={{ firstname, lastname, pathToImage: !imageLoadError ? imageUrl ?? "" : undefined }}
                   size="medium"
                   sx={{ width: 84, height: 84 }}
                 />

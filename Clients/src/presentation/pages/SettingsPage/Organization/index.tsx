@@ -60,9 +60,6 @@ const Organization = () => {
   const [logoLoading, setLogoLoading] = useState(false);
   const [logoRemoving, setLogoRemoving] = useState(false);
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] = useState(false);
-  const [selectedLogoPreview, setSelectedLogoPreview] = useState<string | null>(
-    null
-  );
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoLoadError, setLogoLoadError] = useState(false);
 
@@ -76,14 +73,6 @@ const Organization = () => {
     },
     []
   );
-
-  // Utility function to clear preview and revoke URLs
-  const clearLogoPreview = useCallback(() => {
-    if (selectedLogoPreview) {
-      URL.revokeObjectURL(selectedLogoPreview);
-      setSelectedLogoPreview(null);
-    }
-  }, [selectedLogoPreview]);
 
   // Handle logo load error
   const handleLogoError = useCallback(() => {
@@ -238,13 +227,12 @@ const Organization = () => {
     try {
       await deleteAITrustCentreLogo();
 
-      // Clear logo and previews
+      // Clear logo
       if (logoUrl && logoUrl.startsWith("blob:")) {
         URL.revokeObjectURL(logoUrl);
       }
       setLogoUrl(null);
       setLogoLoadError(false); // Reset error state
-      clearLogoPreview();
 
       setIsRemoveLogoModalOpen(false);
       showAlert(
@@ -262,7 +250,7 @@ const Organization = () => {
     } finally {
       setLogoRemoving(false);
     }
-  }, [logoUrl, clearLogoPreview, showAlert]);
+  }, [logoUrl, showAlert]);
 
   // Organization CRUD handlers
   const handleCreate = useCallback(async () => {
@@ -364,12 +352,11 @@ const Organization = () => {
   // Cleanup function to revoke object URLs when component unmounts
   useEffect(() => {
     return () => {
-      clearLogoPreview();
       if (logoUrl && logoUrl.startsWith("blob:")) {
         URL.revokeObjectURL(logoUrl);
       }
     };
-  }, [clearLogoPreview, logoUrl]);
+  }, [logoUrl]);
 
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
@@ -460,21 +447,6 @@ const Organization = () => {
               >
                 {logoUploading || logoLoading ? (
                   <CircularProgress size={24} />
-                ) : selectedLogoPreview ? (
-                  <Box
-                    component="img"
-                    src={selectedLogoPreview}
-                    alt="Selected Logo Preview"
-                    onError={handleLogoError}
-                    onLoad={handleLogoLoad}
-                    sx={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                      borderRadius: 1,
-                      display: logoLoadError ? "none" : "block",
-                    }}
-                  />
                 ) : logoUrl && !logoLoadError ? (
                   <Box
                     component="img"

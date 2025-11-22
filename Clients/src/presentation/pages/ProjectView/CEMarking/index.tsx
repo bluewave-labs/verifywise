@@ -110,6 +110,21 @@ const getUserNameById = (userId: string | null, users: any[]): string => {
   return user ? `${user.name} ${user.surname}` : userId; // Fallback to ID if user not found
 };
 
+// Helper function to ensure URL has a protocol
+const ensureUrlProtocol = (url: string | null): string | null => {
+  if (!url) return null;
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return null;
+
+  // Check if URL already has a protocol
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+
+  // Add https:// as default protocol
+  return `https://${trimmedUrl}`;
+};
+
 // Table styles - using the primary theme table styles
 const getTableHeaderRowStyles = () => ({
   textTransform: "uppercase",
@@ -1110,12 +1125,9 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                   DECLARATION DOCUMENT LINK
                 </Typography>
                 {data.declarationDocument ? (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <VWLink href={data.declarationDocument} target="_blank" rel="noopener noreferrer">
-                      {data.declarationDocument}
-                    </VWLink>
-                    <ExternalLink size={16} style={{ color: "#667085" }} />
-                  </Box>
+                  <VWLink url={ensureUrlProtocol(data.declarationDocument) || ''} openInNewTab={true}>
+                    {data.declarationDocument}
+                  </VWLink>
                 ) : (
                   <Typography sx={{ color: "#667085", fontSize: "14px" }}>
                     No declaration document linked
@@ -1230,12 +1242,9 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                   EU RECORD URL
                 </Typography>
                 {data.euRecordUrl ? (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <VWLink href={data.euRecordUrl} target="_blank" rel="noopener noreferrer">
-                      {data.euRecordUrl}
-                    </VWLink>
-                    <ExternalLink size={16} style={{ color: "#667085" }} />
-                  </Box>
+                  <VWLink url={ensureUrlProtocol(data.euRecordUrl) || ''} openInNewTab={true}>
+                    {data.euRecordUrl}
+                  </VWLink>
                 ) : (
                   <Typography
                     sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}

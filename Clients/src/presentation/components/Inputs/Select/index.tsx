@@ -152,6 +152,7 @@ const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
+          style: { zIndex: 10001 },
           PaperProps: {
             sx: {
               borderRadius: theme.shape.borderRadius,

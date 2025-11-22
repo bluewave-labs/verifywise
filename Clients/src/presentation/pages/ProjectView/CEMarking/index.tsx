@@ -103,19 +103,11 @@ const formatStatusDisplay = (status: string): string => {
   return statusMap[status] || status;
 };
 
-// Get placeholder text for each step's description
-const getDescriptionPlaceholder = (stepName: string): string => {
-  const placeholders: Record<string, string> = {
-    "Confirm high risk classification": "Describe the methodology and criteria used to classify this AI system as high-risk, including references to relevant Annex III categories and any supporting documentation.",
-    "Complete EU AI Act checklist": "Document the progress of completing all required EU AI Act controls and assessments, noting any outstanding items or blockers that need attention.",
-    "Compile technical documentation file": "Outline the structure and contents of the technical documentation, including system specifications, training data information, risk management measures, and quality management systems.",
-    "Internal review and sign off": "Detail the internal review process, including stakeholders involved, review criteria, findings, and required approvals before proceeding to external assessment.",
-    "Notified body review": "Provide information about the selected notified body, scope of review, timeline, and any specific requirements or documentation they have requested.",
-    "Sign declaration of conformity": "Note the responsible parties for signing, legal requirements, and any pre-signing checks or validations that must be completed.",
-    "Register in EU database": "Record the registration process details, including database URL, registration ID, submission date, and any follow-up requirements or renewal dates.",
-  };
-
-  return placeholders[stepName] || "Provide a detailed description of this conformity assessment step, including objectives, deliverables, and success criteria.";
+// Helper function to get user name from ID
+const getUserNameById = (userId: string | null, users: any[]): string => {
+  if (!userId) return "–";
+  const user = users?.find(u => String(u.id) === String(userId));
+  return user ? user.name : userId; // Fallback to ID if user not found
 };
 
 // Table styles - using the primary theme table styles
@@ -188,7 +180,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { users } = useUsers();
-  const { project } = useProjectData({ projectId });
+  const { project, error: projectError, isLoading: projectLoading } = useProjectData({ projectId });
 
   // Loading and error states
   const [loading, setLoading] = useState(true);
@@ -627,6 +619,17 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     );
   }
 
+  // Handle project error
+  if (projectError) {
+    return (
+      <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <Typography sx={{ fontSize: 14, color: theme.palette.text.secondary }}>
+          {projectError}
+        </Typography>
+      </Box>
+    );
+  }
+
   // Handle null data case (shouldn't happen as backend creates default record)
   if (!data) {
     return (
@@ -969,7 +972,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                           color: theme.palette.text.primary,
                         }}
                       >
-                        {step.owner || "–"}
+                        {getUserNameById(step.owner, users)}
                       </Typography>
                     </TableCell>
                     <TableCell sx={getTableBodyCellStyles()}>
@@ -1366,7 +1369,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
           <Field
             type="description"
             label="Description"
-            placeholder={selectedStep ? getDescriptionPlaceholder(selectedStep.step) : ""}
+            placeholder="Provide a detailed description of this conformity assessment step, including objectives, deliverables, and success criteria."
             value={stepEditForm.description}
             onChange={(e) => setStepEditForm({ ...stepEditForm, description: e.target.value })}
             rows={6}

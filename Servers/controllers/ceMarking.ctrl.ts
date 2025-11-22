@@ -26,6 +26,19 @@ export const getCEMarking = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const tenantId = (req as any).tenantId;
 
+    // Validate that project exists and user has access to it
+    const projectResult = await sequelize.query(
+      `SELECT id FROM "${tenantId}".projects WHERE id = :projectId`,
+      {
+        replacements: { projectId },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    if (!projectResult || projectResult.length === 0) {
+      return res.status(404).json({ error: 'Project not found or you do not have access to it' });
+    }
+
     // Check if CE Marking record exists
     let ceMarkingResult = await sequelize.query(
       `SELECT * FROM "${tenantId}".ce_markings WHERE project_id = :projectId`,
@@ -162,15 +175,25 @@ export const getCEMarking = async (req: Request, res: Response) => {
 
     try {
       // Get the EU AI Act framework ID (projects_frameworks.id) for this project
-      // EU AI Act has framework_id = 1
-      const frameworkResult = await sequelize.query(
-        `SELECT id FROM "${tenantId}".projects_frameworks
-         WHERE project_id = :projectId AND framework_id = 1`,
+      // First, get the framework_id for "EU AI Act"
+      const euAiActFrameworkResult = await sequelize.query(
+        `SELECT id FROM public.frameworks WHERE name = 'EU AI Act'`,
         {
-          replacements: { projectId },
           type: QueryTypes.SELECT
         }
       );
+
+      if (euAiActFrameworkResult.length > 0) {
+        const euAiActFrameworkId = (euAiActFrameworkResult[0] as any).id;
+
+        const frameworkResult = await sequelize.query(
+          `SELECT id FROM "${tenantId}".projects_frameworks
+           WHERE project_id = :projectId AND framework_id = :frameworkId`,
+          {
+            replacements: { projectId, frameworkId: euAiActFrameworkId },
+            type: QueryTypes.SELECT
+          }
+        );
 
       if (frameworkResult.length > 0) {
         const projectFrameworkId = (frameworkResult[0] as any).id;
@@ -190,6 +213,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
         assessmentsTotal = parseInt(totalAssessments) || 0;
         assessmentsCompleted = parseInt(answeredAssessments) || 0;
       }
+      }
     } catch (error) {
       logger.error('Error calculating EU AI Act completion:', error);
       // Continue with zeros if calculation fails
@@ -201,7 +225,6 @@ export const getCEMarking = async (req: Request, res: Response) => {
       isHighRiskAISystem: ceMarking.is_high_risk_ai_system,
       roleInProduct: ceMarking.role_in_product,
       annexIIICategory: ceMarking.annex_iii_category,
-      intendedPurpose: ceMarking.intended_purpose || "",
 
       // EU AI Act completion
       controlsCompleted,
@@ -266,6 +289,21 @@ export const updateCEMarking = async (req: Request, res: Response) => {
     const tenantId = (req as any).tenantId;
     const updates = req.body;
 
+    // Validate that project exists and user has access to it
+    const projectResult = await sequelize.query(
+      `SELECT id FROM "${tenantId}".projects WHERE id = :projectId`,
+      {
+        replacements: { projectId },
+        type: QueryTypes.SELECT,
+        transaction
+      }
+    );
+
+    if (!projectResult || projectResult.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Project not found or you do not have access to it' });
+    }
+
     // Get existing CE Marking record
     const existingResult = await sequelize.query(
       `SELECT * FROM "${tenantId}".ce_markings WHERE project_id = :projectId`,
@@ -293,7 +331,6 @@ export const updateCEMarking = async (req: Request, res: Response) => {
       isHighRiskAISystem: 'is_high_risk_ai_system',
       roleInProduct: 'role_in_product',
       annexIIICategory: 'annex_iii_category',
-      intendedPurpose: 'intended_purpose',
       controlsCompleted: 'controls_completed',
       controlsTotal: 'controls_total',
       assessmentsCompleted: 'assessments_completed',

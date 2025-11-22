@@ -1,4 +1,8 @@
-import { CEMarkingData } from "../../domain/types/ceMarking";
+import {
+  CEMarkingData,
+  ConformityStepsUpdatePayload,
+  LinkedResourcesUpdatePayload
+} from "../../domain/types/ceMarking";
 import CustomAxios from "./customAxios";
 
 const CE_MARKING_API = `/ce-marking`;
@@ -18,7 +22,6 @@ export const ceMarkingService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching CE Marking data:", error);
       throw error;
     }
   },
@@ -37,7 +40,6 @@ export const ceMarkingService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Error updating CE Marking data:", error);
       throw error;
     }
   },
@@ -60,16 +62,15 @@ export const ceMarkingService = {
     try {
       // Backend expects a simple object with the step update fields
       // The controller will handle updating the specific step by ID
-      const updateData = {
+      const updateData: ConformityStepsUpdatePayload = {
         conformitySteps: [{
           id: stepId,
           ...stepData
         }]
-      } as any; // Using 'any' here because backend expects a different format
+      };
 
       return await this.updateCEMarking(projectId, updateData);
     } catch (error) {
-      console.error("Error updating conformity step:", error);
       throw error;
     }
   },
@@ -83,7 +84,6 @@ export const ceMarkingService = {
       isHighRiskAISystem?: boolean;
       roleInProduct?: string;
       annexIIICategory?: string;
-      intendedPurpose?: string;
     }
   ): Promise<CEMarkingData> {
     return await this.updateCEMarking(projectId, data);
@@ -133,7 +133,6 @@ export const ceMarkingService = {
       // Fallback in case the response format is different
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("Error fetching policies:", error);
       throw error;
     }
   },
@@ -147,7 +146,6 @@ export const ceMarkingService = {
       // The files API returns the array directly (not wrapped)
       return Array.isArray(response.data) ? response.data : (response.data?.data || []);
     } catch (error) {
-      console.error("Error fetching evidence:", error);
       throw error;
     }
   },
@@ -159,10 +157,11 @@ export const ceMarkingService = {
     projectId: string,
     policyIds: number[]
   ): Promise<CEMarkingData> {
-    return await this.updateCEMarking(projectId, {
+    const updateData: LinkedResourcesUpdatePayload = {
       linkedPolicies: policyIds,
       policiesLinked: policyIds.length
-    } as any);
+    };
+    return await this.updateCEMarking(projectId, updateData);
   },
 
   /**
@@ -172,10 +171,11 @@ export const ceMarkingService = {
     projectId: string,
     evidenceIds: number[]
   ): Promise<CEMarkingData> {
-    return await this.updateCEMarking(projectId, {
+    const updateData: LinkedResourcesUpdatePayload = {
       linkedEvidences: evidenceIds,
       evidenceLinked: evidenceIds.length
-    } as any);
+    };
+    return await this.updateCEMarking(projectId, updateData);
   },
 
   /**
@@ -191,7 +191,6 @@ export const ceMarkingService = {
       // Fallback in case the response format is different
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("Error fetching incidents:", error);
       throw error;
     }
   },
@@ -203,9 +202,10 @@ export const ceMarkingService = {
     projectId: string,
     incidentIds: number[]
   ): Promise<CEMarkingData> {
-    return await this.updateCEMarking(projectId, {
+    const updateData: LinkedResourcesUpdatePayload = {
       linkedIncidents: incidentIds,
       totalIncidents: incidentIds.length
-    } as any);
+    };
+    return await this.updateCEMarking(projectId, updateData);
   },
 };

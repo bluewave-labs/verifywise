@@ -239,6 +239,19 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const [selectedIncidents, setSelectedIncidents] = useState<number[]>([]);
   const [loadingIncidents, setLoadingIncidents] = useState(false);
 
+  // Confirmation dialog state
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
   // Fetch CE Marking data on mount
   useEffect(() => {
     fetchCEMarkingData();
@@ -280,32 +293,44 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     navigate(`/project-view?projectId=${projectId}&tab=frameworks&framework=eu-ai-act`);
   };
 
-  const handleHighRiskChange = async (event: any) => {
+  const handleHighRiskChange = (event: any) => {
     const newValue = event.target.value === "true";
-    setIsHighRiskAISystem(newValue);
 
-    try {
-      setSaving(true);
-      const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
-        isHighRiskAISystem: newValue,
-      });
-      setData(updatedData);
-      showAlert("High risk classification updated successfully");
-    } catch (error) {
-      showAlert("Failed to update high risk classification", "error");
-      // Revert on error
-      setIsHighRiskAISystem(data?.isHighRiskAISystem || false);
-    } finally {
-      setSaving(false);
-    }
+    // Show confirmation dialog for this critical change
+    setConfirmationDialog({
+      isOpen: true,
+      title: "Confirm Classification Change",
+      message: `Are you sure you want to change the high-risk classification to "${newValue ? "Yes" : "No"}"? This is a critical regulatory determination that affects compliance requirements.`,
+      onConfirm: async () => {
+        setIsHighRiskAISystem(newValue);
+
+        try {
+          setSaving(true);
+          const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
+            isHighRiskAISystem: newValue,
+          });
+          setData(updatedData);
+          showAlert("High risk classification updated successfully");
+        } catch (error) {
+          showAlert("Failed to update high risk classification", "error");
+          // Revert on error
+          setIsHighRiskAISystem(data?.isHighRiskAISystem || false);
+        } finally {
+          setSaving(false);
+          setConfirmationDialog(prev => ({ ...prev, isOpen: false }));
+        }
+      },
+    });
   };
 
   const handleAnnexIIICategoryChange = async (event: any) => {
     const newValue = event.target.value;
+    const previousValue = annexIIICategory;
+
+    // Optimistic update - update UI immediately
     setAnnexIIICategory(newValue);
 
     try {
-      setSaving(true);
       const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
         annexIIICategory: newValue,
       });
@@ -314,18 +339,18 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     } catch (error) {
       showAlert("Failed to update Annex III category", "error");
       // Revert on error
-      setAnnexIIICategory(data?.annexIIICategory || "annex_iii_5");
-    } finally {
-      setSaving(false);
+      setAnnexIIICategory(previousValue);
     }
   };
 
   const handleRoleInProductChange = async (event: any) => {
     const newValue = event.target.value;
+    const previousValue = roleInProduct;
+
+    // Optimistic update - update UI immediately
     setRoleInProduct(newValue);
 
     try {
-      setSaving(true);
       const updatedData = await ceMarkingService.updateClassificationAndScope(projectId, {
         roleInProduct: newValue,
       });
@@ -334,9 +359,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     } catch (error) {
       showAlert("Failed to update role in product", "error");
       // Revert on error
-      setRoleInProduct(data?.roleInProduct || "standalone");
-    } finally {
-      setSaving(false);
+      setRoleInProduct(previousValue);
     }
   };
 
@@ -611,7 +634,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   };
 
   // Show loading spinner while data is being fetched
-  if (loading) {
+  if (loading || projectLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
         <CircularProgress />
@@ -1869,6 +1892,18 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
           </Box>
         )}
       </StandardModal>
+
+      {/* Confirmation Dialog */}
+      <StandardModal
+        isOpen={confirmationDialog.isOpen}
+        onClose={() => setConfirmationDialog(prev => ({ ...prev, isOpen: false }))}
+        title={confirmationDialog.title}
+        description={confirmationDialog.message}
+        onSubmit={confirmationDialog.onConfirm}
+        submitButtonText="Confirm"
+        isSubmitting={false}
+        maxWidth="500px"
+      />
 
     </Box>
   );

@@ -24,7 +24,6 @@ export interface CEMarkingData {
   isHighRiskAISystem: boolean;
   roleInProduct: string;
   annexIIICategory: string;
-  intendedPurpose: string;
 
   // EU AI Act completion
   controlsCompleted: number;
@@ -97,4 +96,27 @@ export interface Incident {
   approval_status: string;
   created_at?: string;
   updated_at?: string;
+}
+
+// Update payload interfaces for API calls
+export interface ConformityStepUpdate {
+  id: number;
+  description?: string;
+  status?: string;
+  owner?: string;
+  dueDate?: string | null;
+  completedDate?: string | null;
+}
+
+export interface ConformityStepsUpdatePayload {
+  conformitySteps: ConformityStepUpdate[];
+}
+
+export interface LinkedResourcesUpdatePayload {
+  linkedPolicies?: number[];
+  policiesLinked?: number;
+  linkedEvidences?: number[];
+  evidenceLinked?: number;
+  linkedIncidents?: number[];
+  totalIncidents?: number;
 }

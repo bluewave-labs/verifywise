@@ -327,7 +327,7 @@ const NISTAIRMFGovern = ({
       </Typography>
       {categories &&
         categories.map((category: any) => (
-          <Stack key={category.id} sx={{ ...styles.container, marginBottom: "16px" }}>
+          <Stack key={category.id} sx={{ ...styles.container, marginBottom: "8px" }}>
             <Accordion
               key={category.id}
               expanded={expanded === category.id}

@@ -90,6 +90,19 @@ export const getSupportedFileTypesString = (): string => {
 export const SUPPORTED_FILE_TYPES_STRING = getSupportedFileTypesString();
 
 /**
+ * Array of accepted file types for file input components
+ * Format compatible with Uploader component
+ */
+export const SUPPORTED_FILE_TYPES = [
+  // Documents
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.md',
+  // Images
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff',
+  // Videos
+  'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv', 'video/webm', 'video/x-matroska'
+];
+
+/**
  * Validates a file against size and type constraints
  *
  * @param {File} file - The file to validate

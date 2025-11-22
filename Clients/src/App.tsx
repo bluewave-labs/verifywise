@@ -59,7 +59,7 @@ function App() {
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { shouldShowOnboarding, completeOnboarding, state } = useOnboarding();
+  const { completeOnboarding, state } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route

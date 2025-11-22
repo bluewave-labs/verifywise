@@ -52,9 +52,6 @@ const AITrustCenterSettings: React.FC = () => {
   const [logoLoadError, setLogoLoadError] = React.useState(false);
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] =
     React.useState(false);
-  const [selectedLogoPreview, setSelectedLogoPreview] = React.useState<
-    string | null
-  >(null);
 
   // Handle logo load error
   const handleLogoError = React.useCallback(() => {
@@ -151,10 +148,7 @@ const AITrustCenterSettings: React.FC = () => {
   // Cleanup function to revoke object URLs when component unmounts
   React.useEffect(() => {
     return () => {
-      if (selectedLogoPreview) {
-        URL.revokeObjectURL(selectedLogoPreview);
-      }
-      // Also revoke the logo URL if it's a Blob URL
+      // Revoke the logo URL if it's a Blob URL
       if (
         formData?.info?.logo_url &&
         formData.info.logo_url.startsWith("blob:")
@@ -162,7 +156,7 @@ const AITrustCenterSettings: React.FC = () => {
         URL.revokeObjectURL(formData.info.logo_url);
       }
     };
-  }, [selectedLogoPreview, formData?.info?.logo_url]);
+  }, [formData?.info?.logo_url]);
 
   // Generic handler for form field changes
   const handleFieldChange = (
@@ -274,13 +268,7 @@ const AITrustCenterSettings: React.FC = () => {
       setOriginalData(updatedFormData);
       setLogoLoadError(false); // Reset error state
 
-      // Clear any preview
-      if (selectedLogoPreview) {
-        URL.revokeObjectURL(selectedLogoPreview);
-        setSelectedLogoPreview(null);
-      }
-
-      // Also revoke the current logo URL if it's a Blob URL
+      // Revoke the current logo URL if it's a Blob URL
       if (
         formData?.info?.logo_url &&
         formData.info.logo_url.startsWith("blob:")
@@ -342,11 +330,6 @@ const AITrustCenterSettings: React.FC = () => {
 
   const handleLogoErrorClose = () => {
     setLogoError(null);
-    // Clear any preview when there's an error
-    if (selectedLogoPreview) {
-      URL.revokeObjectURL(selectedLogoPreview);
-      setSelectedLogoPreview(null);
-    }
   };
 
   // Show loading state while data is being fetched
@@ -431,21 +414,6 @@ const AITrustCenterSettings: React.FC = () => {
               >
                 {logoUploading || logoLoading ? (
                   <CircularProgress size={24} />
-                ) : selectedLogoPreview ? (
-                  <Box
-                    component="img"
-                    src={selectedLogoPreview}
-                    alt="Selected Logo Preview"
-                    onError={handleLogoError}
-                    onLoad={handleLogoLoad}
-                    sx={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                      borderRadius: 1,
-                      display: logoLoadError ? "none" : "block",
-                    }}
-                  />
                 ) : formData?.info?.logo_url && !logoLoadError ? (
                   <Box
                     component="img"

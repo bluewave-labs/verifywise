@@ -110,7 +110,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       icon: "FileText" as const,
     },
     {
-      label: "Evidences",
+      label: "Evidence",
       value: "evidences",
       icon: "FolderOpen" as const,
     },
@@ -460,7 +460,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
                     <Stack>
                       <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-                        Implementation Description:
+                        Implementation description:
                       </Typography>
                       <Field
                         type="description"
@@ -566,7 +566,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
 
                     <Stack>
                       <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-                        Auditor Feedback:
+                        Auditor feedback:
                       </Typography>
                       <Field
                         type="description"
@@ -743,7 +743,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           },
                         }}
                       >
-                        Add Evidence Files
+                        Add evidence files
                       </Button>
                     </Box>
 
@@ -827,7 +827,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           No evidence files uploaded yet
                         </Typography>
                         <Typography variant="caption" color="#9CA3AF">
-                          Click "Add Evidence Files" to upload documentation for
+                          Click "Add evidence files" to upload documentation for
                           this subcategory
                         </Typography>
                       </Box>

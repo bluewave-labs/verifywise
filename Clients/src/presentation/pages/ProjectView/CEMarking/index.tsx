@@ -779,12 +779,12 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     marginBottom: 0.5,
                   }}
                 >
-                  DESCRIPTION
+                  GOAL
                 </Typography>
                 <Typography
                   sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
                 >
-                  {project?.description || "No description provided"}
+                  {project?.goal || "No goal provided"}
                 </Typography>
               </Box>
             </Stack>

@@ -1,5 +1,4 @@
 import React, {
-  useRef,
   useState,
   useEffect,
   useCallback,
@@ -38,6 +37,7 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
 import Avatar from "../../../components/Avatar/VWAvatar";
+import Uploader from "../../../components/Uploader";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -104,9 +104,6 @@ interface AlertState {
   >(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageLoadError, setImageLoadError] = useState(false);
-
-  // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Update initial state reference when data changes
@@ -413,26 +410,9 @@ interface AlertState {
   }, [selectedImagePreview]);
 
   // Handle Image file selection and upload
-  const handleImageChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      // Validate file
-      if (!file.type.startsWith("image/")) {
-        showAlert("error", "Invalid File", "Please select a valid image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showAlert("error", "File Too Large", "File size must be less than 5MB");
-        return;
-      }
-
-      // Create preview
-      const previewUrl = URL.createObjectURL(file);
-      setSelectedImagePreview(previewUrl);
+  // Custom upload handler for Uploader component
+  const handleProfilePhotoUpload = useCallback(
+    async (file: File): Promise<{ url: string; id?: string }> => {
       setImageUploading(true);
 
       try {
@@ -449,28 +429,29 @@ interface AlertState {
             }
             setImageUrl(photoUrl);
             setImageLoadError(false);
-          }
 
-          clearImagePreview();
-          showAlert(
-            "success",
-            "Success",
-            "Profile photo uploaded successfully",
-          );
+            showAlert(
+              "success",
+              "Success",
+              "Profile photo uploaded successfully",
+            );
+
+            return { url: photoUrl };
+          } else {
+            throw new Error("Failed to fetch uploaded photo");
+          }
         } else {
-          showAlert("error", "Error", "Failed to upload profile photo");
+          throw new Error("Failed to upload profile photo");
         }
       } catch (error) {
-        showAlert("error", "Error", "Failed to upload profile photo.");
+        const errorMessage = "Failed to upload profile photo.";
+        showAlert("error", "Error", errorMessage);
+        throw new Error(errorMessage);
       } finally {
         setImageUploading(false);
-        // Reset file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
       }
     },
-    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl],
+    [id, showAlert, fetchProfilePhotoAsBlobUrl, imageUrl],
   );
 
   // Image removal handlers
@@ -774,13 +755,30 @@ interface AlertState {
               </Box>)}
           </Box>
         </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ maxWidth: 400 }}>
+            <Uploader
+              acceptedTypes={['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml']}
+              maxFileSize={5 * 1024 * 1024} // 5MB
+              maxFiles={1}
+              multiple={false}
+              customUploadHandler={handleProfilePhotoUpload}
+              showPreview={false}
+              sx={{
+                minHeight: '80px',
+                '& .MuiPaper-root': {
+                  backgroundColor: imageUploading ? '#f5f5f5' : 'transparent',
+                }
+              }}
+            />
+          </Box>
           <MUIButton
             variant="text"
             sx={{
               fontSize: 12,
               textTransform: "none",
               color: imageUrl ? "#666" : "#ccc",
+              alignSelf: "flex-start",
               "&:hover": {
                 backgroundColor: imageUrl
                   ? "rgba(102, 102, 102, 0.04)"
@@ -800,44 +798,6 @@ interface AlertState {
             ) : (
               "Delete"
             )}
-          </MUIButton>
-          <MUIButton
-            variant="text"
-            component="label"
-            disableRipple
-            sx={{
-              fontSize: 12,
-              textTransform: "none",
-              color: "#13715B",
-              "&:hover": {
-                backgroundColor: "transparent !important",
-              },
-              "&:active": {
-                backgroundColor: "transparent !important",
-              },
-            }}
-            disabled={imageUploading || imageLoading}
-          >
-            {imageUploading ? (
-              <>
-                <CircularProgress size={16} sx={{ mr: 1 }} />
-                Uploading...
-              </>
-            ) : imageLoading ? (
-              <>
-                <CircularProgress size={16} sx={{ mr: 1 }} />
-                Loading...
-              </>
-            ) : (
-              "Update"
-            )}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
-              hidden
-              ref={fileInputRef}
-              onChange={handleImageChange}
-            />
           </MUIButton>
         </Box>
         {/* Profile Image requirements info */}

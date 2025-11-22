@@ -40,7 +40,7 @@ const TabFilterBar = ({
               ...mapToSelectItems(statusOptions),
             ]}
             getOptionValue={(item) => item._id}
-            customRenderValue={(value, selectedItem) => {
+            customRenderValue={(_value, selectedItem) => {
               if (selectedItem) {
                 return `Status: ${selectedItem.name}`;
               }

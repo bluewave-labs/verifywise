@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Box, Stack } from "@mui/material";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useOnboarding } from "../../../application/hooks/useOnboarding";
 import { ONBOARDING_STEPS } from "./onboardingConstants";
 import ProgressDots from "./ProgressDots";
@@ -201,7 +201,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
             boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
             width: "60%",
             maxWidth: "900px",
-            maxHeight: "80vh",
+            maxHeight: "90vh",
             overflow: "auto",
             position: "relative",
           }}
@@ -241,7 +241,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 paddingTop: 0,
               }}
             >
-              <Stack spacing={3}>
+              <Stack spacing={1.5}>
                 <ProgressDots totalSteps={totalSteps} currentStep={currentStepIndex} />
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -276,9 +276,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     )}
                     <CustomizableButton
                       variant="contained"
-                      text={stepProps.isLastStep ? "Finish" : "Next"}
+                      text="Next"
                       onClick={handleNext}
-                      endIcon={stepProps.isLastStep ? <Check size={16} /> : <ArrowRight size={16} />}
+                      endIcon={<ArrowRight size={16} />}
                       sx={{
                         backgroundColor: "#13715B",
                         "&:hover": {

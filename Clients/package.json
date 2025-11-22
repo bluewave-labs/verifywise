@@ -58,6 +58,7 @@
     "@uppy/webcam": "^4.1.1",
     "@uppy/xhr-upload": "^4.2.2",
     "axios": "^1.12.0",
+    "canvas-confetti": "^1.9.4",
     "cmdk": "^1.1.1",
     "dayjs": "^1.11.13",
     "dompurify": "3.3.0",
@@ -89,6 +90,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@svgr/webpack": "^8.1.0",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/debug": "^4.1.12",
     "@types/dompurify": "^3.0.5",
     "@types/ms": "^2.1.0",

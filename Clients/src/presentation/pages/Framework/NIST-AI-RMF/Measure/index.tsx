@@ -309,7 +309,7 @@ const NISTAIRMFMeasure = ({
   }
 
   return (
-    <Stack className="nist-ai-rmf-measure" spacing={2}>
+    <Stack className="nist-ai-rmf-measure" spacing={0}>
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
@@ -327,7 +327,7 @@ const NISTAIRMFMeasure = ({
       </Typography>
       {categories &&
         categories.map((category: any) => (
-          <Stack key={category.id} sx={{ ...styles.container, mb: "16px" }}>
+          <Stack key={category.id} sx={{ ...styles.container, marginBottom: "16px" }}>
             <Accordion
               key={category.id}
               expanded={expanded === category.id}

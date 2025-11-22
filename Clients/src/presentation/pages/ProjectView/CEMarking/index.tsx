@@ -18,7 +18,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
-import { Info as GreyCircleInfoIcon } from "lucide-react";
+import { Info as GreyCircleInfoIcon, ExternalLink } from "lucide-react";
 import { cardStyles } from "../../../themes";
 import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
 import VWLink from "../../../components/Link/VWLink";
@@ -107,7 +107,7 @@ const formatStatusDisplay = (status: string): string => {
 const getUserNameById = (userId: string | null, users: any[]): string => {
   if (!userId) return "–";
   const user = users?.find(u => String(u.id) === String(userId));
-  return user ? user.name : userId; // Fallback to ID if user not found
+  return user ? `${user.name} ${user.surname}` : userId; // Fallback to ID if user not found
 };
 
 // Table styles - using the primary theme table styles
@@ -1107,11 +1107,20 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     marginBottom: 0.5,
                   }}
                 >
-                  DECLARATION DOCUMENT
+                  DECLARATION DOCUMENT LINK
                 </Typography>
-                <Typography sx={{ color: "#667085", fontSize: "14px" }}>
-                  {data.declarationDocument || "No declaration document linked"}
-                </Typography>
+                {data.declarationDocument ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <VWLink href={data.declarationDocument} target="_blank" rel="noopener noreferrer">
+                      {data.declarationDocument}
+                    </VWLink>
+                    <ExternalLink size={16} style={{ color: "#667085" }} />
+                  </Box>
+                ) : (
+                  <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                    No declaration document linked
+                  </Typography>
+                )}
               </Box>
 
               <Box sx={{ marginTop: "8px" }}>
@@ -1220,11 +1229,20 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 >
                   EU RECORD URL
                 </Typography>
-                <Typography
-                  sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
-                >
-                  {data.euRecordUrl || "–"}
-                </Typography>
+                {data.euRecordUrl ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <VWLink href={data.euRecordUrl} target="_blank" rel="noopener noreferrer">
+                      {data.euRecordUrl}
+                    </VWLink>
+                    <ExternalLink size={16} style={{ color: "#667085" }} />
+                  </Box>
+                ) : (
+                  <Typography
+                    sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
+                  >
+                    –
+                  </Typography>
+                )}
               </Box>
 
               <Box sx={{ marginTop: "8px" }}>
@@ -1349,25 +1367,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                 </Typography>
               </Box>
 
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    fontWeight: 400,
-                    color: theme.palette.text.tertiary,
-                    textTransform: "uppercase",
-                    marginBottom: 0.5,
-                  }}
-                >
-                  LAST INCIDENT
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 14, fontWeight: 400, color: theme.palette.text.primary }}
-                >
-                  {data.lastIncident || "No incidents"}
-                </Typography>
-              </Box>
-
               <VWLink onClick={handleOpenIncidentsModal}>
                 View incidents for this use case
               </VWLink>
@@ -1420,7 +1419,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
               <Select
                 id="conformity-step-owner"
                 label="Owner"
-                items={users?.map(user => ({ _id: String(user.id), name: user.name })) || []}
+                items={users?.map(user => ({ _id: String(user.id), name: `${user.name} ${user.surname}` })) || []}
                 value={stepEditForm.owner}
                 onChange={(e) =>
                   setStepEditForm({ ...stepEditForm, owner: String(e.target.value) })
@@ -1898,12 +1897,16 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
         isOpen={confirmationDialog.isOpen}
         onClose={() => setConfirmationDialog(prev => ({ ...prev, isOpen: false }))}
         title={confirmationDialog.title}
-        description={confirmationDialog.message}
+        description=""
         onSubmit={confirmationDialog.onConfirm}
         submitButtonText="Confirm"
         isSubmitting={false}
         maxWidth="500px"
-      />
+      >
+        <Typography sx={{ fontSize: 14, color: theme.palette.text.primary, lineHeight: 1.6 }}>
+          {confirmationDialog.message}
+        </Typography>
+      </StandardModal>
 
     </Box>
   );

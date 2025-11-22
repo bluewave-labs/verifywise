@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useRef } from "react";
+import React from "react";
 import {
   Box,
   Stack,
@@ -15,6 +15,7 @@ import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import Uploader from "../../../components/Uploader";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -54,7 +55,6 @@ const AITrustCenterSettings: React.FC = () => {
   const [selectedLogoPreview, setSelectedLogoPreview] = React.useState<
     string | null
   >(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle logo load error
   const handleLogoError = React.useCallback(() => {
@@ -182,102 +182,68 @@ const AITrustCenterSettings: React.FC = () => {
     });
   };
 
-  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type first
-      if (!file.type.startsWith("image/")) {
-        setLogoError("Please select a valid image file");
-        return;
-      }
+  // Custom upload handler for Uploader component
+  const handleLogoUpload = async (file: File): Promise<{ url: string; id?: string }> => {
+    setLogoError(null);
+    setLogoUploading(true);
 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setLogoError("File size must be less than 5MB");
-        return;
-      }
+    try {
+      const response = await uploadAITrustCentreLogo(file);
 
-      // Create preview URL for the selected file
-      const previewUrl = URL.createObjectURL(file);
-      setSelectedLogoPreview(previewUrl);
-      setLogoError(null);
+      // Update the form data with the new logo URL if provided in response
+      if (response?.data?.logo) {
+        // Get tenant ID from JWT token
+        const authToken = getAuthToken();
+        const tokenData = extractUserToken(authToken);
+        const tenantId = tokenData?.tenantId;
 
-      // Upload the file
-      setLogoUploading(true);
+        if (tenantId) {
+          // Clear any existing logo URL before setting new one
+          if (
+            formData?.info?.logo_url &&
+            formData.info.logo_url.startsWith("blob:")
+          ) {
+            URL.revokeObjectURL(formData.info.logo_url);
+          }
 
-      try {
-        const response = await uploadAITrustCentreLogo(file);
+          // Add a small delay to ensure the upload is processed
+          await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Update the form data with the new logo URL if provided in response
-        if (response?.data?.logo) {
-          // Get tenant ID from JWT token
-          const authToken = getAuthToken();
-          const tokenData = extractUserToken(authToken);
-          const tenantId = tokenData?.tenantId;
+          // Fetch the logo and convert to Blob URL
+          const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
 
-          if (tenantId) {
-            // Clear any existing logo URL before setting new one
-            if (
-              formData?.info?.logo_url &&
-              formData.info.logo_url.startsWith("blob:")
-            ) {
-              URL.revokeObjectURL(formData.info.logo_url);
-            }
+          if (logoBlobUrl) {
+            const updatedFormData = {
+              ...formData,
+              info: {
+                ...formData?.info,
+                logo_url: logoBlobUrl,
+              },
+            };
+            setLogoLoadError(false); // Reset error state
+            setFormData(updatedFormData);
+            setOriginalData(updatedFormData);
 
-            // Add a small delay to ensure the upload is processed
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            // Show success message
+            setLogoUploadSuccess(response.data.message || "Company logo uploaded successfully");
 
-            // Fetch the logo and convert to Blob URL
-            const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
-
-            if (logoBlobUrl) {
-              const updatedFormData = {
-                ...formData,
-                info: {
-                  ...formData?.info,
-                  logo_url: logoBlobUrl,
-                },
-              };
-              setLogoLoadError(false); // Reset error state
-              setFormData(updatedFormData);
-              setOriginalData(updatedFormData);
-            } else {
-              setLogoError("Failed to load uploaded logo. Please try again.");
-            }
+            return { url: logoBlobUrl };
           } else {
-            console.error("Could not extract tenant ID from token");
-            setLogoError("Failed to get tenant information");
+            throw new Error("Failed to load uploaded logo. Please try again.");
           }
         } else {
-          }
-
-        // Clear the preview since we now have the uploaded URL
-        if (selectedLogoPreview) {
-          URL.revokeObjectURL(selectedLogoPreview);
+          throw new Error("Failed to get tenant information");
         }
-        setSelectedLogoPreview(null);
-
-        // Show success message from API response
-        if (response?.data?.message) {
-          setLogoUploadSuccess(response.data.message);
-        } else {
-          setLogoUploadSuccess("Company logo uploaded successfully");
-        }
-      } catch (error: any) {
-        console.error("Error uploading logo:", error);
-        setLogoError(error.message || "Failed to upload logo");
-        // Clear the preview on error
-        if (selectedLogoPreview) {
-          URL.revokeObjectURL(selectedLogoPreview);
-        }
-        setSelectedLogoPreview(null);
-      } finally {
-        setLogoUploading(false);
-        // Clear the file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+      } else {
+        throw new Error("Upload response missing logo data");
       }
+    } catch (error: any) {
+      console.error("Error uploading logo:", error);
+      const errorMessage = error.message || "Failed to upload logo";
+      setLogoError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -528,34 +494,23 @@ const AITrustCenterSettings: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <MUIButton
-                  variant="outlined"
-                  component="label"
-                  sx={styles.replaceButton}
-                  disabled={logoUploading || logoLoading}
-                >
-                  {logoUploading ? (
-                    <>
-                      <CircularProgress size={16} sx={{ mr: 1 }} />
-                      Uploading...
-                    </>
-                  ) : logoLoading ? (
-                    <>
-                      <CircularProgress size={16} sx={{ mr: 1 }} />
-                      Loading...
-                    </>
-                  ) : (
-                    "Replace"
-                  )}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
-                    hidden
-                    ref={fileInputRef}
-                    onChange={handleLogoChange}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ maxWidth: 400 }}>
+                  <Uploader
+                    acceptedTypes={['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml']}
+                    maxFileSize={5 * 1024 * 1024} // 5MB
+                    maxFiles={1}
+                    multiple={false}
+                    customUploadHandler={handleLogoUpload}
+                    showPreview={false}
+                    sx={{
+                      minHeight: '80px',
+                      '& .MuiPaper-root': {
+                        backgroundColor: logoUploading ? '#f5f5f5' : 'transparent',
+                      }
+                    }}
                   />
-                </MUIButton>
+                </Box>
                 <MUIButton
                   variant="outlined"
                   sx={styles.removeButton}

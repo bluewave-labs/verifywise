@@ -53,20 +53,31 @@ const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) =>
 };
 
 function App() {
+  const location = useLocation();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { shouldShowOnboarding, completeOnboarding } = useOnboarding();
+  const { shouldShowOnboarding, completeOnboarding, state } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
-  // Initialize modal visibility based on onboarding state
+  // List of routes where onboarding should NOT be shown
+  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/set-new-password', '/reset-password-continue', '/admin-reg', '/user-reg'];
+  const isAuthRoute = authRoutes.includes(location.pathname);
+
+  // Update modal visibility based on onboarding state and current route
   useEffect(() => {
-    if (token && userId && shouldShowOnboarding()) {
+    // Only show modal if:
+    // 1. User is authenticated (has token and userId)
+    // 2. Onboarding is not complete
+    // 3. Not on an authentication page
+    if (token && userId && !state.isComplete && !isAuthRoute) {
       setShowModal(true);
+    } else {
+      setShowModal(false);
     }
-  }, [token, userId, shouldShowOnboarding]);
+  }, [token, userId, state.isComplete, isAuthRoute]);
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();

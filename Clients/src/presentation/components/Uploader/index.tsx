@@ -66,6 +66,8 @@ export interface UploaderProps {
   uploadUrl?: string;
   /** Additional headers for upload request */
   uploadHeaders?: Record<string, string>;
+  /** Custom upload handler function - if provided, uses this instead of XHR upload */
+  customUploadHandler?: (file: File) => Promise<{ url: string; id?: string }>;
 }
 
 // Default file type configurations
@@ -148,6 +150,7 @@ const Uploader: React.FC<UploaderProps> = ({
   showPreview = true,
   uploadUrl = '/api/upload',
   uploadHeaders = {},
+  customUploadHandler,
 }) => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -303,13 +306,32 @@ const Uploader: React.FC<UploaderProps> = ({
     }
   }, [files, maxFiles, maxFileSize, acceptedTypes]);
 
-  // Upload file simulation
+  // Upload file
   const uploadFile = useCallback(async (uploadFile: UploadFile) => {
     try {
+      // Use custom upload handler if provided
+      if (customUploadHandler) {
+        // Set progress to 50% when starting upload
+        setFiles(prev => prev.map(f =>
+          f.id === uploadFile.id ? { ...f, progress: 50 } : f
+        ));
+
+        const result = await customUploadHandler(uploadFile.file);
+
+        setFiles(prev => prev.map(f =>
+          f.id === uploadFile.id
+            ? { ...f, status: 'completed', progress: 100, url: result.url }
+            : f
+        ));
+
+        onUploadProgress?.(uploadFile, 100);
+        return;
+      }
+
+      // Default XHR upload with progress tracking
       const formData = new FormData();
       formData.append('file', uploadFile.file);
 
-      // Create XMLHttpRequest for progress tracking
       const xhr = new XMLHttpRequest();
 
       xhr.upload.addEventListener('progress', (e) => {
@@ -377,7 +399,7 @@ const Uploader: React.FC<UploaderProps> = ({
       ));
       onUploadError?.(uploadFile, errorMessage);
     }
-  }, [uploadUrl, uploadHeaders, onUploadProgress, onUploadError]);
+  }, [uploadUrl, uploadHeaders, onUploadProgress, onUploadError, customUploadHandler]);
 
   // Handle file actions
   const handleDeleteFile = useCallback((file: UploadFile) => {

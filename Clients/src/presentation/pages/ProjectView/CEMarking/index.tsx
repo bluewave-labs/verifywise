@@ -18,7 +18,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
-import { Info as GreyCircleInfoIcon, ExternalLink } from "lucide-react";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { cardStyles } from "../../../themes";
 import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
 import VWLink from "../../../components/Link/VWLink";

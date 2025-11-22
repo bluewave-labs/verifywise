@@ -62,22 +62,21 @@ function App() {
   const { shouldShowOnboarding, completeOnboarding, state } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
-  // List of routes where onboarding should NOT be shown
-  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/set-new-password', '/reset-password-continue', '/admin-reg', '/user-reg'];
-  const isAuthRoute = authRoutes.includes(location.pathname);
+  // Onboarding should ONLY show on the dashboard (/) route
+  const isDashboardRoute = location.pathname === '/';
 
   // Update modal visibility based on onboarding state and current route
   useEffect(() => {
     // Only show modal if:
     // 1. User is authenticated (has token and userId)
-    // 2. Onboarding is not complete
-    // 3. Not on an authentication page
-    if (token && userId && !state.isComplete && !isAuthRoute) {
+    // 2. Onboarding is not complete (first login)
+    // 3. Currently on dashboard route (/)
+    if (token && userId && !state.isComplete && isDashboardRoute) {
       setShowModal(true);
     } else {
       setShowModal(false);
     }
-  }, [token, userId, state.isComplete, isAuthRoute]);
+  }, [token, userId, state.isComplete, isDashboardRoute]);
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();

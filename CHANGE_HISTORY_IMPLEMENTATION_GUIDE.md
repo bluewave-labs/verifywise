@@ -494,7 +494,8 @@ The change history system gracefully handles deleted users:
 ### **Migration:**
 For existing `model_inventory_change_history` table, run:
 ```bash
-npm run migrate:up
+cd Servers
+npm run migrate-db
 ```
 
 This applies the migration that:
@@ -507,6 +508,34 @@ This applies the migration that:
 ✅ Allows user cleanup/GDPR compliance
 ✅ No data loss when users are removed
 ✅ Clear indication in UI when user no longer exists
+
+---
+
+## What Happens When Data Is Removed?
+
+### **Entity Deletion:**
+When an entity (e.g., a model, vendor) is deleted:
+- **Behavior:** `ON DELETE CASCADE` on the entity foreign key
+- **Result:** ALL change history for that entity is **deleted**
+- **Reasoning:** History without the entity is meaningless
+
+**If you need permanent audit trail:**
+- Implement soft deletes on your entities (add `deleted_at` field)
+- Don't hard delete entities, just mark them as deleted
+- History will be preserved
+
+### **User Deletion:**
+When a user is deleted:
+- **Behavior:** `ON DELETE SET NULL` on `changed_by_user_id`
+- **Result:** User ID becomes `NULL`, history preserved
+- **UI Display:** Shows "Deleted User"
+
+### **Field Changes:**
+- **Field removed from tracking:** Old history entries remain, just no new entries created
+- **Field renamed:** Old and new field names both appear in history (shows schema evolution)
+- **Field values:** Stored as formatted text snapshots, not foreign keys
+  - Example: "John Doe" stored, not user ID 123
+  - Preserved even if referenced data is deleted
 
 ---
 

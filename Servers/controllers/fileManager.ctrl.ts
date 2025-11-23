@@ -379,8 +379,10 @@ export const downloadFile = async (
       }
     }
 
-    // Log file access
-    await logFileAccess(fileId, userId, orgId, "download", tenant);
+    // Log file access (only for file manager files)
+    if (isFileManagerFile) {
+      await logFileAccess(fileId, userId, orgId, "download", tenant);
+    }
 
     // Check if file content exists in database
     if (!file.content) {

@@ -410,7 +410,10 @@ export const downloadFile = async (
       "Content-Disposition",
       `attachment; filename="${file.filename}"`
     );
-    res.setHeader("Content-Length", file.size);
+
+    // Set Content-Length - file_manager has size field, files table doesn't
+    const contentLength = file.size || (file.content ? file.content.length : 0);
+    res.setHeader("Content-Length", contentLength);
 
     // Send file content from database
     res.send(file.content);

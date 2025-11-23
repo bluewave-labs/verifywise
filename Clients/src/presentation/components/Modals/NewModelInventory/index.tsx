@@ -1376,6 +1376,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                      display: "flex",
                                      flexDirection: "column",
                                  }}
+                                 onWheel={(e) => {
+                                     // Prevent scroll events from bubbling to background when within modal content
+                                     e.stopPropagation();
+                                 }}
                              >
                                  {/* TAB CONTENT */}
                                  {activeTab === "details" && modelDetailsSection}

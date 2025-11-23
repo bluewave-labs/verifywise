@@ -43,7 +43,7 @@ export async function createShareLink(body: CreateShareLinkParams): Promise<any>
 
 /**
  * Get all share links for a specific resource
- * GET /api/:resourceType/:resourceId/shares
+ * GET /api/shares/:resourceType/:resourceId
  *
  * @param {string} resourceType - Type of resource (e.g., 'model', 'policy')
  * @param {number} resourceId - ID of the resource
@@ -54,7 +54,7 @@ export async function getShareLinksForResource(
   resourceType: string,
   resourceId: number
 ): Promise<any> {
-  const response = await apiServices.get(`/shares/${resourceType}/${resourceId}/shares`);
+  const response = await apiServices.get(`/shares/${resourceType}/${resourceId}`);
   return response;
 }
 

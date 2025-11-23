@@ -3,11 +3,7 @@ import {
   Box,
   Popover,
   Typography,
-  Switch,
-  TextField,
   IconButton,
-  Checkbox,
-  FormControlLabel,
   Tooltip,
 } from "@mui/material";
 import {
@@ -17,6 +13,10 @@ import {
   Link as LinkIcon,
   HelpCircle,
 } from "lucide-react";
+import Toggle from "../Inputs/Toggle";
+import Checkbox from "../Inputs/Checkbox";
+import Field from "../Inputs/Field";
+import ManageShareLinks from "./ManageShareLinks";
 
 /**
  * Configuration for share view settings
@@ -222,17 +222,9 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                 website
               </Typography>
             </Box>
-            <Switch
+            <Toggle
               checked={isEnabled}
               onChange={handleToggleEnabled}
-              sx={{
-                "& .MuiSwitch-switchBase.Mui-checked": {
-                  color: "#13715B",
-                },
-                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                  backgroundColor: "#13715B",
-                },
-              }}
             />
           </Box>
         </Box>
@@ -280,18 +272,20 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     />
                   </Box>
                 </Tooltip>
-                <TextField
+                <Field
                   value={shareableLink || "Generating link..."}
-                  fullWidth
-                  variant="standard"
-                  InputProps={{
-                    disableUnderline: true,
-                    readOnly: true,
-                    sx: {
+                  disabled={true}
+                  sx={{
+                    flex: 1,
+                    "& .MuiInputBase-root": {
+                      backgroundColor: "transparent",
                       fontSize: "13px",
-                      color: "#666",
                       "& input": {
                         cursor: "default",
+                        padding: "0",
+                      },
+                      "&:before, &:after": {
+                        display: "none",
                       },
                     },
                   }}
@@ -374,6 +368,24 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                 />
               </Box>
             </Box>
+
+            {/* Existing Share Links Section */}
+            {modelId && (
+              <>
+                <Box
+                  sx={{
+                    borderTop: "1px solid #e0e0e0",
+                    mt: 2,
+                  }}
+                />
+                <ManageShareLinks
+                  resourceType="model"
+                  resourceId={typeof modelId === 'number' ? modelId : parseInt(String(modelId))}
+                  onCopyLink={onCopyLink}
+                  onOpenLink={onOpenLink}
+                />
+              </>
+            )}
           </>
         )}
       </Box>
@@ -405,31 +417,20 @@ const SettingItem: React.FC<SettingItemProps> = ({
         justifyContent: "space-between",
       }}
     >
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={checked}
-            onChange={onChange}
-            sx={{
-              color: "#d1d5db",
-              "&.Mui-checked": {
-                color: "#13715B",
-              },
-            }}
-          />
-        }
-        label={
-          <Typography
-            sx={{
-              fontSize: "13px",
-              color: "#374151",
-            }}
-          >
-            {label}
-          </Typography>
-        }
-        sx={{ flexGrow: 1, mr: 1 }}
-      />
+      <Box sx={{ flexGrow: 1, mr: 1 }}>
+        <Checkbox
+          id={`setting-${label.replace(/\s+/g, '-').toLowerCase()}`}
+          label={label}
+          isChecked={checked}
+          value={label}
+          onChange={onChange}
+          sx={{
+            "& svg": {
+              color: checked ? "#13715B" : "#d1d5db",
+            },
+          }}
+        />
+      </Box>
       <Tooltip title={helpText} arrow placement="left">
         <Box
           sx={{

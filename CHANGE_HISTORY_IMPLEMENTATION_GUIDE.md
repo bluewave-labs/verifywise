@@ -387,9 +387,11 @@ In your vendor modal component (e.g., `/Clients/src/presentation/components/Moda
 ```typescript
 import HistorySidebar from "../../Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../../application/hooks/useEntityChangeHistory";
+import { useQueryClient } from "@tanstack/react-query";
 import { History as HistoryIcon } from "lucide-react";
 
 // Inside your component:
+const queryClient = useQueryClient();
 const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
 
 // Prefetch history data when modal opens (optional but recommended)
@@ -397,6 +399,15 @@ useEntityChangeHistory(
   isOpen && isEdit ? "vendor" : undefined,
   isOpen && isEdit ? selectedVendorId : undefined
 );
+
+// IMPORTANT: Invalidate cache when modal closes to ensure fresh data on reopen
+const handleClose = () => {
+  setIsOpen(false);
+  // Invalidate change history cache when modal closes
+  queryClient.invalidateQueries({
+    queryKey: ["changeHistory", "vendor", selectedVendorId]
+  });
+};
 
 // Add history button to modal header
 <IconButton
@@ -425,6 +436,12 @@ useEntityChangeHistory(
   )}
 </Stack>
 ```
+
+**Why cache invalidation is important:**
+- React Query caches history data for 30 seconds
+- Without invalidation, reopening the modal shows stale cached data
+- Invalidating on close ensures fresh data is fetched when the modal reopens
+- This shows updates made in the previous session
 
 ---
 
@@ -493,6 +510,11 @@ See the Model Inventory implementation as a reference:
 - Check if content actually overflows the container
 - Verify `scrollContainerRef` is attached to scroll container
 - Check `showFade` state is being updated correctly
+
+**Issue**: Updated fields don't show in history after closing/reopening modal
+- You forgot to invalidate the cache in `handleClose`
+- Add `queryClient.invalidateQueries({ queryKey: ["changeHistory", entityType, entityId] })`
+- See Step 8 for the complete pattern
 
 ---
 

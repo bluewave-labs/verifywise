@@ -306,3 +306,74 @@ export const recordModelInventoryDeletion = async (
     transaction
   );
 };
+
+/**
+ * Record evidence being added to a model
+ */
+export const recordEvidenceAddedToModel = async (
+  modelInventoryId: number,
+  changedByUserId: number,
+  tenant: string,
+  evidenceName: string,
+  evidenceType: string,
+  transaction?: Transaction
+): Promise<void> => {
+  await recordModelInventoryChange(
+    modelInventoryId,
+    "updated",
+    changedByUserId,
+    tenant,
+    "Evidence Added",
+    "-",
+    `${evidenceName} (${evidenceType})`,
+    transaction
+  );
+};
+
+/**
+ * Record evidence being removed from a model
+ */
+export const recordEvidenceRemovedFromModel = async (
+  modelInventoryId: number,
+  changedByUserId: number,
+  tenant: string,
+  evidenceName: string,
+  evidenceType: string,
+  transaction?: Transaction
+): Promise<void> => {
+  await recordModelInventoryChange(
+    modelInventoryId,
+    "updated",
+    changedByUserId,
+    tenant,
+    "Evidence Removed",
+    `${evidenceName} (${evidenceType})`,
+    "-",
+    transaction
+  );
+};
+
+/**
+ * Record evidence field changes for a specific model
+ */
+export const recordEvidenceFieldChangeForModel = async (
+  modelInventoryId: number,
+  changedByUserId: number,
+  tenant: string,
+  evidenceName: string,
+  fieldName: string,
+  oldValue: string,
+  newValue: string,
+  transaction?: Transaction
+): Promise<void> => {
+  await recordModelInventoryChange(
+    modelInventoryId,
+    "updated",
+    changedByUserId,
+    tenant,
+    `Evidence: ${evidenceName} - ${fieldName}`,
+    oldValue,
+    newValue,
+    transaction
+  );
+};

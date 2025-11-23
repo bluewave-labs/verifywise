@@ -10,6 +10,10 @@ import { getAllUsers } from "../../../application/repository/user.repository";
 import { IProjectListProps } from "../../../domain/interfaces/i.project";
 import { IProjectFilterState } from "../../../domain/interfaces/i.project.filter";
 import { SearchBox } from "../Search";
+import { GroupBy } from "../Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../Table/GroupedTableView";
+import { Project } from "../../../domain/types/Project";
 
 import {
   projectWrapperStyle,
@@ -30,6 +34,9 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     status: "all",
   });
   const [users, setUsers] = useState<any[]>([]);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -103,6 +110,33 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     return result;
   }, [projects, searchTerm, filters]);
 
+  // Define how to get the group key for each project/use case
+  const getProjectGroupKey = (project: Project, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_level':
+        return project.ai_risk_classification || 'Unknown';
+      case 'role':
+        return project.type_of_high_risk_role ? project.type_of_high_risk_role.replace(/_/g, " ") : 'Unknown';
+      case 'owner':
+        if (project.owner) {
+          return getUserNameById(project.owner.toString());
+        }
+        return 'Unassigned';
+      case 'status':
+        return project.status || 'Unknown';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered projects (only for table view)
+  const groupedProjects = useTableGrouping({
+    data: filteredProjects,
+    groupByField: viewMode === 'table' ? groupBy : null,
+    sortOrder: groupSortOrder,
+    getGroupKey: getProjectGroupKey,
+  });
+
   const handleFilterChange = (key: keyof IProjectFilterState, value: string) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
@@ -132,7 +166,18 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     }
 
     if (viewMode === "table") {
-      return <ProjectTableView projects={filteredProjects} />;
+      return (
+        <GroupedTableView
+          groupedData={groupedProjects}
+          ungroupedData={filteredProjects}
+          renderTable={(data, options) => (
+            <ProjectTableView
+              projects={data}
+              hidePagination={options?.hidePagination}
+            />
+          )}
+        />
+      );
     }
 
     if (filteredProjects.length <= 3) {
@@ -254,6 +299,18 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                   inputProps={{ "aria-label": "Search use cases" }}
                 />
               </Box>
+
+              {viewMode === 'table' && (
+                <GroupBy
+                  options={[
+                    { id: 'risk_level', label: 'Risk level' },
+                    { id: 'role', label: 'Role' },
+                    { id: 'owner', label: 'Owner' },
+                    { id: 'status', label: 'Status' },
+                  ]}
+                  onGroupChange={handleGroupChange}
+                />
+              )}
             </>
           )}
         </Box>

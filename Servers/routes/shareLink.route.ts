@@ -6,12 +6,14 @@ import {
   createShareLink,
   getShareLinksForResource,
   getShareLinkByToken,
+  getSharedDataByToken,
   updateShareLink,
   deleteShareLink,
 } from "../controllers/shareLink.ctrl";
 
-// Public endpoint - no authentication required
+// Public endpoints - no authentication required
 router.get("/token/:token", getShareLinkByToken);
+router.get("/view/:token", getSharedDataByToken);
 
 // Protected endpoints - require authentication
 router.post("/", authenticateJWT, createShareLink);

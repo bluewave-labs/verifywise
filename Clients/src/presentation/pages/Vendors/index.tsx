@@ -50,6 +50,7 @@ import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -464,6 +465,33 @@ const Vendors = () => {
     return filtered;
   }, [vendors, searchQuery, statusFilter]);
 
+  // Define export columns for vendor table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'vendor_name', label: 'Name' },
+      { id: 'assignee', label: 'Assignee' },
+      { id: 'review_status', label: 'Status' },
+      { id: 'scorecard', label: 'Scorecard' },
+      { id: 'review_date', label: 'Review Date' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredVendors.map((vendor: VendorModel) => {
+      const assigneeUser = users.find((user) => user.id === vendor.assignee);
+      const assigneeName = assigneeUser ? `${assigneeUser.name} ${assigneeUser.surname}` : 'Unassigned';
+
+      return {
+        vendor_name: vendor.vendor_name,
+        assignee: assigneeName,
+        review_status: vendor.review_status || 'Not started',
+        scorecard: vendor.scorecard?.toString() || 'N/A',
+        review_date: vendor.review_date || 'N/A',
+      };
+    });
+  }, [filteredVendors, users]);
+
   return (
     <Stack className="vwhome" gap={0}>
       <PageBreadcrumbs />
@@ -641,23 +669,31 @@ const Vendors = () => {
                       }}
                     />
                   </Stack>
-                  <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                    <CustomizableButton
-                      variant="contained"
-                      text="Add new vendor"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        gap: 2,
-                      }}
-                      icon={<AddCircleOutlineIcon size={16} />}
-                      onClick={() => {
-                        openAddNewVendor();
-                        setSelectedVendor(null);
-                      }}
-                      isDisabled={isCreatingDisabled}
+                  <Stack direction="row" gap={1} alignItems="center">
+                    <ExportMenu
+                      data={exportData}
+                      columns={exportColumns}
+                      filename="vendors"
+                      title="Vendor List"
                     />
-                  </div>
+                    <div data-joyride-id="add-new-vendor" ref={refs[0]}>
+                      <CustomizableButton
+                        variant="contained"
+                        text="Add new vendor"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 2,
+                        }}
+                        icon={<AddCircleOutlineIcon size={16} />}
+                        onClick={() => {
+                          openAddNewVendor();
+                          setSelectedVendor(null);
+                        }}
+                        isDisabled={isCreatingDisabled}
+                      />
+                    </div>
+                  </Stack>
                 </Stack>
               </Stack>
             )

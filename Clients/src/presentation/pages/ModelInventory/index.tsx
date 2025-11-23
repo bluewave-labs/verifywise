@@ -893,24 +893,36 @@ const ModelInventory: React.FC = () => {
 
   const evidenceHubExportData = useMemo(() => {
     return filteredEvidenceHub.map((evidence: EvidenceHubModel) => {
-      const uploaderUser = users.find((user: any) => user.id === evidence.uploaded_by);
+      // Get uploader from first evidence file
+      const uploadedById = evidence.evidence_files?.[0]?.uploaded_by;
+      const uploaderUser = users.find((user: any) => user.id === uploadedById);
       const uploaderName = uploaderUser ? `${uploaderUser.name} ${uploaderUser.surname}` : '-';
 
-      const mappedModelNames = evidence.mapped_models
+      // Get upload date from first evidence file
+      const uploadDate = evidence.evidence_files?.[0]?.upload_date;
+      const formattedUploadDate = uploadDate ? new Date(uploadDate).toISOString().split('T')[0] : '-';
+
+      // Get mapped model names from mapped_model_ids
+      const mappedModelNames = evidence.mapped_model_ids
         ?.map((modelId: number) => {
           const model = modelInventoryData.find((m) => m.id === modelId);
-          return model ? model.model : null;
+          return model ? `${model.provider} - ${model.model}` : null;
         })
         .filter(Boolean)
         .join(', ') || '-';
+
+      // Format expiry date
+      const formattedExpiryDate = evidence.expiry_date
+        ? new Date(evidence.expiry_date).toISOString().split('T')[0]
+        : '-';
 
       return {
         evidence_name: evidence.evidence_name || '-',
         evidence_type: evidence.evidence_type || '-',
         mapped_models: mappedModelNames,
         uploaded_by: uploaderName,
-        uploaded_on: evidence.uploaded_on || '-',
-        expiry_date: evidence.expiry_date || '-',
+        uploaded_on: formattedUploadDate,
+        expiry_date: formattedExpiryDate,
       };
     });
   }, [filteredEvidenceHub, users, modelInventoryData]);

@@ -131,7 +131,7 @@ try {
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
-  app.use("/api/modelInventoryChangeHistory", modelInventoryChangeHistoryRoutes);
+  app.use("/api/model-inventory-change-history", modelInventoryChangeHistoryRoutes);
   app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);

@@ -16,7 +16,7 @@ export interface IModelInventoryChangeHistory {
   field_name?: string;
   old_value?: string;
   new_value?: string;
-  changed_by_user_id: number;
+  changed_by_user_id?: number | null; // Allow NULL for deleted users
   changed_at?: Date;
   created_at?: Date;
 }
@@ -72,9 +72,9 @@ export class ModelInventoryChangeHistoryModel
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true, // Allow NULL when user is deleted
   })
-  changed_by_user_id!: number;
+  changed_by_user_id?: number | null;
 
   @BelongsTo(() => UserModel)
   changed_by_user?: UserModel;

@@ -175,11 +175,15 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     if (!creationEntry) return null;
 
     const isCurrentUser = creationEntry.changed_by_user_id === currentUserId;
-    const creatorName = isCurrentUser
+
+    // Handle deleted users (changed_by_user_id is NULL)
+    const creatorName = !creationEntry.changed_by_user_id
+      ? "a deleted user"
+      : isCurrentUser
       ? "you"
       : creationEntry.user_name && creationEntry.user_surname
       ? `${creationEntry.user_name} ${creationEntry.user_surname}`
-      : creationEntry.user_email || "Unknown User";
+      : creationEntry.user_email || "an unknown user";
 
     const creationDate = dayjs(creationEntry.changed_at).format("MMMM D, YYYY");
     const creationTime = dayjs(creationEntry.changed_at).format("h:mm A");
@@ -206,7 +210,11 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const renderHistoryEntry = (group: EntityChangeHistoryEntry[]) => {
     const firstEntry = group[0];
     const isCurrentUser = firstEntry.changed_by_user_id === currentUserId;
-    const userName = isCurrentUser
+
+    // Handle deleted users (changed_by_user_id is NULL)
+    const userName = !firstEntry.changed_by_user_id
+      ? "Deleted User"
+      : isCurrentUser
       ? "You"
       : firstEntry.user_name && firstEntry.user_surname
       ? `${firstEntry.user_name} ${firstEntry.user_surname}`

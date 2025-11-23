@@ -1,14 +1,7 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-
-// Extend jsPDF type to include autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 interface ExportColumn {
   id: string;
@@ -86,38 +79,44 @@ export const exportToPDF = (
   filename: string = 'export',
   title?: string
 ) => {
-  const doc = new jsPDF();
+  try {
+    const doc = new jsPDF();
 
-  // Add title
-  if (title) {
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text(title, 14, 15);
+    // Add title
+    if (title) {
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, 14, 15);
+    }
+
+    // Prepare table data
+    const headers = columns.map(col => col.label);
+    const rows = data.map(row =>
+      columns.map(col => String(row[col.id] ?? ''))
+    );
+
+    // Use autoTable function
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: title ? 25 : 10,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [66, 139, 202],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: title ? 25 : 10 },
+    });
+
+    doc.save(`${filename}.pdf`);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Failed to generate PDF. Please try again or use CSV/Excel export instead.');
   }
-
-  // Prepare table data
-  const headers = columns.map(col => col.label);
-  const rows = data.map(row =>
-    columns.map(col => String(row[col.id] ?? ''))
-  );
-
-  doc.autoTable({
-    head: [headers],
-    body: rows,
-    startY: title ? 25 : 10,
-    styles: {
-      fontSize: 8,
-      cellPadding: 2,
-    },
-    headStyles: {
-      fillColor: [66, 139, 202],
-      fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-    margin: { top: title ? 25 : 10 },
-  });
-
-  doc.save(`${filename}.pdf`);
 };

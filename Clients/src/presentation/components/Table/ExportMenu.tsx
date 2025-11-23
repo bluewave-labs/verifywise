@@ -52,7 +52,9 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         onClick={handleClick}
         aria-label="Export options"
         sx={{
-          padding: '6px',
+          height: '34px',
+          width: '34px',
+          padding: '8px',
           borderRadius: '4px',
           border: '1px solid #e5e7eb',
           backgroundColor: '#ffffff',

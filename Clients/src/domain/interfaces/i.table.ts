@@ -199,6 +199,7 @@ export interface IRiskTableProps {
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
+  hidePagination?: boolean;
 }
 
 export interface ITasksTableProps {

@@ -77,8 +77,11 @@ const Vendors = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // GroupBy state
+  // GroupBy state - vendors tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // GroupBy state - risks tab
+  const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -510,6 +513,36 @@ const Vendors = () => {
     getGroupKey: getVendorGroupKey,
   });
 
+  // Define how to get the group key for each vendor risk
+  const getVendorRiskGroupKey = (risk: any, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_severity':
+        return risk.risk_severity || 'Unknown';
+      case 'likelihood':
+        return risk.likelihood || 'Unknown';
+      case 'risk_level':
+        return risk.risk_level || 'Unknown';
+      case 'vendor_name':
+        return risk.vendor_name || 'Unknown Vendor';
+      case 'action_owner':
+        if (risk.action_owner) {
+          const user = users.find((u) => u.id === Number(risk.action_owner));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to vendor risks
+  const groupedVendorRisks = useTableGrouping({
+    data: vendorRisks || [],
+    groupByField: groupByRisk,
+    sortOrder: groupSortOrderRisk,
+    getGroupKey: getVendorRiskGroupKey,
+  });
+
   return (
     <Stack className="vwhome" gap={0}>
       <PageBreadcrumbs />
@@ -783,6 +816,16 @@ const Vendors = () => {
                       borderRadius: theme.shape.borderRadius,
                     }}
                   />
+                  <GroupBy
+                    options={[
+                      { id: 'risk_severity', label: 'Risk severity' },
+                      { id: 'likelihood', label: 'Likelihood' },
+                      { id: 'risk_level', label: 'Risk level' },
+                      { id: 'vendor_name', label: 'Vendor' },
+                      { id: 'action_owner', label: 'Action owner' },
+                    ]}
+                    onGroupChange={handleGroupChangeRisk}
+                  />
                 </Stack>
                 <CustomizableButton
                   variant="contained"
@@ -840,13 +883,20 @@ const Vendors = () => {
             />
           ) : (
             <TabPanel value="2" sx={tabPanelStyle}>
-              <RiskTable
-                users={users}
-                vendors={vendors}
-                vendorRisks={vendorRisks}
-                onDelete={handleDeleteRisk}
-                onEdit={handleEditRisk}
-                isDeletingAllowed={isDeletingAllowed}
+              <GroupedTableView
+                groupedData={groupedVendorRisks}
+                ungroupedData={vendorRisks || []}
+                renderTable={(data, options) => (
+                  <RiskTable
+                    users={users}
+                    vendors={vendors}
+                    vendorRisks={data}
+                    onDelete={handleDeleteRisk}
+                    onEdit={handleEditRisk}
+                    isDeletingAllowed={isDeletingAllowed}
+                    hidePagination={options?.hidePagination}
+                  />
+                )}
               />
             </TabPanel>
           )}

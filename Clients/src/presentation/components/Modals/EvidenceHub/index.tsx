@@ -22,6 +22,8 @@ import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/e
 import { EvidenceType } from "../../../../domain/enums/evidenceHub.enum";
 import Field from "../../Inputs/Field";
 import { useTheme } from "@mui/material";
+import { getAutocompleteStyles } from "../../../utils/inputStyles";
+import { ChevronDown } from "lucide-react";
 
 interface NewEvidenceHubProps {
     isOpen: boolean;
@@ -336,34 +338,23 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 {/* Second Row: Mapped Models */}
                 <Stack direction="row" justifyContent="flex-start" spacing={6}>
                     <Suspense fallback={<div>Loading...</div>}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                            }}
-                        >
+                        <Stack sx={{ width: "100%" }}>
                             <Typography
-                                variant="body2"
                                 sx={{
-                                    mb: 2,
-                                    fontWeight: 450,
-                                    color: theme.palette.text.primary,
+                                    fontSize: "13px",
+                                    fontWeight: 500,
+                                    height: "22px",
+                                    mb: theme.spacing(2),
+                                    color: theme.palette.text.secondary,
                                 }}
                             >
                                 Mapped models
                             </Typography>
-
                             <Autocomplete
                                 multiple
+                                id="mapped-models-input"
                                 size="small"
-                                freeSolo
                                 options={modelOptions || []}
-                                getOptionLabel={(option) =>
-                                    typeof option === "string"
-                                        ? option
-                                        : option.name
-                                }
                                 value={modelOptions.filter(
                                     (m, index, self) =>
                                         values.mapped_model_ids?.includes(
@@ -371,116 +362,55 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                                         ) &&
                                         self.findIndex(
                                             (x) => x._id === m._id
-                                        ) === index // ensure uniqueness
+                                        ) === index
                                 )}
                                 onChange={(_event, newValue) => {
-                                    const mappedIds = newValue.map(
-                                        (v) =>
-                                            typeof v === "string" ? 0 : v._id // ignore strings or assign 0
-                                    );
+                                    const mappedIds = newValue.map((v) => v._id);
                                     setValues({
                                         ...values,
                                         mapped_model_ids: mappedIds,
                                     });
                                 }}
-                                onInputChange={(
-                                    _event,
-                                    newInputValue,
-                                    reason
-                                ) => {
-                                    if (reason === "input") {
-                                        setValues((prev) => ({
-                                            ...prev,
-                                            lastMappedModelInput: newInputValue,
-                                        }));
-                                    }
-                                }}
-                                renderOption={(props, option, index) => {
+                                getOptionLabel={(option) => option.name}
+                                noOptionsText="No models available"
+                                renderOption={(props, option) => {
+                                    const { key, ...otherProps } = props;
                                     return (
-                                        <Box
-                                            component="li"
-                                            {...props}
-                                            key={
-                                                typeof option === "string"
-                                                    ? `${option}-${index}`
-                                                    : option._id
-                                            }
-                                        >
+                                        <Box component="li" key={key} {...otherProps}>
                                             <Typography
-                                                sx={{
-                                                    fontSize: 13,
-                                                    color: theme.palette.text
-                                                        .primary,
-                                                }}
+                                                sx={{ fontSize: 13, fontWeight: 400 }}
                                             >
-                                                {typeof option === "string"
-                                                    ? option
-                                                    : option.name}
+                                                {option.name}
                                             </Typography>
                                         </Box>
                                     );
                                 }}
+                                filterSelectedOptions
+                                popupIcon={<ChevronDown />}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        placeholder="Select or enter models"
+                                        placeholder="Select models"
                                         error={Boolean(errors.mapped_model_ids)}
                                         helperText={errors.mapped_model_ids}
-                                        variant="outlined"
                                         sx={{
-                                            width: "100%",
-                                            "& .MuiAutocomplete-inputRoot": {
-                                                flexWrap: "wrap",
-                                                minHeight: 34, // initial height
-                                                padding: "2px 6px",
-                                                transition: "height 0.2s ease",
-                                            },
-                                            "& .MuiAutocomplete-tag": {
-                                                margin: "2px 2px",
-                                            },
                                             "& .MuiInputBase-input": {
-                                                padding: "4px 6px",
                                                 fontSize: 13,
                                             },
                                         }}
                                     />
                                 )}
-                                popupIcon={<i data-lucide="chevron-downa"></i>}
-                                filterOptions={(options, state) =>
-                                    options.filter((option) =>
-                                        (typeof option === "string"
-                                            ? option
-                                            : option.name
-                                        )
-                                            .toLowerCase()
-                                            .includes(
-                                                state.inputValue.toLowerCase()
-                                            )
-                                    )
-                                }
-                                slotProps={{
-                                    paper: {
-                                        sx: {
-                                            "& .MuiAutocomplete-listbox": {
-                                                "& .MuiAutocomplete-option": {
-                                                    fontSize: 13,
-                                                    color: theme.palette.text
-                                                        .primary,
-                                                    padding: "8px 12px",
-                                                },
-                                                "& .MuiAutocomplete-option.Mui-focused":
-                                                    {
-                                                        backgroundColor:
-                                                            theme.palette
-                                                                .background
-                                                                .accent,
-                                                    },
-                                            },
-                                        },
+                                sx={{
+                                    ...getAutocompleteStyles(theme, {
+                                        hasError: !!errors.mapped_model_ids,
+                                    }),
+                                    backgroundColor: theme.palette.background.main,
+                                    "& .MuiChip-root": {
+                                        borderRadius: "4px",
                                     },
                                 }}
                             />
-                        </Box>
+                        </Stack>
                     </Suspense>
                 </Stack>
 

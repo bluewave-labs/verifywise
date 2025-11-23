@@ -7,13 +7,14 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Autocomplete, Stack, Typography, useTheme, SelectChangeEvent, TextField } from "@mui/material";
+import { Stack, useTheme, SelectChangeEvent, Autocomplete, TextField, Typography, Box } from "@mui/material";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { Project, FrameworkValues } from "../../../../../application/interfaces/appStates";
+import { ChevronDown } from "lucide-react";
 import { getAutocompleteStyles } from "../../../../utils/inputStyles";
 
 /**
@@ -222,57 +223,118 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
         )}
 
         <Stack>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Typography sx={{ fontSize: "12px", fontWeight: 500, mb: 2 }}>
-              Report Type *
-            </Typography>
-            <Autocomplete
-              multiple
-              id="report-type"
-              options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
-              value={Array.isArray(values.report_type) ? values.report_type : []}
-              onChange={(_event, newValue) => {
-                // Handle "All reports combined in one file" selection
-                let finalValue = newValue;
+          <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 2 }}>
+            Report type *
+          </Typography>
+          <Autocomplete
+            multiple
+            id="report-type"
+            size="small"
+            value={Array.isArray(values.report_type) ? values.report_type : []}
+            options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+            onChange={(_event, newValue) => {
+              // Handle "All reports combined in one file" selection
+              let finalValue = newValue;
 
-                // If "All reports combined in one file" was just selected
-                if (newValue.includes("All reports combined in one file") &&
-                    !values.report_type.includes("All reports combined in one file")) {
-                  // Only keep "All reports combined in one file", remove all others
-                  finalValue = ["All reports combined in one file"];
-                }
-                // If "All reports combined in one file" is already selected and user adds something else
-                else if (values.report_type.includes("All reports combined in one file") &&
-                         newValue.length > 1) {
-                  // Remove "All reports combined in one file" to allow multiple selections
-                  finalValue = newValue.filter(item => item !== "All reports combined in one file");
-                }
+              // If "All reports combined in one file" was just selected
+              if (newValue.includes("All reports combined in one file") &&
+                  !values.report_type.includes("All reports combined in one file")) {
+                // Only keep "All reports combined in one file", remove all others
+                finalValue = ["All reports combined in one file"];
+              }
+              // If "All reports combined in one file" is already selected and user adds something else
+              else if (values.report_type.includes("All reports combined in one file") &&
+                       newValue.length > 1) {
+                // Remove "All reports combined in one file" to allow multiple selections
+                finalValue = newValue.filter(item => item !== "All reports combined in one file");
+              }
 
-                setValues({ ...values, report_type: finalValue });
-                setErrors({ ...errors, report_type: "" });
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  size="small"
-                  placeholder="Select report types"
-                />
-              )}
-              sx={{
-                ...getAutocompleteStyles(theme, { hasError: !!errors.report_type }),
-                backgroundColor: theme.palette.background.main,
-              }}
-            />
-            {errors.report_type && (
-              <Typography
-                color="error"
-                variant="caption"
-                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-              >
-                {errors.report_type}
-              </Typography>
+              setValues({ ...values, report_type: finalValue });
+              setErrors({ ...errors, report_type: "" });
+            }}
+            getOptionLabel={(option: string) => option}
+            filterSelectedOptions
+            popupIcon={
+              <ChevronDown
+                size={16}
+                color={theme.palette.text.tertiary}
+              />
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select report types"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    minHeight: "34px",
+                    padding: "4px 10px",
+                    display: "flex",
+                    alignItems: "center",
+                  },
+                  "& .MuiInputBase-root": {
+                    minHeight: "34px !important",
+                    height: "auto !important",
+                    padding: "4px 10px !important",
+                    display: "flex !important",
+                    alignItems: "center !important",
+                    justifyContent: "flex-start !important",
+                  },
+                  "& .MuiInputBase-input": {
+                    padding: "0 !important",
+                    margin: "0 !important",
+                    fontSize: "13px",
+                    lineHeight: "1 !important",
+                  },
+                  "& ::placeholder": {
+                    fontSize: "13px",
+                  },
+                }}
+              />
             )}
-          </Suspense>
+            sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.report_type }),
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.report_type })["& .MuiOutlinedInput-root"],
+                borderRadius: "4px",
+              },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
+              },
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
+                      fontSize: "13px",
+                      color: "#1c2130",
+                      paddingLeft: "9px",
+                      paddingRight: "9px",
+                    },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    },
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
+                    paddingLeft: "9px",
+                    paddingRight: "9px",
+                  },
+                },
+              },
+            }}
+          />
+          {errors.report_type && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+            >
+              {errors.report_type}
+            </Typography>
+          )}
         </Stack>
 
         <Suspense fallback={<div>Loading...</div>}>

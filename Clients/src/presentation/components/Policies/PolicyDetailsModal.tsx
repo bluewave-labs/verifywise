@@ -4,7 +4,7 @@ import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
-import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
+import InsertImageUploaderModal from "../Modals/InsertImageModal/InsertImageUploaderModal";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 
 import {
@@ -42,56 +42,10 @@ import {
   Undo2,
 } from "lucide-react";
 
-// Custom number components for heading levels (Lucide doesn't have numbered heading icons)
-const LooksOne = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text
-      x="50%"
-      y="50%"
-      dominantBaseline="middle"
-      textAnchor="middle"
-      fontSize="12"
-      fontWeight="600"
-    >
-      1
-    </text>
-  </svg>
-);
-
-const LooksTwo = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text
-      x="50%"
-      y="50%"
-      dominantBaseline="middle"
-      textAnchor="middle"
-      fontSize="12"
-      fontWeight="600"
-    >
-      2
-    </text>
-  </svg>
-);
-
-const LooksThree = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text
-      x="50%"
-      y="50%"
-      dominantBaseline="middle"
-      textAnchor="middle"
-      fontSize="12"
-      fontWeight="600"
-    >
-      3
-    </text>
-  </svg>
-);
-
 const FormatUnderlined = () => <Underline size={16} />;
 const FormatBold = () => <Bold size={16} />;
 const FormatItalic = () => <Italic size={16} />;
-import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
+import { IconButton, Tooltip, useTheme, Box, Select, MenuItem } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
@@ -129,9 +83,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     | "bold"
     | "italic"
     | "underline"
-    | "h1"
-    | "h2"
-    | "h3"
     | "undo"
     | "redo"
     | "strike"
@@ -148,9 +99,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       bold: false,
       italic: false,
       underline: false,
-      h1: false,
-      h2: false,
-      h3: false,
       undo: false,
       redo: false,
       strike: false,
@@ -163,6 +111,9 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       image: false,
     }
   );
+
+  // Track current block type for heading dropdown
+  const [currentBlockType, setCurrentBlockType] = useState<string>('p');
 
   const handleClose = () => {
     setFormData({
@@ -338,24 +289,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       action: () => editor.tf.redo(),
     },
     {
-      key: "h1",
-      title: "Heading 1",
-      icon: <LooksOne />,
-      action: () => editor.tf.h1.toggle(),
-    },
-    {
-      key: "h2",
-      title: "Heading 2",
-      icon: <LooksTwo />,
-      action: () => editor.tf.h2.toggle(),
-    },
-    {
-      key: "h3",
-      title: "Heading 3",
-      icon: <LooksThree />,
-      action: () => editor.tf.h3.toggle(),
-    },
-    {
       key: "bold",
       title: "Bold",
       icon: <FormatBold />,
@@ -499,6 +432,72 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   }, [policy, template, editor]);
 
+  // Function to update toolbar state based on editor state
+  const updateToolbarState = useCallback(() => {
+    if (!editor) return;
+
+    try {
+      const selection = editor.selection;
+      if (!selection) return;
+
+      // Get current marks (bold, italic, etc.)
+      const marks = editor.marks || {};
+
+      // Get current block type
+      const [block] = editor.api.block.getBlockAbove() || [];
+      const blockType = block?.type || 'p';
+
+      // Get text alignment
+      const align = block?.align || 'left';
+
+      // Update block type for dropdown
+      setCurrentBlockType(blockType);
+
+      setToolbarState({
+        bold: !!marks.bold,
+        italic: !!marks.italic,
+        underline: !!marks.underline,
+        strike: !!marks.strikethrough,
+        ol: blockType === 'ol' || blockType === 'numbered_list',
+        ul: blockType === 'ul' || blockType === 'bulleted_list',
+        'align-left': align === 'left' || align === 'start',
+        'align-center': align === 'center',
+        'align-right': align === 'right' || align === 'end',
+        link: !!marks.link,
+        // These don't have persistent state
+        undo: false,
+        redo: false,
+        image: false,
+      });
+    } catch (error) {
+      // Silently handle errors during state sync
+      console.debug('Error syncing toolbar state:', error);
+    }
+  }, [editor]);
+
+  // Handle block type change from dropdown
+  const handleBlockTypeChange = (event: any) => {
+    const newType = event.target.value;
+    setCurrentBlockType(newType);
+
+    if (!editor) return;
+
+    // Convert current block to selected type
+    if (newType === 'p') {
+      // Convert to paragraph (remove heading)
+      editor.tf.setNodes({ type: 'p' });
+    } else if (newType === 'h1') {
+      editor.tf.h1.toggle();
+    } else if (newType === 'h2') {
+      editor.tf.h2.toggle();
+    } else if (newType === 'h3') {
+      editor.tf.h3.toggle();
+    }
+
+    // Update toolbar state after change
+    setTimeout(() => updateToolbarState(), 0);
+  };
+
   const save = async () => {
     if (!validateForm()) {
       return;
@@ -591,7 +590,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         onInsert={(url, text) => insertLink(editor, url, text)}
       />
 
-      <InsertImageModal
+      <InsertImageUploaderModal
         open={openImage}
         onClose={() => setOpenImage(false)}
         onInsert={(url, alt) => insertImage(editor, url, alt)}
@@ -653,18 +652,47 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 flexWrap: "wrap", // allow multiple lines
                 gap: 1,
                 mb: 2,
+                alignItems: "center",
               }}
             >
+              {/* Block Type Dropdown */}
+              <Select
+                value={currentBlockType}
+                onChange={handleBlockTypeChange}
+                size="small"
+                sx={{
+                  minWidth: 120,
+                  height: "32px",
+                  fontSize: "13px",
+                  backgroundColor: "#FFFFFF",
+                  "& .MuiSelect-select": {
+                    padding: "6px 32px 6px 10px",
+                  },
+                  "& fieldset": {
+                    borderColor: "#D0D5DD",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#13715B",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#13715B",
+                  },
+                }}
+              >
+                <MenuItem value="p" sx={{ fontSize: "13px" }}>Text</MenuItem>
+                <MenuItem value="h1" sx={{ fontSize: "13px" }}>Header 1</MenuItem>
+                <MenuItem value="h2" sx={{ fontSize: "13px" }}>Header 2</MenuItem>
+                <MenuItem value="h3" sx={{ fontSize: "13px" }}>Header 3</MenuItem>
+              </Select>
+
               {/* Toolbar */}
               {toolbarConfig.map(({ key, title, icon, action }) => (
                 <Tooltip key={title} title={title}>
                   <IconButton
                     onClick={() => {
                       action?.();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        [key]: !prev[key],
-                      }));
+                      // Update toolbar state immediately after action
+                      setTimeout(() => updateToolbarState(), 0);
                     }}
                     size="small"
                     sx={{
@@ -708,12 +736,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             >
               <Plate
                 editor={editor}
-                onChange={({ value }) =>
+                onChange={({ value }) => {
                   setFormData((prev) => ({
                     ...prev,
                     content: value,
-                  }))
-                }
+                  }));
+                  // Update toolbar state when editor content changes
+                  updateToolbarState();
+                }}
               >
                 <PlateContent
                   style={

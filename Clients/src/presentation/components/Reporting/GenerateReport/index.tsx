@@ -38,7 +38,10 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     });
     clearTimerRef.current = setTimeout(() => {
       setAlert(null);
-      onClose();
+      // Only close modal on success, not on errors
+      if (type === "success") {
+        onClose();
+      }
     }, 3000);
   };
 
@@ -151,7 +154,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
       <StandardModal
         isOpen={true}
         onClose={handleOnCloseModal}
-        title={`Generate ${reportType === 'organization' ? 'Organization' : 'Project'} Report`}
+        title={`Generate ${reportType === 'organization' ? 'organization' : 'project'} report`}
         description={reportType === 'organization'
           ? 'Generate a comprehensive report for your entire organization.'
           : 'Pick the project you want to generate a report for.'

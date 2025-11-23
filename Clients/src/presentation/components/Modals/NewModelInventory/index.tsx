@@ -1329,16 +1329,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                  direction="row"
                  sx={{
                      width: "100%",
+                     height: "100%",
                      minHeight: 0,
-                     maxHeight: "100%",
                      alignItems: "stretch",
-                     overflow: "hidden"
+                     overflow: "hidden",
+                     position: "relative"
                  }}
              >
                  {/* Main Content */}
                  <Box sx={{
                      flex: 1,
                      minWidth: 0,
+                     height: "100%",
                      minHeight: 0,
                      display: "flex",
                      flexDirection: "column",

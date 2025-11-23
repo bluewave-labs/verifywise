@@ -306,6 +306,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                           color: "#B91C1C",
                           fontWeight: 400,
                           wordBreak: "break-word",
+                          textDecoration: "line-through",
                         }}
                       >
                         {entry.old_value}

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Menu, MenuItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
 import { FileText, FileSpreadsheet, MoreVertical } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '../../../application/utils/tableExport';
-import IconButton from '../IconButton';
 
 interface ExportColumn {
   id: string;
@@ -50,12 +49,20 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
   return (
     <>
       <IconButton
-        id="export"
-        type="more"
         onClick={handleClick}
         aria-label="Export options"
+        sx={{
+          padding: '6px',
+          borderRadius: '4px',
+          border: '1px solid #e5e7eb',
+          backgroundColor: '#ffffff',
+          '&:hover': {
+            backgroundColor: '#f9fafb',
+            borderColor: '#d1d5db',
+          },
+        }}
       >
-        <MoreVertical size={16} />
+        <MoreVertical size={16} color="#6b7280" />
       </IconButton>
       <Menu
         anchorEl={anchorEl}

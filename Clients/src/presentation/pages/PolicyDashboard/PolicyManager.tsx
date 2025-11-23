@@ -151,19 +151,19 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // Prepare export data - format the data for export
   const exportData = useMemo(() => {
     return filteredPolicies.map((policy: PolicyManagerModel) => {
-      const authorUser = users.find((user) => user.id === policy.author);
+      const authorUser = users.find((user) => user.id === policy.author_id);
       const authorName = authorUser ? `${authorUser.name} ${authorUser.surname}` : '-';
 
-      const updatedByUser = users.find((user) => user.id === policy.updated_by);
+      const updatedByUser = users.find((user) => user.id === policy.last_updated_by);
       const updatedByName = updatedByUser ? `${updatedByUser.name} ${updatedByUser.surname}` : '-';
 
       return {
         title: policy.title || '-',
         status: policy.status || '-',
         tags: policy.tags?.join(', ') || '-',
-        next_review: policy.next_review || '-',
+        next_review: policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : '-',
         author: authorName,
-        last_updated: policy.last_updated || '-',
+        last_updated: policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : '-',
         updated_by: updatedByName,
       };
     });

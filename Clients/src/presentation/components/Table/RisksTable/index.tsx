@@ -644,6 +644,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       onDelete,
       onEdit,
       theme.palette.action?.hover,
+      hidePagination,
+      sortConfig.key,
     ]
   );
 

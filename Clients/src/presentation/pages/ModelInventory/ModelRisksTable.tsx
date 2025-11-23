@@ -77,14 +77,16 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
     []
   );
 
+  const dataLength = data?.length ?? 0;
+
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      data?.length ?? 0
+      dataLength
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, data?.length ?? 0]);
+  }, [page, rowsPerPage, dataLength]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -293,10 +295,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                       opacity: 0.7,
                     }}
                   >
-                    Showing {getRange} of {data?.length} model risk(s)
+                    Showing {getRange} of {dataLength} model risk(s)
                   </TableCell>
                   <TablePagination
-                    count={data?.length}
+                    count={dataLength}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

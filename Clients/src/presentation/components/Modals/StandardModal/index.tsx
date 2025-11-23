@@ -229,7 +229,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
             padding: "24px",
             flex: 1,
             overflow: "auto",
-            maxHeight: "calc(80vh - 180px)",
+            maxHeight: "calc(90vh - 180px)",
             border: "1px solid #E0E4E9",
             borderRadius: "16px",
             backgroundColor: "#FFFFFF",

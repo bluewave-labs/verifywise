@@ -99,7 +99,7 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <TableCell
             component={"td"}
             className="evidence-hub-table-header-cel"
@@ -200,15 +200,6 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     useEffect(() => {
       localStorage.setItem(EVIDENCE_HUB_SORTING_KEY, JSON.stringify(sortConfig));
     }, [sortConfig]);
-
-    const getRange = useMemo(() => {
-        const start = page * rowsPerPage + 1;
-        const end = Math.min(
-            page * rowsPerPage + rowsPerPage,
-            sortedData?.length ?? 0
-        );
-        return `${start} - ${end}`;
-    }, [page, rowsPerPage, sortedData?.length]);
 
     // Fetch users for uploaded_by mapping
     useEffect(() => {
@@ -338,6 +329,15 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         return 0;
       });
     }, [data, sortConfig, userMap]);
+
+    const getRange = useMemo(() => {
+        const start = page * rowsPerPage + 1;
+        const end = Math.min(
+            page * rowsPerPage + rowsPerPage,
+            sortedData?.length ?? 0
+        );
+        return `${start} - ${end}`;
+    }, [page, rowsPerPage, sortedData?.length]);
 
     const tableBody = useMemo(
         () => (

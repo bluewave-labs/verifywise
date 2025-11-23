@@ -1133,7 +1133,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         </Stack>
 
         {/* Security Assessment Section */}
-        <Stack direction={"row"} spacing={6}>
+        <Stack>
             <FormControlLabel
                 control={
                     <Toggle
@@ -1142,7 +1142,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     />
                 }
                 label={
-                    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                         <Typography
                             sx={{
                                 fontSize: 13,
@@ -1166,7 +1166,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     </Box>
                 }
                 sx={{
-                    width: "50%",
                     "& .MuiFormControlLabel-label": {
                         fontSize: 13,
                         fontWeight: 400,

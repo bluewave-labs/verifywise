@@ -94,7 +94,8 @@ export const createShareLink = async (req: Request, res: Response) => {
 
     await transaction.commit();
 
-    const shareable_url = `https://app.verifywise.com/shared/${resource_type}s/${share_token}`;
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const shareable_url = `${baseUrl}/shared/${resource_type}s/${share_token}`;
 
     const response = {
       id: shareLink.id,
@@ -171,8 +172,9 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
     logStructured('successful', `fetched ${shareLinks.length} share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
     logger.debug(`✅ Fetched ${shareLinks.length} share links`);
 
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const response = shareLinks.map(link => {
-      const shareable_url = `https://app.verifywise.com/shared/${link.resource_type}s/${link.share_token}`;
+      const shareable_url = `${baseUrl}/shared/${link.resource_type}s/${link.share_token}`;
       const is_valid = link.is_enabled && (!link.expires_at || new Date() <= new Date(link.expires_at));
 
       return {

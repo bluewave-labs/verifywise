@@ -7,14 +7,15 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Stack, useTheme, SelectChangeEvent } from "@mui/material";
+import { Stack, useTheme, SelectChangeEvent, Autocomplete, TextField, Typography, Box } from "@mui/material";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
-const AutoCompleteField = lazy(() => import("../../../Inputs/Autocomplete"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { Project, FrameworkValues } from "../../../../../application/interfaces/appStates";
+import { ChevronDown } from "lucide-react";
+import { getAutocompleteStyles } from "../../../../utils/inputStyles";
 
 /**
  * Set form values
@@ -221,27 +222,103 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
           </Suspense>
         )}
 
-        <Suspense fallback={<div>Loading...</div>}>
-          <AutoCompleteField
-            id="report-type"
-            type="text"
-            label="Report type"
-            isRequired
+        <Stack>
+          <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 2 }}>
+            Report type *
+          </Typography>
+          <Autocomplete
             multiple
-            options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+            id="report-type"
+            size="small"
             value={Array.isArray(values.report_type) ? values.report_type : []}
-            onChange={(newValue) => {
-              setValues({ ...values, report_type: newValue as string[] });
+            options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+            onChange={(_event, newValue) => {
+              setValues({ ...values, report_type: newValue });
               setErrors({ ...errors, report_type: "" });
             }}
-            placeholder="Select report types"
-            error={errors.report_type}
+            getOptionLabel={(option: string) => option}
+            filterSelectedOptions
+            popupIcon={
+              <ChevronDown
+                size={16}
+                color={theme.palette.text.tertiary}
+              />
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select report types"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "34px",
+                    padding: "0 10px",
+                    display: "flex",
+                    alignItems: "center",
+                  },
+                  "& .MuiInputBase-root": {
+                    height: "34px !important",
+                    padding: "0 10px !important",
+                    display: "flex !important",
+                    alignItems: "center !important",
+                    justifyContent: "flex-start !important",
+                  },
+                  "& .MuiInputBase-input": {
+                    padding: "0 !important",
+                    margin: "0 !important",
+                    fontSize: "13px",
+                    lineHeight: "1 !important",
+                  },
+                  "& ::placeholder": {
+                    fontSize: "13px",
+                  },
+                }}
+              />
+            )}
             sx={{
+              ...getAutocompleteStyles(theme, { hasError: !!errors.report_type }),
               width: "100%",
               backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                ...getAutocompleteStyles(theme, { hasError: !!errors.report_type })["& .MuiOutlinedInput-root"],
+                borderRadius: "4px",
+              },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
+              },
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
+                      fontSize: "13px",
+                      color: "#1c2130",
+                      paddingLeft: "9px",
+                      paddingRight: "9px",
+                    },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    },
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
+                    paddingLeft: "9px",
+                    paddingRight: "9px",
+                  },
+                },
+              },
             }}
           />
-        </Suspense>
+          {errors.report_type && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+            >
+              {errors.report_type}
+            </Typography>
+          )}
+        </Stack>
 
         <Suspense fallback={<div>Loading...</div>}>
           <Field

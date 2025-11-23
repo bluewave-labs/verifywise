@@ -6,6 +6,23 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Check if organizations table exists
+      const tableExists = await queryInterface.sequelize.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = 'organizations'
+        );`,
+        { transaction, type: Sequelize.QueryTypes.SELECT }
+      );
+
+      // If organizations table doesn't exist, skip migration
+      if (!tableExists[0].exists) {
+        console.log('Organizations table does not exist yet. Skipping CE marking tables creation.');
+        await transaction.commit();
+        return;
+      }
+
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM organizations;`,
         { transaction }
@@ -130,6 +147,23 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Check if organizations table exists
+      const tableExists = await queryInterface.sequelize.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = 'organizations'
+        );`,
+        { transaction, type: Sequelize.QueryTypes.SELECT }
+      );
+
+      // If organizations table doesn't exist, skip migration
+      if (!tableExists[0].exists) {
+        console.log('Organizations table does not exist yet. Skipping CE marking tables rollback.');
+        await transaction.commit();
+        return;
+      }
+
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM organizations;`,
         { transaction }

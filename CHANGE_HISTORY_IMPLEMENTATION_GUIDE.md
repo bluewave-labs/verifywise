@@ -49,7 +49,7 @@ export default {
         field_name VARCHAR(255),
         old_value TEXT,
         new_value TEXT,
-        changed_by_user_id INTEGER NOT NULL REFERENCES public.users(id),
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
         changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
@@ -74,6 +74,10 @@ export default {
 - Replace `vendor` with your entity name
 - Foreign key should reference your entity table
 - Always include indexes on foreign key and `changed_at` for performance
+- **Important**: `changed_by_user_id` uses `ON DELETE SET NULL` to preserve history when users are deleted
+  - Allows users to be removed without losing change history
+  - UI displays "Deleted User" for NULL user IDs
+  - History remains intact for audit purposes
 
 ### 2. Backend: Add Entity Configuration
 
@@ -470,6 +474,39 @@ The change history system is multi-tenant aware:
 - Each tenant has their own `{entity}_change_history` table in their schema
 - User data is stored in the global `public.users` table
 - API routes use `req.tenant` to query the correct tenant schema
+
+---
+
+## Handling Deleted Users
+
+The change history system gracefully handles deleted users:
+
+### **Database Behavior:**
+- `changed_by_user_id` uses `ON DELETE SET NULL` constraint
+- When a user is deleted, their ID in all history records becomes `NULL`
+- History entries are preserved for audit purposes
+
+### **Frontend Display:**
+- History entries: Shows **"Deleted User"** as the username
+- Creation header: Shows **"Created by a deleted user"**
+- Avatar: Shows default avatar with "D" initial
+
+### **Migration:**
+For existing `model_inventory_change_history` table, run:
+```bash
+npm run migrate:up
+```
+
+This applies the migration that:
+1. Removes NOT NULL constraint from `changed_by_user_id`
+2. Drops existing foreign key
+3. Adds new foreign key with `ON DELETE SET NULL`
+
+### **Why This Approach:**
+✅ Preserves complete audit trail
+✅ Allows user cleanup/GDPR compliance
+✅ No data loss when users are removed
+✅ Clear indication in UI when user no longer exists
 
 ---
 

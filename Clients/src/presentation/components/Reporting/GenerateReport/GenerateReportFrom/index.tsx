@@ -250,14 +250,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
                 placeholder="Select report types"
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    height: "34px",
-                    padding: "0 10px",
+                    minHeight: "34px",
+                    padding: "4px 10px",
                     display: "flex",
                     alignItems: "center",
                   },
                   "& .MuiInputBase-root": {
-                    height: "34px !important",
-                    padding: "0 10px !important",
+                    minHeight: "34px !important",
+                    height: "auto !important",
+                    padding: "4px 10px !important",
                     display: "flex !important",
                     alignItems: "center !important",
                     justifyContent: "flex-start !important",

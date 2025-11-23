@@ -6,10 +6,9 @@ import {
   CircularProgress,
   Chip,
   useTheme,
-  IconButton,
   Collapse,
 } from "@mui/material";
-import { X as CloseIcon, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import {
   useModelInventoryChangeHistory,
   ModelInventoryChangeHistoryEntry,
@@ -317,24 +316,29 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         sx={{
           width: 320,
           height: "100%",
-          borderLeft: `1px solid ${theme.palette.divider}`,
+          ml: 2, // 16px padding from main content
           display: "flex",
           flexDirection: "column",
-          backgroundColor: "#FAFBFC",
         }}
       >
-        {/* Header */}
         <Box
           sx={{
-            p: 2,
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
+            height: "100%",
+            border: `1px solid #E0E4E9`,
+            borderRadius: "8px",
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "#FAFBFC",
+            overflow: "hidden",
           }}
         >
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
+          {/* Header */}
+          <Box
+            sx={{
+              p: 2,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
+            }}
           >
             <Typography
               sx={{
@@ -345,27 +349,16 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             >
               Activity History
             </Typography>
-            <IconButton
-              onClick={onClose}
-              size="small"
+            <Typography
               sx={{
+                fontSize: 11,
                 color: theme.palette.text.secondary,
-                padding: "2px",
+                mt: 0.5,
               }}
             >
-              <CloseIcon size={16} />
-            </IconButton>
-          </Stack>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: theme.palette.text.secondary,
-              mt: 0.5,
-            }}
-          >
-            Track all changes to this model
-          </Typography>
-        </Box>
+              Track all changes to this model
+            </Typography>
+          </Box>
 
         {/* Content */}
         <Box
@@ -421,6 +414,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           ) : (
             <Box>{groupedHistory.map(renderHistoryEntry)}</Box>
           )}
+        </Box>
         </Box>
       </Box>
     </Collapse>

@@ -135,6 +135,7 @@ const SharedView: React.FC = () => {
   }
 
   const { share_link, data, permissions } = shareData;
+  const isTableView = Array.isArray(data);
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
@@ -150,10 +151,10 @@ const SharedView: React.FC = () => {
           >
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, color: "#13715B", mb: 1 }}>
-                Shared {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} View
+                Shared {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "View"}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                This view has been shared with you. {!permissions.allowDataExport && "Export is disabled by the owner."}
+                This {isTableView ? "list" : "view"} has been shared with you. {!permissions.allowDataExport && "Export is disabled by the owner."}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
@@ -207,49 +208,95 @@ const SharedView: React.FC = () => {
               }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} Details
+                {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "Details"}
               </Typography>
             </Toolbar>
           )}
           <TableContainer>
             <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                  <TableCell sx={{ fontWeight: 600, width: "30%" }}>
-                    Field
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Value</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.entries(data).map(([key, value]) => (
-                  <TableRow key={key} hover>
-                    <TableCell sx={{ fontWeight: 500, color: "#666" }}>
-                      {key
-                        .split("_")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ")}
-                    </TableCell>
-                    <TableCell>
-                      {value === null || value === undefined ? (
-                        <Typography variant="body2" color="textSecondary" fontStyle="italic">
-                          N/A
-                        </Typography>
-                      ) : typeof value === "object" ? (
-                        <Typography variant="body2" component="pre" sx={{ fontFamily: "monospace", fontSize: 12 }}>
-                          {JSON.stringify(value, null, 2)}
-                        </Typography>
-                      ) : typeof value === "boolean" ? (
-                        <Typography variant="body2">
-                          {value ? "Yes" : "No"}
-                        </Typography>
-                      ) : (
-                        <Typography variant="body2">{String(value)}</Typography>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+              {isTableView ? (
+                <>
+                  {/* Table View: Display rows of data */}
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                      {data.length > 0 && Object.keys(data[0]).map((key) => (
+                        <TableCell key={key} sx={{ fontWeight: 600 }}>
+                          {key
+                            .split("_")
+                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(" ")}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.map((row: any, index: number) => (
+                      <TableRow key={row.id || index} hover>
+                        {Object.values(row).map((value: any, colIndex: number) => (
+                          <TableCell key={colIndex}>
+                            {value === null || value === undefined ? (
+                              <Typography variant="body2" color="textSecondary" fontStyle="italic">
+                                N/A
+                              </Typography>
+                            ) : typeof value === "object" ? (
+                              <Typography variant="body2" component="pre" sx={{ fontFamily: "monospace", fontSize: 12 }}>
+                                {JSON.stringify(value, null, 2)}
+                              </Typography>
+                            ) : typeof value === "boolean" ? (
+                              <Typography variant="body2">
+                                {value ? "Yes" : "No"}
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2">{String(value)}</Typography>
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </>
+              ) : (
+                <>
+                  {/* Single Record View: Display key-value pairs */}
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                      <TableCell sx={{ fontWeight: 600, width: "30%" }}>
+                        Field
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Value</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data).map(([key, value]) => (
+                      <TableRow key={key} hover>
+                        <TableCell sx={{ fontWeight: 500, color: "#666" }}>
+                          {key
+                            .split("_")
+                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(" ")}
+                        </TableCell>
+                        <TableCell>
+                          {value === null || value === undefined ? (
+                            <Typography variant="body2" color="textSecondary" fontStyle="italic">
+                              N/A
+                            </Typography>
+                          ) : typeof value === "object" ? (
+                            <Typography variant="body2" component="pre" sx={{ fontFamily: "monospace", fontSize: 12 }}>
+                              {JSON.stringify(value, null, 2)}
+                            </Typography>
+                          ) : typeof value === "boolean" ? (
+                            <Typography variant="body2">
+                              {value ? "Yes" : "No"}
+                            </Typography>
+                          ) : (
+                            <Typography variant="body2">{String(value)}</Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </>
+              )}
             </Table>
           </TableContainer>
         </Paper>

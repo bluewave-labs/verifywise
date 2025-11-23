@@ -107,6 +107,9 @@ interface StandardModalProps {
 
   /** Optional custom actions to display in the header (e.g., history button). Rendered to the left of the close button */
   headerActions?: React.ReactNode;
+
+  /** When true, expands the modal height for additional content. Default height is 630px, expanded uses min(740px, 90vh - 180px) */
+  expandedHeight?: boolean;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -123,6 +126,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
   customFooter,
   hideFooter = false,
   headerActions,
+  expandedHeight = false,
 }) => {
   return (
     <Modal
@@ -229,7 +233,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
             padding: "24px",
             flex: "0 1 auto",
             overflow: "auto",
-            maxHeight: "740px",
+            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "630px",
             border: "1px solid #E0E4E9",
             borderRadius: "16px",
             backgroundColor: "#FFFFFF",

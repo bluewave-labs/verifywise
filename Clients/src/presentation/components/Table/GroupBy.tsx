@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { MenuItem, Select, Button, SelectChangeEvent, Stack } from '@mui/material';
+import { MenuItem, Select, Button, SelectChangeEvent, Stack, Popover, Box, Typography } from '@mui/material';
+import { X } from 'lucide-react';
 
 export interface GroupByOption {
   id: string;
@@ -21,6 +22,15 @@ export const GroupBy: React.FC<GroupByProps> = ({
 }) => {
   const [selectedGroup, setSelectedGroup] = useState<string>(defaultGroupBy || '');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder);
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleGroupChange = (event: SelectChangeEvent) => {
     const value = event.target.value;
@@ -41,96 +51,173 @@ export const GroupBy: React.FC<GroupByProps> = ({
     }
   };
 
+  const handleClear = () => {
+    setSelectedGroup('');
+    setSortOrder('asc');
+    onGroupChange(null, 'asc');
+    handleClose();
+  };
+
+  const open = Boolean(anchorEl);
+
   return (
-    <Stack direction="column" spacing={0}>
-      <Select
-        value={selectedGroup}
-        onChange={handleGroupChange}
-        displayEmpty
+    <>
+      <Button
+        onClick={handleClick}
+        variant="outlined"
         sx={{
           fontSize: '13px',
+          fontWeight: 500,
+          padding: '6px 12px',
+          textTransform: 'none',
+          color: '#374151',
+          borderColor: '#e5e7eb',
           height: '34px',
-          minWidth: '160px',
-          backgroundColor: '#fff',
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#e5e7eb',
-          },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
+          minWidth: selectedGroup ? '120px' : '100px',
+          '&:hover': {
             borderColor: '#d1d5db',
+            backgroundColor: '#f9fafb',
           },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#13715B',
-            borderWidth: '1px',
-          },
-          '& .MuiSelect-select': {
-            padding: '8px 12px',
-            fontSize: '13px',
+        }}
+      >
+        GROUP BY {selectedGroup && '(1)'}
+      </Button>
+
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              marginTop: '8px',
+              padding: '16px',
+              minWidth: '320px',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+              borderRadius: '8px',
+            }
           }
         }}
       >
-        <MenuItem value="" sx={{ fontSize: '13px' }}>
-          No grouping
-        </MenuItem>
-        {options.map((option) => (
-          <MenuItem key={option.id} value={option.id} sx={{ fontSize: '13px' }}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Select>
+        <Stack spacing={2}>
+          {/* Header */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              GROUP BY
+            </Typography>
+            {selectedGroup && (
+              <Box
+                onClick={handleClear}
+                sx={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  '&:hover': { opacity: 0.7 }
+                }}
+              >
+                <X size={16} color="#6b7280" />
+              </Box>
+            )}
+          </Stack>
 
-      {selectedGroup && (
-        <Stack
-          direction="row"
-          spacing={0}
-          sx={{
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            height: '34px',
-            marginTop: '8px',
-          }}
-        >
-          <Button
-            onClick={() => handleSortChange('asc')}
+          {/* Field Selector */}
+          <Select
+            value={selectedGroup}
+            onChange={handleGroupChange}
+            displayEmpty
             sx={{
               fontSize: '13px',
-              fontWeight: 500,
-              padding: '6px 12px',
-              backgroundColor: sortOrder === 'asc' ? '#f97316' : '#fff',
-              color: sortOrder === 'asc' ? '#fff' : '#374151',
-              border: 'none',
-              borderRadius: 0,
-              minWidth: '78px',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: sortOrder === 'asc' ? '#ea580c' : '#f9fafb',
+              height: '36px',
+              backgroundColor: '#fff',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#e5e7eb',
               },
-              borderRight: '1px solid #e5e7eb',
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#d1d5db',
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#13715B',
+                borderWidth: '1px',
+              },
+              '& .MuiSelect-select': {
+                padding: '8px 12px',
+                fontSize: '13px',
+              }
             }}
           >
-            A → Z
-          </Button>
-          <Button
-            onClick={() => handleSortChange('desc')}
-            sx={{
-              fontSize: '13px',
-              fontWeight: 500,
-              padding: '6px 12px',
-              backgroundColor: sortOrder === 'desc' ? '#f97316' : '#fff',
-              color: sortOrder === 'desc' ? '#fff' : '#374151',
-              border: 'none',
-              borderRadius: 0,
-              minWidth: '78px',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: sortOrder === 'desc' ? '#ea580c' : '#f9fafb',
-              },
-            }}
-          >
-            Z → A
-          </Button>
+            <MenuItem value="" sx={{ fontSize: '13px' }}>
+              Select field
+            </MenuItem>
+            {options.map((option) => (
+              <MenuItem key={option.id} value={option.id} sx={{ fontSize: '13px' }}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+
+          {/* Sort Buttons */}
+          {selectedGroup && (
+            <Stack
+              direction="row"
+              spacing={0}
+              sx={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                height: '36px',
+              }}
+            >
+              <Button
+                onClick={() => handleSortChange('asc')}
+                sx={{
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  padding: '8px 16px',
+                  backgroundColor: sortOrder === 'asc' ? '#f97316' : '#fff',
+                  color: sortOrder === 'asc' ? '#fff' : '#374151',
+                  border: 'none',
+                  borderRadius: 0,
+                  flex: 1,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: sortOrder === 'asc' ? '#ea580c' : '#f9fafb',
+                  },
+                  borderRight: '1px solid #e5e7eb',
+                }}
+              >
+                A → Z
+              </Button>
+              <Button
+                onClick={() => handleSortChange('desc')}
+                sx={{
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  padding: '8px 16px',
+                  backgroundColor: sortOrder === 'desc' ? '#f97316' : '#fff',
+                  color: sortOrder === 'desc' ? '#fff' : '#374151',
+                  border: 'none',
+                  borderRadius: 0,
+                  flex: 1,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: sortOrder === 'desc' ? '#ea580c' : '#f9fafb',
+                  },
+                }}
+              >
+                Z → A
+              </Button>
+            </Stack>
+          )}
         </Stack>
-      )}
-    </Stack>
+      </Popover>
+    </>
   );
 };

@@ -38,6 +38,7 @@ import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -76,13 +77,12 @@ const Tasks: React.FC = () => {
   const [dueDateTo] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-  const [groupBy, setGroupBy] = useState<string | null>(null);
-  const [groupSortOrder, setGroupSortOrder] = useState<'asc' | 'desc'>('asc');
-
-
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
+
+  // Group by state management
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -289,70 +289,36 @@ const Tasks: React.FC = () => {
       }
     };
 
-  // Group tasks based on selected field and sort order
-  const groupedTasks = useMemo(() => {
-    if (!groupBy) return null;
+  // Define how to get the group key for each task
+  const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
+    switch (field) {
+      case 'status':
+        return STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || 'Unknown';
+      case 'priority':
+        return task.priority || 'No Priority';
+      case 'assignees':
+        if (task.assignees && task.assignees.length > 0) {
+          // Return array of assignee names - task will appear in multiple groups
+          return task.assignees.map((assigneeId) => {
+            const user = users.find((u) => u.id === Number(assigneeId));
+            return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+          });
+        }
+        return 'Unassigned';
+      case 'due_date':
+        return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date';
+      default:
+        return 'Other';
+    }
+  };
 
-    const groups: Record<string, TaskModel[]> = {};
-
-    tasks.forEach((task) => {
-      let groupKey = '';
-
-      switch (groupBy) {
-        case 'status':
-          groupKey = STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || 'Unknown';
-          break;
-        case 'priority':
-          groupKey = task.priority || 'No Priority';
-          break;
-        case 'assignees':
-          if (task.assignees && task.assignees.length > 0) {
-            // For each assignee, add the task to that assignee's group
-            task.assignees.forEach((assigneeId) => {
-              const user = users.find((u) => u.id === Number(assigneeId));
-              const assigneeKey = user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
-              if (!groups[assigneeKey]) {
-                groups[assigneeKey] = [];
-              }
-              groups[assigneeKey].push(task);
-            });
-            return; // Skip the default grouping below
-          } else {
-            groupKey = 'Unassigned';
-          }
-          break;
-        case 'due_date':
-          if (task.due_date) {
-            groupKey = new Date(task.due_date).toLocaleDateString();
-          } else {
-            groupKey = 'No Due Date';
-          }
-          break;
-        default:
-          groupKey = 'Other';
-      }
-
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(task);
-    });
-
-    // Sort group keys
-    const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
-      if (groupSortOrder === 'asc') {
-        return a.localeCompare(b);
-      } else {
-        return b.localeCompare(a);
-      }
-    });
-
-    // Convert to array of {group, tasks}
-    return sortedGroupKeys.map((key) => ({
-      group: key,
-      tasks: groups[key],
-    }));
-  }, [tasks, groupBy, groupSortOrder, users]);
+  // Use the reusable grouping hook
+  const groupedTasks = useTableGrouping({
+    data: tasks,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getTaskGroupKey,
+  });
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -527,16 +493,16 @@ const Tasks: React.FC = () => {
                   />
                 </Stack>
 
-                <Stack direction="column" spacing={2} sx={{ width: 160 }}>
+                <Stack direction="column" spacing={2} sx={{ width: 'auto' }}>
                   <Typography
                     component="p"
                     variant="body1"
                     color="text.secondary"
                     fontWeight={500}
                     fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px" }}
+                    sx={{ margin: 0, height: "22px", visibility: 'hidden' }}
                   >
-                    GROUP BY
+                    .
                   </Typography>
                   <GroupBy
                     options={[
@@ -545,10 +511,7 @@ const Tasks: React.FC = () => {
                       { id: 'assignees', label: 'Assignees' },
                       { id: 'due_date', label: 'Due date' },
                     ]}
-                    onGroupChange={(groupByValue, sortOrder) => {
-                      setGroupBy(groupByValue);
-                      setGroupSortOrder(sortOrder);
-                    }}
+                    onGroupChange={handleGroupChange}
                   />
                 </Stack>
 
@@ -596,7 +559,7 @@ const Tasks: React.FC = () => {
           <>
             {groupedTasks ? (
               <Stack spacing={3}>
-                {groupedTasks.map(({ group, tasks: groupTasks }) => (
+                {groupedTasks.map(({ group, items }) => (
                   <Box key={group}>
                     <Typography
                       sx={{
@@ -607,10 +570,10 @@ const Tasks: React.FC = () => {
                         paddingLeft: '4px',
                       }}
                     >
-                      {group} ({groupTasks.length})
+                      {group} ({items.length})
                     </Typography>
                     <TasksTable
-                      tasks={groupTasks}
+                      tasks={items}
                       users={users}
                       onArchive={handleDeleteTask}
                       onEdit={handleEditTask}

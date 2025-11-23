@@ -1301,6 +1301,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
              submitButtonText={isEdit ? "Update model" : "Save"}
              isSubmitting={isButtonDisabled}
              maxWidth={isHistorySidebarOpen ? "1100px" : "760px"}
+             expandedHeight={values.security_assessment}
              /* This hides the entire footer */
              hideFooter={isEdit && activeTab === "evidence"}
              headerActions={
@@ -1395,6 +1396,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                          isOpen={isHistorySidebarOpen}
                          onClose={() => setIsHistorySidebarOpen(false)}
                          modelInventoryId={selectedModelInventoryId as number}
+                         expandedHeight={values.security_assessment}
                      />
                  )}
              </Stack>

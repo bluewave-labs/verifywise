@@ -24,6 +24,7 @@ interface HistorySidebarProps {
   isOpen: boolean;
   onClose: () => void;
   modelInventoryId?: number;
+  expandedHeight?: boolean;
 }
 
 /**
@@ -74,6 +75,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   onClose,
   modelInventoryId,
+  expandedHeight = false,
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
@@ -382,7 +384,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       >
         <Box
           sx={{
-            maxHeight: "740px",
+            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "630px",
             border: `1px solid #E0E4E9`,
             borderRadius: "8px",
             display: "flex",

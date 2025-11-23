@@ -59,7 +59,7 @@ const InfoBox = ({ message, storageKey, variant = "info" }: InfoBoxProps) => {
         gap: 2,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
         <Icon size={18} strokeWidth={2} color={color} />
         <Typography
           sx={{

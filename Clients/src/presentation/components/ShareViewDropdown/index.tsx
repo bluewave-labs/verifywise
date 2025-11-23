@@ -178,7 +178,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         role="dialog"
         aria-label="Share view settings"
         sx={{
-          p: 0,
+          p: 2,
           width: "100%",
         }}
       >
@@ -202,13 +202,13 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
               <Typography
                 variant="h6"
                 sx={{
-                  fontSize: "18px",
+                  fontSize: "15px",
                   fontWeight: 600,
                   color: "#000",
                   mb: 0.5,
                 }}
               >
-                Share View
+                Share view
               </Typography>
               <Typography
                 variant="body2"
@@ -234,17 +234,15 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
           <>
             <Box sx={{ p: 3, pb: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <LinkIcon size={18} color="#666" />
                 <Typography
                   variant="subtitle2"
                   sx={{
-                    ml: 1,
                     fontSize: "14px",
                     fontWeight: 600,
                     color: "#000",
                   }}
                 >
-                  Shareable Link
+                  Shareable link
                 </Typography>
               </Box>
 
@@ -335,7 +333,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     color: "#000",
                   }}
                 >
-                  ⚙️ Settings
+                  Settings
                 </Typography>
               </Box>
 

@@ -35,9 +35,16 @@ interface HistorySidebarProps {
 const formatRelativeTime = (date: string | Date): string => {
   const now = dayjs();
   const targetDate = dayjs(date);
-  const diffMinutes = now.diff(targetDate, "minute");
-  const diffHours = now.diff(targetDate, "hour");
-  const diffDays = now.diff(targetDate, "day");
+
+  // Calculate absolute differences
+  const diffMinutes = Math.abs(now.diff(targetDate, "minute"));
+  const diffHours = Math.abs(now.diff(targetDate, "hour"));
+  const diffDays = Math.abs(now.diff(targetDate, "day"));
+
+  // Handle future dates (clock skew) - treat as "Just now"
+  if (targetDate.isAfter(now) && diffMinutes <= 5) {
+    return "Just now";
+  }
 
   // Less than 1 hour ago
   if (diffMinutes < 60) {
@@ -354,6 +361,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       sx={{
         height: "100%",
         minHeight: 0,
+        maxHeight: "100%",
         display: "flex",
         flexDirection: "column",
       }}
@@ -363,6 +371,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           width: "320px",
           height: "100%",
           minHeight: 0,
+          maxHeight: "100%",
           marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
@@ -371,6 +380,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         <Box
           sx={{
             height: "100%",
+            minHeight: 0,
+            maxHeight: "100%",
             border: `1px solid #E0E4E9`,
             borderRadius: "8px",
             display: "flex",

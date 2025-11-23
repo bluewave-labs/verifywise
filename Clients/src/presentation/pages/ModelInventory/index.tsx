@@ -235,40 +235,6 @@ const ModelInventory: React.FC = () => {
     getGroupKey: getModelInventoryGroupKey,
   });
 
-  // Define how to get the group key for each model risk
-  const getModelRiskGroupKey = (risk: any, field: string): string | string[] => {
-    switch (field) {
-      case 'risk_category':
-        return risk.risk_category || 'Unknown';
-      case 'risk_level':
-        return risk.risk_level || 'Unknown';
-      case 'status':
-        return risk.status || 'Unknown';
-      case 'owner':
-        if (risk.owner) {
-          const user = users.find((u) => u.id == risk.owner);
-          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
-        }
-        return 'Unassigned';
-      case 'model_name':
-        if (risk.model_id) {
-          const model = modelInventoryData.find((m) => m.id == risk.model_id);
-          return model?.model || 'Unknown Model';
-        }
-        return 'No Model';
-      default:
-        return 'Other';
-    }
-  };
-
-  // Apply grouping to filtered model risks
-  const groupedModelRisks = useTableGrouping({
-    data: filteredModelRisks,
-    groupByField: groupByRisk,
-    sortOrder: groupSortOrderRisk,
-    getGroupKey: getModelRiskGroupKey,
-  });
-
    // Function to fetch evidence data
    const fetchEvidenceData = async (showLoading = true) => {
     if (showLoading) {
@@ -867,6 +833,40 @@ const ModelInventory: React.FC = () => {
 
     return filtered;
   }, [modelRisksData, modelRiskCategoryFilter, modelRiskLevelFilter]);
+
+  // Define how to get the group key for each model risk
+  const getModelRiskGroupKey = (risk: any, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_category':
+        return risk.risk_category || 'Unknown';
+      case 'risk_level':
+        return risk.risk_level || 'Unknown';
+      case 'status':
+        return risk.status || 'Unknown';
+      case 'owner':
+        if (risk.owner) {
+          const user = users.find((u) => u.id == risk.owner);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'model_name':
+        if (risk.model_id) {
+          const model = modelInventoryData.find((m) => m.id == risk.model_id);
+          return model?.model || 'Unknown Model';
+        }
+        return 'No Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered model risks
+  const groupedModelRisks = useTableGrouping({
+    data: filteredModelRisks,
+    groupByField: groupByRisk,
+    sortOrder: groupSortOrderRisk,
+    getGroupKey: getModelRiskGroupKey,
+  });
 
   const filteredEvidenceHub = useMemo(() => {
     let filtered = evidenceHubData;

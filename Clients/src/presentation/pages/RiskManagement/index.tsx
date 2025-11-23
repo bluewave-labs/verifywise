@@ -149,8 +149,8 @@ const RiskManagement = () => {
       return {
         risk_name: risk.risk_name || '-',
         risk_owner: ownerName,
-        severity: risk.risk_severity_display || '-',
-        likelihood: risk.risk_likelihood_display || '-',
+        severity: risk.severity || '-',
+        likelihood: risk.likelihood || '-',
         mitigation_status: risk.mitigation_status || '-',
         risk_level: risk.current_risk_level || risk.risk_level_autocalculated || '-',
         deadline: risk.deadline || '-',

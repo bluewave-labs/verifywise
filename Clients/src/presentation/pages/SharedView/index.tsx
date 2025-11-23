@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Download, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { ENV_VARs } from "../../../env.vars";
 
 /**
  * SharedView page component for displaying publicly shared data
@@ -43,7 +44,7 @@ const SharedView: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/shares/view/${token}`);
+      const response = await fetch(`${ENV_VARs.URL}/api/shares/view/${token}`);
       const result = await response.json();
 
       if (!response.ok) {

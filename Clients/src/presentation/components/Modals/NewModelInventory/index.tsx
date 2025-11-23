@@ -1247,7 +1247,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
      );
 
     const evidenceSection = (
-        <Stack spacing={3}>
+        <Stack
+            spacing={3}
+            onWheel={(e) => {
+                // Stop scroll events from propagating to background
+                e.stopPropagation();
+            }}
+        >
 
             {/* ------------ ADD NEW EVIDENCE BUTTON ------------ */}
             <Box display="flex" justifyContent="flex-end" sx={{gap:4}}>

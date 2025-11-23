@@ -66,7 +66,12 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     let reportTypeLabel = input.report_type;
     // Keep arrays as arrays; normalize known string values
     if (Array.isArray(input.report_type)) {
-      reportTypeLabel = input.report_type;
+      // If "All reports combined in one file" is in the array, use only that
+      if (input.report_type.includes("All reports combined in one file")) {
+        reportTypeLabel = "All reports";
+      } else {
+        reportTypeLabel = input.report_type;
+      }
     } else {
       switch (input.report_type) {
         case "Annexes report":

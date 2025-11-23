@@ -233,7 +233,23 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
             value={Array.isArray(values.report_type) ? values.report_type : []}
             options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
             onChange={(_event, newValue) => {
-              setValues({ ...values, report_type: newValue });
+              // Handle "All reports combined in one file" selection
+              let finalValue = newValue;
+
+              // If "All reports combined in one file" was just selected
+              if (newValue.includes("All reports combined in one file") &&
+                  !values.report_type.includes("All reports combined in one file")) {
+                // Only keep "All reports combined in one file", remove all others
+                finalValue = ["All reports combined in one file"];
+              }
+              // If "All reports combined in one file" is already selected and user adds something else
+              else if (values.report_type.includes("All reports combined in one file") &&
+                       newValue.length > 1) {
+                // Remove "All reports combined in one file" to allow multiple selections
+                finalValue = newValue.filter(item => item !== "All reports combined in one file");
+              }
+
+              setValues({ ...values, report_type: finalValue });
               setErrors({ ...errors, report_type: "" });
             }}
             getOptionLabel={(option: string) => option}

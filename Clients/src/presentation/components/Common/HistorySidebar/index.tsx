@@ -87,8 +87,18 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const [avatarUrls, setAvatarUrls] = React.useState<{ [userId: number]: string | null }>({});
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [showFade, setShowFade] = React.useState(false);
+  const [, setCurrentTime] = React.useState(Date.now());
 
   const config = getEntityHistoryConfig(entityType);
+
+  // Update relative timestamps every minute
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Update every 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Check if content overflows to show fade overlay
   React.useEffect(() => {

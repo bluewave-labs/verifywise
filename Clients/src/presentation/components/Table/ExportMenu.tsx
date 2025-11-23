@@ -91,19 +91,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 8px',
-            gap: '8px',
+            gap: 0,
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0, margin: 0 }}>
+          <ListItemIcon sx={{ minWidth: 0, margin: 0, padding: 0 }}>
             <img src={pdfIcon} alt="PDF" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to PDF"
             primaryTypographyProps={{ fontSize: '13px' }}
-            sx={{ margin: 0 }}
+            sx={{ margin: 0, padding: 0 }}
           />
         </MenuItem>
         <MenuItem
@@ -111,19 +111,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 8px',
-            gap: '8px',
+            gap: 0,
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0, margin: 0 }}>
+          <ListItemIcon sx={{ minWidth: 0, margin: 0, padding: 0 }}>
             <img src={csvIcon} alt="CSV" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to CSV"
             primaryTypographyProps={{ fontSize: '13px' }}
-            sx={{ margin: 0 }}
+            sx={{ margin: 0, padding: 0 }}
           />
         </MenuItem>
         <MenuItem
@@ -131,19 +131,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 8px',
-            gap: '8px',
+            gap: 0,
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0, margin: 0 }}>
+          <ListItemIcon sx={{ minWidth: 0, margin: 0, padding: 0 }}>
             <img src={xlsIcon} alt="XLSX" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to XLSX"
             primaryTypographyProps={{ fontSize: '13px' }}
-            sx={{ margin: 0 }}
+            sx={{ margin: 0, padding: 0 }}
           />
         </MenuItem>
       </Menu>

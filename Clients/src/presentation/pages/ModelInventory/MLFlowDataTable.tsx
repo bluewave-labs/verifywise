@@ -38,6 +38,10 @@ import {
   paginationSelectStyle,
   paginationStyle,
 } from "../ModelInventory/style";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { Stack } from "@mui/material";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
@@ -49,6 +53,9 @@ const MLFlowDataTable: React.FC = () => {
   const [mlflowData, setMlflowData] = useState<MLFlowModel[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   const summaryStats = useMemo(() => {
     const stageCounts = mlflowData.reduce(
@@ -146,6 +153,28 @@ const MLFlowDataTable: React.FC = () => {
     return `${start} - ${end}`;
   }, [page, rowsPerPage, mlflowData.length]);
 
+  // Define how to get the group key for each MLFlow model
+  const getMLFlowGroupKey = (model: MLFlowModel, field: string): string | string[] => {
+    switch (field) {
+      case 'lifecycle_stage':
+        return model.lifecycle_stage || 'Unknown';
+      case 'experiment':
+        return model.experiment_info?.experiment_name || model.experiment_info?.experiment_id || 'Unknown Experiment';
+      case 'model_name':
+        return model.model_name || 'Unknown Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to mlflow data
+  const groupedMLFlowData = useTableGrouping({
+    data: mlflowData,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getMLFlowGroupKey,
+  });
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
@@ -164,7 +193,15 @@ const MLFlowDataTable: React.FC = () => {
         </Alert>
       )}
 
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
+      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 2, width: "100%" }}>
+        <GroupBy
+          options={[
+            { id: 'lifecycle_stage', label: 'Lifecycle stage' },
+            { id: 'experiment', label: 'Experiment' },
+            { id: 'model_name', label: 'Model name' },
+          ]}
+          onGroupChange={handleGroupChange}
+        />
         <Button
           variant="outlined"
           startIcon={<RefreshCw size={16} />}
@@ -201,26 +238,36 @@ const MLFlowDataTable: React.FC = () => {
         {mlflowData.length === 0 && !loading ? (
           <EmptyState message="No MLFlow runs have been synced yet. Configure the integration and click Refresh to pull the latest models." />
         ) : (
-          <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-            <Table sx={{ minWidth: 800 }}>
-              <TableHead
-                sx={{
-                  backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
-                }}
-              >
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  {["Model Name", "Version", "Status", "Created", "Last Updated", "Description", "Actions"].map((header) => (
-                    <TableCell
-                      key={header}
-                      sx={singleTheme.tableStyles.primary.header.cell}
+          <GroupedTableView
+            groupedData={groupedMLFlowData}
+            ungroupedData={mlflowData}
+            renderTable={(data, options) => {
+              const hidePagination = options?.hidePagination || false;
+              const displayData = hidePagination
+                ? data.slice(0, Math.min(data.length, 100))
+                : data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+              return (
+                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                  <Table sx={{ minWidth: 800 }}>
+                    <TableHead
+                      sx={{
+                        backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
+                      }}
                     >
-                      {header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedData.map((model) => (
+                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                        {["Model Name", "Version", "Status", "Created", "Last Updated", "Description", "Actions"].map((header) => (
+                          <TableCell
+                            key={header}
+                            sx={singleTheme.tableStyles.primary.header.cell}
+                          >
+                            {header}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {displayData.map((model) => (
                   <TableRow
                     key={model.id}
                     sx={singleTheme.tableStyles.primary.body.row}
@@ -253,40 +300,43 @@ const MLFlowDataTable: React.FC = () => {
                         </Tooltip>
                       </Box>
                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              {mlflowData.length > 0 && (
-                <TableFooter>
-                  <TableRow sx={tableFooterRowStyle(theme)}>
-                    <TableCell sx={showingTextCellStyle(theme)}>
-                      Showing {getRange} of {mlflowData.length} model(s)
-                    </TableCell>
-                    <TablePagination
-                      count={mlflowData.length}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 25]}
-                      onRowsPerPageChange={handleRowsPerPageChange}
-                      ActionsComponent={(props) => <TablePaginationActions {...props} />}
-                      labelRowsPerPage="Rows per page"
-                      labelDisplayedRows={({ page, count }) => `Page ${page + 1} of ${Math.max(1, Math.ceil(count / rowsPerPage))}`}
-                      slotProps={{
-                        select: {
-                          MenuProps: paginationMenuProps(theme),
-                          inputProps: { id: "mlflow-pagination-dropdown" },
-                          IconComponent: SelectorVertical,
-                          sx: paginationSelectStyle(theme),
-                        },
-                      }}
-                      sx={paginationStyle(theme)}
-                    />
-                  </TableRow>
-                </TableFooter>
-              )}
-            </Table>
-          </TableContainer>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                    {data.length > 0 && !hidePagination && (
+                      <TableFooter>
+                        <TableRow sx={tableFooterRowStyle(theme)}>
+                          <TableCell sx={showingTextCellStyle(theme)}>
+                            Showing {getRange} of {data.length} model(s)
+                          </TableCell>
+                          <TablePagination
+                            count={data.length}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            rowsPerPage={rowsPerPage}
+                            rowsPerPageOptions={[5, 10, 15, 25]}
+                            onRowsPerPageChange={handleRowsPerPageChange}
+                            ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                            labelRowsPerPage="Rows per page"
+                            labelDisplayedRows={({ page, count }) => `Page ${page + 1} of ${Math.max(1, Math.ceil(count / rowsPerPage))}`}
+                            slotProps={{
+                              select: {
+                                MenuProps: paginationMenuProps(theme),
+                                inputProps: { id: "mlflow-pagination-dropdown" },
+                                IconComponent: SelectorVertical,
+                                sx: paginationSelectStyle(theme),
+                              },
+                            }}
+                            sx={paginationStyle(theme)}
+                          />
+                        </TableRow>
+                      </TableFooter>
+                    )}
+                  </Table>
+                </TableContainer>
+              );
+            }}
+          />
         )}
       </Box>
 

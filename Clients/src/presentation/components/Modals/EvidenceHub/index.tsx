@@ -6,7 +6,6 @@ import {
     Typography,
     IconButton,
     Tooltip,
-    TextField,
 } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { UploadIcon } from "lucide-react";
@@ -17,13 +16,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import SelectComponent from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import Autocomplete from "@mui/material/Autocomplete";
 import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import { EvidenceType } from "../../../../domain/enums/evidenceHub.enum";
 import Field from "../../Inputs/Field";
 import { useTheme } from "@mui/material";
-import { getAutocompleteStyles } from "../../../utils/inputStyles";
-import { ChevronDown } from "lucide-react";
+import CustomizableMultiSelect from "../../Inputs/Select/Multi";
 
 interface NewEvidenceHubProps {
     isOpen: boolean;
@@ -338,79 +335,20 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 {/* Second Row: Mapped Models */}
                 <Stack direction="row" justifyContent="flex-start" spacing={6}>
                     <Suspense fallback={<div>Loading...</div>}>
-                        <Stack sx={{ width: "100%" }}>
-                            <Typography
-                                sx={{
-                                    fontSize: "13px",
-                                    fontWeight: 500,
-                                    height: "22px",
-                                    mb: theme.spacing(2),
-                                    color: theme.palette.text.secondary,
-                                }}
-                            >
-                                Mapped models
-                            </Typography>
-                            <Autocomplete
-                                multiple
-                                id="mapped-models-input"
-                                size="small"
-                                options={modelOptions || []}
-                                value={modelOptions.filter(
-                                    (m, index, self) =>
-                                        values.mapped_model_ids?.includes(
-                                            m._id
-                                        ) &&
-                                        self.findIndex(
-                                            (x) => x._id === m._id
-                                        ) === index
-                                )}
-                                onChange={(_event, newValue) => {
-                                    const mappedIds = newValue.map((v) => v._id);
-                                    setValues({
-                                        ...values,
-                                        mapped_model_ids: mappedIds,
-                                    });
-                                }}
-                                getOptionLabel={(option) => option.name}
-                                noOptionsText="No models available"
-                                renderOption={(props, option) => {
-                                    const { key, ...otherProps } = props;
-                                    return (
-                                        <Box component="li" key={key} {...otherProps}>
-                                            <Typography
-                                                sx={{ fontSize: 13, fontWeight: 400 }}
-                                            >
-                                                {option.name}
-                                            </Typography>
-                                        </Box>
-                                    );
-                                }}
-                                filterSelectedOptions
-                                popupIcon={<ChevronDown />}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        placeholder="Select models"
-                                        error={Boolean(errors.mapped_model_ids)}
-                                        helperText={errors.mapped_model_ids}
-                                        sx={{
-                                            "& .MuiInputBase-input": {
-                                                fontSize: 13,
-                                            },
-                                        }}
-                                    />
-                                )}
-                                sx={{
-                                    ...getAutocompleteStyles(theme, {
-                                        hasError: !!errors.mapped_model_ids,
-                                    }),
-                                    backgroundColor: theme.palette.background.main,
-                                    "& .MuiChip-root": {
-                                        borderRadius: "4px",
-                                    },
-                                }}
-                            />
-                        </Stack>
+                        <CustomizableMultiSelect
+                            label="Mapped models"
+                            value={values.mapped_model_ids || []}
+                            onChange={(event) => {
+                                setValues({
+                                    ...values,
+                                    mapped_model_ids: event.target.value as number[],
+                                });
+                            }}
+                            items={modelOptions}
+                            placeholder="Select models"
+                            error={errors.mapped_model_ids}
+                            width="100%"
+                        />
                     </Suspense>
                 </Stack>
 

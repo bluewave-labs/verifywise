@@ -197,19 +197,7 @@ export const recordModelInventoryCreation = async (
   modelData: Partial<ModelInventoryModel>,
   transaction?: Transaction
 ): Promise<void> => {
-  // Record the creation event
-  await recordModelInventoryChange(
-    modelInventoryId,
-    "created",
-    changedByUserId,
-    tenant,
-    undefined,
-    undefined,
-    undefined,
-    transaction
-  );
-
-  // Record initial field values as changes
+  // Record initial field values as changes (no need for separate creation event)
   const fieldsToTrack = [
     "provider",
     "model",
@@ -251,14 +239,15 @@ export const recordModelInventoryDeletion = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<void> => {
+  // Record a single deletion event with field name
   await recordModelInventoryChange(
     modelInventoryId,
     "deleted",
     changedByUserId,
     tenant,
-    undefined,
-    undefined,
-    undefined,
+    "Model Inventory",
+    "Active",
+    "Deleted",
     transaction
   );
 };

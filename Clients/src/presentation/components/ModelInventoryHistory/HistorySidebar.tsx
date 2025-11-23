@@ -2,15 +2,14 @@ import React from "react";
 import {
   Box,
   Typography,
-  IconButton,
   Drawer,
   Stack,
   CircularProgress,
   Chip,
   useTheme,
-  Divider,
+  IconButton,
 } from "@mui/material";
-import { X as CloseIcon, Clock, User } from "lucide-react";
+import { X as CloseIcon, Clock } from "lucide-react";
 import { useModelInventoryChangeHistory, ModelInventoryChangeHistoryEntry } from "../../../application/hooks/useModelInventoryChangeHistory";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -38,14 +37,20 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     const groups: { [key: string]: ModelInventoryChangeHistoryEntry[] } = {};
 
     history.forEach((entry) => {
-      const key = `${entry.changed_at}_${entry.action}`;
-      if (!groups[key]) {
-        groups[key] = [];
+      // Only include entries with field_name (skip action-only markers)
+      if (entry.field_name) {
+        const key = `${entry.changed_at}_${entry.action}_${entry.changed_by_user_id}`;
+        if (!groups[key]) {
+          groups[key] = [];
+        }
+        groups[key].push(entry);
       }
-      groups[key].push(entry);
     });
 
-    return Object.values(groups);
+    return Object.values(groups).sort((a, b) => {
+      // Sort by timestamp descending (newest first)
+      return new Date(b[0].changed_at).getTime() - new Date(a[0].changed_at).getTime();
+    });
   }, [history]);
 
   const renderHistoryEntry = (group: ModelInventoryChangeHistoryEntry[]) => {
@@ -54,8 +59,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       ? `${firstEntry.user_name} ${firstEntry.user_surname}`
       : firstEntry.user_email || "Unknown User";
 
-    const timeAgo = dayjs.utc(firstEntry.changed_at).fromNow();
-    const fullDate = dayjs.utc(firstEntry.changed_at).format("MMMM D, YYYY [at] h:mm A");
+    const timeAgo = dayjs(firstEntry.changed_at).fromNow();
+    const fullDate = dayjs(firstEntry.changed_at).format("MMMM D, YYYY [at] h:mm A");
 
     return (
       <Box
@@ -95,9 +100,9 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 color: theme.palette.text.primary,
               }}
             >
-              {firstEntry.action === "created" && "You created"}
-              {firstEntry.action === "updated" && `You updated ${group.length} field${group.length > 1 ? "s" : ""}`}
-              {firstEntry.action === "deleted" && "You deleted"}
+              {firstEntry.action === "created" && `${userName} created this model`}
+              {firstEntry.action === "updated" && `${userName} updated ${group.length} field${group.length > 1 ? "s" : ""}`}
+              {firstEntry.action === "deleted" && `${userName} deleted this model`}
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center">
               <Clock size={12} color={theme.palette.text.secondary} />
@@ -161,67 +166,126 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 {entry.field_name}
               </Typography>
 
-              <Stack direction="row" spacing={2} alignItems="center">
-                {/* Old Value */}
-                {entry.old_value && entry.old_value !== "-" && (
-                  <Box
-                    sx={{
-                      flex: 1,
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      backgroundColor: "#FEE2E2",
-                      border: "1px solid #FCA5A5",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        color: "#991B1B",
-                        fontWeight: 400,
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {entry.old_value}
-                    </Typography>
-                  </Box>
-                )}
-
-                {/* Arrow */}
-                {entry.old_value && entry.old_value !== "-" && entry.new_value && entry.new_value !== "-" && (
+              {/* Show change based on action type */}
+              {entry.action === "created" && entry.new_value && entry.new_value !== "-" ? (
+                <Box
+                  sx={{
+                    padding: "8px 12px",
+                    borderRadius: "6px",
+                    backgroundColor: "#D1FAE5",
+                    border: "1px solid #6EE7B7",
+                  }}
+                >
                   <Typography
                     sx={{
-                      fontSize: 16,
-                      color: theme.palette.text.secondary,
+                      fontSize: 10,
+                      color: "#065F46",
+                      fontWeight: 500,
+                      mb: 0.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
                     }}
                   >
-                    →
+                    Initial Value
                   </Typography>
-                )}
-
-                {/* New Value */}
-                {entry.new_value && entry.new_value !== "-" && (
-                  <Box
+                  <Typography
                     sx={{
-                      flex: 1,
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      backgroundColor: "#D1FAE5",
-                      border: "1px solid #6EE7B7",
+                      fontSize: 11,
+                      color: "#065F46",
+                      fontWeight: 400,
+                      wordBreak: "break-word",
                     }}
                   >
-                    <Typography
+                    {entry.new_value}
+                  </Typography>
+                </Box>
+              ) : (
+                <Stack direction="row" spacing={2} alignItems="center">
+                  {/* Old Value */}
+                  {entry.old_value && entry.old_value !== "-" && (
+                    <Box
                       sx={{
-                        fontSize: 11,
-                        color: "#065F46",
-                        fontWeight: 400,
-                        wordBreak: "break-word",
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        backgroundColor: "#FEE2E2",
+                        border: "1px solid #FCA5A5",
                       }}
                     >
-                      {entry.new_value}
+                      <Typography
+                        sx={{
+                          fontSize: 10,
+                          color: "#991B1B",
+                          fontWeight: 500,
+                          mb: 0.5,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        Previous
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "#991B1B",
+                          fontWeight: 400,
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {entry.old_value}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Arrow */}
+                  {entry.old_value && entry.old_value !== "-" && entry.new_value && entry.new_value !== "-" && (
+                    <Typography
+                      sx={{
+                        fontSize: 16,
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
+                      →
                     </Typography>
-                  </Box>
-                )}
-              </Stack>
+                  )}
+
+                  {/* New Value */}
+                  {entry.new_value && entry.new_value !== "-" && (
+                    <Box
+                      sx={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        backgroundColor: "#D1FAE5",
+                        border: "1px solid #6EE7B7",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: 10,
+                          color: "#065F46",
+                          fontWeight: 500,
+                          mb: 0.5,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        Current
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "#065F46",
+                          fontWeight: 400,
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {entry.new_value}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              )}
             </Box>
           );
         })}
@@ -236,8 +300,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       onClose={onClose}
       sx={{
         "& .MuiDrawer-paper": {
-          width: 400,
-          maxWidth: "90vw",
+          width: { xs: "100%", sm: 450, md: 500 },
+          maxWidth: "95vw",
         },
       }}
     >

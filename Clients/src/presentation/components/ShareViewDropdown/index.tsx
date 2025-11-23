@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Popover,
@@ -95,6 +95,13 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
   });
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Sync shareableLink prop with internal state
+  useEffect(() => {
+    if (initialLink) {
+      setShareableLink(initialLink);
+    }
+  }, [initialLink]);
+
   const handleToggleEnabled = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -164,7 +171,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         horizontal: "right",
       }}
       sx={{
-        mt: 1,
+        marginTop: "8px",
         "& .MuiPopover-paper": {
           borderRadius: "8px",
           boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
@@ -185,8 +192,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         {/* Header Section */}
         <Box
           sx={{
-            p: 3,
-            pb: 2,
+            padding: "8px 0",
             borderBottom: "1px solid #e0e0e0",
           }}
         >
@@ -201,7 +207,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
               <Typography
                 variant="h6"
                 sx={{
-                  fontSize: "15px",
+                  fontSize: "13px",
                   fontWeight: 600,
                   color: "#000",
                 }}
@@ -215,7 +221,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     fontSize: "13px",
                     color: "#666",
                     lineHeight: 1.4,
-                    mt: 0.5,
+                    marginTop: "8px",
                   }}
                 >
                   Send a view only link to anyone or embed this report on a
@@ -233,12 +239,12 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         {/* Shareable Link Section */}
         {isEnabled && (
           <>
-            <Box sx={{ p: 3, pb: 2 }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Box sx={{ paddingTop: "16px", paddingBottom: "8px" }}>
+              <Box sx={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
                 <Typography
                   variant="subtitle2"
                   sx={{
-                    fontSize: "14px",
+                    fontSize: "13px",
                     fontWeight: 600,
                     color: "#000",
                   }}
@@ -285,7 +291,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     size="small"
                     onClick={handleCopyLink}
                     sx={{
-                      p: 0.5,
+                      padding: "4px",
                       color: "#13715B",
                       "&:hover": {
                         backgroundColor: "rgba(19, 113, 91, 0.1)",
@@ -313,7 +319,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     size="small"
                     onClick={handleRefreshLink}
                     sx={{
-                      p: 0.5,
+                      padding: "4px",
                       color: "#13715B",
                       "&:hover": {
                         backgroundColor: "rgba(19, 113, 91, 0.1)",
@@ -342,7 +348,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     onClick={handleOpenLink}
                     disabled={!shareableLink}
                     sx={{
-                      p: 0.5,
+                      padding: "4px",
                       color: "#13715B",
                       "&:hover": {
                         backgroundColor: "rgba(19, 113, 91, 0.1)",
@@ -356,12 +362,12 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
             </Box>
 
             {/* Settings Section */}
-            <Box sx={{ px: 3, pb: 3, pt: 3, borderTop: "1px solid #e0e0e0" }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Box sx={{ paddingTop: "16px", paddingBottom: "16px", borderTop: "1px solid #e0e0e0" }}>
+              <Box sx={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
                 <Typography
                   variant="subtitle2"
                   sx={{
-                    fontSize: "14px",
+                    fontSize: "13px",
                     fontWeight: 600,
                     color: "#000",
                   }}
@@ -406,7 +412,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                 <Box
                   sx={{
                     borderTop: "1px solid #e0e0e0",
-                    mt: 2,
+                    marginTop: "16px",
                   }}
                 />
                 <ManageShareLinks
@@ -448,7 +454,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
         justifyContent: "space-between",
       }}
     >
-      <Box sx={{ flexGrow: 1, mr: 1 }}>
+      <Box sx={{ flexGrow: 1, marginRight: "8px" }}>
         <Checkbox
           id={`setting-${label.replace(/\s+/g, '-').toLowerCase()}`}
           label={label}

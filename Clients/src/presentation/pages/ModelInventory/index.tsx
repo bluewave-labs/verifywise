@@ -126,8 +126,11 @@ const ModelInventory: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  // GroupBy state
+  // GroupBy state - models tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // GroupBy state - model risks tab
+  const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
 
     const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
 
@@ -230,6 +233,40 @@ const ModelInventory: React.FC = () => {
     groupByField: groupBy,
     sortOrder: groupSortOrder,
     getGroupKey: getModelInventoryGroupKey,
+  });
+
+  // Define how to get the group key for each model risk
+  const getModelRiskGroupKey = (risk: any, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_category':
+        return risk.risk_category || 'Unknown';
+      case 'risk_level':
+        return risk.risk_level || 'Unknown';
+      case 'status':
+        return risk.status || 'Unknown';
+      case 'owner':
+        if (risk.owner) {
+          const user = users.find((u) => u.id == risk.owner);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'model_name':
+        if (risk.model_id) {
+          const model = modelInventoryData.find((m) => m.id == risk.model_id);
+          return model?.model || 'Unknown Model';
+        }
+        return 'No Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered model risks
+  const groupedModelRisks = useTableGrouping({
+    data: filteredModelRisks,
+    groupByField: groupByRisk,
+    sortOrder: groupSortOrderRisk,
+    getGroupKey: getModelRiskGroupKey,
   });
 
    // Function to fetch evidence data
@@ -1335,6 +1372,16 @@ const ModelInventory: React.FC = () => {
                                       return `Status: ${selectedItem.name.toLowerCase()}`;
                                   }}
                               />
+                              <GroupBy
+                                  options={[
+                                      { id: 'risk_category', label: 'Category' },
+                                      { id: 'risk_level', label: 'Risk level' },
+                                      { id: 'status', label: 'Status' },
+                                      { id: 'model_name', label: 'Model' },
+                                      { id: 'owner', label: 'Owner' },
+                                  ]}
+                                  onGroupChange={handleGroupChangeRisk}
+                              />
                           </Stack>
                           <div data-joyride-id="add-model-risk-button">
                               <CustomizableButton
@@ -1348,14 +1395,21 @@ const ModelInventory: React.FC = () => {
                           </div>
                       </Stack>
 
-                      <ModelRisksTable
-                          data={filteredModelRisks}
-                          isLoading={isModelRisksLoading}
-                          onEdit={handleEditModelRisk}
-                          onDelete={handleDeleteModelRisk}
-                          deletingId={deletingModelRiskId}
-                          users={users}
-                          models={modelInventoryData}
+                      <GroupedTableView
+                          groupedData={groupedModelRisks}
+                          ungroupedData={filteredModelRisks}
+                          renderTable={(data, options) => (
+                              <ModelRisksTable
+                                  data={data}
+                                  isLoading={isModelRisksLoading}
+                                  onEdit={handleEditModelRisk}
+                                  onDelete={handleDeleteModelRisk}
+                                  deletingId={deletingModelRiskId}
+                                  users={users}
+                                  models={modelInventoryData}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}

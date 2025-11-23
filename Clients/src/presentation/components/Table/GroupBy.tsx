@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Stack, Popover, Box, Typography } from '@mui/material';
-import { X } from 'lucide-react';
+import { X, TableRowsSplit } from 'lucide-react';
 import Select from '../Inputs/Select';
 import ButtonToggle from '../ButtonToggle';
 
@@ -83,13 +83,14 @@ export const GroupBy: React.FC<GroupByProps> = ({
           borderColor: '#e5e7eb',
           height: '34px',
           minWidth: selectedGroup ? '100px' : '80px',
-          backgroundColor: (selectedGroup || open) ? '#f0fdf4' : 'transparent',
+          backgroundColor: open ? '#f0fdf4' : 'transparent',
           '&:hover': {
             borderColor: '#d1d5db',
             backgroundColor: '#f0fdf4',
           },
         }}
       >
+        <TableRowsSplit size={16} color="#10b981" style={{ marginRight: '6px' }} />
         Group {selectedGroup && '(1)'}
       </Button>
 

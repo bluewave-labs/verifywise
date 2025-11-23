@@ -96,7 +96,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: '16px' }}>
+          <ListItemIcon sx={{ minWidth: '16px', marginRight: '8px' }}>
             <img src={pdfIcon} alt="PDF" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
@@ -114,7 +114,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: '16px' }}>
+          <ListItemIcon sx={{ minWidth: '16px', marginRight: '8px' }}>
             <img src={csvIcon} alt="CSV" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
@@ -132,7 +132,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: '16px' }}>
+          <ListItemIcon sx={{ minWidth: '16px', marginRight: '8px' }}>
             <img src={xlsIcon} alt="XLSX" width={16} height={16} />
           </ListItemIcon>
           <ListItemText

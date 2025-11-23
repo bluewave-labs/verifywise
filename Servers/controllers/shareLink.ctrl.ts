@@ -4,8 +4,8 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { logEvent } from "../utils/logger/dbLogger";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
 import { IShareLinkCreate, IShareLinkUpdate } from "../domain.layer/interfaces/i.shareLink";
+import crypto from "crypto";
 
 /**
  * Create a new share link
@@ -14,9 +14,10 @@ import { IShareLinkCreate, IShareLinkUpdate } from "../domain.layer/interfaces/i
 export const createShareLink = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   const { resource_type, resource_id, settings, expires_at }: IShareLinkCreate = req.body;
+  const tenantId = req.tenantId!;
 
   logStructured('processing', `starting share link creation for ${resource_type} ${resource_id}`, 'createShareLink', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Creating share link for ${resource_type} ${resource_id}`);
+  logger.debug(`🛠️ Creating share link for ${resource_type} ${resource_id} in tenant ${tenantId}`);
 
   try {
     // Validate required fields
@@ -24,32 +25,61 @@ export const createShareLink = async (req: Request, res: Response) => {
       throw new ValidationException("resource_type and resource_id are required");
     }
 
-    // Create the share link
-    const shareLink = await ShareLinkModel.create(
-      {
+    // Generate unique share token
+    const share_token = crypto.randomBytes(32).toString("hex");
+
+    // Default settings
+    const defaultSettings = {
+      shareAllFields: false,
+      allowDataExport: true,
+      allowViewersToOpenRecords: false,
+      displayToolbar: true,
+    };
+
+    const finalSettings = settings || defaultSettings;
+
+    // Create the share link using raw SQL with tenant schema
+    const createQuery = `
+      INSERT INTO "${tenantId}".share_links
+      (share_token, resource_type, resource_id, created_by, settings, is_enabled, expires_at, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      RETURNING *;
+    `;
+
+    const result = await sequelize.query(createQuery, {
+      bind: [
+        share_token,
         resource_type,
         resource_id,
-        created_by: req.userId!,
-        settings: settings || {
-          shareAllFields: false,
-          allowDataExport: true,
-          allowViewersToOpenRecords: false,
-          displayToolbar: true,
-        },
-        is_enabled: true,
-        expires_at: expires_at ? new Date(expires_at) : undefined,
-      },
-      { transaction }
-    );
+        req.userId!,
+        JSON.stringify(finalSettings),
+        true,
+        expires_at ? new Date(expires_at) : null,
+      ],
+      transaction,
+      type: sequelize.QueryTypes.INSERT,
+    }) as any;
+
+    const shareLink = result[0][0];
 
     logStructured('successful', `created share link ${shareLink.id}`, 'createShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Created share link: ${shareLink.id}`);
 
     await transaction.commit();
 
+    const shareable_url = `https://app.verifywise.com/shared/${resource_type}s/${share_token}`;
+
     const response = {
-      ...shareLink.toSafeJSON(),
-      shareable_url: shareLink.getShareableUrl(),
+      id: shareLink.id,
+      share_token: shareLink.share_token,
+      resource_type: shareLink.resource_type,
+      resource_id: shareLink.resource_id,
+      settings: shareLink.settings,
+      is_enabled: shareLink.is_enabled,
+      expires_at: shareLink.expires_at,
+      created_at: shareLink.created_at,
+      updated_at: shareLink.updated_at,
+      shareable_url,
     };
 
     return res.status(201).json(STATUS_CODE[201](response));
@@ -69,31 +99,48 @@ export const createShareLink = async (req: Request, res: Response) => {
 
 /**
  * Get all share links for a specific resource
- * GET /api/:resourceType/:resourceId/shares
+ * GET /api/shares/:resourceType/:resourceId
  */
 export const getShareLinksForResource = async (req: Request, res: Response) => {
   const { resourceType, resourceId } = req.params;
+  const tenantId = req.tenantId!;
 
   logStructured('processing', `fetching share links for ${resourceType} ${resourceId}`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Fetching share links for ${resourceType} ${resourceId}`);
+  logger.debug(`🛠️ Fetching share links for ${resourceType} ${resourceId} in tenant ${tenantId}`);
 
   try {
-    const shareLinks = await ShareLinkModel.findAll({
-      where: {
-        resource_type: resourceType,
-        resource_id: parseInt(resourceId),
-      },
-      order: [['created_at', 'DESC']],
-    });
+    const query = `
+      SELECT * FROM "${tenantId}".share_links
+      WHERE resource_type = $1 AND resource_id = $2
+      ORDER BY created_at DESC;
+    `;
+
+    const shareLinks = await sequelize.query(query, {
+      bind: [resourceType, parseInt(resourceId)],
+      type: sequelize.QueryTypes.SELECT,
+    }) as any[];
 
     logStructured('successful', `fetched ${shareLinks.length} share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
     logger.debug(`✅ Fetched ${shareLinks.length} share links`);
 
-    const response = shareLinks.map(link => ({
-      ...link.toSafeJSON(),
-      shareable_url: link.getShareableUrl(),
-      is_valid: link.isValid(),
-    }));
+    const response = shareLinks.map(link => {
+      const shareable_url = `https://app.verifywise.com/shared/${link.resource_type}s/${link.share_token}`;
+      const is_valid = link.is_enabled && (!link.expires_at || new Date() <= new Date(link.expires_at));
+
+      return {
+        id: link.id,
+        share_token: link.share_token,
+        resource_type: link.resource_type,
+        resource_id: link.resource_id,
+        settings: link.settings,
+        is_enabled: link.is_enabled,
+        expires_at: link.expires_at,
+        created_at: link.created_at,
+        updated_at: link.updated_at,
+        shareable_url,
+        is_valid,
+      };
+    });
 
     return res.status(200).json(STATUS_CODE[200](response));
   } catch (error) {
@@ -106,7 +153,8 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
 
 /**
  * Get a share link by token (public endpoint - no auth required)
- * GET /api/shares/:token
+ * Searches across all tenant schemas to find the share link
+ * GET /api/shares/token/:token
  */
 export const getShareLinkByToken = async (req: Request, res: Response) => {
   const { token } = req.params;
@@ -115,27 +163,68 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Fetching share link by token`);
 
   try {
-    const shareLink = await ShareLinkModel.findOne({
-      where: {
-        share_token: token,
-      },
-    });
+    // Get all tenant schemas
+    const schemasQuery = `
+      SELECT schema_name
+      FROM information_schema.schemata
+      WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
+        AND schema_name NOT LIKE 'pg_%';
+    `;
+
+    const schemas = await sequelize.query(schemasQuery, {
+      type: sequelize.QueryTypes.SELECT,
+    }) as { schema_name: string }[];
+
+    let shareLink: any = null;
+    let tenantSchema: string | null = null;
+
+    // Search for the share link across all tenant schemas
+    for (const schema of schemas) {
+      const query = `
+        SELECT * FROM "${schema.schema_name}".share_links
+        WHERE share_token = $1
+        LIMIT 1;
+      `;
+
+      const result = await sequelize.query(query, {
+        bind: [token],
+        type: sequelize.QueryTypes.SELECT,
+      }) as any[];
+
+      if (result.length > 0) {
+        shareLink = result[0];
+        tenantSchema = schema.schema_name;
+        break;
+      }
+    }
 
     if (!shareLink) {
       logStructured('error', `share link not found`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
       return res.status(404).json(STATUS_CODE[404]({ message: "Share link not found" }));
     }
 
-    if (!shareLink.isValid()) {
+    // Validate the share link
+    const is_valid = shareLink.is_enabled && (!shareLink.expires_at || new Date() <= new Date(shareLink.expires_at));
+
+    if (!is_valid) {
       logStructured('error', `share link is disabled or expired`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
       return res.status(403).json(STATUS_CODE[403]({ message: "Share link is disabled or expired" }));
     }
 
     logStructured('successful', `fetched share link ${shareLink.id}`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
-    logger.debug(`✅ Fetched share link: ${shareLink.id}`);
+    logger.debug(`✅ Fetched share link: ${shareLink.id} from tenant ${tenantSchema}`);
 
     const response = {
-      ...shareLink.toSafeJSON(),
+      id: shareLink.id,
+      share_token: shareLink.share_token,
+      resource_type: shareLink.resource_type,
+      resource_id: shareLink.resource_id,
+      settings: shareLink.settings,
+      is_enabled: shareLink.is_enabled,
+      expires_at: shareLink.expires_at,
+      created_at: shareLink.created_at,
+      updated_at: shareLink.updated_at,
+      tenant_schema: tenantSchema,
       is_valid: true,
     };
 
@@ -156,18 +245,32 @@ export const updateShareLink = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
   const { settings, is_enabled, expires_at }: IShareLinkUpdate = req.body;
+  const tenantId = req.tenantId!;
 
   logStructured('processing', `updating share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Updating share link: ${id}`);
+  logger.debug(`🛠️ Updating share link: ${id} in tenant ${tenantId}`);
 
   try {
-    const shareLink = await ShareLinkModel.findByPk(parseInt(id), { transaction });
+    // First, fetch the share link to verify ownership
+    const selectQuery = `
+      SELECT * FROM "${tenantId}".share_links
+      WHERE id = $1
+      LIMIT 1;
+    `;
 
-    if (!shareLink) {
+    const result = await sequelize.query(selectQuery, {
+      bind: [parseInt(id)],
+      transaction,
+      type: sequelize.QueryTypes.SELECT,
+    }) as any[];
+
+    if (result.length === 0) {
       await transaction.rollback();
       logStructured('error', `share link not found: ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
       return res.status(404).json(STATUS_CODE[404]({ message: "Share link not found" }));
     }
+
+    const shareLink = result[0];
 
     // Check if user owns this share link
     if (shareLink.created_by !== req.userId) {
@@ -176,22 +279,69 @@ export const updateShareLink = async (req: Request, res: Response) => {
       return res.status(403).json(STATUS_CODE[403]({ message: "Unauthorized" }));
     }
 
-    // Update fields
-    if (settings) shareLink.settings = settings;
-    if (typeof is_enabled === 'boolean') shareLink.is_enabled = is_enabled;
-    if (expires_at) shareLink.expires_at = new Date(expires_at);
+    // Build update query dynamically based on provided fields
+    const updates: string[] = [];
+    const binds: any[] = [];
+    let bindIndex = 1;
 
-    await shareLink.save({ transaction });
+    if (settings !== undefined) {
+      updates.push(`settings = $${bindIndex++}`);
+      binds.push(JSON.stringify(settings));
+    }
+
+    if (typeof is_enabled === 'boolean') {
+      updates.push(`is_enabled = $${bindIndex++}`);
+      binds.push(is_enabled);
+    }
+
+    if (expires_at !== undefined) {
+      updates.push(`expires_at = $${bindIndex++}`);
+      binds.push(expires_at ? new Date(expires_at) : null);
+    }
+
+    if (updates.length === 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({ message: "No fields to update" }));
+    }
+
+    updates.push(`updated_at = NOW()`);
+    binds.push(parseInt(id));
+
+    const updateQuery = `
+      UPDATE "${tenantId}".share_links
+      SET ${updates.join(', ')}
+      WHERE id = $${bindIndex}
+      RETURNING *;
+    `;
+
+    const updateResult = await sequelize.query(updateQuery, {
+      bind: binds,
+      transaction,
+      type: sequelize.QueryTypes.UPDATE,
+    }) as any;
+
+    const updatedLink = updateResult[0][0];
 
     logStructured('successful', `updated share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Updated share link: ${id}`);
 
     await transaction.commit();
 
+    const shareable_url = `https://app.verifywise.com/shared/${updatedLink.resource_type}s/${updatedLink.share_token}`;
+    const is_valid = updatedLink.is_enabled && (!updatedLink.expires_at || new Date() <= new Date(updatedLink.expires_at));
+
     const response = {
-      ...shareLink.toSafeJSON(),
-      shareable_url: shareLink.getShareableUrl(),
-      is_valid: shareLink.isValid(),
+      id: updatedLink.id,
+      share_token: updatedLink.share_token,
+      resource_type: updatedLink.resource_type,
+      resource_id: updatedLink.resource_id,
+      settings: updatedLink.settings,
+      is_enabled: updatedLink.is_enabled,
+      expires_at: updatedLink.expires_at,
+      created_at: updatedLink.created_at,
+      updated_at: updatedLink.updated_at,
+      shareable_url,
+      is_valid,
     };
 
     return res.status(200).json(STATUS_CODE[200](response));
@@ -211,18 +361,32 @@ export const updateShareLink = async (req: Request, res: Response) => {
 export const deleteShareLink = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
+  const tenantId = req.tenantId!;
 
   logStructured('processing', `deleting share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Deleting share link: ${id}`);
+  logger.debug(`🛠️ Deleting share link: ${id} in tenant ${tenantId}`);
 
   try {
-    const shareLink = await ShareLinkModel.findByPk(parseInt(id), { transaction });
+    // First, fetch the share link to verify ownership
+    const selectQuery = `
+      SELECT * FROM "${tenantId}".share_links
+      WHERE id = $1
+      LIMIT 1;
+    `;
 
-    if (!shareLink) {
+    const result = await sequelize.query(selectQuery, {
+      bind: [parseInt(id)],
+      transaction,
+      type: sequelize.QueryTypes.SELECT,
+    }) as any[];
+
+    if (result.length === 0) {
       await transaction.rollback();
       logStructured('error', `share link not found: ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
       return res.status(404).json(STATUS_CODE[404]({ message: "Share link not found" }));
     }
+
+    const shareLink = result[0];
 
     // Check if user owns this share link
     if (shareLink.created_by !== req.userId) {
@@ -231,7 +395,17 @@ export const deleteShareLink = async (req: Request, res: Response) => {
       return res.status(403).json(STATUS_CODE[403]({ message: "Unauthorized" }));
     }
 
-    await shareLink.destroy({ transaction });
+    // Delete the share link
+    const deleteQuery = `
+      DELETE FROM "${tenantId}".share_links
+      WHERE id = $1;
+    `;
+
+    await sequelize.query(deleteQuery, {
+      bind: [parseInt(id)],
+      transaction,
+      type: sequelize.QueryTypes.DELETE,
+    });
 
     logStructured('successful', `deleted share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Deleted share link: ${id}`);
@@ -243,6 +417,144 @@ export const deleteShareLink = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error deleting share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error deleting share link: ${(error as Error).message}`);
     logger.error('❌ Error in deleteShareLink:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+};
+
+/**
+ * Get shared data by token (public endpoint - no auth required)
+ * Fetches the actual resource data with settings-based filtering
+ * GET /api/shares/view/:token
+ */
+export const getSharedDataByToken = async (req: Request, res: Response) => {
+  const { token } = req.params;
+
+  logStructured('processing', `fetching shared data by token`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+  logger.debug(`🛠️ Fetching shared data by token`);
+
+  try {
+    // First, get the share link metadata (reuse existing logic)
+    const schemasQuery = `
+      SELECT schema_name
+      FROM information_schema.schemata
+      WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
+        AND schema_name NOT LIKE 'pg_%';
+    `;
+
+    const schemas = await sequelize.query(schemasQuery, {
+      type: sequelize.QueryTypes.SELECT,
+    }) as { schema_name: string }[];
+
+    let shareLink: any = null;
+    let tenantSchema: string | null = null;
+
+    // Search for the share link across all tenant schemas
+    for (const schema of schemas) {
+      const query = `
+        SELECT * FROM "${schema.schema_name}".share_links
+        WHERE share_token = $1
+        LIMIT 1;
+      `;
+
+      const result = await sequelize.query(query, {
+        bind: [token],
+        type: sequelize.QueryTypes.SELECT,
+      }) as any[];
+
+      if (result.length > 0) {
+        shareLink = result[0];
+        tenantSchema = schema.schema_name;
+        break;
+      }
+    }
+
+    if (!shareLink) {
+      logStructured('error', `share link not found`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+      return res.status(404).json(STATUS_CODE[404]({ message: "Share link not found" }));
+    }
+
+    // Validate the share link
+    const is_valid = shareLink.is_enabled && (!shareLink.expires_at || new Date() <= new Date(shareLink.expires_at));
+
+    if (!is_valid) {
+      logStructured('error', `share link is disabled or expired`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+      return res.status(403).json(STATUS_CODE[403]({ message: "Share link is disabled or expired" }));
+    }
+
+    // Fetch the actual resource data based on resource_type
+    let resourceData: any = null;
+    const resourceType = shareLink.resource_type;
+    const resourceId = shareLink.resource_id;
+
+    // Map resource types to table names
+    const tableNameMap: { [key: string]: string } = {
+      'model': 'model_files',
+      'vendor': 'vendors',
+      'project': 'projects',
+      'policy': 'policies',
+      'risk': 'projectrisks',
+    };
+
+    const tableName = tableNameMap[resourceType];
+
+    if (!tableName) {
+      logStructured('error', `unsupported resource type: ${resourceType}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+      return res.status(400).json(STATUS_CODE[400]({ message: `Unsupported resource type: ${resourceType}` }));
+    }
+
+    // Fetch the resource data
+    const resourceQuery = `
+      SELECT * FROM "${tenantSchema}".${tableName}
+      WHERE id = $1
+      LIMIT 1;
+    `;
+
+    const resourceResult = await sequelize.query(resourceQuery, {
+      bind: [resourceId],
+      type: sequelize.QueryTypes.SELECT,
+    }) as any[];
+
+    if (resourceResult.length === 0) {
+      logStructured('error', `resource not found: ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+      return res.status(404).json(STATUS_CODE[404]({ message: "Resource not found" }));
+    }
+
+    resourceData = resourceResult[0];
+
+    // Apply settings-based filtering
+    const settings = shareLink.settings || {};
+
+    // If shareAllFields is false, we would need to define which fields to show
+    // For now, we'll return all fields but add a flag
+    const filteredData = settings.shareAllFields
+      ? resourceData
+      : {
+          id: resourceData.id,
+          name: resourceData.name || resourceData.title,
+          // Add more essential fields here based on resource type
+        };
+
+    logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+    logger.debug(`✅ Fetched shared data from tenant ${tenantSchema}`);
+
+    const response = {
+      share_link: {
+        resource_type: shareLink.resource_type,
+        settings: shareLink.settings,
+      },
+      data: filteredData,
+      permissions: {
+        allowDataExport: settings.allowDataExport || false,
+        allowViewersToOpenRecords: settings.allowViewersToOpenRecords || false,
+        displayToolbar: settings.displayToolbar !== undefined ? settings.displayToolbar : true,
+      },
+    };
+
+    return res.status(200).json(STATUS_CODE[200](response));
+  } catch (error) {
+    logStructured('error', `unexpected error fetching shared data`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+    await logEvent('Error', `Unexpected error fetching shared data: ${(error as Error).message}`);
+    logger.error('❌ Error in getSharedDataByToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };

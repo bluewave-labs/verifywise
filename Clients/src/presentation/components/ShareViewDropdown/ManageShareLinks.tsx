@@ -9,7 +9,7 @@ import {
 import { Copy, Trash2, ExternalLink, RotateCw } from "lucide-react";
 import Toggle from "../Inputs/Toggle";
 import {
-  useShareLinksForResource,
+  useShareLinks,
   useUpdateShareLink,
   useDeleteShareLink,
 } from "../../../application/hooks/useShare";
@@ -54,7 +54,7 @@ const ManageShareLinks: React.FC<ManageShareLinksProps> = ({
 }) => {
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
 
-  const { data: shareLinks = [], isLoading, refetch } = useShareLinksForResource(
+  const { data: shareLinks = [], isLoading, refetch } = useShareLinks(
     resourceType,
     resourceId
   );

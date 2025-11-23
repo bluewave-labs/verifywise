@@ -94,7 +94,7 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 

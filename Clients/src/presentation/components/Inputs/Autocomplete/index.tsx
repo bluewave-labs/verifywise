@@ -53,7 +53,7 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
   const theme = useTheme();
 
   // For multiple selection with string options
-  if (multiple && typeof options[0] === 'string') {
+  if (multiple && options.length > 0 && typeof options[0] === 'string') {
     const stringOptions = options as string[];
     const stringValue = (value || []) as string[];
 
@@ -180,9 +180,9 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
         id={id}
         value={autoCompleteValue}
         onChange={(_, newValue) => {
-          setAutoCompleteValue(newValue);
+          setAutoCompleteValue?.(newValue);
         }}
-        options={options}
+        options={options as AutoCompleteOption[]}
         getOptionLabel={(option) => (option && option.name ? option.name : "")}
         disableClearable
         disabled={disabled}

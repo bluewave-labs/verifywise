@@ -58,6 +58,27 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     });
   }, [history]);
 
+  // Find the creation entry for the header
+  const creationEntry = React.useMemo(() => {
+    return history.find((entry) => entry.action === "created");
+  }, [history]);
+
+  const creationInfo = React.useMemo(() => {
+    if (!creationEntry) return null;
+
+    const isCurrentUser = creationEntry.changed_by_user_id === currentUserId;
+    const creatorName = isCurrentUser
+      ? "you"
+      : creationEntry.user_name && creationEntry.user_surname
+      ? `${creationEntry.user_name} ${creationEntry.user_surname}`
+      : creationEntry.user_email || "Unknown User";
+
+    const creationDate = dayjs(creationEntry.changed_at).format("MMMM D, YYYY");
+    const creationTime = dayjs(creationEntry.changed_at).format("h:mm A");
+
+    return { creatorName, creationDate, creationTime };
+  }, [creationEntry, currentUserId]);
+
   const renderHistoryEntry = (group: ModelInventoryChangeHistoryEntry[]) => {
     const firstEntry = group[0];
     const isCurrentUser = firstEntry.changed_by_user_id === currentUserId;
@@ -67,20 +88,16 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       ? `${firstEntry.user_name} ${firstEntry.user_surname}`
       : firstEntry.user_email || "Unknown User";
 
-    const timeAgo = dayjs(firstEntry.changed_at).fromNow();
-    const fullDate = dayjs(firstEntry.changed_at).format(
-      "MMMM D, YYYY [at] h:mm A"
-    );
+    const updateDate = dayjs(firstEntry.changed_at).format("MMMM D, YYYY");
+    const updateTime = dayjs(firstEntry.changed_at).format("h:mm A");
 
     return (
       <Box
         key={`${firstEntry.changed_at}_${firstEntry.id}`}
         sx={{
-          marginBottom: "8px",
-          paddingBottom: "8px",
-          borderBottom: `1px solid ${theme.palette.divider}`,
+          marginBottom: "16px",
           "&:last-child": {
-            borderBottom: "none",
+            marginBottom: 0,
           },
         }}
       >
@@ -126,9 +143,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   fontSize: 10,
                   color: theme.palette.text.secondary,
                 }}
-                title={fullDate}
               >
-                {timeAgo}
+                {updateDate} at {updateTime}
               </Typography>
             </Stack>
           </Box>
@@ -286,24 +302,26 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
             }}
           >
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-              }}
-            >
-              Activity History
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 11,
-                color: theme.palette.text.secondary,
-                marginTop: "8px",
-              }}
-            >
-              Track all changes to this model
-            </Typography>
+            {creationInfo ? (
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                Created by {creationInfo.creatorName} on {creationInfo.creationDate} at{" "}
+                {creationInfo.creationTime}
+              </Typography>
+            ) : (
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                Activity History
+              </Typography>
+            )}
           </Box>
 
         {/* Content */}

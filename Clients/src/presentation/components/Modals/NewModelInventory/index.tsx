@@ -1376,7 +1376,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                      minHeight: "520px",
                                      maxHeight: "fit-content",
                                      width: "100%", // always full width inside modal
-                                     minWidth: "712px", // Prevent shrinking when switching tabs (760px modal - 48px padding)
                                      display: "flex",
                                      flexDirection: "column",
                                  }}

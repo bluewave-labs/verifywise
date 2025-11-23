@@ -16,6 +16,86 @@ export interface GroupByProps {
   defaultSortOrder?: 'asc' | 'desc';
 }
 
+// Badge Component
+const GroupBadge: React.FC<{ count: number }> = ({ count }) => (
+  <Box
+    sx={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '18px',
+      height: '18px',
+      borderRadius: '50%',
+      backgroundColor: '#10b981',
+      color: 'white',
+      fontSize: '11px',
+      fontWeight: 600,
+      marginLeft: '6px',
+    }}
+  >
+    {count}
+  </Box>
+);
+
+// Header Component
+const GroupByHeader: React.FC<{
+  selectedGroup: string;
+  onClear: () => void;
+  onClose: () => void;
+}> = ({ selectedGroup, onClear, onClose }) => (
+  <Stack direction="row" justifyContent="space-between" alignItems="center">
+    <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      GROUP BY
+    </Typography>
+    <Box
+      onClick={selectedGroup ? onClear : onClose}
+      sx={{
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        '&:hover': { opacity: 0.7 }
+      }}
+    >
+      <X size={16} color="#6b7280" />
+    </Box>
+  </Stack>
+);
+
+// Controls Component
+const GroupByControls: React.FC<{
+  selectedGroup: string;
+  selectItems: Array<{ _id: string; name: string }>;
+  sortOrder: 'asc' | 'desc';
+  onGroupChange: (event: any) => void;
+  onSortChange: (value: string) => void;
+}> = ({ selectedGroup, selectItems, sortOrder, onGroupChange, onSortChange }) => (
+  <Stack direction="row" spacing={2} alignItems="center">
+    <Box sx={{ flex: '0 0 35%' }}>
+      <Select
+        id="group-by-field"
+        value={selectedGroup}
+        items={selectItems}
+        onChange={onGroupChange}
+        sx={{ width: '100%' }}
+      />
+    </Box>
+    <Box sx={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ width: '180px' }}>
+        <ButtonToggle
+          options={[
+            { label: 'A → Z', value: 'asc' },
+            { label: 'Z → A', value: 'desc' }
+          ]}
+          value={sortOrder}
+          onChange={onSortChange}
+          height={34}
+        />
+      </Box>
+    </Box>
+  </Stack>
+);
+
+// Main GroupBy Component
 export const GroupBy: React.FC<GroupByProps> = ({
   options,
   onGroupChange,
@@ -38,7 +118,6 @@ export const GroupBy: React.FC<GroupByProps> = ({
     const value = event.target.value;
     setSelectedGroup(value);
     if (value === '') {
-      // Clear grouping
       onGroupChange(null, 'asc');
       setSortOrder('asc');
     } else {
@@ -63,7 +142,6 @@ export const GroupBy: React.FC<GroupByProps> = ({
 
   const open = Boolean(anchorEl);
 
-  // Prepare items for Select component
   const selectItems = [
     { _id: '', name: 'Select field' },
     ...options.map(option => ({ _id: option.id, name: option.label }))
@@ -82,7 +160,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
           color: '#374151',
           borderColor: '#e5e7eb',
           height: '34px',
-          minWidth: selectedGroup ? '100px' : '80px',
+          minWidth: selectedGroup ? '110px' : '80px',
           backgroundColor: open ? '#f0fdf4' : 'transparent',
           '&:hover': {
             borderColor: '#d1d5db',
@@ -91,7 +169,8 @@ export const GroupBy: React.FC<GroupByProps> = ({
         }}
       >
         <Rows3 size={16} color="#10b981" style={{ marginRight: '6px' }} />
-        Group {selectedGroup && '(1)'}
+        Group
+        {selectedGroup && <GroupBadge count={1} />}
       </Button>
 
       <Popover
@@ -99,6 +178,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
         anchorEl={anchorEl}
         onClose={handleClose}
         disableScrollLock={true}
+        disablePortal={false}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'left',
@@ -115,57 +195,24 @@ export const GroupBy: React.FC<GroupByProps> = ({
               minWidth: '480px',
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
               borderRadius: '8px',
+              position: 'absolute',
             }
           }
         }}
       >
         <Stack spacing={2}>
-          {/* Header */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              GROUP BY
-            </Typography>
-            <Box
-              onClick={selectedGroup ? handleClear : handleClose}
-              sx={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                '&:hover': { opacity: 0.7 }
-              }}
-            >
-              <X size={16} color="#6b7280" />
-            </Box>
-          </Stack>
-
-          {/* Field Selector and Sort Buttons - Side by Side */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            {/* Field Selector - 35% width */}
-            <Box sx={{ flex: '0 0 35%' }}>
-              <Select
-                id="group-by-field"
-                value={selectedGroup}
-                items={selectItems}
-                onChange={handleGroupChange}
-                sx={{ width: '100%' }}
-              />
-            </Box>
-
-            {/* Sort Buttons - Always visible */}
-            <Box sx={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
-              <Box sx={{ width: '180px' }}>
-                <ButtonToggle
-                  options={[
-                    { label: 'A → Z', value: 'asc' },
-                    { label: 'Z → A', value: 'desc' }
-                  ]}
-                  value={sortOrder}
-                  onChange={handleSortChange}
-                  height={34}
-                />
-              </Box>
-            </Box>
-          </Stack>
+          <GroupByHeader
+            selectedGroup={selectedGroup}
+            onClear={handleClear}
+            onClose={handleClose}
+          />
+          <GroupByControls
+            selectedGroup={selectedGroup}
+            selectItems={selectItems}
+            sortOrder={sortOrder}
+            onGroupChange={handleGroupChange}
+            onSortChange={handleSortChange}
+          />
         </Stack>
       </Popover>
     </>

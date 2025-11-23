@@ -241,9 +241,18 @@ const StandardModal: React.FC<StandardModalProps> = ({
             zIndex: 1,
             position: "relative",
           }}
-          onWheel={(e) => {
-            // Prevent scroll events from bubbling to modal backdrop
-            e.stopPropagation();
+          onWheelCapture={(e) => {
+            const target = e.currentTarget;
+            const atTop = target.scrollTop === 0;
+            const atBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+
+            // Only prevent propagation if we can actually scroll
+            if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+              e.stopPropagation();
+            } else if (!atTop && !atBottom) {
+              // If we're in the middle, always stop propagation
+              e.stopPropagation();
+            }
           }}
         >
           {children}

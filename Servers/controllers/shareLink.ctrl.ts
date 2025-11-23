@@ -547,7 +547,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
 
     // Map resource types to table names
     const tableNameMap: { [key: string]: string } = {
-      'model': 'model_files',
+      'model': 'model_inventories',
       'vendor': 'vendors',
       'project': 'projects',
       'policy': 'policies',

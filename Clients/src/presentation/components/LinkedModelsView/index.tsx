@@ -17,6 +17,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import EmptyState from "../EmptyState";
 import { VWLink } from "../Link";
+import InfoBox from "../InfoBox";
 
 const TABLE_COLUMNS = [
   { id: "provider", label: "PROVIDER" },
@@ -141,19 +142,11 @@ const LinkedModelsView = ({
   return (
     <Stack spacing={3}>
       {headerContent}
-      {/* Explanation Text */}
-      <Typography
-        sx={{
-          fontSize: 13,
-          color: theme.palette.text.secondary,
-          backgroundColor: theme.palette.background.paper,
-          padding: "12px 16px",
-          borderRadius: "4px",
-          border: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        Models added to the Model Inventory that are linked to this use case will appear here.
-      </Typography>
+      {/* Info Box */}
+      <InfoBox
+        message="Models added to the Model Inventory that are linked to this use case will appear here."
+        storageKey="linkedModels_explanation"
+      />
       <Stack sx={{ pt: 2 }}>
         <TableContainer sx={{ overflowX: "auto" }}>
           <Table sx={singleTheme.tableStyles.primary.frame}>

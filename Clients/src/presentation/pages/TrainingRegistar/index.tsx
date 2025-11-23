@@ -38,6 +38,7 @@ import {
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -341,6 +342,32 @@ const Training: React.FC = () => {
     getGroupKey: getTrainingGroupKey,
   });
 
+  // Define export columns for training table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'training_name', label: 'Training Name' },
+      { id: 'duration', label: 'Duration' },
+      { id: 'provider', label: 'Provider' },
+      { id: 'department', label: 'Department' },
+      { id: 'status', label: 'Status' },
+      { id: 'numberOfPeople', label: 'People' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredTraining.map((training: TrainingRegistarModel) => {
+      return {
+        training_name: training.training_name || '-',
+        duration: training.duration || '-',
+        provider: training.provider || '-',
+        department: training.department || '-',
+        status: training.status || '-',
+        numberOfPeople: training.numberOfPeople?.toString() || '-',
+      };
+    });
+  }, [filteredTraining]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -466,21 +493,29 @@ const Training: React.FC = () => {
               />
             </Stack>
 
-            {/* Right side: Customize Button */}
-            <Box data-joyride-id="add-training-button">
-              <CustomizableButton
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#13715B",
-                          border: "1px solid #13715B",
-                          gap: 2,
-                        }}
-                        text="New training"
-                        icon={<AddCircleOutlineIcon size={16} />}
-                        onClick={handleNewTrainingClick}
-                        isDisabled={isCreatingDisabled}
-                      />
-            </Box>
+            {/* Right side: Export and Add Button */}
+            <Stack direction="row" gap="8px" alignItems="center">
+              <ExportMenu
+                data={exportData}
+                columns={exportColumns}
+                filename="training-registry"
+                title="Training Registry"
+              />
+              <Box data-joyride-id="add-training-button">
+                <CustomizableButton
+                          variant="contained"
+                          sx={{
+                            backgroundColor: "#13715B",
+                            border: "1px solid #13715B",
+                            gap: 2,
+                          }}
+                          text="New training"
+                          icon={<AddCircleOutlineIcon size={16} />}
+                          onClick={handleNewTrainingClick}
+                          isDisabled={isCreatingDisabled}
+                        />
+              </Box>
+            </Stack>
           </Stack>
 
         {/* Table */}

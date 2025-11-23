@@ -61,6 +61,7 @@ import EvidenceHubTable from "./evidenceHubTable";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -96,7 +97,7 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -237,6 +238,37 @@ const ModelInventory: React.FC = () => {
     sortOrder: groupSortOrder,
     getGroupKey: getModelInventoryGroupKey,
   });
+
+  // Define export columns for model inventory table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'provider', label: 'Provider' },
+      { id: 'model', label: 'Model' },
+      { id: 'version', label: 'Version' },
+      { id: 'approver', label: 'Approver' },
+      { id: 'security_assessment', label: 'Security Assessment' },
+      { id: 'status', label: 'Status' },
+      { id: 'status_date', label: 'Status Date' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredData.map((model: IModelInventory) => {
+      const approverUser = users.find((user: any) => user.id === model.approver);
+      const approverName = approverUser ? `${approverUser.name} ${approverUser.surname}` : '-';
+
+      return {
+        provider: model.provider || '-',
+        model: model.model || '-',
+        version: model.version || '-',
+        approver: approverName,
+        security_assessment: model.security_assessment ? 'Yes' : 'No',
+        status: model.status || '-',
+        status_date: model.status_date || '-',
+      };
+    });
+  }, [filteredData, users]);
 
    // Function to fetch evidence data
    const fetchEvidenceData = async (showLoading = true) => {
@@ -873,20 +905,20 @@ const ModelInventory: React.FC = () => {
 
   const filteredEvidenceHub = useMemo(() => {
     let filtered = evidenceHubData;
-  
+
     if (evidenceTypeFilter && evidenceTypeFilter !== "all") {
       filtered = filtered.filter(
         (e) => e.evidence_type === evidenceTypeFilter
       );
     }
-  
+
     if (searchTypeTerm?.trim()) {
       const lower = searchTypeTerm.toLowerCase();
       filtered = filtered.filter((e) =>
         e.evidence_name?.toLowerCase().includes(lower)
       );
     }
-  
+
     return filtered;
   }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
 
@@ -919,6 +951,87 @@ const ModelInventory: React.FC = () => {
     sortOrder: groupSortOrderEvidence,
     getGroupKey: getEvidenceGroupKey,
   });
+
+  // Export columns and data for Model Risks
+  const modelRisksExportColumns = useMemo(() => {
+    return [
+      { id: 'risk_name', label: 'Risk Name' },
+      { id: 'model_name', label: 'Model Name' },
+      { id: 'risk_category', label: 'Category' },
+      { id: 'risk_level', label: 'Risk Level' },
+      { id: 'status', label: 'Status' },
+      { id: 'owner', label: 'Owner' },
+      { id: 'target_date', label: 'Target Date' },
+    ];
+  }, []);
+
+  const modelRisksExportData = useMemo(() => {
+    return filteredModelRisks.map((risk: IModelRisk) => {
+      const ownerUser = users.find((user: any) => user.id == risk.owner);
+      const ownerName = ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : '-';
+
+      const model = modelInventoryData.find((m) => m.id === risk.model_id);
+      const modelName = model ? model.model : '-';
+
+      return {
+        risk_name: risk.risk_name || '-',
+        model_name: modelName,
+        risk_category: risk.risk_category || '-',
+        risk_level: risk.risk_level || '-',
+        status: risk.status || '-',
+        owner: ownerName,
+        target_date: risk.target_date || '-',
+      };
+    });
+  }, [filteredModelRisks, users, modelInventoryData]);
+
+  // Export columns and data for Evidence Hub
+  const evidenceHubExportColumns = useMemo(() => {
+    return [
+      { id: 'evidence_name', label: 'Evidence Name' },
+      { id: 'evidence_type', label: 'Type' },
+      { id: 'mapped_models', label: 'Mapped Models' },
+      { id: 'uploaded_by', label: 'Uploaded By' },
+      { id: 'uploaded_on', label: 'Uploaded On' },
+      { id: 'expiry_date', label: 'Expiry' },
+    ];
+  }, []);
+
+  const evidenceHubExportData = useMemo(() => {
+    return filteredEvidenceHub.map((evidence: EvidenceHubModel) => {
+      // Get uploader from first evidence file
+      const uploadedById = evidence.evidence_files?.[0]?.uploaded_by;
+      const uploaderUser = users.find((user: any) => user.id === uploadedById);
+      const uploaderName = uploaderUser ? `${uploaderUser.name} ${uploaderUser.surname}` : '-';
+
+      // Get upload date from first evidence file
+      const uploadDate = evidence.evidence_files?.[0]?.upload_date;
+      const formattedUploadDate = uploadDate ? new Date(uploadDate).toISOString().split('T')[0] : '-';
+
+      // Get mapped model names from mapped_model_ids
+      const mappedModelNames = evidence.mapped_model_ids
+        ?.map((modelId: number) => {
+          const model = modelInventoryData.find((m) => m.id === modelId);
+          return model ? `${model.provider} - ${model.model}` : null;
+        })
+        .filter(Boolean)
+        .join(', ') || '-';
+
+      // Format expiry date
+      const formattedExpiryDate = evidence.expiry_date
+        ? new Date(evidence.expiry_date).toISOString().split('T')[0]
+        : '-';
+
+      return {
+        evidence_name: evidence.evidence_name || '-',
+        evidence_type: evidence.evidence_type || '-',
+        mapped_models: mappedModelNames,
+        uploaded_by: uploaderName,
+        uploaded_on: formattedUploadDate,
+        expiry_date: formattedExpiryDate,
+      };
+    });
+  }, [filteredEvidenceHub, users, modelInventoryData]);
 
   // Model Risk handlers
   const handleNewModelRiskClick = () => {
@@ -1273,8 +1386,14 @@ const ModelInventory: React.FC = () => {
                               />
                           </Stack>
 
-                          {/* Right side: Analytics & Add Model buttons */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export, Analytics & Add Model buttons */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={exportData}
+                                  columns={exportColumns}
+                                  filename="model-inventory"
+                                  title="Model Inventory"
+                              />
                               <CustomizableButton
                                   variant="contained"
                                   onClick={() => setIsAnalyticsDrawerOpen(true)}
@@ -1413,16 +1532,24 @@ const ModelInventory: React.FC = () => {
                                   onGroupChange={handleGroupChangeRisk}
                               />
                           </Stack>
-                          <div data-joyride-id="add-model-risk-button">
-                              <CustomizableButton
-                                  variant="contained"
-                                  sx={addNewModelButtonStyle}
-                                  text="Add model risk"
-                                  icon={<AddCircleOutlineIcon size={16} />}
-                                  onClick={handleNewModelRiskClick}
-                                  isDisabled={isCreatingDisabled}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={modelRisksExportData}
+                                  columns={modelRisksExportColumns}
+                                  filename="model-risks"
+                                  title="Model Risks"
                               />
-                          </div>
+                              <div data-joyride-id="add-model-risk-button">
+                                  <CustomizableButton
+                                      variant="contained"
+                                      sx={addNewModelButtonStyle}
+                                      text="Add model risk"
+                                      icon={<AddCircleOutlineIcon size={16} />}
+                                      onClick={handleNewModelRiskClick}
+                                      isDisabled={isCreatingDisabled}
+                                  />
+                              </div>
+                          </Stack>
                       </Stack>
 
                       <GroupedTableView
@@ -1501,8 +1628,14 @@ const ModelInventory: React.FC = () => {
                               />
                           </Stack>
 
-                          {/* Right side: Add Upload Evidence */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export and Upload Evidence */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={evidenceHubExportData}
+                                  columns={evidenceHubExportColumns}
+                                  filename="evidence-hub"
+                                  title="Evidence Hub"
+                              />
                               <div data-joyride-id="add-model-button">
                                   <CustomizableButton
                                       variant="contained"

@@ -40,6 +40,7 @@ import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -321,6 +322,48 @@ const Tasks: React.FC = () => {
     getGroupKey: getTaskGroupKey,
   });
 
+  // Export columns and data
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'title', label: 'Title' },
+      { id: 'status', label: 'Status' },
+      { id: 'priority', label: 'Priority' },
+      { id: 'assignees', label: 'Assignees' },
+      { id: 'due_date', label: 'Due Date' },
+      { id: 'creator', label: 'Creator' },
+      { id: 'categories', label: 'Categories' },
+    ];
+  }, []);
+
+  const exportData = useMemo(() => {
+    return tasks.map((task: TaskModel) => {
+      // Look up assignee names from user IDs
+      const assigneeNames = task.assignees && task.assignees.length > 0
+        ? task.assignees
+            .map((assigneeId) => {
+              const user = users.find((u) => u.id === Number(assigneeId));
+              return user ? `${user.name} ${user.surname}`.trim() : null;
+            })
+            .filter(Boolean)
+            .join(', ') || 'Unassigned'
+        : 'Unassigned';
+
+      // Look up creator name from creator_id
+      const creatorUser = users.find((u) => u.id === task.creator_id);
+      const creatorName = creatorUser ? `${creatorUser.name} ${creatorUser.surname}`.trim() : '-';
+
+      return {
+        title: task.title || '-',
+        status: STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || '-',
+        priority: task.priority || '-',
+        assignees: assigneeNames,
+        due_date: task.due_date ? new Date(task.due_date).toLocaleDateString() : '-',
+        creator: creatorName,
+        categories: task.categories?.join(', ') || '-',
+      };
+    });
+  }, [tasks, users]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -372,18 +415,26 @@ const Tasks: React.FC = () => {
           }
         />
         <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
-          <CustomizableButton
-            variant="contained"
-            text="Add new task"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<AddCircleIcon size={16} />}
-            onClick={handleCreateTask}
-            isDisabled={isCreatingDisabled}
-          />
+          <Stack direction="row" gap="8px" alignItems="center">
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="tasks"
+              title="Task Management"
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Add new task"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleIcon size={16} />}
+              onClick={handleCreateTask}
+              isDisabled={isCreatingDisabled}
+            />
+          </Stack>
         </Stack>
       </Stack>
 

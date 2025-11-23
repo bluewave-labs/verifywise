@@ -14,6 +14,7 @@ import { GroupBy } from "../Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../Table/GroupedTableView";
 import { Project } from "../../../domain/types/Project";
+import { ExportMenu } from "../Table/ExportMenu";
 
 import {
   projectWrapperStyle,
@@ -234,6 +235,37 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
   const uniqueOwners = getUniqueOwners();
   const uniqueStatuses = getUniqueStatuses();
 
+  // Export columns and data for use cases
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'uc_id', label: 'Use Case ID' },
+      { id: 'project_title', label: 'Use Case Title' },
+      { id: 'ai_risk_classification', label: 'AI Risk Level' },
+      { id: 'type_of_high_risk_role', label: 'Role' },
+      { id: 'start_date', label: 'Start Date' },
+      { id: 'last_updated', label: 'Last Updated' },
+      { id: 'owner', label: 'Owner' },
+      { id: 'status', label: 'Status' },
+    ];
+  }, []);
+
+  const exportData = useMemo(() => {
+    return filteredProjects.map((project) => {
+      const ownerName = project.owner ? getUserNameById(project.owner.toString()) : '-';
+
+      return {
+        uc_id: project.uc_id || project.id?.toString() || '-',
+        project_title: project.project_title || '-',
+        ai_risk_classification: project.ai_risk_classification || '-',
+        type_of_high_risk_role: project.type_of_high_risk_role?.replace(/_/g, ' ') || '-',
+        start_date: project.start_date ? new Date(project.start_date).toLocaleDateString() : '-',
+        last_updated: project.last_updated ? new Date(project.last_updated).toLocaleDateString() : '-',
+        owner: ownerName,
+        status: project.status || '-',
+      };
+    });
+  }, [filteredProjects, users]);
+
   return (
     <Box sx={{ width: "100%" }}>
       <Box
@@ -319,9 +351,17 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
           sx={{
             display: "flex",
             alignItems: "flex-end",
-            gap: "16px",
+            gap: "8px",
           }}
         >
+          {projects && projects.length > 0 && (
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="use-cases"
+              title="Use Cases"
+            />
+          )}
           {newProjectButton}
           {projects && projects.length > 0 && (
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />

@@ -79,6 +79,22 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     return { creatorName, creationDate, creationTime };
   }, [creationEntry, currentUserId]);
 
+  // Find the most recent update for fallback header
+  const lastUpdateInfo = React.useMemo(() => {
+    if (history.length === 0) return null;
+
+    // Sort history by timestamp and get the most recent
+    const sortedHistory = [...history].sort(
+      (a, b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime()
+    );
+    const lastEntry = sortedHistory[0];
+
+    const updateDate = dayjs(lastEntry.changed_at).format("MMMM D, YYYY");
+    const updateTime = dayjs(lastEntry.changed_at).format("h:mm A");
+
+    return { updateDate, updateTime };
+  }, [history]);
+
   const renderHistoryEntry = (group: ModelInventoryChangeHistoryEntry[]) => {
     const firstEntry = group[0];
     const isCurrentUser = firstEntry.changed_by_user_id === currentUserId;
@@ -313,6 +329,15 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 Created by {creationInfo.creatorName} on {creationInfo.creationDate} at{" "}
                 {creationInfo.creationTime}
               </Typography>
+            ) : lastUpdateInfo ? (
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                Last updated on {lastUpdateInfo.updateDate} at {lastUpdateInfo.updateTime}
+              </Typography>
             ) : (
               <Typography
                 sx={{
@@ -320,7 +345,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   color: theme.palette.text.secondary,
                 }}
               >
-                Creation date unavailable
+                No activity yet
               </Typography>
             )}
           </Box>

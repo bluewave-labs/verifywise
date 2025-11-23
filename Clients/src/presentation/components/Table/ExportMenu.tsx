@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, MenuItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
+import { Menu, MenuItem, ListItemText, IconButton } from '@mui/material';
 import { MoreVertical, ChevronRight } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF, printTable } from '../../../application/utils/tableExport';
 import pdfIcon from '../../assets/icons/pdf_icon.svg';
@@ -132,8 +132,9 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            backgroundColor: Boolean(exportAnchorEl) ? '#f9fafb' : 'transparent',
             '&:hover': {
-              backgroundColor: '#f9fafb',
+              backgroundColor: '#f9fafb !important',
             }
           }}
         >
@@ -168,18 +169,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 12px',
+            display: 'flex',
             gap: '12px',
+            alignItems: 'center',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0 }}>
-            <img src={pdfIcon} alt="PDF" width={16} height={16} />
-          </ListItemIcon>
+          <img src={pdfIcon} alt="PDF" width={16} height={16} style={{ flexShrink: 0 }} />
           <ListItemText
             primary="Export to PDF"
             primaryTypographyProps={{ fontSize: '13px' }}
+            sx={{ margin: 0 }}
           />
         </MenuItem>
         <MenuItem
@@ -187,18 +189,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 12px',
+            display: 'flex',
             gap: '12px',
+            alignItems: 'center',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0 }}>
-            <img src={csvIcon} alt="CSV" width={16} height={16} />
-          </ListItemIcon>
+          <img src={csvIcon} alt="CSV" width={16} height={16} style={{ flexShrink: 0 }} />
           <ListItemText
             primary="Export to CSV"
             primaryTypographyProps={{ fontSize: '13px' }}
+            sx={{ margin: 0 }}
           />
         </MenuItem>
         <MenuItem
@@ -206,18 +209,19 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 12px',
+            display: 'flex',
             gap: '12px',
+            alignItems: 'center',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0 }}>
-            <img src={xlsIcon} alt="XLSX" width={16} height={16} />
-          </ListItemIcon>
+          <img src={xlsIcon} alt="XLSX" width={16} height={16} style={{ flexShrink: 0 }} />
           <ListItemText
             primary="Export to XLSX"
             primaryTypographyProps={{ fontSize: '13px' }}
+            sx={{ margin: 0 }}
           />
         </MenuItem>
       </Menu>

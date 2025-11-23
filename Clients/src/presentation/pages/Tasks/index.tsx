@@ -37,7 +37,7 @@ import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
-import { GroupBy } from "../../components/Table/GroupBy";
+import { GroupBy, GroupBadge } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 
 // Task status options for CustomSelect
@@ -568,9 +568,12 @@ const Tasks: React.FC = () => {
                         color: '#374151',
                         marginBottom: '12px',
                         paddingLeft: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
                     >
-                      {group} ({items.length})
+                      {group}
+                      <GroupBadge count={items.length} />
                     </Typography>
                     <TasksTable
                       tasks={items}

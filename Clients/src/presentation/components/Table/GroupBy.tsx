@@ -16,8 +16,8 @@ export interface GroupByProps {
   defaultSortOrder?: 'asc' | 'desc';
 }
 
-// Badge Component
-const GroupBadge: React.FC<{ count: number }> = ({ count }) => (
+// Badge Component - exported for reuse
+export const GroupBadge: React.FC<{ count: number }> = ({ count }) => (
   <Box
     sx={{
       display: 'inline-flex',

@@ -230,7 +230,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
         {/* Content Section */}
         <Box
           sx={{
-            padding: "24px",
+            padding: "20px",
             flex: "0 1 auto",
             overflow: "auto",
             maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "630px",

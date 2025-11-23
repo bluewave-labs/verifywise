@@ -608,7 +608,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     
 
     const modelDetailsSection = (
-        <Stack spacing={4}>
+        <Stack spacing={3}>
         {/* First Row: Provider, Model, Version */}
         <Stack
             direction={"row"}

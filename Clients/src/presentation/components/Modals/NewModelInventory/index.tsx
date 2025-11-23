@@ -1305,13 +1305,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                      ? "Update model details, approval status, and metadata"
                      : "Register a new AI model with comprehensive metadata and approval tracking"
              }
-             onSubmit={handleSubmit}
+             onSubmit={activeTab === "evidence" ? undefined : handleSubmit}
              submitButtonText={isEdit ? "Update model" : "Save"}
              isSubmitting={isButtonDisabled}
              maxWidth={isHistorySidebarOpen ? "1100px" : "760px"}
              expandedHeight={values.security_assessment}
-             /* This hides the entire footer */
-             hideFooter={isEdit && activeTab === "evidence"}
              headerActions={
                  isEdit && selectedModelInventoryId ? (
                      <Tooltip title="View activity history" arrow>

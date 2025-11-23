@@ -104,6 +104,9 @@ interface StandardModalProps {
 
   /** When true, hides the footer entirely. Use for read-only modals that don't need action buttons */
   hideFooter?: boolean;
+
+  /** Optional custom actions to display in the header (e.g., history button). Rendered to the left of the close button */
+  headerActions?: React.ReactNode;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -119,6 +122,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
   maxWidth = "760px",
   customFooter,
   hideFooter = false,
+  headerActions,
 }) => {
   return (
     <Modal
@@ -185,7 +189,9 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 {description}
               </Typography>
             </Stack>
-            <Box
+            <Stack direction="row" spacing={1} alignItems="center">
+              {headerActions}
+              <Box
               component="span"
               role="button"
               tabIndex={0}
@@ -211,8 +217,9 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 },
               }}
             >
-              <CloseIcon size={20} />
-            </Box>
+                <CloseIcon size={20} />
+              </Box>
+            </Stack>
           </Stack>
         </Stack>
 

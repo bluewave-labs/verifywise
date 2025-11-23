@@ -27,6 +27,7 @@ import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/Fair
 import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
+import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
@@ -137,5 +138,6 @@ export const createRoutes = (
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

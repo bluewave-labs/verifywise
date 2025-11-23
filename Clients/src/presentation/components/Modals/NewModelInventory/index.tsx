@@ -48,6 +48,7 @@ import EvidenceHubTable from "../../../pages/ModelInventory/evidenceHubTable";
 import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import { addNewModelButtonStyle } from "../../../pages/ModelInventory/style";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import VWLink from "../../Link/VWLink";
 
 dayjs.extend(utc);
 
@@ -1137,7 +1138,30 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                         onChange={handleSecurityAssessmentChange}
                     />
                 }
-                label="Security assessment is complete for this model"
+                label={
+                    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                        <Typography
+                            sx={{
+                                fontSize: 13,
+                                fontWeight: 400,
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Security assessment is complete for this model
+                        </Typography>
+                        {values.security_assessment && (
+                            <VWLink
+                                onClick={() => setIsUploadModalOpen(true)}
+                                showIcon={false}
+                            >
+                                {values.security_assessment_data &&
+                                values.security_assessment_data.length > 0
+                                    ? "Add more files"
+                                    : "Upload assessment"}
+                            </VWLink>
+                        )}
+                    </Box>
+                }
                 sx={{
                     width: "50%",
                     "& .MuiFormControlLabel-label": {
@@ -1165,21 +1189,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         {/* ✅ Upload Section (appears only when toggle is ON) */}
         {values.security_assessment && (
             <Stack spacing={4}>
-                {/* Row 1: Upload / Replace button - always visible */}
-                <Stack direction="row" spacing={2}>
-                    <CustomizableButton
-                        variant="contained"
-                        text={
-                            values.security_assessment_data &&
-                            values.security_assessment_data.length > 0
-                                ? "Add more files"
-                                : "Upload assessment"
-                        }
-                        sx={{ gap: 2 }}
-                        icon={<UploadIcon size={16} />}
-                        onClick={() => setIsUploadModalOpen(true)}
-                    />
-                </Stack>
 
                 {values.security_assessment_data &&
                         values.security_assessment_data.length > 0 && (

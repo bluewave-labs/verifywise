@@ -1156,6 +1156,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                             <VWLink
                                 onClick={() => setIsUploadModalOpen(true)}
                                 showIcon={false}
+                                sx={{ marginLeft: "8px" }}
                             >
                                 {values.security_assessment_data &&
                                 values.security_assessment_data.length > 0

@@ -26,6 +26,43 @@ interface HistorySidebarProps {
   modelInventoryId?: number;
 }
 
+/**
+ * Format date to human-readable relative time
+ * - A few minutes/hours ago for recent activity
+ * - Today/Yesterday with time for recent days
+ * - Full date and time for older entries
+ */
+const formatRelativeTime = (date: string | Date): string => {
+  const now = dayjs();
+  const targetDate = dayjs(date);
+  const diffMinutes = now.diff(targetDate, "minute");
+  const diffHours = now.diff(targetDate, "hour");
+  const diffDays = now.diff(targetDate, "day");
+
+  // Less than 1 hour ago
+  if (diffMinutes < 60) {
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes === 1) return "A minute ago";
+    if (diffMinutes < 5) return "A few minutes ago";
+    return `${diffMinutes} minutes ago`;
+  }
+
+  // Less than 24 hours ago (today)
+  if (diffHours < 24 && targetDate.isSame(now, "day")) {
+    if (diffHours === 1) return "An hour ago";
+    if (diffHours < 3) return "A few hours ago";
+    return `Today at ${targetDate.format("h:mm A")}`;
+  }
+
+  // Yesterday
+  if (diffDays === 1 || (diffHours < 48 && targetDate.isSame(now.subtract(1, "day"), "day"))) {
+    return `Yesterday at ${targetDate.format("h:mm A")}`;
+  }
+
+  // Older than yesterday - show full date and time
+  return `${targetDate.format("MMMM D, YYYY")} at ${targetDate.format("h:mm A")}`;
+};
+
 const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   onClose,
@@ -128,8 +165,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       ? `${firstEntry.user_name} ${firstEntry.user_surname}`
       : firstEntry.user_email || "Unknown User";
 
-    const updateDate = dayjs(firstEntry.changed_at).format("MMMM D, YYYY");
-    const updateTime = dayjs(firstEntry.changed_at).format("h:mm A");
+    const relativeTime = formatRelativeTime(firstEntry.changed_at);
 
     return (
       <Box
@@ -182,7 +218,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   color: theme.palette.text.secondary,
                 }}
               >
-                {updateDate} at {updateTime}
+                {relativeTime}
               </Typography>
             </Stack>
           </Box>

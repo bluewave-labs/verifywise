@@ -195,7 +195,6 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              mb: 1,
             }}
           >
             <Box>
@@ -205,22 +204,24 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                   fontSize: "15px",
                   fontWeight: 600,
                   color: "#000",
-                  mb: 0.5,
                 }}
               >
                 Share view
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "13px",
-                  color: "#666",
-                  lineHeight: 1.4,
-                }}
-              >
-                Send a view only link to anyone or embed this report on a
-                website
-              </Typography>
+              {isEnabled && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: "13px",
+                    color: "#666",
+                    lineHeight: 1.4,
+                    mt: 0.5,
+                  }}
+                >
+                  Send a view only link to anyone or embed this report on a
+                  website
+                </Typography>
+              )}
             </Box>
             <Toggle
               checked={isEnabled}
@@ -355,7 +356,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
             </Box>
 
             {/* Settings Section */}
-            <Box sx={{ px: 3, pb: 3 }}>
+            <Box sx={{ px: 3, pb: 3, pt: 3, borderTop: "1px solid #e0e0e0" }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <Typography
                   variant="subtitle2"

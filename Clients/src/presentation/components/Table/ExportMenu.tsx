@@ -36,14 +36,6 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     setExportAnchorEl(null);
   };
 
-  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setExportAnchorEl(event.currentTarget);
-  };
-
-  const handleExportMenuClose = () => {
-    setExportAnchorEl(null);
-  };
-
   const handleExportHover = (event: React.MouseEvent<HTMLElement>) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -155,7 +147,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
       <Menu
         anchorEl={exportAnchorEl}
         open={Boolean(exportAnchorEl)}
-        onClose={handleExportMenuClose}
+        onClose={handleClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{

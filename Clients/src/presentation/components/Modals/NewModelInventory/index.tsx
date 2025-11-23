@@ -1344,12 +1344,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                      display: "flex",
                      flexDirection: "column",
                      overflow: "auto"
-                 }}
-                 onWheel={(e) => {
-                     // Prevent scroll events from bubbling to background
-                     e.stopPropagation();
-                 }}
-                 >
+                 }}>
                      {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
                      {isEdit ? (
                          <TabContext value={activeTab}>

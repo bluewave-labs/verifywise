@@ -62,6 +62,7 @@ import ShareButton from "../../components/ShareViewDropdown/ShareButton";
 import ShareViewDropdown, {
   ShareViewSettings,
 } from "../../components/ShareViewDropdown";
+import { useCreateShareLink, useUpdateShareLink } from "../../../application/hooks/useShare";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -113,6 +114,10 @@ const ModelInventory: React.FC = () => {
   const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+
+  // Share link mutations
+  const createShareMutation = useCreateShareLink();
+  const updateShareMutation = useUpdateShareLink();
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -528,23 +533,32 @@ const ModelInventory: React.FC = () => {
     setShareAnchorEl(null);
   };
 
-  const generateShareableLink = (settings: ShareViewSettings): string => {
-    // Generate a random token for the shareable link
-    const token = Array.from({ length: 12 }, () =>
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[
-        Math.floor(Math.random() * 62)
-      ]
-    ).join("");
+  const generateShareableLink = async (settings: ShareViewSettings): Promise<string> => {
+    try {
+      // Create share link via API
+      const result = await createShareMutation.mutateAsync({
+        resource_type: "model",
+        resource_id: 0, // This will be updated when we have a specific model ID
+        settings,
+      });
 
-    const link = `https://app.verifywise.com/shared/models/${token}`;
-    setShareableLink(link);
-    return link;
+      const link = result.shareable_url || "";
+      setShareableLink(link);
+      return link;
+    } catch (error) {
+      console.error("Error generating share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to generate share link. Please try again.",
+      });
+      return "";
+    }
   };
 
-  const handleShareEnabledChange = (enabled: boolean) => {
+  const handleShareEnabledChange = async (enabled: boolean) => {
     setIsShareEnabled(enabled);
     if (enabled && !shareableLink) {
-      generateShareableLink(shareSettings);
+      await generateShareableLink(shareSettings);
     }
   };
 
@@ -560,8 +574,8 @@ const ModelInventory: React.FC = () => {
     });
   };
 
-  const handleRefreshLink = () => {
-    generateShareableLink(shareSettings);
+  const handleRefreshLink = async () => {
+    await generateShareableLink(shareSettings);
     setAlert({
       variant: "info",
       body: "Share link refreshed!",

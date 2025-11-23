@@ -49,6 +49,7 @@ import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/e
 import { addNewModelButtonStyle } from "../../../pages/ModelInventory/style";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import VWLink from "../../Link/VWLink";
+import { useQueryClient } from "@tanstack/react-query";
 
 dayjs.extend(utc);
 
@@ -164,6 +165,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     modelInventoryData,
 }) => {
     const theme = useTheme();
+    const queryClient = useQueryClient();
     const [values, setValues] = useState<NewModelInventoryFormValues>(
         initialData || initialState
     );
@@ -466,6 +468,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
     const handleClose = () => {
         setIsOpen(false);
+        // Invalidate change history cache when modal closes
+        // This ensures fresh data is fetched when reopening the modal
+        queryClient.invalidateQueries({
+            queryKey: ["changeHistory", "model_inventory", selectedModelInventoryId]
+        });
     };
 
     useModalKeyHandling({

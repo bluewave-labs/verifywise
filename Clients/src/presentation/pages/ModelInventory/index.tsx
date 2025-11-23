@@ -538,7 +538,7 @@ const ModelInventory: React.FC = () => {
       // Create share link via API
       const result = await createShareMutation.mutateAsync({
         resource_type: "model",
-        resource_id: 0, // This will be updated when we have a specific model ID
+        resource_id: 0, // 0 = share entire Model Inventory table view
         settings,
       });
 

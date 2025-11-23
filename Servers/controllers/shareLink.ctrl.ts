@@ -43,8 +43,9 @@ export const createShareLink = async (req: Request, res: Response) => {
       throw new ValidationException("Invalid resource type");
     }
 
-    // Validate resource_id is a positive integer
-    if (typeof resource_id !== 'number' || resource_id <= 0 || !Number.isInteger(resource_id)) {
+    // Validate resource_id is a non-negative integer
+    // Note: resource_id can be 0 to share entire table/list view
+    if (typeof resource_id !== 'number' || resource_id < 0 || !Number.isInteger(resource_id)) {
       throw new ValidationException("Invalid resource ID");
     }
 
@@ -148,9 +149,9 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
       return res.status(400).json(STATUS_CODE[400]("Invalid resource type"));
     }
 
-    // Validate resource ID
+    // Validate resource ID (can be 0 for table views)
     const resourceIdNum = parseInt(resourceId);
-    if (isNaN(resourceIdNum) || resourceIdNum <= 0) {
+    if (isNaN(resourceIdNum) || resourceIdNum < 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid resource ID"));
     }
 

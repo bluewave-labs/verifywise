@@ -227,7 +227,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
         <Box
           sx={{
             padding: "24px",
-            flex: 1,
+            flex: "0 1 auto",
             overflow: "auto",
             maxHeight: "calc(80vh - 160px)",
             border: "1px solid #E0E4E9",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, MenuItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
-import { MoreVertical, Printer, ChevronRight } from 'lucide-react';
+import { MoreVertical, ChevronRight } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF, printTable } from '../../../application/utils/tableExport';
 import pdfIcon from '../../assets/icons/pdf_icon.svg';
 import csvIcon from '../../assets/icons/csv_icon.svg';
@@ -42,6 +42,10 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
 
   const handleExportMenuClose = () => {
     setExportAnchorEl(null);
+  };
+
+  const handleExportHover = (event: React.MouseEvent<HTMLElement>) => {
+    setExportAnchorEl(event.currentTarget);
   };
 
   const handlePrint = () => {
@@ -108,15 +112,11 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           sx={{
             fontSize: '13px',
             padding: '8px 12px',
-            gap: '12px',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0 }}>
-            <Printer size={16} color="#6b7280" />
-          </ListItemIcon>
           <ListItemText
             primary="Print"
             primaryTypographyProps={{ fontSize: '13px' }}
@@ -125,23 +125,23 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
 
         {/* Export Option with Submenu */}
         <MenuItem
-          onClick={handleExportMenuOpen}
+          onMouseEnter={handleExportHover}
           sx={{
             fontSize: '13px',
             padding: '8px 12px',
-            gap: '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
           }}
         >
-          <ListItemIcon sx={{ minWidth: 0 }}>
-            <ChevronRight size={16} color="#6b7280" />
-          </ListItemIcon>
           <ListItemText
             primary="Export"
             primaryTypographyProps={{ fontSize: '13px' }}
           />
+          <ChevronRight size={16} color="#6b7280" />
         </MenuItem>
       </Menu>
 

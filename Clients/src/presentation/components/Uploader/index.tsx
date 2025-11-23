@@ -66,6 +66,8 @@ export interface UploaderProps {
   uploadUrl?: string;
   /** Additional headers for upload request */
   uploadHeaders?: Record<string, string>;
+  /** Custom upload handler function that returns a promise with the file URL */
+  customUploadHandler?: (file: File, onProgress: (progress: number) => void) => Promise<string>;
 }
 
 // Default file type configurations
@@ -148,6 +150,7 @@ const Uploader: React.FC<UploaderProps> = ({
   showPreview = true,
   uploadUrl = '/api/upload',
   uploadHeaders = {},
+  customUploadHandler,
 }) => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -306,6 +309,26 @@ const Uploader: React.FC<UploaderProps> = ({
   // Upload file simulation
   const uploadFile = useCallback(async (uploadFile: UploadFile) => {
     try {
+      // Use custom upload handler if provided
+      if (customUploadHandler) {
+        const url = await customUploadHandler(uploadFile.file, (progress) => {
+          setFiles(prev => prev.map(f =>
+            f.id === uploadFile.id ? { ...f, progress } : f
+          ));
+          onUploadProgress?.(uploadFile, progress);
+        });
+
+        setFiles(prev => prev.map(f =>
+          f.id === uploadFile.id
+            ? { ...f, status: 'completed', progress: 100, url }
+            : f
+        ));
+
+        onUploadComplete?.([{ ...uploadFile, status: 'completed', progress: 100, url }]);
+        return;
+      }
+
+      // Default XHR upload
       const formData = new FormData();
       formData.append('file', uploadFile.file);
 
@@ -377,7 +400,7 @@ const Uploader: React.FC<UploaderProps> = ({
       ));
       onUploadError?.(uploadFile, errorMessage);
     }
-  }, [uploadUrl, uploadHeaders, onUploadProgress, onUploadError]);
+  }, [uploadUrl, uploadHeaders, onUploadProgress, onUploadError, customUploadHandler, onUploadComplete]);
 
   // Handle file actions
   const handleDeleteFile = useCallback((file: UploadFile) => {

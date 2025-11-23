@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { MenuItem, Select, Button, SelectChangeEvent, Stack, Popover, Box, Typography } from '@mui/material';
+import { Button, Stack, Popover, Box, Typography } from '@mui/material';
 import { X } from 'lucide-react';
+import Select from '../Inputs/Select';
+import ButtonToggle from '../ButtonToggle';
 
 export interface GroupByOption {
   id: string;
@@ -32,7 +34,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
     setAnchorEl(null);
   };
 
-  const handleGroupChange = (event: SelectChangeEvent) => {
+  const handleGroupChange = (event: any) => {
     const value = event.target.value;
     setSelectedGroup(value);
     if (value === '') {
@@ -44,7 +46,8 @@ export const GroupBy: React.FC<GroupByProps> = ({
     }
   };
 
-  const handleSortChange = (order: 'asc' | 'desc') => {
+  const handleSortChange = (value: string) => {
+    const order = value as 'asc' | 'desc';
     setSortOrder(order);
     if (selectedGroup) {
       onGroupChange(selectedGroup, order);
@@ -60,6 +63,12 @@ export const GroupBy: React.FC<GroupByProps> = ({
 
   const open = Boolean(anchorEl);
 
+  // Prepare items for Select component
+  const selectItems = [
+    { _id: '', name: 'Select field' },
+    ...options.map(option => ({ _id: option.id, name: option.label }))
+  ];
+
   return (
     <>
       <Button
@@ -73,14 +82,15 @@ export const GroupBy: React.FC<GroupByProps> = ({
           color: '#374151',
           borderColor: '#e5e7eb',
           height: '34px',
-          minWidth: selectedGroup ? '120px' : '100px',
+          minWidth: selectedGroup ? '100px' : '80px',
+          backgroundColor: (selectedGroup || open) ? '#f0fdf4' : 'transparent',
           '&:hover': {
             borderColor: '#d1d5db',
-            backgroundColor: '#f9fafb',
+            backgroundColor: '#f0fdf4',
           },
         }}
       >
-        GROUP BY {selectedGroup && '(1)'}
+        Group {selectedGroup && '(1)'}
       </Button>
 
       <Popover
@@ -100,7 +110,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
             sx: {
               marginTop: '8px',
               padding: '16px',
-              minWidth: '320px',
+              minWidth: '480px',
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
               borderRadius: '8px',
             }
@@ -128,94 +138,34 @@ export const GroupBy: React.FC<GroupByProps> = ({
             )}
           </Stack>
 
-          {/* Field Selector */}
-          <Select
-            value={selectedGroup}
-            onChange={handleGroupChange}
-            displayEmpty
-            sx={{
-              fontSize: '13px',
-              height: '36px',
-              backgroundColor: '#fff',
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#e5e7eb',
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#d1d5db',
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#13715B',
-                borderWidth: '1px',
-              },
-              '& .MuiSelect-select': {
-                padding: '8px 12px',
-                fontSize: '13px',
-              }
-            }}
-          >
-            <MenuItem value="" sx={{ fontSize: '13px' }}>
-              Select field
-            </MenuItem>
-            {options.map((option) => (
-              <MenuItem key={option.id} value={option.id} sx={{ fontSize: '13px' }}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
+          {/* Field Selector and Sort Buttons - Side by Side */}
+          <Stack direction="row" spacing={2} alignItems="center">
+            {/* Field Selector - 70% width */}
+            <Box sx={{ flex: '0 0 70%' }}>
+              <Select
+                id="group-by-field"
+                value={selectedGroup}
+                items={selectItems}
+                onChange={handleGroupChange}
+                sx={{ width: '100%' }}
+              />
+            </Box>
 
-          {/* Sort Buttons */}
-          {selectedGroup && (
-            <Stack
-              direction="row"
-              spacing={0}
-              sx={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                height: '36px',
-              }}
-            >
-              <Button
-                onClick={() => handleSortChange('asc')}
-                sx={{
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  padding: '8px 16px',
-                  backgroundColor: sortOrder === 'asc' ? '#f97316' : '#fff',
-                  color: sortOrder === 'asc' ? '#fff' : '#374151',
-                  border: 'none',
-                  borderRadius: 0,
-                  flex: 1,
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: sortOrder === 'asc' ? '#ea580c' : '#f9fafb',
-                  },
-                  borderRight: '1px solid #e5e7eb',
-                }}
-              >
-                A → Z
-              </Button>
-              <Button
-                onClick={() => handleSortChange('desc')}
-                sx={{
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  padding: '8px 16px',
-                  backgroundColor: sortOrder === 'desc' ? '#f97316' : '#fff',
-                  color: sortOrder === 'desc' ? '#fff' : '#374151',
-                  border: 'none',
-                  borderRadius: 0,
-                  flex: 1,
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: sortOrder === 'desc' ? '#ea580c' : '#f9fafb',
-                  },
-                }}
-              >
-                Z → A
-              </Button>
-            </Stack>
-          )}
+            {/* Sort Buttons - Remaining width */}
+            {selectedGroup && (
+              <Box sx={{ flex: '0 0 30%', display: 'flex', justifyContent: 'flex-end' }}>
+                <ButtonToggle
+                  options={[
+                    { label: 'A → Z', value: 'asc' },
+                    { label: 'Z → A', value: 'desc' }
+                  ]}
+                  value={sortOrder}
+                  onChange={handleSortChange}
+                  height={34}
+                />
+              </Box>
+            )}
+          </Stack>
         </Stack>
       </Popover>
     </>

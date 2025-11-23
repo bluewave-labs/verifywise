@@ -210,6 +210,7 @@ export interface ITasksTableProps {
   statusOptions: string[];
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
+  hidePagination?: boolean;
 }
 
 export interface ITableWithPlaceholderProps {

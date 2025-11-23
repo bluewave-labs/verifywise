@@ -586,6 +586,7 @@ const Tasks: React.FC = () => {
                       )}
                       isUpdateDisabled={isCreatingDisabled}
                       onRowClick={handleEditTask}
+                      hidePagination={true}
                     />
                   </Box>
                 ))}

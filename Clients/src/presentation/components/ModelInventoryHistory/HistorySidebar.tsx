@@ -12,6 +12,7 @@ import {
   useModelInventoryChangeHistory,
   ModelInventoryChangeHistoryEntry,
 } from "../../../application/hooks/useModelInventoryChangeHistory";
+import { useAuth } from "../../../application/hooks/useAuth";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -29,6 +30,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   modelInventoryId,
 }) => {
   const theme = useTheme();
+  const { userId: currentUserId } = useAuth();
   const { data: history = [], isLoading } =
     useModelInventoryChangeHistory(modelInventoryId);
 
@@ -58,10 +60,12 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
   const renderHistoryEntry = (group: ModelInventoryChangeHistoryEntry[]) => {
     const firstEntry = group[0];
-    const userName =
-      firstEntry.user_name && firstEntry.user_surname
-        ? `${firstEntry.user_name} ${firstEntry.user_surname}`
-        : firstEntry.user_email || "Unknown User";
+    const isCurrentUser = firstEntry.changed_by_user_id === currentUserId;
+    const userName = isCurrentUser
+      ? "You"
+      : firstEntry.user_name && firstEntry.user_surname
+      ? `${firstEntry.user_name} ${firstEntry.user_surname}`
+      : firstEntry.user_email || "Unknown User";
 
     const timeAgo = dayjs(firstEntry.changed_at).fromNow();
     const fullDate = dayjs(firstEntry.changed_at).format(
@@ -72,8 +76,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       <Box
         key={`${firstEntry.changed_at}_${firstEntry.id}`}
         sx={{
-          mb: 3,
-          pb: 3,
+          marginBottom: "8px",
+          paddingBottom: "8px",
           borderBottom: `1px solid ${theme.palette.divider}`,
           "&:last-child": {
             borderBottom: "none",
@@ -81,7 +85,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         }}
       >
         {/* Header */}
-        <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+        <Stack direction="row" gap="8px" alignItems="center" marginBottom="8px">
           <Box
             sx={{
               width: 28,
@@ -115,7 +119,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               {firstEntry.action === "deleted" &&
                 `${userName} deleted this model`}
             </Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" gap="8px" alignItems="center">
               <Clock size={10} color={theme.palette.text.secondary} />
               <Typography
                 sx={{
@@ -138,10 +142,10 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             <Box
               key={entry.id}
               sx={{
-                mb: 1.5,
-                pl: 4.5,
+                marginBottom: "8px",
+                paddingLeft: "36px",
                 "&:last-child": {
-                  mb: 0,
+                  marginBottom: 0,
                 },
               }}
             >
@@ -150,7 +154,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   fontSize: 11,
                   fontWeight: 500,
                   color: theme.palette.text.secondary,
-                  mb: 0.75,
+                  marginBottom: "8px",
                 }}
               >
                 {entry.field_name}
@@ -170,19 +174,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 >
                   <Typography
                     sx={{
-                      fontSize: 9,
-                      color: "#065F46",
-                      fontWeight: 500,
-                      mb: 0.3,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Initial Value
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 10,
+                      fontSize: 11,
                       color: "#065F46",
                       fontWeight: 400,
                       wordBreak: "break-word",
@@ -192,7 +184,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   </Typography>
                 </Box>
               ) : (
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" gap="8px" alignItems="center">
                   {/* Old Value */}
                   {entry.old_value && entry.old_value !== "-" && (
                     <Box
@@ -206,19 +198,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     >
                       <Typography
                         sx={{
-                          fontSize: 9,
-                          color: "#991B1B",
-                          fontWeight: 500,
-                          mb: 0.3,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        Previous
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: 10,
+                          fontSize: 11,
                           color: "#991B1B",
                           fontWeight: 400,
                           wordBreak: "break-word",
@@ -257,19 +237,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     >
                       <Typography
                         sx={{
-                          fontSize: 9,
-                          color: "#065F46",
-                          fontWeight: 500,
-                          mb: 0.3,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        Current
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: 10,
+                          fontSize: 11,
                           color: "#065F46",
                           fontWeight: 400,
                           wordBreak: "break-word",
@@ -331,7 +299,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               sx={{
                 fontSize: 11,
                 color: theme.palette.text.secondary,
-                mt: 0.5,
+                marginTop: "8px",
               }}
             >
               Track all changes to this model
@@ -374,7 +342,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   fontSize: 13,
                   fontWeight: 500,
                   color: theme.palette.text.primary,
-                  mt: 2,
+                  marginTop: "8px",
                 }}
               >
                 No history yet
@@ -383,7 +351,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 sx={{
                   fontSize: 11,
                   color: theme.palette.text.secondary,
-                  mt: 1,
+                  marginTop: "8px",
                 }}
               >
                 Changes will appear here

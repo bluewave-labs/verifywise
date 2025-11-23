@@ -58,6 +58,10 @@ import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evid
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import ShareButton from "../../components/ShareViewDropdown/ShareButton";
+import ShareViewDropdown, {
+  ShareViewSettings,
+} from "../../components/ShareViewDropdown";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -140,6 +144,17 @@ const ModelInventory: React.FC = () => {
     const [ deletingEvidenceId, setDeletingEvidenceId] = useState<number | null>(
       null
     );
+
+  // Share view state
+  const [shareAnchorEl, setShareAnchorEl] = useState<HTMLElement | null>(null);
+  const [shareableLink, setShareableLink] = useState<string>("");
+  const [shareSettings, setShareSettings] = useState<ShareViewSettings>({
+    shareAllFields: false,
+    allowDataExport: true,
+    allowViewersToOpenRecords: false,
+    displayToolbar: true,
+  });
+  const [isShareEnabled, setIsShareEnabled] = useState(false);
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -502,6 +517,59 @@ const ModelInventory: React.FC = () => {
   const handleClosEvidenceModal = () => {
     setSelectedEvidenceHub(null);
     setIsEvidenceHubModalOpen(false);
+  };
+
+  // Share view handlers
+  const handleShareClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setShareAnchorEl(event.currentTarget);
+  };
+
+  const handleShareClose = () => {
+    setShareAnchorEl(null);
+  };
+
+  const generateShareableLink = (settings: ShareViewSettings): string => {
+    // Generate a random token for the shareable link
+    const token = Array.from({ length: 12 }, () =>
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[
+        Math.floor(Math.random() * 62)
+      ]
+    ).join("");
+
+    const link = `https://app.verifywise.com/shared/models/${token}`;
+    setShareableLink(link);
+    return link;
+  };
+
+  const handleShareEnabledChange = (enabled: boolean) => {
+    setIsShareEnabled(enabled);
+    if (enabled && !shareableLink) {
+      generateShareableLink(shareSettings);
+    }
+  };
+
+  const handleShareSettingsChange = (settings: ShareViewSettings) => {
+    setShareSettings(settings);
+  };
+
+  const handleCopyLink = (link: string) => {
+    console.log("Link copied:", link);
+    setAlert({
+      variant: "success",
+      body: "Share link copied to clipboard!",
+    });
+  };
+
+  const handleRefreshLink = () => {
+    generateShareableLink(shareSettings);
+    setAlert({
+      variant: "info",
+      body: "Share link refreshed!",
+    });
+  };
+
+  const handleOpenLink = (link: string) => {
+    console.log("Opening link:", link);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -1159,8 +1227,13 @@ const ModelInventory: React.FC = () => {
                               </Box>
                           </Stack>
 
-                          {/* Right side: Analytics & Add Model buttons */}
+                          {/* Right side: Share, Analytics & Add Model buttons */}
                           <Stack direction="row" spacing={2}>
+                              <ShareButton
+                                  onClick={handleShareClick}
+                                  size="medium"
+                                  tooltip="Share view"
+                              />
                               <CustomizableButton
                                   variant="contained"
                                   onClick={() => setIsAnalyticsDrawerOpen(true)}
@@ -1485,6 +1558,21 @@ const ModelInventory: React.FC = () => {
               steps={ModelInventorySteps}
               run={true}
               tourKey="model-inventory-tour"
+          />
+
+          {/* Share View Dropdown */}
+          <ShareViewDropdown
+              anchorEl={shareAnchorEl}
+              onClose={handleShareClose}
+              enabled={isShareEnabled}
+              shareableLink={shareableLink}
+              initialSettings={shareSettings}
+              onEnabledChange={handleShareEnabledChange}
+              onGenerateLink={generateShareableLink}
+              onSettingsChange={handleShareSettingsChange}
+              onCopyLink={handleCopyLink}
+              onRefreshLink={handleRefreshLink}
+              onOpenLink={handleOpenLink}
           />
       </Stack>
   );

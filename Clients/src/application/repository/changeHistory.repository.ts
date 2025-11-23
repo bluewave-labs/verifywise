@@ -22,7 +22,8 @@ export const getEntityChangeHistory = async (
     // Convert entity_type to route format (e.g., "model_inventory" -> "model-inventory")
     const routeType = entityType.replace(/_/g, "-");
     const response = await apiServices.get(`/${routeType}-change-history/${entityId}`);
-    return response.data;
+    // API returns { message: "OK", data: [...] } format, so extract the data array
+    return response.data.data;
   } catch (error) {
     console.error(`Error getting ${entityType} change history:`, error);
     throw error;

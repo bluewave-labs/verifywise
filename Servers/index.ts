@@ -44,6 +44,7 @@ import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
 import tokenRoutes from "./routes/tokens.route";
+import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
 import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
@@ -148,6 +149,7 @@ try {
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
   app.use("/api/tokens", tokenRoutes);
+  app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);

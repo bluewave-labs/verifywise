@@ -304,6 +304,8 @@ export const downloadFile = async (
   const fileId = parseInt(req.params.id, 10);
   const isFileManagerFile = req.query.isFileManagerFile === "true";
 
+  console.log(`[DEBUG] Download request - fileId: ${fileId}, isFileManagerFile: ${isFileManagerFile}, query: ${JSON.stringify(req.query)}`);
+
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
@@ -381,7 +383,12 @@ export const downloadFile = async (
 
     // Log file access (only for file manager files)
     if (isFileManagerFile) {
-      await logFileAccess(fileId, userId, orgId, "download", tenant);
+      try {
+        await logFileAccess(fileId, userId, orgId, "download", tenant);
+      } catch (error) {
+        // Don't fail the download if logging fails
+        console.error("Failed to log file access:", error);
+      }
     }
 
     // Check if file content exists in database

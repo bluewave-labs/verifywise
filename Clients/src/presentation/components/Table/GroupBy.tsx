@@ -26,8 +26,8 @@ const GroupBadge: React.FC<{ count: number }> = ({ count }) => (
       width: '18px',
       height: '18px',
       borderRadius: '50%',
-      backgroundColor: '#10b981',
-      color: 'white',
+      backgroundColor: '#dcfce7',
+      color: '#166534',
       fontSize: '11px',
       fontWeight: 600,
       marginLeft: '6px',
@@ -177,8 +177,6 @@ export const GroupBy: React.FC<GroupByProps> = ({
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
-        disableScrollLock={true}
-        disablePortal={false}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'left',
@@ -195,7 +193,6 @@ export const GroupBy: React.FC<GroupByProps> = ({
               minWidth: '480px',
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
               borderRadius: '8px',
-              position: 'absolute',
             }
           }
         }}

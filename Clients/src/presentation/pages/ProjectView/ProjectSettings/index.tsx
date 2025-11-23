@@ -1347,13 +1347,16 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       AI risk classification
                     </Typography>
-                  </Box>
-                  <Stack gap={1}>
-                    <Box sx={{ mt: -4, mb: 4 }}>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      Not sure about your risk level?&nbsp;
                       <VWLink onClick={() => setIsRiskModalOpen(true)}>
                         Calculate your AI risk classification
                       </VWLink>
-                    </Box>
+                    </Typography>
+                  </Box>
+                  <Stack gap={1}>
                     <Select
                       id="risk-classification-input"
                       label=""

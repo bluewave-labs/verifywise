@@ -584,6 +584,102 @@ See the Model Inventory implementation as a reference:
 
 ---
 
+## Built-in Edge Case Handling
+
+The change history system includes several built-in features to handle edge cases:
+
+### 1. Pagination with "Load More"
+
+**Problem**: Loading thousands of history entries at once causes performance issues.
+
+**Solution**:
+- Backend returns first 100 entries by default
+- Frontend uses `useInfiniteQuery` for automatic pagination
+- "Load more" button appears when more entries exist
+- Additional entries load on demand
+
+**Implementation**:
+```typescript
+// Backend automatically supports pagination
+const result = await getEntityChangeHistory(
+  entityType,
+  entityId,
+  tenant,
+  limit,  // default: 100
+  offset  // default: 0
+);
+// Returns: { data: [...], hasMore: boolean, total: number }
+
+// Frontend automatically shows "Load more" button
+// Users can click to load next 100 entries
+```
+
+### 2. Long Field Values with Truncation
+
+**Problem**: Very long field values (descriptions, JSON data) break UI layout.
+
+**Solution**:
+- Values longer than 200 characters are automatically truncated
+- Shows "..." and a "Show more" link
+- Click to expand/collapse individual values
+- Preserves formatting (colors, strikethrough) in both states
+
+**Example**:
+```
+Original: "This is a very long description that goes on and on..."
+Truncated: "This is a very long description that goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on..."
+Display: "This is a very long description that goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on... [Show more]"
+```
+
+### 3. Array Ordering Preservation
+
+**Problem**: Arrays that represent ordered lists (priorities, sequences) were sorted alphabetically, making reordering undetectable.
+
+**Solution**:
+- Array formatter **does not sort** values
+- Preserves original order exactly as stored
+- Detects reordering as a change
+- Critical for priority lists, task ordering, etc.
+
+**Example**:
+```
+Old: ["High", "Medium", "Low"]
+New: ["Low", "High", "Medium"]
+Result: Detected as change (was being ignored before fix)
+```
+
+### 4. Error Boundaries Around Formatters
+
+**Problem**: If a field formatter throws an error, the entire history crashes.
+
+**Solution**:
+- All formatters wrapped in try-catch
+- Falls back to `String(value)` if formatter fails
+- Logs error to console for debugging
+- UI degrades gracefully, never crashes
+
+**Code**:
+```typescript
+try {
+  return await formatter(value);
+} catch (error) {
+  console.error(`Error formatting field "${fieldName}":`, error);
+  return String(value); // Safe fallback
+}
+```
+
+### 5. Deleted Entity Handling
+
+**Problem**: When an entity is deleted while the modal is open, the API returns an error.
+
+**Solution**:
+- Error state displays user-friendly message
+- Shows "Unable to load history" with explanation
+- Red clock icon indicates error condition
+- Message: "This {entity} may have been deleted, or there was an error loading the activity history."
+
+---
+
 ## Future Enhancements
 
 Potential improvements to the system:

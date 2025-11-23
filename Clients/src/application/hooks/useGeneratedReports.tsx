@@ -41,11 +41,17 @@ const useGeneratedReports = ({
         if(response){
           setGeneratedReports(response.data)
         }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(`Request failed: ${err.message}`);
+      } catch (err: any) {
+        // 404 means no reports found, which is not an error - just empty state
+        if (err?.status === 404) {
+          setGeneratedReports([]);
+          setError(false);
         } else {
-          setError(`Request failed`);
+          if (err instanceof Error) {
+            setError(`Request failed: ${err.message}`);
+          } else {
+            setError(`Request failed`);
+          }
         }
       } finally {
         setLoadingReports(false);

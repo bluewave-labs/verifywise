@@ -1247,48 +1247,50 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
      );
 
     const evidenceSection = (
-        <Stack
-            spacing={3}
+        <Box
             onWheel={(e) => {
                 // Stop scroll events from propagating to background
                 e.stopPropagation();
             }}
+            sx={{ height: '100%', overflow: 'auto' }}
         >
+            <Stack spacing={3}>
 
-            {/* ------------ ADD NEW EVIDENCE BUTTON ------------ */}
-            <Box display="flex" justifyContent="flex-end" sx={{gap:4}}>
+                {/* ------------ ADD NEW EVIDENCE BUTTON ------------ */}
+                <Box display="flex" justifyContent="flex-end" sx={{gap:4}}>
 
-                <CustomizableButton
-                                      variant="contained"
-                                      sx={addNewModelButtonStyle}
-                                      text="Add new evidence"
-                                      icon={<AddCircleOutlineIcon size={16} />}
-                                      onClick={() => handleAddEvidence?.(Number(selectedModelInventoryId))}
-                                  />
+                    <CustomizableButton
+                                          variant="contained"
+                                          sx={addNewModelButtonStyle}
+                                          text="Add new evidence"
+                                          icon={<AddCircleOutlineIcon size={16} />}
+                                          onClick={() => handleAddEvidence?.(Number(selectedModelInventoryId))}
+                                      />
 
-                <CustomizableButton
-                      variant="contained"
-                      text="Download"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                      }}
-                      startIcon={<DownloadIcon size={16} />}
-                      onClick={() => handleDownloadEvidence(evidenceData)}
-                    />
-            </Box>
+                    <CustomizableButton
+                          variant="contained"
+                          text="Download"
+                          sx={{
+                            backgroundColor: "#13715B",
+                            border: "1px solid #13715B",
+                          }}
+                          startIcon={<DownloadIcon size={16} />}
+                          onClick={() => handleDownloadEvidence(evidenceData)}
+                        />
+                </Box>
 
-            {/* ------------ EVIDENCE TABLE ------------ */}
-            <EvidenceHubTable
-                data={evidenceForThisModel}
-                isLoading={isEvidenceLoading}
-                onEdit={handleEditEvidence}
-                onDelete={handleDeleteEvidence}
-                paginated={true}
-                modelInventoryData={modelInventoryData}
-            />
+                {/* ------------ EVIDENCE TABLE ------------ */}
+                <EvidenceHubTable
+                    data={evidenceForThisModel}
+                    isLoading={isEvidenceLoading}
+                    onEdit={handleEditEvidence}
+                    onDelete={handleDeleteEvidence}
+                    paginated={true}
+                    modelInventoryData={modelInventoryData}
+                />
 
-        </Stack>
+            </Stack>
+        </Box>
     );
     
 

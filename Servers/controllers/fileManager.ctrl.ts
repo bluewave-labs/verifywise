@@ -304,8 +304,6 @@ export const downloadFile = async (
   const fileId = parseInt(req.params.id, 10);
   const isFileManagerFile = req.query.isFileManagerFile === "true";
 
-  console.log(`[DEBUG] Download request - fileId: ${fileId}, isFileManagerFile: ${isFileManagerFile}, query: ${JSON.stringify(req.query)}`);
-
   // Validate parsed file ID is a safe integer
   if (!Number.isSafeInteger(fileId)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
@@ -404,7 +402,9 @@ export const downloadFile = async (
     }
 
     // Set headers for file download
-    res.setHeader("Content-Type", file.mimetype);
+    // file_manager table uses 'mimetype', files table uses 'type'
+    const contentType = isFileManagerFile ? file.mimetype : file.type;
+    res.setHeader("Content-Type", contentType || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader(
       "Content-Disposition",

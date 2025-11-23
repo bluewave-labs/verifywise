@@ -17,7 +17,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Download, ExternalLink as ExternalLinkIcon } from "lucide-react";
-import { ENV_VARs } from "../../../env.vars";
+import { ENV_VARs } from "../../../../env.vars";
 
 /**
  * SharedView page component for displaying publicly shared data

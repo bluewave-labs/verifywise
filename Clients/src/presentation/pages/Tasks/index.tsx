@@ -37,8 +37,9 @@ import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
-import { GroupBy, GroupBadge } from "../../components/Table/GroupBy";
+import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -556,47 +557,12 @@ const Tasks: React.FC = () => {
         )}
 
         {!isLoading && !error && (
-          <>
-            {groupedTasks ? (
-              <Stack spacing={3}>
-                {groupedTasks.map(({ group, items }) => (
-                  <Box key={group}>
-                    <Typography
-                      sx={{
-                        fontSize: '15px',
-                        fontWeight: 600,
-                        color: '#374151',
-                        marginBottom: '12px',
-                        paddingLeft: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {group}
-                      <GroupBadge count={items.length} />
-                    </Typography>
-                    <TasksTable
-                      tasks={items}
-                      users={users}
-                      onArchive={handleDeleteTask}
-                      onEdit={handleEditTask}
-                      onStatusChange={handleTaskStatusChange}
-                      statusOptions={TASK_STATUS_OPTIONS.map(
-                        (status) => {
-                          const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                          return displayStatus;
-                        }
-                      )}
-                      isUpdateDisabled={isCreatingDisabled}
-                      onRowClick={handleEditTask}
-                      hidePagination={true}
-                    />
-                  </Box>
-                ))}
-              </Stack>
-            ) : (
+          <GroupedTableView
+            groupedData={groupedTasks}
+            ungroupedData={tasks}
+            renderTable={(data, options) => (
               <TasksTable
-                tasks={tasks}
+                tasks={data}
                 users={users}
                 onArchive={handleDeleteTask}
                 onEdit={handleEditTask}
@@ -609,9 +575,10 @@ const Tasks: React.FC = () => {
                 )}
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
+                hidePagination={options?.hidePagination}
               />
             )}
-          </>
+          />
         )}
       </Box>
 

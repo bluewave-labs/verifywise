@@ -61,7 +61,7 @@ interface NewModelInventoryProps {
     evidenceData : EvidenceHubModel[];
     handleEditEvidence?: (id: number) => void;
     handleDeleteEvidence?: (id: number) => void;
-    handleAddEvidence?: () => void;
+    handleAddEvidence?: (modelId?: number) => void;
     modelInventoryData: IModelInventory[];
 }
 
@@ -1257,7 +1257,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                       sx={addNewModelButtonStyle}
                                       text="Add new evidence"
                                       icon={<AddCircleOutlineIcon size={16} />}
-                                      onClick={handleAddEvidence}
+                                      onClick={() => handleAddEvidence?.(Number(selectedModelInventoryId))}
                                   />
 
                 <CustomizableButton

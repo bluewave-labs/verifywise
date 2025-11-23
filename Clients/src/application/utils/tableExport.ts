@@ -1,7 +1,14 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+
+// Extend jsPDF type to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 interface ExportColumn {
   id: string;
@@ -94,7 +101,7 @@ export const exportToPDF = (
     columns.map(col => String(row[col.id] ?? ''))
   );
 
-  autoTable(doc, {
+  doc.autoTable({
     head: [headers],
     body: rows,
     startY: title ? 25 : 10,

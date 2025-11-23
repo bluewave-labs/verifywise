@@ -486,7 +486,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 padding: "0 24px",
               }}
             >
-              <Clock size={40} color={theme.palette.text.secondary} />
+              <Clock size={32} strokeWidth={1.5} color="#13715B" opacity={0.6} />
               <Typography
                 sx={{
                   fontSize: 13,

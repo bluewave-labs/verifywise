@@ -123,6 +123,10 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         {/* Export Option with Submenu */}
         <MenuItem
           onMouseEnter={handleExportHover}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           sx={{
             fontSize: '13px',
             padding: '8px 12px',

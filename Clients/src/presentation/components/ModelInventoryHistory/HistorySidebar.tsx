@@ -439,33 +439,40 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         <Box
           sx={{
             flex: 1,
-            overflow: "auto",
-            padding: "16px",
-            // Custom scrollbar styling - invisible by default, visible on hover
-            "&::-webkit-scrollbar": {
-              width: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              background: "transparent",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "4px",
-            },
-            "&:hover::-webkit-scrollbar-thumb": {
-              background: "#C1C7CD",
-            },
-            "&::-webkit-scrollbar-thumb:hover": {
-              background: "#98A2B3",
-            },
-            // Firefox scrollbar styling
-            scrollbarWidth: "thin",
-            scrollbarColor: "transparent transparent",
-            "&:hover": {
-              scrollbarColor: "#C1C7CD transparent",
-            },
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          <Box
+            sx={{
+              height: "100%",
+              overflow: "auto",
+              padding: "16px",
+              // Custom scrollbar styling - invisible by default, visible on hover
+              "&::-webkit-scrollbar": {
+                width: "8px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "transparent",
+                borderRadius: "4px",
+              },
+              "&:hover::-webkit-scrollbar-thumb": {
+                background: "#C1C7CD",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "#98A2B3",
+              },
+              // Firefox scrollbar styling
+              scrollbarWidth: "thin",
+              scrollbarColor: "transparent transparent",
+              "&:hover": {
+                scrollbarColor: "#C1C7CD transparent",
+              },
+            }}
+          >
           {isLoading ? (
             <Box
               sx={{
@@ -524,7 +531,20 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           ) : (
             <Box>{groupedHistory.map(renderHistoryEntry)}</Box>
           )}
-        </Box>
+          </Box>
+          {/* Bottom fade overlay */}
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "60px",
+              background: "linear-gradient(to bottom, rgba(248, 250, 251, 0) 0%, rgba(248, 250, 251, 0.8) 50%, rgba(248, 250, 251, 1) 100%)",
+              pointerEvents: "none",
+              borderRadius: "0 0 8px 8px",
+            }}
+          />
         </Box>
       </Box>
     </Collapse>

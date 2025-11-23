@@ -48,6 +48,10 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
     setExportAnchorEl(event.currentTarget);
   };
 
+  const handlePrintHover = () => {
+    setExportAnchorEl(null);
+  };
+
   const handlePrint = () => {
     printTable(data, columns, title);
     handleClose();
@@ -109,6 +113,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         {/* Print Option */}
         <MenuItem
           onClick={handlePrint}
+          onMouseEnter={handlePrintHover}
           sx={{
             fontSize: '13px',
             padding: '8px 12px',

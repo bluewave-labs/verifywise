@@ -483,27 +483,39 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 justifyContent: "center",
                 minHeight: 200,
                 textAlign: "center",
+                padding: "0 24px",
               }}
             >
               <Clock size={40} color={theme.palette.text.secondary} />
               <Typography
                 sx={{
                   fontSize: 13,
-                  fontWeight: 500,
+                  fontWeight: 600,
                   color: theme.palette.text.primary,
-                  marginTop: "8px",
+                  marginTop: "16px",
                 }}
               >
-                No history yet
+                Activity History
               </Typography>
               <Typography
                 sx={{
                   fontSize: 11,
                   color: theme.palette.text.secondary,
                   marginTop: "8px",
+                  lineHeight: 1.6,
                 }}
               >
-                Changes will appear here
+                Automatically tracks every change to this model.
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: theme.palette.text.secondary,
+                  marginTop: "4px",
+                  lineHeight: 1.6,
+                }}
+              >
+                See what your team is working on and what updates they've made, in real time.
               </Typography>
             </Box>
           ) : (

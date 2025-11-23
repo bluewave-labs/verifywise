@@ -386,7 +386,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             borderRadius: "8px",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "#FAFBFC",
+            background: "linear-gradient(180deg, #FAFBFC 0%, #F8FAFB 100%)",
             overflow: "hidden",
           }}
         >

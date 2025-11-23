@@ -384,7 +384,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       >
         <Box
           sx={{
-            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "630px",
+            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "660px",
             border: `1px solid #E0E4E9`,
             borderRadius: "8px",
             display: "flex",

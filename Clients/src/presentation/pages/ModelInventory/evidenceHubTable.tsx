@@ -13,10 +13,11 @@ import {
     Typography,
     TableFooter,
     Tooltip,
+    Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import CustomIconButton from "../../components/IconButton";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { User } from "../../../domain/types/User";
@@ -38,6 +39,14 @@ import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 
 dayjs.extend(utc);
 
+const EVIDENCE_HUB_SORTING_KEY = "verifywise_evidence_hub_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
 const SelectorVertical = (props: any) => (
     <ChevronsUpDown size={16} {...props} />
 );
@@ -53,13 +62,13 @@ interface EvidenceHubTableProps {
 }
 
 const TABLE_COLUMNS = [
-    { id: "evidence_name", label: "EVIDENCE NAME" },
-    { id: "evidence_type", label: "TYPE" },
-    { id: "mapped_models", label: "MAPPED MODELS" },
-    { id: "uploaded_by", label: "UPLOADED BY" },
-    { id: "uploaded_on", label: "UPLOADED ON" },
-    { id: "expiry_date", label: "EXPIRY" },
-    { id: "actions", label: "" },
+    { id: "evidence_name", label: "EVIDENCE NAME", sortable: true },
+    { id: "evidence_type", label: "TYPE", sortable: true },
+    { id: "mapped_models", label: "MAPPED MODELS", sortable: false },
+    { id: "uploaded_by", label: "UPLOADED BY", sortable: true },
+    { id: "uploaded_on", label: "UPLOADED ON", sortable: true },
+    { id: "expiry_date", label: "EXPIRY", sortable: true },
+    { id: "actions", label: "", sortable: false },
 ];
 
 const TooltipCell = ({ value }: { value: string }) => {
@@ -73,6 +82,91 @@ const TooltipCell = ({ value }: { value: string }) => {
             <span>{truncate(value)}</span>
         </Tooltip>
     );
+};
+
+// Sortable Table Header Component
+const SortableTableHead: React.FC<{
+  columns: typeof TABLE_COLUMNS;
+  sortConfig: SortConfig;
+  onSort: (columnId: string) => void;
+  theme: any;
+}> = ({ columns, sortConfig, onSort, theme }) => {
+  return (
+    <TableHead
+      sx={{
+        backgroundColor:
+          singleTheme.tableStyles.primary.header.backgroundColors,
+      }}
+    >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+        {columns.map((column, index) => (
+          <TableCell
+            component={"td"}
+            className="evidence-hub-table-header-cel"
+            key={column.id}
+            sx={{
+              ...singleTheme.tableStyles.primary.header.cell,
+              ...(column.id === "actions" && {
+                position: "sticky",
+                right: 0,
+                zIndex: 10,
+                backgroundColor:
+                  singleTheme.tableStyles.primary.header.backgroundColors,
+              }),
+              ...(column.sortable
+                ? {
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    },
+                  }
+                : {}),
+            }}
+            onClick={() => column.sortable && onSort(column.id)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: theme.spacing(2),
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                }}
+              >
+                {column.label}
+              </Typography>
+              {column.sortable && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                  }}
+                >
+                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
+                    <ChevronUp size={16} />
+                  )}
+                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
+                    <ChevronDown size={16} />
+                  )}
+                  {sortConfig.key !== column.id && (
+                    <ChevronsUpDown size={16} />
+                  )}
+                </Box>
+              )}
+            </Box>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
 };
 
 const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
@@ -89,14 +183,32 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Initialize sorting state from localStorage or default to no sorting
+    const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+      const saved = localStorage.getItem(EVIDENCE_HUB_SORTING_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return { key: "", direction: null };
+        }
+      }
+      return { key: "", direction: null };
+    });
+
+    // Save sorting state to localStorage whenever it changes
+    useEffect(() => {
+      localStorage.setItem(EVIDENCE_HUB_SORTING_KEY, JSON.stringify(sortConfig));
+    }, [sortConfig]);
+
     const getRange = useMemo(() => {
         const start = page * rowsPerPage + 1;
         const end = Math.min(
             page * rowsPerPage + rowsPerPage,
-            data?.length ?? 0
+            sortedData?.length ?? 0
         );
         return `${start} - ${end}`;
-    }, [page, rowsPerPage, data?.length]);
+    }, [page, rowsPerPage, sortedData?.length]);
 
     // Fetch users for uploaded_by mapping
     useEffect(() => {
@@ -148,45 +260,90 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         []
     );
 
-    const tableHeader = useMemo(
-        () => (
-          <TableHead
-            sx={{
-              backgroundColor:
-                singleTheme.tableStyles.primary.header.backgroundColors,
-            }}
-          >
-            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-              {TABLE_COLUMNS.map((column) => (
-                <TableCell
-                  component={"td"}
-                  className="evidence-hub-table-header-cel"
-                  key={column.id}
-                  sx={{
-                    ...singleTheme.tableStyles.primary.header.cell,
-                    ...(column.id === "actions" && {
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }),
-                  }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-        ),
-        []
-      );
+    // Sorting handler
+    const handleSort = useCallback((columnId: string) => {
+      setSortConfig((prevConfig) => {
+        if (prevConfig.key === columnId) {
+          // Toggle direction if same column, or clear if already descending
+          if (prevConfig.direction === "asc") {
+            return { key: columnId, direction: "desc" };
+          } else if (prevConfig.direction === "desc") {
+            return { key: "", direction: null };
+          }
+        }
+        // New column or first sort
+        return { key: columnId, direction: "asc" };
+      });
+    }, []);
+
+    // Sort the data based on current sort configuration
+    const sortedData = useMemo(() => {
+      if (!data || !sortConfig.key || !sortConfig.direction) {
+        return data || [];
+      }
+
+      const sortableData = [...data];
+
+      return sortableData.sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortConfig.key) {
+          case "evidence_name":
+            aValue = a.evidence_name?.toLowerCase() || "";
+            bValue = b.evidence_name?.toLowerCase() || "";
+            break;
+
+          case "evidence_type":
+            aValue = a.evidence_type?.toLowerCase() || "";
+            bValue = b.evidence_type?.toLowerCase() || "";
+            break;
+
+          case "uploaded_by":
+            aValue = (a.evidence_files && a.evidence_files.length > 0)
+              ? userMap.get(a.evidence_files[0].uploaded_by.toString())?.toLowerCase() || ""
+              : "";
+            bValue = (b.evidence_files && b.evidence_files.length > 0)
+              ? userMap.get(b.evidence_files[0].uploaded_by.toString())?.toLowerCase() || ""
+              : "";
+            break;
+
+          case "uploaded_on":
+            aValue = (a.evidence_files && a.evidence_files.length > 0)
+              ? new Date(a.evidence_files[0].upload_date).getTime()
+              : 0;
+            bValue = (b.evidence_files && b.evidence_files.length > 0)
+              ? new Date(b.evidence_files[0].upload_date).getTime()
+              : 0;
+            break;
+
+          case "expiry_date":
+            aValue = a.expiry_date ? new Date(a.expiry_date).getTime() : 0;
+            bValue = b.expiry_date ? new Date(b.expiry_date).getTime() : 0;
+            break;
+
+          default:
+            return 0;
+        }
+
+        // Handle string comparisons
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+
+        // Handle number comparisons
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }, [data, sortConfig, userMap]);
 
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {data?.length ? (
-                    data
+                {sortedData?.length ? (
+                    sortedData
                         .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -287,7 +444,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                 )}
             </TableBody>
         ),
-        [data, page, rowsPerPage, deletingId, userMap, onEdit, modelMap, onDelete]
+        [sortedData, page, rowsPerPage, deletingId, userMap, onEdit, modelMap, onDelete]
     );
 
     if (isLoading) {
@@ -311,16 +468,21 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     return (
         <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={singleTheme.tableStyles.primary.frame}>
-                {tableHeader}
+                <SortableTableHead
+                  columns={TABLE_COLUMNS}
+                  sortConfig={sortConfig}
+                  onSort={handleSort}
+                  theme={theme}
+                />
                 {tableBody}
                 {paginated && (
                     <TableFooter>
                         <TableRow sx={tableFooterRowStyle(theme)}>
                             <TableCell sx={showingTextCellStyle(theme)}>
-                                Showing {getRange} of {data?.length} model(s)
+                                Showing {getRange} of {sortedData?.length} model(s)
                             </TableCell>
                             <TablePagination
-                                count={data?.length ?? 0}
+                                count={sortedData?.length ?? 0}
                                 page={page}
                                 onPageChange={handleChangePage}
                                 rowsPerPage={rowsPerPage}

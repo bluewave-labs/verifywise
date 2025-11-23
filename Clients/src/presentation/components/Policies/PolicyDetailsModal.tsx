@@ -4,7 +4,7 @@ import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
-import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
+import InsertImageUploaderModal from "../Modals/InsertImageModal/InsertImageUploaderModal";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 
 import {
@@ -590,7 +590,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         onInsert={(url, text) => insertLink(editor, url, text)}
       />
 
-      <InsertImageModal
+      <InsertImageUploaderModal
         open={openImage}
         onClose={() => setOpenImage(false)}
         onInsert={(url, alt) => insertImage(editor, url, alt)}

@@ -154,7 +154,7 @@ const ModelInventory: React.FC = () => {
   const [shareAnchorEl, setShareAnchorEl] = useState<HTMLElement | null>(null);
   const [shareableLink, setShareableLink] = useState<string>("");
   const [shareSettings, setShareSettings] = useState<ShareViewSettings>({
-    shareAllFields: false,
+    shareAllFields: true,
     allowDataExport: true,
     allowViewersToOpenRecords: false,
     displayToolbar: true,

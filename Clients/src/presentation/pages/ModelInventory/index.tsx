@@ -132,6 +132,9 @@ const ModelInventory: React.FC = () => {
   // GroupBy state - model risks tab
   const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
 
+  // GroupBy state - evidence hub tab
+  const { groupBy: groupByEvidence, groupSortOrder: groupSortOrderEvidence, handleGroupChange: handleGroupChangeEvidence } = useGroupByState();
+
     const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
 
     // Selected row for View/Edit modal
@@ -886,9 +889,36 @@ const ModelInventory: React.FC = () => {
   
     return filtered;
   }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
-  
-  
-  
+
+  // Define how to get the group key for each evidence
+  const getEvidenceGroupKey = (evidence: any, field: string): string | string[] => {
+    switch (field) {
+      case 'evidence_type':
+        return evidence.evidence_type || 'Unknown';
+      case 'uploaded_by':
+        if (evidence.uploaded_by) {
+          const user = users.find((u) => u.id == evidence.uploaded_by);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unknown';
+      case 'model':
+        if (evidence.model_id) {
+          const model = modelInventoryData.find((m) => m.id == evidence.model_id);
+          return model?.model || 'Unknown Model';
+        }
+        return 'No Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered evidence hub
+  const groupedEvidenceHub = useTableGrouping({
+    data: filteredEvidenceHub,
+    groupByField: groupByEvidence,
+    sortOrder: groupSortOrderEvidence,
+    getGroupKey: getEvidenceGroupKey,
+  });
 
   // Model Risk handlers
   const handleNewModelRiskClick = () => {
@@ -1457,10 +1487,18 @@ const ModelInventory: React.FC = () => {
                                           ? selectedItem.name
                                           : `evidence: ${selectedItem.name.toLowerCase()}`;
                                       }}
-                                      
-                                    
+
+
                                   />
                               </div>
+                              <GroupBy
+                                  options={[
+                                      { id: 'evidence_type', label: 'Evidence type' },
+                                      { id: 'uploaded_by', label: 'Uploaded by' },
+                                      { id: 'model', label: 'Model' },
+                                  ]}
+                                  onGroupChange={handleGroupChangeEvidence}
+                              />
                           </Stack>
 
                           {/* Right side: Add Upload Evidence */}
@@ -1478,14 +1516,21 @@ const ModelInventory: React.FC = () => {
                           </Stack>
                       </Stack>
 
-                      <EvidenceHubTable
-                        key={tableKey}
-                        isLoading={isLoading}
-                        data={filteredEvidenceHub}
-                        onEdit={handleEditEvidence}
-                        onDelete={handleDeleteEvidence}
-                        modelInventoryData={modelInventoryData}
-                        deletingId={deletingEvidenceId}
+                      <GroupedTableView
+                          groupedData={groupedEvidenceHub}
+                          ungroupedData={filteredEvidenceHub}
+                          renderTable={(data, options) => (
+                              <EvidenceHubTable
+                                  key={tableKey}
+                                  isLoading={isLoading}
+                                  data={data}
+                                  onEdit={handleEditEvidence}
+                                  onDelete={handleDeleteEvidence}
+                                  modelInventoryData={modelInventoryData}
+                                  deletingId={deletingEvidenceId}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}

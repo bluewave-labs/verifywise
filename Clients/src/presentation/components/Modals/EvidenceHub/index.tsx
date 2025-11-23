@@ -347,7 +347,6 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                             items={modelOptions}
                             placeholder="Select models"
                             error={errors.mapped_model_ids}
-                            width="100%"
                         />
                     </Suspense>
                 </Stack>

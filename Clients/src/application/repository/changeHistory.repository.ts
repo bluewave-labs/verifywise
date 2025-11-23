@@ -35,7 +35,7 @@ export const getEntityChangeHistory = async (
       `/${routeType}-change-history/${entityId}?limit=${limit}&offset=${offset}`
     );
     // API returns { message: "OK", data: { data: [...], hasMore: boolean, total: number } }
-    return response.data.data;
+    return (response.data as any).data;
   } catch (error) {
     console.error(`Error getting ${entityType} change history:`, error);
     throw error;

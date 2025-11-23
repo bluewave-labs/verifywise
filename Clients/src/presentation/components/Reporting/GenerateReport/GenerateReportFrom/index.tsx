@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Stack, useTheme, SelectChangeEvent, Autocomplete, TextField, Typography, Box } from "@mui/material";
+import { Stack, useTheme, SelectChangeEvent, Autocomplete, TextField, Typography } from "@mui/material";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";

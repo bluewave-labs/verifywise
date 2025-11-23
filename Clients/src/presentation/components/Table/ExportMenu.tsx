@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, MenuItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
-import { FileText, FileSpreadsheet, MoreVertical } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '../../../application/utils/tableExport';
+import pdfIcon from '../../assets/icons/pdf_icon.svg';
+import csvIcon from '../../assets/icons/csv_icon.svg';
+import xlsIcon from '../../assets/icons/xls_icon.svg';
 
 interface ExportColumn {
   id: string;
@@ -94,7 +97,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           }}
         >
           <ListItemIcon sx={{ minWidth: '32px' }}>
-            <FileText size={16} />
+            <img src={pdfIcon} alt="PDF" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to PDF"
@@ -112,7 +115,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           }}
         >
           <ListItemIcon sx={{ minWidth: '32px' }}>
-            <FileText size={16} />
+            <img src={csvIcon} alt="CSV" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to CSV"
@@ -130,7 +133,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           }}
         >
           <ListItemIcon sx={{ minWidth: '32px' }}>
-            <FileSpreadsheet size={16} />
+            <img src={xlsIcon} alt="XLSX" width={16} height={16} />
           </ListItemIcon>
           <ListItemText
             primary="Export to XLSX"

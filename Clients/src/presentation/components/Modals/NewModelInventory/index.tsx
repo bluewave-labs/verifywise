@@ -27,6 +27,7 @@ import { ChevronDown, DownloadIcon, UploadIcon, History as HistoryIcon } from "l
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import HistorySidebar from "../../ModelInventoryHistory/HistorySidebar";
+import { useModelInventoryChangeHistory } from "../../../../application/hooks/useModelInventoryChangeHistory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
@@ -173,7 +174,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     const [activeTab, setActiveTab] = useState("details");
     const [isEvidenceLoading, ] = useState(false);
     const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
-    
+
+    // Prefetch history data when modal opens in edit mode
+    // This ensures data is ready before user opens the sidebar
+    useModelInventoryChangeHistory(
+        isOpen && isEdit ? (selectedModelInventoryId as number) : undefined
+    );
 
     useEffect(() => {
         if (isOpen) {

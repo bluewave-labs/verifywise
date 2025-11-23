@@ -263,16 +263,15 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               entry.new_value !== "-" ? (
                 <Box
                   sx={{
-                    padding: "6px 10px",
+                    padding: "4px 8px",
                     borderRadius: "4px",
-                    backgroundColor: "#D1FAE5",
-                    border: "1px solid #6EE7B7",
+                    backgroundColor: "#F1F8F4",
                   }}
                 >
                   <Typography
                     sx={{
                       fontSize: 11,
-                      color: "#065F46",
+                      color: "#0D7C4F",
                       fontWeight: 400,
                       wordBreak: "break-word",
                     }}
@@ -287,16 +286,15 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     <Box
                       sx={{
                         flex: 1,
-                        padding: "6px 10px",
+                        padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: "#FEE2E2",
-                        border: "1px solid #FCA5A5",
+                        backgroundColor: "#FEF2F2",
                       }}
                     >
                       <Typography
                         sx={{
                           fontSize: 11,
-                          color: "#991B1B",
+                          color: "#B91C1C",
                           fontWeight: 400,
                           wordBreak: "break-word",
                         }}
@@ -326,16 +324,15 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     <Box
                       sx={{
                         flex: 1,
-                        padding: "6px 10px",
+                        padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: "#D1FAE5",
-                        border: "1px solid #6EE7B7",
+                        backgroundColor: "#F1F8F4",
                       }}
                     >
                       <Typography
                         sx={{
                           fontSize: 11,
-                          color: "#065F46",
+                          color: "#0D7C4F",
                           fontWeight: 400,
                           wordBreak: "break-word",
                         }}

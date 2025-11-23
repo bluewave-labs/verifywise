@@ -314,9 +314,9 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     <Collapse in={isOpen} orientation="horizontal" timeout={300}>
       <Box
         sx={{
-          width: 320,
+          width: "320px",
           height: "100%",
-          ml: 2, // 16px padding from main content
+          marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
         }}

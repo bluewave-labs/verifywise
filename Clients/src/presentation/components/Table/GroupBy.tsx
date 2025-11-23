@@ -125,19 +125,17 @@ export const GroupBy: React.FC<GroupByProps> = ({
             <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               GROUP BY
             </Typography>
-            {selectedGroup && (
-              <Box
-                onClick={handleClear}
-                sx={{
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:hover': { opacity: 0.7 }
-                }}
-              >
-                <X size={16} color="#6b7280" />
-              </Box>
-            )}
+            <Box
+              onClick={selectedGroup ? handleClear : handleClose}
+              sx={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                '&:hover': { opacity: 0.7 }
+              }}
+            >
+              <X size={16} color="#6b7280" />
+            </Box>
           </Stack>
 
           {/* Field Selector and Sort Buttons - Side by Side */}

@@ -355,10 +355,16 @@ export const downloadFile = async (
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      if (!userProjectIds.includes(file.project_id)) {
+      // Allow access if:
+      // 1. User is a member of the project, OR
+      // 2. User is the one who uploaded/generated the file
+      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id}`,
+          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id} and is not the file owner`,
           functionName: "downloadFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),
@@ -497,10 +503,16 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      if (!userProjectIds.includes(file.project_id)) {
+      // Allow access if:
+      // 1. User is a member of the project, OR
+      // 2. User is the one who uploaded/generated the file
+      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id}`,
+          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id} and is not the file owner`,
           functionName: "removeFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),

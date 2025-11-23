@@ -37,6 +37,7 @@ import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
+import { GroupBy } from "../../components/Table/GroupBy";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -75,6 +76,8 @@ const Tasks: React.FC = () => {
   const [dueDateTo] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [groupBy, setGroupBy] = useState<string | null>(null);
+  const [groupSortOrder, setGroupSortOrder] = useState<'asc' | 'desc'>('asc');
 
 
 
@@ -286,6 +289,71 @@ const Tasks: React.FC = () => {
       }
     };
 
+  // Group tasks based on selected field and sort order
+  const groupedTasks = useMemo(() => {
+    if (!groupBy) return null;
+
+    const groups: Record<string, TaskModel[]> = {};
+
+    tasks.forEach((task) => {
+      let groupKey = '';
+
+      switch (groupBy) {
+        case 'status':
+          groupKey = STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || 'Unknown';
+          break;
+        case 'priority':
+          groupKey = task.priority || 'No Priority';
+          break;
+        case 'assignees':
+          if (task.assignees && task.assignees.length > 0) {
+            // For each assignee, add the task to that assignee's group
+            task.assignees.forEach((assigneeId) => {
+              const user = users.find((u) => u.id === Number(assigneeId));
+              const assigneeKey = user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+              if (!groups[assigneeKey]) {
+                groups[assigneeKey] = [];
+              }
+              groups[assigneeKey].push(task);
+            });
+            return; // Skip the default grouping below
+          } else {
+            groupKey = 'Unassigned';
+          }
+          break;
+        case 'due_date':
+          if (task.due_date) {
+            groupKey = new Date(task.due_date).toLocaleDateString();
+          } else {
+            groupKey = 'No Due Date';
+          }
+          break;
+        default:
+          groupKey = 'Other';
+      }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(task);
+    });
+
+    // Sort group keys
+    const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
+      if (groupSortOrder === 'asc') {
+        return a.localeCompare(b);
+      } else {
+        return b.localeCompare(a);
+      }
+    });
+
+    // Convert to array of {group, tasks}
+    return sortedGroupKeys.map((key) => ({
+      group: key,
+      tasks: groups[key],
+    }));
+  }, [tasks, groupBy, groupSortOrder, users]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -485,6 +553,22 @@ const Tasks: React.FC = () => {
                 </Stack>
               </Stack>
 
+      {/* Group By */}
+      <Box>
+        <GroupBy
+          options={[
+            { id: 'status', label: 'Status' },
+            { id: 'priority', label: 'Priority' },
+            { id: 'assignees', label: 'Assignees' },
+            { id: 'due_date', label: 'Due date' },
+          ]}
+          onGroupChange={(groupByValue, sortOrder) => {
+            setGroupBy(groupByValue);
+            setGroupSortOrder(sortOrder);
+          }}
+        />
+      </Box>
+
       {/* Content Area */}
       <Box>
         {isLoading && (
@@ -500,21 +584,58 @@ const Tasks: React.FC = () => {
         )}
 
         {!isLoading && !error && (
-          <TasksTable
-            tasks={tasks}
-            users={users}
-            onArchive={handleDeleteTask}
-            onEdit={handleEditTask}
-            onStatusChange={handleTaskStatusChange}
-            statusOptions={TASK_STATUS_OPTIONS.map(
-              (status) => {
-                const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                  return displayStatus;
-              }
+          <>
+            {groupedTasks ? (
+              <Stack spacing={3}>
+                {groupedTasks.map(({ group, tasks: groupTasks }) => (
+                  <Box key={group}>
+                    <Typography
+                      sx={{
+                        fontSize: '15px',
+                        fontWeight: 600,
+                        color: '#374151',
+                        marginBottom: '12px',
+                        paddingLeft: '4px',
+                      }}
+                    >
+                      {group} ({groupTasks.length})
+                    </Typography>
+                    <TasksTable
+                      tasks={groupTasks}
+                      users={users}
+                      onArchive={handleDeleteTask}
+                      onEdit={handleEditTask}
+                      onStatusChange={handleTaskStatusChange}
+                      statusOptions={TASK_STATUS_OPTIONS.map(
+                        (status) => {
+                          const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                          return displayStatus;
+                        }
+                      )}
+                      isUpdateDisabled={isCreatingDisabled}
+                      onRowClick={handleEditTask}
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <TasksTable
+                tasks={tasks}
+                users={users}
+                onArchive={handleDeleteTask}
+                onEdit={handleEditTask}
+                onStatusChange={handleTaskStatusChange}
+                statusOptions={TASK_STATUS_OPTIONS.map(
+                  (status) => {
+                    const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                    return displayStatus;
+                  }
+                )}
+                isUpdateDisabled={isCreatingDisabled}
+                onRowClick={handleEditTask}
+              />
             )}
-            isUpdateDisabled={isCreatingDisabled}
-            onRowClick={handleEditTask}
-          />
+          </>
         )}
       </Box>
 

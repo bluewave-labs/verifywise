@@ -499,6 +499,49 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   }, [policy, template, editor]);
 
+  // Function to update toolbar state based on editor state
+  const updateToolbarState = useCallback(() => {
+    if (!editor) return;
+
+    try {
+      const selection = editor.selection;
+      if (!selection) return;
+
+      // Get current marks (bold, italic, etc.)
+      const marks = editor.marks || {};
+
+      // Get current block type
+      const [block] = editor.api.block.getBlockAbove() || [];
+      const blockType = block?.type;
+
+      // Get text alignment
+      const align = block?.align || 'left';
+
+      setToolbarState({
+        bold: !!marks.bold,
+        italic: !!marks.italic,
+        underline: !!marks.underline,
+        strike: !!marks.strikethrough,
+        h1: blockType === 'h1',
+        h2: blockType === 'h2',
+        h3: blockType === 'h3',
+        ol: blockType === 'ol' || blockType === 'numbered_list',
+        ul: blockType === 'ul' || blockType === 'bulleted_list',
+        'align-left': align === 'left' || align === 'start',
+        'align-center': align === 'center',
+        'align-right': align === 'right' || align === 'end',
+        link: !!marks.link,
+        // These don't have persistent state
+        undo: false,
+        redo: false,
+        image: false,
+      });
+    } catch (error) {
+      // Silently handle errors during state sync
+      console.debug('Error syncing toolbar state:', error);
+    }
+  }, [editor]);
+
   const save = async () => {
     if (!validateForm()) {
       return;
@@ -661,30 +704,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   <IconButton
                     onClick={() => {
                       action?.();
-
-                      // Handle mutually exclusive groups
-                      setToolbarState((prev) => {
-                        const newState = { ...prev };
-
-                        // Headings are mutually exclusive
-                        if (key === 'h1' || key === 'h2' || key === 'h3') {
-                          newState.h1 = key === 'h1' ? !prev[key] : false;
-                          newState.h2 = key === 'h2' ? !prev[key] : false;
-                          newState.h3 = key === 'h3' ? !prev[key] : false;
-                        }
-                        // Alignments are mutually exclusive
-                        else if (key === 'align-left' || key === 'align-center' || key === 'align-right') {
-                          newState['align-left'] = key === 'align-left' ? !prev[key] : false;
-                          newState['align-center'] = key === 'align-center' ? !prev[key] : false;
-                          newState['align-right'] = key === 'align-right' ? !prev[key] : false;
-                        }
-                        // Other buttons just toggle
-                        else {
-                          newState[key] = !prev[key];
-                        }
-
-                        return newState;
-                      });
+                      // Update toolbar state immediately after action
+                      setTimeout(() => updateToolbarState(), 0);
                     }}
                     size="small"
                     sx={{
@@ -728,12 +749,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             >
               <Plate
                 editor={editor}
-                onChange={({ value }) =>
+                onChange={({ value }) => {
                   setFormData((prev) => ({
                     ...prev,
                     content: value,
-                  }))
-                }
+                  }));
+                  // Update toolbar state when editor content changes
+                  updateToolbarState();
+                }}
               >
                 <PlateContent
                   style={

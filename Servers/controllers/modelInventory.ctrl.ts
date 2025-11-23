@@ -374,7 +374,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     }
 
     // Track changes before updating
-    const changes = trackModelInventoryChanges(currentModelInventory, {
+    const changes = await trackModelInventoryChanges(currentModelInventory, {
       provider_model,
       provider,
       model,

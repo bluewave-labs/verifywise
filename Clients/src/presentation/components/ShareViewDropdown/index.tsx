@@ -11,7 +11,7 @@ import {
   RotateCw,
   ExternalLink,
   Link as LinkIcon,
-  HelpCircle,
+  Info,
 } from "lucide-react";
 import Toggle from "../Inputs/Toggle";
 import Checkbox from "../Inputs/Checkbox";
@@ -178,7 +178,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         role="dialog"
         aria-label="Share view settings"
         sx={{
-          p: 2,
+          padding: "16px",
           width: "100%",
         }}
       >
@@ -253,8 +253,8 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                   backgroundColor: "#e8f5f1",
                   border: "1px solid #a8d5c8",
                   borderRadius: "6px",
-                  p: 1.5,
-                  gap: 1,
+                  padding: "12px",
+                  gap: "8px",
                 }}
               >
                 <Tooltip title={copySuccess ? "Copied!" : "Copy link"}>
@@ -337,7 +337,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <SettingItem
                   label="Share all fields"
                   checked={settings.shareAllFields}
@@ -435,17 +435,10 @@ const SettingItem: React.FC<SettingItemProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            backgroundColor: "#e5e7eb",
             cursor: "help",
-            "&:hover": {
-              backgroundColor: "#d1d5db",
-            },
           }}
         >
-          <HelpCircle size={14} color="#6b7280" />
+          <Info size={16} color="#9CA3AF" />
         </Box>
       </Tooltip>
     </Box>

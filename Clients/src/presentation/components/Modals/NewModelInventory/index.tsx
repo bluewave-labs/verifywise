@@ -26,7 +26,7 @@ import SelectComponent from "../../Inputs/Select";
 import { ChevronDown, DownloadIcon, UploadIcon, History as HistoryIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
-import HistorySidebar from "../../ModelInventoryHistory/HistorySidebar";
+import HistorySidebar from "../../Common/HistorySidebar";
 import { useModelInventoryChangeHistory } from "../../../../application/hooks/useModelInventoryChangeHistory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
@@ -1418,9 +1418,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                  {isEdit && (
                      <HistorySidebar
                          isOpen={isHistorySidebarOpen}
-                         onClose={() => setIsHistorySidebarOpen(false)}
-                         modelInventoryId={selectedModelInventoryId as number}
-                         expandedHeight={values.security_assessment}
+                         entityType="model_inventory"
+                         entityId={selectedModelInventoryId as number}
                      />
                  )}
              </Stack>

@@ -140,8 +140,8 @@ export const GroupBy: React.FC<GroupByProps> = ({
 
           {/* Field Selector and Sort Buttons - Side by Side */}
           <Stack direction="row" spacing={2} alignItems="center">
-            {/* Field Selector - 70% width */}
-            <Box sx={{ flex: '0 0 70%' }}>
+            {/* Field Selector - 35% width */}
+            <Box sx={{ flex: '0 0 35%' }}>
               <Select
                 id="group-by-field"
                 value={selectedGroup}
@@ -151,9 +151,9 @@ export const GroupBy: React.FC<GroupByProps> = ({
               />
             </Box>
 
-            {/* Sort Buttons - Remaining width */}
-            {selectedGroup && (
-              <Box sx={{ flex: '0 0 30%', display: 'flex', justifyContent: 'flex-end' }}>
+            {/* Sort Buttons - Always visible */}
+            <Box sx={{ flex: '0 0 auto', display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: '180px' }}>
                 <ButtonToggle
                   options={[
                     { label: 'A → Z', value: 'asc' },
@@ -164,7 +164,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
                   height={34}
                 />
               </Box>
-            )}
+            </Box>
           </Stack>
         </Stack>
       </Popover>

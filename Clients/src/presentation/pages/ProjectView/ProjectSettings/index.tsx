@@ -868,7 +868,7 @@ const ProjectSettings = React.memo(
                     <Typography
                       sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
                     >
-                      What you aim to achieve with this AI system
+                      What you aim to achieve
                     </Typography>
                   </Box>
                   <Field
@@ -893,7 +893,7 @@ const ProjectSettings = React.memo(
                     <Typography
                       sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
                     >
-                      The industry sector this use case serves
+                      Industry sector for this use case
                     </Typography>
                   </Box>
                   <Field
@@ -917,7 +917,7 @@ const ProjectSettings = React.memo(
                     <Typography
                       sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
                     >
-                      Detailed overview of the use case and its purpose
+                      Overview of this use case
                     </Typography>
                   </Box>
                   <Field
@@ -941,7 +941,7 @@ const ProjectSettings = React.memo(
                     <Typography
                       sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
                     >
-                      Current development stage of this use case
+                      Development stage of this use case
                     </Typography>
                   </Box>
                   <Select

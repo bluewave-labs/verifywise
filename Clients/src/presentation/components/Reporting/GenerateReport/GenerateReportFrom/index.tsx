@@ -7,14 +7,14 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Autocomplete, Stack, Typography, useTheme, SelectChangeEvent, TextField } from "@mui/material";
+import { Stack, useTheme, SelectChangeEvent } from "@mui/material";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
+const AutoCompleteField = lazy(() => import("../../../Inputs/Autocomplete"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { Project, FrameworkValues } from "../../../../../application/interfaces/appStates";
-import { getAutocompleteStyles } from "../../../../utils/inputStyles";
 
 /**
  * Set form values
@@ -221,43 +221,27 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
           </Suspense>
         )}
 
-        <Stack>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Typography sx={{ fontSize: "12px", fontWeight: 500, mb: 2 }}>
-              Report Type *
-            </Typography>
-            <Autocomplete
-              multiple
-              id="report-type"
-              options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
-              value={Array.isArray(values.report_type) ? values.report_type : []}
-              onChange={(_event, newValue) => {
-                setValues({ ...values, report_type: newValue });
-                setErrors({ ...errors, report_type: "" });
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  size="small"
-                  placeholder="Select report types"
-                />
-              )}
-              sx={{
-                ...getAutocompleteStyles(theme, { hasError: !!errors.report_type }),
-                backgroundColor: theme.palette.background.main,
-              }}
-            />
-            {errors.report_type && (
-              <Typography
-                color="error"
-                variant="caption"
-                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-              >
-                {errors.report_type}
-              </Typography>
-            )}
-          </Suspense>
-        </Stack>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AutoCompleteField
+            id="report-type"
+            type="text"
+            label="Report type"
+            isRequired
+            multiple
+            options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+            value={Array.isArray(values.report_type) ? values.report_type : []}
+            onChange={(newValue) => {
+              setValues({ ...values, report_type: newValue as string[] });
+              setErrors({ ...errors, report_type: "" });
+            }}
+            placeholder="Select report types"
+            error={errors.report_type}
+            sx={{
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+            }}
+          />
+        </Suspense>
 
         <Suspense fallback={<div>Loading...</div>}>
           <Field

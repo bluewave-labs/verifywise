@@ -22,7 +22,7 @@ module.exports = {
             share_token VARCHAR(64) UNIQUE NOT NULL,
             resource_type VARCHAR(50) NOT NULL,
             resource_id INTEGER NOT NULL,
-            created_by INTEGER NOT NULL REFERENCES "${tenantHash}".users(id) ON DELETE CASCADE,
+            created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
             settings JSONB DEFAULT '{"shareAllFields": false, "allowDataExport": true, "allowViewersToOpenRecords": false, "displayToolbar": true}'::jsonb,
             is_enabled BOOLEAN DEFAULT true,
             expires_at TIMESTAMP WITH TIME ZONE,

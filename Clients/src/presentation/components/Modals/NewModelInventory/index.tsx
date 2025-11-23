@@ -1370,11 +1370,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                  />
                              </Box>
 
-                             {/* FIXED WIDTH + FIXED HEIGHT */}
+                             {/* Tab Content Wrapper */}
                              <Box
                                  sx={{
-                                     minHeight: "520px",
-                                     maxHeight: "fit-content",
                                      width: "100%", // always full width inside modal
                                      display: "flex",
                                      flexDirection: "column",

@@ -1,15 +1,30 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, IconButton, useTheme } from "@mui/material";
-import { X, Info } from "lucide-react";
+import { X, Info, AlertCircle } from "lucide-react";
 
 interface InfoBoxProps {
   message: string;
   storageKey: string; // Unique key for localStorage to track dismissal
+  variant?: "info" | "warning"; // Icon type: info (green) or warning (yellow)
 }
 
-const InfoBox = ({ message, storageKey }: InfoBoxProps) => {
+const InfoBox = ({ message, storageKey, variant = "info" }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
+
+  // Icon configuration based on variant
+  const iconConfig = {
+    info: {
+      Icon: Info,
+      color: "#059669", // Green
+    },
+    warning: {
+      Icon: AlertCircle,
+      color: "#D97706", // Yellow/Orange
+    },
+  };
+
+  const { Icon, color } = iconConfig[variant];
 
   // Check if this info box has been dismissed before
   useEffect(() => {
@@ -45,7 +60,7 @@ const InfoBox = ({ message, storageKey }: InfoBoxProps) => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
-        <Info size={18} strokeWidth={2} color={theme.palette.info.main} />
+        <Icon size={18} strokeWidth={2} color={color} />
         <Typography
           sx={{
             fontSize: 13,

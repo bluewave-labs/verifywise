@@ -669,7 +669,7 @@ const Vendors = () => {
                       }}
                     />
                   </Stack>
-                  <Stack direction="row" gap={1} alignItems="center">
+                  <Stack direction="row" gap="8px" alignItems="center">
                     <ExportMenu
                       data={exportData}
                       columns={exportColumns}

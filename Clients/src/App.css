@@ -71,3 +71,19 @@ div.react-joyride > * {
 .slate-h3 {
   font-size: 14px !important;
 }
+
+/* Policy editor link styles */
+.slate-link,
+[data-slate-node="element"][data-slate-type="link"],
+a[data-slate-node="element"] {
+  color: #3182ce !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+.slate-link:hover,
+[data-slate-node="element"][data-slate-type="link"]:hover,
+a[data-slate-node="element"]:hover {
+  color: #2c5aa0 !important;
+  text-decoration: underline !important;
+}

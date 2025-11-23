@@ -50,6 +50,9 @@ import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -73,6 +76,9 @@ const Vendors = () => {
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -464,6 +470,46 @@ const Vendors = () => {
     return filtered;
   }, [vendors, searchQuery, statusFilter]);
 
+  // Define how to get the group key for each vendor
+  const getVendorGroupKey = (vendor: VendorModel, field: string): string | string[] => {
+    switch (field) {
+      case 'review_status':
+        const statusMap: Record<ReviewStatus, string> = {
+          [ReviewStatus.NotStarted]: 'Not started',
+          [ReviewStatus.InReview]: 'In review',
+          [ReviewStatus.Reviewed]: 'Reviewed',
+          [ReviewStatus.RequiresFollowUp]: 'Requires follow-up',
+        };
+        return statusMap[vendor.review_status as ReviewStatus] || 'Unknown';
+      case 'data_sensitivity':
+        return vendor.data_sensitivity || 'Unknown';
+      case 'business_criticality':
+        return vendor.business_criticality || 'Unknown';
+      case 'assignee':
+        if (vendor.assignee) {
+          const user = users.find((u) => u.id === Number(vendor.assignee));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'reviewer':
+        if (vendor.reviewer) {
+          const user = users.find((u) => u.id === Number(vendor.reviewer));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'No Reviewer';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered vendors
+  const groupedVendors = useTableGrouping({
+    data: filteredVendors,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getVendorGroupKey,
+  });
+
   return (
     <Stack className="vwhome" gap={0}>
       <PageBreadcrumbs />
@@ -640,6 +686,16 @@ const Vendors = () => {
                         borderRadius: theme.shape.borderRadius,
                       }}
                     />
+                    <GroupBy
+                      options={[
+                        { id: 'review_status', label: 'Status' },
+                        { id: 'assignee', label: 'Assignee' },
+                        { id: 'reviewer', label: 'Reviewer' },
+                        { id: 'data_sensitivity', label: 'Data sensitivity' },
+                        { id: 'business_criticality', label: 'Business criticality' },
+                      ]}
+                      onGroupChange={handleGroupChange}
+                    />
                   </Stack>
                   <div data-joyride-id="add-new-vendor" ref={refs[0]}>
                     <CustomizableButton
@@ -758,11 +814,18 @@ const Vendors = () => {
             />
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
-              <TableWithPlaceholder
-                vendors={filteredVendors}
-                users={users}
-                onDelete={handleDeleteVendor}
-                onEdit={handleEditVendor}
+              <GroupedTableView
+                groupedData={groupedVendors}
+                ungroupedData={filteredVendors}
+                renderTable={(data, options) => (
+                  <TableWithPlaceholder
+                    vendors={data}
+                    users={users}
+                    onDelete={handleDeleteVendor}
+                    onEdit={handleEditVendor}
+                    hidePagination={options?.hidePagination}
+                  />
+                )}
               />
             </TabPanel>
           )}

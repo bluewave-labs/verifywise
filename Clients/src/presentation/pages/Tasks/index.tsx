@@ -302,9 +302,20 @@ const Tasks: React.FC = () => {
 
   const exportData = useMemo(() => {
     return tasks.map((task: TaskModel) => {
-      const assigneeNames = task.assignees
-        ?.map((assignee) => assignee.user_name)
-        .join(', ') || '-';
+      // Look up assignee names from user IDs
+      const assigneeNames = task.assignees && task.assignees.length > 0
+        ? task.assignees
+            .map((assigneeId) => {
+              const user = users.find((u) => u.id === Number(assigneeId));
+              return user ? `${user.name} ${user.surname}`.trim() : null;
+            })
+            .filter(Boolean)
+            .join(', ') || 'Unassigned'
+        : 'Unassigned';
+
+      // Look up creator name from creator_id
+      const creatorUser = users.find((u) => u.id === task.creator_id);
+      const creatorName = creatorUser ? `${creatorUser.name} ${creatorUser.surname}`.trim() : '-';
 
       return {
         title: task.title || '-',
@@ -312,11 +323,11 @@ const Tasks: React.FC = () => {
         priority: task.priority || '-',
         assignees: assigneeNames,
         due_date: task.due_date ? new Date(task.due_date).toLocaleDateString() : '-',
-        creator: task.creator_name || '-',
+        creator: creatorName,
         categories: task.categories?.join(', ') || '-',
       };
     });
-  }, [tasks]);
+  }, [tasks, users]);
 
   return (
     <Stack className="vwhome" gap={"16px"}>

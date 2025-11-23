@@ -110,7 +110,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             fontSize: '13px',
             padding: '8px 12px',
             '&:hover': {
-              backgroundColor: '#f9fafb',
+              backgroundColor: '#f9fafb !important',
             }
           }}
         >

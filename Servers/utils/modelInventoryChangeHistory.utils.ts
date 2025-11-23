@@ -165,14 +165,24 @@ const formatFieldValue = async (fieldName: string, value: any): Promise<string> 
   // Handle approver field - lookup user name
   if (fieldName === "approver" && typeof value === "number") {
     try {
-      const user = await UserModel.findByPk(value);
-      if (user) {
-        return user.name && user.surname
-          ? `${user.name} ${user.surname}`
-          : user.email || `User #${value}`;
+      const users: any[] = await sequelize.query(
+        `SELECT id, name, surname, email FROM public.users WHERE id = :userId`,
+        {
+          replacements: { userId: value },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      if (users && users.length > 0) {
+        const user = users[0];
+        if (user.name && user.surname) {
+          return `${user.name} ${user.surname}`;
+        } else if (user.email) {
+          return user.email;
+        }
       }
     } catch (error) {
-      console.error("Error fetching user for approver:", error);
+      console.error("Error fetching user for approver ID", value, ":", error);
     }
     return `User #${value}`;
   }

@@ -1,4 +1,4 @@
-import apiServices from "./api.services";
+import { apiServices } from "../../infrastructure/api/networkServices";
 
 /**
  * Get change history for a specific model inventory

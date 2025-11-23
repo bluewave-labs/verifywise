@@ -15,7 +15,7 @@ router.get("/token/:token", getShareLinkByToken);
 
 // Protected endpoints - require authentication
 router.post("/", authenticateJWT, createShareLink);
-router.get("/:resourceType/:resourceId/shares", authenticateJWT, getShareLinksForResource);
+router.get("/:resourceType/:resourceId", authenticateJWT, getShareLinksForResource);
 router.patch("/:id", authenticateJWT, updateShareLink);
 router.delete("/:id", authenticateJWT, deleteShareLink);
 

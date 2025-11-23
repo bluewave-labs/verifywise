@@ -4,7 +4,6 @@ import {
   Typography,
   Stack,
   CircularProgress,
-  Chip,
   useTheme,
   Collapse,
 } from "@mui/material";
@@ -129,27 +128,6 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               </Typography>
             </Stack>
           </Box>
-          <Chip
-            label={firstEntry.action.toUpperCase()}
-            size="small"
-            sx={{
-              height: 18,
-              fontSize: 9,
-              fontWeight: 600,
-              backgroundColor:
-                firstEntry.action === "created"
-                  ? "#D1FAE5"
-                  : firstEntry.action === "updated"
-                  ? "#DBEAFE"
-                  : "#FEE2E2",
-              color:
-                firstEntry.action === "created"
-                  ? "#065F46"
-                  : firstEntry.action === "updated"
-                  ? "#1E40AF"
-                  : "#991B1B",
-            }}
-          />
         </Stack>
 
         {/* Field Changes */}

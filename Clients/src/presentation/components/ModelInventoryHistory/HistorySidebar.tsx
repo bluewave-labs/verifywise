@@ -408,8 +408,10 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   color: theme.palette.text.secondary,
                 }}
               >
-                Created by {creationInfo.creatorName} on {creationInfo.creationDate} at{" "}
-                {creationInfo.creationTime}
+                <Box component="span" sx={{ fontWeight: 400 }}>Created by</Box>{" "}
+                <Box component="span" sx={{ fontWeight: 600 }}>{creationInfo.creatorName}</Box>{" "}
+                <Box component="span" sx={{ fontWeight: 400 }}>on</Box>{" "}
+                <Box component="span" sx={{ fontWeight: 600 }}>{creationInfo.creationDate} at {creationInfo.creationTime}</Box>
               </Typography>
             ) : lastUpdateInfo ? (
               <Typography
@@ -418,7 +420,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   color: theme.palette.text.secondary,
                 }}
               >
-                Last updated on {lastUpdateInfo.updateDate} at {lastUpdateInfo.updateTime}
+                <Box component="span" sx={{ fontWeight: 400 }}>Last updated on</Box>{" "}
+                <Box component="span" sx={{ fontWeight: 600 }}>{lastUpdateInfo.updateDate} at {lastUpdateInfo.updateTime}</Box>
               </Typography>
             ) : (
               <Typography

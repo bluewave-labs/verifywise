@@ -302,12 +302,6 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         );
     }
 
-    if (!data || data.length === 0) {
-        return (
-            <EmptyState message="There is currently no data in this table." />
-        );
-    }
-
     return (
         <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={singleTheme.tableStyles.primary.frame}>

@@ -6,6 +6,13 @@ import { logEvent } from "../utils/logger/dbLogger";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { IShareLinkCreate, IShareLinkUpdate } from "../domain.layer/interfaces/i.shareLink";
 import crypto from "crypto";
+import {
+  isValidTenantHash,
+  isValidResourceType,
+  isValidShareToken,
+  sanitizeErrorMessage,
+  safeSQLIdentifier,
+} from "../utils/security.utils";
 
 /**
  * Create a new share link
@@ -16,13 +23,28 @@ export const createShareLink = async (req: Request, res: Response) => {
   const { resource_type, resource_id, settings, expires_at }: IShareLinkCreate = req.body;
   const tenantId = req.tenantId!;
 
-  logStructured('processing', `starting share link creation for ${resource_type} ${resource_id}`, 'createShareLink', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Creating share link for ${resource_type} ${resource_id} in tenant ${tenantId}`);
+  logStructured('processing', `starting share link creation`, 'createShareLink', 'shareLink.ctrl.ts');
+  logger.debug(`🛠️ Creating share link in tenant ${tenantId}`);
 
   try {
+    // Validate tenant hash format
+    if (!isValidTenantHash(tenantId)) {
+      throw new ValidationException("Invalid tenant identifier");
+    }
+
     // Validate required fields
     if (!resource_type || !resource_id) {
       throw new ValidationException("resource_type and resource_id are required");
+    }
+
+    // Validate resource type
+    if (!isValidResourceType(resource_type)) {
+      throw new ValidationException("Invalid resource type");
+    }
+
+    // Validate resource_id is a positive integer
+    if (typeof resource_id !== 'number' || resource_id <= 0 || !Number.isInteger(resource_id)) {
+      throw new ValidationException("Invalid resource ID");
     }
 
     // Generate unique share token
@@ -38,9 +60,12 @@ export const createShareLink = async (req: Request, res: Response) => {
 
     const finalSettings = settings || defaultSettings;
 
+    // Validate and sanitize tenant ID before using in SQL
+    const safeTenantId = safeSQLIdentifier(tenantId);
+
     // Create the share link using raw SQL with tenant schema
     const createQuery = `
-      INSERT INTO "${tenantId}".share_links
+      INSERT INTO "${safeTenantId}".share_links
       (share_token, resource_type, resource_id, created_by, settings, is_enabled, expires_at, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
       RETURNING *;
@@ -93,7 +118,10 @@ export const createShareLink = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error creating share link`, 'createShareLink', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error during share link creation: ${(error as Error).message}`);
     logger.error('❌ Error in createShareLink:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+
+    // Sanitize error message before sending to client
+    const safeMessage = sanitizeErrorMessage(error as Error, "Failed to create share link");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };
 
@@ -105,12 +133,30 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
   const { resourceType, resourceId } = req.params;
   const tenantId = req.tenantId!;
 
-  logStructured('processing', `fetching share links for ${resourceType} ${resourceId}`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
-  logger.debug(`🛠️ Fetching share links for ${resourceType} ${resourceId} in tenant ${tenantId}`);
+  logStructured('processing', `fetching share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
+  logger.debug(`🛠️ Fetching share links in tenant ${tenantId}`);
 
   try {
+    // Validate tenant hash
+    if (!isValidTenantHash(tenantId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+    }
+
+    // Validate resource type
+    if (!isValidResourceType(resourceType)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid resource type"));
+    }
+
+    // Validate resource ID
+    const resourceIdNum = parseInt(resourceId);
+    if (isNaN(resourceIdNum) || resourceIdNum <= 0) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid resource ID"));
+    }
+
+    const safeTenantId = safeSQLIdentifier(tenantId);
+
     const query = `
-      SELECT * FROM "${tenantId}".share_links
+      SELECT * FROM "${safeTenantId}".share_links
       WHERE resource_type = $1 AND resource_id = $2
       ORDER BY created_at DESC;
     `;
@@ -147,7 +193,8 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error fetching share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error fetching share links: ${(error as Error).message}`);
     logger.error('❌ Error in getShareLinksForResource:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    const safeMessage = sanitizeErrorMessage(error as Error, "Failed to fetch share links");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };
 
@@ -163,6 +210,11 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Fetching share link by token`);
 
   try {
+    // Validate token format to prevent injection and enumeration
+    if (!isValidShareToken(token)) {
+      return res.status(400).json(STATUS_CODE[400]({ message: "Invalid share link format" }));
+    }
+
     // Get all tenant schemas
     const schemasQuery = `
       SELECT schema_name
@@ -233,7 +285,8 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error fetching share link`, 'getShareLinkByToken', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error fetching share link: ${(error as Error).message}`);
     logger.error('❌ Error in getShareLinkByToken:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };
 
@@ -350,7 +403,8 @@ export const updateShareLink = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error updating share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error updating share link: ${(error as Error).message}`);
     logger.error('❌ Error in updateShareLink:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };
 
@@ -417,7 +471,8 @@ export const deleteShareLink = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error deleting share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error deleting share link: ${(error as Error).message}`);
     logger.error('❌ Error in deleteShareLink:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };
 
@@ -555,6 +610,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     logStructured('error', `unexpected error fetching shared data`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
     await logEvent('Error', `Unexpected error fetching shared data: ${(error as Error).message}`);
     logger.error('❌ Error in getSharedDataByToken:', error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    const safeMessage = sanitizeErrorMessage(error as Error, "An error occurred");
+    return res.status(500).json(STATUS_CODE[500](safeMessage));
   }
 };

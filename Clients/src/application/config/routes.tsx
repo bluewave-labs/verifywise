@@ -32,6 +32,7 @@ import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltIn
 import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
+import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
@@ -154,5 +155,6 @@ export const createRoutes = (
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   // Style Guide - Development only
   ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

@@ -507,7 +507,7 @@ const Tasks: React.FC = () => {
                   sx={{ width: 160 }}
                 />
 
-                <Stack direction="column" spacing={2} sx={{ width: 300 }} data-joyride-id="task-search">
+                <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">
                   <Typography
                     component="p"
                     variant="body1"
@@ -519,11 +519,36 @@ const Tasks: React.FC = () => {
                     Search
                   </Typography>
                   <SearchBox
-                    placeholder="Search tasks by title or description..."
+                    placeholder="Search tasks..."
                     value={searchQuery}
                     onChange={setSearchQuery}
                     inputProps={{ "aria-label": "Search tasks" }}
                     fullWidth={false}
+                  />
+                </Stack>
+
+                <Stack direction="column" spacing={2} sx={{ width: 160 }}>
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: "22px" }}
+                  >
+                    GROUP BY
+                  </Typography>
+                  <GroupBy
+                    options={[
+                      { id: 'status', label: 'Status' },
+                      { id: 'priority', label: 'Priority' },
+                      { id: 'assignees', label: 'Assignees' },
+                      { id: 'due_date', label: 'Due date' },
+                    ]}
+                    onGroupChange={(groupByValue, sortOrder) => {
+                      setGroupBy(groupByValue);
+                      setGroupSortOrder(sortOrder);
+                    }}
                   />
                 </Stack>
 
@@ -552,22 +577,6 @@ const Tasks: React.FC = () => {
                   </Box>
                 </Stack>
               </Stack>
-
-      {/* Group By */}
-      <Box>
-        <GroupBy
-          options={[
-            { id: 'status', label: 'Status' },
-            { id: 'priority', label: 'Priority' },
-            { id: 'assignees', label: 'Assignees' },
-            { id: 'due_date', label: 'Due date' },
-          ]}
-          onGroupChange={(groupByValue, sortOrder) => {
-            setGroupBy(groupByValue);
-            setGroupSortOrder(sortOrder);
-          }}
-        />
-      </Box>
 
       {/* Content Area */}
       <Box>

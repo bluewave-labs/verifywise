@@ -162,6 +162,36 @@ const formatFieldValue = (fieldName: string, value: any): string => {
     return value.split("T")[0];
   }
 
+  // Handle arrays (like capabilities) - normalize by sorting and joining consistently
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "-";
+    // Sort and join with comma+space for consistent comparison
+    return value
+      .map((item) => String(item).trim())
+      .sort()
+      .join(", ");
+  }
+
+  // Handle string representations of arrays
+  if (typeof value === "string" && (value.startsWith("[") || value.includes(","))) {
+    try {
+      // Try to parse as JSON array
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => String(item).trim())
+          .sort()
+          .join(", ");
+      }
+    } catch {
+      // If not valid JSON, treat as comma-separated string
+      const items = value.split(",").map((item) => item.trim()).filter(Boolean);
+      if (items.length > 1) {
+        return items.sort().join(", ");
+      }
+    }
+  }
+
   return String(value);
 };
 

@@ -87,7 +87,6 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     data,
     isLoading,
     isError,
-    error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -243,7 +242,6 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       : value;
 
     const isOldValue = type === "old";
-    const isNewValue = type === "new";
 
     return (
       <>

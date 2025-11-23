@@ -23,7 +23,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ChevronDown, DownloadIcon, UploadIcon, History as HistoryIcon } from "lucide-react";
+import { ChevronDown, DownloadIcon, History as HistoryIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import HistorySidebar from "../../Common/HistorySidebar";

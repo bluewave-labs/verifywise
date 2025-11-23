@@ -73,15 +73,19 @@ const formatRelativeTime = (date: string | Date): string => {
 
 const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
-  onClose,
   modelInventoryId,
-  expandedHeight = false,
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
-  const { data: history = [], isLoading } =
-    useModelInventoryChangeHistory(modelInventoryId);
+  const { data, isLoading } = useModelInventoryChangeHistory(modelInventoryId);
   const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+
+  // Flatten all pages into a single history array
+  const history = React.useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.data);
+  }, [data]);
+
   const [avatarUrls, setAvatarUrls] = React.useState<{ [userId: number]: string | null }>({});
 
   // Fetch avatars for all users in the history

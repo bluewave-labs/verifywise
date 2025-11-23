@@ -38,6 +38,7 @@ import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -373,6 +374,37 @@ const IncidentManagement: React.FC = () => {
         },
     ];
 
+    /** -------------------- EXPORT DATA -------------------- */
+    const exportColumns = useMemo(() => {
+        return [
+            { id: 'incident_id', label: 'Incident ID' },
+            { id: 'ai_project', label: 'AI Project' },
+            { id: 'type', label: 'Type' },
+            { id: 'severity', label: 'Severity' },
+            { id: 'status', label: 'Status' },
+            { id: 'occurred_date', label: 'Occurred Date' },
+            { id: 'date_detected', label: 'Date Detected' },
+            { id: 'reporter', label: 'Reporter' },
+            { id: 'approval_status', label: 'Approval Status' },
+        ];
+    }, []);
+
+    const exportData = useMemo(() => {
+        return filteredData.map((incident: AIIncidentManagementModel) => {
+            return {
+                incident_id: incident.incident_id || '-',
+                ai_project: incident.ai_project || '-',
+                type: incident.type || '-',
+                severity: incident.severity || '-',
+                status: incident.status || '-',
+                occurred_date: incident.occurred_date || '-',
+                date_detected: incident.date_detected || '-',
+                reporter: incident.reporter || '-',
+                approval_status: incident.approval_status || '-',
+            };
+        });
+    }, [filteredData]);
+
     /** -------------------- RENDER -------------------- */
     return (
         <Stack className="vwhome" gap={"16px"}>
@@ -543,16 +575,24 @@ const IncidentManagement: React.FC = () => {
                         </Box>
                     </Stack>
 
-                    <Box data-joyride-id="add-incident-button">
-                        <CustomizableButton
-                            variant="contained"
-                            sx={addNewIncidentButton}
-                            text="Add new incident"
-                            icon={<AddCircleOutlineIcon />}
-                            onClick={handleNewIncidentClick}
-                            isDisabled={isCreatingDisabled}
+                    <Stack direction="row" gap="8px" alignItems="center">
+                        <ExportMenu
+                            data={exportData}
+                            columns={exportColumns}
+                            filename="incident-management"
+                            title="Incident Management"
                         />
-                    </Box>
+                        <Box data-joyride-id="add-incident-button">
+                            <CustomizableButton
+                                variant="contained"
+                                sx={addNewIncidentButton}
+                                text="Add new incident"
+                                icon={<AddCircleOutlineIcon />}
+                                onClick={handleNewIncidentClick}
+                                isDisabled={isCreatingDisabled}
+                            />
+                        </Box>
+                    </Stack>
                 </Stack>
 
                 <IncidentTable

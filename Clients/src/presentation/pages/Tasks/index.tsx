@@ -37,6 +37,7 @@ import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -286,6 +287,37 @@ const Tasks: React.FC = () => {
       }
     };
 
+  // Export columns and data
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'title', label: 'Title' },
+      { id: 'status', label: 'Status' },
+      { id: 'priority', label: 'Priority' },
+      { id: 'assignees', label: 'Assignees' },
+      { id: 'due_date', label: 'Due Date' },
+      { id: 'creator', label: 'Creator' },
+      { id: 'categories', label: 'Categories' },
+    ];
+  }, []);
+
+  const exportData = useMemo(() => {
+    return tasks.map((task: TaskModel) => {
+      const assigneeNames = task.assignees
+        ?.map((assignee) => assignee.user_name)
+        .join(', ') || '-';
+
+      return {
+        title: task.title || '-',
+        status: STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || '-',
+        priority: task.priority || '-',
+        assignees: assigneeNames,
+        due_date: task.due_date ? new Date(task.due_date).toLocaleDateString() : '-',
+        creator: task.creator_name || '-',
+        categories: task.categories?.join(', ') || '-',
+      };
+    });
+  }, [tasks]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -337,18 +369,26 @@ const Tasks: React.FC = () => {
           }
         />
         <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
-          <CustomizableButton
-            variant="contained"
-            text="Add new task"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<AddCircleIcon size={16} />}
-            onClick={handleCreateTask}
-            isDisabled={isCreatingDisabled}
-          />
+          <Stack direction="row" gap="8px" alignItems="center">
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="tasks"
+              title="Task Management"
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Add new task"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleIcon size={16} />}
+              onClick={handleCreateTask}
+              isDisabled={isCreatingDisabled}
+            />
+          </Stack>
         </Stack>
       </Stack>
 

@@ -356,9 +356,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       orientation="horizontal"
       timeout={300}
       sx={{
-        height: "100%",
-        minHeight: 0,
-        maxHeight: "100%",
+        maxHeight: "570px",
         display: "flex",
         flexDirection: "column",
       }}
@@ -366,9 +364,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       <Box
         sx={{
           width: "320px",
-          height: "100%",
-          minHeight: 0,
-          maxHeight: "100%",
+          maxHeight: "570px",
           marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
@@ -376,9 +372,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       >
         <Box
           sx={{
-            height: "100%",
-            minHeight: 0,
-            maxHeight: "100%",
+            maxHeight: "570px",
             border: `1px solid #E0E4E9`,
             borderRadius: "8px",
             display: "flex",

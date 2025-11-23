@@ -58,3 +58,16 @@ div.react-joyride > * {
 .MuiChip-root .MuiTouchRipple-root {
   display: none !important;
 }
+
+/* Policy editor heading font sizes */
+.slate-h1 {
+  font-size: 18px !important;
+}
+
+.slate-h2 {
+  font-size: 16px !important;
+}
+
+.slate-h3 {
+  font-size: 14px !important;
+}

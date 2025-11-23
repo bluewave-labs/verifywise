@@ -6,6 +6,7 @@ import {
   CircularProgress,
   useTheme,
   Collapse,
+  Avatar,
 } from "@mui/material";
 import { Clock } from "lucide-react";
 import {
@@ -13,6 +14,7 @@ import {
   ModelInventoryChangeHistoryEntry,
 } from "../../../application/hooks/useModelInventoryChangeHistory";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { useProfilePhotoFetch } from "../../../application/hooks/useProfilePhotoFetch";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -33,6 +35,28 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const { userId: currentUserId } = useAuth();
   const { data: history = [], isLoading } =
     useModelInventoryChangeHistory(modelInventoryId);
+  const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+  const [avatarUrls, setAvatarUrls] = React.useState<{ [userId: number]: string | null }>({});
+
+  // Fetch avatars for all users in the history
+  React.useEffect(() => {
+    const fetchAvatars = async () => {
+      const uniqueUserIds = Array.from(
+        new Set(history.map((entry) => entry.changed_by_user_id))
+      );
+
+      for (const userId of uniqueUserIds) {
+        if (avatarUrls[userId] === undefined) {
+          const avatarUrl = await fetchProfilePhotoAsBlobUrl(userId);
+          setAvatarUrls((prev) => ({ ...prev, [userId]: avatarUrl }));
+        }
+      }
+    };
+
+    if (history.length > 0) {
+      fetchAvatars();
+    }
+  }, [history, fetchProfilePhotoAsBlobUrl]);
 
   // Group history entries by change event (by changed_at timestamp)
   const groupedHistory = React.useMemo(() => {
@@ -119,22 +143,19 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       >
         {/* Header */}
         <Stack direction="row" gap="8px" alignItems="center" marginBottom="8px">
-          <Box
+          <Avatar
+            src={avatarUrls[firstEntry.changed_by_user_id] || undefined}
+            alt={userName}
             sx={{
               width: 28,
               height: 28,
-              borderRadius: "50%",
               backgroundColor: theme.palette.primary.main,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
               fontSize: 11,
               fontWeight: 600,
             }}
           >
             {userName.charAt(0).toUpperCase()}
-          </Box>
+          </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography
               sx={{

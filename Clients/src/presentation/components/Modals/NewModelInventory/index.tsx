@@ -1288,7 +1288,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
 
      return (
-         <>
          <StandardModal
              isOpen={isOpen}
              onClose={handleClose}
@@ -1301,21 +1300,22 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
              onSubmit={handleSubmit}
              submitButtonText={isEdit ? "Update model" : "Save"}
              isSubmitting={isButtonDisabled}
-             maxWidth="760px"
+             maxWidth={isHistorySidebarOpen ? "1100px" : "760px"}
              /* This hides the entire footer */
              hideFooter={isEdit && activeTab === "evidence"}
              headerActions={
                  isEdit && selectedModelInventoryId ? (
                      <Tooltip title="View activity history" arrow>
                          <IconButton
-                             onClick={() => setIsHistorySidebarOpen(true)}
+                             onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
                              size="small"
                              sx={{
-                                 color: "#98A2B3",
+                                 color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
                                  padding: "4px",
                                  borderRadius: "4px",
+                                 backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
                                  "&:hover": {
-                                     backgroundColor: "#F2F4F7",
+                                     backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
                                  },
                              }}
                          >
@@ -1325,60 +1325,66 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                  ) : undefined
              }
          >
-             {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
-             {isEdit ? (
-                 <TabContext value={activeTab}>
-                     {/* TAB BAR */}
-                     <Box sx={{ marginBottom: 3 }}>
-                         <TabBar
-                             tabs={[
-                                 {
-                                     label: "Model details",
-                                     value: "details",
-                                     icon: "Box",
-                                 },
-                                 {
-                                     label: "Evidence",
-                                     value: "evidence",
-                                     icon: "Database",
-                                 },
-                             ]}
-                             activeTab={activeTab}
-                             onChange={(_, newValue) => setActiveTab(newValue)}
-                             dataJoyrideId="model-tabs"
-                         />
-                     </Box>
+             <Stack direction="row" sx={{ width: "100%", height: "100%" }}>
+                 {/* Main Content */}
+                 <Box sx={{ flex: 1, minWidth: 0 }}>
+                     {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
+                     {isEdit ? (
+                         <TabContext value={activeTab}>
+                             {/* TAB BAR */}
+                             <Box sx={{ marginBottom: 3 }}>
+                                 <TabBar
+                                     tabs={[
+                                         {
+                                             label: "Model details",
+                                             value: "details",
+                                             icon: "Box",
+                                         },
+                                         {
+                                             label: "Evidence",
+                                             value: "evidence",
+                                             icon: "Database",
+                                         },
+                                     ]}
+                                     activeTab={activeTab}
+                                     onChange={(_, newValue) => setActiveTab(newValue)}
+                                     dataJoyrideId="model-tabs"
+                                 />
+                             </Box>
 
-                     {/* FIXED WIDTH + FIXED HEIGHT */}
-                     <Box
-                         sx={{
-                             minHeight: "520px",
-                             maxHeight: "fit-content",
-                             width: "100%", // always full width inside modal
-                             display: "flex",
-                             flexDirection: "column",
-                         }}
-                     >
-                         {/* TAB CONTENT */}
-                         {activeTab === "details" && modelDetailsSection}
+                             {/* FIXED WIDTH + FIXED HEIGHT */}
+                             <Box
+                                 sx={{
+                                     minHeight: "520px",
+                                     maxHeight: "fit-content",
+                                     width: "100%", // always full width inside modal
+                                     display: "flex",
+                                     flexDirection: "column",
+                                 }}
+                             >
+                                 {/* TAB CONTENT */}
+                                 {activeTab === "details" && modelDetailsSection}
 
-                         {/* Evidence content*/}
-                         {activeTab === "evidence" && evidenceSection}
-                     </Box>
-                 </TabContext>
-             ) : (
-                 /* NOT EDIT → always show model details */
-                 modelDetailsSection
-             )}
+                                 {/* Evidence content*/}
+                                 {activeTab === "evidence" && evidenceSection}
+                             </Box>
+                         </TabContext>
+                     ) : (
+                         /* NOT EDIT → always show model details */
+                         modelDetailsSection
+                     )}
+                 </Box>
+
+                 {/* History Sidebar - Embedded */}
+                 {isEdit && (
+                     <HistorySidebar
+                         isOpen={isHistorySidebarOpen}
+                         onClose={() => setIsHistorySidebarOpen(false)}
+                         modelInventoryId={selectedModelInventoryId as number}
+                     />
+                 )}
+             </Stack>
          </StandardModal>
-
-         {/* History Sidebar */}
-         <HistorySidebar
-             isOpen={isHistorySidebarOpen}
-             onClose={() => setIsHistorySidebarOpen(false)}
-             modelInventoryId={selectedModelInventoryId as number}
-         />
-         </>
      );
 };
 

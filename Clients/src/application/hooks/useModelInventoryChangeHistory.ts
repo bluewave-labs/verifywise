@@ -24,7 +24,11 @@ export const useModelInventoryChangeHistory = (modelInventoryId: number | undefi
     queryFn: async () => {
       if (!modelInventoryId) return [];
       const response = await getModelInventoryChangeHistory(modelInventoryId);
-      return response.data as ModelInventoryChangeHistoryEntry[];
+      // response is STATUS_CODE wrapped: { message: "OK", data: [...] }
+      if (response?.data) {
+        return response.data as ModelInventoryChangeHistoryEntry[];
+      }
+      return [] as ModelInventoryChangeHistoryEntry[];
     },
     enabled: !!modelInventoryId,
     staleTime: 30000, // 30 seconds

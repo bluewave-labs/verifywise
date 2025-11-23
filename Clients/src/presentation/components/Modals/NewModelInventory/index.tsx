@@ -23,9 +23,10 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ChevronDown, DownloadIcon, UploadIcon } from "lucide-react";
+import { ChevronDown, DownloadIcon, UploadIcon, History as HistoryIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
+import HistorySidebar from "../../ModelInventoryHistory/HistorySidebar";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
@@ -171,6 +172,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("details");
     const [isEvidenceLoading, ] = useState(false);
+    const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
     
 
     useEffect(() => {
@@ -1286,6 +1288,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
 
      return (
+         <>
          <StandardModal
              isOpen={isOpen}
              onClose={handleClose}
@@ -1301,6 +1304,26 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
              maxWidth="760px"
              /* This hides the entire footer */
              hideFooter={isEdit && activeTab === "evidence"}
+             headerActions={
+                 isEdit && selectedModelInventoryId ? (
+                     <Tooltip title="View activity history" arrow>
+                         <IconButton
+                             onClick={() => setIsHistorySidebarOpen(true)}
+                             size="small"
+                             sx={{
+                                 color: "#98A2B3",
+                                 padding: "4px",
+                                 borderRadius: "4px",
+                                 "&:hover": {
+                                     backgroundColor: "#F2F4F7",
+                                 },
+                             }}
+                         >
+                             <HistoryIcon size={20} />
+                         </IconButton>
+                     </Tooltip>
+                 ) : undefined
+             }
          >
              {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
              {isEdit ? (
@@ -1348,7 +1371,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                  modelDetailsSection
              )}
          </StandardModal>
-     );    
+
+         {/* History Sidebar */}
+         <HistorySidebar
+             isOpen={isHistorySidebarOpen}
+             onClose={() => setIsHistorySidebarOpen(false)}
+             modelInventoryId={selectedModelInventoryId as number}
+         />
+         </>
+     );
 };
 
 export default NewModelInventory;

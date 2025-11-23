@@ -482,11 +482,14 @@ const Vendors = () => {
       const assigneeUser = users.find((user) => user.id === vendor.assignee);
       const assigneeName = assigneeUser ? `${assigneeUser.name} ${assigneeUser.surname}` : 'Unassigned';
 
+      // Debug scorecard value
+      console.log('Vendor scorecard:', vendor.vendor_name, vendor.scorecard, typeof vendor.scorecard);
+
       return {
         vendor_name: vendor.vendor_name,
         assignee: assigneeName,
         review_status: vendor.review_status || 'Not started',
-        scorecard: vendor.scorecard != null ? `${vendor.scorecard}%` : 'N/A',
+        scorecard: vendor.scorecard !== null && vendor.scorecard !== undefined ? `${vendor.scorecard}%` : 'N/A',
         review_date: vendor.review_date || 'N/A',
       };
     });

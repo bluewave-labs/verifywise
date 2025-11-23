@@ -138,6 +138,102 @@ const SharedView: React.FC = () => {
   const { share_link, data, permissions } = shareData;
   const isTableView = Array.isArray(data);
 
+  // Define columns to show based on resource type
+  const getTableColumns = (resourceType: string) => {
+    if (resourceType === "model") {
+      return ["provider", "model", "version", "approver", "security_assessment", "status", "status_date"];
+    }
+    // For other resource types, show all columns
+    return data && data.length > 0 ? Object.keys(data[0]) : [];
+  };
+
+  const tableColumns = isTableView ? getTableColumns(share_link.resource_type) : [];
+
+  // Format cell value based on field type
+  const formatCellValue = (key: string, value: any) => {
+    if (value === null || value === undefined) {
+      return (
+        <Typography variant="body2" color="textSecondary" fontStyle="italic">
+          N/A
+        </Typography>
+      );
+    }
+
+    // Security assessment - show Yes/No with badge
+    if (key === "security_assessment") {
+      return (
+        <Box
+          component="span"
+          sx={{
+            display: "inline-block",
+            padding: "4px 12px",
+            borderRadius: "12px",
+            fontSize: "12px",
+            fontWeight: 500,
+            backgroundColor: value ? "#E8F5E9" : "#FFEBEE",
+            color: value ? "#2E7D32" : "#C62828",
+          }}
+        >
+          {value ? "Yes" : "No"}
+        </Box>
+      );
+    }
+
+    // Status - show with badge
+    if (key === "status") {
+      const statusColors: { [key: string]: { bg: string; text: string } } = {
+        Approved: { bg: "#E8F5E9", text: "#2E7D32" },
+        Pending: { bg: "#FFF3E0", text: "#E65100" },
+        Rejected: { bg: "#FFEBEE", text: "#C62828" },
+        "Under Review": { bg: "#E3F2FD", text: "#1565C0" },
+      };
+      const colorScheme = statusColors[value] || { bg: "#F5F5F5", text: "#666" };
+      return (
+        <Box
+          component="span"
+          sx={{
+            display: "inline-block",
+            padding: "4px 12px",
+            borderRadius: "12px",
+            fontSize: "12px",
+            fontWeight: 500,
+            backgroundColor: colorScheme.bg,
+            color: colorScheme.text,
+          }}
+        >
+          {value}
+        </Box>
+      );
+    }
+
+    // Status date - format as readable date
+    if (key === "status_date") {
+      try {
+        const date = new Date(value);
+        return <Typography variant="body2">{date.toLocaleDateString()}</Typography>;
+      } catch {
+        return <Typography variant="body2">{String(value)}</Typography>;
+      }
+    }
+
+    // Object values
+    if (typeof value === "object") {
+      return (
+        <Typography variant="body2" component="pre" sx={{ fontFamily: "monospace", fontSize: 12 }}>
+          {JSON.stringify(value, null, 2)}
+        </Typography>
+      );
+    }
+
+    // Boolean values
+    if (typeof value === "boolean") {
+      return <Typography variant="body2">{value ? "Yes" : "No"}</Typography>;
+    }
+
+    // Default string value
+    return <Typography variant="body2">{String(value)}</Typography>;
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
       <Box sx={{ maxWidth: 1200, mx: "auto", px: 3 }}>
@@ -151,7 +247,7 @@ const SharedView: React.FC = () => {
             }}
           >
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: "#13715B", mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: "#13715B", mb: 1 }}>
                 Shared {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "View"}
               </Typography>
               <Typography variant="body2" color="textSecondary">
@@ -220,8 +316,8 @@ const SharedView: React.FC = () => {
                   {/* Table View: Display rows of data */}
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      {data.length > 0 && Object.keys(data[0]).map((key) => (
-                        <TableCell key={key} sx={{ fontWeight: 600 }}>
+                      {tableColumns.map((key) => (
+                        <TableCell key={key} sx={{ fontWeight: 600, textTransform: "uppercase", fontSize: "12px" }}>
                           {key
                             .split("_")
                             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -233,23 +329,9 @@ const SharedView: React.FC = () => {
                   <TableBody>
                     {data.map((row: any, index: number) => (
                       <TableRow key={row.id || index} hover>
-                        {Object.values(row).map((value: any, colIndex: number) => (
-                          <TableCell key={colIndex}>
-                            {value === null || value === undefined ? (
-                              <Typography variant="body2" color="textSecondary" fontStyle="italic">
-                                N/A
-                              </Typography>
-                            ) : typeof value === "object" ? (
-                              <Typography variant="body2" component="pre" sx={{ fontFamily: "monospace", fontSize: 12 }}>
-                                {JSON.stringify(value, null, 2)}
-                              </Typography>
-                            ) : typeof value === "boolean" ? (
-                              <Typography variant="body2">
-                                {value ? "Yes" : "No"}
-                              </Typography>
-                            ) : (
-                              <Typography variant="body2">{String(value)}</Typography>
-                            )}
+                        {tableColumns.map((key) => (
+                          <TableCell key={key} sx={{ whiteSpace: "nowrap" }}>
+                            {formatCellValue(key, row[key])}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -305,7 +387,15 @@ const SharedView: React.FC = () => {
         {/* Footer */}
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Typography variant="caption" color="textSecondary">
-            Powered by VerifyWise
+            Powered by{" "}
+            <a
+              href="https://verifywise.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#13715B", textDecoration: "none", fontWeight: 600 }}
+            >
+              VerifyWise
+            </a>
           </Typography>
         </Box>
       </Box>

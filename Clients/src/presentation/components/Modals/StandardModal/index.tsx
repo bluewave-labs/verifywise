@@ -241,6 +241,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
             zIndex: 1,
             position: "relative",
           }}
+          onWheel={(e) => {
+            // Prevent scroll events from bubbling to modal backdrop
+            e.stopPropagation();
+          }}
         >
           {children}
         </Box>

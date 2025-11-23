@@ -95,7 +95,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       <Box
         key={`${firstEntry.changed_at}_${firstEntry.id}`}
         sx={{
-          marginBottom: "16px",
+          marginBottom: "32px",
           "&:last-child": {
             marginBottom: 0,
           },
@@ -125,6 +125,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 fontSize: 12,
                 fontWeight: 500,
                 color: theme.palette.text.primary,
+                textDecoration: firstEntry.action === "updated" ? "underline" : "none",
               }}
             >
               {firstEntry.action === "created" &&
@@ -297,7 +298,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           {/* Header */}
           <Box
             sx={{
-              p: 2,
+              padding: "16px",
               borderBottom: `1px solid ${theme.palette.divider}`,
               background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
             }}
@@ -319,7 +320,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   color: theme.palette.text.secondary,
                 }}
               >
-                Activity History
+                Creation date unavailable
               </Typography>
             )}
           </Box>
@@ -329,7 +330,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           sx={{
             flex: 1,
             overflow: "auto",
-            p: 2,
+            padding: "16px",
           }}
         >
           {isLoading ? (

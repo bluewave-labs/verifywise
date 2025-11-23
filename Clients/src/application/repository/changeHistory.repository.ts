@@ -4,8 +4,7 @@
  * API functions for fetching change history for any entity type.
  */
 
-import { httpClient } from "../config/axios.config";
-import { AxiosResponse } from "axios";
+import { apiServices } from "../../infrastructure/api/networkServices";
 import { EntityType } from "../../config/changeHistory.config";
 
 /**
@@ -18,8 +17,14 @@ import { EntityType } from "../../config/changeHistory.config";
 export const getEntityChangeHistory = async (
   entityType: EntityType,
   entityId: number
-): Promise<AxiosResponse> => {
-  // Convert entity_type to route format (e.g., "model_inventory" -> "model-inventory")
-  const routeType = entityType.replace(/_/g, "-");
-  return httpClient.get(`/api/${routeType}-change-history/${entityId}`);
+): Promise<any> => {
+  try {
+    // Convert entity_type to route format (e.g., "model_inventory" -> "model-inventory")
+    const routeType = entityType.replace(/_/g, "-");
+    const response = await apiServices.get(`/${routeType}-change-history/${entityId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error getting ${entityType} change history:`, error);
+    throw error;
+  }
 };

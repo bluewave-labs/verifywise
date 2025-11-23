@@ -661,10 +661,30 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   <IconButton
                     onClick={() => {
                       action?.();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        [key]: !prev[key],
-                      }));
+
+                      // Handle mutually exclusive groups
+                      setToolbarState((prev) => {
+                        const newState = { ...prev };
+
+                        // Headings are mutually exclusive
+                        if (key === 'h1' || key === 'h2' || key === 'h3') {
+                          newState.h1 = key === 'h1' ? !prev[key] : false;
+                          newState.h2 = key === 'h2' ? !prev[key] : false;
+                          newState.h3 = key === 'h3' ? !prev[key] : false;
+                        }
+                        // Alignments are mutually exclusive
+                        else if (key === 'align-left' || key === 'align-center' || key === 'align-right') {
+                          newState['align-left'] = key === 'align-left' ? !prev[key] : false;
+                          newState['align-center'] = key === 'align-center' ? !prev[key] : false;
+                          newState['align-right'] = key === 'align-right' ? !prev[key] : false;
+                        }
+                        // Other buttons just toggle
+                        else {
+                          newState[key] = !prev[key];
+                        }
+
+                        return newState;
+                      });
                     }}
                     size="small"
                     sx={{

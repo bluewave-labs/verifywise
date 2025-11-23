@@ -486,7 +486,7 @@ const Vendors = () => {
         vendor_name: vendor.vendor_name,
         assignee: assigneeName,
         review_status: vendor.review_status || 'Not started',
-        scorecard: vendor.scorecard?.toString() || 'N/A',
+        scorecard: vendor.scorecard != null ? `${vendor.scorecard}%` : 'N/A',
         review_date: vendor.review_date || 'N/A',
       };
     });

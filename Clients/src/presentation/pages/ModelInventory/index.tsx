@@ -542,7 +542,7 @@ const ModelInventory: React.FC = () => {
         settings,
       });
 
-      const link = result.shareable_url || "";
+      const link = result.data?.shareable_url || "";
       setShareableLink(link);
       return link;
     } catch (error) {

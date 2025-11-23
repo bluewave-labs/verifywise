@@ -150,6 +150,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
           backgroundColor: "#FFFFFF",
           borderRadius: "8px",
           overflow: "hidden",
+          transition: "max-width 300ms cubic-bezier(0.4, 0, 0.2, 1)",
           "&:focus": {
             outline: "none",
           },

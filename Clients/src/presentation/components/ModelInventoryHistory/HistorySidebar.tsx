@@ -547,6 +547,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           />
         </Box>
       </Box>
+      </Box>
     </Collapse>
   );
 };

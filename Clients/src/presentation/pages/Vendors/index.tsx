@@ -492,6 +492,40 @@ const Vendors = () => {
     });
   }, [filteredVendors, users]);
 
+  // Define export columns for vendor risks table
+  const vendorRisksExportColumns = useMemo(() => {
+    return [
+      { id: 'risk_description', label: 'Risk Description' },
+      { id: 'vendor_name', label: 'Vendor' },
+      { id: 'project_titles', label: 'Use Case' },
+      { id: 'action_owner', label: 'Action Owner' },
+      { id: 'risk_severity', label: 'Risk Severity' },
+      { id: 'likelihood', label: 'Likelihood' },
+      { id: 'risk_level', label: 'Risk Level' },
+    ];
+  }, []);
+
+  // Prepare export data for vendor risks
+  const vendorRisksExportData = useMemo(() => {
+    return vendorRisks.map((risk: any) => {
+      const vendor = vendors.find((v) => v.id === risk.vendor_id);
+      const vendorName = vendor ? vendor.vendor_name : '-';
+
+      const actionOwnerUser = users.find((user) => user.id === risk.action_owner);
+      const actionOwnerName = actionOwnerUser ? `${actionOwnerUser.name} ${actionOwnerUser.surname}` : '-';
+
+      return {
+        risk_description: risk.risk_description || '-',
+        vendor_name: vendorName,
+        project_titles: risk.project_titles || '-',
+        action_owner: actionOwnerName,
+        risk_severity: risk.risk_severity || '-',
+        likelihood: risk.likelihood || '-',
+        risk_level: risk.risk_level || '-',
+      };
+    });
+  }, [vendorRisks, vendors, users]);
+
   return (
     <Stack className="vwhome" gap={0}>
       <PageBreadcrumbs />
@@ -764,21 +798,29 @@ const Vendors = () => {
                     }}
                   />
                 </Stack>
-                <CustomizableButton
-                  variant="contained"
-                  text="Add new Risk"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 2,
-                  }}
-                  icon={<AddCircleOutlineIcon size={16} />}
-                  onClick={() => {
-                    setSelectedRisk(null);
-                    handleRiskModal();
-                  }}
-                  isDisabled={isCreatingDisabled}
-                />
+                <Stack direction="row" gap="8px" alignItems="center">
+                  <ExportMenu
+                    data={vendorRisksExportData}
+                    columns={vendorRisksExportColumns}
+                    filename="vendor-risks"
+                    title="Vendor Risks"
+                  />
+                  <CustomizableButton
+                    variant="contained"
+                    text="Add new Risk"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
+                    }}
+                    icon={<AddCircleOutlineIcon size={16} />}
+                    onClick={() => {
+                      setSelectedRisk(null);
+                      handleRiskModal();
+                    }}
+                    isDisabled={isCreatingDisabled}
+                  />
+                </Stack>
               </Stack>
             )
           )}

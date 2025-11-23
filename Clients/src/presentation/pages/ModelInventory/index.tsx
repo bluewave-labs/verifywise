@@ -829,25 +829,91 @@ const ModelInventory: React.FC = () => {
 
   const filteredEvidenceHub = useMemo(() => {
     let filtered = evidenceHubData;
-  
+
     if (evidenceTypeFilter && evidenceTypeFilter !== "all") {
       filtered = filtered.filter(
         (e) => e.evidence_type === evidenceTypeFilter
       );
     }
-  
+
     if (searchTypeTerm?.trim()) {
       const lower = searchTypeTerm.toLowerCase();
       filtered = filtered.filter((e) =>
         e.evidence_name?.toLowerCase().includes(lower)
       );
     }
-  
+
     return filtered;
   }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
-  
-  
-  
+
+  // Export columns and data for Model Risks
+  const modelRisksExportColumns = useMemo(() => {
+    return [
+      { id: 'risk_name', label: 'Risk Name' },
+      { id: 'model_name', label: 'Model Name' },
+      { id: 'risk_category', label: 'Category' },
+      { id: 'risk_level', label: 'Risk Level' },
+      { id: 'status', label: 'Status' },
+      { id: 'owner', label: 'Owner' },
+      { id: 'target_date', label: 'Target Date' },
+    ];
+  }, []);
+
+  const modelRisksExportData = useMemo(() => {
+    return filteredModelRisks.map((risk: IModelRisk) => {
+      const ownerUser = users.find((user: any) => user.id == risk.owner);
+      const ownerName = ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : '-';
+
+      const model = modelInventoryData.find((m) => m.id === risk.model_id);
+      const modelName = model ? model.model : '-';
+
+      return {
+        risk_name: risk.risk_name || '-',
+        model_name: modelName,
+        risk_category: risk.risk_category || '-',
+        risk_level: risk.risk_level || '-',
+        status: risk.status || '-',
+        owner: ownerName,
+        target_date: risk.target_date || '-',
+      };
+    });
+  }, [filteredModelRisks, users, modelInventoryData]);
+
+  // Export columns and data for Evidence Hub
+  const evidenceHubExportColumns = useMemo(() => {
+    return [
+      { id: 'evidence_name', label: 'Evidence Name' },
+      { id: 'evidence_type', label: 'Type' },
+      { id: 'mapped_models', label: 'Mapped Models' },
+      { id: 'uploaded_by', label: 'Uploaded By' },
+      { id: 'uploaded_on', label: 'Uploaded On' },
+      { id: 'expiry_date', label: 'Expiry' },
+    ];
+  }, []);
+
+  const evidenceHubExportData = useMemo(() => {
+    return filteredEvidenceHub.map((evidence: EvidenceHubModel) => {
+      const uploaderUser = users.find((user: any) => user.id === evidence.uploaded_by);
+      const uploaderName = uploaderUser ? `${uploaderUser.name} ${uploaderUser.surname}` : '-';
+
+      const mappedModelNames = evidence.mapped_models
+        ?.map((modelId: number) => {
+          const model = modelInventoryData.find((m) => m.id === modelId);
+          return model ? model.model : null;
+        })
+        .filter(Boolean)
+        .join(', ') || '-';
+
+      return {
+        evidence_name: evidence.evidence_name || '-',
+        evidence_type: evidence.evidence_type || '-',
+        mapped_models: mappedModelNames,
+        uploaded_by: uploaderName,
+        uploaded_on: evidence.uploaded_on || '-',
+        expiry_date: evidence.expiry_date || '-',
+      };
+    });
+  }, [filteredEvidenceHub, users, modelInventoryData]);
 
   // Model Risk handlers
   const handleNewModelRiskClick = () => {
@@ -1320,16 +1386,24 @@ const ModelInventory: React.FC = () => {
                                   }}
                               />
                           </Stack>
-                          <div data-joyride-id="add-model-risk-button">
-                              <CustomizableButton
-                                  variant="contained"
-                                  sx={addNewModelButtonStyle}
-                                  text="Add model risk"
-                                  icon={<AddCircleOutlineIcon size={16} />}
-                                  onClick={handleNewModelRiskClick}
-                                  isDisabled={isCreatingDisabled}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={modelRisksExportData}
+                                  columns={modelRisksExportColumns}
+                                  filename="model-risks"
+                                  title="Model Risks"
                               />
-                          </div>
+                              <div data-joyride-id="add-model-risk-button">
+                                  <CustomizableButton
+                                      variant="contained"
+                                      sx={addNewModelButtonStyle}
+                                      text="Add model risk"
+                                      icon={<AddCircleOutlineIcon size={16} />}
+                                      onClick={handleNewModelRiskClick}
+                                      isDisabled={isCreatingDisabled}
+                                  />
+                              </div>
+                          </Stack>
                       </Stack>
 
                       <ModelRisksTable
@@ -1393,8 +1467,14 @@ const ModelInventory: React.FC = () => {
                               </div>
                           </Stack>
 
-                          {/* Right side: Add Upload Evidence */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export and Upload Evidence */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={evidenceHubExportData}
+                                  columns={evidenceHubExportColumns}
+                                  filename="evidence-hub"
+                                  title="Evidence Hub"
+                              />
                               <div data-joyride-id="add-model-button">
                                   <CustomizableButton
                                       variant="contained"

@@ -366,18 +366,18 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       orientation="horizontal"
       timeout={300}
       sx={{
-        maxHeight: "calc(80vh - 160px)",
         display: "flex",
         flexDirection: "column",
+        alignSelf: "flex-start",
       }}
     >
       <Box
         sx={{
           width: "320px",
-          maxHeight: "calc(80vh - 160px)",
           marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
+          alignSelf: "flex-start",
         }}
       >
         <Box

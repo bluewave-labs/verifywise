@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Stack, Popover, Box, Typography } from '@mui/material';
 import { X, Rows3 } from 'lucide-react';
 import Select from '../Inputs/Select';
@@ -105,14 +105,47 @@ export const GroupBy: React.FC<GroupByProps> = ({
   const [selectedGroup, setSelectedGroup] = useState<string>(defaultGroupBy || '');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const scrollParentRef = useRef<HTMLElement | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+
+    // Find the scrollable parent
+    let parent = event.currentTarget.parentElement;
+    while (parent) {
+      const overflow = window.getComputedStyle(parent).overflow;
+      if (overflow === 'auto' || overflow === 'scroll' || parent === document.body) {
+        scrollParentRef.current = parent;
+        break;
+      }
+      parent = parent.parentElement;
+    }
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  // Close popover on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (anchorEl) {
+        handleClose();
+      }
+    };
+
+    if (anchorEl && scrollParentRef.current) {
+      scrollParentRef.current.addEventListener('scroll', handleScroll);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+
+    return () => {
+      if (scrollParentRef.current) {
+        scrollParentRef.current.removeEventListener('scroll', handleScroll);
+      }
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [anchorEl]);
 
   const handleGroupChange = (event: any) => {
     const value = event.target.value;

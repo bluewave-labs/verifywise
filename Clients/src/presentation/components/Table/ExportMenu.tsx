@@ -90,7 +90,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           onClick={() => handleExport('pdf')}
           sx={{
             fontSize: '13px',
-            padding: '8px 16px',
+            padding: '8px 8px',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
@@ -108,7 +108,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           onClick={() => handleExport('csv')}
           sx={{
             fontSize: '13px',
-            padding: '8px 16px',
+            padding: '8px 8px',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }
@@ -126,7 +126,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
           onClick={() => handleExport('excel')}
           sx={{
             fontSize: '13px',
-            padding: '8px 16px',
+            padding: '8px 8px',
             '&:hover': {
               backgroundColor: '#f9fafb',
             }

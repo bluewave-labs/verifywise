@@ -562,36 +562,80 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     }
 
     // Fetch the resource data
-    const resourceQuery = `
-      SELECT * FROM "${tenantSchema}".${tableName}
-      WHERE id = $1
-      LIMIT 1;
-    `;
+    let resourceQuery: string;
+    let resourceResult: any[];
 
-    const resourceResult = await sequelize.query(resourceQuery, {
-      bind: [resourceId],
-      type: QueryTypes.SELECT,
-    }) as any[];
+    // If resource_id is 0, fetch all records (table view)
+    // Otherwise, fetch specific record
+    if (resourceId === 0) {
+      resourceQuery = `
+        SELECT * FROM "${tenantSchema}".${tableName}
+        ORDER BY id DESC
+        LIMIT 100;
+      `;
 
-    if (resourceResult.length === 0) {
-      logStructured('error', `resource not found: ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
-      return res.status(404).json(STATUS_CODE[404]({ message: "Resource not found" }));
+      resourceResult = await sequelize.query(resourceQuery, {
+        type: QueryTypes.SELECT,
+      }) as any[];
+
+      if (resourceResult.length === 0) {
+        logStructured('error', `no resources found: ${resourceType}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+        return res.status(404).json(STATUS_CODE[404]({ message: "No resources found" }));
+      }
+
+      resourceData = resourceResult; // Return array of records for table view
+    } else {
+      // Fetch single record
+      resourceQuery = `
+        SELECT * FROM "${tenantSchema}".${tableName}
+        WHERE id = $1
+        LIMIT 1;
+      `;
+
+      resourceResult = await sequelize.query(resourceQuery, {
+        bind: [resourceId],
+        type: QueryTypes.SELECT,
+      }) as any[];
+
+      if (resourceResult.length === 0) {
+        logStructured('error', `resource not found: ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+        return res.status(404).json(STATUS_CODE[404]({ message: "Resource not found" }));
+      }
+
+      resourceData = resourceResult[0]; // Return single record
     }
-
-    resourceData = resourceResult[0];
 
     // Apply settings-based filtering
     const settings = shareLink.settings || {};
 
-    // If shareAllFields is false, we would need to define which fields to show
-    // For now, we'll return all fields but add a flag
-    const filteredData = settings.shareAllFields
-      ? resourceData
-      : {
+    // If shareAllFields is false, filter fields shown
+    let filteredData;
+
+    if (settings.shareAllFields) {
+      // Show all fields
+      filteredData = resourceData;
+    } else {
+      // Show only essential fields
+      if (Array.isArray(resourceData)) {
+        // For table view (array of records), filter each record
+        filteredData = resourceData.map(record => ({
+          id: record.id,
+          name: record.name || record.title || record.model_name,
+          description: record.description,
+          created_at: record.created_at,
+          updated_at: record.updated_at,
+        }));
+      } else {
+        // For single record, filter fields
+        filteredData = {
           id: resourceData.id,
-          name: resourceData.name || resourceData.title,
-          // Add more essential fields here based on resource type
+          name: resourceData.name || resourceData.title || resourceData.model_name,
+          description: resourceData.description,
+          created_at: resourceData.created_at,
+          updated_at: resourceData.updated_at,
         };
+      }
+    }
 
     logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
     logger.debug(`✅ Fetched shared data from tenant ${tenantSchema}`);

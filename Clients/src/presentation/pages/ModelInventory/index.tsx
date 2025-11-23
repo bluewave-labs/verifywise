@@ -131,6 +131,9 @@ const ModelInventory: React.FC = () => {
     // Modal open/close flag
     const [isEvidenceHubModalOpen, setIsEvidenceHubModalOpen] = useState(false);
 
+    // Preselected model ID for evidence creation
+    const [preselectedModelId, setPreselectedModelId] = useState<number | undefined>(undefined);
+
     // Filters
     const [evidenceTypeFilter, setEvidenceTypeFilter] = useState("all");
     const [searchTypeTerm, setSearchTypeTerm] = useState("");
@@ -426,9 +429,10 @@ const ModelInventory: React.FC = () => {
     setSelectedEvidenceHub(null);
   };
 
-  const handleAddEvidence = () => {
+  const handleAddEvidence = (modelId?: number) => {
     setIsEvidenceHubModalOpen(true);
     setSelectedEvidenceHub(null);
+    setPreselectedModelId(modelId);
   };
 
   const handleEditModelInventory = async (id: string) => {
@@ -502,6 +506,7 @@ const ModelInventory: React.FC = () => {
   const handleClosEvidenceModal = () => {
     setSelectedEvidenceHub(null);
     setIsEvidenceHubModalOpen(false);
+    setPreselectedModelId(undefined);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -1479,6 +1484,7 @@ const ModelInventory: React.FC = () => {
               onError={handleEvidenceUploadModalError}
               isEdit={!!selectedEvidenceHub}
               initialData={selectedEvidenceHub || undefined}
+              preselectedModelId={preselectedModelId}
           />
 
           <PageTour

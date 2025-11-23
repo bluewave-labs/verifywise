@@ -30,6 +30,7 @@ interface NewEvidenceHubProps {
     onError?: (error: any) => void;
     initialData?: EvidenceHubModel;
     isEdit?: boolean;
+    preselectedModelId?: number;
 }
 
 export interface FileResponse {
@@ -126,6 +127,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
     onError,
     initialData,
     isEdit = false,
+    preselectedModelId,
 }) => {
     const [values, setValues] = useState<EvidenceHubModel>(
         initialData || initialState
@@ -140,7 +142,16 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
     // Reset on open/close
     useEffect(() => {
         if (isOpen) {
-            setValues(initialData || initialState);
+            const baseValues = initialData || initialState;
+            // If creating new evidence from a model modal, include that model ID
+            if (!isEdit && preselectedModelId) {
+                setValues({
+                    ...baseValues,
+                    mapped_model_ids: [preselectedModelId],
+                });
+            } else {
+                setValues(baseValues);
+            }
             setErrors({});
             setIsSubmitting(false);
             fetchModels();
@@ -149,7 +160,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
             setErrors({});
             setIsSubmitting(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, isEdit, preselectedModelId]);
 
     // Fetch models for multi-select
     const fetchModels = async () => {

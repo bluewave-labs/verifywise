@@ -98,10 +98,10 @@ export const getModelInventoryChangeHistory = async (
 /**
  * Track changes between old and new model inventory data
  */
-export const trackModelInventoryChanges = (
+export const trackModelInventoryChanges = async (
   oldModel: ModelInventoryModel,
   newModel: Partial<ModelInventoryModel>
-): Array<{ fieldName: string; oldValue: string; newValue: string }> => {
+): Promise<Array<{ fieldName: string; oldValue: string; newValue: string }>> => {
   const changes: Array<{ fieldName: string; oldValue: string; newValue: string }> = [];
 
   const fieldsToTrack = [
@@ -127,8 +127,8 @@ export const trackModelInventoryChanges = (
     if (newValue === undefined) continue;
 
     // Compare values (handle different types)
-    let oldValueStr = formatFieldValue(field, oldValue);
-    let newValueStr = formatFieldValue(field, newValue);
+    let oldValueStr = await formatFieldValue(field, oldValue);
+    let newValueStr = await formatFieldValue(field, newValue);
 
     if (oldValueStr !== newValueStr) {
       changes.push({
@@ -145,7 +145,7 @@ export const trackModelInventoryChanges = (
 /**
  * Format field value for display
  */
-const formatFieldValue = (fieldName: string, value: any): string => {
+const formatFieldValue = async (fieldName: string, value: any): Promise<string> => {
   if (value === null || value === undefined || value === "") {
     return "-";
   }
@@ -160,6 +160,21 @@ const formatFieldValue = (fieldName: string, value: any): string => {
 
   if (fieldName === "status_date" && typeof value === "string") {
     return value.split("T")[0];
+  }
+
+  // Handle approver field - lookup user name
+  if (fieldName === "approver" && typeof value === "number") {
+    try {
+      const user = await UserModel.findByPk(value);
+      if (user) {
+        return user.name && user.surname
+          ? `${user.name} ${user.surname}`
+          : user.email || `User #${value}`;
+      }
+    } catch (error) {
+      console.error("Error fetching user for approver:", error);
+    }
+    return `User #${value}`;
   }
 
   // Handle arrays (like capabilities) - normalize by sorting and joining consistently
@@ -253,7 +268,7 @@ export const recordModelInventoryCreation = async (
         tenant,
         formatFieldName(field),
         "-",
-        formatFieldValue(field, value),
+        await formatFieldValue(field, value),
         transaction
       );
     }

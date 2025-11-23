@@ -1,7 +1,7 @@
 import { ModelInventoryChangeHistoryModel } from "../domain.layer/models/modelInventoryChangeHistory/modelInventoryChangeHistory.model";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
 import { sequelize } from "../database/db";
-import { Transaction } from "sequelize";
+import { Transaction, QueryTypes } from "sequelize";
 import { UserModel } from "../domain.layer/models/user/user.model";
 
 /**
@@ -84,7 +84,7 @@ export const getModelInventoryChangeHistory = async (
        ORDER BY ch.changed_at DESC`,
       {
         replacements: { model_inventory_id: modelInventoryId },
-        type: sequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
       }
     );
 

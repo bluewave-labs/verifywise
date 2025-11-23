@@ -24,6 +24,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
+const MAX_VALUE_LENGTH = 200; // Truncate values longer than this
+
 interface HistorySidebarProps {
   isOpen: boolean;
   entityType: EntityType;
@@ -81,13 +83,30 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
-  const { data: history = [], isLoading } =
-    useEntityChangeHistory(entityType, entityId);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useEntityChangeHistory(
+    isOpen ? entityType : undefined,
+    isOpen ? entityId : undefined
+  );
   const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+
+  // Flatten all pages into a single history array
+  const history = React.useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.data);
+  }, [data]);
   const [avatarUrls, setAvatarUrls] = React.useState<{ [userId: number]: string | null }>({});
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [showFade, setShowFade] = React.useState(false);
   const [, setCurrentTime] = React.useState(Date.now());
+  const [expandedValues, setExpandedValues] = React.useState<Set<string>>(new Set());
 
   const config = getEntityHistoryConfig(entityType);
 
@@ -207,6 +226,67 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     return { updateDate, updateTime };
   }, [history]);
 
+  /**
+   * Render a field value with truncation and expand/collapse functionality
+   */
+  const renderTruncatedValue = (
+    entryId: number,
+    value: string,
+    type: "old" | "new"
+  ) => {
+    const key = `${entryId}-${type}`;
+    const isExpanded = expandedValues.has(key);
+    const shouldTruncate = value && value.length > MAX_VALUE_LENGTH;
+
+    const displayValue = shouldTruncate && !isExpanded
+      ? `${value.slice(0, MAX_VALUE_LENGTH)}...`
+      : value;
+
+    const isOldValue = type === "old";
+    const isNewValue = type === "new";
+
+    return (
+      <>
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: isOldValue ? "#B91C1C" : "#0D7C4F",
+            fontWeight: 400,
+            wordBreak: "break-word",
+            textDecoration: isOldValue ? "line-through" : "none",
+          }}
+        >
+          {displayValue}
+        </Typography>
+        {shouldTruncate && (
+          <Typography
+            onClick={() => {
+              const newSet = new Set(expandedValues);
+              if (isExpanded) {
+                newSet.delete(key);
+              } else {
+                newSet.add(key);
+              }
+              setExpandedValues(newSet);
+            }}
+            sx={{
+              fontSize: 10,
+              color: theme.palette.primary.main,
+              fontWeight: 500,
+              cursor: "pointer",
+              marginTop: "4px",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            {isExpanded ? "Show less" : "Show more"}
+          </Typography>
+        )}
+      </>
+    );
+  };
+
   const renderHistoryEntry = (group: EntityChangeHistoryEntry[]) => {
     const firstEntry = group[0];
     const isCurrentUser = firstEntry.changed_by_user_id === currentUserId;
@@ -316,16 +396,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     backgroundColor: "#F1F8F4",
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      color: "#0D7C4F",
-                      fontWeight: 400,
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {entry.new_value}
-                  </Typography>
+                  {renderTruncatedValue(entry.id, entry.new_value, "new")}
                 </Box>
               ) : (
                 <Stack direction="row" gap="8px" alignItems="center">
@@ -339,17 +410,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         backgroundColor: "#FEF2F2",
                       }}
                     >
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          color: "#B91C1C",
-                          fontWeight: 400,
-                          wordBreak: "break-word",
-                          textDecoration: "line-through",
-                        }}
-                      >
-                        {entry.old_value}
-                      </Typography>
+                      {renderTruncatedValue(entry.id, entry.old_value, "old")}
                     </Box>
                   )}
 
@@ -378,16 +439,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         backgroundColor: "#F1F8F4",
                       }}
                     >
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          color: "#0D7C4F",
-                          fontWeight: 400,
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {entry.new_value}
-                      </Typography>
+                      {renderTruncatedValue(entry.id, entry.new_value, "new")}
                     </Box>
                   )}
                 </Stack>
@@ -511,7 +563,41 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               },
             }}
           >
-          {isLoading ? (
+          {isError ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 200,
+                textAlign: "center",
+                padding: "0 24px",
+              }}
+            >
+              <Clock size={32} strokeWidth={1.5} color="#DC2626" opacity={0.6} />
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  marginTop: "16px",
+                }}
+              >
+                Unable to load history
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: theme.palette.text.secondary,
+                  marginTop: "8px",
+                  lineHeight: 1.6,
+                }}
+              >
+                This {config.entityName.toLowerCase()} may have been deleted, or there was an error loading the activity history.
+              </Typography>
+            </Box>
+          ) : isLoading ? (
             <Box
               sx={{
                 display: "flex",
@@ -557,7 +643,38 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               </Typography>
             </Box>
           ) : (
-            <Box>{groupedHistory.map(renderHistoryEntry)}</Box>
+            <>
+              <Box>{groupedHistory.map(renderHistoryEntry)}</Box>
+
+              {/* Load More Button */}
+              {hasNextPage && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingTop: "16px",
+                    paddingBottom: "8px",
+                  }}
+                >
+                  <Typography
+                    onClick={() => !isFetchingNextPage && fetchNextPage()}
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: isFetchingNextPage
+                        ? theme.palette.text.disabled
+                        : theme.palette.primary.main,
+                      cursor: isFetchingNextPage ? "default" : "pointer",
+                      "&:hover": {
+                        textDecoration: isFetchingNextPage ? "none" : "underline",
+                      },
+                    }}
+                  >
+                    {isFetchingNextPage ? "Loading..." : "Load more"}
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
           </Box>
           {/* Bottom fade overlay - only show when content overflows */}

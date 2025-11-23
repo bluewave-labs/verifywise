@@ -39,8 +39,8 @@ export const useEntityChangeHistory = (
       if (!entityId) {
         return [];
       }
-      const response = await getEntityChangeHistory(entityType, entityId);
-      return response.data;
+      const data = await getEntityChangeHistory(entityType, entityId);
+      return data;
     },
     enabled: !!entityId,
     staleTime: 30000, // Cache for 30 seconds

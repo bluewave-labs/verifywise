@@ -34,7 +34,7 @@ export const createShareLink = async (req: Request, res: Response) => {
     }
 
     // Validate required fields
-    if (!resource_type || !resource_id) {
+    if (!resource_type || resource_id === undefined || resource_id === null) {
       throw new ValidationException("resource_type and resource_id are required");
     }
 

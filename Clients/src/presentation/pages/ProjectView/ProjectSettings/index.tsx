@@ -843,6 +843,11 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Use case title
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      A concise name for your AI use case
+                    </Typography>
                   </Box>
                   <Field
                     id="project-title-input"
@@ -859,6 +864,11 @@ const ProjectSettings = React.memo(
                   <Box>
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Goal
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      What you aim to achieve with this AI system
                     </Typography>
                   </Box>
                   <Field
@@ -880,6 +890,11 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Target industry
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      The industry sector this use case serves
+                    </Typography>
                   </Box>
                   <Field
                     id="target-industry-input"
@@ -899,6 +914,11 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Description
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Detailed overview of the use case and its purpose
+                    </Typography>
                   </Box>
                   <Field
                     id="description-input"
@@ -917,6 +937,11 @@ const ProjectSettings = React.memo(
                   <Box>
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Use case status
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Current development stage of this use case
                     </Typography>
                   </Box>
                   <Select

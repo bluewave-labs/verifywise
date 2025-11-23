@@ -58,6 +58,9 @@ import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evid
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -122,6 +125,9 @@ const ModelInventory: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
     const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
 
@@ -195,6 +201,36 @@ const ModelInventory: React.FC = () => {
 
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
+
+  // Define how to get the group key for each model
+  const getModelInventoryGroupKey = (model: IModelInventory, field: string): string | string[] => {
+    switch (field) {
+      case 'provider':
+        return model.provider || 'Unknown Provider';
+      case 'status':
+        return model.status || 'Unknown Status';
+      case 'security_assessment':
+        return model.security_assessment ? 'Assessed' : 'Not Assessed';
+      case 'hosting_provider':
+        return model.hosting_provider || 'Unknown Hosting';
+      case 'approver':
+        if (model.approver) {
+          const user = users.find((u: any) => u.id === Number(model.approver));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'No Approver';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered data
+  const groupedModelInventory = useTableGrouping({
+    data: filteredData,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getModelInventoryGroupKey,
+  });
 
    // Function to fetch evidence data
    const fetchEvidenceData = async (showLoading = true) => {
@@ -1157,6 +1193,17 @@ const ModelInventory: React.FC = () => {
                                       }}
                                   />
                               </Box>
+
+                              <GroupBy
+                                  options={[
+                                      { id: 'provider', label: 'Provider' },
+                                      { id: 'status', label: 'Status' },
+                                      { id: 'security_assessment', label: 'Security Assessment' },
+                                      { id: 'hosting_provider', label: 'Hosting Provider' },
+                                      { id: 'approver', label: 'Approver' },
+                                  ]}
+                                  onGroupChange={handleGroupChange}
+                              />
                           </Stack>
 
                           {/* Right side: Analytics & Add Model buttons */}
@@ -1181,14 +1228,21 @@ const ModelInventory: React.FC = () => {
                           </Stack>
                       </Stack>
 
-                      <ModelInventoryTable
-                          key={tableKey}
-                          data={filteredData}
-                          isLoading={isLoading}
-                          onEdit={handleEditModelInventory}
-                          onDelete={handleDeleteModelInventory}
-                          onCheckModelHasRisks={handleCheckModelHasRisks}
-                          deletingId={deletingId}
+                      <GroupedTableView
+                          groupedData={groupedModelInventory}
+                          ungroupedData={filteredData}
+                          renderTable={(data, options) => (
+                              <ModelInventoryTable
+                                  key={tableKey}
+                                  data={data}
+                                  isLoading={isLoading}
+                                  onEdit={handleEditModelInventory}
+                                  onDelete={handleDeleteModelInventory}
+                                  onCheckModelHasRisks={handleCheckModelHasRisks}
+                                  deletingId={deletingId}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}

@@ -158,11 +158,9 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
         onClose={handleExportMenuClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        MenuListProps={{
-          onMouseLeave: () => setExportAnchorEl(null),
-        }}
         slotProps={{
           paper: {
+            onMouseLeave: () => setExportAnchorEl(null),
             sx: {
               minWidth: '180px',
               boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',

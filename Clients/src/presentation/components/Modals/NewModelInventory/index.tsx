@@ -847,8 +847,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}
@@ -921,8 +922,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}
@@ -1003,8 +1005,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}

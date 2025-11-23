@@ -290,7 +290,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   };
 
   return (
-    <Collapse in={isOpen} orientation="horizontal" timeout={300}>
+    <Collapse in={isOpen} orientation="horizontal" timeout={300} sx={{ height: "100%" }}>
       <Box
         sx={{
           width: "320px",
@@ -356,6 +356,29 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             flex: 1,
             overflow: "auto",
             padding: "16px",
+            // Custom scrollbar styling - invisible by default, visible on hover
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "transparent",
+              borderRadius: "4px",
+            },
+            "&:hover::-webkit-scrollbar-thumb": {
+              background: "#C1C7CD",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#98A2B3",
+            },
+            // Firefox scrollbar styling
+            scrollbarWidth: "thin",
+            scrollbarColor: "transparent transparent",
+            "&:hover": {
+              scrollbarColor: "#C1C7CD transparent",
+            },
           }}
         >
           {isLoading ? (

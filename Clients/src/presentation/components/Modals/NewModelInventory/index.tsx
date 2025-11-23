@@ -1325,9 +1325,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                  ) : undefined
              }
          >
-             <Stack direction="row" sx={{ width: "100%", height: "100%" }}>
+             <Stack direction="row" sx={{ width: "100%", height: "100%", alignItems: "stretch" }}>
                  {/* Main Content */}
-                 <Box sx={{ flex: 1, minWidth: 0 }}>
+                 <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "auto" }}>
                      {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
                      {isEdit ? (
                          <TabContext value={activeTab}>

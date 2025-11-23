@@ -152,10 +152,6 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
       reportType: reportType,
     };
 
-    if (reportType === 'organization' && organizationalProjects.length > 0) {
-      finalValues.project = typeof organizationalProjects[0].id === 'number' ? organizationalProjects[0].id : parseInt(String(organizationalProjects[0].id));
-    }
-
     onGenerate(finalValues);
   };
 
@@ -198,28 +194,53 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType, onS
         )}
 
         {reportType === 'organization' && (
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="framework-input"
-              label="Framework"
-              placeholder="Select framework"
-              value={values.framework}
-              onChange={handleOnSelectChange("framework")}
-              items={
-                organizationFrameworks?.map((framework) => ({
-                  _id: framework.framework_id,
-                  name: framework.name,
-                  projectFrameworkId: framework.project_framework_id,
-                })) || []
-              }
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.framework}
-              isRequired
-            />
-          </Suspense>
+          <>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                id="org-project-input"
+                label="Organizational project"
+                placeholder="Select organizational project"
+                value={values.project?.toString() ?? ""}
+                onChange={handleOnSelectChange("project")}
+                items={
+                  organizationalProjects?.map(
+                    (project: Project) => ({
+                      _id: project.id,
+                      name: project.project_title || `Project ${project.id}`,
+                    })
+                  ) || []
+                }
+                sx={{
+                  width: "100%",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.project}
+                isRequired
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                id="framework-input"
+                label="Framework"
+                placeholder="Select framework"
+                value={values.framework}
+                onChange={handleOnSelectChange("framework")}
+                items={
+                  organizationFrameworks?.map((framework) => ({
+                    _id: framework.framework_id,
+                    name: framework.name,
+                    projectFrameworkId: framework.project_framework_id,
+                  })) || []
+                }
+                sx={{
+                  width: "100%",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.framework}
+                isRequired
+              />
+            </Suspense>
+          </>
         )}
 
         <Stack>

@@ -238,7 +238,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
         {/* Shareable Link Section */}
         {isEnabled && (
           <>
-            <Box sx={{ paddingTop: "16px", paddingBottom: "8px" }}>
+            <Box sx={{ paddingTop: "12px", paddingBottom: "8px" }}>
               <Box sx={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
                 <Typography
                   variant="subtitle2"
@@ -361,7 +361,7 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
             </Box>
 
             {/* Settings Section */}
-            <Box sx={{ paddingTop: "16px", paddingBottom: "16px" }}>
+            <Box sx={{ paddingTop: "12px", paddingBottom: "16px" }}>
               <Box sx={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
                 <Typography
                   variant="subtitle2"

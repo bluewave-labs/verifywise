@@ -67,13 +67,21 @@ export const recordMultipleFieldChanges = async (
 };
 
 /**
- * Get change history for a specific model inventory
+ * Get change history for a specific model inventory with pagination support
  */
 export const getModelInventoryChangeHistory = async (
   modelInventoryId: number,
-  tenant: string
-): Promise<any[]> => {
-  return getEntityChangeHistory("model_inventory", modelInventoryId, tenant);
+  tenant: string,
+  limit: number = 100,
+  offset: number = 0
+): Promise<{ data: any[]; hasMore: boolean; total: number }> => {
+  return getEntityChangeHistory(
+    "model_inventory",
+    modelInventoryId,
+    tenant,
+    limit,
+    offset
+  );
 };
 
 /**

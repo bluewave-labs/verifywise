@@ -72,14 +72,14 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
     return String(value);
   },
 
-  // Array formatter (sorts and joins consistently)
+  // Array formatter (preserves order - IMPORTANT for tracking reordering)
   array: async (value: any): Promise<string> => {
     if (!value) return "-";
     if (Array.isArray(value)) {
       if (value.length === 0) return "-";
+      // DO NOT SORT - order may be meaningful!
       return value
         .map((item) => String(item).trim())
-        .sort()
         .join(", ");
     }
     // Handle string representations of arrays
@@ -87,15 +87,16 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
       try {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
+          // DO NOT SORT - order may be meaningful!
           return parsed
             .map((item) => String(item).trim())
-            .sort()
             .join(", ");
         }
       } catch {
         const items = value.split(",").map((item) => item.trim()).filter(Boolean);
         if (items.length > 1) {
-          return items.sort().join(", ");
+          // DO NOT SORT - order may be meaningful!
+          return items.join(", ");
         }
       }
     }
@@ -123,10 +124,13 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
             return user.email;
           }
         }
+        // User not found
+        return `User #${value}`;
       } catch (error) {
+        // Database error - log and return fallback
         console.error("Error fetching user for ID", value, ":", error);
+        return `User #${value}`;
       }
-      return `User #${value}`;
     }
     return String(value);
   },

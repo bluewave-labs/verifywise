@@ -81,16 +81,31 @@ export const recordMultipleFieldChanges = async (
 };
 
 /**
- * Get change history for a specific entity
+ * Get change history for a specific entity with pagination support
  */
 export const getEntityChangeHistory = async (
   entityType: EntityType,
   entityId: number,
-  tenant: string
-): Promise<any[]> => {
+  tenant: string,
+  limit: number = 100,
+  offset: number = 0
+): Promise<{ data: any[]; hasMore: boolean; total: number }> => {
   try {
     const config = getEntityConfig(entityType);
 
+    // Get total count
+    const countResult: any[] = await sequelize.query(
+      `SELECT COUNT(*) as count
+       FROM "${tenant}".${config.tableName}
+       WHERE ${config.foreignKeyField} = :entity_id`,
+      {
+        replacements: { entity_id: entityId },
+        type: QueryTypes.SELECT,
+      }
+    );
+    const total = parseInt(countResult[0]?.count || "0", 10);
+
+    // Get paginated history
     const history = await sequelize.query(
       `SELECT
         ch.*,
@@ -100,14 +115,19 @@ export const getEntityChangeHistory = async (
        FROM "${tenant}".${config.tableName} ch
        LEFT JOIN public.users u ON ch.changed_by_user_id = u.id
        WHERE ch.${config.foreignKeyField} = :entity_id
-       ORDER BY ch.changed_at DESC`,
+       ORDER BY ch.changed_at DESC
+       LIMIT :limit OFFSET :offset`,
       {
-        replacements: { entity_id: entityId },
+        replacements: { entity_id: entityId, limit, offset },
         type: QueryTypes.SELECT,
       }
     );
 
-    return history;
+    return {
+      data: history,
+      hasMore: offset + history.length < total,
+      total,
+    };
   } catch (error) {
     console.error(`Error fetching ${entityType} change history:`, error);
     throw error;
@@ -116,6 +136,7 @@ export const getEntityChangeHistory = async (
 
 /**
  * Format field value for display using entity-specific formatters
+ * Includes error handling - if formatter fails, falls back to raw value
  */
 export const formatFieldValue = async (
   entityType: EntityType,
@@ -126,15 +147,26 @@ export const formatFieldValue = async (
     return "-";
   }
 
-  const config = getEntityConfig(entityType);
+  try {
+    const config = getEntityConfig(entityType);
 
-  // Check if entity has a custom formatter for this field
-  if (config.fieldFormatters && config.fieldFormatters[fieldName]) {
-    return await config.fieldFormatters[fieldName](value);
+    // Check if entity has a custom formatter for this field
+    if (config.fieldFormatters && config.fieldFormatters[fieldName]) {
+      return await config.fieldFormatters[fieldName](value);
+    }
+
+    // Default to text formatter
+    return await GENERIC_FORMATTERS.text(value);
+  } catch (error) {
+    // If formatter fails, log error and return raw value as fallback
+    console.error(
+      `Error formatting field "${fieldName}" for ${entityType}:`,
+      error,
+      `Value: ${JSON.stringify(value)}`
+    );
+    // Return stringified raw value as safe fallback
+    return String(value);
   }
-
-  // Default to text formatter
-  return await GENERIC_FORMATTERS.text(value);
 };
 
 /**

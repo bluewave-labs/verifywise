@@ -4,38 +4,42 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
 /**
- * Get change history for a specific model inventory
+ * Get change history for a specific model inventory with pagination support
  */
 export async function getModelInventoryChangeHistoryById(
   req: Request,
   res: Response
 ) {
   const modelInventoryId = parseInt(req.params.id);
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
 
   logStructured(
     "processing",
-    `fetching change history for model inventory id: ${modelInventoryId}`,
+    `fetching change history for model inventory id: ${modelInventoryId} (limit: ${limit}, offset: ${offset})`,
     "getModelInventoryChangeHistoryById",
     "modelInventoryChangeHistory.ctrl.ts"
   );
   logger.debug(
-    `🔍 Fetching change history for model inventory with id: ${modelInventoryId}`
+    `🔍 Fetching change history for model inventory with id: ${modelInventoryId} (limit: ${limit}, offset: ${offset})`
   );
 
   try {
-    const history = await getModelInventoryChangeHistory(
+    const result = await getModelInventoryChangeHistory(
       modelInventoryId,
-      req.tenantId!
+      req.tenantId!,
+      limit,
+      offset
     );
 
     logStructured(
       "successful",
-      `change history retrieved for model inventory id: ${modelInventoryId}`,
+      `change history retrieved for model inventory id: ${modelInventoryId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
       "getModelInventoryChangeHistoryById",
       "modelInventoryChangeHistory.ctrl.ts"
     );
 
-    return res.status(200).json(STATUS_CODE[200](history));
+    return res.status(200).json(STATUS_CODE[200](result));
   } catch (error) {
     logStructured(
       "error",

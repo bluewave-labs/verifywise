@@ -1344,7 +1344,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                      display: "flex",
                      flexDirection: "column",
                      overflow: "auto"
-                 }}>
+                 }}
+                 onWheel={(e) => {
+                     // Prevent scroll events from bubbling to background
+                     e.stopPropagation();
+                 }}
+                 >
                      {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
                      {isEdit ? (
                          <TabContext value={activeTab}>
@@ -1375,10 +1380,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                      width: "100%", // always full width inside modal
                                      display: "flex",
                                      flexDirection: "column",
-                                 }}
-                                 onWheel={(e) => {
-                                     // Prevent scroll events from bubbling to background when within modal content
-                                     e.stopPropagation();
                                  }}
                              >
                                  {/* TAB CONTENT */}

@@ -41,6 +41,7 @@ export function GroupedTableView<T>({
         {groupedData.map(({ group, items }) => (
           <Box key={group}>
             <Typography
+              component="div"
               sx={{
                 fontSize: '15px',
                 fontWeight: 600,

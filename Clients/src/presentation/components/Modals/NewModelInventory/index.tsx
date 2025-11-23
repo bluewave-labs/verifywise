@@ -16,7 +16,7 @@ import {
     TextField,
     Typography,
     IconButton,
-    Tooltip
+    Tooltip,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";

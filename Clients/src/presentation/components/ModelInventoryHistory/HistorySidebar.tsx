@@ -89,18 +89,27 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         new Set(history.map((entry) => entry.changed_by_user_id))
       );
 
+      // Batch fetch all avatars to avoid multiple re-renders
+      const newAvatarUrls: { [userId: number]: string | null } = {};
+
       for (const userId of uniqueUserIds) {
         if (avatarUrls[userId] === undefined) {
           const avatarUrl = await fetchProfilePhotoAsBlobUrl(userId);
-          setAvatarUrls((prev) => ({ ...prev, [userId]: avatarUrl }));
+          newAvatarUrls[userId] = avatarUrl;
         }
+      }
+
+      // Update all avatars at once to prevent layout thrashing
+      if (Object.keys(newAvatarUrls).length > 0) {
+        setAvatarUrls((prev) => ({ ...prev, ...newAvatarUrls }));
       }
     };
 
     if (history.length > 0) {
       fetchAvatars();
     }
-  }, [history, fetchProfilePhotoAsBlobUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history]); // Only depend on history, not fetchProfilePhotoAsBlobUrl
 
   // Group history entries by change event (by changed_at timestamp)
   const groupedHistory = React.useMemo(() => {

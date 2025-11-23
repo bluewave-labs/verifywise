@@ -58,6 +58,7 @@ import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evid
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -195,6 +196,37 @@ const ModelInventory: React.FC = () => {
 
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
+
+  // Define export columns for model inventory table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'provider', label: 'Provider' },
+      { id: 'model', label: 'Model' },
+      { id: 'version', label: 'Version' },
+      { id: 'approver', label: 'Approver' },
+      { id: 'security_assessment', label: 'Security Assessment' },
+      { id: 'status', label: 'Status' },
+      { id: 'status_date', label: 'Status Date' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredData.map((model: IModelInventory) => {
+      const approverUser = users.find((user: any) => user.id === model.approver);
+      const approverName = approverUser ? `${approverUser.name} ${approverUser.surname}` : '-';
+
+      return {
+        provider: model.provider || '-',
+        model: model.model || '-',
+        version: model.version || '-',
+        approver: approverName,
+        security_assessment: model.security_assessment ? 'Yes' : 'No',
+        status: model.status || '-',
+        status_date: model.status_date || '-',
+      };
+    });
+  }, [filteredData, users]);
 
    // Function to fetch evidence data
    const fetchEvidenceData = async (showLoading = true) => {
@@ -1159,8 +1191,14 @@ const ModelInventory: React.FC = () => {
                               </Box>
                           </Stack>
 
-                          {/* Right side: Analytics & Add Model buttons */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export, Analytics & Add Model buttons */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={exportData}
+                                  columns={exportColumns}
+                                  filename="model-inventory"
+                                  title="Model Inventory"
+                              />
                               <CustomizableButton
                                   variant="contained"
                                   onClick={() => setIsAnalyticsDrawerOpen(true)}

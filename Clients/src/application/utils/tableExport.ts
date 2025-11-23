@@ -120,3 +120,65 @@ export const exportToPDF = (
     alert('Failed to generate PDF. Please try again or use CSV/Excel export instead.');
   }
 };
+
+/**
+ * Print table data - generates PDF and opens print dialog
+ */
+export const printTable = (
+  data: ExportRow[],
+  columns: ExportColumn[],
+  title?: string
+) => {
+  try {
+    const doc = new jsPDF();
+
+    // Add title
+    if (title) {
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, 14, 15);
+    }
+
+    // Prepare table data
+    const headers = columns.map(col => col.label);
+    const rows = data.map(row =>
+      columns.map(col => String(row[col.id] ?? ''))
+    );
+
+    // Use autoTable function
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: title ? 25 : 10,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [66, 139, 202],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: title ? 25 : 10 },
+    });
+
+    // Generate PDF as blob and open print dialog
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+
+    // Open in new window and trigger print
+    const printWindow = window.open(blobUrl, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    } else {
+      alert('Please allow popups to print the table.');
+    }
+  } catch (error) {
+    console.error('Error generating print preview:', error);
+    alert('Failed to generate print preview. Please try exporting to PDF instead.');
+  }
+};

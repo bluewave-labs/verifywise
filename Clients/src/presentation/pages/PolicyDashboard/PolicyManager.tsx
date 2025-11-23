@@ -15,6 +15,8 @@ import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 import { PolicyManagerProps } from "../../../domain/interfaces/IPolicy";
 import PolicyStatusCard from "./PolicyStatusCard";
+import { ExportMenu } from "../../components/Table/ExportMenu";
+import useUsers from "../../../application/hooks/useUsers";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -131,6 +133,42 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     });
   }, [policies, statusFilter, searchTerm]);
 
+  const { users } = useUsers();
+
+  // Define export columns for policy table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'title', label: 'Title' },
+      { id: 'status', label: 'Status' },
+      { id: 'tags', label: 'Tags' },
+      { id: 'next_review', label: 'Next Review' },
+      { id: 'author', label: 'Author' },
+      { id: 'last_updated', label: 'Last Updated' },
+      { id: 'updated_by', label: 'Updated By' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredPolicies.map((policy: PolicyManagerModel) => {
+      const authorUser = users.find((user) => user.id === policy.author_id);
+      const authorName = authorUser ? `${authorUser.name} ${authorUser.surname}` : '-';
+
+      const updatedByUser = users.find((user) => user.id === policy.last_updated_by);
+      const updatedByName = updatedByUser ? `${updatedByUser.name} ${updatedByUser.surname}` : '-';
+
+      return {
+        title: policy.title || '-',
+        status: policy.status || '-',
+        tags: policy.tags?.join(', ') || '-',
+        next_review: policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : '-',
+        author: authorName,
+        last_updated: policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : '-',
+        updated_by: updatedByName,
+      };
+    });
+  }, [filteredPolicies, users]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       {/* Policy by Status Cards */}
@@ -176,20 +214,28 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           </Box>
         </Stack>
 
-        {/* Right side: Add New Policy Button */}
-        <Box data-joyride-id="add-policy-button">
-          <CustomizableButton
-            variant="contained"
-            text="Add new policy"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+        {/* Right side: Export and Add Button */}
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="policy-manager"
+            title="Policy Manager"
+          />
+          <Box data-joyride-id="add-policy-button">
+            <CustomizableButton
+              variant="contained"
+              text="Add new policy"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
               gap: 3,
             }}
             icon={<AddCircleOutlineIcon size={16} />}
             onClick={handleAddNewPolicy}
           />
-        </Box>
+          </Box>
+        </Stack>
       </Stack>
 
       {/* Table / Empty state */}

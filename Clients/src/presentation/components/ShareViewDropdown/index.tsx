@@ -250,45 +250,64 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  backgroundColor: "#e8f5f1",
-                  border: "1px solid #a8d5c8",
-                  borderRadius: "6px",
-                  padding: "12px",
                   gap: "8px",
                 }}
               >
-                <Tooltip title={copySuccess ? "Copied!" : "Copy link"}>
-                  <Box
-                    component="span"
-                    sx={{ display: "flex", cursor: "pointer" }}
-                    onClick={handleCopyLink}
-                  >
-                    <Copy
-                      size={18}
-                      color="#13715B"
-                      style={{ flexShrink: 0 }}
-                    />
-                  </Box>
-                </Tooltip>
                 <Field
                   value={shareableLink || "Generating link..."}
                   disabled={true}
                   sx={{
                     flex: 1,
                     "& .MuiInputBase-root": {
-                      backgroundColor: "transparent",
                       fontSize: "13px",
                       "& input": {
                         cursor: "default",
-                        padding: "0",
-                      },
-                      "&:before, &:after": {
-                        display: "none",
                       },
                     },
                   }}
                 />
-                <Tooltip title="Refresh link">
+                <Tooltip
+                  title={copySuccess ? "Copied!" : "Copy link"}
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        fontSize: "12px",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                      },
+                    },
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={handleCopyLink}
+                    sx={{
+                      p: 0.5,
+                      color: "#13715B",
+                      "&:hover": {
+                        backgroundColor: "rgba(19, 113, 91, 0.1)",
+                      },
+                    }}
+                  >
+                    <Copy size={18} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  title="Refresh link"
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        fontSize: "12px",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                      },
+                    },
+                  }}
+                >
                   <IconButton
                     size="small"
                     onClick={handleRefreshLink}
@@ -303,7 +322,20 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                     <RotateCw size={18} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Open in new tab">
+                <Tooltip
+                  title="Open in new tab"
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "#13715B",
+                        color: "#fff",
+                        fontSize: "12px",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                      },
+                    },
+                  }}
+                >
                   <IconButton
                     size="small"
                     onClick={handleOpenLink}
@@ -429,7 +461,27 @@ const SettingItem: React.FC<SettingItemProps> = ({
           }}
         />
       </Box>
-      <Tooltip title={helpText} arrow placement="left">
+      <Tooltip
+        title={helpText}
+        arrow
+        placement="left"
+        slotProps={{
+          tooltip: {
+            sx: {
+              backgroundColor: "#13715B",
+              color: "#fff",
+              fontSize: "12px",
+              padding: "6px 12px",
+              borderRadius: "4px",
+            },
+          },
+          arrow: {
+            sx: {
+              color: "#13715B",
+            },
+          },
+        }}
+      >
         <Box
           sx={{
             display: "flex",

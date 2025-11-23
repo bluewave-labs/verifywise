@@ -1174,6 +1174,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     </Box>
                 }
                 sx={{
+                    marginLeft: 0,
+                    marginRight: 0,
                     "& .MuiFormControlLabel-label": {
                         fontSize: 13,
                         fontWeight: 400,

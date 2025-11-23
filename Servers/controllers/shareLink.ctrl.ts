@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { logEvent } from "../utils/logger/dbLogger";
@@ -82,7 +83,7 @@ export const createShareLink = async (req: Request, res: Response) => {
         expires_at ? new Date(expires_at) : null,
       ],
       transaction,
-      type: sequelize.QueryTypes.INSERT,
+      type: QueryTypes.INSERT,
     }) as any;
 
     const shareLink = result[0][0];
@@ -163,7 +164,7 @@ export const getShareLinksForResource = async (req: Request, res: Response) => {
 
     const shareLinks = await sequelize.query(query, {
       bind: [resourceType, parseInt(resourceId)],
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as any[];
 
     logStructured('successful', `fetched ${shareLinks.length} share links`, 'getShareLinksForResource', 'shareLink.ctrl.ts');
@@ -224,7 +225,7 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
     `;
 
     const schemas = await sequelize.query(schemasQuery, {
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as { schema_name: string }[];
 
     let shareLink: any = null;
@@ -240,7 +241,7 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
 
       const result = await sequelize.query(query, {
         bind: [token],
-        type: sequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
       }) as any[];
 
       if (result.length > 0) {
@@ -314,7 +315,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
     const result = await sequelize.query(selectQuery, {
       bind: [parseInt(id)],
       transaction,
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as any[];
 
     if (result.length === 0) {
@@ -370,7 +371,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
     const updateResult = await sequelize.query(updateQuery, {
       bind: binds,
       transaction,
-      type: sequelize.QueryTypes.UPDATE,
+      type: QueryTypes.UPDATE,
     }) as any;
 
     const updatedLink = updateResult[0][0];
@@ -431,7 +432,7 @@ export const deleteShareLink = async (req: Request, res: Response) => {
     const result = await sequelize.query(selectQuery, {
       bind: [parseInt(id)],
       transaction,
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as any[];
 
     if (result.length === 0) {
@@ -458,7 +459,7 @@ export const deleteShareLink = async (req: Request, res: Response) => {
     await sequelize.query(deleteQuery, {
       bind: [parseInt(id)],
       transaction,
-      type: sequelize.QueryTypes.DELETE,
+      type: QueryTypes.DELETE,
     });
 
     logStructured('successful', `deleted share link ${id}`, 'deleteShareLink', 'shareLink.ctrl.ts');
@@ -497,7 +498,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     `;
 
     const schemas = await sequelize.query(schemasQuery, {
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as { schema_name: string }[];
 
     let shareLink: any = null;
@@ -513,7 +514,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
 
       const result = await sequelize.query(query, {
         bind: [token],
-        type: sequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
       }) as any[];
 
       if (result.length > 0) {
@@ -566,7 +567,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
 
     const resourceResult = await sequelize.query(resourceQuery, {
       bind: [resourceId],
-      type: sequelize.QueryTypes.SELECT,
+      type: QueryTypes.SELECT,
     }) as any[];
 
     if (resourceResult.length === 0) {

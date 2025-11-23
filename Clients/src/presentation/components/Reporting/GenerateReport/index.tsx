@@ -38,7 +38,10 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     });
     clearTimerRef.current = setTimeout(() => {
       setAlert(null);
-      onClose();
+      // Only close modal on success, not on errors
+      if (type === "success") {
+        onClose();
+      }
     }, 3000);
   };
 

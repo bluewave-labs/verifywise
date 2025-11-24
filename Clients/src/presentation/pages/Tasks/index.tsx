@@ -421,7 +421,7 @@ const Tasks: React.FC = () => {
       <TipBox entityName="tasks" />
 
       {/* Controls */}
-      <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
+      <Stack sx={{ ...vwhomeBodyControls, justifyContent: "flex-end" }} data-joyride-id="add-task-button">
         <Stack direction="row" gap="8px" alignItems="center">
           <ExportMenu
             data={exportData}

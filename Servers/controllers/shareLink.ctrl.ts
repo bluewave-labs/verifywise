@@ -384,7 +384,8 @@ export const updateShareLink = async (req: Request, res: Response) => {
 
     await transaction.commit();
 
-    const shareable_url = `https://app.verifywise.com/shared/${updatedLink.resource_type}s/${updatedLink.share_token}`;
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const shareable_url = `${baseUrl}/shared/${updatedLink.resource_type}s/${updatedLink.share_token}`;
     const is_valid = updatedLink.is_enabled && (!updatedLink.expires_at || new Date() <= new Date(updatedLink.expires_at));
 
     const response = {

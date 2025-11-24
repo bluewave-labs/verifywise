@@ -14,6 +14,7 @@ import {
   Drawer,
   Menu,
   MenuItem,
+  Grid,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,7 +39,6 @@ import {
   FileText,
   Scale,
   MessageCircle,
-  MessageSquare,
   Brain,
   Shield,
   GraduationCap,
@@ -50,6 +50,11 @@ import {
   FolderCog,
   Database,
   Heart,
+  User as UserIcon,
+  HelpCircle,
+  Newspaper,
+  Users,
+  Headphones,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -1329,13 +1334,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           transitionDuration={0}
           PaperProps={{
             sx: {
-              width: collapsed ? "180px" : "220px", // Slightly smaller than sidebar to fit within
-              height: "auto", // Let height adjust to content
+              width: collapsed ? "520px" : "560px", // Larger for 2-column layout
+              height: "auto",
               maxHeight: "fit-content",
               position: "absolute",
-              bottom: "80px", // Position closer to the 3-dot button
-              left: collapsed ? "30px" : "30px", // Center within sidebar with some margin
-              borderRadius: "4px",
+              bottom: "80px",
+              left: collapsed ? "30px" : "30px",
+              borderRadius: "8px",
               boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
               border: `1px solid ${theme.palette.divider}`,
               backgroundColor: "transparent",
@@ -1347,9 +1352,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             ref={drawerRef}
             sx={{
               backgroundColor: theme.palette.background.main,
-              borderRadius: "4px",
+              borderRadius: "8px",
               border: `1px solid ${theme.palette.divider}`,
-              p: 1.5,
+              overflow: "hidden",
+              p: 1, // 8px padding around entire content
               animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",
               "@keyframes fadeIn": {
                 "0%": {
@@ -1361,164 +1367,356 @@ const Sidebar: React.FC<SidebarProps> = ({
               },
             }}
           >
-            {collapsed && (
-              <Box
+            {/* 2-Column Grid Layout */}
+            <Grid container sx={{ minHeight: "320px" }}>
+              {/* Column 1: Account */}
+              <Grid
+                item
+                xs={6}
                 sx={{
-                  mb: 1.5,
-                  pb: 1,
-                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: "#F9FAFB", // Light gray background
+                  p: 3, // More padding inside column
+                  pr: 2, // Less right padding (closer to divider)
+                  display: "flex",
+                  flexDirection: "column",
+                  borderRadius: "6px",
                 }}
               >
-                <Typography component="span" fontWeight={500} fontSize="13px">
-                  {user.name} {user.surname}
-                </Typography>
                 <Typography
+                  variant="overline"
                   sx={{
-                    textTransform: "capitalize",
-                    fontSize: "13px",
-                    color: theme.palette.text.secondary,
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                    letterSpacing: "0.5px",
+                    mb: 2.5,
                   }}
                 >
-                  {ROLES[user.roleId as keyof typeof ROLES]}
+                  ACCOUNT
                 </Typography>
-              </Box>
-            )}
 
-            <Stack spacing={0.5}>
-              <ListItemButton
-                onClick={() => {
-                  window.open(
-                    "https://verifywise.ai/contact",
-                    "_blank",
-                    "noreferrer"
-                  );
-                  closePopup();
-                }}
+                <Stack spacing={1} sx={{ flex: 1 }}>
+                  {/* My Profile */}
+                  <ListItemButton
+                    onClick={() => {
+                      navigate("/settings");
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <UserIcon size={16} strokeWidth={1.5} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                        My profile
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: theme.palette.text.secondary,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {ROLES[user.roleId as keyof typeof ROLES]}
+                      </Typography>
+                    </Box>
+                  </ListItemButton>
+
+                  {/* Restart Onboarding */}
+                  <ListItemButton
+                    onClick={() => {
+                      resetOnboarding();
+                      closePopup();
+                      window.location.reload();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <RotateCcw size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Restart onboarding
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* Logout */}
+                  <ListItemButton
+                    onClick={logout}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      mt: "auto !important",
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <LogOut size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
+                  </ListItemButton>
+                </Stack>
+              </Grid>
+
+              {/* Column 2: Explore VerifyWise */}
+              <Grid
+                item
+                xs={6}
                 sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
+                  p: 3, // More padding inside column
+                  pl: 2, // Less left padding (closer to divider)
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <MessageCircle size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Feedback</Typography>
-              </ListItemButton>
-
-              <ListItemButton
-                onClick={() => {
-                  window.open(
-                    "https://discord.gg/d3k3E4uEpR",
-                    "_blank",
-                    "noreferrer"
-                  );
-                  closePopup();
-                }}
-                sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
-                }}
-              >
-                <MessageSquare size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  Ask on Discord
+                <Typography
+                  variant="overline"
+                  sx={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                    letterSpacing: "0.5px",
+                    mb: 2.5,
+                  }}
+                >
+                  EXPLORE VERIFYWISE
                 </Typography>
-              </ListItemButton>
 
-              <ListItemButton
-                onClick={() => {
-                  resetOnboarding();
-                  closePopup();
-                  window.location.reload();
-                }}
-                sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
-                }}
-              >
-                <RotateCcw size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  Restart Onboarding
-                </Typography>
-              </ListItemButton>
+                <Stack spacing={1} sx={{ flex: 1 }}>
+                  {/* Help Center */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://docs.verifywise.ai",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <HelpCircle size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Help center
+                    </Typography>
+                  </ListItemButton>
 
-              <ListItemButton
-                onClick={logout}
-                sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
-                }}
-              >
-                <LogOut size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Log out</Typography>
-              </ListItemButton>
-            </Stack>
+                  {/* What's New */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/blog",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Newspaper size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      What's new?
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* User Community */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://discord.gg/d3k3E4uEpR",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Users size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      User community
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* Get Support */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/contact",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Headphones size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Get support
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* Give Feedback */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/contact",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <MessageCircle size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Give feedback
+                    </Typography>
+                  </ListItemButton>
+                </Stack>
+              </Grid>
+            </Grid>
           </Box>
         </Drawer>
       </Stack>

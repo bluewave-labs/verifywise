@@ -14,7 +14,6 @@ import {
   Drawer,
   Menu,
   MenuItem,
-  Grid,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,7 +49,6 @@ import {
   FolderCog,
   Database,
   Heart,
-  User as UserIcon,
   HelpCircle,
   Newspaper,
   Users,
@@ -73,8 +71,6 @@ import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
-import { useOnboarding } from "../../../application/hooks/useOnboarding";
-import { RotateCcw } from "lucide-react";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -239,7 +235,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
-  const { resetOnboarding } = useOnboarding();
 
   // Heart icon state
   const [showHeartIcon, setShowHeartIcon] = useState(false);

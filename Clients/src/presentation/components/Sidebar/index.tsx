@@ -39,7 +39,6 @@ import {
   FileText,
   Scale,
   MessageCircle,
-  MessageSquare,
   Brain,
   Shield,
   GraduationCap,

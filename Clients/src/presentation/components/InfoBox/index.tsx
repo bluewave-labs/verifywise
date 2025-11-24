@@ -23,7 +23,6 @@ interface InfoBoxProps {
   disableInternalStorage?: boolean; // When true, skip internal localStorage management (use onDismiss instead)
   backgroundColor?: string; // Optional custom background color
   borderColor?: string; // Optional custom border color
-  tipCounter?: string; // Optional tip counter text (e.g., "Tip 1 of 4")
 }
 
 const InfoBox = ({
@@ -34,8 +33,7 @@ const InfoBox = ({
   onDismiss,
   disableInternalStorage = false,
   backgroundColor,
-  borderColor,
-  tipCounter
+  borderColor
 }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
@@ -130,36 +128,18 @@ const InfoBox = ({
           </Typography>
         </Box>
       </Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {tipCounter && (
-          <Typography
-            sx={{
-              fontSize: 10,
-              fontWeight: 500,
-              color: "#999",
-              backgroundColor: "#F5F5F5",
-              border: "1px solid #E5E5E5",
-              padding: "2px 8px",
-              borderRadius: "4px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tipCounter}
-          </Typography>
-        )}
-        <IconButton
-          onClick={handleClose}
-          size="small"
-          sx={{
-            padding: "4px",
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
-          <X size={16} strokeWidth={2} />
-        </IconButton>
-      </Box>
+      <IconButton
+        onClick={handleClose}
+        size="small"
+        sx={{
+          padding: "4px",
+          "&:hover": {
+            backgroundColor: theme.palette.action.hover,
+          },
+        }}
+      >
+        <X size={16} strokeWidth={2} />
+      </IconButton>
     </Box>
   );
 };

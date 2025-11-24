@@ -30,14 +30,36 @@ const TipBox = ({ entityName }: TipBoxProps) => {
     return null;
   }
 
+  const tipCounter = `Tip ${currentTipNumber} of ${totalTips}`;
+
   return (
     <Box
       sx={{
         marginTop: "8px",
         marginBottom: "8px",
         animation: `${fadeIn} 0.3s ease-out`,
+        position: "relative",
       }}
     >
+      {tipCounter && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: -8,
+            right: 16,
+            backgroundColor: "#F5F5F5",
+            border: "1px solid #E5E5E5",
+            borderRadius: "4px",
+            padding: "2px 8px",
+            fontSize: 10,
+            fontWeight: 500,
+            color: "#999",
+            zIndex: 1,
+          }}
+        >
+          {tipCounter}
+        </Box>
+      )}
       <InfoBox
         header={currentTip.header}
         message={currentTip.content}
@@ -47,7 +69,6 @@ const TipBox = ({ entityName }: TipBoxProps) => {
         disableInternalStorage={true}
         backgroundColor="linear-gradient(135deg, #EFF6FF 0%, #F8FBFF 100%)"
         borderColor="#DBEAFE"
-        tipCounter={`Tip ${currentTipNumber} of ${totalTips}`}
       />
     </Box>
   );

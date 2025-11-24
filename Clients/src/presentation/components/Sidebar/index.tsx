@@ -51,7 +51,7 @@ import {
   FolderCog,
   Database,
   Heart,
-  User,
+  User as UserIcon,
   HelpCircle,
   Newspaper,
   Users,
@@ -1420,7 +1420,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <User size={18} strokeWidth={1.5} />
+                    <UserIcon size={18} strokeWidth={1.5} />
                     <Box sx={{ flex: 1 }}>
                       <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                         My profile

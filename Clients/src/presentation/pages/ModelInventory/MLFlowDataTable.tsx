@@ -41,7 +41,6 @@ import {
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
-import { Stack } from "@mui/material";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
@@ -138,12 +137,6 @@ const MLFlowDataTable: React.FC = () => {
     setPage(0);
   }, []);
 
-  const paginatedData = useMemo(() => {
-    const start = page * rowsPerPage;
-    const end = start + rowsPerPage;
-    return mlflowData.slice(start, end);
-  }, [mlflowData, page, rowsPerPage]);
-
   const getRange = useMemo(() => {
     if (!mlflowData.length) {
       return "0 - 0";
@@ -161,7 +154,7 @@ const MLFlowDataTable: React.FC = () => {
       case 'experiment':
         return model.experiment_info?.experiment_name || model.experiment_info?.experiment_id || 'Unknown Experiment';
       case 'model_name':
-        return model.model_name || 'Unknown Model';
+        return model.name || 'Unknown Model';
       default:
         return 'Other';
     }

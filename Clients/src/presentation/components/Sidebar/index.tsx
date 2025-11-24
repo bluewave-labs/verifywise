@@ -1334,7 +1334,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           transitionDuration={0}
           PaperProps={{
             sx: {
-              width: collapsed ? "520px" : "560px", // Larger for 2-column layout
+              width: collapsed ? "260px" : "300px", // Single column width
               height: "auto",
               maxHeight: "fit-content",
               position: "absolute",
@@ -1367,21 +1367,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               },
             }}
           >
-            {/* 2-Column Grid Layout */}
-            <Grid container sx={{ minHeight: "320px" }}>
-              {/* Column 1: Account */}
-              <Grid
-                item
-                xs={6}
-                sx={{
-                  backgroundColor: "#F9FAFB", // Light gray background
-                  p: 3, // More padding inside column
-                  pr: 2, // Less right padding (closer to divider)
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: "6px",
-                }}
-              >
+            {/* Single Column Layout */}
+            <Stack spacing={2}>
+              {/* Account Section */}
+              <Box>
                 <Typography
                   variant="overline"
                   sx={{
@@ -1389,13 +1378,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2.5,
+                    px: theme.spacing(4),
+                    pb: 1,
                   }}
                 >
                   ACCOUNT
                 </Typography>
 
-                <Stack spacing={1} sx={{ flex: 1 }}>
+                <Stack spacing={1}>
                   {/* My Profile */}
                   <ListItemButton
                     onClick={() => {
@@ -1412,7 +1402,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         stroke: theme.palette.text.tertiary,
                       },
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        backgroundColor: "#F9FAFB",
                       },
                       "&:hover svg": {
                         color: "#13715B !important",
@@ -1457,7 +1447,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         stroke: theme.palette.text.tertiary,
                       },
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        backgroundColor: "#F9FAFB",
                       },
                       "&:hover svg": {
                         color: "#13715B !important",
@@ -1473,49 +1463,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                       Restart onboarding
                     </Typography>
                   </ListItemButton>
-
-                  {/* Logout */}
-                  <ListItemButton
-                    onClick={logout}
-                    sx={{
-                      height: "32px",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      mt: "auto !important",
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
-                      "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
-                      },
-                    }}
-                  >
-                    <LogOut size={16} strokeWidth={1.5} />
-                    <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
-                  </ListItemButton>
                 </Stack>
-              </Grid>
+              </Box>
 
-              {/* Column 2: Explore VerifyWise */}
-              <Grid
-                item
-                xs={6}
-                sx={{
-                  p: 3, // More padding inside column
-                  pl: 2, // Less left padding (closer to divider)
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
+              {/* Explore VerifyWise Section */}
+              <Box>
                 <Typography
                   variant="overline"
                   sx={{
@@ -1523,13 +1475,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2.5,
+                    px: theme.spacing(4),
+                    pb: 1,
                   }}
                 >
                   EXPLORE VERIFYWISE
                 </Typography>
 
-                <Stack spacing={1} sx={{ flex: 1 }}>
+                <Stack spacing={1}>
                   {/* Help Center */}
                   <ListItemButton
                     onClick={() => {
@@ -1715,8 +1668,39 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </Typography>
                   </ListItemButton>
                 </Stack>
-              </Grid>
-            </Grid>
+              </Box>
+
+              {/* Divider */}
+              <Divider sx={{ my: 1 }} />
+
+              {/* Logout */}
+              <ListItemButton
+                onClick={logout}
+                sx={{
+                  height: "32px",
+                  gap: theme.spacing(4),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(4),
+                  "& svg": {
+                    color: theme.palette.text.tertiary,
+                    stroke: theme.palette.text.tertiary,
+                  },
+                  "&:hover": {
+                    backgroundColor: "#F9FAFB",
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                }}
+              >
+                <LogOut size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
+              </ListItemButton>
+            </Stack>
           </Box>
         </Drawer>
       </Stack>

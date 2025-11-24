@@ -1518,7 +1518,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   EXPLORE VERIFYWISE
                 </Typography>
 
-                <Stack spacing={1}>
+                <Stack spacing={1} sx={{ flex: 1 }}>
                   {/* Help Center */}
                   <ListItemButton
                     onClick={() => {

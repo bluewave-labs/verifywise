@@ -154,8 +154,12 @@ const SharedView: React.FC = () => {
         return data && data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'id') : ["provider", "model", "version", "status"];
       }
     }
-    // For other resource types, show all columns
-    return data && data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'id') : [];
+    // For other resource types, show all columns (or generic fallback for empty tables)
+    if (data && data.length > 0) {
+      return Object.keys(data[0]).filter(key => key !== 'id');
+    }
+    // Fallback for empty tables of unknown types
+    return ["name", "created_at", "updated_at"];
   };
 
   const tableColumns = isTableView ? getTableColumns(share_link.resource_type) : [];
@@ -319,7 +323,7 @@ const SharedView: React.FC = () => {
                   <TableBody>
                     {data.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={tableColumns.length} align="center" sx={{ py: 4 }}>
+                        <TableCell colSpan={Math.max(tableColumns.length, 1)} align="center" sx={{ py: 4 }}>
                           <Typography variant="body2" color="textSecondary">
                             No records to display
                           </Typography>

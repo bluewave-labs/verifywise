@@ -14,7 +14,6 @@ import {
   Drawer,
   Menu,
   MenuItem,
-  Grid,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,11 +49,11 @@ import {
   FolderCog,
   Database,
   Heart,
-  User as UserIcon,
   HelpCircle,
   Newspaper,
   Users,
   Headphones,
+  Trash2,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -72,8 +71,6 @@ import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
-import { useOnboarding } from "../../../application/hooks/useOnboarding";
-import { RotateCcw } from "lucide-react";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -238,7 +235,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
-  const { resetOnboarding } = useOnboarding();
 
   // Heart icon state
   const [showHeartIcon, setShowHeartIcon] = useState(false);
@@ -1295,7 +1291,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         ) : (
           <>
-            {/* <Avatar small={true} /> */}
+            <Avatar
+              user={userAvator}
+              size="small"
+              sx={{ ml: theme.spacing(2) }}
+            />
             <Box ml={theme.spacing(2)}>
               <Typography component="span" fontWeight={500}>
                 {user.name} {user.surname}
@@ -1334,7 +1334,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           transitionDuration={0}
           PaperProps={{
             sx: {
-              width: collapsed ? "520px" : "560px", // Larger for 2-column layout
+              width: collapsed ? "260px" : "300px", // Single column width
               height: "auto",
               maxHeight: "fit-content",
               position: "absolute",
@@ -1367,21 +1367,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               },
             }}
           >
-            {/* 2-Column Grid Layout */}
-            <Grid container sx={{ minHeight: "320px" }}>
-              {/* Column 1: Account */}
-              <Grid
-                item
-                xs={6}
-                sx={{
-                  backgroundColor: "#F9FAFB", // Light gray background
-                  p: 3, // More padding inside column
-                  pr: 2, // Less right padding (closer to divider)
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: "6px",
-                }}
-              >
+            {/* Single Column Layout */}
+            <Stack spacing={2}>
+              {/* Account Section */}
+              <Box>
                 <Typography
                   variant="overline"
                   sx={{
@@ -1389,13 +1378,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2.5,
+                    px: theme.spacing(4),
+                    pb: 1,
                   }}
                 >
                   ACCOUNT
                 </Typography>
 
-                <Stack spacing={1} sx={{ flex: 1 }}>
+                <Stack spacing={1}>
                   {/* My Profile */}
                   <ListItemButton
                     onClick={() => {
@@ -1403,119 +1393,117 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      height: "32px",
+                      minHeight: "48px",
                       gap: theme.spacing(4),
                       borderRadius: theme.shape.borderRadius,
                       px: theme.spacing(4),
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
+                      py: 1,
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
+                        backgroundColor: "#F9FAFB",
                       },
                     }}
                   >
-                    <UserIcon size={16} strokeWidth={1.5} />
                     <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                        My profile
-                      </Typography>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                          {user.name} {user.surname}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "11px",
+                            color: theme.palette.text.secondary,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {ROLES[user.roleId as keyof typeof ROLES]}
+                        </Typography>
+                      </Box>
                       <Typography
                         sx={{
                           fontSize: "11px",
                           color: theme.palette.text.secondary,
-                          textTransform: "capitalize",
                         }}
                       >
-                        {ROLES[user.roleId as keyof typeof ROLES]}
+                        {user.email}
                       </Typography>
                     </Box>
                   </ListItemButton>
 
-                  {/* Restart Onboarding */}
-                  <ListItemButton
-                    onClick={() => {
-                      resetOnboarding();
-                      closePopup();
-                      window.location.reload();
-                    }}
-                    sx={{
-                      height: "32px",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
-                      "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
-                      },
-                    }}
-                  >
-                    <RotateCcw size={16} strokeWidth={1.5} />
-                    <Typography sx={{ fontSize: "13px" }}>
-                      Restart onboarding
-                    </Typography>
-                  </ListItemButton>
-
-                  {/* Logout */}
-                  <ListItemButton
-                    onClick={logout}
-                    sx={{
-                      height: "32px",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      mt: "auto !important",
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
-                      "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
-                      },
-                    }}
-                  >
-                    <LogOut size={16} strokeWidth={1.5} />
-                    <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
-                  </ListItemButton>
+                  {/* Create Demo Data / Delete Demo Data */}
+                  {hasDemoData ? (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenDeleteDemoData) {
+                          onOpenDeleteDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Trash2 size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Delete demo data
+                      </Typography>
+                    </ListItemButton>
+                  ) : (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenCreateDemoData) {
+                          onOpenCreateDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Database size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Create demo data
+                      </Typography>
+                    </ListItemButton>
+                  )}
                 </Stack>
-              </Grid>
+              </Box>
 
-              {/* Column 2: Explore VerifyWise */}
-              <Grid
-                item
-                xs={6}
-                sx={{
-                  p: 3, // More padding inside column
-                  pl: 2, // Less left padding (closer to divider)
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
+              {/* Explore VerifyWise Section */}
+              <Box>
                 <Typography
                   variant="overline"
                   sx={{
@@ -1523,13 +1511,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2.5,
+                    px: theme.spacing(4),
+                    pb: 1,
                   }}
                 >
                   EXPLORE VERIFYWISE
                 </Typography>
 
-                <Stack spacing={1} sx={{ flex: 1 }}>
+                <Stack spacing={1}>
                   {/* Help Center */}
                   <ListItemButton
                     onClick={() => {
@@ -1715,8 +1704,39 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </Typography>
                   </ListItemButton>
                 </Stack>
-              </Grid>
-            </Grid>
+              </Box>
+
+              {/* Divider */}
+              <Divider sx={{ my: 1 }} />
+
+              {/* Logout */}
+              <ListItemButton
+                onClick={logout}
+                sx={{
+                  height: "32px",
+                  gap: theme.spacing(4),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(4),
+                  "& svg": {
+                    color: theme.palette.text.tertiary,
+                    stroke: theme.palette.text.tertiary,
+                  },
+                  "&:hover": {
+                    backgroundColor: "#F9FAFB",
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                }}
+              >
+                <LogOut size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
+              </ListItemButton>
+            </Stack>
           </Box>
         </Drawer>
       </Stack>

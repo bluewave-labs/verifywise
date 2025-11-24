@@ -16,7 +16,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { Download, ExternalLink as ExternalLinkIcon } from "lucide-react";
+import { Download } from "lucide-react";
 import { ENV_VARs } from "../../../../env.vars";
 
 /**
@@ -279,25 +279,6 @@ const SharedView: React.FC = () => {
                     }}
                   >
                     <Download size={20} />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {permissions.allowViewersToOpenRecords && data.id && (
-                <Tooltip title="Open full record">
-                  <IconButton
-                    onClick={() => {
-                      // This would navigate to the full record if implemented
-                      console.log("Navigate to full record:", data.id);
-                    }}
-                    sx={{
-                      color: "#13715B",
-                      border: "1px solid #13715B",
-                      "&:hover": {
-                        backgroundColor: "rgba(19, 113, 91, 0.1)",
-                      },
-                    }}
-                  >
-                    <ExternalLinkIcon size={20} />
                   </IconButton>
                 </Tooltip>
               )}

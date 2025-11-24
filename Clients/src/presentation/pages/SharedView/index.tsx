@@ -138,13 +138,24 @@ const SharedView: React.FC = () => {
   const { share_link, data, permissions } = shareData;
   const isTableView = Array.isArray(data);
 
-  // Define columns to show based on resource type
+  // Define columns to show based on resource type and available data
   const getTableColumns = (resourceType: string) => {
     if (resourceType === "model") {
-      return ["provider", "model", "version", "approver", "security_assessment", "status", "status_date"];
+      // If shareAllFields is true, show all model inventory columns
+      // If shareAllFields is false, backend only returns: id, provider, model, version, status, created_at, updated_at
+      // Check if data has all fields or only essential fields
+      const hasAllFields = data && data.length > 0 && data[0].approver !== undefined;
+
+      if (hasAllFields) {
+        // Show full model inventory columns
+        return ["provider", "model", "version", "approver", "security_assessment", "status", "status_date"];
+      } else {
+        // Show only essential fields that backend returned
+        return data && data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'id') : ["provider", "model", "version", "status"];
+      }
     }
     // For other resource types, show all columns
-    return data && data.length > 0 ? Object.keys(data[0]) : [];
+    return data && data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'id') : [];
   };
 
   const tableColumns = isTableView ? getTableColumns(share_link.resource_type) : [];
@@ -327,15 +338,25 @@ const SharedView: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.map((row: any, index: number) => (
-                      <TableRow key={row.id || index} hover>
-                        {tableColumns.map((key) => (
-                          <TableCell key={key} sx={{ whiteSpace: "nowrap" }}>
-                            {formatCellValue(key, row[key])}
-                          </TableCell>
-                        ))}
+                    {data.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={tableColumns.length} align="center" sx={{ py: 4 }}>
+                          <Typography variant="body2" color="textSecondary">
+                            No records to display
+                          </Typography>
+                        </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      data.map((row: any, index: number) => (
+                        <TableRow key={row.id || index} hover>
+                          {tableColumns.map((key) => (
+                            <TableCell key={key} sx={{ whiteSpace: "nowrap" }}>
+                              {formatCellValue(key, row[key])}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </>
               ) : (

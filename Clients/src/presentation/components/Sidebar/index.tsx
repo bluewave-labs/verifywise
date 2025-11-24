@@ -1335,7 +1335,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           transitionDuration={0}
           PaperProps={{
             sx: {
-              width: collapsed ? "450px" : "500px", // Wider for 2-column layout
+              width: collapsed ? "520px" : "560px", // Larger for 2-column layout
               height: "auto",
               maxHeight: "fit-content",
               position: "absolute",
@@ -1356,6 +1356,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               borderRadius: "8px",
               border: `1px solid ${theme.palette.divider}`,
               overflow: "hidden",
+              p: 2, // 16px padding around entire content
               animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",
               "@keyframes fadeIn": {
                 "0%": {
@@ -1368,16 +1369,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             {/* 2-Column Grid Layout */}
-            <Grid container sx={{ minHeight: "280px" }}>
+            <Grid container sx={{ minHeight: "320px" }}>
               {/* Column 1: Account */}
               <Grid
                 item
                 xs={6}
                 sx={{
                   backgroundColor: "#F9FAFB", // Light gray background
-                  p: 2.5,
+                  p: 3, // More padding inside column
+                  pr: 2, // Less right padding (closer to divider)
                   display: "flex",
                   flexDirection: "column",
+                  borderRadius: "6px",
                 }}
               >
                 <Typography
@@ -1387,13 +1390,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2,
+                    mb: 2.5,
                   }}
                 >
                   ACCOUNT
                 </Typography>
 
-                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                <Stack spacing={1} sx={{ flex: 1 }}>
                   {/* My Profile */}
                   <ListItemButton
                     onClick={() => {
@@ -1401,10 +1404,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.8)",
                       },
@@ -1417,7 +1420,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <User size={16} strokeWidth={1.5} />
+                    <User size={18} strokeWidth={1.5} />
                     <Box sx={{ flex: 1 }}>
                       <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                         My profile
@@ -1442,10 +1445,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       window.location.reload();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.8)",
                       },
@@ -1458,7 +1461,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <RotateCcw size={16} strokeWidth={1.5} />
+                    <RotateCcw size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       Restart onboarding
                     </Typography>
@@ -1468,10 +1471,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <ListItemButton
                     onClick={logout}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       mt: "auto !important",
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -1485,7 +1488,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <LogOut size={16} strokeWidth={1.5} />
+                    <LogOut size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
                   </ListItemButton>
                 </Stack>
@@ -1496,7 +1499,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 item
                 xs={6}
                 sx={{
-                  p: 2.5,
+                  p: 3, // More padding inside column
+                  pl: 2, // Less left padding (closer to divider)
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -1508,13 +1512,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                     fontWeight: 600,
                     color: theme.palette.text.disabled,
                     letterSpacing: "0.5px",
-                    mb: 2,
+                    mb: 2.5,
                   }}
                 >
                   EXPLORE VERIFYWISE
                 </Typography>
 
-                <Stack spacing={0.5}>
+                <Stack spacing={1}>
                   {/* Help Center */}
                   <ListItemButton
                     onClick={() => {
@@ -1526,10 +1530,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
@@ -1542,7 +1546,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <HelpCircle size={16} strokeWidth={1.5} />
+                    <HelpCircle size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       Help center
                     </Typography>
@@ -1559,10 +1563,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
@@ -1575,7 +1579,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <Newspaper size={16} strokeWidth={1.5} />
+                    <Newspaper size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       What's new?
                     </Typography>
@@ -1592,10 +1596,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
@@ -1608,7 +1612,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <Users size={16} strokeWidth={1.5} />
+                    <Users size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       User community
                     </Typography>
@@ -1625,10 +1629,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
@@ -1641,7 +1645,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <Headphones size={16} strokeWidth={1.5} />
+                    <Headphones size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       Get support
                     </Typography>
@@ -1658,10 +1662,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      gap: theme.spacing(2),
+                      gap: theme.spacing(2.5),
                       borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(2),
-                      py: theme.spacing(1.5),
+                      px: theme.spacing(2.5),
+                      py: theme.spacing(2),
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
@@ -1674,7 +1678,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                     }}
                   >
-                    <MessageCircle size={16} strokeWidth={1.5} />
+                    <MessageCircle size={18} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>
                       Give feedback
                     </Typography>

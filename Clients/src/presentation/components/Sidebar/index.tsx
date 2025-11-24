@@ -1296,7 +1296,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         ) : (
           <>
-            {/* <Avatar small={true} /> */}
+            <Avatar
+              user={userAvator}
+              size="small"
+              sx={{ ml: theme.spacing(2) }}
+            />
             <Box ml={theme.spacing(2)}>
               <Typography component="span" fontWeight={500}>
                 {user.name} {user.surname}
@@ -1394,39 +1398,38 @@ const Sidebar: React.FC<SidebarProps> = ({
                       closePopup();
                     }}
                     sx={{
-                      height: "32px",
+                      minHeight: "48px",
                       gap: theme.spacing(4),
                       borderRadius: theme.shape.borderRadius,
                       px: theme.spacing(4),
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
+                      py: 1,
                       "&:hover": {
                         backgroundColor: "#F9FAFB",
                       },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
-                      },
                     }}
                   >
-                    <UserIcon size={16} strokeWidth={1.5} />
                     <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                        My profile
-                      </Typography>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                          {user.name} {user.surname}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "11px",
+                            color: theme.palette.text.secondary,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {ROLES[user.roleId as keyof typeof ROLES]}
+                        </Typography>
+                      </Box>
                       <Typography
                         sx={{
                           fontSize: "11px",
                           color: theme.palette.text.secondary,
-                          textTransform: "capitalize",
                         }}
                       >
-                        {ROLES[user.roleId as keyof typeof ROLES]}
+                        {user.email}
                       </Typography>
                     </Box>
                   </ListItemButton>

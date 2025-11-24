@@ -1,7 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, Suspense, useMemo } from "react";
-import { Box, Stack, Fade } from "@mui/material";
+import {
+  Box,
+  Stack,
+  Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  Button,
+} from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, TrendingUp } from "lucide-react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
@@ -160,6 +170,7 @@ const ModelInventory: React.FC = () => {
     allowViewersToOpenRecords: false,
   });
   const [isShareEnabled, setIsShareEnabled] = useState(false);
+  const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -596,12 +607,37 @@ const ModelInventory: React.FC = () => {
     });
   };
 
-  const handleRefreshLink = async () => {
-    await generateShareableLink(shareSettings);
-    setAlert({
-      variant: "info",
-      body: "Share link refreshed!",
-    });
+  const handleRefreshLink = () => {
+    // Show confirmation dialog
+    setShowReplaceConfirmation(true);
+  };
+
+  const handleConfirmReplace = async () => {
+    setShowReplaceConfirmation(false);
+
+    try {
+      // Disable the old link if it exists
+      if (shareLinkId) {
+        await updateShareMutation.mutateAsync({
+          id: shareLinkId,
+          is_enabled: false,
+        });
+      }
+
+      // Create a new link
+      await generateShareableLink(shareSettings);
+
+      setAlert({
+        variant: "success",
+        body: "Share link replaced successfully!",
+      });
+    } catch (error) {
+      console.error("Error replacing share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to replace share link. Please try again.",
+      });
+    }
   };
 
   const handleOpenLink = (link: string) => {
@@ -1148,6 +1184,45 @@ const ModelInventory: React.FC = () => {
                   </Fade>
               </Suspense>
           )}
+
+          {/* Replace Share Link Confirmation Dialog */}
+          <Dialog
+              open={showReplaceConfirmation}
+              onClose={() => setShowReplaceConfirmation(false)}
+          >
+              <DialogTitle sx={{ fontWeight: 600, fontSize: "18px" }}>
+                  Replace Share Link?
+              </DialogTitle>
+              <DialogContent>
+                  <Typography sx={{ fontSize: "14px", color: "#666" }}>
+                      This will invalidate the current share link and generate a new one.
+                      Anyone with the old link will no longer be able to access the shared view.
+                  </Typography>
+                  <Typography sx={{ fontSize: "14px", color: "#666", mt: 2 }}>
+                      Do you want to continue?
+                  </Typography>
+              </DialogContent>
+              <DialogActions sx={{ px: 3, pb: 2 }}>
+                  <Button
+                      onClick={() => setShowReplaceConfirmation(false)}
+                      sx={{ color: "#666" }}
+                  >
+                      Cancel
+                  </Button>
+                  <Button
+                      onClick={handleConfirmReplace}
+                      variant="contained"
+                      sx={{
+                          backgroundColor: "#13715B",
+                          "&:hover": {
+                              backgroundColor: "#0f5a48",
+                          },
+                      }}
+                  >
+                      Replace Link
+                  </Button>
+              </DialogActions>
+          </Dialog>
 
           <Stack sx={mainStackStyle}>
               <PageHeader

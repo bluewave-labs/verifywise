@@ -7,6 +7,7 @@ export const LinkElement = (props: any) => {
   return (
     <a
       {...attributes}
+      className="slate-link"
       href={url}
       target="_blank"
       rel="noopener noreferrer"

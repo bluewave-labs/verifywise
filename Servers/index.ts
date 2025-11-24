@@ -54,6 +54,7 @@ import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
+import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -80,7 +81,7 @@ try {
   // })();
 
   const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl,
+    process.env.ALLOWED_ORIGINS || frontEndUrl
   );
 
   app.use(
@@ -90,7 +91,7 @@ try {
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
-    }),
+    })
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
@@ -148,6 +149,7 @@ try {
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
+  app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
 
   // Adding background jobs in the Queue

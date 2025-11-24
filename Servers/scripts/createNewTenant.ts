@@ -7,6 +7,44 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     const tenantHash = getTenantHash(organization_id);
     await sequelize.query(`CREATE SCHEMA "${tenantHash}";`, { transaction });
 
+    // Create ENUM types for vendor scorecard fields
+    await sequelize.query(`
+      CREATE TYPE "${tenantHash}".enum_vendors_data_sensitivity AS ENUM (
+        'None',
+        'Internal only', 
+        'Personally identifiable information (PII)',
+        'Financial data',
+        'Health data (e.g. HIPAA)',
+        'Model weights or AI assets',
+        'Other sensitive data'
+      );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TYPE "${tenantHash}".enum_vendors_business_criticality AS ENUM (
+        'Low (vendor supports non-core functions)',
+        'Medium (affects operations but is replaceable)',
+        'High (critical to core services or products)'
+      );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TYPE "${tenantHash}".enum_vendors_past_issues AS ENUM (
+        'None',
+        'Minor incident (e.g. small delay, minor bug)',
+        'Major incident (e.g. data breach, legal issue)'
+      );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TYPE "${tenantHash}".enum_vendors_regulatory_exposure AS ENUM (
+        'None',
+        'GDPR (EU)',
+        'HIPAA (US)',
+        'SOC 2',
+        'ISO 27001',
+        'EU AI act',
+        'CCPA (california)',
+        'Other'
+      );`, { transaction });
+
     await sequelize.query(
       `CREATE OR REPLACE FUNCTION "${tenantHash}".check_only_one_organizational_project()
         RETURNS TRIGGER AS $$
@@ -73,6 +111,11 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         review_status enum_vendors_review_status,
         reviewer integer,
         review_date timestamp with time zone,
+        data_sensitivity "${tenantHash}".enum_vendors_data_sensitivity,
+        business_criticality "${tenantHash}".enum_vendors_business_criticality,
+        past_issues "${tenantHash}".enum_vendors_past_issues,
+        regulatory_exposure "${tenantHash}".enum_vendors_regulatory_exposure,
+        risk_score integer,
         is_demo boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT vendors_pkey PRIMARY KEY (id),

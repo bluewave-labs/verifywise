@@ -17,7 +17,6 @@ import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDat
 import ProjectsList from "./ProjectsList";
 import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
-import ProjectConfiguration from "./ProjectConfiguration";
 import { ProjectDatasets } from "./ProjectDatasets";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
@@ -472,7 +471,129 @@ export default function EvalsDashboard() {
           </TabPanel>
 
           <TabPanel value="configuration" sx={{ p: 0 }}>
-            <ProjectConfiguration hideHeader />
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
+                Project configuration
+              </Typography>
+              
+              {/* LLM Use Case */}
+              <Box sx={{ mt: 4, mb: 4 }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
+                  LLM Use Case
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
+                  <Box
+                    sx={{
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 2,
+                      p: 2,
+                      cursor: "not-allowed",
+                      backgroundColor: "#FFFFFF",
+                      opacity: 0.6,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                      <Box sx={{ mt: 0.25 }}>
+                        <Workflow size={20} color="#13715B" />
+                      </Box>
+                      <Box>
+                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents (coming soon)</Box>
+                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                          Agentic workflows and end-to-end task completion will be available shortly.
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
+                  
+                  <Box
+                    sx={{
+                      border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                      borderRadius: 2,
+                      p: 2,
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                      <Box sx={{ mt: 0.25 }}>
+                        <FileSearch size={20} color="#13715B" />
+                      </Box>
+                      <Box>
+                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
+                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                          Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
+                  
+                  <Box
+                    sx={{
+                      border: currentProject?.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                      borderRadius: 2,
+                      p: 2,
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                      <Box sx={{ mt: 0.25 }}>
+                        <Bot size={20} color="#13715B" />
+                      </Box>
+                      <Box>
+                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                          Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              
+              {/* LLM API Keys */}
+              <Box sx={{ mt: 4 }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 1 }}>
+                  LLM API Keys
+                </Typography>
+                <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
+                  These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
+                  <Typography
+                    component="span"
+                    onClick={() => navigate("/evals/settings")}
+                    sx={{
+                      color: "#13715B",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                      "&:hover": { textDecoration: "underline" },
+                    }}
+                  >
+                    Add API key
+                  </Typography>
+                </Typography>
+                <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
+                  No API keys configured yet.
+                </Typography>
+              </Box>
+              
+              {/* Save Changes Button */}
+              <Box sx={{ mt: 4 }}>
+                <button
+                  disabled
+                  style={{
+                    backgroundColor: "#E5E7EB",
+                    color: "#9CA3AF",
+                    border: "none",
+                    borderRadius: "6px",
+                    padding: "8px 16px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "not-allowed",
+                  }}
+                >
+                  Save changes
+                </button>
+              </Box>
+            </Box>
           </TabPanel>
         </TabContext>
       )}

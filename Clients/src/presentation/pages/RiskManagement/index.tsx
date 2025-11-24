@@ -30,6 +30,7 @@ import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 /**
  * Set initial loading status for all CRUD process
@@ -123,6 +124,40 @@ const RiskManagement = () => {
       veryLowRisks,
     };
   }, [projectRisks]);
+
+  // Define export columns for risk management table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'risk_name', label: 'Risk Name' },
+      { id: 'risk_owner', label: 'Owner' },
+      { id: 'severity', label: 'Severity' },
+      { id: 'likelihood', label: 'Likelihood' },
+      { id: 'mitigation_status', label: 'Mitigation Status' },
+      { id: 'risk_level', label: 'Risk Level' },
+      { id: 'deadline', label: 'Target Date' },
+      { id: 'controls_mapping', label: 'Linked Controls' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    const dataToExport = filteredRisks.length > 0 ? filteredRisks : projectRisks;
+    return dataToExport.map((risk: RiskModel) => {
+      const ownerUser = users.find((user) => user.id === risk.risk_owner);
+      const ownerName = ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : '-';
+
+      return {
+        risk_name: risk.risk_name || '-',
+        risk_owner: ownerName,
+        severity: risk.severity || '-',
+        likelihood: risk.likelihood || '-',
+        mitigation_status: risk.mitigation_status || '-',
+        risk_level: risk.current_risk_level || risk.risk_level_autocalculated || '-',
+        deadline: risk.deadline || '-',
+        controls_mapping: risk.controls_mapping || '-',
+      };
+    });
+  }, [filteredRisks, projectRisks, users]);
 
   const fetchProjectRisks = useCallback(async (filter = 'active') => {
     try {
@@ -405,7 +440,13 @@ const RiskManagement = () => {
               onFilterChange={handleRiskFilterChange}
             />
           </div>
-          <Stack direction="row" gap={4}>
+          <Stack direction="row" gap="8px" alignItems="center">
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="risk-management"
+              title="Risk Management"
+            />
             <div data-joyride-id="analytics-button">
               <CustomizableButton
                 variant="contained"

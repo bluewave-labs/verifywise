@@ -6,8 +6,7 @@ import { apiServices } from "../../infrastructure/api/networkServices";
  *
  * @param {string} routeUrl - The API route URL.
  * @param {any} data - The incident management data to be saved.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function createIncidentManagement(
     routeUrl: string,

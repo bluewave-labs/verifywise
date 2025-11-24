@@ -68,6 +68,8 @@ import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
+import { useOnboarding } from "../../../application/hooks/useOnboarding";
+import { RotateCcw } from "lucide-react";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -237,6 +239,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
+  const { resetOnboarding } = useOnboarding();
 
   // Heart icon state
   const [showHeartIcon, setShowHeartIcon] = useState(false);
@@ -1457,6 +1460,40 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <MessageSquare size={16} strokeWidth={1.5} />
                 <Typography sx={{ fontSize: "13px" }}>
                   Ask on Discord
+                </Typography>
+              </ListItemButton>
+
+              <ListItemButton
+                onClick={() => {
+                  resetOnboarding();
+                  closePopup();
+                  window.location.reload();
+                }}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <RotateCcw size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>
+                  Restart Onboarding
                 </Typography>
               </ListItemButton>
 

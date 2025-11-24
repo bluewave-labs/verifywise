@@ -59,6 +59,7 @@ interface EvidenceHubTableProps {
     paginated?: boolean;
     deletingId?: number | null;
     modelInventoryData: IModelInventory[];
+    hidePagination?: boolean;
 }
 
 const TABLE_COLUMNS = [
@@ -177,6 +178,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     paginated = true,
     deletingId,
     modelInventoryData,
+    hidePagination = false,
 }) => {
     const theme = useTheme();
     const [users, setUsers] = useState<User[]>([]);
@@ -345,8 +347,8 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                 {sortedData?.length ? (
                     sortedData
                         .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
                         )
                         .map((evidence) => (
                             <TableRow key={evidence.id}
@@ -475,7 +477,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   theme={theme}
                 />
                 {tableBody}
-                {paginated && (
+                {paginated && !hidePagination && (
                     <TableFooter>
                         <TableRow sx={tableFooterRowStyle(theme)}>
                             <TableCell sx={showingTextCellStyle(theme)}>

@@ -38,6 +38,9 @@ import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -82,6 +85,9 @@ const IncidentManagement: React.FC = () => {
 
     const [mode, setModalMode] = useState("");
 
+    // GroupBy state
+    const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
     const isCreatingDisabled =
         !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -125,6 +131,34 @@ const IncidentManagement: React.FC = () => {
         approvalFilter,
         searchTerm,
     ]);
+
+    // Define how to get the group key for each incident
+    const getIncidentGroupKey = (incident: AIIncidentManagementModel, field: string): string | string[] => {
+        switch (field) {
+            case 'severity':
+                return incident.severity || 'Unknown';
+            case 'status':
+                return incident.status || 'Unknown';
+            case 'approval_status':
+                return incident.approval_status || 'Unknown';
+            case 'type':
+                return incident.type || 'Unknown';
+            case 'ai_project':
+                return incident.ai_project || 'Unknown Project';
+            case 'reporter':
+                return incident.reporter || 'Unknown';
+            default:
+                return 'Other';
+        }
+    };
+
+    // Apply grouping to filtered incidents
+    const groupedIncidents = useTableGrouping({
+        data: filteredData,
+        groupByField: groupBy,
+        sortOrder: groupSortOrder,
+        getGroupKey: getIncidentGroupKey,
+    });
 
     /** -------------------- FETCHING -------------------- */
     const fetchIncidentsData = async (showLoading = true) => {
@@ -573,6 +607,19 @@ const IncidentManagement: React.FC = () => {
                                 inputProps={{ "aria-label": "Search incidents" }}
                             />
                         </Box>
+
+                        {/* GroupBy button */}
+                        <GroupBy
+                            options={[
+                                { id: 'severity', label: 'Severity' },
+                                { id: 'status', label: 'Status' },
+                                { id: 'approval_status', label: 'Approval status' },
+                                { id: 'type', label: 'Type' },
+                                { id: 'ai_project', label: 'AI Project' },
+                                { id: 'reporter', label: 'Reporter' },
+                            ]}
+                            onGroupChange={handleGroupChange}
+                        />
                     </Stack>
 
                     <Stack direction="row" gap="8px" alignItems="center">
@@ -595,14 +642,21 @@ const IncidentManagement: React.FC = () => {
                     </Stack>
                 </Stack>
 
-                <IncidentTable
-                    key={tableKey}
-                    data={filteredData}
-                    isLoading={isLoading}
-                    onEdit={handleEditIncident}
-                    onArchive={handleArchiveIncident}
-                    onView={handleViewIncident}
-                    archivedId={archiveId}
+                <GroupedTableView
+                    groupedData={groupedIncidents}
+                    ungroupedData={filteredData}
+                    renderTable={(data, options) => (
+                        <IncidentTable
+                            key={tableKey}
+                            data={data}
+                            isLoading={isLoading}
+                            onEdit={handleEditIncident}
+                            onArchive={handleArchiveIncident}
+                            onView={handleViewIncident}
+                            archivedId={archiveId}
+                            hidePagination={options?.hidePagination}
+                        />
+                    )}
                 />
             </Stack>
 

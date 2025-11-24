@@ -427,7 +427,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           {/* only render table and pagination if team is loaded  */}
           {rolesLoading || roles.length === 0 ? null : (
             <>
-              <TableContainer sx={{ overflowX: "auto" }}>
+              <TableContainer sx={{ overflowX: "auto", mt: 1 }}>
                 <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
                   <TableHead
                     sx={{

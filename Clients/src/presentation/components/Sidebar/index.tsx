@@ -55,6 +55,7 @@ import {
   Newspaper,
   Users,
   Headphones,
+  Trash2,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -1430,39 +1431,76 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </Box>
                   </ListItemButton>
 
-                  {/* Restart Onboarding */}
-                  <ListItemButton
-                    onClick={() => {
-                      resetOnboarding();
-                      closePopup();
-                      window.location.reload();
-                    }}
-                    sx={{
-                      height: "32px",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      "& svg": {
-                        color: theme.palette.text.tertiary,
-                        stroke: theme.palette.text.tertiary,
-                      },
-                      "&:hover": {
-                        backgroundColor: "#F9FAFB",
-                      },
-                      "&:hover svg": {
-                        color: "#13715B !important",
-                        stroke: "#13715B !important",
-                      },
-                      "&:hover svg path": {
-                        stroke: "#13715B !important",
-                      },
-                    }}
-                  >
-                    <RotateCcw size={16} strokeWidth={1.5} />
-                    <Typography sx={{ fontSize: "13px" }}>
-                      Restart onboarding
-                    </Typography>
-                  </ListItemButton>
+                  {/* Create Demo Data / Delete Demo Data */}
+                  {hasDemoData ? (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenDeleteDemoData) {
+                          onOpenDeleteDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Trash2 size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Delete demo data
+                      </Typography>
+                    </ListItemButton>
+                  ) : (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenCreateDemoData) {
+                          onOpenCreateDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Database size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Create demo data
+                      </Typography>
+                    </ListItemButton>
+                  )}
                 </Stack>
               </Box>
 

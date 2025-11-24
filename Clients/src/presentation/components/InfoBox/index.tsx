@@ -9,9 +9,20 @@ interface InfoBoxProps {
   header?: string; // Optional header for tips
   onDismiss?: () => void; // Optional custom dismiss handler
   disableInternalStorage?: boolean; // When true, skip internal localStorage management (use onDismiss instead)
+  backgroundColor?: string; // Optional custom background color
+  borderColor?: string; // Optional custom border color
 }
 
-const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss, disableInternalStorage = false }: InfoBoxProps) => {
+const InfoBox = ({
+  message,
+  storageKey,
+  variant = "info",
+  header,
+  onDismiss,
+  disableInternalStorage = false,
+  backgroundColor,
+  borderColor
+}: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
 
@@ -64,10 +75,10 @@ const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss, dis
         justifyContent: "space-between",
         fontSize: 13,
         color: theme.palette.text.secondary,
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: backgroundColor || theme.palette.background.paper,
         padding: "12px 16px",
         borderRadius: "4px",
-        border: `1px solid ${theme.palette.divider}`,
+        border: `1px solid ${borderColor || theme.palette.divider}`,
         gap: 2,
       }}
     >

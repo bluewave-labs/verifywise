@@ -35,6 +35,7 @@ from deepeval.test_case import LLMTestCase
 from src.deepeval_engine.model_runner import ModelRunner
 from src.deepeval_engine.deepeval_evaluator import DeepEvalEvaluator
 from src.deepeval_engine.config_loader import build_runtime_config
+from src.deepeval_engine.gatekeeper import evaluate_gate
 
 
 def parse_args() -> argparse.Namespace:
@@ -184,9 +185,36 @@ def main() -> int:
         print(f"Evaluation error: {e}")
         return 1
 
+    # After evaluation, run gatekeeper on the latest summary in the output dir
+    output_dir = Path(runtime["output_dir"])
+    suite_path = Path("suits/suite_core.yaml")
+    latest_summary = None
+    try:
+        summaries = list(output_dir.glob("deepeval_summary_*.json"))
+        if summaries:
+            latest_summary = max(summaries, key=lambda p: p.stat().st_mtime)
+    except Exception:
+        latest_summary = None
+
     print("\nPipeline complete.")
     print(f"Saved outputs to: {args.output_dir}")
-    return 0
+
+    if latest_summary and suite_path.is_file():
+        print("\nRunning gatekeeper quality gate...")
+        gate_result = evaluate_gate(summary_path=str(latest_summary), suite_path=str(suite_path.resolve()))
+        status = "PASSED" if gate_result.passed else "FAILED"
+        print(f"[Gatekeeper] {status} — checked_metrics={gate_result.checked_metrics}")
+        if gate_result.fail_reasons:
+            print("Fail reasons:")
+            for r in gate_result.fail_reasons:
+                print(f"  - {r}")
+        return 0 if gate_result.passed else 2
+    else:
+        if not latest_summary:
+            print("Gatekeeper skipped: no summary file found.")
+        if not suite_path.is_file():
+            print(f"Gatekeeper skipped: suite YAML not found at {suite_path}")
+        return 0
 
 
 if __name__ == "__main__":

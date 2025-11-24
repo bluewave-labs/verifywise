@@ -153,6 +153,7 @@ const ModelInventory: React.FC = () => {
   // Share view state
   const [shareAnchorEl, setShareAnchorEl] = useState<HTMLElement | null>(null);
   const [shareableLink, setShareableLink] = useState<string>("");
+  const [shareLinkId, setShareLinkId] = useState<number | null>(null);
   const [shareSettings, setShareSettings] = useState<ShareViewSettings>({
     shareAllFields: true,
     allowDataExport: true,
@@ -543,7 +544,9 @@ const ModelInventory: React.FC = () => {
       });
 
       const link = result.data?.shareable_url || "";
+      const id = result.data?.id || null;
       setShareableLink(link);
+      setShareLinkId(id);
       return link;
     } catch (error) {
       console.error("Error generating share link:", error);
@@ -562,8 +565,28 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleShareSettingsChange = (settings: ShareViewSettings) => {
+  const handleShareSettingsChange = async (settings: ShareViewSettings) => {
     setShareSettings(settings);
+
+    // If we have an existing share link, update its settings
+    if (shareLinkId) {
+      try {
+        await updateShareMutation.mutateAsync({
+          id: shareLinkId,
+          settings,
+        });
+        setAlert({
+          variant: "success",
+          body: "Share link settings updated!",
+        });
+      } catch (error) {
+        console.error("Error updating share link settings:", error);
+        setAlert({
+          variant: "error",
+          body: "Failed to update settings. Please try again.",
+        });
+      }
+    }
   };
 
   const handleCopyLink = (link: string) => {

@@ -41,6 +41,7 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -414,6 +415,7 @@ const Tasks: React.FC = () => {
             />
           }
         />
+        <TipBox entityName="tasks" />
         <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
           <Stack direction="row" gap="8px" alignItems="center">
             <ExportMenu

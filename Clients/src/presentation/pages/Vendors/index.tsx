@@ -48,6 +48,7 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
+import TipBox from "../../components/TipBox";
 import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
 import { GroupBy } from "../../components/Table/GroupBy";
@@ -691,6 +692,7 @@ const Vendors = () => {
               ) : undefined}
             />
           </Box>
+          <TipBox entityName="vendors" />
 
           <Box sx={{ mt: 2 }}>
             <TabBar

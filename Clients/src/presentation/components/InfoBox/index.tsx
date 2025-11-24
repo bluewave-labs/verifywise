@@ -6,9 +6,11 @@ interface InfoBoxProps {
   message: string;
   storageKey: string; // Unique key for localStorage to track dismissal
   variant?: "info" | "warning"; // Icon type: info (green) or warning (yellow)
+  header?: string; // Optional header for tips
+  onDismiss?: () => void; // Optional custom dismiss handler
 }
 
-const InfoBox = ({ message, storageKey, variant = "info" }: InfoBoxProps) => {
+const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
 
@@ -38,6 +40,11 @@ const InfoBox = ({ message, storageKey, variant = "info" }: InfoBoxProps) => {
     // Save dismissal to localStorage
     localStorage.setItem(`infoBox_${storageKey}`, "true");
     setIsVisible(false);
+
+    // Call custom dismiss handler if provided
+    if (onDismiss) {
+      onDismiss();
+    }
   };
 
   if (!isVisible) {
@@ -59,16 +66,31 @@ const InfoBox = ({ message, storageKey, variant = "info" }: InfoBoxProps) => {
         gap: 2,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-        <Icon size={18} strokeWidth={2} color={color} />
-        <Typography
-          sx={{
-            fontSize: 13,
-            color: theme.palette.text.secondary,
-          }}
-        >
-          {message}
-        </Typography>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+        <Icon size={18} strokeWidth={2} color={color} style={{ marginTop: 2, flexShrink: 0 }} />
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, flex: 1 }}>
+          {header && (
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                lineHeight: 1.5,
+              }}
+            >
+              {header}
+            </Typography>
+          )}
+          <Typography
+            sx={{
+              fontSize: 13,
+              color: theme.palette.text.secondary,
+              lineHeight: 1.5,
+            }}
+          >
+            {message}
+          </Typography>
+        </Box>
       </Box>
       <IconButton
         onClick={handleClose}

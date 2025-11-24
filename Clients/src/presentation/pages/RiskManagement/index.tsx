@@ -24,6 +24,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/HelperDrawer";
+import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
@@ -404,6 +405,7 @@ const RiskManagement = () => {
             />
           }
         />
+        <TipBox entityName="risk-management" />
 
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>

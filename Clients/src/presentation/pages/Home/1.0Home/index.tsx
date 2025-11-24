@@ -18,6 +18,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
+import TipBox from "../../../components/TipBox";
 
 const Home = () => {
   const location = useLocation();
@@ -92,6 +93,7 @@ const Home = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
+      <TipBox entityName="overview" />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}

@@ -22,6 +22,7 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
 import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+import TipBox from "../../components/TipBox";
 
 // Constants (DRY + Maintainability)
 const FILE_MANAGER_CONTEXT = 'FileManager';
@@ -203,6 +204,7 @@ const FileManager: React.FC = (): JSX.Element => {
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
+      <TipBox entityName="file-manager" />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
         <>

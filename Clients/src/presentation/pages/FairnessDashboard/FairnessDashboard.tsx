@@ -39,6 +39,7 @@ import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
 import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
+import TipBox from "../../components/TipBox";
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState(() => {
@@ -299,6 +300,7 @@ export default function FairnessDashboard() {
           }
         />
       </Box>
+      <TipBox entityName="fairness-dashboard" />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert

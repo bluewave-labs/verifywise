@@ -51,6 +51,7 @@ import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
+import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { EvidenceType } from "../../../domain/enums/evidenceHub.enum";
@@ -1274,6 +1275,7 @@ const ModelInventory: React.FC = () => {
                       />
                   }
               />
+              <TipBox entityName="model-inventory" />
 
               {/* Summary Cards */}
               {activeTab === "models" && (

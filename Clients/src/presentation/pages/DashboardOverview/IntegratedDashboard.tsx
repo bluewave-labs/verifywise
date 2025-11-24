@@ -59,6 +59,7 @@ import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
 import { MetricCardProps } from "../../../domain/interfaces/iDashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
+import TipBox from "../../components/TipBox";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -1771,6 +1772,9 @@ const IntegratedDashboard: React.FC = () => {
           </Box>
         </Box>
       </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="dashboard" />
 
       {/* CSS for drag and drop */}
       <style>{`

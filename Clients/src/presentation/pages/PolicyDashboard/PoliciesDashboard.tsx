@@ -8,6 +8,7 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";
+import TipBox from "../../components/TipBox";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 import {
   getAllPolicies,
@@ -105,6 +106,7 @@ const PolicyDashboard: React.FC = () => {
             />
           }
         />
+        <TipBox entityName="policies" />
         <Box sx={{ mt: 2 }}>
           <TabBar
             tabs={[

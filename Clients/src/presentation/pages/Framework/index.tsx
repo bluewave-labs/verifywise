@@ -44,6 +44,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
+import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
 import FrameworkRisks from "./FrameworkRisks";
@@ -946,6 +947,7 @@ const Framework = () => {
           )}
         </Box>
       </Stack>
+      <TipBox entityName="framework" />
 
       {/* <Box
         sx={{

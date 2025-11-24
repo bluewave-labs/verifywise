@@ -16,6 +16,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
+import TipBox from "../../components/TipBox";
 import SelectComponent from "../../components/Inputs/Select";
 import {
     addNewIncidentButton,
@@ -526,6 +527,7 @@ const IncidentManagement: React.FC = () => {
                         }
                     />
                 </Stack>
+                <TipBox entityName="ai-incident-managements" />
 
                 {/* Incident by Status Cards */}
                 {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}

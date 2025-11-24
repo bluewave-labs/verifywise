@@ -415,7 +415,6 @@ const Tasks: React.FC = () => {
             />
           }
         />
-        <TipBox entityName="tasks" />
         <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
           <Stack direction="row" gap="8px" alignItems="center">
             <ExportMenu
@@ -439,6 +438,9 @@ const Tasks: React.FC = () => {
           </Stack>
         </Stack>
       </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="tasks" />
 
       {/* Header Cards */}
       <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">

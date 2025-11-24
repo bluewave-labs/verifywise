@@ -578,12 +578,12 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         type: QueryTypes.SELECT,
       }) as any[];
 
+      // For table views, allow empty arrays (don't return 404)
       if (resourceResult.length === 0) {
-        logStructured('error', `no resources found: ${resourceType}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
-        return res.status(404).json(STATUS_CODE[404]({ message: "No resources found" }));
+        logStructured('info', `no resources found for ${resourceType} table view, returning empty array`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
       }
 
-      resourceData = resourceResult; // Return array of records for table view
+      resourceData = resourceResult; // Return array of records for table view (can be empty)
     } else {
       // Fetch single record
       resourceQuery = `
@@ -615,25 +615,42 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       // Show all fields
       filteredData = resourceData;
     } else {
-      // Show only essential fields
+      // Show only essential fields based on resource type
+      const getEssentialFields = (record: any, resourceType: string) => {
+        // Resource-specific essential fields
+        switch (resourceType) {
+          case 'model':
+            return {
+              id: record.id,
+              provider: record.provider,
+              model: record.model,
+              version: record.version,
+              status: record.status,
+              created_at: record.created_at,
+              updated_at: record.updated_at,
+            };
+          case 'vendor':
+          case 'project':
+          case 'policy':
+          case 'risk':
+          default:
+            // Generic fallback for other resource types
+            return {
+              id: record.id,
+              name: record.name || record.title || record.model_name,
+              description: record.description,
+              created_at: record.created_at,
+              updated_at: record.updated_at,
+            };
+        }
+      };
+
       if (Array.isArray(resourceData)) {
         // For table view (array of records), filter each record
-        filteredData = resourceData.map(record => ({
-          id: record.id,
-          name: record.name || record.title || record.model_name,
-          description: record.description,
-          created_at: record.created_at,
-          updated_at: record.updated_at,
-        }));
+        filteredData = resourceData.map(record => getEssentialFields(record, resourceType));
       } else {
         // For single record, filter fields
-        filteredData = {
-          id: resourceData.id,
-          name: resourceData.name || resourceData.title || resourceData.model_name,
-          description: resourceData.description,
-          created_at: resourceData.created_at,
-          updated_at: resourceData.updated_at,
-        };
+        filteredData = getEssentialFields(resourceData, resourceType);
       }
     }
 

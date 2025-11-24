@@ -387,18 +387,10 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                   helpText="Enable data export functionality for viewers"
                 />
                 <SettingItem
-                  label="Allow viewers to open records"
-                  checked={settings.allowViewersToOpenRecords}
-                  onChange={() =>
-                    handleSettingChange("allowViewersToOpenRecords")
-                  }
-                  helpText="Let viewers open and view individual records"
-                />
-                <SettingItem
                   label="Display toolbar"
                   checked={settings.displayToolbar}
                   onChange={() => handleSettingChange("displayToolbar")}
-                  helpText="Show the toolbar in the shared view"
+                  helpText="Show the gray header bar above the table that displays the resource type"
                 />
               </Box>
             </Box>

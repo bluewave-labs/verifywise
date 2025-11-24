@@ -532,8 +532,13 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       return res.status(404).json(STATUS_CODE[404]({ message: "Share link not found" }));
     }
 
+    // Log share link details for debugging
+    logStructured('processing', `validating share link: id=${shareLink.id}, is_enabled=${shareLink.is_enabled} (type: ${typeof shareLink.is_enabled}), expires_at=${shareLink.expires_at}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+
     // Validate the share link
     const is_valid = shareLink.is_enabled && (!shareLink.expires_at || new Date() <= new Date(shareLink.expires_at));
+
+    logStructured('processing', `validation result: is_valid=${is_valid}, is_enabled=${shareLink.is_enabled}, expires_check=${!shareLink.expires_at || new Date() <= new Date(shareLink.expires_at)}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
 
     if (!is_valid) {
       logStructured('error', `share link is disabled or expired`, 'getSharedDataByToken', 'shareLink.ctrl.ts');

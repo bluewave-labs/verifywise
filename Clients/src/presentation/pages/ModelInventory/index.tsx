@@ -5,12 +5,10 @@ import {
   Box,
   Stack,
   Fade,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Modal,
   Typography,
   Button,
+  useTheme,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, TrendingUp } from "lucide-react";
@@ -124,6 +122,7 @@ const ModelInventory: React.FC = () => {
   const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+  const theme = useTheme();
 
   // Share link mutations
   const createShareMutation = useCreateShareLink();
@@ -1185,44 +1184,109 @@ const ModelInventory: React.FC = () => {
               </Suspense>
           )}
 
-          {/* Replace Share Link Confirmation Dialog */}
-          <Dialog
+          {/* Replace Share Link Confirmation Modal */}
+          <Modal
               open={showReplaceConfirmation}
-              onClose={() => setShowReplaceConfirmation(false)}
+              onClose={(_event, reason) => {
+                  if (reason !== "backdropClick") {
+                      setShowReplaceConfirmation(false);
+                  }
+              }}
           >
-              <DialogTitle sx={{ fontWeight: 600, fontSize: "18px" }}>
-                  Replace Share Link?
-              </DialogTitle>
-              <DialogContent>
-                  <Typography sx={{ fontSize: "14px", color: "#666" }}>
+              <Stack
+                  gap={theme.spacing(2)}
+                  color={theme.palette.text.secondary}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                  }}
+                  sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 450,
+                      bgcolor: theme.palette.background.modal,
+                      border: 1,
+                      borderColor: theme.palette.border.dark,
+                      borderRadius: theme.shape.borderRadius,
+                      boxShadow: 24,
+                      p: theme.spacing(15),
+                      "&:focus": {
+                          outline: "none",
+                      },
+                  }}
+              >
+                  <Typography
+                      fontSize={16}
+                      fontWeight={600}
+                  >
+                      Replace Share Link?
+                  </Typography>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                  >
                       This will invalidate the current share link and generate a new one.
                       Anyone with the old link will no longer be able to access the shared view.
                   </Typography>
-                  <Typography sx={{ fontSize: "14px", color: "#666", mt: 2 }}>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                      mt={theme.spacing(4)}
+                  >
                       Do you want to continue?
                   </Typography>
-              </DialogContent>
-              <DialogActions sx={{ px: 3, pb: 2 }}>
-                  <Button
-                      onClick={() => setShowReplaceConfirmation(false)}
-                      sx={{ color: "#666" }}
+                  <Stack
+                      direction="row"
+                      gap={theme.spacing(4)}
+                      mt={theme.spacing(12)}
+                      justifyContent="flex-end"
                   >
-                      Cancel
-                  </Button>
-                  <Button
-                      onClick={handleConfirmReplace}
-                      variant="contained"
-                      sx={{
-                          backgroundColor: "#13715B",
-                          "&:hover": {
-                              backgroundColor: "#0f5a48",
-                          },
-                      }}
-                  >
-                      Replace Link
-                  </Button>
-              </DialogActions>
-          </Dialog>
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="text"
+                          color="inherit"
+                          onClick={() => setShowReplaceConfirmation(false)}
+                          sx={{
+                              width: 100,
+                              textTransform: "capitalize",
+                              fontSize: 13,
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "transparent",
+                              },
+                          }}
+                      >
+                          Cancel
+                      </Button>
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="contained"
+                          onClick={handleConfirmReplace}
+                          sx={{
+                              width: 160,
+                              fontSize: 13,
+                              backgroundColor: "#13715B",
+                              border: "1px solid #13715B",
+                              boxShadow: "none",
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "#0f5a48",
+                              },
+                          }}
+                      >
+                          Replace Link
+                      </Button>
+                  </Stack>
+              </Stack>
+          </Modal>
 
           <Stack sx={mainStackStyle}>
               <PageHeader

@@ -9,7 +9,10 @@ import {
   Typography,
   Button,
   useTheme,
+<<<<<<< HEAD
   IconButton,
+=======
+>>>>>>> 31c02d4ae (Use proper VerifyWise modal pattern for share link confirmation)
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";

@@ -170,6 +170,7 @@ const ModelInventory: React.FC = () => {
   });
   const [isShareEnabled, setIsShareEnabled] = useState(false);
   const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -544,7 +545,15 @@ const ModelInventory: React.FC = () => {
   };
 
   const generateShareableLink = async (settings: ShareViewSettings): Promise<string> => {
+    // Prevent concurrent link creation
+    if (isCreatingLink) {
+      console.log("Link creation already in progress, skipping...");
+      return shareableLink;
+    }
+
     try {
+      setIsCreatingLink(true);
+
       // Create share link via API
       const result = await createShareMutation.mutateAsync({
         resource_type: "model",
@@ -564,6 +573,8 @@ const ModelInventory: React.FC = () => {
         body: "Failed to generate share link. Please try again.",
       });
       return "";
+    } finally {
+      setIsCreatingLink(false);
     }
   };
 

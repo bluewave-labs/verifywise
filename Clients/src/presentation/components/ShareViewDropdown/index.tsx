@@ -213,20 +213,18 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
               >
                 Share view
               </Typography>
-              {!isEnabled && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: "13px",
-                    color: "#666",
-                    lineHeight: 1.4,
-                    marginTop: "8px",
-                  }}
-                >
-                  Send a view only link to anyone or embed this report on a
-                  website
-                </Typography>
-              )}
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: "13px",
+                  color: "#666",
+                  lineHeight: 1.4,
+                  marginTop: "8px",
+                }}
+              >
+                Send a view only link to anyone or embed this report on a
+                website
+              </Typography>
             </Box>
             <Toggle
               checked={isEnabled}

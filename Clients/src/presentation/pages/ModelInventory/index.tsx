@@ -631,20 +631,32 @@ const ModelInventory: React.FC = () => {
       const existingLinksResponse = await apiServices.get("/shares/model/0");
       const existingLinks = existingLinksResponse?.data || [];
 
-      console.log(`Found ${existingLinks.length} existing share links`);
+      console.log(`Found ${existingLinks.length} existing share links:`, existingLinks);
 
       // Disable all existing links
+      let disabledCount = 0;
       for (const link of existingLinks) {
+        console.log(`Processing link ID ${link.id}: is_enabled=${link.is_enabled}, share_token=${link.share_token}`);
+
         if (link.is_enabled) {
-          console.log(`Disabling share link ID: ${link.id}`);
-          await updateShareMutation.mutateAsync({
-            id: link.id,
-            is_enabled: false,
-          });
+          console.log(`Attempting to disable share link ID: ${link.id}`);
+          try {
+            const updateResult = await updateShareMutation.mutateAsync({
+              id: link.id,
+              is_enabled: false,
+            });
+            console.log(`Successfully disabled link ID ${link.id}. Update result:`, updateResult);
+            disabledCount++;
+          } catch (updateError) {
+            console.error(`Failed to disable link ID ${link.id}:`, updateError);
+            throw updateError;
+          }
+        } else {
+          console.log(`Link ID ${link.id} is already disabled, skipping`);
         }
       }
 
-      console.log("All previous links disabled");
+      console.log(`All previous links disabled. Total disabled: ${disabledCount}`);
 
       // Create a new link
       console.log("Creating new share link...");
@@ -653,7 +665,7 @@ const ModelInventory: React.FC = () => {
 
       setAlert({
         variant: "success",
-        body: `Share link replaced successfully! ${existingLinks.length} previous link(s) invalidated.`,
+        body: `Share link replaced successfully! ${disabledCount} previous link(s) invalidated.`,
       });
     } catch (error) {
       console.error("Error replacing share link:", error);

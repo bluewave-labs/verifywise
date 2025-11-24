@@ -303,8 +303,9 @@ export const updateShareLink = async (req: Request, res: Response) => {
   const { settings, is_enabled, expires_at }: IShareLinkUpdate = req.body;
   const tenantId = req.tenantId!;
 
-  logStructured('processing', `updating share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
+  logStructured('processing', `updating share link ${id} with body: ${JSON.stringify(req.body)}`, 'updateShareLink', 'shareLink.ctrl.ts');
   logger.debug(`🛠️ Updating share link: ${id} in tenant ${tenantId}`);
+  console.log(`[UPDATE DEBUG] ID: ${id}, is_enabled: ${is_enabled} (type: ${typeof is_enabled}), settings: ${JSON.stringify(settings)}`);
 
   try {
     // First, fetch the share link to verify ownership
@@ -327,6 +328,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
     }
 
     const shareLink = result[0];
+    console.log(`[UPDATE DEBUG] Current state before update - ID: ${shareLink.id}, is_enabled: ${shareLink.is_enabled}`);
 
     // Check if user owns this share link
     if (shareLink.created_by !== req.userId) {
@@ -378,7 +380,8 @@ export const updateShareLink = async (req: Request, res: Response) => {
 
     const updatedLink = updateResult[0][0];
 
-    logStructured('successful', `updated share link ${id}`, 'updateShareLink', 'shareLink.ctrl.ts');
+    console.log(`[UPDATE DEBUG] After update - ID: ${updatedLink.id}, is_enabled: ${updatedLink.is_enabled} (type: ${typeof updatedLink.is_enabled})`);
+    logStructured('successful', `updated share link ${id} - new is_enabled: ${updatedLink.is_enabled}`, 'updateShareLink', 'shareLink.ctrl.ts');
     logger.debug(`✅ Updated share link: ${id}`);
 
     await transaction.commit();

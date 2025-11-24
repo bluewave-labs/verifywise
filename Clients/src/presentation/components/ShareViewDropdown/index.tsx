@@ -28,8 +28,6 @@ export interface ShareViewSettings {
   allowDataExport: boolean;
   /** Whether to allow viewers to open individual records */
   allowViewersToOpenRecords: boolean;
-  /** Whether to display the toolbar */
-  displayToolbar: boolean;
 }
 
 /**
@@ -66,7 +64,6 @@ const defaultSettings: ShareViewSettings = {
   shareAllFields: false,
   allowDataExport: true,
   allowViewersToOpenRecords: false,
-  displayToolbar: true,
 };
 
 /**
@@ -385,12 +382,6 @@ const ShareViewDropdown: React.FC<ShareViewDropdownProps> = ({
                   checked={settings.allowDataExport}
                   onChange={() => handleSettingChange("allowDataExport")}
                   helpText="Enable data export functionality for viewers"
-                />
-                <SettingItem
-                  label="Display toolbar"
-                  checked={settings.displayToolbar}
-                  onChange={() => handleSettingChange("displayToolbar")}
-                  helpText="Show the gray header bar above the table that displays the resource type"
                 />
               </Box>
             </Box>

@@ -57,7 +57,6 @@ export const createShareLink = async (req: Request, res: Response) => {
       shareAllFields: false,
       allowDataExport: true,
       allowViewersToOpenRecords: false,
-      displayToolbar: true,
     };
 
     const finalSettings = settings || defaultSettings;
@@ -667,7 +666,6 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       permissions: {
         allowDataExport: settings.allowDataExport || false,
         allowViewersToOpenRecords: settings.allowViewersToOpenRecords || false,
-        displayToolbar: settings.displayToolbar !== undefined ? settings.displayToolbar : true,
       },
     };
 

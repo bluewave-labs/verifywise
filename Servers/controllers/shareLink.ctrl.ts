@@ -581,7 +581,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
 
       // For table views, allow empty arrays (don't return 404)
       if (resourceResult.length === 0) {
-        logStructured('info', `no resources found for ${resourceType} table view, returning empty array`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
+        logStructured('successful', `no resources found for ${resourceType} table view, returning empty array`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
       }
 
       resourceData = resourceResult; // Return array of records for table view (can be empty)

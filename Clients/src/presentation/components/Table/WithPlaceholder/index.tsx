@@ -142,6 +142,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   vendors,
   onDelete,
   onEdit,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -317,7 +318,10 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       <TableBody>
         {sortedVendors &&
           sortedVendors
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedVendors.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((row: VendorModel, index: number) => (
               <TableRow
                 key={index}
@@ -486,25 +490,26 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
               onSort={handleSort}
             />
             {tableBody}
-            <TableFooter>
-              <TableRow
-                sx={{
-                  "& .MuiTableCell-root.MuiTableCell-footer": {
-                    paddingX: theme.spacing(8),
-                    paddingY: theme.spacing(4),
-                  },
-                }}
-              >
-                <TableCell
+            {!hidePagination && (
+              <TableFooter>
+                <TableRow
                   sx={{
-                    paddingX: theme.spacing(2),
-                    fontSize: 12,
-                    opacity: 0.7,
+                    "& .MuiTableCell-root.MuiTableCell-footer": {
+                      paddingX: theme.spacing(8),
+                      paddingY: theme.spacing(4),
+                    },
                   }}
                 >
-                  Showing {getRange} of {sortedVendors?.length} vendor(s)
-                </TableCell>
-                <TablePagination
+                  <TableCell
+                    sx={{
+                      paddingX: theme.spacing(2),
+                      fontSize: 12,
+                      opacity: 0.7,
+                    }}
+                  >
+                    Showing {getRange} of {sortedVendors?.length} vendor(s)
+                  </TableCell>
+                  <TablePagination
                   count={sortedVendors?.length}
                   page={page}
                   onPageChange={handleChangePage}
@@ -572,6 +577,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                 />
               </TableRow>
             </TableFooter>
+            )}
           </Table>
         </TableContainer>
       )}

@@ -50,6 +50,9 @@ import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 
 // Constants
@@ -74,6 +77,12 @@ const Vendors = () => {
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // GroupBy state - vendors tab
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // GroupBy state - risks tab
+  const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -465,6 +474,76 @@ const Vendors = () => {
     return filtered;
   }, [vendors, searchQuery, statusFilter]);
 
+  // Define how to get the group key for each vendor
+  const getVendorGroupKey = (vendor: VendorModel, field: string): string | string[] => {
+    switch (field) {
+      case 'review_status':
+        const statusMap: Record<ReviewStatus, string> = {
+          [ReviewStatus.NotStarted]: 'Not started',
+          [ReviewStatus.InReview]: 'In review',
+          [ReviewStatus.Reviewed]: 'Reviewed',
+          [ReviewStatus.RequiresFollowUp]: 'Requires follow-up',
+        };
+        return statusMap[vendor.review_status as ReviewStatus] || 'Unknown';
+      case 'data_sensitivity':
+        return vendor.data_sensitivity || 'Unknown';
+      case 'business_criticality':
+        return vendor.business_criticality || 'Unknown';
+      case 'assignee':
+        if (vendor.assignee) {
+          const user = users.find((u) => u.id === Number(vendor.assignee));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'reviewer':
+        if (vendor.reviewer) {
+          const user = users.find((u) => u.id === Number(vendor.reviewer));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'No Reviewer';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered vendors
+  const groupedVendors = useTableGrouping({
+    data: filteredVendors,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getVendorGroupKey,
+  });
+
+  // Define how to get the group key for each vendor risk
+  const getVendorRiskGroupKey = (risk: any, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_severity':
+        return risk.risk_severity || 'Unknown';
+      case 'likelihood':
+        return risk.likelihood || 'Unknown';
+      case 'risk_level':
+        return risk.risk_level || 'Unknown';
+      case 'vendor_name':
+        return risk.vendor_name || 'Unknown Vendor';
+      case 'action_owner':
+        if (risk.action_owner) {
+          const user = users.find((u) => u.id === Number(risk.action_owner));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to vendor risks
+  const groupedVendorRisks = useTableGrouping({
+    data: vendorRisks || [],
+    groupByField: groupByRisk,
+    sortOrder: groupSortOrderRisk,
+    getGroupKey: getVendorRiskGroupKey,
+  });
+
   // Define export columns for vendor table
   const exportColumns = useMemo(() => {
     return [
@@ -702,6 +781,16 @@ const Vendors = () => {
                         borderRadius: theme.shape.borderRadius,
                       }}
                     />
+                    <GroupBy
+                      options={[
+                        { id: 'review_status', label: 'Status' },
+                        { id: 'assignee', label: 'Assignee' },
+                        { id: 'reviewer', label: 'Reviewer' },
+                        { id: 'data_sensitivity', label: 'Data sensitivity' },
+                        { id: 'business_criticality', label: 'Business criticality' },
+                      ]}
+                      onGroupChange={handleGroupChange}
+                    />
                   </Stack>
                   <Stack direction="row" gap="8px" alignItems="center">
                     <ExportMenu
@@ -797,6 +886,16 @@ const Vendors = () => {
                       borderRadius: theme.shape.borderRadius,
                     }}
                   />
+                  <GroupBy
+                    options={[
+                      { id: 'risk_severity', label: 'Risk severity' },
+                      { id: 'likelihood', label: 'Likelihood' },
+                      { id: 'risk_level', label: 'Risk level' },
+                      { id: 'vendor_name', label: 'Vendor' },
+                      { id: 'action_owner', label: 'Action owner' },
+                    ]}
+                    onGroupChange={handleGroupChangeRisk}
+                  />
                 </Stack>
                 <Stack direction="row" gap="8px" alignItems="center">
                   <ExportMenu
@@ -836,11 +935,18 @@ const Vendors = () => {
             />
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
-              <TableWithPlaceholder
-                vendors={filteredVendors}
-                users={users}
-                onDelete={handleDeleteVendor}
-                onEdit={handleEditVendor}
+              <GroupedTableView
+                groupedData={groupedVendors}
+                ungroupedData={filteredVendors}
+                renderTable={(data, options) => (
+                  <TableWithPlaceholder
+                    vendors={data}
+                    users={users}
+                    onDelete={handleDeleteVendor}
+                    onEdit={handleEditVendor}
+                    hidePagination={options?.hidePagination}
+                  />
+                )}
               />
             </TabPanel>
           )}
@@ -855,13 +961,20 @@ const Vendors = () => {
             />
           ) : (
             <TabPanel value="2" sx={tabPanelStyle}>
-              <RiskTable
-                users={users}
-                vendors={vendors}
-                vendorRisks={vendorRisks}
-                onDelete={handleDeleteRisk}
-                onEdit={handleEditRisk}
-                isDeletingAllowed={isDeletingAllowed}
+              <GroupedTableView
+                groupedData={groupedVendorRisks}
+                ungroupedData={vendorRisks || []}
+                renderTable={(data, options) => (
+                  <RiskTable
+                    users={users}
+                    vendors={vendors}
+                    vendorRisks={data}
+                    onDelete={handleDeleteRisk}
+                    onEdit={handleEditRisk}
+                    isDeletingAllowed={isDeletingAllowed}
+                    hidePagination={options?.hidePagination}
+                  />
+                )}
               />
             </TabPanel>
           )}

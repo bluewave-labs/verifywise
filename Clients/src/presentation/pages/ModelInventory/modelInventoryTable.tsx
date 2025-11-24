@@ -128,6 +128,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onCheckModelHasRisks,
   paginated = true,
   deletingId,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -224,7 +225,10 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <TableBody>
         {data?.length > 0 ? (
           data
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(data.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((modelInventory) => (
               <TableRow
                 key={modelInventory.id}
@@ -403,7 +407,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow sx={tableFooterRowStyle(theme)}>
               <TableCell sx={showingTextCellStyle(theme)}>

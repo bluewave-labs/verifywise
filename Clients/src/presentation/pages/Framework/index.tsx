@@ -805,7 +805,6 @@ const Framework = () => {
             />
           }
         />
-        <TipBox entityName="framework" />
         {/* Manage Project / New Project Button */}
         <Box>
           {organizationalProject ? (
@@ -948,6 +947,9 @@ const Framework = () => {
           )}
         </Box>
       </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="framework" />
 
       {/* <Box
         sx={{

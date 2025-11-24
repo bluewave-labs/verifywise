@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, lazy, Suspense, useEffect } from "react";
 import {
   Box,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -392,32 +391,70 @@ const TeamManagement: React.FC = (): JSX.Element => {
               mb: 3,
             }}
           >
-            <Box sx={{ display: "flex", mb: 2, mt: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                mb: 2,
+                mt: 2,
+                position: "relative",
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                borderRadius: "4px",
+                overflow: "hidden",
+                height: 34,
+                bgcolor: "action.hover",
+                width: "fit-content",
+                padding: "2px",
+                gap: "2px",
+              }}
+            >
               {rolesLoading ? (
                 <Typography>Loading roles...</Typography>
               ) : (
-                [{ _id: 0, name: "All" }, ...roleItems].map((role) => (
-                  <Button
-                    key={role._id}
-                    disableRipple
-                    variant={filter === role._id ? "contained" : "outlined"}
-                    onClick={() => setFilter(role._id | 0)}
+                <>
+                  {/* Sliding background indicator */}
+                  <Box
                     sx={{
-                      borderRadius: 0,
-                      color: "#344054",
-                      borderColor: "#EAECF0",
-                      backgroundColor:
-                        filter === role._id ? "#EAECF0" : "transparent",
-                      "&:hover": {
-                        backgroundColor:
-                          filter === role._id ? "#D0D4DA" : "transparent",
-                      },
-                      fontWeight: filter === role._id ? "medium" : "normal",
+                      position: "absolute",
+                      top: "2px",
+                      left: "2px",
+                      height: "calc(100% - 4px)",
+                      width: `calc((100% - ${([{ _id: 0, name: "All" }, ...roleItems].length + 1) * 2}px) / ${[{ _id: 0, name: "All" }, ...roleItems].length})`,
+                      bgcolor: "background.paper",
+                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      borderRadius: "4px",
+                      transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      transform: `translateX(calc(${[{ _id: 0, name: "All" }, ...roleItems].findIndex((r) => r._id === filter)} * (100% + 2px)))`,
+                      zIndex: 0,
                     }}
-                  >
-                    {role.name}
-                  </Button>
-                ))
+                  />
+                  {/* Button options */}
+                  {[{ _id: 0, name: "All" }, ...roleItems].map((role) => (
+                    <Box
+                      key={role._id}
+                      onClick={() => setFilter(role._id | 0)}
+                      sx={{
+                        cursor: "pointer",
+                        px: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        color: "text.primary",
+                        fontFamily: (theme) => theme.typography.fontFamily,
+                        fontSize: "13px",
+                        fontWeight: (theme) => theme.typography.body2.fontWeight,
+                        userSelect: "none",
+                        width: "fit-content",
+                        minWidth: "120px",
+                        position: "relative",
+                        zIndex: 1,
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      {role.name}
+                    </Box>
+                  ))}
+                </>
               )}
             </Box>
 

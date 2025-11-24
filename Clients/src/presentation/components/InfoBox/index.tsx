@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, IconButton, useTheme } from "@mui/material";
+import { Box, Typography, IconButton, useTheme, keyframes } from "@mui/material";
 import { X, Info, AlertCircle } from "lucide-react";
+
+// Fade-out animation
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+`;
 
 interface InfoBoxProps {
   message: string;
@@ -27,6 +39,7 @@ const InfoBox = ({
 }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Icon configuration based on variant
   const iconConfig = {
@@ -53,16 +66,22 @@ const InfoBox = ({
   }, [storageKey, disableInternalStorage]);
 
   const handleClose = () => {
-    // Save dismissal to localStorage (only if using internal storage)
-    if (!disableInternalStorage) {
-      localStorage.setItem(`infoBox_${storageKey}`, "true");
-    }
-    setIsVisible(false);
+    // Trigger fade-out animation
+    setIsClosing(true);
 
-    // Call custom dismiss handler if provided
-    if (onDismiss) {
-      onDismiss();
-    }
+    // Wait for animation to complete, then hide and cleanup
+    setTimeout(() => {
+      // Save dismissal to localStorage (only if using internal storage)
+      if (!disableInternalStorage) {
+        localStorage.setItem(`infoBox_${storageKey}`, "true");
+      }
+      setIsVisible(false);
+
+      // Call custom dismiss handler if provided
+      if (onDismiss) {
+        onDismiss();
+      }
+    }, 300); // Match animation duration
   };
 
   if (!isVisible) {
@@ -82,6 +101,7 @@ const InfoBox = ({
         borderRadius: "4px",
         border: `1px solid ${borderColor || theme.palette.divider}`,
         gap: 2,
+        animation: isClosing ? `${fadeOut} 0.3s ease-out forwards` : "none",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>

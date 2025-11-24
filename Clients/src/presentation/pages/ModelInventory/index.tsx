@@ -617,18 +617,24 @@ const ModelInventory: React.FC = () => {
     try {
       // Disable the old link if it exists
       if (shareLinkId) {
-        await updateShareMutation.mutateAsync({
+        console.log("Disabling old share link ID:", shareLinkId);
+        const updateResult = await updateShareMutation.mutateAsync({
           id: shareLinkId,
           is_enabled: false,
         });
+        console.log("Old link disabled successfully:", updateResult);
+      } else {
+        console.warn("No existing share link ID to disable");
       }
 
       // Create a new link
-      await generateShareableLink(shareSettings);
+      console.log("Creating new share link...");
+      const newLink = await generateShareableLink(shareSettings);
+      console.log("New share link created:", newLink);
 
       setAlert({
         variant: "success",
-        body: "Share link replaced successfully!",
+        body: "Share link replaced successfully! Previous link has been invalidated.",
       });
     } catch (error) {
       console.error("Error replacing share link:", error);

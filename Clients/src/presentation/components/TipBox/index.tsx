@@ -45,7 +45,7 @@ const TipBox = ({ entityName }: TipBoxProps) => {
         variant="info"
         onDismiss={dismissTip}
         disableInternalStorage={true}
-        backgroundColor="#EFF6FF"
+        backgroundColor="linear-gradient(135deg, #EFF6FF 0%, #F8FBFF 100%)"
         borderColor="#DBEAFE"
         tipCounter={`Tip ${currentTipNumber} of ${totalTips}`}
       />

@@ -77,7 +77,7 @@ const InfoBox = ({
         justifyContent: "space-between",
         fontSize: 13,
         color: theme.palette.text.secondary,
-        backgroundColor: backgroundColor || theme.palette.background.paper,
+        background: backgroundColor || theme.palette.background.paper,
         padding: "12px 16px",
         borderRadius: "4px",
         border: `1px solid ${borderColor || theme.palette.divider}`,

@@ -11,6 +11,7 @@ interface InfoBoxProps {
   disableInternalStorage?: boolean; // When true, skip internal localStorage management (use onDismiss instead)
   backgroundColor?: string; // Optional custom background color
   borderColor?: string; // Optional custom border color
+  tipCounter?: string; // Optional tip counter text (e.g., "Tip 1 of 4")
 }
 
 const InfoBox = ({
@@ -21,7 +22,8 @@ const InfoBox = ({
   onDismiss,
   disableInternalStorage = false,
   backgroundColor,
-  borderColor
+  borderColor,
+  tipCounter
 }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
@@ -86,16 +88,34 @@ const InfoBox = ({
         <Icon size={18} strokeWidth={2} color={color} style={{ marginTop: 2, flexShrink: 0 }} />
         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, flex: 1 }}>
           {header && (
-            <Typography
-              sx={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                lineHeight: 1.5,
-              }}
-            >
-              {header}
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  lineHeight: 1.5,
+                  flex: 1,
+                }}
+              >
+                {header}
+              </Typography>
+              {tipCounter && (
+                <Typography
+                  sx={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    color: "#999",
+                    backgroundColor: "#F5F5F5",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {tipCounter}
+                </Typography>
+              )}
+            </Box>
           )}
           <Typography
             sx={{

@@ -47,7 +47,7 @@ const getColorForEntity = (entityName: string) => {
  * The next tip appears on the user's next visit to the entity page.
  */
 const TipBox = ({ entityName }: TipBoxProps) => {
-  const { currentTip, dismissTip } = useTipManager(entityName);
+  const { currentTip, dismissTip, currentTipNumber, totalTips } = useTipManager(entityName);
   const colorScheme = getColorForEntity(entityName);
 
   if (!currentTip) {
@@ -87,6 +87,7 @@ const TipBox = ({ entityName }: TipBoxProps) => {
         disableInternalStorage={true}
         backgroundColor={colorScheme.bg}
         borderColor={colorScheme.border}
+        tipCounter={`Tip ${currentTipNumber} of ${totalTips}`}
       />
     </Box>
   );

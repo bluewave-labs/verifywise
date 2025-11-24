@@ -91,5 +91,7 @@ export const useTipManager = (entityName: string) => {
     currentTip,
     dismissTip,
     hasTips: entityTips.length > 0,
+    currentTipNumber: currentTipIndex !== null ? currentTipIndex + 1 : 0,
+    totalTips: entityTips.length,
   };
 };

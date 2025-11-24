@@ -8,9 +8,10 @@ interface InfoBoxProps {
   variant?: "info" | "warning"; // Icon type: info (green) or warning (yellow)
   header?: string; // Optional header for tips
   onDismiss?: () => void; // Optional custom dismiss handler
+  disableInternalStorage?: boolean; // When true, skip internal localStorage management (use onDismiss instead)
 }
 
-const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss }: InfoBoxProps) => {
+const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss, disableInternalStorage = false }: InfoBoxProps) => {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
 
@@ -28,17 +29,21 @@ const InfoBox = ({ message, storageKey, variant = "info", header, onDismiss }: I
 
   const { Icon, color } = iconConfig[variant];
 
-  // Check if this info box has been dismissed before
+  // Check if this info box has been dismissed before (only if using internal storage)
   useEffect(() => {
+    if (disableInternalStorage) return;
+
     const dismissed = localStorage.getItem(`infoBox_${storageKey}`);
     if (dismissed === "true") {
       setIsVisible(false);
     }
-  }, [storageKey]);
+  }, [storageKey, disableInternalStorage]);
 
   const handleClose = () => {
-    // Save dismissal to localStorage
-    localStorage.setItem(`infoBox_${storageKey}`, "true");
+    // Save dismissal to localStorage (only if using internal storage)
+    if (!disableInternalStorage) {
+      localStorage.setItem(`infoBox_${storageKey}`, "true");
+    }
     setIsVisible(false);
 
     // Call custom dismiss handler if provided

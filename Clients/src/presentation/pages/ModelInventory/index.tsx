@@ -615,17 +615,25 @@ const ModelInventory: React.FC = () => {
     setShowReplaceConfirmation(false);
 
     try {
-      // Disable the old link if it exists
-      if (shareLinkId) {
-        console.log("Disabling old share link ID:", shareLinkId);
-        const updateResult = await updateShareMutation.mutateAsync({
-          id: shareLinkId,
-          is_enabled: false,
-        });
-        console.log("Old link disabled successfully:", updateResult);
-      } else {
-        console.warn("No existing share link ID to disable");
+      // Fetch ALL existing share links for this resource and disable them
+      console.log("Fetching all share links for model/0...");
+      const existingLinksResponse = await apiServices.get("/shares/model/0");
+      const existingLinks = existingLinksResponse?.data || [];
+
+      console.log(`Found ${existingLinks.length} existing share links`);
+
+      // Disable all existing links
+      for (const link of existingLinks) {
+        if (link.is_enabled) {
+          console.log(`Disabling share link ID: ${link.id}`);
+          await updateShareMutation.mutateAsync({
+            id: link.id,
+            is_enabled: false,
+          });
+        }
       }
+
+      console.log("All previous links disabled");
 
       // Create a new link
       console.log("Creating new share link...");
@@ -634,7 +642,7 @@ const ModelInventory: React.FC = () => {
 
       setAlert({
         variant: "success",
-        body: "Share link replaced successfully! Previous link has been invalidated.",
+        body: `Share link replaced successfully! ${existingLinks.length} previous link(s) invalidated.`,
       });
     } catch (error) {
       console.error("Error replacing share link:", error);

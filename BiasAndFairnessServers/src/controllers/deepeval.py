@@ -12,7 +12,7 @@ import asyncio
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException, BackgroundTasks, UploadFile
 from fastapi.responses import JSONResponse
 
 # Add BiasAndFairnessModule to path
@@ -21,6 +21,8 @@ if bias_fairness_path not in sys.path:
     sys.path.insert(0, bias_fairness_path)
 
 from database.redis import get_job_status, set_job_status, delete_job_status
+from database.db import get_db
+from crud.deepeval_datasets import create_user_dataset, list_user_datasets
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -554,4 +556,245 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
             status_code=500,
             detail=f"Failed to get dataset info: {str(e)}"
         )
+
+
+async def upload_deepeval_dataset_controller(
+    dataset: UploadFile,
+    tenant: str,
+) -> JSONResponse:
+    """
+    Upload a custom dataset JSON file for DeepEval and return a server-relative path
+    that can be referenced in evaluation configs as dataset.path.
+    """
+    try:
+        if not dataset:
+            raise HTTPException(status_code=400, detail="No dataset file provided")
+
+        # Basic content-type check (best-effort)
+        content_type = (dataset.content_type or "").lower()
+        if "json" not in content_type and not dataset.filename.lower().endswith(".json"):
+            raise HTTPException(status_code=400, detail="Dataset must be a JSON file")
+
+        # Read and validate JSON
+        content_bytes = await dataset.read()
+        try:
+            data = json.loads(content_bytes.decode("utf-8"))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
+
+        # Minimal schema check: expect a list of prompt objects
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="Dataset JSON must be an array of prompt objects")
+
+        # Build upload path within EvaluationModule
+        root_path = Path(__file__).parent.parent.parent.parent
+        evaluation_module_path = root_path / "EvaluationModule"
+        uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Remove .json extension from original filename to avoid double extension
+        original_name = dataset.filename.replace("/", "_").replace("\\", "_")
+        if original_name.lower().endswith(".json"):
+            original_name = original_name[:-5]
+        
+        # Extract dataset name from filename (clean it up)
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
+        if not dataset_name:
+            dataset_name = "Untitled Dataset"
+        
+        # Count prompts
+        prompt_count = len(data) if isinstance(data, list) else 0
+        
+        filename = f"{timestamp}_{original_name}.json"
+        full_path = uploads_dir / filename
+
+        # Save pretty JSON back to disk to ensure UTF-8 and normalized formatting
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        # Return path relative to EvaluationModule for runner consumption
+        relative_path = str(Path("data") / "uploads" / tenant / filename)
+        # Also persist metadata in DB for Datasets tab with clean name and prompt count
+        try:
+            async with get_db() as db:
+                await create_user_dataset(
+                    tenant=tenant, 
+                    db=db, 
+                    name=dataset_name, 
+                    path=relative_path, 
+                    size=len(content_bytes),
+                    prompt_count=prompt_count
+                )
+                await db.commit()
+        except Exception:
+            pass
+
+        return JSONResponse(
+            status_code=201,
+            content={
+                "message": "Dataset uploaded successfully",
+                "path": relative_path,
+                "filename": filename,
+                "size": len(content_bytes),
+                "tenant": tenant,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload dataset: {str(e)}"
+        )
+
+
+def _safe_evalmodule_data_root() -> Path:
+    root_path = Path(__file__).parent.parent.parent.parent
+    evaluation_module_path = root_path / "EvaluationModule"
+    # Prefer new datasets folder; fall back to presets
+    data_root = evaluation_module_path / "data"
+    datasets_dir = data_root / "datasets"
+    if datasets_dir.exists():
+        return datasets_dir
+    return data_root / "presets"
+
+
+async def list_deepeval_datasets_controller() -> JSONResponse:
+    """
+    List available built-in datasets grouped by use case.
+    Looks under EvaluationModule/data/datasets (preferred) or data/presets.
+    """
+    base = _safe_evalmodule_data_root()
+    result = {
+        "chatbot": [],
+        "rag": [],
+        "agent": [],
+        "safety": [],
+    }
+    try:
+        if (base / "chatbot").exists():
+            subdirs = ["chatbot", "rag", "agent", "safety"]
+            for sub in subdirs:
+                sd = base / sub
+                if not sd.exists():
+                    continue
+                for f in sd.glob("*.json"):
+                    result[sub].append({
+                        "key": f"{sub}/{f.name}",
+                        "name": f.stem.replace("_", " ").title(),
+                        "path": str(f.relative_to(base)),
+                        "use_case": sub,
+                    })
+        else:
+            # Flat presets folder fallback
+            for f in base.glob("*.json"):
+                name = f.stem
+                use_case = "chatbot"
+                lowered = name.lower()
+                if "rag" in lowered:
+                    use_case = "rag"
+                elif "agent" in lowered:
+                    use_case = "agent"
+                elif "safety" in lowered:
+                    use_case = "safety"
+                result[use_case].append({
+                    "key": f.name,
+                    "name": name.replace("_", " ").title(),
+                    "path": str(f.relative_to(base)),
+                    "use_case": use_case,
+                })
+        return JSONResponse(status_code=200, content={"datasets": result})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list datasets: {e}")
+
+
+async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
+    """
+    Return the JSON contents of a dataset at a relative path.
+    Path can be:
+    - Relative to EvaluationModule (e.g., "data/uploads/tenant/file.json")
+    - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
+    """
+    try:
+        root_path = Path(__file__).parent.parent.parent.parent
+        evaluation_module_path = root_path / "EvaluationModule"
+        
+        # Try as full path first (for uploads: data/uploads/...)
+        target = (evaluation_module_path / path).resolve()
+        
+        # If not found, try in datasets folder (for built-ins: chatbot/...)
+        if not target.is_file():
+            datasets_base = _safe_evalmodule_data_root()
+            target = (datasets_base / path).resolve()
+        
+        # Security check: ensure target is inside EvaluationModule/data
+        data_dir = (evaluation_module_path / "data").resolve()
+        if data_dir not in target.parents:
+            raise HTTPException(status_code=400, detail="Invalid dataset path")
+        
+        if not target.is_file():
+            raise HTTPException(status_code=404, detail="Dataset file not found")
+        
+        with open(target, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="Dataset file is not a list of prompts")
+        
+        return JSONResponse(status_code=200, content={"path": path, "prompts": data})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read dataset: {e}")
+    # End of read_deepeval_dataset_controller
+
+
+async def list_user_datasets_controller(tenant: str) -> JSONResponse:
+    """
+    List user-uploaded datasets from the database (tenant-scoped).
+    """
+    try:
+        async with get_db() as db:
+            items = await list_user_datasets(tenant=tenant, db=db)
+            return JSONResponse(status_code=200, content={"datasets": items})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list user datasets: {e}")
+
+
+async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSONResponse:
+    """
+    Delete user-uploaded datasets by paths (tenant-scoped).
+    """
+    try:
+        root_path = Path(__file__).parent.parent.parent.parent
+        evaluation_module_path = root_path / "EvaluationModule"
+        deleted_count = 0
+        
+        async with get_db() as db:
+            from crud.deepeval_datasets import delete_user_datasets
+            
+            # Delete from database
+            await delete_user_datasets(tenant=tenant, db=db, paths=paths)
+            
+            # Delete physical files
+            for path in paths:
+                try:
+                    file_path = (evaluation_module_path / path).resolve()
+                    # Security check: ensure it's in uploads folder
+                    uploads_dir = (evaluation_module_path / "data" / "uploads" / tenant).resolve()
+                    if uploads_dir in file_path.parents and file_path.is_file():
+                        file_path.unlink()
+                        deleted_count += 1
+                except Exception as e:
+                    print(f"Failed to delete file {path}: {e}")
+            
+            await db.commit()
+        
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"Deleted {deleted_count} dataset(s)", "deleted": deleted_count}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete datasets: {e}")
 

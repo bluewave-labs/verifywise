@@ -4,7 +4,6 @@ export async function getAllProjects({
   signal,
 }: {
   signal?: AbortSignal;
-  authToken?: string;
 } = {}): Promise<any> {
   const response = await apiServices.get("/projects", {
     signal,

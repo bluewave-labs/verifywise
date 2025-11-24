@@ -4,7 +4,10 @@ DeepEval Router
 Endpoints for running DeepEval LLM evaluations.
 """
 
-from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Request, Body, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
+from pathlib import Path
+import json
 from controllers.deepeval import (
     create_deepeval_evaluation_controller,
     get_deepeval_evaluation_status_controller,
@@ -13,6 +16,11 @@ from controllers.deepeval import (
     delete_deepeval_evaluation_controller,
     get_available_deepeval_metrics_controller,
     get_evaluation_dataset_info_controller,
+    upload_deepeval_dataset_controller,
+    list_deepeval_datasets_controller,
+    read_deepeval_dataset_controller,
+    list_user_datasets_controller,
+    delete_user_datasets_controller,
 )
 
 router = APIRouter()
@@ -61,7 +69,7 @@ async def create_deepeval_evaluation(
     return await create_deepeval_evaluation_controller(
         background_tasks=background_tasks,
         config_data=config_data,
-        tenant=request.headers.get("x-tenant-id", "default")
+        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -81,7 +89,7 @@ async def get_evaluation_status(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_status_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -114,7 +122,7 @@ async def get_evaluation_results(eval_id: str, request: Request):
     """
     return await get_deepeval_evaluation_results_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -139,7 +147,7 @@ async def get_all_evaluations(request: Request):
     }
     """
     return await get_all_deepeval_evaluations_controller(
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -156,7 +164,7 @@ async def delete_evaluation(eval_id: str, request: Request):
     """
     return await delete_deepeval_evaluation_controller(
         eval_id,
-        request.headers.get("x-tenant-id", "default")
+        getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     )
 
 
@@ -199,4 +207,80 @@ async def get_dataset_info():
     }
     """
     return await get_evaluation_dataset_info_controller()
+
+
+@router.post("/datasets/upload")
+async def upload_dataset(request: Request, dataset: UploadFile = File(...)):
+    """
+    Upload a custom JSON dataset to be used in evaluations.
+    
+    Returns:
+    {
+        "message": "Dataset uploaded successfully",
+        "path": "data/uploads/{tenant}/{filename}.json",
+        "filename": "{filename}.json",
+        "size": 12345,
+        "tenant": "default"
+    }
+    """
+    return await upload_deepeval_dataset_controller(
+        dataset=dataset,
+        tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")),
+    )
+
+@router.get("/datasets/list")
+async def list_datasets():
+    """
+    List available built-in datasets grouped by use case.
+    """
+    return await list_deepeval_datasets_controller()
+
+@router.get("/datasets/read")
+async def read_dataset(path: str):
+    """
+    Read and return the JSON content of a dataset file by relative path.
+    Example: /deepeval/datasets/read?path=chatbot/chatbot_basic.json
+    """
+    return await read_deepeval_dataset_controller(path)
+
+@router.get("/datasets/uploads")
+async def list_uploaded_datasets(request: Request):
+    """
+    List uploaded JSON datasets for the current tenant from EvaluationModule/data/uploads/{tenant}.
+    """
+    try:
+        tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+        uploads_dir = Path(__file__).parents[2] / "EvaluationModule" / "data" / "uploads" / tenant
+        uploads = []
+        if uploads_dir.is_dir():
+            for p in uploads_dir.glob("*.json"):
+                stat = p.stat()
+                uploads.append({
+                    "name": p.name,
+                    "path": str((Path("data") / "uploads" / tenant / p.name).as_posix()),
+                    "size": stat.st_size,
+                    "modifiedAt": stat.st_mtime,
+                })
+        return JSONResponse(status_code=200, content={"uploads": uploads})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list uploads: {e}")
+
+@router.get("/datasets/user")
+async def list_user_datasets(request: Request):
+    """
+    List user-uploaded datasets from DB for the current tenant.
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await list_user_datasets_controller(tenant=tenant)
+
+@router.delete("/datasets/user")
+async def delete_user_datasets(request: Request):
+    """
+    Delete user-uploaded datasets from DB and filesystem for the current tenant.
+    Expects JSON body with {"paths": ["path1", "path2", ...]}
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    body = await request.json()
+    paths = body.get("paths", [])
+    return await delete_user_datasets_controller(tenant=tenant, paths=paths)
 

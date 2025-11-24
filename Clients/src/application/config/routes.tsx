@@ -27,8 +27,9 @@ import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/Fair
 import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
 import ExperimentDetail from "../../presentation/pages/EvalsDashboard/ExperimentDetail";
-import ProjectConfiguration from "../../presentation/pages/EvalsDashboard/ProjectConfiguration";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
+import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
+import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
@@ -82,18 +83,23 @@ export const createRoutes = (
     <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
-    <Route path="/evals/:projectId/configuration" element={<ProjectConfiguration />} />
+    <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
+    <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
     <Route path="/evals/settings" element={<OrgSettings />} />
     <Route path="/evals/:projectId/experiment/:experimentId" element={<ExperimentDetail />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
-    <Route path="/policies" element={<PolicyDashboard/>}/>
+    <Route path="/policies" element={<PolicyDashboard />}>
+      <Route index element={<PolicyDashboard />} /> {/* Default tab */}
+      <Route path="templates" element={<PolicyDashboard />} /> {/* Policy Templates tab */}
+    </Route>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/model-inventory/mlflow" element={<ModelInventory />} />
+    <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />

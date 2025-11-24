@@ -48,6 +48,9 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
+import SearchBox from "../../components/Search/SearchBox";
+import { ReviewStatus } from "../../../domain/enums/status.enum";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 // Constants
 const REDIRECT_DELAY_MS = 2000;
@@ -69,6 +72,8 @@ const Vendors = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -77,7 +82,7 @@ const Vendors = () => {
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
-  const { data: vendors = [], isLoading: isVendorsLoading } = useVendors({
+  const { data: vendors = [], isLoading: isVendorsLoading, refetch: refetchVendors } = useVendors({
     projectId: selectedProjectId,
   });
   const {
@@ -372,6 +377,18 @@ const Vendors = () => {
     setFilterStatus(status);
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
+
+  const handleStatusFilterChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const status = event.target.value as string;
+    setStatusFilter(status);
+  };
+
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
@@ -420,6 +437,94 @@ const Vendors = () => {
       setSelectedVendorId("all");
     }
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
+
+  // Filter vendors based on search query and status
+  const filteredVendors = useMemo(() => {
+    let filtered = [...vendors];
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter((vendor: VendorModel) =>
+        vendor.vendor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vendor.vendor_provides.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vendor.vendor_contact_person.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((vendor: VendorModel) => {
+        if (statusFilter === "not_started") return vendor.review_status === ReviewStatus.NotStarted;
+        if (statusFilter === "in_review") return vendor.review_status === ReviewStatus.InReview;
+        if (statusFilter === "reviewed") return vendor.review_status === ReviewStatus.Reviewed;
+        if (statusFilter === "requires_follow_up") return vendor.review_status === ReviewStatus.RequiresFollowUp;
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [vendors, searchQuery, statusFilter]);
+
+  // Define export columns for vendor table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'vendor_name', label: 'Name' },
+      { id: 'assignee', label: 'Assignee' },
+      { id: 'review_status', label: 'Status' },
+      { id: 'scorecard', label: 'Scorecard' },
+      { id: 'review_date', label: 'Review Date' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredVendors.map((vendor: VendorModel) => {
+      const assigneeUser = users.find((user) => user.id === vendor.assignee);
+      const assigneeName = assigneeUser ? `${assigneeUser.name} ${assigneeUser.surname}` : 'Unassigned';
+
+      return {
+        vendor_name: vendor.vendor_name,
+        assignee: assigneeName,
+        review_status: vendor.review_status || 'Not started',
+        scorecard: vendor.risk_score !== null && vendor.risk_score !== undefined ? `${vendor.risk_score}%` : 'N/A',
+        review_date: vendor.review_date || 'N/A',
+      };
+    });
+  }, [filteredVendors, users]);
+
+  // Define export columns for vendor risks table
+  const vendorRisksExportColumns = useMemo(() => {
+    return [
+      { id: 'risk_description', label: 'Risk Description' },
+      { id: 'vendor_name', label: 'Vendor' },
+      { id: 'project_titles', label: 'Use Case' },
+      { id: 'action_owner', label: 'Action Owner' },
+      { id: 'risk_severity', label: 'Risk Severity' },
+      { id: 'likelihood', label: 'Likelihood' },
+      { id: 'risk_level', label: 'Risk Level' },
+    ];
+  }, []);
+
+  // Prepare export data for vendor risks
+  const vendorRisksExportData = useMemo(() => {
+    return vendorRisks.map((risk: any) => {
+      const vendor = vendors.find((v) => v.id === risk.vendor_id);
+      const vendorName = vendor ? vendor.vendor_name : '-';
+
+      const actionOwnerUser = users.find((user) => user.id === risk.action_owner);
+      const actionOwnerName = actionOwnerUser ? `${actionOwnerUser.name} ${actionOwnerUser.surname}` : '-';
+
+      return {
+        risk_description: risk.risk_description || '-',
+        vendor_name: vendorName,
+        project_titles: risk.project_titles || '-',
+        action_owner: actionOwnerName,
+        risk_severity: risk.risk_severity || '-',
+        likelihood: risk.likelihood || '-',
+        risk_level: risk.risk_level || '-',
+      };
+    });
+  }, [vendorRisks, vendors, users]);
 
   return (
     <Stack className="vwhome" gap={0}>
@@ -515,7 +620,7 @@ const Vendors = () => {
                   label: "Vendors",
                   value: "1",
                   icon: "Building",
-                  count: vendors.length,
+                  count: filteredVendors.length,
                   isLoading: isVendorsLoading,
                 },
                 {
@@ -550,45 +655,80 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Select
-                  id="projects"
-                  value={selectedProjectId ?? ""}
-                  items={[
-                    { _id: "all", name: "All Use Cases" },
-                    ...projects.map((project) => ({
-                      _id: project.id.toString(),
-                      name: project.project_title,
-                    })),
-                  ]}
-                  onChange={handleProjectChange}
-                  sx={{
-                    width: "180px",
-                    minHeight: "34px",
-                    borderRadius: theme.shape.borderRadius,
-                  }}
-                />
-                <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add new vendor"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      border: "1px solid #13715B",
-                      gap: 2,
-                    }}
-                    icon={<AddCircleOutlineIcon size={16} />}
-                    onClick={() => {
-                      openAddNewVendor();
-                      setSelectedVendor(null);
-                    }}
-                    isDisabled={isCreatingDisabled}
-                  />
-                </div>
+              <Stack spacing={2}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Stack direction="row" gap={2} alignItems="center">
+                    <Select
+                      id="projects"
+                      value={selectedProjectId ?? ""}
+                      items={[
+                        { _id: "all", name: "All Use Cases" },
+                        ...projects.map((project) => ({
+                          _id: project.id.toString(),
+                          name: project.project_title,
+                        })),
+                      ]}
+                      onChange={handleProjectChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                    <SearchBox
+                      placeholder="Search vendors..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      sx={{ width: "180px" }}
+                    />
+                    <Select
+                      id="status-filter"
+                      value={statusFilter}
+                      items={[
+                        { _id: "all", name: "All statuses" },
+                        { _id: "not_started", name: "Not started" },
+                        { _id: "in_review", name: "In review" },
+                        { _id: "reviewed", name: "Reviewed" },
+                        { _id: "requires_follow_up", name: "Requires follow-up" },
+                      ]}
+                      onChange={handleStatusFilterChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                  </Stack>
+                  <Stack direction="row" gap="8px" alignItems="center">
+                    <ExportMenu
+                      data={exportData}
+                      columns={exportColumns}
+                      filename="vendors"
+                      title="Vendor List"
+                    />
+                    <div data-joyride-id="add-new-vendor" ref={refs[0]}>
+                      <CustomizableButton
+                        variant="contained"
+                        text="Add new vendor"
+                        sx={{
+                          backgroundColor: "#13715B",
+                          border: "1px solid #13715B",
+                          gap: 2,
+                        }}
+                        icon={<AddCircleOutlineIcon size={16} />}
+                        onClick={() => {
+                          openAddNewVendor();
+                          setSelectedVendor(null);
+                        }}
+                        isDisabled={isCreatingDisabled}
+                      />
+                    </div>
+                  </Stack>
+                </Stack>
               </Stack>
             )
           )}
@@ -658,21 +798,29 @@ const Vendors = () => {
                     }}
                   />
                 </Stack>
-                <CustomizableButton
-                  variant="contained"
-                  text="Add new Risk"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 2,
-                  }}
-                  icon={<AddCircleOutlineIcon size={16} />}
-                  onClick={() => {
-                    setSelectedRisk(null);
-                    handleRiskModal();
-                  }}
-                  isDisabled={isCreatingDisabled}
-                />
+                <Stack direction="row" gap="8px" alignItems="center">
+                  <ExportMenu
+                    data={vendorRisksExportData}
+                    columns={vendorRisksExportColumns}
+                    filename="vendor-risks"
+                    title="Vendor Risks"
+                  />
+                  <CustomizableButton
+                    variant="contained"
+                    text="Add new Risk"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
+                    }}
+                    icon={<AddCircleOutlineIcon size={16} />}
+                    onClick={() => {
+                      setSelectedRisk(null);
+                      handleRiskModal();
+                    }}
+                    isDisabled={isCreatingDisabled}
+                  />
+                </Stack>
               </Stack>
             )
           )}
@@ -689,7 +837,7 @@ const Vendors = () => {
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
-                vendors={vendors}
+                vendors={filteredVendors}
                 users={users}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
@@ -725,6 +873,7 @@ const Vendors = () => {
         value={value}
         onSuccess={async () => {
           await refetchVendorRisks();
+          await refetchVendors();
         }}
         existingVendor={selectedVendor}
       />

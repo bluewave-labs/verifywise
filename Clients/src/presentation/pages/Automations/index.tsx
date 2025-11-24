@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { Grid, Container, Box, Stack, useTheme } from '@mui/material';
+import { Grid, Box, Stack, useTheme } from '@mui/material';
 import { Settings } from 'lucide-react';
 import AutomationList from './components/AutomationList';
 import AutomationBuilder from './components/AutomationBuilder';
@@ -1314,13 +1314,13 @@ This notification was sent on {{date_and_time}}.`
       {/* Breadcrumbs with integrated action buttons and divider */}
       <PageBreadcrumbs />
 
-      <Container maxWidth={false} sx={{ height: 'calc(100vh - 180px)', px: 0 }}>
+      <Box sx={{ height: 'calc(100vh - 180px)' }}>
         <Box
           sx={{
             height: '100%',
             backgroundColor: theme.palette.background.main,
             borderRadius: theme.shape.borderRadius,
-            border: `1px solid ${theme.palette.border.light}`,
+            border: `1px solid ${theme.palette.border.dark}`,
             display: 'flex',
           }}
         >
@@ -1332,7 +1332,7 @@ This notification was sent on {{date_and_time}}.`
               md={3}
               sx={{
                 height: '100%',
-                borderRight: `1px solid ${theme.palette.border.light}`,
+                borderRight: `1px solid ${theme.palette.border.dark}`,
                 background: 'linear-gradient(135deg, rgba(200,200,200,0.1) 0%, rgba(255,255,255,0) 100%) !important',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1359,7 +1359,7 @@ This notification was sent on {{date_and_time}}.`
               md={showConfigurationPanel ? 6 : 9}
               sx={{
                 height: '100%',
-                ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}),
+                ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.dark}` } : {}),
                 background: 'linear-gradient(135deg, rgba(100,150,255,0.08) 0%, rgba(255,255,255,0) 100%), #F9FAF9 !important',
                 position: 'relative',
                 overflow: 'hidden',
@@ -1428,7 +1428,7 @@ This notification was sent on {{date_and_time}}.`
             )}
           </Grid>
         </Box>
-      </Container>
+      </Box>
 
       {/* Toast Notification */}
       {toast && toast.visible && (

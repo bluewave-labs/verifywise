@@ -558,7 +558,7 @@ export default function BiasAndFairnessModule() {
         />
         <CustomizableButton
           variant="contained"
-          text="New Evaluation"
+          text="New evaluation"
           data-joyride-id="new-evaluation-button"
           sx={{
             backgroundColor: "#13715B",

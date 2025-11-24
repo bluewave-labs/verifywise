@@ -13,7 +13,7 @@ import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsSer
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
-import { Beaker } from "lucide-react";
+import { Beaker, CirclePlus } from "lucide-react";
 
 interface Props {
   onSelected: () => void;
@@ -53,6 +53,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
           <CustomizableButton
             variant="contained"
             onClick={() => setCreateOpen(true)}
+            startIcon={<CirclePlus size={18} />}
             sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
           >
             Create organization
@@ -88,6 +89,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
           <CustomizableButton
             variant="contained"
             onClick={() => setCreateOpen(true)}
+            startIcon={<CirclePlus size={18} />}
             sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
           >
             Create your first organization
@@ -145,15 +147,25 @@ export default function OrganizationSelector({ onSelected }: Props) {
       {/* Create Organization Modal */}
       <StandardModal
         isOpen={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => {
+          setCreateOpen(false);
+          setNewOrg({ name: "" });
+        }}
         title="Create organization"
         description="Name your organization to begin organizing projects and experiments."
         onSubmit={async () => {
           if (!newOrg.name.trim()) return;
           setCreating(true);
-          await deepEvalOrgsService.createOrg(newOrg.name.trim());
-          setCreating(false);
-          onSelected();
+          try {
+            const { org } = await deepEvalOrgsService.createOrg(newOrg.name.trim());
+            // Persist as current org and close modal
+            await deepEvalOrgsService.setCurrentOrg(org.id);
+            setCreateOpen(false);
+            setNewOrg({ name: "" });
+            onSelected();
+          } finally {
+            setCreating(false);
+          }
         }}
         submitButtonText="Create organization"
         isSubmitting={creating || !newOrg.name.trim()}

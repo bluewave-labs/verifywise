@@ -43,14 +43,20 @@ export interface AutoCompleteOption {
 export interface AutoCompleteFieldProps {
   id: string;
   type: string;
-  options?: AutoCompleteOption[];
+  options?: AutoCompleteOption[] | string[];
   placeholder?: string;
   disabled?: boolean;
   sx?: SxProps<Theme>;
   width?: number | string;
-  autoCompleteValue: AutoCompleteOption | undefined;
-  setAutoCompleteValue: (value: AutoCompleteOption | undefined) => void;
+  autoCompleteValue?: AutoCompleteOption | undefined;
+  setAutoCompleteValue?: (value: AutoCompleteOption | undefined) => void;
   error?: string;
+  // New props for multiple selection with string options
+  multiple?: boolean;
+  value?: string[] | string;
+  onChange?: (value: string[] | string) => void;
+  label?: string;
+  isRequired?: boolean;
 }
 
 export interface CheckboxProps {

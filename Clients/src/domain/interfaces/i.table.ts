@@ -49,6 +49,7 @@ export interface IAuditRiskTableBodyProps {
 
 export interface IEvaluationRow {
   id: string;
+  name?: string;
   model: string;
   judge?: string;
   dataset: string;

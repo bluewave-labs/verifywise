@@ -46,6 +46,7 @@ async def create_project_controller(
                 project_id=project_id,
                 name=project_data.get("name"),
                 description=project_data.get("description", ""),
+                org_id=project_data.get("orgId"),
                 tenant=tenant,
                 created_by=tenant,
                 db=db

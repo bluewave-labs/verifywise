@@ -34,6 +34,8 @@ import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
+import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
+import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
@@ -51,6 +53,9 @@ import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
+import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
+import evidenceHubRouter from "./routes/evidenceHub.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -76,7 +81,7 @@ try {
   // })();
 
   const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl,
+    process.env.ALLOWED_ORIGINS || frontEndUrl
   );
 
   app.use(
@@ -86,7 +91,7 @@ try {
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
-    }),
+    })
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
@@ -127,6 +132,8 @@ try {
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
+  app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
+  app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
@@ -141,6 +148,9 @@ try {
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
+  app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
+  app.use("/api/evidenceHub", evidenceHubRouter);
 
   // Adding background jobs in the Queue
   (async () => {

@@ -225,6 +225,34 @@ async def get_experiments_controller(
         raise HTTPException(status_code=500, detail=f"Failed to get experiments: {str(e)}")
 
 
+async def update_experiment_controller(
+    db: AsyncSession,
+    experiment_id: str,
+    tenant: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+):
+    """Update experiment name and/or description"""
+    try:
+        updated = await crud.update_experiment(
+            db=db,
+            experiment_id=experiment_id,
+            tenant=tenant,
+            name=name,
+            description=description,
+        )
+
+        if not updated:
+            raise HTTPException(status_code=404, detail="Experiment not found")
+
+        return {"message": "Experiment updated successfully", "experiment": updated}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating experiment: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update experiment: {str(e)}")
+
+
 async def delete_experiment_controller(
     db: AsyncSession,
     experiment_id: str,
@@ -237,10 +265,10 @@ async def delete_experiment_controller(
             experiment_id=experiment_id,
             tenant=tenant,
         )
-        
+
         if not deleted:
             raise HTTPException(status_code=404, detail="Experiment not found")
-        
+
         return {"message": "Experiment deleted successfully", "id": experiment_id}
     except HTTPException:
         raise

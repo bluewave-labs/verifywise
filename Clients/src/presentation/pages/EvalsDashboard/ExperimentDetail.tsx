@@ -16,8 +16,10 @@ import {
   CardContent,
   Stack,
   Divider,
+  IconButton,
+  TextField,
 } from "@mui/material";
-import { TrendingUp, X } from "lucide-react";
+import { TrendingUp, X, Home, FlaskConical, Pencil, Check } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
@@ -28,6 +30,11 @@ export default function ExperimentDetail() {
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<EvaluationLog | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadExperimentData();
@@ -36,24 +43,80 @@ export default function ExperimentDetail() {
 
   const loadExperimentData = async () => {
     if (!experimentId) return;
-    
+
     try {
       setLoading(true);
       const [expData, logsData] = await Promise.all([
         experimentsService.getExperiment(experimentId),
         evaluationLogsService.getLogs({ experiment_id: experimentId, limit: 1000 }),
       ]);
-      
+
       setExperiment(expData.experiment);
       const loadedLogs = logsData.logs || [];
       setLogs(loadedLogs);
-      
+
       // Don't auto-select - let user choose
     } catch (err) {
       console.error("Failed to load experiment data:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartEditName = () => {
+    setEditedName(experiment?.name || "");
+    setIsEditingName(true);
+  };
+
+  const handleStartEditDescription = () => {
+    setEditedDescription(experiment?.description || "");
+    setIsEditingDescription(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!experimentId || !editedName.trim()) return;
+
+    try {
+      setSaving(true);
+      await experimentsService.updateExperiment(experimentId, {
+        name: editedName.trim(),
+      });
+
+      setExperiment((prev) => prev ? { ...prev, name: editedName.trim() } : prev);
+      setIsEditingName(false);
+    } catch (err) {
+      console.error("Failed to update experiment name:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDescription = async () => {
+    if (!experimentId) return;
+
+    try {
+      setSaving(true);
+      await experimentsService.updateExperiment(experimentId, {
+        description: editedDescription.trim(),
+      });
+
+      setExperiment((prev) => prev ? { ...prev, description: editedDescription.trim() } : prev);
+      setIsEditingDescription(false);
+    } catch (err) {
+      console.error("Failed to update experiment description:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditedName("");
+  };
+
+  const handleCancelEditDescription = () => {
+    setIsEditingDescription(false);
+    setEditedDescription("");
   };
 
   if (loading) {
@@ -73,9 +136,10 @@ export default function ExperimentDetail() {
   }
 
   const breadcrumbItems = [
-    { label: "LLM Evals Dashboard", onClick: () => navigate("/evals") },
-    { label: "Experiments", onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Experiment" },
+    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
+    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+    { label: "Evals", onClick: () => navigate(`/evals/${projectId}#experiments`) },
+    { label: experiment.name || "Eval" },
   ];
 
   // Lightweight Markdown -> HTML converter for common syntax
@@ -108,32 +172,209 @@ export default function ExperimentDetail() {
   };
 
   return (
-    <Box sx={{ userSelect: "none" }}>
-      <PageBreadcrumbs items={breadcrumbItems} />
+    <Box>
+      <Box sx={{ userSelect: "none" }}>
+        <PageBreadcrumbs items={breadcrumbItems} />
+      </Box>
       
       {/* Header */}
       <Box sx={{ mb: 3, mt: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px", mb: 1 }}>
-          {experiment.name}
-        </Typography>
-        {experiment.description && (
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px", mb: 2 }}>
-            {experiment.description}
-          </Typography>
-        )}
+        {/* Experiment Name with inline editing */}
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            mb: 1,
+            "&:hover .edit-icon": {
+              opacity: 1,
+            },
+          }}
+        >
+          {isEditingName ? (
+            <>
+              <TextField
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName();
+                  if (e.key === "Escape") handleCancelEditName();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "18px",
+                    fontWeight: 600,
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveName}
+                disabled={saving || !editedName.trim()}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditName}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
+                {experiment.name}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditName}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
+        </Box>
+
+        {/* Experiment Description with inline editing */}
+        <Box
+          sx={{
+            display: "block",
+            mb: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              "&:hover .edit-icon": {
+                opacity: 1,
+              },
+            }}
+          >
+          {isEditingDescription ? (
+            <>
+              <TextField
+                value={editedDescription}
+                onChange={(e) => setEditedDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveDescription();
+                  if (e.key === "Escape") handleCancelEditDescription();
+                }}
+                variant="outlined"
+                size="small"
+                autoFocus
+                disabled={saving}
+                placeholder="Add a description..."
+                sx={{
+                  minWidth: "400px",
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: "13px",
+                    color: "text.secondary",
+                  },
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={handleSaveDescription}
+                disabled={saving}
+                sx={{ color: "#13715B" }}
+              >
+                <Check size={18} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleCancelEditDescription}
+                disabled={saving}
+                sx={{ color: "#6B7280" }}
+              >
+                <X size={18} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: "13px",
+                  fontStyle: experiment.description ? "normal" : "italic",
+                  color: experiment.description ? "text.secondary" : "#9CA3AF",
+                }}
+              >
+                {experiment.description || "No description"}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={handleStartEditDescription}
+                className="edit-icon"
+                sx={{
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  color: "#6B7280",
+                  "&:hover": {
+                    color: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.1)",
+                  },
+                }}
+              >
+                <Pencil size={14} />
+              </IconButton>
+            </>
+          )}
+          </Box>
+        </Box>
 
         {/* Status and metadata */}
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
           <Chip
             label={experiment.status}
             size="small"
-            color={
-              experiment.status === "completed" ? "success" :
-              experiment.status === "failed" ? "error" :
-              experiment.status === "running" ? "warning" :
-              "default"
-            }
-            sx={{ textTransform: "capitalize" }}
+            sx={{
+              backgroundColor:
+                experiment.status === "completed"
+                  ? "#c8e6c9"
+                  : experiment.status === "failed"
+                  ? "#ffebee"
+                  : experiment.status === "running"
+                  ? "#fff3e0"
+                  : "#e0e0e0",
+              color:
+                experiment.status === "completed"
+                  ? "#388e3c"
+                  : experiment.status === "failed"
+                  ? "#c62828"
+                  : experiment.status === "running"
+                  ? "#ef6c00"
+                  : "#616161",
+              fontWeight: 500,
+              fontSize: "11px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              borderRadius: "4px",
+              "& .MuiChip-label": {
+                padding: "4px 8px",
+              },
+            }}
           />
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
             Created {new Date(experiment.created_at).toLocaleString()}
@@ -175,7 +416,7 @@ export default function ExperimentDetail() {
         return (
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, fontSize: "14px" }}>
-              Overall Statistics
+              Overall statistics
             </Typography>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
               {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
@@ -220,7 +461,7 @@ export default function ExperimentDetail() {
             {/* Left: Samples List */}
             <Box sx={{ display: "flex", flexDirection: "column", height: "100%", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
               <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, p: 2, pb: 1 }}>
-                All Samples
+                All samples
               </Typography>
 
               <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
@@ -297,8 +538,18 @@ export default function ExperimentDetail() {
                           <Chip
                             label={log.status || "success"}
                             size="small"
-                            color={log.status === "success" ? "success" : "error"}
-                            sx={{ fontSize: "11px", height: 20 }}
+                            sx={{
+                              backgroundColor: log.status === "success" || !log.status ? "#c8e6c9" : "#ffebee",
+                              color: log.status === "success" || !log.status ? "#388e3c" : "#c62828",
+                              fontWeight: 500,
+                              fontSize: "11px",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              borderRadius: "4px",
+                              "& .MuiChip-label": {
+                                padding: "4px 8px",
+                              },
+                            }}
                           />
                         </TableCell>
                       </TableRow>
@@ -374,11 +625,15 @@ export default function ExperimentDetail() {
                                  label={typeof score === "number" ? `${(score * 100).toFixed(0)}%` : "N/A"}
                                  size="small"
                                  sx={{
-                                   fontSize: "12px",
-                                   fontWeight: 600,
-                                   height: 24,
-                                   backgroundColor: passed ? "#D1FAE5" : "#FEE2E2",
-                                   color: passed ? "#065F46" : "#991B1B",
+                                   backgroundColor: passed ? "#c8e6c9" : "#ffebee",
+                                   color: passed ? "#388e3c" : "#c62828",
+                                   fontWeight: 500,
+                                   fontSize: "11px",
+                                   letterSpacing: "0.5px",
+                                   borderRadius: "4px",
+                                   "& .MuiChip-label": {
+                                     padding: "4px 8px",
+                                   },
                                  }}
                                />
                              </Box>

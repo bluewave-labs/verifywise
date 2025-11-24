@@ -13,6 +13,7 @@ async def create_project(
     project_id: str,
     name: str,
     description: str,
+    org_id: str,
     tenant: str,
     created_by: str,
     db: AsyncSession
@@ -34,21 +35,39 @@ async def create_project(
     # Use the correct schema name
     schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     
-    result = await db.execute(
-        text(f'''
-            INSERT INTO "{schema_name}".deepeval_projects 
-            (id, name, description, tenant, created_by)
-            VALUES (:id, :name, :description, :tenant, :created_by)
-            RETURNING id, name, description, tenant, created_at, updated_at, created_by
-        '''),
-        {
-            "id": project_id,
-            "name": name,
-            "description": description,
-            "tenant": tenant,
-            "created_by": created_by
-        }
-    )
+    if org_id:
+        result = await db.execute(
+            text(f'''
+                INSERT INTO "{schema_name}".deepeval_projects 
+                (id, name, description, org_id, tenant, created_by)
+                VALUES (:id, :name, :description, :org_id, :tenant, :created_by)
+                RETURNING id, name, description, org_id, tenant, created_at, updated_at, created_by
+            '''),
+            {
+                "id": project_id,
+                "name": name,
+                "description": description,
+                "org_id": org_id,
+                "tenant": tenant,
+                "created_by": created_by
+            }
+        )
+    else:
+        result = await db.execute(
+            text(f'''
+                INSERT INTO "{schema_name}".deepeval_projects 
+                (id, name, description, tenant, created_by)
+                VALUES (:id, :name, :description, :tenant, :created_by)
+                RETURNING id, name, description, NULL::varchar as org_id, tenant, created_at, updated_at, created_by
+            '''),
+            {
+                "id": project_id,
+                "name": name,
+                "description": description,
+                "tenant": tenant,
+                "created_by": created_by
+            }
+        )
     
     row = result.mappings().first()
     if row:
@@ -56,6 +75,7 @@ async def create_project(
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
+            "orgId": row["org_id"],
             "tenant": row["tenant"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
@@ -80,7 +100,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
     
     result = await db.execute(
         text(f'''
-            SELECT id, name, description, tenant, created_at, updated_at, created_by
+            SELECT id, name, description, org_id, tenant, created_at, updated_at, created_by
             FROM "{schema_name}".deepeval_projects
             WHERE tenant = :tenant
             ORDER BY created_at DESC
@@ -95,6 +115,7 @@ async def get_all_projects(tenant: str, db: AsyncSession) -> List[Dict[str, Any]
             "id": row["id"],
             "name": row["name"],
             "description": row["description"],
+            "orgId": row["org_id"],
             "tenant": row["tenant"],
             "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
             "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,

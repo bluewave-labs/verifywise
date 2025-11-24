@@ -539,6 +539,51 @@ async def update_experiment_status(
     return None
 
 
+async def update_experiment(
+    db: AsyncSession,
+    experiment_id: str,
+    tenant: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Update experiment name and/or description"""
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+
+    # Build update fields dynamically
+    updates = ["updated_at = CURRENT_TIMESTAMP"]
+    params = {"experiment_id": experiment_id, "tenant": tenant}
+
+    if name is not None:
+        updates.append("name = :name")
+        params["name"] = name
+
+    if description is not None:
+        updates.append("description = :description")
+        params["description"] = description
+
+    if len(updates) == 1:  # Only updated_at
+        return None
+
+    update_clause = ", ".join(updates)
+
+    result = await db.execute(
+        text(f'''
+            UPDATE "{schema_name}".experiments
+            SET {update_clause}
+            WHERE id = :experiment_id AND tenant = :tenant
+            RETURNING *
+        '''),
+        params
+    )
+
+    await db.commit()
+    row = result.mappings().first()
+
+    if row:
+        return dict(row)
+    return None
+
+
 async def delete_experiment(
     db: AsyncSession,
     experiment_id: str,

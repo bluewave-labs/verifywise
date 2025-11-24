@@ -1,0 +1,13 @@
+.connected-sidebar-chat {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.connected-sidebar-chat.open {
+  transform: translateX(0);
+}

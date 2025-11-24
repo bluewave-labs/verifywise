@@ -51,5 +51,9 @@ export interface VendorFormErrors {
   assignee?: string;
   reviewer?: string;
   reviewResult?: string;
+  dataSensitivity?: string;
+  businessCriticality?: string;
+  pastIssues?: string;
+  regulatoryExposure?: string;
 }
 

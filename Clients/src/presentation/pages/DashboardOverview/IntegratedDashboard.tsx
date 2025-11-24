@@ -1701,6 +1701,9 @@ const IntegratedDashboard: React.FC = () => {
           </Typography>
         </Box>
 
+        {/* Tips */}
+        <TipBox entityName="dashboard" />
+
         {/* Edit Mode Controls */}
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           {editMode && (
@@ -1772,9 +1775,6 @@ const IntegratedDashboard: React.FC = () => {
           </Box>
         </Box>
       </Stack>
-
-      {/* Tips */}
-      <TipBox entityName="dashboard" />
 
       {/* CSS for drag and drop */}
       <style>{`

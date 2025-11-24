@@ -33,8 +33,8 @@ const TipBox = ({ entityName }: TipBoxProps) => {
   return (
     <Box
       sx={{
-        marginTop: "16px",
-        marginBottom: "16px",
+        marginTop: "8px",
+        marginBottom: "8px",
         animation: `${fadeIn} 0.3s ease-out`,
       }}
     >

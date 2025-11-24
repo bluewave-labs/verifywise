@@ -277,15 +277,11 @@ export const ENTITY_TIPS: EntityTips = {
   settings: [
     {
       header: "Settings customize VerifyWise to your organization's needs.",
-      content: "Configure user roles, notification preferences, and system defaults to match your governance workflows. Taking time to properly configure settings upfront saves time and reduces confusion later. Review settings periodically as your organization grows.",
+      content: "Configure user roles and system defaults to match your governance workflows. Taking time to properly configure settings upfront saves time and reduces confusion later. Review settings periodically as your organization grows.",
     },
     {
       header: "User roles control access to sensitive information.",
       content: "Not everyone needs access to all governance data. Use roles to grant appropriate access levels—viewers for stakeholders, editors for governance team members, and admins for system owners. Role-based access protects sensitive information.",
-    },
-    {
-      header: "Notification settings keep teams informed automatically.",
-      content: "Configure notifications for task assignments, approaching deadlines, policy renewals, and high-priority risks. Automated notifications ensure nothing falls through the cracks. Adjust notification frequency to avoid overwhelming team members.",
     },
     {
       header: "Integration settings connect VerifyWise to your existing tools.",

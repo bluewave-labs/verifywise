@@ -415,32 +415,34 @@ const Tasks: React.FC = () => {
             />
           }
         />
-        <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
-          <Stack direction="row" gap="8px" alignItems="center">
-            <ExportMenu
-              data={exportData}
-              columns={exportColumns}
-              filename="tasks"
-              title="Task Management"
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new task"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleIcon size={16} />}
-              onClick={handleCreateTask}
-              isDisabled={isCreatingDisabled}
-            />
-          </Stack>
-        </Stack>
       </Stack>
 
       {/* Tips */}
       <TipBox entityName="tasks" />
+
+      {/* Controls */}
+      <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="tasks"
+            title="Task Management"
+          />
+          <CustomizableButton
+            variant="contained"
+            text="Add new task"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<AddCircleIcon size={16} />}
+            onClick={handleCreateTask}
+            isDisabled={isCreatingDisabled}
+          />
+        </Stack>
+      </Stack>
 
       {/* Header Cards */}
       <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">

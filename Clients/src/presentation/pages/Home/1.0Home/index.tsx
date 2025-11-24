@@ -93,7 +93,6 @@ const Home = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <TipBox entityName="overview" />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -144,6 +143,7 @@ const Home = () => {
           applied within an organization to achieve a defined purpose or
           outcome.
         </Typography>
+        <TipBox entityName="overview" />
       </Stack>
 
       {/* Projects List */}

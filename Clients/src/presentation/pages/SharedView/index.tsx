@@ -307,19 +307,17 @@ const SharedView: React.FC = () => {
 
         {/* Data Display */}
         <Paper sx={{ overflow: "hidden" }}>
-          {permissions.displayToolbar && (
-            <Toolbar
-              sx={{
-                backgroundColor: "#fafafa",
-                borderBottom: "1px solid #e0e0e0",
-                minHeight: "48px !important",
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "Details"}
-              </Typography>
-            </Toolbar>
-          )}
+          <Toolbar
+            sx={{
+              backgroundColor: "#fafafa",
+              borderBottom: "1px solid #e0e0e0",
+              minHeight: "48px !important",
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "Details"}
+            </Typography>
+          </Toolbar>
           <TableContainer>
             <Table>
               {isTableView ? (

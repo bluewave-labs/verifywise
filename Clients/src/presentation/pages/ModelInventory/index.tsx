@@ -501,7 +501,6 @@ const ModelInventory: React.FC = () => {
     shareAllFields: true,
     allowDataExport: true,
     allowViewersToOpenRecords: false,
-    displayToolbar: true,
   });
   const [isShareEnabled, setIsShareEnabled] = useState(false);
   const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);

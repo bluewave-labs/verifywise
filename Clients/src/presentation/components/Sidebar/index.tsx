@@ -1347,7 +1347,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               left: collapsed ? "30px" : "30px",
               borderRadius: "8px",
               boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
-              border: `2px solid ${theme.palette.divider}`,
+              border: `1px solid ${theme.palette.divider}`,
               backgroundColor: "transparent",
               transition: "none",
             },
@@ -1358,7 +1358,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             sx={{
               backgroundColor: theme.palette.background.main,
               borderRadius: "8px",
-              border: `2px solid ${theme.palette.divider}`,
+              border: `1px solid ${theme.palette.divider}`,
               overflow: "hidden",
               p: 1, // 8px padding around entire content
               animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",

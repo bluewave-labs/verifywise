@@ -88,34 +88,16 @@ const InfoBox = ({
         <Icon size={18} strokeWidth={2} color={color} style={{ marginTop: 2, flexShrink: 0 }} />
         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, flex: 1 }}>
           {header && (
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  lineHeight: 1.5,
-                  flex: 1,
-                }}
-              >
-                {header}
-              </Typography>
-              {tipCounter && (
-                <Typography
-                  sx={{
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: "#999",
-                    backgroundColor: "#F5F5F5",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {tipCounter}
-                </Typography>
-              )}
-            </Box>
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                lineHeight: 1.5,
+              }}
+            >
+              {header}
+            </Typography>
           )}
           <Typography
             sx={{
@@ -128,18 +110,36 @@ const InfoBox = ({
           </Typography>
         </Box>
       </Box>
-      <IconButton
-        onClick={handleClose}
-        size="small"
-        sx={{
-          padding: "4px",
-          "&:hover": {
-            backgroundColor: theme.palette.action.hover,
-          },
-        }}
-      >
-        <X size={16} strokeWidth={2} />
-      </IconButton>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {tipCounter && (
+          <Typography
+            sx={{
+              fontSize: 10,
+              fontWeight: 500,
+              color: "#999",
+              backgroundColor: "#F5F5F5",
+              border: "1px solid #E5E5E5",
+              padding: "2px 8px",
+              borderRadius: "4px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {tipCounter}
+          </Typography>
+        )}
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={{
+            padding: "4px",
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }}
+        >
+          <X size={16} strokeWidth={2} />
+        </IconButton>
+      </Box>
     </Box>
   );
 };

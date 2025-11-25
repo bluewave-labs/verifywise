@@ -582,7 +582,7 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
           SELECT
             mi.*,
             COALESCE(
-              NULLIF(TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))), ''),
+              NULLIF(TRIM(CONCAT(COALESCE(u.name, ''), ' ', COALESCE(u.surname, ''))), ''),
               NULL
             ) as approver_name
           FROM "${tenantSchema}".${tableName} mi

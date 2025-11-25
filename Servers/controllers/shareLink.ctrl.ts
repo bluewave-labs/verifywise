@@ -616,14 +616,20 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     // Apply settings-based filtering
     const settings = shareLink.settings || {};
 
+    console.log(`[SHARE VIEW DEBUG] Settings from DB:`, JSON.stringify(settings));
+    console.log(`[SHARE VIEW DEBUG] shareAllFields value:`, settings.shareAllFields, `(type: ${typeof settings.shareAllFields})`);
+    console.log(`[SHARE VIEW DEBUG] Resource data sample (first record):`, Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]) : 'no data');
+
     // If shareAllFields is false, filter fields shown
     let filteredData;
 
-    if (settings.shareAllFields) {
+    if (settings.shareAllFields === true) {
       // Show all fields
+      console.log(`[SHARE VIEW DEBUG] Showing ALL fields (shareAllFields is true)`);
       filteredData = resourceData;
     } else {
       // Show only essential fields based on resource type
+      console.log(`[SHARE VIEW DEBUG] Filtering to essential fields (shareAllFields is ${settings.shareAllFields})`);
       const getEssentialFields = (record: any, resourceType: string) => {
         // Resource-specific essential fields
         switch (resourceType) {
@@ -661,6 +667,9 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         filteredData = getEssentialFields(resourceData, resourceType);
       }
     }
+
+    console.log(`[SHARE VIEW DEBUG] Filtered data sample (first record):`, Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : 'no data');
+    console.log(`[SHARE VIEW DEBUG] Column count - Original: ${Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0}, Filtered: ${Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0}`);
 
     logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
     logger.debug(`✅ Fetched shared data from tenant ${tenantSchema}`);

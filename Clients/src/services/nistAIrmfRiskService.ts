@@ -3,7 +3,7 @@ import axios from "axios";
 export interface NISTSubcategoryRisk {
   id: number;
   risk: string;
-  risk_name?: string;
+  risk_name: string;
   description?: string;
   owner_name?: string;
   owner?: number;

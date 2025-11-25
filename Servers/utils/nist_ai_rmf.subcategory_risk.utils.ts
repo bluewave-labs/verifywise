@@ -82,6 +82,7 @@ export const getRisksForNISTSubcategoryQuery = async (
     const result = await sequelize.query(
       `SELECT
         pr.*,
+        pr.risk as risk_name,
         CONCAT(u.name, ' ', u.surname) as owner_name
       FROM "${tenant}".nist_ai_rmf_subcategories__risks nsrs
       JOIN public.projectrisks pr ON nsrs.projects_risks_id = pr.id

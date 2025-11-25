@@ -985,7 +985,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
             isOrganizational={true}
-            frameworkId={7} // NIST AI RMF framework ID (assuming 7, adjust as needed)
+            frameworkId={4} // NIST AI RMF framework ID
           />
         </Suspense>
       )}

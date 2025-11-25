@@ -629,7 +629,7 @@ const ModelInventory: React.FC = () => {
       // Fetch ALL existing share links for this resource and disable them
       console.log("Fetching all share links for model/0...");
       const existingLinksResponse = await apiServices.get("/shares/model/0");
-      const existingLinks = existingLinksResponse?.data || [];
+      const existingLinks = existingLinksResponse?.data?.data || [];
 
       console.log(`Found ${existingLinks.length} existing share links:`, existingLinks);
 

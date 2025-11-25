@@ -61,26 +61,27 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         }}
       >
         Requests
-          <Box
-    component="span"
-    sx={{
-      backgroundColor: '#13715B',
-      color: '#fff',
-      px: '6px',
-      py: '2px',
-      borderRadius: '12px',
-      fontSize: '11px',
-      fontWeight: 600,
-      lineHeight: 1,
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minWidth: '20px',
-      textAlign: 'center'
-    }}
-  >
-    1
-  </Box>
+        <Box
+          component="span"
+          sx={{
+            backgroundColor: '#13715B',
+            color: '#fff',
+            px: '6px',
+            py: '4px',
+            ml: '8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 600,
+            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '20px',
+            textAlign: 'center'
+          }}
+        >
+          1
+        </Box>
       </Button>
       <Button
         variant="contained"

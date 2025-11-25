@@ -31,14 +31,6 @@ export const ENTITY_TIPS: EntityTips = {
       header: "Task priorities help you focus on what matters most.",
       content: "High-priority tasks require immediate attention and often tie to regulatory deadlines or critical risks. Use filters to view tasks by priority, assignee, or due date. Completing high-priority tasks first reduces compliance risk.",
     },
-    {
-      header: "Bulk actions let you manage multiple tasks efficiently.",
-      content: "Select multiple tasks to assign, update status, or change due dates in one action. This is especially useful when reorganizing workloads or responding to team changes. Use the checkbox column to select tasks.",
-    },
-    {
-      header: "Tasks can be linked to evidence for audit trails.",
-      content: "Attach files, notes, and evidence directly to tasks to create a complete audit trail. This documentation proves compliance during audits and makes it easier to train new team members on processes.",
-    },
   ],
   overview: [
     {
@@ -55,7 +47,7 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "Grouping use cases reveals patterns and shared risks.",
-      content: "Use the group-by feature to organize use cases by department, risk level, or model type. This reveals patterns like departments with high AI adoption or common risk factors across systems. These insights inform governance strategy.",
+      content: "Use the group-by feature to organize use cases by risk level or status. This reveals patterns like common risk factors across systems or lifecycle stage distribution. These insights inform governance strategy.",
     },
   ],
   framework: [
@@ -71,10 +63,6 @@ export const ENTITY_TIPS: EntityTips = {
       header: "Sub-controls break complex requirements into manageable steps.",
       content: "Each framework control contains sub-controls that define specific actions needed for compliance. Click into any control to see what's required, assign owners, and track completion. This granular approach prevents overwhelming teams with massive compliance initiatives.",
     },
-    {
-      header: "Multiple frameworks can share controls for efficiency.",
-      content: "Many regulatory frameworks have overlapping requirements. When you complete a control that maps to multiple frameworks, all related frameworks update automatically. This means you often accomplish more compliance than you realize with each completed item.",
-    },
   ],
   vendors: [
     {
@@ -89,10 +77,6 @@ export const ENTITY_TIPS: EntityTips = {
       header: "Risk scores help prioritize vendor management efforts.",
       content: "High-risk vendors require more frequent review and stricter controls. Use risk scores to determine which vendors need enhanced due diligence, contract terms, or monitoring. This risk-based approach allocates your team's time effectively.",
     },
-    {
-      header: "Document vendor compliance certifications for audits.",
-      content: "Upload vendor SOC 2 reports, ISO certifications, and security documentation to the vendor record. This creates a centralized repository of compliance evidence and makes audit responses faster. Update these documents when vendors provide new versions.",
-    },
   ],
   "model-inventory": [
     {
@@ -100,8 +84,8 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Many organizations don't know how many AI models they're using or where they're deployed. This registry provides that critical visibility. Start by inventorying production models, then expand to development and experimental models.",
     },
     {
-      header: "Model metadata helps assess risk and performance.",
-      content: "Documenting model type, version, training data, and use case enables better risk assessment and performance tracking. This information is essential for responding to model issues, planning updates, and demonstrating responsible AI practices.",
+      header: "Evidence Hub stores model certificates and metadata.",
+      content: "Upload model certificates, metadata, training data documentation, and other evidence to the Evidence Hub. This centralized repository enables better risk assessment and performance tracking. Having all model evidence in one place is essential for audits and demonstrating responsible AI practices.",
     },
     {
       header: "Version tracking prevents deployment of outdated models.",
@@ -191,15 +175,11 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "Export reports for presentations and documentation.",
-      content: "Export reports to PDF or Excel for sharing in presentations, board meetings, or regulatory submissions. Customized reports show stakeholders exactly what they need to know without overwhelming them with details.",
+      content: "Export reports to Word documents for sharing in presentations, board meetings, or regulatory submissions. Customized reports show stakeholders exactly what they need to know without overwhelming them with details.",
     },
     {
       header: "Trend reports reveal governance progress over time.",
       content: "Month-over-month comparisons show whether your governance program is maturing. Look for trends like decreasing high-priority risks, increasing control completion, or faster task closure. These trends demonstrate program effectiveness.",
-    },
-    {
-      header: "Custom reports can be created for specific needs.",
-      content: "If standard reports don't meet your needs, create custom reports filtering by date range, department, risk level, or other criteria. Save custom reports to reuse them for regular stakeholder updates.",
     },
   ],
   "ai-trust-center": [

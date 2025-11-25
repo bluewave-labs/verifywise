@@ -581,7 +581,10 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         resourceQuery = `
           SELECT
             mi.*,
-            CONCAT(u.first_name, ' ', u.last_name) as approver_name
+            COALESCE(
+              NULLIF(TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))), ''),
+              NULL
+            ) as approver_name
           FROM "${tenantSchema}".${tableName} mi
           LEFT JOIN public.users u ON mi.approver = u.id
           ORDER BY mi.id DESC

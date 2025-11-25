@@ -140,25 +140,11 @@ const SharedView: React.FC = () => {
 
   // Define columns to show based on resource type and available data
   const getTableColumns = (resourceType: string) => {
-    if (resourceType === "model") {
-      // If shareAllFields is true, show all model inventory columns
-      // If shareAllFields is false, backend only returns: id, provider, model, version, status, created_at, updated_at
-      // Check if data has all fields or only essential fields
-      const hasAllFields = data && data.length > 0 && data[0].approver !== undefined;
-
-      if (hasAllFields) {
-        // Show full model inventory columns
-        return ["provider", "model", "version", "approver", "security_assessment", "status", "status_date"];
-      } else {
-        // Show only essential fields that backend returned
-        return data && data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'id') : ["provider", "model", "version", "status"];
-      }
-    }
-    // For other resource types, show all columns (or generic fallback for empty tables)
+    // Show all columns that the backend returns (backend handles filtering based on shareAllFields setting)
     if (data && data.length > 0) {
       return Object.keys(data[0]).filter(key => key !== 'id');
     }
-    // Fallback for empty tables of unknown types
+    // Fallback for empty tables
     return ["name", "created_at", "updated_at"];
   };
 

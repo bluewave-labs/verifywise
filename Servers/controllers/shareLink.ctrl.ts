@@ -576,11 +576,24 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     // If resource_id is 0, fetch all records (table view)
     // Otherwise, fetch specific record
     if (resourceId === 0) {
-      resourceQuery = `
-        SELECT * FROM "${tenantSchema}".${tableName}
-        ORDER BY id DESC
-        LIMIT 100;
-      `;
+      // For model_inventories, join with users table to get approver name
+      if (resourceType === 'model') {
+        resourceQuery = `
+          SELECT
+            mi.*,
+            CONCAT(u.first_name, ' ', u.last_name) as approver_name
+          FROM "${tenantSchema}".${tableName} mi
+          LEFT JOIN public.users u ON mi.approver = u.id
+          ORDER BY mi.id DESC
+          LIMIT 100;
+        `;
+      } else {
+        resourceQuery = `
+          SELECT * FROM "${tenantSchema}".${tableName}
+          ORDER BY id DESC
+          LIMIT 100;
+        `;
+      }
 
       resourceResult = await sequelize.query(resourceQuery, {
         type: QueryTypes.SELECT,
@@ -670,6 +683,23 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
 
     console.log(`[SHARE VIEW DEBUG] Filtered data sample (first record):`, Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : 'no data');
     console.log(`[SHARE VIEW DEBUG] Column count - Original: ${Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0}, Filtered: ${Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0}`);
+
+    // Post-process: Replace approver ID with approver_name for models
+    if (resourceType === 'model' && filteredData) {
+      const processRecord = (record: any) => {
+        if (record.approver_name) {
+          const { approver_name, approver, ...rest } = record;
+          return { ...rest, approver: approver_name };
+        }
+        return record;
+      };
+
+      if (Array.isArray(filteredData)) {
+        filteredData = filteredData.map(processRecord);
+      } else {
+        filteredData = processRecord(filteredData);
+      }
+    }
 
     logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');
     logger.debug(`✅ Fetched shared data from tenant ${tenantSchema}`);

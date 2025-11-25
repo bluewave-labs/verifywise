@@ -26,7 +26,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   size = "medium",
   tooltip = "Share view",
 }) => {
-  const iconSize = size === "small" ? 16 : size === "large" ? 22 : 18;
+  const iconSize = size === "small" ? 16 : size === "large" ? 22 : 20;
 
   return (
     <Tooltip title={tooltip} arrow>
@@ -40,7 +40,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({
             backgroundColor: "transparent",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
-            padding: size === "small" ? "6px" : size === "large" ? "10px" : "8px",
+            padding: size === "small" ? "6px" : size === "large" ? "10px" : "6px",
+            width: size === "small" ? "32px" : size === "large" ? "44px" : "34px",
+            height: size === "small" ? "32px" : size === "large" ? "44px" : "34px",
             "&:hover": {
               backgroundColor: "rgba(19, 113, 91, 0.08)",
               borderColor: "#13715B",

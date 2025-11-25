@@ -39,6 +39,7 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -446,6 +447,7 @@ const Training: React.FC = () => {
                     />
                  }
              />
+      <TipBox entityName="training" />
 
            {/* Filter + Search row */}
           <Stack

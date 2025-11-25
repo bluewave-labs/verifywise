@@ -8,6 +8,7 @@ import WatchTowerLogs from "./Loggings";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import TipBox from "../../components/TipBox";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabBar from "../../components/TabBar";
 
@@ -75,6 +76,7 @@ const WatchTower = () => {
                     />
                  }
              />
+        <TipBox entityName="event-tracker" />
 
         <TabContext value={value}>
           <TabBar

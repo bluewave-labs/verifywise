@@ -584,33 +584,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              ownerFilter={ownerFilter}
-              onOwnerChange={setOwnerFilter}
-              reviewerFilter={reviewerFilter}
-              onReviewerChange={setReviewerFilter}
-              dueDateFilter={dueDateFilter}
-              onDueDateChange={setDueDateFilter}
-              showStatusFilter={
-                iso27001TabValue === "clause" || iso27001TabValue === "annex"
-              }
-              showApplicabilityFilter={iso27001TabValue === "annex"}
-              showOwnerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
-              showReviewerFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
-              showDueDateFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
-              statusOptions={iso27001StatusOptions}
-              ownerOptions={userOptions}
-              reviewerOptions={userOptions}
-              showSearchBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-            />
-
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
                 project={organizationalProject}
@@ -624,6 +597,14 @@ const Framework = () => {
                 initialClauseId={clause27001Id}
                 initialSubClauseId={subClause27001Id}
                 searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -641,6 +622,15 @@ const Framework = () => {
                 searchTerm={searchTerm}
                 ownerFilter={ownerFilter}
                 reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
           </TabContext>
@@ -674,33 +664,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              ownerFilter={ownerFilter}
-              onOwnerChange={setOwnerFilter}
-              reviewerFilter={reviewerFilter}
-              onReviewerChange={setReviewerFilter}
-              dueDateFilter={dueDateFilter}
-              onDueDateChange={setDueDateFilter}
-              showStatusFilter={
-                iso42001TabValue === "clauses" || iso42001TabValue === "annexes"
-              }
-              showApplicabilityFilter={iso42001TabValue === "annexes"}
-              showOwnerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
-              showReviewerFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
-              showDueDateFilter={iso42001TabValue === "clauses" || iso42001TabValue === "annexes"}
-              statusOptions={iso42001StatusOptions}
-              ownerOptions={userOptions}
-              reviewerOptions={userOptions}
-              showSearchBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-            />
-
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
                 project={organizationalProject}
@@ -714,6 +677,14 @@ const Framework = () => {
                 initialClauseId={clauseId}
                 initialSubClauseId={subClauseId}
                 searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -731,6 +702,15 @@ const Framework = () => {
                 searchTerm={searchTerm}
                 ownerFilter={ownerFilter}
                 reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
           </TabContext>

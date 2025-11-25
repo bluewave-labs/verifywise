@@ -75,7 +75,7 @@ const TabFilterBar = ({
 
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "16px", mb: "8px" }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "8px", mb: 0 }}
     >
       <Box
         sx={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}
@@ -196,7 +196,7 @@ const TabFilterBar = ({
           </Box>
         )}
       </Box>
-      <Stack mt={2}>
+      <Stack mt={0}>
         {(statusFilter || ownerFilter || approverFilter || reviewerFilter || dueDateFilter ||
           applicabilityFilter === "true" ||
           applicabilityFilter === "false") && (

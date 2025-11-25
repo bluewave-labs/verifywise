@@ -24,6 +24,7 @@ import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdow
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO42001Clause = ({
   project,
@@ -35,6 +36,14 @@ const ISO42001Clause = ({
   initialClauseId,
   initialSubClauseId,
   searchTerm,
+  onStatusChange,
+  onOwnerChange,
+  onReviewerChange,
+  onDueDateChange,
+  onSearchTermChange,
+  statusOptions,
+  ownerOptions,
+  reviewerOptions,
 }: {
   project: Project;
   projectFrameworkId: number | string;
@@ -45,6 +54,14 @@ const ISO42001Clause = ({
   initialClauseId?: string | null;
   initialSubClauseId?: string | null;
   searchTerm: string;
+  onStatusChange?: (val: string) => void;
+  onOwnerChange?: (val: string) => void;
+  onReviewerChange?: (val: string) => void;
+  onDueDateChange?: (val: string) => void;
+  onSearchTermChange?: (val: string) => void;
+  statusOptions?: { label: string; value: string }[];
+  ownerOptions?: { label: string; value: string }[];
+  reviewerOptions?: { label: string; value: string }[];
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
@@ -365,6 +382,26 @@ const ISO42001Clause = ({
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Management System Clauses"}
       </Typography>
+      <TabFilterBar
+        statusFilter={statusFilter}
+        onStatusChange={onStatusChange}
+        ownerFilter={ownerFilter}
+        onOwnerChange={onOwnerChange}
+        reviewerFilter={reviewerFilter}
+        onReviewerChange={onReviewerChange}
+        dueDateFilter={dueDateFilter}
+        onDueDateChange={onDueDateChange}
+        showStatusFilter={true}
+        showOwnerFilter={true}
+        showReviewerFilter={true}
+        showDueDateFilter={true}
+        statusOptions={statusOptions}
+        ownerOptions={ownerOptions}
+        reviewerOptions={reviewerOptions}
+        showSearchBar={true}
+        searchTerm={searchTerm}
+        setSearchTerm={onSearchTermChange as any}
+      />
       {filteredClauses &&
         filteredClauses.map((clause: any) => {
           const count = filteredSubClausesCountMemo[clause.id ?? 0];

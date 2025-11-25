@@ -21,6 +21,7 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO42001Annex = ({
   project,
@@ -33,6 +34,15 @@ const ISO42001Annex = ({
   initialAnnexId,
   initialAnnexCategoryId,
   searchTerm,
+  onStatusChange,
+  onApplicabilityChange,
+  onOwnerChange,
+  onReviewerChange,
+  onDueDateChange,
+  onSearchTermChange,
+  statusOptions,
+  ownerOptions,
+  reviewerOptions,
 }: {
   project: Project;
   projectFrameworkId: string | number;
@@ -44,6 +54,15 @@ const ISO42001Annex = ({
   initialAnnexId?: string | null;
   initialAnnexCategoryId?: string | null;
   searchTerm: string;
+  onStatusChange?: (val: string) => void;
+  onApplicabilityChange?: (val: string) => void;
+  onOwnerChange?: (val: string) => void;
+  onReviewerChange?: (val: string) => void;
+  onDueDateChange?: (val: string) => void;
+  onSearchTermChange?: (val: string) => void;
+  statusOptions?: { label: string; value: string }[];
+  ownerOptions?: { label: string; value: string }[];
+  reviewerOptions?: { label: string; value: string }[];
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -325,6 +344,29 @@ const ISO42001Annex = ({
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Information Security Controls"}
       </Typography>
+      <TabFilterBar
+        statusFilter={statusFilter}
+        onStatusChange={onStatusChange}
+        applicabilityFilter={applicabilityFilter}
+        onApplicabilityChange={onApplicabilityChange}
+        ownerFilter={ownerFilter}
+        onOwnerChange={onOwnerChange}
+        reviewerFilter={reviewerFilter}
+        onReviewerChange={onReviewerChange}
+        dueDateFilter={dueDateFilter}
+        onDueDateChange={onDueDateChange}
+        showStatusFilter={true}
+        showApplicabilityFilter={true}
+        showOwnerFilter={true}
+        showReviewerFilter={true}
+        showDueDateFilter={true}
+        statusOptions={statusOptions}
+        ownerOptions={ownerOptions}
+        reviewerOptions={reviewerOptions}
+        showSearchBar={true}
+        searchTerm={searchTerm}
+        setSearchTerm={onSearchTermChange as any}
+      />
       {filteredAnnexes &&
         filteredAnnexes.map((annex: any) => {
           const count = filteredControlsCountMemo[annex.id ?? 0];

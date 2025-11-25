@@ -75,7 +75,7 @@ const TabFilterBar = ({
 
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "16px", mb: "16px" }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "16px", mb: "8px" }}
     >
       <Box
         sx={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}
@@ -192,12 +192,11 @@ const TabFilterBar = ({
               placeholder="Search by title..."
               value={searchTerm ?? ""}
               onChange={(value) => setSearchTerm?.(value)}
-              sx={{ mt: 4, mb: 2 }}
             />
           </Box>
         )}
       </Box>
-      <Stack mt={4}>
+      <Stack mt={2}>
         {(statusFilter || ownerFilter || approverFilter || reviewerFilter || dueDateFilter ||
           applicabilityFilter === "true" ||
           applicabilityFilter === "false") && (

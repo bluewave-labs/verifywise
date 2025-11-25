@@ -45,7 +45,6 @@ import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import TipBox from "../../components/TipBox";
-import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
@@ -76,7 +75,6 @@ const Vendors = () => {
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [risksSearchTerm, setRisksSearchTerm] = useState<string>("");
 
   // GroupBy state - vendors tab
@@ -404,16 +402,6 @@ const Vendors = () => {
     const status = event.target.value as string;
     setStatusFilter(status);
   };
-
-  // Filter vendors by search query
-  const filteredVendors = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return vendors;
-    }
-    return vendors.filter((vendor: any) =>
-      vendor.vendor_name?.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [vendors, searchTerm]);
 
   // Filter vendor risks by search query
   const filteredVendorRisks = useMemo(() => {

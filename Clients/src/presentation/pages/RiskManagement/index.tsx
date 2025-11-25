@@ -492,8 +492,8 @@ const RiskManagement = () => {
                 border: "1px solid #13715B",
                 gap: 2,
               }}
-              onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={handleInsertFromMenuOpen}
+              icon={<ChevronDown size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }

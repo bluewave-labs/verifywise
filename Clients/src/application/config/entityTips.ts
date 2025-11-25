@@ -65,7 +65,7 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "Framework progress shows your compliance maturity.",
-      content: "The completion percentage for each framework indicates how well you meet regulatory standards. Focus on frameworks with lower scores or upcoming deadlines. Gradual improvement is normal—aim for consistent progress rather than perfection.",
+      content: "The completion percentage for each framework indicates how well you meet regulatory standards. Focus on frameworks with lower scores or upcoming deadlines. Gradual improvement is normal. Aim for consistent progress rather than perfection.",
     },
     {
       header: "Sub-controls break complex requirements into manageable steps.",
@@ -127,7 +127,7 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "Residual risk shows what remains after controls.",
-      content: "Even with mitigations, some risk remains—this is residual risk. Tracking residual risk helps leadership make informed decisions about risk acceptance. If residual risk is too high, additional controls may be needed.",
+      content: "Even with mitigations, some risk remains. This is residual risk. Tracking residual risk helps leadership make informed decisions about risk acceptance. If residual risk is too high, additional controls may be needed.",
     },
   ],
   "fairness-dashboard": [
@@ -169,7 +169,7 @@ export const ENTITY_TIPS: EntityTips = {
   "file-manager": [
     {
       header: "Centralized evidence storage speeds up audits.",
-      content: "When auditors request documentation, you need to find it quickly. Storing all AI governance evidence in one place—assessments, approvals, test results—makes audit responses faster and reduces stress. Tag files clearly for easy retrieval.",
+      content: "When auditors request documentation, you need to find it quickly. Storing all AI governance evidence in one place (assessments, approvals, test results) makes audit responses faster and reduces stress. Tag files clearly for easy retrieval.",
     },
     {
       header: "Link evidence to related items for context.",
@@ -181,7 +181,7 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "Retention policies keep evidence available when needed.",
-      content: "Different regulations have different retention requirements—some require 3 years, others 7 or more. Set retention policies for evidence based on regulatory requirements. Don't delete evidence prematurely, as you may need it for audits years later.",
+      content: "Different regulations have different retention requirements. Some require 3 years, others 7 or more. Set retention policies for evidence based on regulatory requirements. Don't delete evidence prematurely, as you may need it for audits years later.",
     },
   ],
   reporting: [
@@ -251,10 +251,6 @@ export const ENTITY_TIPS: EntityTips = {
       header: "Root cause analysis prevents recurring incidents.",
       content: "Document what caused each incident and what corrective actions you're taking. Root cause analysis helps prevent the same incident from happening again. Regulators want to see that you learn from incidents and improve over time.",
     },
-    {
-      header: "Incident response time affects impact.",
-      content: "The faster you detect and respond to AI incidents, the less harm they cause. Track mean time to detection (MTTD) and mean time to resolution (MTTR) to measure response effectiveness. Set goals to improve these metrics over time.",
-    },
   ],
   "event-tracker": [
     {
@@ -281,7 +277,7 @@ export const ENTITY_TIPS: EntityTips = {
     },
     {
       header: "User roles control access to sensitive information.",
-      content: "Not everyone needs access to all governance data. Use roles to grant appropriate access levels—viewers for stakeholders, editors for governance team members, and admins for system owners. Role-based access protects sensitive information.",
+      content: "Not everyone needs access to all governance data. Use roles to grant appropriate access levels: viewers for stakeholders, editors for governance team members, and admins for system owners. Role-based access protects sensitive information.",
     },
     {
       header: "Integration settings connect VerifyWise to your existing tools.",

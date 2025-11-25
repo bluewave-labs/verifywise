@@ -88,12 +88,8 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Upload model certificates, metadata, training data documentation, and other evidence to the Evidence Hub. This centralized repository enables better risk assessment and performance tracking. Having all model evidence in one place is essential for audits and demonstrating responsible AI practices.",
     },
     {
-      header: "Version tracking prevents deployment of outdated models.",
-      content: "Record each model version with its deployment date and changes. This helps you ensure only approved versions run in production and makes it easier to rollback if issues arise. Version history is also critical for audit trails.",
-    },
-    {
-      header: "Link models to vendors for complete supply chain visibility.",
-      content: "If you use third-party models or APIs, link them to vendor records. This connection helps track vendor risks, contract terms, and compliance requirements that affect model usage. It's essential for AI supply chain governance.",
+      header: "Link models to use cases and frameworks.",
+      content: "Connect your AI models to the use cases where they're deployed and the compliance frameworks they must meet. These links create traceability from models through use cases to regulatory requirements. This connection is essential for comprehensive AI governance.",
     },
   ],
   "risk-management": [

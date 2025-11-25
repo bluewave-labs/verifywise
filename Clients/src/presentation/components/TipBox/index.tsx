@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, keyframes, Typography } from "@mui/material";
+import { Box, keyframes } from "@mui/material";
 import { useTipManager } from "../../../application/hooks/useTipManager";
 import InfoBox from "../InfoBox";
 

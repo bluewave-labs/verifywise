@@ -9,6 +9,19 @@ interface TipState {
 const getStorageKey = (entityName: string, userId: number) =>
   `verifywise_tips_${entityName}_${userId}`;
 
+const getDismissedTips = (storageKey: string): number[] => {
+  const savedState = localStorage.getItem(storageKey);
+  if (!savedState) return [];
+
+  try {
+    const parsed: TipState = JSON.parse(savedState);
+    return parsed.dismissedTips || [];
+  } catch (error) {
+    console.error("Failed to parse tip state:", error);
+    return [];
+  }
+};
+
 export const useTipManager = (entityName: string) => {
   const { userId } = useAuth();
   const [currentTip, setCurrentTip] = useState<Tip | null>(null);
@@ -26,19 +39,7 @@ export const useTipManager = (entityName: string) => {
     }
 
     const storageKey = getStorageKey(entityName, userId);
-    const savedState = localStorage.getItem(storageKey);
-
-    let dismissedTips: number[] = [];
-
-    if (savedState) {
-      try {
-        const parsed: TipState = JSON.parse(savedState);
-        dismissedTips = parsed.dismissedTips || [];
-      } catch (error) {
-        console.error("Failed to parse tip state:", error);
-        dismissedTips = [];
-      }
-    }
+    const dismissedTips = getDismissedTips(storageKey);
 
     // Find the first tip that hasn't been dismissed
     const nextTipIndex = entityTips.findIndex(
@@ -60,18 +61,7 @@ export const useTipManager = (entityName: string) => {
     if (!userId || currentTipIndex === null) return;
 
     const storageKey = getStorageKey(entityName, userId);
-    const savedState = localStorage.getItem(storageKey);
-
-    let dismissedTips: number[] = [];
-
-    if (savedState) {
-      try {
-        const parsed: TipState = JSON.parse(savedState);
-        dismissedTips = parsed.dismissedTips || [];
-      } catch (error) {
-        console.error("Failed to parse tip state:", error);
-      }
-    }
+    const dismissedTips = getDismissedTips(storageKey);
 
     // Add current tip to dismissed list
     if (!dismissedTips.includes(currentTipIndex)) {

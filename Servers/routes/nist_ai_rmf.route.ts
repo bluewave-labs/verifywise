@@ -13,6 +13,12 @@ import {
   updateNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryStatus,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
+import {
+  getRisksForNISTSubcategory,
+  linkRisksToNISTSubcategory,
+  updateNISTSubcategoryRiskLinks,
+  removeRiskFromNISTSubcategory,
+} from "../controllers/nist_ai_rmf.subcategory_risk.ctrl";
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -58,5 +64,31 @@ router.patch(
   validateId("id"),
   updateNISTAIRMFSubcategoryStatus
 ); // updating status of a specific NIST AI RMF subcategory by id
+
+// Risk linking endpoints for NIST AI RMF subcategories
+router.get(
+  "/subcategories/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  getRisksForNISTSubcategory
+); // getting all risks linked to a specific NIST AI RMF subcategory
+router.post(
+  "/subcategories/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  linkRisksToNISTSubcategory
+); // linking risks to a specific NIST AI RMF subcategory
+router.put(
+  "/subcategories/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  updateNISTSubcategoryRiskLinks
+); // updating risk links for a NIST AI RMF subcategory
+router.delete(
+  "/subcategories/:id/risks/:riskId",
+  authenticateJWT,
+  validateId("id"),
+  removeRiskFromNISTSubcategory
+); // removing a specific risk from a NIST AI RMF subcategory
 
 export default router;

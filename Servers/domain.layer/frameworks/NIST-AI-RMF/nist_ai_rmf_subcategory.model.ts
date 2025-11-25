@@ -108,4 +108,16 @@ export class NISTAIMRFSubcategoryModel extends Model<NISTAIMRFSubcategoryModel> 
     allowNull: true,
   })
   tags?: string[];
+
+  @Column({
+    type: DataType.JSON,
+    allowNull: true,
+  })
+  risksDelete?: number[];
+
+  @Column({
+    type: DataType.JSON,
+    allowNull: true,
+  })
+  risksMitigated?: number[];
 }

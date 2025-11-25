@@ -6,6 +6,9 @@ import {
   updateNISTAIRMFSubcategoryByIdQuery,
   updateNISTAIRMFSubcategoryStatusByIdQuery,
 } from "../utils/nist_ai_rmf.subcategory.utils";
+import {
+  updateNISTSubcategoryRiskLinksQuery,
+} from "../utils/nist_ai_rmf.subcategory_risk.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logEvent } from "../utils/logger/dbLogger";
 import { sequelize } from "../database/db";
@@ -141,6 +144,8 @@ export async function updateNISTAIRMFSubcategoryById(
       delete?: string;
       project_id?: string;
       tags?: string | string[]; // Tags come as JSON string from FormData
+      risksDelete?: string | number[];
+      risksMitigated?: string | number[];
     };
 
     // Parse tags from JSON string if present
@@ -158,6 +163,21 @@ export async function updateNISTAIRMFSubcategoryById(
       ? ((JSON.parse(subcategory.delete || "[]") as (string | number)[])
           .map((id) => (typeof id === "string" ? parseInt(id, 10) : id))
           .filter((id) => !isNaN(id)) as number[])
+      : [];
+
+    // Parse risk data (following ISO pattern)
+    const risksDelete = subcategory.risksDelete
+      ? (typeof subcategory.risksDelete === "string"
+          ? JSON.parse(subcategory.risksDelete)
+          : subcategory.risksDelete)
+          .filter((id: number) => id && !isNaN(id)) as number[]
+      : [];
+
+    const risksMitigated = subcategory.risksMitigated
+      ? (typeof subcategory.risksMitigated === "string"
+          ? JSON.parse(subcategory.risksMitigated)
+          : subcategory.risksMitigated)
+          .filter((id: number) => id && !isNaN(id)) as number[]
       : [];
 
     // Delete files from database (ISO pattern)
@@ -226,6 +246,17 @@ export async function updateNISTAIRMFSubcategoryById(
       req.tenantId!,
       transaction
     );
+
+    // Process risk linking if there are changes (following ISO pattern)
+    if (risksDelete.length > 0 || risksMitigated.length > 0) {
+      const tenantHash = req.tenantId!;
+      await updateNISTSubcategoryRiskLinksQuery(
+        subcategoryId,
+        { risksDelete, risksMitigated },
+        tenantHash,
+        transaction
+      );
+    }
 
     await transaction.commit();
     await logEvent(

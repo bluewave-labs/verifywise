@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { Box } from "@mui/material";
@@ -27,6 +27,10 @@ import { User } from "../../../../domain/types/User";
 import { FileData } from "../../../../domain/types/File";
 import { getFileById } from "../../../../application/repository/file.repository";
 import allowedRoles from "../../../../application/constants/permissions";
+import { getRisksForNISTSubcategory } from "../../../../services/nistAIrmfRiskService";
+
+// Lazy load the LinkedRisksPopup component
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 
 export const inputStyles = {
   minWidth: 200,
@@ -47,6 +51,12 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState("details");
+
+  // Risk linking state
+  const [currentRisks, setCurrentRisks] = useState<any[]>([]);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState(false);
 
   const { userRoleName, userId } = useAuth();
   const { users } = useUsers();
@@ -74,6 +84,27 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     // Reset upload and deleted files
     setUploadFiles([]);
     setDeletedFiles([]);
+  }, [subcategory]);
+
+  // Load risks when subcategory changes
+  useEffect(() => {
+    if (subcategory?.id) {
+      const loadRisks = async () => {
+        try {
+          const risks = await getRisksForNISTSubcategory(subcategory.id);
+          setCurrentRisks(risks);
+          // Reset risk state
+          setSelectedRisks([]);
+          setDeletedRisks([]);
+        } catch (error) {
+          console.error("Error loading risks for subcategory:", error);
+          setCurrentRisks([]);
+          setSelectedRisks([]);
+          setDeletedRisks([]);
+        }
+      };
+      loadRisks();
+    }
   }, [subcategory]);
 
   const [formData, setFormData] = useState({
@@ -316,6 +347,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
           formDataToSend.append("files", fileToUpload);
         }
       });
+
+      // Add risk data (following ISO pattern)
+      formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+      formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
 
       const response = await updateEntityById({
         routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}`,
@@ -836,9 +871,63 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                 </TabPanel>
 
                 <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
-                  <Typography color="text.secondary" textAlign="center">
-                    Cross mappings tab content will be implemented here.
-                  </Typography>
+                  <Stack spacing={3}>
+                    {/* Risk Management Section */}
+                    <Box>
+                      <Typography variant="h6" gutterBottom>
+                        Risk Management
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Link relevant risks to this NIST AI RMF subcategory to ensure comprehensive coverage.
+                      </Typography>
+
+                      {/* Current Risks Display */}
+                      {currentRisks.length > 0 && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                            Currently Linked Risks ({currentRisks.length}):
+                          </Typography>
+                          <Stack spacing={1}>
+                            {currentRisks.map((risk) => (
+                              <Box
+                                key={risk.id}
+                                sx={{
+                                  p: 2,
+                                  border: "1px solid #e0e0e0",
+                                  borderRadius: 1,
+                                  backgroundColor: "#fafafa",
+                                }}
+                              >
+                                <Typography variant="body2" fontWeight="medium">
+                                  {risk.risk_name || risk.risk || `Risk #${risk.id}`}
+                                </Typography>
+                                {risk.description && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {risk.description}
+                                  </Typography>
+                                )}
+                                {risk.owner_name && (
+                                  <Typography variant="caption" color="primary">
+                                    Owner: {risk.owner_name}
+                                  </Typography>
+                                )}
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+
+                      {/* Link Risks Button */}
+                      <CustomizableButton
+                        onClick={() => setIsLinkedRisksModalOpen(true)}
+                        variant="outlined"
+                        startIcon={<Typography variant="body2">🔗</Typography>}
+                        isDisabled={isEditingDisabled}
+                      >
+                        {currentRisks.length > 0 ? "Manage Linked Risks" : "Link Risks"}
+                      </CustomizableButton>
+                    </Box>
+                  </Stack>
                 </TabPanel>
 
                 <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
@@ -883,6 +972,22 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       {/* Alert Component */}
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+      )}
+
+      {/* Linked Risks Modal */}
+      {isLinkedRisksModalOpen && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <LinkedRisksPopup
+            onClose={() => setIsLinkedRisksModalOpen(false)}
+            currentRisks={currentRisks
+              .concat(selectedRisks)
+              .filter((risk) => !deletedRisks.includes(risk))}
+            setSelectecRisks={setSelectedRisks}
+            _setDeletedRisks={setDeletedRisks}
+            isOrganizational={true}
+            frameworkId={7} // NIST AI RMF framework ID (assuming 7, adjust as needed)
+          />
+        </Suspense>
       )}
     </>
   );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, keyframes, Typography } from "@mui/material";
 import { useTipManager } from "../../../application/hooks/useTipManager";
 import InfoBox from "../InfoBox";
@@ -18,6 +19,18 @@ const fadeIn = keyframes`
   }
 `;
 
+// Fade-out animation
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+`;
+
 /**
  * TipBox component that displays entity-specific tips to users.
  * Tips are shown one at a time and dismissed permanently when closed.
@@ -25,6 +38,7 @@ const fadeIn = keyframes`
  */
 const TipBox = ({ entityName }: TipBoxProps) => {
   const { currentTip, dismissTip, currentTipNumber, totalTips } = useTipManager(entityName);
+  const [isClosing, setIsClosing] = useState(false);
 
   if (!currentTip) {
     return null;
@@ -32,12 +46,24 @@ const TipBox = ({ entityName }: TipBoxProps) => {
 
   const tipCounter = `Tip ${currentTipNumber} of ${totalTips}`;
 
+  const handleDismiss = () => {
+    // Trigger fade-out animation for the entire TipBox (including chip)
+    setIsClosing(true);
+
+    // Wait for animation to complete, then call dismissTip
+    setTimeout(() => {
+      dismissTip();
+    }, 300); // Match animation duration
+  };
+
   return (
     <Box
       sx={{
         marginTop: "8px",
         marginBottom: "8px",
-        animation: `${fadeIn} 0.3s ease-out`,
+        animation: isClosing
+          ? `${fadeOut} 0.3s ease-out forwards`
+          : `${fadeIn} 0.3s ease-out`,
         position: "relative",
       }}
     >
@@ -65,8 +91,9 @@ const TipBox = ({ entityName }: TipBoxProps) => {
         message={currentTip.content}
         storageKey={`tip_${entityName}`}
         variant="info"
-        onDismiss={dismissTip}
+        onDismiss={handleDismiss}
         disableInternalStorage={true}
+        disableAnimation={true}
         backgroundColor="linear-gradient(135deg, #EFF6FF 0%, #F8FBFF 100%)"
         borderColor="#DBEAFE"
       />

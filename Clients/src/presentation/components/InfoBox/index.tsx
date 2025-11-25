@@ -21,6 +21,7 @@ interface InfoBoxProps {
   header?: string; // Optional header for tips
   onDismiss?: () => void; // Optional custom dismiss handler
   disableInternalStorage?: boolean; // When true, skip internal localStorage management (use onDismiss instead)
+  disableAnimation?: boolean; // When true, skip internal fade-out animation (parent handles it)
   backgroundColor?: string; // Optional custom background color
   borderColor?: string; // Optional custom border color
 }
@@ -32,6 +33,7 @@ const InfoBox = ({
   header,
   onDismiss,
   disableInternalStorage = false,
+  disableAnimation = false,
   backgroundColor,
   borderColor
 }: InfoBoxProps) => {
@@ -64,6 +66,14 @@ const InfoBox = ({
   }, [storageKey, disableInternalStorage]);
 
   const handleClose = () => {
+    // If parent handles animation, call dismiss immediately
+    if (disableAnimation) {
+      if (onDismiss) {
+        onDismiss();
+      }
+      return;
+    }
+
     // Trigger fade-out animation
     setIsClosing(true);
 
@@ -99,7 +109,7 @@ const InfoBox = ({
         borderRadius: "4px",
         border: `1px solid ${borderColor || theme.palette.divider}`,
         gap: 2,
-        animation: isClosing ? `${fadeOut} 0.3s ease-out forwards` : "none",
+        animation: !disableAnimation && isClosing ? `${fadeOut} 0.3s ease-out forwards` : "none",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>

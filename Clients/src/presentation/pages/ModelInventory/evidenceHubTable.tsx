@@ -377,7 +377,6 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                                                     ? evidence.evidence_files[0].filename
                                                     : ""
                                             }
-                                            size={20}
                                         />
                                         {evidence.evidence_name}
                                     </Box>

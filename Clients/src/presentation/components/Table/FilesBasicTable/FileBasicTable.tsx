@@ -365,7 +365,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                       gap: "8px",
                     }}
                   >
-                    <FileIcon fileName={row.fileName} size={20} />
+                    <FileIcon fileName={row.fileName} />
                     {row.fileName}
                   </Box>
                 </TableCell>

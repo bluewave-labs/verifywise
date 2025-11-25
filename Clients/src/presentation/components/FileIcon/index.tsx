@@ -13,6 +13,10 @@ import txtIcon from "../../assets/icons/file-types/txt.svg";
 import csvIcon from "../../assets/icons/file-types/csv.svg";
 import zipIcon from "../../assets/icons/file-types/zip.svg";
 import rarIcon from "../../assets/icons/file-types/rar.svg";
+import jpgIcon from "../../assets/icons/file-types/jpg.svg";
+import jpegIcon from "../../assets/icons/file-types/jpeg.svg";
+import pngIcon from "../../assets/icons/file-types/png.svg";
+import gifIcon from "../../assets/icons/file-types/gif.svg";
 import defaultIcon from "../../assets/icons/file-types/default.svg";
 
 // Map file extensions to their corresponding icons
@@ -40,6 +44,12 @@ const FILE_ICON_MAP: Record<string, string> = {
   "7z": zipIcon, // Use zip icon for 7z
   tar: zipIcon,  // Use zip icon for tar
   gz: zipIcon,   // Use zip icon for gz
+
+  // Images
+  jpg: jpgIcon,
+  jpeg: jpegIcon,
+  png: pngIcon,
+  gif: gifIcon,
 };
 
 /**
@@ -68,7 +78,7 @@ interface FileIconProps {
 /**
  * FileIcon component displays an icon based on the file extension
  */
-const FileIcon: React.FC<FileIconProps> = ({ fileName, size = 20, sx }) => {
+const FileIcon: React.FC<FileIconProps> = ({ fileName, size = 24, sx }) => {
   const iconSrc = getFileIconSrc(fileName);
 
   return (

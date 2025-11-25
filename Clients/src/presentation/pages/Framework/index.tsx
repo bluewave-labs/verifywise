@@ -811,6 +811,7 @@ const Framework = () => {
             <>
               <CustomizableButton
                 variant="contained"
+                text="Manage frameworks"
                 endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
                 onClick={(event: React.MouseEvent<any>) => {
                   setRotated((prev) => !prev);
@@ -868,7 +869,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Manage Frameworks"
+                    primary="Add/remove frameworks"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -889,7 +890,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Edit Project"
+                    primary="Edit project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -913,7 +914,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Delete Project"
+                    primary="Delete project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,

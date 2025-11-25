@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
-import {
-  Box,
-  SelectChangeEvent,
-  Stack,
-  useTheme,
-} from "@mui/material";
+import { Box, SelectChangeEvent, Stack, useTheme } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
@@ -25,7 +20,7 @@ import VendorsSteps from "./VendorsSteps";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
@@ -36,6 +31,7 @@ import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import SearchBox from "../../components/Search/SearchBox";
 import {
   useVendors,
   useDeleteVendor,
@@ -49,7 +45,6 @@ import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import TipBox from "../../components/TipBox";
-import SearchBox from "../../components/Search/SearchBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
@@ -71,13 +66,16 @@ const Vendors = () => {
   const userRoleName = userToken?.roleName || "";
   const { users } = useUsers();
 
-  const [selectedVendor, setSelectedVendor] = useState<VendorModel| null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorModel | null>(
+    null,
+  );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [risksSearchTerm, setRisksSearchTerm] = useState<string>("");
 
   // GroupBy state - vendors tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -88,7 +86,6 @@ const Vendors = () => {
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
   const value = isRisksTab ? "2" : "1";
-
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -181,7 +178,14 @@ const Vendors = () => {
     // Dependencies: location.state triggers the effect when openCreateModal is passed via navigation
     // navigate, location.pathname are needed for state clearing
     // isRisksTab, vendors.length, isVendorsLoading determine which modal to open or if validation is needed
-  }, [location.state, navigate, location.pathname, isRisksTab, vendors.length, isVendorsLoading]);
+  }, [
+    location.state,
+    navigate,
+    location.pathname,
+    isRisksTab,
+    vendors.length,
+    isVendorsLoading,
+  ]);
 
   const handleDeleteVendor = async (vendorId?: number) => {
     if (!vendorId) {
@@ -365,7 +369,7 @@ const Vendors = () => {
 
   const handleProjectChange = (
     event: SelectChangeEvent<string | number>,
-    _child: React.ReactNode
+    _child: React.ReactNode,
   ) => {
     const selectedId = event.target.value.toString();
     setSelectedProjectId(selectedId);
@@ -373,7 +377,7 @@ const Vendors = () => {
 
   const handleVendorChange = (
     event: SelectChangeEvent<string | number>,
-    _child: React.ReactNode
+    _child: React.ReactNode,
   ) => {
     const selectedId = event.target.value.toString();
     setSelectedVendorId(selectedId);
@@ -381,9 +385,9 @@ const Vendors = () => {
 
   const handleFilterStatusChange = (
     event: SelectChangeEvent<string | number>,
-    _child: React.ReactNode
+    _child: React.ReactNode,
   ) => {
-    const status = event.target.value as 'active' | 'deleted' | 'all';
+    const status = event.target.value as "active" | "deleted" | "all";
     setFilterStatus(status);
   };
 
@@ -398,6 +402,17 @@ const Vendors = () => {
     const status = event.target.value as string;
     setStatusFilter(status);
   };
+
+  // Filter vendor risks by search query
+  const filteredVendorRisks = useMemo(() => {
+    if (!risksSearchTerm.trim()) {
+      return vendorRisks;
+    }
+    const query = risksSearchTerm.toLowerCase();
+    return vendorRisks.filter((risk) =>
+      risk.risk_description?.toLowerCase().includes(query),
+    );
+  }, [vendorRisks, risksSearchTerm]);
 
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
@@ -434,7 +449,7 @@ const Vendors = () => {
     }
     return vendorList.filter(
       (vendor) =>
-        vendor.project_id && vendor.project_id.toString() === selectedProjectId
+        vendor.project_id && vendor.project_id.toString() === selectedProjectId,
     );
   }, [vendorRisks, selectedProjectId, vendors]);
 
@@ -619,39 +634,41 @@ const Vendors = () => {
         quickActions={[
           {
             label: "Add Your First Vendor",
-            description: "Start by adding a key AI vendor to track their services and compliance",
+            description:
+              "Start by adding a key AI vendor to track their services and compliance",
             primary: true,
             action: () => {
               setIsHelperDrawerOpen(false);
               setIsOpen(true);
-            }
+            },
           },
           {
             label: "Add Vendor Risk",
-            description: "Quickly assess vendor risks using our pre-built risk templates",
+            description:
+              "Quickly assess vendor risks using our pre-built risk templates",
             action: () => {
               setIsHelperDrawerOpen(false);
               setIsRiskModalOpen(true);
-            }
-          }
+            },
+          },
         ]}
         useCases={[
           "*AI model vendors* providing machine learning algorithms and *pre-trained models*",
           "*Cloud AI platforms* offering infrastructure and *development environments*",
           "*Data processing services* handling *sensitive or regulated information*",
-          "*Third-party analytics tools* integrated with your AI systems"
+          "*Third-party analytics tools* integrated with your AI systems",
         ]}
         keyFeatures={[
           "**Centralized vendor database** with basic vendor information and contact details",
           "*Vendor risk management* with description, severity, likelihood, and action planning",
           "*Project-based filtering* to view vendors and risks by specific use cases",
-          "*Dual-tab interface* for managing both vendors and their associated risks"
+          "*Dual-tab interface* for managing both vendors and their associated risks",
         ]}
         tips={[
           "Use the *project filter* to focus on vendors and risks for specific use cases",
           "Track *risk severity* and *likelihood* to understand which risks need attention",
           "Add *action plans* to vendor risks to document mitigation strategies",
-          "Switch between *Vendors* and *Risks* tabs to manage different aspects of vendor oversight"
+          "Switch between *Vendors* and *Risks* tabs to manage different aspects of vendor oversight",
         ]}
       />
       <PageTour
@@ -680,16 +697,19 @@ const Vendors = () => {
           <Box sx={{ mt: 4 }}>
             <PageHeader
               title={value === "1" ? "Vendor list" : "Vendor risks list"}
-              description={value === "1"
-                ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-                : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+              description={
+                value === "1"
+                  ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+                  : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
               }
-              rightContent={value === "1" ? (
-                <HelperIcon
-                  onClick={() => setIsHelperDrawerOpen(true)}
-                  size="small"
-                />
-              ) : undefined}
+              rightContent={
+                value === "1" ? (
+                  <HelperIcon
+                    onClick={() => setIsHelperDrawerOpen(true)}
+                    size="small"
+                  />
+                ) : undefined
+              }
             />
           </Box>
           <TipBox entityName="vendors" />
@@ -708,7 +728,7 @@ const Vendors = () => {
                   label: "Risks",
                   value: "2",
                   icon: "AlertTriangle",
-                  count: vendorRisks.length,
+                  count: filteredVendorRisks.length,
                   isLoading: loadingVendorRisks,
                 },
               ]}
@@ -833,60 +853,86 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Stack direction="row" gap={8} alignItems="center">
-                  <Select
-                    id="projects"
-                    value={selectedProjectId ?? ""}
-                    items={[
-                      { _id: "all", name: "All Use Cases" },
-                      ...projects.map((project) => ({
-                        _id: project.id.toString(),
-                        name: project.project_title,
-                      })),
-                    ]}
-                    onChange={handleProjectChange}
+              <Stack gap={2}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Stack direction="row" gap={2} alignItems="center">
+                    <Select
+                      id="projects"
+                      value={selectedProjectId ?? ""}
+                      items={[
+                        { _id: "all", name: "All Use Cases" },
+                        ...projects.map((project) => ({
+                          _id: project.id.toString(),
+                          name: project.project_title,
+                        })),
+                      ]}
+                      onChange={handleProjectChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                    <Select
+                      id="vendors"
+                      value={selectedVendorId}
+                      items={[
+                        { _id: "all", name: "All Vendors" },
+                        ...vendorOptions.map((vendor) => ({
+                          _id: vendor.id.toString(),
+                          name: vendor.name,
+                        })),
+                      ]}
+                      onChange={handleVendorChange}
+                      sx={{
+                        width: "180px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                    <Select
+                      id="filter-status"
+                      value={filterStatus}
+                      items={[
+                        { _id: "active", name: "Active only" },
+                        { _id: "all", name: "Active + deleted" },
+                        { _id: "deleted", name: "Deleted only" },
+                      ]}
+                      onChange={handleFilterStatusChange}
+                      sx={{
+                        width: "160px",
+                        minHeight: "34px",
+                        borderRadius: theme.shape.borderRadius,
+                      }}
+                    />
+                    <Box sx={{ width: "300px" }}>
+                      <SearchBox
+                        placeholder="Search risks..."
+                        value={risksSearchTerm}
+                        onChange={setRisksSearchTerm}
+                        inputProps={{ "aria-label": "Search risks" }}
+                      />
+                    </Box>
+                  </Stack>
+
+                  <CustomizableButton
+                    variant="contained"
+                    text="Add new Risk"
                     sx={{
-                      width: "180px",
-                      minHeight: "34px",
-                      borderRadius: theme.shape.borderRadius,
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
                     }}
-                  />
-                  <Select
-                    id="vendors"
-                    value={selectedVendorId}
-                    items={[
-                      { _id: "all", name: "All Vendors" },
-                      ...vendorOptions.map((vendor) => ({
-                        _id: vendor.id.toString(),
-                        name: vendor.name,
-                      })),
-                    ]}
-                    onChange={handleVendorChange}
-                    sx={{
-                      width: "180px",
-                      minHeight: "34px",
-                      borderRadius: theme.shape.borderRadius,
+                    icon={<AddCircleOutlineIcon size={16} />}
+                    onClick={() => {
+                      setSelectedRisk(null);
+                      handleRiskModal();
                     }}
-                  />
-                  <Select
-                    id="filter-status"
-                    value={filterStatus}
-                    items={[
-                      { _id: "active", name: "Active only" },
-                      { _id: "all", name: "Active + deleted" },
-                      { _id: "deleted", name: "Deleted only" },
-                    ]}
-                    onChange={handleFilterStatusChange}
-                    sx={{
-                      width: "160px",
-                      minHeight: "34px",
-                      borderRadius: theme.shape.borderRadius,
-                    }}
+                    isDisabled={isCreatingDisabled}
                   />
                   <GroupBy
                     options={[
@@ -1004,7 +1050,7 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-      </Stack>
+    </Stack>
   );
 };
 

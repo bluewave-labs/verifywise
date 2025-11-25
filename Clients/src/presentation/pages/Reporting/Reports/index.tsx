@@ -208,7 +208,11 @@ const Reports: React.FC<ReportsProps> = ({
                     }))
                 ]}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                sx={{ minWidth: 200, maxWidth: 300 }}
+                sx={{
+                  minWidth: 200,
+                  maxWidth: 300,
+                }}
+                isFilterApplied={!!selectedProject && selectedProject !== "all"}
               />
             </span>
             {generateReportButton}

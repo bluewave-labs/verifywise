@@ -8,6 +8,7 @@ import { CirclePlus as AddCircleOutlineIcon, TrendingUp, ChevronDown } from "luc
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
+import SearchBox from "../../components/Search/SearchBox";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
 import Popup from "../../components/Popup";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -91,6 +92,7 @@ const RiskManagement = () => {
   // State for filtering
   const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
   const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
@@ -349,13 +351,24 @@ const RiskManagement = () => {
   const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
-    
+
     // If deletion status filter changes, refetch data from API
     if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
       setShowCustomizableSkeleton(true);
       fetchProjectRisks(filters.deletionStatus);
     }
   };
+
+  // Apply search filter on top of existing filters
+  const searchFilteredRisks = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return filteredRisks;
+    }
+
+    return filteredRisks.filter((risk) =>
+      risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [filteredRisks, searchTerm]);
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -436,12 +449,21 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <div data-joyride-id="risk-filters">
-            <RiskFilters
-              risks={projectRisks}
-              onFilterChange={handleRiskFilterChange}
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <div data-joyride-id="risk-filters">
+              <RiskFilters
+                risks={projectRisks}
+                onFilterChange={handleRiskFilterChange}
+              />
+            </div>
+            <SearchBox
+              placeholder="Search risks..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              inputProps={{ "aria-label": "Search risks"}}
+              sx={{ width: 140 }}
             />
-          </div>
+          </Box>
           <Stack direction="row" gap="8px" alignItems="center">
             <ExportMenu
               data={exportData}
@@ -718,7 +740,7 @@ const RiskManagement = () => {
           />
         ) : (
           <VWProjectRisksTable
-            rows={filteredRisks.length > 0 ? filteredRisks : projectRisks}
+            rows={searchFilteredRisks}
             setPage={setCurrentPagingation}
             page={currentPage}
             setSelectedRow={(row: RiskModel) => setSelectedRow([row])}

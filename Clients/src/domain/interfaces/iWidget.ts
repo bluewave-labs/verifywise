@@ -154,6 +154,7 @@ export interface SelectProps {
   getOptionValue?: (item: any) => any;
   disabled?: boolean;
   customRenderValue?: (value: any, selectedItem: any) => string;
+  isFilterApplied?: boolean;
 }
 
 export interface IBannerProps {

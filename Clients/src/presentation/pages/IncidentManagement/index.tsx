@@ -554,7 +554,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setStatusFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!statusFilter && statusFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -572,7 +575,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setSeverityFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!severityFilter && severityFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -590,7 +596,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setApprovalFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!approvalFilter && approvalFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;

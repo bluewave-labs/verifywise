@@ -469,8 +469,8 @@ const Training: React.FC = () => {
                   sx={{
                     minWidth: "180px",
                     height: "34px",
-                    bgcolor: "#fff",
                   }}
+                  isFilterApplied={!!statusFilter && statusFilter !== "all"}
                 />
               </div>
 

@@ -479,6 +479,7 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 140 }}
+                  isFilterApplied={statusFilters.length > 0}
                 />
 
                 <Select
@@ -502,7 +503,8 @@ const Tasks: React.FC = () => {
                       setPriorityFilters([value as TaskPriority]);
                     }
                   }}
-                  sx={{ width: 140 }}
+                  sx={{ width: 140}}
+                  isFilterApplied={priorityFilters.length > 0 }
                 />
 
                 <Select
@@ -529,6 +531,7 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 160 }}
+                  isFilterApplied={assigneeFilters.length > 0}
                 />
 
                 <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">

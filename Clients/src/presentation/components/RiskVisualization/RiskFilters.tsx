@@ -149,7 +149,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
   return (
     <Box>
       {/* Filter Dropdowns */}
-      <Stack direction="row" gap={2} alignItems="flex-end">
+      <Stack direction="row" gap="8px" alignItems="flex-end">
         <Select
           id="risk-level-filter"
           label="Risk level"
@@ -163,7 +163,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             { _id: "veryLow", name: "Very Low" },
           ]}
           onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ width: 140 }}
           isFilterApplied={!!filters.riskLevel && filters.riskLevel !== "all"}
         />
 
@@ -179,7 +179,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             })),
           ]}
           onChange={(e) => handleFilterChange("owner", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ width: 140 }}
           isFilterApplied={!!filters.owner && filters.owner !== "all"}
         />
 
@@ -197,7 +197,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
           onChange={(e) =>
             handleFilterChange("mitigationStatus", e.target.value)
           }
-          sx={{ minWidth: 160 }}
+          sx={{ width: 140 }}
           isFilterApplied={!!filters.mitigationStatus && filters.mitigationStatus !== "all"}
         />
 
@@ -211,7 +211,7 @@ const RiskFilters: React.FC<IRiskFiltersProps> = ({
             { _id: "deleted", name: "Deleted only" },
           ]}
           onChange={(e) => handleFilterChange("deletionStatus", e.target.value)}
-          sx={{ minWidth: 140 }}
+          sx={{ width: 140 }}
           isFilterApplied={!!filters.deletionStatus}
         />
       </Stack>

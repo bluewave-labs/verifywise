@@ -449,72 +449,21 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <Box sx={{ display: "flex", gap: 2, flex: 1, alignItems: "flex-end" }}>
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
             <div data-joyride-id="risk-filters">
               <RiskFilters
                 risks={projectRisks}
                 onFilterChange={handleRiskFilterChange}
               />
             </div>
-            <Box sx={{ width: "300px" }}>
-              <SearchBox
-                placeholder="Search risks..."
-                value={searchTerm}
-                onChange={setSearchTerm}
-                inputProps={{ "aria-label": "Search risks"}}
-              />
-            </Box>
+            <SearchBox
+              placeholder="Search risks..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              inputProps={{ "aria-label": "Search risks"}}
+              sx={{ width: 140 }}
+            />
           </Box>
-        </Stack>
-        <Stack direction="row" gap={4} justifyContent="flex-end">
-          <div data-joyride-id="analytics-button">
-            <CustomizableButton
-              variant="contained"
-              text="Analytics"
-              sx={{
-                backgroundColor: "#7F56D9",
-                border: "1px solid #7F56D9",
-                gap: 2,
-                "&:hover": {
-                  backgroundColor: "#6941C6",
-                },
-              }}
-              onClick={() => setIsAnalyticsDrawerOpen(true)}
-              icon={<TrendingUp size={16} />}
-            />
-          </div>
-          <div data-joyride-id="import-ai-risks-button">
-            <CustomizableButton
-              variant="contained"
-              text="Insert from AI risks database"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleInsertFromMenuOpen}
-              icon={<ChevronDown size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-          </div>
-          <div data-joyride-id="add-risk-button">
-            <CustomizableButton
-              variant="contained"
-              text="Add new risk"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-          </div>
           <Stack direction="row" gap="8px" alignItems="center">
             <ExportMenu
               data={exportData}

@@ -289,7 +289,7 @@ const SharedView: React.FC = () => {
               {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "Details"}
             </Typography>
           </Toolbar>
-          <TableContainer>
+          <TableContainer sx={{ maxHeight: "calc(100vh - 300px)", overflowX: "auto" }}>
             <Table>
               {isTableView ? (
                 <>

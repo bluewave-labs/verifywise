@@ -687,9 +687,11 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     // Post-process: Replace approver ID with approver_name for models
     if (resourceType === 'model' && filteredData) {
       const processRecord = (record: any) => {
-        if (record.approver_name) {
+        // If we have approver_name from the JOIN, use it; otherwise keep the ID
+        if (record.approver_name !== undefined) {
           const { approver_name, approver, ...rest } = record;
-          return { ...rest, approver: approver_name };
+          // Use the name if it exists, otherwise fallback to "User ID: {approver}"
+          return { ...rest, approver: approver_name || `User ID: ${approver}` };
         }
         return record;
       };
@@ -699,6 +701,8 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
       } else {
         filteredData = processRecord(filteredData);
       }
+
+      console.log(`[SHARE VIEW DEBUG] After approver name replacement, sample:`, Array.isArray(filteredData) && filteredData[0] ? filteredData[0] : filteredData);
     }
 
     logStructured('successful', `fetched shared data for ${resourceType} ${resourceId}`, 'getSharedDataByToken', 'shareLink.ctrl.ts');

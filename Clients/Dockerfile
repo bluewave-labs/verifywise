@@ -11,9 +11,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Step 4: Install dependencies with optimizations for cross-platform builds
+# Use npm install instead of npm ci to allow platform-specific dependencies to be resolved
 RUN npm config set fetch-timeout 600000 && \
     npm config set fetch-retries 5 && \
-    npm ci --prefer-offline --no-audit --legacy-peer-deps || npm install --legacy-peer-deps
+    npm install --legacy-peer-deps
 
 # Step 5: Copy the rest of the application files
 COPY . .

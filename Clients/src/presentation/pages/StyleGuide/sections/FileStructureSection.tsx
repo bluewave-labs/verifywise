@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Snackbar } from "@mui/material";
-import { Copy, Folder, FolderOpen, FileText, ChevronRight, ChevronDown } from "lucide-react";
+import { Folder, FolderOpen, FileText, ChevronRight, ChevronDown } from "lucide-react";
 
 const FileStructureSection: React.FC = () => {
   const theme = useTheme();
@@ -223,17 +223,17 @@ const FileStructureSection: React.FC = () => {
               <LayerCard
                 name="domain"
                 description="Business logic, TypeScript interfaces, entities"
-                color={theme.palette.status.warning.text}
+                color={theme.palette.status.warning.text || "#f59e0b"}
               />
               <LayerCard
                 name="infrastructure"
                 description="External services, API clients, third-party integrations"
-                color={theme.palette.status.error.text}
+                color={theme.palette.status.error.text || "#ef4444"}
               />
               <LayerCard
                 name="presentation"
                 description="UI components, pages, themes, utilities"
-                color={theme.palette.status.success.text}
+                color={theme.palette.status.success.text || "#22c55e"}
               />
             </Stack>
           </Box>

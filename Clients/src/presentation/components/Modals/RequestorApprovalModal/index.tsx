@@ -5,13 +5,17 @@ import {
     Layers,
 } from "lucide-react";
 
-import { Box, Divider, List, ListItemButton, ListItemIcon, ListItemText, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Divider, Link, List, ListItemButton, ListItemIcon, ListItemText, Stack, Tooltip, Typography } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
 import { IMenuGroup } from "../../../../domain/interfaces/i.menu";
 import { title } from "process";
 import React from "react";
+import { stepNumberStyle } from "./style";
+import Field from "../../Inputs/Field";
+import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
+import SelectComponent from "../../Inputs/Select";
 
 
 
@@ -70,14 +74,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
-            maxWidth="680px"
+            maxWidth="980px"
             onSubmit={() => { }}
             submitButtonText="Resubmit"
             title={"Approval requests "}
             description="Manage and review your requestor approvals."
         >
             <Stack direction="row" spacing={6}>
-                <Box width="35%">
+                <Box width="25%">
                     <Stack> <Stack
                         component="aside"
                         className={`sidebar-menu expanded}`}
@@ -94,7 +98,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             },
                             "& p, & span, & .MuiListSubheader-root": {
                                 color: theme.palette.text.secondary,
-                            },
+                            }
                         }}
                     >
                         <Stack
@@ -242,11 +246,84 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 <Divider
                     orientation="vertical"
                     flexItem
-                    sx={{ borderColor: theme.palette.border.light, mx: 4 }}
+                    sx={{ borderColor: theme.palette.border.light, mx: 4, mr: 16}}
                 />
-                <Box flex={1}>
-                    Right side content goes here
-                </Box>
+
+                {/* {workflowSteps.map((step, stepIndex) => ( */}
+
+                <Stack spacing={8} direction="column" ml={16}
+                    sx={{
+                        ml: 16,
+                        paddingLeft: 20,
+                    }}>
+                    <Typography fontWeight={600} fontSize={16} mb={2}>
+                        Approval timeline
+                    </Typography>
+
+                    {/* STEPS */}
+                    <Stack spacing={4}
+                        sx={{
+                            //pt: stepIndex > 0 ? 8 : 0
+                        }}>
+                        <Stack direction="row" spacing={8}>
+                            <Box sx={stepNumberStyle}>{1}</Box>
+                            <Typography fontWeight={500} fontSize={16}>
+                                {"Request submitted " + (1)}
+                            </Typography>
+                        </Stack>
+                        <Stack direction="row" alignItems="flex-start" >
+                            <Box>
+                                <Divider
+                                    orientation="vertical"
+                                    flexItem
+                                    sx={{
+                                        borderRightWidth: "1px",
+                                        height: "216px",
+                                        borderColor: "#E0E0E0",
+                                        mt: 4,
+                                        ml: 6,
+                                        mr: 12,
+                                    }}
+                                />
+                            </Box>
+                            <Stack sx={{ flex: 1 }} spacing={6}>
+                                <Stack
+                                    direction="row"
+                                    spacing={4}
+                                    alignItems="center"
+                                    gap={2}>
+                                    <Box>
+                                        <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
+                                            {"Mary Johnson"}
+                                        </Typography>
+                                    </Box>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4" fill="none">
+                                        <circle cx="2" cy="2" r="2" fill="#CCCCCC" />
+                                    </svg>
+                                    <Box>
+                                        <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
+                                            {"Requestor"}
+                                        </Typography>
+
+                                    </Box>
+                                </Stack>
+                                <Stack direction="column" spacing={4}>
+                                    <Box>
+                                        <Typography fontWeight={600} fontSize={14} color="#999999">
+                                            Comment
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography fontWeight={500} fontSize={14} mb={2}>
+                                            {"Looks good — thank you for clarifying the data inputs and providing the risk-mitigation notes."}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+                            </Stack>
+                        </Stack>
+                    </Stack>
+                </Stack>
+                {/* ))} */}
             </Stack>
         </StandardModal>
     )

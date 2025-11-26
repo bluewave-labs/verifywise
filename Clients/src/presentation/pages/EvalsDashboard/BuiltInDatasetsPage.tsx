@@ -250,6 +250,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             { value: "overview", label: "Overview", icon: "LayoutDashboard" },
             { value: "experiments", label: "Experiments", icon: "FlaskConical", count: experimentsCount },
             { value: "datasets", label: "Datasets", icon: "Database", count: datasetsCount },
+            { value: "scorers", label: "Scorers", icon: "Award" },
             { value: "configuration", label: "Configuration", icon: "Settings" },
           ]}
           tabListSx={{ mb: 2 }}

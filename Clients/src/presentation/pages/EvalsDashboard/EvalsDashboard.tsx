@@ -447,6 +447,7 @@ export default function EvalsDashboard() {
                 { label: "Overview", value: "overview", icon: "LayoutDashboard" },
                 { label: "Experiments", value: "experiments", icon: "FlaskConical", count: experimentsCount },
                 { label: "Datasets", value: "datasets", icon: "Database", count: datasetsCount },
+                { label: "Scorers", value: "scorers", icon: "Award" },
                 { label: "Configuration", value: "configuration", icon: "Settings" },
               ]}
               activeTab={tab}
@@ -468,6 +469,17 @@ export default function EvalsDashboard() {
 
           <TabPanel value="datasets" sx={{ p: 0 }}>
             <ProjectDatasets projectId={projectId} />
+          </TabPanel>
+
+          <TabPanel value="scorers" sx={{ p: 0 }}>
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
+                Scorers
+              </Typography>
+              <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                Configure and manage the evaluation scorers used in your experiments. This section is under active development.
+              </Typography>
+            </Box>
           </TabPanel>
 
           <TabPanel value="configuration" sx={{ p: 0 }}>

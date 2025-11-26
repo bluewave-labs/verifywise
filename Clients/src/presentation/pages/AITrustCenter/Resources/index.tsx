@@ -33,15 +33,7 @@ import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
-
-interface Resource {
-  id: number;
-  name: string;
-  description: string;
-  visible: boolean;
-  file_id?: number;
-  filename?: string;
-}
+import { Resource } from "../../../../domain/interfaces/iAITrustCenter";
 
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{

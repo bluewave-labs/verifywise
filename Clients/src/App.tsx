@@ -26,6 +26,7 @@ import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
+import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -52,11 +53,40 @@ const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) =>
 };
 
 function App() {
+  const location = useLocation();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
+  const { completeOnboarding, state } = useOnboarding();
+  const [showModal, setShowModal] = useState(false);
+
+  // Onboarding should ONLY show on the dashboard (/) route
+  const isDashboardRoute = location.pathname === '/';
+
+  // Update modal visibility based on onboarding state and current route
+  useEffect(() => {
+    // Only show modal if:
+    // 1. User is authenticated (has token and userId)
+    // 2. Onboarding is not complete (first login)
+    // 3. Currently on dashboard route (/)
+    if (token && userId && !state.isComplete && isDashboardRoute) {
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+    }
+  }, [token, userId, state.isComplete, isDashboardRoute]);
+
+  const handleOnboardingComplete = useCallback(() => {
+    completeOnboarding();
+    setShowModal(false);
+  }, [completeOnboarding]);
+
+  const handleOnboardingSkip = useCallback(() => {
+    completeOnboarding();
+    setShowModal(false);
+  }, [completeOnboarding]);
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -192,6 +222,12 @@ function App() {
                   onOpenChange={commandPalette.close}
                 />
               </CommandPaletteErrorBoundary>
+              {showModal && (
+                <OnboardingModal
+                  onComplete={handleOnboardingComplete}
+                  onSkip={handleOnboardingSkip}
+                />
+              )}
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>

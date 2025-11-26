@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
+import { Box, Typography } from "@mui/material";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
@@ -10,6 +9,12 @@ import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import { IProjectListProps } from "../../../domain/interfaces/i.project";
 import { IProjectFilterState } from "../../../domain/interfaces/i.project.filter";
+import { SearchBox } from "../Search";
+import { GroupBy } from "../Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../Table/GroupedTableView";
+import { Project } from "../../../domain/types/Project";
+import { ExportMenu } from "../Table/ExportMenu";
 
 import {
   projectWrapperStyle,
@@ -19,7 +24,6 @@ import {
 
 const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
     "card"
@@ -31,6 +35,9 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     status: "all",
   });
   const [users, setUsers] = useState<any[]>([]);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -104,6 +111,33 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     return result;
   }, [projects, searchTerm, filters]);
 
+  // Define how to get the group key for each project/use case
+  const getProjectGroupKey = (project: Project, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_level':
+        return project.ai_risk_classification || 'Unknown';
+      case 'role':
+        return project.type_of_high_risk_role ? project.type_of_high_risk_role.replace(/_/g, " ") : 'Unknown';
+      case 'owner':
+        if (project.owner) {
+          return getUserNameById(project.owner.toString());
+        }
+        return 'Unassigned';
+      case 'status':
+        return project.status || 'Unknown';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered projects (only for table view)
+  const groupedProjects = useTableGrouping({
+    data: filteredProjects,
+    groupByField: viewMode === 'table' ? groupBy : null,
+    sortOrder: groupSortOrder,
+    getGroupKey: getProjectGroupKey,
+  });
+
   const handleFilterChange = (key: keyof IProjectFilterState, value: string) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
@@ -133,7 +167,18 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     }
 
     if (viewMode === "table") {
-      return <ProjectTableView projects={filteredProjects} />;
+      return (
+        <GroupedTableView
+          groupedData={groupedProjects}
+          ungroupedData={filteredProjects}
+          renderTable={(data, options) => (
+            <ProjectTableView
+              projects={data}
+              hidePagination={options?.hidePagination}
+            />
+          )}
+        />
+      );
     }
 
     if (filteredProjects.length <= 3) {
@@ -189,6 +234,37 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
 
   const uniqueOwners = getUniqueOwners();
   const uniqueStatuses = getUniqueStatuses();
+
+  // Export columns and data for use cases
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'uc_id', label: 'Use Case ID' },
+      { id: 'project_title', label: 'Use Case Title' },
+      { id: 'ai_risk_classification', label: 'AI Risk Level' },
+      { id: 'type_of_high_risk_role', label: 'Role' },
+      { id: 'start_date', label: 'Start Date' },
+      { id: 'last_updated', label: 'Last Updated' },
+      { id: 'owner', label: 'Owner' },
+      { id: 'status', label: 'Status' },
+    ];
+  }, []);
+
+  const exportData = useMemo(() => {
+    return filteredProjects.map((project) => {
+      const ownerName = project.owner ? getUserNameById(project.owner.toString()) : '-';
+
+      return {
+        uc_id: project.uc_id || project.id?.toString() || '-',
+        project_title: project.project_title || '-',
+        ai_risk_classification: project.ai_risk_classification || '-',
+        type_of_high_risk_role: project.type_of_high_risk_role?.replace(/_/g, ' ') || '-',
+        start_date: project.start_date ? new Date(project.start_date).toLocaleDateString() : '-',
+        last_updated: project.last_updated ? new Date(project.last_updated).toLocaleDateString() : '-',
+        owner: ownerName,
+        status: project.status || '-',
+      };
+    });
+  }, [filteredProjects, users]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -247,60 +323,26 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                 sx={{ minWidth: 140 }}
               />
 
-              <Box sx={{
-                display: "flex",
-                alignItems: "center",
-                border: "1px solid #eaecf0",
-                borderRadius: 1,
-                px: "6px",
-                height: "34px",
-                bgcolor: "#fff",
-                width: isSearchBarVisible ? "23.8%" : "40px",
-                transition: "all 0.3s ease",
-              }}>
-                <IconButton
-                  disableRipple
-                  disableFocusRipple
-                  sx={{
-                    "&:hover": { backgroundColor: "transparent" },
-                    padding: "4px",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  aria-label="Toggle use case search"
-                  aria-expanded={isSearchBarVisible}
-                  onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                >
-                  <SearchIcon size={16} />
-                </IconButton>
-
-                {isSearchBarVisible && (
-                  <InputBase
-                    autoFocus
-                    placeholder="Search use cases..."
-                    inputProps={{
-                      "aria-label": "Search use cases",
-                      style: {
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                      }
-                    }}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{
-                      flex: 1,
-                      fontSize: "14px",
-                      opacity: isSearchBarVisible ? 1 : 0,
-                      transition: "opacity 0.3s ease",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  />
-                )}
+              <Box sx={{ width: 300 }}>
+                <SearchBox
+                  placeholder="Search use cases..."
+                  value={searchTerm}
+                  onChange={setSearchTerm}
+                  inputProps={{ "aria-label": "Search use cases" }}
+                />
               </Box>
+
+              {viewMode === 'table' && (
+                <GroupBy
+                  options={[
+                    { id: 'risk_level', label: 'Risk level' },
+                    { id: 'role', label: 'Role' },
+                    { id: 'owner', label: 'Owner' },
+                    { id: 'status', label: 'Status' },
+                  ]}
+                  onGroupChange={handleGroupChange}
+                />
+              )}
             </>
           )}
         </Box>
@@ -309,9 +351,17 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
           sx={{
             display: "flex",
             alignItems: "flex-end",
-            gap: "16px",
+            gap: "8px",
           }}
         >
+          {projects && projects.length > 0 && (
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="use-cases"
+              title="Use Cases"
+            />
+          )}
           {newProjectButton}
           {projects && projects.length > 0 && (
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />

@@ -244,27 +244,21 @@ export async function getAllGeneratedReports(
       { userId, role },
       req.tenantId!
     );
-    if (reports && reports.length > 0) {
-      await logSuccess({
-        eventType: "Read",
-        description: `Retrieved ${reports.length} generated reports`,
-        functionName: "getAllGeneratedReports",
-        fileName: "reporting.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-      });
-      return res.status(200).json(STATUS_CODE[200](reports));
-    }
 
     await logSuccess({
       eventType: "Read",
-      description: "No generated reports found",
+      description: reports && reports.length > 0
+        ? `Retrieved ${reports.length} generated reports`
+        : "No generated reports found",
       functionName: "getAllGeneratedReports",
       fileName: "reporting.ctrl.ts",
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
-    return res.status(404).json(STATUS_CODE[404]("No reports found"));
+
+    // Return 200 with empty array if no reports, not 404
+    // 404 should be reserved for "endpoint not found" or "specific resource not found"
+    return res.status(200).json(STATUS_CODE[200](reports || []));
   } catch (error) {
     console.error("Error in getAllGeneratedReports:", error);
     await logFailure({

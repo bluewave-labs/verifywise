@@ -41,6 +41,7 @@ const Select: React.FC<SelectProps> = ({
   getOptionValue,
   disabled,
   customRenderValue,
+  isFilterApplied = false,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -152,6 +153,7 @@ const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
+          style: { zIndex: 10001 },
           PaperProps: {
             sx: {
               borderRadius: theme.shape.borderRadius,
@@ -160,13 +162,16 @@ const Select: React.FC<SelectProps> = ({
               "& .MuiMenuItem-root": {
                 fontSize: 13,
                 color: theme.palette.text.primary,
+                transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
+                  color: "#13715B",
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
+                    color: "#13715B",
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -180,7 +185,7 @@ const Select: React.FC<SelectProps> = ({
           fontSize: 13,
           minWidth: "125px",
           width: "100%",
-          backgroundColor: theme.palette.background.main,
+          backgroundColor: isFilterApplied ? theme.palette.background.fill : theme.palette.background.main,
           position: "relative",
           cursor: "pointer",
           ...getSelectStyles(theme, { hasError: !!error }),

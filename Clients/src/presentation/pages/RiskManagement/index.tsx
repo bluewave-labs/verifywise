@@ -8,6 +8,7 @@ import { CirclePlus as AddCircleOutlineIcon, TrendingUp, ChevronDown } from "luc
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
+import SearchBox from "../../components/Search/SearchBox";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
 import Popup from "../../components/Popup";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -24,12 +25,14 @@ import useUsers from "../../../application/hooks/useUsers";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/HelperDrawer";
+import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 /**
  * Set initial loading status for all CRUD process
@@ -89,6 +92,7 @@ const RiskManagement = () => {
   // State for filtering
   const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
   const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
@@ -123,6 +127,40 @@ const RiskManagement = () => {
       veryLowRisks,
     };
   }, [projectRisks]);
+
+  // Define export columns for risk management table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'risk_name', label: 'Risk Name' },
+      { id: 'risk_owner', label: 'Owner' },
+      { id: 'severity', label: 'Severity' },
+      { id: 'likelihood', label: 'Likelihood' },
+      { id: 'mitigation_status', label: 'Mitigation Status' },
+      { id: 'risk_level', label: 'Risk Level' },
+      { id: 'deadline', label: 'Target Date' },
+      { id: 'controls_mapping', label: 'Linked Controls' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    const dataToExport = filteredRisks.length > 0 ? filteredRisks : projectRisks;
+    return dataToExport.map((risk: RiskModel) => {
+      const ownerUser = users.find((user) => user.id === risk.risk_owner);
+      const ownerName = ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : '-';
+
+      return {
+        risk_name: risk.risk_name || '-',
+        risk_owner: ownerName,
+        severity: risk.severity || '-',
+        likelihood: risk.likelihood || '-',
+        mitigation_status: risk.mitigation_status || '-',
+        risk_level: risk.current_risk_level || risk.risk_level_autocalculated || '-',
+        deadline: risk.deadline || '-',
+        controls_mapping: risk.controls_mapping || '-',
+      };
+    });
+  }, [filteredRisks, projectRisks, users]);
 
   const fetchProjectRisks = useCallback(async (filter = 'active') => {
     try {
@@ -313,13 +351,24 @@ const RiskManagement = () => {
   const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
-    
+
     // If deletion status filter changes, refetch data from API
     if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
       setShowCustomizableSkeleton(true);
       fetchProjectRisks(filters.deletionStatus);
     }
   };
+
+  // Apply search filter on top of existing filters
+  const searchFilteredRisks = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return filteredRisks;
+    }
+
+    return filteredRisks.filter((risk) =>
+      risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [filteredRisks, searchTerm]);
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -369,6 +418,7 @@ const RiskManagement = () => {
             />
           }
         />
+        <TipBox entityName="risk-management" />
 
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
@@ -399,13 +449,28 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <div data-joyride-id="risk-filters">
-            <RiskFilters
-              risks={projectRisks}
-              onFilterChange={handleRiskFilterChange}
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <div data-joyride-id="risk-filters">
+              <RiskFilters
+                risks={projectRisks}
+                onFilterChange={handleRiskFilterChange}
+              />
+            </div>
+            <SearchBox
+              placeholder="Search risks..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              inputProps={{ "aria-label": "Search risks"}}
+              sx={{ width: 140 }}
             />
-          </div>
-          <Stack direction="row" gap={4}>
+          </Box>
+          <Stack direction="row" gap="8px" alignItems="center">
+            <ExportMenu
+              data={exportData}
+              columns={exportColumns}
+              filename="risk-management"
+              title="Risk Management"
+            />
             <div data-joyride-id="analytics-button">
               <CustomizableButton
                 variant="contained"
@@ -675,7 +740,7 @@ const RiskManagement = () => {
           />
         ) : (
           <VWProjectRisksTable
-            rows={filteredRisks.length > 0 ? filteredRisks : projectRisks}
+            rows={searchFilteredRisks}
             setPage={setCurrentPagingation}
             page={currentPage}
             setSelectedRow={(row: RiskModel) => setSelectedRow([row])}

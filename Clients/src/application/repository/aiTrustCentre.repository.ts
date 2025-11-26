@@ -3,8 +3,7 @@ import { apiServices } from "../../infrastructure/api/networkServices";
 /**
  * Fetches the AI Trust Center overview data.
  *
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The AI Trust Center overview data.
+  * @returns {Promise<any>} The AI Trust Center overview data.
  */
 export async function getAITrustCentreOverview(): Promise<any> {
   try {
@@ -20,8 +19,7 @@ export async function getAITrustCentreOverview(): Promise<any> {
  * Updates the AI Trust Center overview.
  *
  * @param {any} data - The AI Trust Center overview data to be updated.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function updateAITrustCentreOverview(
   data: any
@@ -39,8 +37,7 @@ export async function updateAITrustCentreOverview(
  * Uploads the AI Trust Center logo.
  *
  * @param {File} logoFile - The logo file to upload.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function uploadAITrustCentreLogo(
   logoFile: File
@@ -64,8 +61,7 @@ export async function uploadAITrustCentreLogo(
 /**
  * Deletes the AI Trust Center logo.
  *
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function deleteAITrustCentreLogo(): Promise<any> {
   try {
@@ -84,8 +80,7 @@ export async function deleteAITrustCentreLogo(): Promise<any> {
  * @param {string} name - The name of the resource.
  * @param {string} description - The description of the resource.
  * @param {boolean} [visible=true] - Whether the resource is visible (defaults to true).
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function createAITrustCentreResource(
   file: File,
@@ -115,8 +110,7 @@ export async function createAITrustCentreResource(
 /**
  * Fetches AI Trust Center resources.
  *
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The AI Trust Center resources.
+  * @returns {Promise<any>} The AI Trust Center resources.
  */
 export async function getAITrustCentreResources(): Promise<any> {
   try {
@@ -132,8 +126,7 @@ export async function getAITrustCentreResources(): Promise<any> {
  * Deletes an AI Trust Center resource.
  *
  * @param {number} resourceId - The ID of the resource to delete.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function deleteAITrustCentreResource(
   resourceId: number
@@ -156,8 +149,7 @@ export async function deleteAITrustCentreResource(
  * @param {boolean} visible - Whether the resource is visible.
  * @param {File} [file] - Optional file to replace the existing one.
  * @param {number} [oldFileId] - The ID of the old file to delete when replacing.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function updateAITrustCentreResource(
   resourceId: number,
@@ -198,8 +190,7 @@ export async function updateAITrustCentreResource(
 /**
  * Fetches AI Trust Center subprocessors.
  *
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The AI Trust Center subprocessors.
+  * @returns {Promise<any>} The AI Trust Center subprocessors.
  */
 export async function getAITrustCentreSubprocessors(): Promise<any> {
   try {
@@ -218,8 +209,7 @@ export async function getAITrustCentreSubprocessors(): Promise<any> {
  * @param {string} purpose - The purpose of the subprocessor.
  * @param {string} location - The location of the subprocessor.
  * @param {string} url - The URL of the subprocessor.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function createAITrustCentreSubprocessor(
   name: string,
@@ -253,8 +243,7 @@ export async function createAITrustCentreSubprocessor(
  * @param {string} purpose - The purpose of the subprocessor.
  * @param {string} location - The location of the subprocessor.
  * @param {string} url - The URL of the subprocessor.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function updateAITrustCentreSubprocessor(
   subprocessorId: number,
@@ -285,8 +274,7 @@ export async function updateAITrustCentreSubprocessor(
  * Deletes an AI Trust Center subprocessor.
  *
  * @param {number} subprocessorId - The ID of the subprocessor to delete.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
+  * @returns {Promise<any>} The response from the API.
  */
 export async function deleteAITrustCentreSubprocessor(
   subprocessorId: number

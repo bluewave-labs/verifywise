@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Drawer, Box, Typography, Stack, IconButton } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
 import ModelInventoryHistoryChart from "../Charts/ModelInventoryHistoryChart";
@@ -62,9 +62,24 @@ const AnalyticsDrawer: React.FC<AnalyticsDrawerProps> = ({
   defaultParameter,
   chartType = "model", // Default to model chart for backward compatibility
 }) => {
-  const [selectedParameter, setSelectedParameter] = useState<string>(
-    defaultParameter || availableParameters[0]?.value || ""
-  );
+  // Create localStorage key based on chartType for persistence
+  const storageKey = `analytics_parameter_${chartType}`;
+
+  // Initialize state from localStorage or default
+  const [selectedParameter, setSelectedParameter] = useState<string>(() => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored && availableParameters.some(p => p.value === stored)) {
+      return stored;
+    }
+    return defaultParameter || availableParameters[0]?.value || "";
+  });
+
+  // Persist to localStorage whenever selection changes
+  useEffect(() => {
+    if (selectedParameter) {
+      localStorage.setItem(storageKey, selectedParameter);
+    }
+  }, [selectedParameter, storageKey]);
 
   const handleParameterChange = (newParameter: string) => {
     setSelectedParameter(newParameter);

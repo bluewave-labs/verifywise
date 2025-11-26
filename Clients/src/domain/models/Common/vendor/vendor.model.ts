@@ -1,4 +1,10 @@
-import { ReviewStatus } from "../../../enums/status.enum";
+import { 
+  ReviewStatus,
+  DataSensitivity,
+  BusinessCriticality,
+  PastIssues,
+  RegulatoryExposure
+} from "../../../enums/status.enum";
 
 export class VendorModel {
   id?: number;
@@ -15,6 +21,13 @@ export class VendorModel {
   is_demo?: boolean;
   created_at?: Date;
   projects?: number[];
+  
+  // Vendor scorecard fields
+  data_sensitivity?: DataSensitivity;
+  business_criticality?: BusinessCriticality;
+  past_issues?: PastIssues;
+  regulatory_exposure?: RegulatoryExposure;
+  risk_score?: number;
 
   constructor(data: VendorModel) {
     this.id = data.id;
@@ -31,6 +44,11 @@ export class VendorModel {
     this.is_demo = data.is_demo;
     this.created_at = data.created_at;
     this.projects = data.projects;
+    this.data_sensitivity = data.data_sensitivity;
+    this.business_criticality = data.business_criticality;
+    this.past_issues = data.past_issues;
+    this.regulatory_exposure = data.regulatory_exposure;
+    this.risk_score = data.risk_score;
   }
 
   static createNewVendor(data: VendorModel): VendorModel {

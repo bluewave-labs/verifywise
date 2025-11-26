@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Table,
@@ -24,7 +25,7 @@ import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import EmptyState from "../../components/EmptyState";
-import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryTableProps } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
 import {
@@ -61,16 +62,6 @@ const TABLE_COLUMNS = [
   { id: "status_date", label: "STATUS DATE" },
   { id: "actions", label: "" },
 ];
-
-interface ModelInventoryTableProps {
-  data: IModelInventory[];
-  isLoading?: boolean;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string, deleteRisks?: boolean) => void;
-  onCheckModelHasRisks?: (id: string) => Promise<boolean>;
-  paginated?: boolean;
-  deletingId?: string | null;
-}
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
@@ -137,6 +128,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onCheckModelHasRisks,
   paginated = true,
   deletingId,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -233,7 +225,10 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <TableBody>
         {data?.length > 0 ? (
           data
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(data.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((modelInventory) => (
               <TableRow
                 key={modelInventory.id}
@@ -412,7 +407,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow sx={tableFooterRowStyle(theme)}>
               <TableCell sx={showingTextCellStyle(theme)}>

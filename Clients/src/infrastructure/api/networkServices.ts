@@ -94,11 +94,15 @@ export const apiServices = {
     endpoint: string,
     params: RequestParams = {}
   ): Promise<ApiResponse<T>> {
-    logRequest("get", endpoint, params);
+    // Extract special config options that should not be query params
+    const { signal, responseType, ...queryParams } = params;
+
+    logRequest("get", endpoint, queryParams);
     try {
       const response = await CustomAxios.get(endpoint, {
-        params,
-        responseType: params.responseType ?? "json",
+        params: queryParams,
+        responseType: responseType ?? "json",
+        signal,
       });
 
       logResponse("get", endpoint, response);

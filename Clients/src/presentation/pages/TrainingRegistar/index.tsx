@@ -35,6 +35,11 @@ import {
   TrainingRegistarModel,
   TrainingRegistarDTO
 } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -102,6 +107,9 @@ const Training: React.FC = () => {
   // ✅ Filter + search state
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // ✅ Status options
   const statusOptions = [
@@ -311,6 +319,56 @@ const Training: React.FC = () => {
     });
   }, [trainingData, statusFilter, searchTerm]);
 
+  // Define how to get the group key for each training
+  const getTrainingGroupKey = (training: TrainingRegistarModel, field: string): string | string[] => {
+    switch (field) {
+      case 'status':
+        return training.status || 'Unknown Status';
+      case 'provider':
+        return training.provider || 'Unknown Provider';
+      case 'department':
+        return training.department || 'Unknown Department';
+      case 'duration':
+        return training.duration || 'Unknown Duration';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered training data
+  const groupedTraining = useTableGrouping({
+    data: filteredTraining,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getTrainingGroupKey,
+  });
+
+  // Define export columns for training table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'training_name', label: 'Training Name' },
+      { id: 'duration', label: 'Duration' },
+      { id: 'provider', label: 'Provider' },
+      { id: 'department', label: 'Department' },
+      { id: 'status', label: 'Status' },
+      { id: 'numberOfPeople', label: 'People' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredTraining.map((training: TrainingRegistarModel) => {
+      return {
+        training_name: training.training_name || '-',
+        duration: training.duration || '-',
+        provider: training.provider || '-',
+        department: training.department || '-',
+        status: training.status || '-',
+        numberOfPeople: training.numberOfPeople?.toString() || '-',
+      };
+    });
+  }, [filteredTraining]);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -389,6 +447,7 @@ const Training: React.FC = () => {
                     />
                  }
              />
+      <TipBox entityName="training" />
 
            {/* Filter + Search row */}
           <Stack
@@ -410,8 +469,8 @@ const Training: React.FC = () => {
                   sx={{
                     minWidth: "180px",
                     height: "34px",
-                    bgcolor: "#fff",
                   }}
+                  isFilterApplied={!!statusFilter && statusFilter !== "all"}
                 />
               </div>
 
@@ -424,32 +483,57 @@ const Training: React.FC = () => {
                   inputProps={{ "aria-label": "Search trainings" }}
                 />
               </Box>
+
+              <GroupBy
+                options={[
+                  { id: 'status', label: 'Status' },
+                  { id: 'provider', label: 'Provider' },
+                  { id: 'department', label: 'Department' },
+                  { id: 'duration', label: 'Duration' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
             </Stack>
 
-            {/* Right side: Customize Button */}
-            <Box data-joyride-id="add-training-button">
-              <CustomizableButton
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#13715B",
-                          border: "1px solid #13715B",
-                          gap: 2,
-                        }}
-                        text="New training"
-                        icon={<AddCircleOutlineIcon size={16} />}
-                        onClick={handleNewTrainingClick}
-                        isDisabled={isCreatingDisabled}
-                      />
-            </Box>
+            {/* Right side: Export and Add Button */}
+            <Stack direction="row" gap="8px" alignItems="center">
+              <ExportMenu
+                data={exportData}
+                columns={exportColumns}
+                filename="training-registry"
+                title="Training Registry"
+              />
+              <Box data-joyride-id="add-training-button">
+                <CustomizableButton
+                          variant="contained"
+                          sx={{
+                            backgroundColor: "#13715B",
+                            border: "1px solid #13715B",
+                            gap: 2,
+                          }}
+                          text="New training"
+                          icon={<AddCircleOutlineIcon size={16} />}
+                          onClick={handleNewTrainingClick}
+                          isDisabled={isCreatingDisabled}
+                        />
+              </Box>
+            </Stack>
           </Stack>
 
         {/* Table */}
         <Box sx={{ mt: 1 }}>
-          <TrainingTable
-            data={filteredTraining}
-            isLoading={isLoading}
-            onEdit={handleEditTraining}
-            onDelete={handleDeleteTraining}
+          <GroupedTableView
+            groupedData={groupedTraining}
+            ungroupedData={filteredTraining}
+            renderTable={(data, options) => (
+              <TrainingTable
+                data={data}
+                isLoading={isLoading}
+                onEdit={handleEditTraining}
+                onDelete={handleDeleteTraining}
+                hidePagination={options?.hidePagination}
+              />
+            )}
           />
         </Box>
 

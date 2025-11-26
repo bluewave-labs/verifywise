@@ -38,6 +38,10 @@ import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
+import StyleGuide from "../../presentation/pages/StyleGuide";
+
+// Check if we're in development mode
+const isDev = import.meta.env.DEV;
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -79,12 +83,16 @@ export const createRoutes = (
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
-    <Route path="/policies" element={<PolicyDashboard/>}/>
+    <Route path="/policies" element={<PolicyDashboard />}>
+      <Route index element={<PolicyDashboard />} /> {/* Default tab */}
+      <Route path="templates" element={<PolicyDashboard />} /> {/* Policy Templates tab */}
+    </Route>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/model-inventory/mlflow" element={<ModelInventory />} />
+    <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
@@ -133,5 +141,7 @@ export const createRoutes = (
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  // Style Guide - Development only
+  ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

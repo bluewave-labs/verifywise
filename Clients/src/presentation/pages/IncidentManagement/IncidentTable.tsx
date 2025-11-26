@@ -18,7 +18,7 @@ import {
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
@@ -31,8 +31,6 @@ import {
 import {
     incidentRowHover,
     incidentLoadingContainer,
-    incidentEmptyContainer,
-    incidentEmptyText,
     incidentFooterRow,
     incidentShowingText,
     incidentPaginationMenu,
@@ -126,6 +124,7 @@ interface IncidentTableProps {
     onArchive?: (id: string, mode: string) => void;
     paginated?: boolean;
     archivedId?: string | null;
+    hidePagination?: boolean;
 }
 
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -162,6 +161,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     onArchive,
     paginated = true,
     archivedId,
+    hidePagination = false,
 }) => {
     const theme = useTheme();
     const [page, setPage] = useState(0);
@@ -388,8 +388,8 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 {sortedData?.length > 0 ? (
                     sortedData
                         .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
                         )
                         .map((incident) => (
                             <TableRow
@@ -537,9 +537,9 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                         <TableCell
                             colSpan={TABLE_COLUMNS.length}
                             align="center"
-                            sx={{ py: 4 }}
+                            sx={{ border: "none", p: 0 }}
                         >
-                            No incident data available.
+                            <EmptyState message="No incidents found." />
                         </TableCell>
                     </TableRow>
                 )}
@@ -561,18 +561,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     }
 
     if (!sortedData || sortedData.length === 0) {
-        return (
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={incidentEmptyContainer()}
-            >
-                <img src={Placeholder} alt="Placeholder" />
-                <Typography sx={incidentEmptyText}>
-                    There is currently no data in this table.
-                </Typography>
-            </Stack>
-        );
+        return <EmptyState message="There is currently no data in this table." />;
     }
 
     return (
@@ -580,7 +569,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {tableHeader}
                 {tableBody}
-                {paginated && (
+                {paginated && !hidePagination && (
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
                             <TableCell colSpan={3} sx={incidentShowingText(theme)}>

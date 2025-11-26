@@ -193,6 +193,9 @@ export async function getControlById(
 ): Promise<any> {
   const controlId = parseInt(req.query.controlId as string);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner = req.query.owner ? parseInt(req.query.owner as string) : undefined;
+  const approver = req.query.approver ? parseInt(req.query.approver as string) : undefined;
+  const dueDateFilter = req.query.dueDateFilter ? parseInt(req.query.dueDateFilter as string) : undefined;
 
   logProcessing({
     description: `starting getControlById for control ID ${controlId} and project framework ID ${projectFrameworkId}`,
@@ -209,6 +212,9 @@ export async function getControlById(
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 
@@ -955,6 +961,9 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   const controlCategoryId = parseInt(req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner = req.query.owner && req.query.owner !== '' ? parseInt(req.query.owner as string) : undefined;
+  const approver = req.query.approver && req.query.approver !== '' ? parseInt(req.query.approver as string) : undefined;
+  const dueDateFilter = req.query.dueDateFilter && req.query.dueDateFilter !== '' ? parseInt(req.query.dueDateFilter as string) : undefined;
 
   logProcessing({
     description: `starting getControlsByControlCategoryId for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
@@ -971,6 +980,9 @@ export async function getControlsByControlCategoryId(
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 

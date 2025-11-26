@@ -50,10 +50,10 @@ Policy manager
 - Source available license (BSL 1.1). Dual licensing is also available for enterprises
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
-- Docker deployment (also deployable on render.com and similar platforms)
+- Docker and Kubernetes deployment (also deployable on render.com and similar platforms)
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
-  - Support for EU AI Act, ISO 42001 and ISO 27001
+  - Support for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - Vendors & vendor risks
   - AI project risks
   - Tasks
@@ -61,20 +61,20 @@ Policy manager
   - Evidence center
   - AI trust center for public view
   - AI literacy training registery
-  - Integration with MIT AI risk repository
+  - Integration with MIT and IBM AI risk repository
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
-  - Risk and control mappings for EU AI Act, ISO 42001 and ISO 27001
+  - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - Detailed reports
   - Event logs (audits) for enterprise organizations
   - AI incident management
-  - Integrations (currently Slack is supported, more on the way)
-  - Automations 
-  - Google OAuth2 support for authentication
+  - Integrations (currently Slack and MLFlow is supported, more on the way)
+  - Automations (when an entity changes, do this, or send period reports, or send webhooks)
+  - Google OAuth2 and Entra ID (enterprise edition) support for authentication
 
 ## Installation
 
-The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
+The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker/Kubernetes (production) to run VerifyWise. A PostgreSQL database is required.
 
 ### Installation using npm (for development)
 
@@ -294,7 +294,7 @@ ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ./install.sh
 ```
 
-**Note:** The nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
+**Note:** The Nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
 
 ### Email configuration
 
@@ -324,6 +324,5 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 
 - [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
 - [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues
-- [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
 
 

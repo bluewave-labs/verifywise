@@ -74,6 +74,10 @@ import { AutomationExecutionLogModel } from "../domain.layer/models/automationEx
 import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventoryHistory/modelInventoryHistory.model";
 import { RiskHistoryModel } from "../domain.layer/models/riskHistory/riskHistory.model";
 import { UserPreferencesModel } from "../domain.layer/models/userPreferences/userPreferences.model";
+import { NISTAIMRFFunctionModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_function.model";
+import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_subcategory.model";
+import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
+import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 
 dotenv.config();
 
@@ -151,12 +155,16 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AutomationTriggerModel,
     AutomationTriggerActionModel,
     AIIncidentManagementModel,
+    EvidenceHubModel,
     MLFlowIntegrationModel,
     MLFlowModelRecordModel,
     AutomationExecutionLogModel,
     ModelInventoryHistoryModel,
     RiskHistoryModel,
     UserPreferencesModel,
+    NISTAIMRFFunctionModel,
+    NISTAIMRFCategoryModel,
+    NISTAIMRFSubcategoryModel,
   ],
 }) as Sequelize;
 

@@ -235,8 +235,6 @@ export const getAllAnnexesWithSubAnnexQuery = async (
       }
     )) as [any[], number];
 
-    console.log(`🔍 ISO 42001 Debug - Annex ${annex.id} categories raw from DB:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
-
     (annex as any).annexcategories = annexCategories[0];
   }
   return annexes[0];
@@ -264,15 +262,16 @@ export const getSubClausesByClauseIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const subClauses = await sequelize.query(
-    `SELECT * FROM public.subclauses_struct_iso WHERE clause_id = :id ORDER BY id;`,
+    `SELECT scs.*, sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date
+    FROM "${tenant}".subclauses_iso sc JOIN public.subclauses_struct_iso scs ON 
+    sc.subclause_meta_id = scs.id WHERE scs.clause_id = :id ORDER BY scs.id;`,
     {
       replacements: { id: clauseId },
       mapToModel: true,
-      model: SubClauseISOModel,
       ...(transaction ? { transaction } : {}),
     }
   );
-  return subClauses;
+  return subClauses[0];
 };
 
 export const getSubClauseByIdForProjectQuery = async (
@@ -412,7 +411,10 @@ export const getAllAnnexesWithCategoriesQuery = async (
 
   for (let annex of annexes[0]) {
     const annexCategories = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.owner, ac.is_applicable FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.owner, ac.is_applicable, ac.reviewer, ac.due_date 
+      FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac 
+      ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id 
+      AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,
@@ -426,7 +428,6 @@ export const getAllAnnexesWithCategoriesQuery = async (
         number,
       ];
 
-    console.log(`🔍 ISO 42001 Debug getAllAnnexesWithCategoriesQuery - Annex ${annex.id} categories:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
     (
       annex as AnnexStructISOModel & {
         annexCategories: Partial<

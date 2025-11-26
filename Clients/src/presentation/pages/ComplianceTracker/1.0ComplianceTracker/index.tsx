@@ -17,9 +17,15 @@ import { getComplianceProgress } from "../../../../application/repository/contro
 const ComplianceTracker = ({
   project,
   statusFilter,
+  ownerFilter,
+  approverFilter,
+  dueDateFilter
 }: {
   project: Project;
   statusFilter?: string;
+  ownerFilter?: string;
+  approverFilter?: string;
+  dueDateFilter?: string;
 }) => {
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
@@ -164,6 +170,9 @@ const ComplianceTracker = ({
                   projectId={currentProjectId}
                   projectFrameworkId={currentProjectFramework}
                   statusFilter={statusFilter}
+                  ownerFilter={ownerFilter}
+                  approverFilter={approverFilter}
+                  dueDateFilter={dueDateFilter}
                 />
               </div>
             ) : (
@@ -174,6 +183,9 @@ const ComplianceTracker = ({
                 projectId={currentProjectId}
                 projectFrameworkId={currentProjectFramework}
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                approverFilter={approverFilter}
+                dueDateFilter={dueDateFilter}
               />
             )
           )}

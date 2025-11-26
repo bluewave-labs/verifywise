@@ -41,6 +41,7 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -414,27 +415,32 @@ const Tasks: React.FC = () => {
             />
           }
         />
-        <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
-          <Stack direction="row" gap="8px" alignItems="center">
-            <ExportMenu
-              data={exportData}
-              columns={exportColumns}
-              filename="tasks"
-              title="Task Management"
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new task"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleIcon size={16} />}
-              onClick={handleCreateTask}
-              isDisabled={isCreatingDisabled}
-            />
-          </Stack>
+      </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="tasks" />
+
+      {/* Controls */}
+      <Stack sx={{ ...vwhomeBodyControls, justifyContent: "flex-end" }} data-joyride-id="add-task-button">
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="tasks"
+            title="Task Management"
+          />
+          <CustomizableButton
+            variant="contained"
+            text="Add new task"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<AddCircleIcon size={16} />}
+            onClick={handleCreateTask}
+            isDisabled={isCreatingDisabled}
+          />
         </Stack>
       </Stack>
 
@@ -473,6 +479,7 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 140 }}
+                  isFilterApplied={statusFilters.length > 0}
                 />
 
                 <Select
@@ -496,7 +503,8 @@ const Tasks: React.FC = () => {
                       setPriorityFilters([value as TaskPriority]);
                     }
                   }}
-                  sx={{ width: 140 }}
+                  sx={{ width: 140}}
+                  isFilterApplied={priorityFilters.length > 0 }
                 />
 
                 <Select
@@ -523,6 +531,7 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 160 }}
+                  isFilterApplied={assigneeFilters.length > 0}
                 />
 
                 <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">

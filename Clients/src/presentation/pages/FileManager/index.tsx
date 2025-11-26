@@ -22,10 +22,12 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
 import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+import TipBox from "../../components/TipBox";
+import { SearchBox } from "../../components/Search";
 
 // Constants (DRY + Maintainability)
-const FILE_MANAGER_CONTEXT = 'FileManager';
-const AUDITOR_ROLE = 'Auditor'; // Role that cannot upload files
+const FILE_MANAGER_CONTEXT = "FileManager";
+const AUDITOR_ROLE = "Auditor"; // Role that cannot upload files
 
 const COLUMN_NAMES = [
   "File",
@@ -58,6 +60,7 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
@@ -73,7 +76,8 @@ const FileManager: React.FC = (): JSX.Element => {
   >("all");
 
   // Use hook for initial data load (keeps hook unchanged as requested)
-  const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
+  const { filesData: initialFilesData, loading: initialLoading } =
+    useUserFilesMetaData();
 
   // Local state to manage files (allows manual refresh)
   const [filesData, setFilesData] = useState<FileModel[]>([]);
@@ -92,7 +96,8 @@ const FileManager: React.FC = (): JSX.Element => {
   // REQUIREMENT: "Upload allowed for all users except Auditors"
   // SECURITY: Default-deny - require authenticated role that is not Auditor
   // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
-  const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+  const isUploadAllowed =
+    Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
 
   // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
   const refetch = useCallback(async () => {
@@ -104,7 +109,7 @@ const FileManager: React.FC = (): JSX.Element => {
     } catch (error) {
       // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
       //  includes user ID/email/name which violates GDPR/compliance
-      secureLogError('Error refetching files', FILE_MANAGER_CONTEXT);
+      secureLogError("Error refetching files", FILE_MANAGER_CONTEXT);
       setFilesData([]);
     } finally {
       setLoadingFiles(false);
@@ -115,7 +120,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleUploadClick = useCallback(() => {
     // Defensive: Double-check permission before opening modal
     if (!isUploadAllowed) {
-      console.warn('[FileManager] Upload attempt by unauthorized role:', userRoleName);
+      console.warn(
+        "[FileManager] Upload attempt by unauthorized role:",
+        userRoleName,
+      );
       return;
     }
     setIsUploadModalOpen(true);
@@ -132,12 +140,22 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [refetch]);
 
   const filteredFiles = useMemo(() => {
-    if (selectedProject === "all" || selectedProject === null) {
-      return filesData;
+    let filtered = filesData;
+
+    if (selectedProject !== "all" && selectedProject !== null) {
+      filtered = filtered.filter((file) => file.projectId === selectedProject);
     }
 
-    return filesData.filter((file) => file.projectId === selectedProject);
-  }, [filesData, selectedProject]);
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      filtered = filtered.filter((file) =>
+        file.fileName?.toLowerCase().includes(query),
+      );
+    }
+
+    return filtered;
+  }, [filesData, selectedProject, searchTerm]);
 
   const boxStyles = useMemo(
     () => ({
@@ -146,7 +164,7 @@ const FileManager: React.FC = (): JSX.Element => {
       pointerEvents: loadingFiles ? "none" : "auto",
       opacity: loadingFiles ? 0.5 : 1,
     }),
-    [filteredFiles.length, loadingFiles]
+    [filteredFiles.length, loadingFiles],
   );
 
   useEffect(() => {
@@ -177,32 +195,34 @@ const FileManager: React.FC = (): JSX.Element => {
         quickActions={[
           {
             label: "Filter by Project",
-            description: "Use the project dropdown to view files from specific use cases",
-            primary: true
+            description:
+              "Use the project dropdown to view files from specific use cases",
+            primary: true,
           },
           {
             label: "Download Files",
-            description: "Download individual files directly from the table"
-          }
+            description: "Download individual files directly from the table",
+          },
         ]}
         useCases={[
           "View all files uploaded through *framework evidence uploads* and *compliance activities*",
-          "Track which files belong to specific *projects and frameworks*"
+          "Track which files belong to specific *projects and frameworks*",
         ]}
         keyFeatures={[
           "**Centralized file listing** showing all uploaded evidence and documents",
           "*Project filtering* to view files from specific use cases",
-          "*Source navigation* to jump directly to the framework section where files were uploaded"
+          "*Source navigation* to jump directly to the framework section where files were uploaded",
         ]}
         tips={[
           "Use the *project filter* to focus on files from specific use cases",
           "Click on the *source* to navigate to where the file was originally uploaded",
-          "Files shown here are uploaded through various *framework and compliance sections*"
+          "Files shown here are uploaded through various *framework and compliance sections*",
         ]}
       />
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
+      <TipBox entityName="file-manager" />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
         <>
@@ -214,25 +234,45 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <Select
-              id="project-filter"
-              value={selectedProject || "all"}
-              items={[
-                { _id: "all", name: "All use cases" },
-                ...projects.map((project: Project) => ({
-                  _id: project.id.toString(),
-                  name: project.project_title,
-                }))
-              ]}
-              onChange={(e: SelectChangeEvent<string | number>) => setSelectedProject(e.target.value)}
-              sx={{
-                width: "fit-content",
-                minWidth: "200px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", gap: 2, flex: 1 }}>
+              <Select
+                id="project-filter"
+                value={selectedProject || "all"}
+                items={[
+                  { _id: "all", name: "All use cases" },
+                  ...projects.map((project: Project) => ({
+                    _id: project.id.toString(),
+                    name: project.project_title,
+                  })),
+                ]}
+                onChange={(e: SelectChangeEvent<string | number>) =>
+                  setSelectedProject(e.target.value)
+                }
+                sx={{
+                  width: "fit-content",
+                  minWidth: "200px",
+                  height: "34px",
+                }}
+                isFilterApplied={!!selectedProject && selectedProject !== "all"}
+              />
+              <Box sx={{ width: "300px" }}>
+                <SearchBox
+                  placeholder="Search files by name..."
+                  value={searchTerm}
+                  onChange={setSearchTerm}
+                  inputProps={{ "aria-label": "Search files" }}
+                />
+              </Box>
+            </Box>
             {/* RBAC: Only show upload button for non-Auditors */}
             {isUploadAllowed && (
               <CustomizableButton
@@ -247,7 +287,11 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={handleFileDeleted} />
+            <FileTable
+              cols={COLUMNS}
+              files={filteredFiles}
+              onFileDeleted={handleFileDeleted}
+            />
           </Box>
         </Stack>
       )}

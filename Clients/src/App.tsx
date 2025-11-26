@@ -53,20 +53,30 @@ const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) =>
 };
 
 function App() {
+  const location = useLocation();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { shouldShowOnboarding, completeOnboarding } = useOnboarding();
+  const { completeOnboarding, state } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
-  // Initialize modal visibility based on onboarding state
+  // Onboarding should ONLY show on the dashboard (/) route
+  const isDashboardRoute = location.pathname === '/';
+
+  // Update modal visibility based on onboarding state and current route
   useEffect(() => {
-    if (token && userId && shouldShowOnboarding()) {
+    // Only show modal if:
+    // 1. User is authenticated (has token and userId)
+    // 2. Onboarding is not complete (first login)
+    // 3. Currently on dashboard route (/)
+    if (token && userId && !state.isComplete && isDashboardRoute) {
       setShowModal(true);
+    } else {
+      setShowModal(false);
     }
-  }, [token, userId, shouldShowOnboarding]);
+  }, [token, userId, state.isComplete, isDashboardRoute]);
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();

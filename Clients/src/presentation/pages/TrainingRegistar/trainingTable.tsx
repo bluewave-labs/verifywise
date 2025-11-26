@@ -54,6 +54,7 @@ interface TrainingTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   paginated?: boolean;
+  hidePagination?: boolean;
 }
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
@@ -180,6 +181,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   onEdit,
   onDelete,
   paginated = true,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -334,7 +336,10 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
       <TableBody>
         {sortedData?.length > 0 ? (
           sortedData
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             // Defensive: Filter out invalid records early (fail fast)
             .filter((training) => {
               const isValid = training.id !== undefined && training.id !== null;
@@ -484,7 +489,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
           onSort={handleSort}
         />
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow
               sx={{

@@ -199,6 +199,7 @@ export interface IRiskTableProps {
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
+  hidePagination?: boolean;
 }
 
 export interface ITasksTableProps {
@@ -210,6 +211,7 @@ export interface ITasksTableProps {
   statusOptions: string[];
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
+  hidePagination?: boolean;
 }
 
 export interface ITableWithPlaceholderProps {
@@ -217,4 +219,5 @@ export interface ITableWithPlaceholderProps {
   users: User[];
   onDelete: (vendorId?: number) => void;
   onEdit: (vendorId?: number) => void;
+  hidePagination?: boolean;
 }

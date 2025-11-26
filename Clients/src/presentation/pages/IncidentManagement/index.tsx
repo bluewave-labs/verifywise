@@ -16,6 +16,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
+import TipBox from "../../components/TipBox";
 import SelectComponent from "../../components/Inputs/Select";
 import {
     addNewIncidentButton,
@@ -38,6 +39,10 @@ import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -80,6 +85,9 @@ const IncidentManagement: React.FC = () => {
     );
 
     const [mode, setModalMode] = useState("");
+
+    // GroupBy state
+    const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
     const isCreatingDisabled =
         !userRoleName || !["Admin", "Editor"].includes(userRoleName);
@@ -124,6 +132,34 @@ const IncidentManagement: React.FC = () => {
         approvalFilter,
         searchTerm,
     ]);
+
+    // Define how to get the group key for each incident
+    const getIncidentGroupKey = (incident: AIIncidentManagementModel, field: string): string | string[] => {
+        switch (field) {
+            case 'severity':
+                return incident.severity || 'Unknown';
+            case 'status':
+                return incident.status || 'Unknown';
+            case 'approval_status':
+                return incident.approval_status || 'Unknown';
+            case 'type':
+                return incident.type || 'Unknown';
+            case 'ai_project':
+                return incident.ai_project || 'Unknown Project';
+            case 'reporter':
+                return incident.reporter || 'Unknown';
+            default:
+                return 'Other';
+        }
+    };
+
+    // Apply grouping to filtered incidents
+    const groupedIncidents = useTableGrouping({
+        data: filteredData,
+        groupByField: groupBy,
+        sortOrder: groupSortOrder,
+        getGroupKey: getIncidentGroupKey,
+    });
 
     /** -------------------- FETCHING -------------------- */
     const fetchIncidentsData = async (showLoading = true) => {
@@ -373,6 +409,37 @@ const IncidentManagement: React.FC = () => {
         },
     ];
 
+    /** -------------------- EXPORT DATA -------------------- */
+    const exportColumns = useMemo(() => {
+        return [
+            { id: 'incident_id', label: 'Incident ID' },
+            { id: 'ai_project', label: 'AI Project' },
+            { id: 'type', label: 'Type' },
+            { id: 'severity', label: 'Severity' },
+            { id: 'status', label: 'Status' },
+            { id: 'occurred_date', label: 'Occurred Date' },
+            { id: 'date_detected', label: 'Date Detected' },
+            { id: 'reporter', label: 'Reporter' },
+            { id: 'approval_status', label: 'Approval Status' },
+        ];
+    }, []);
+
+    const exportData = useMemo(() => {
+        return filteredData.map((incident: AIIncidentManagementModel) => {
+            return {
+                incident_id: incident.incident_id || '-',
+                ai_project: incident.ai_project || '-',
+                type: incident.type || '-',
+                severity: incident.severity || '-',
+                status: incident.status || '-',
+                occurred_date: incident.occurred_date || '-',
+                date_detected: incident.date_detected || '-',
+                reporter: incident.reporter || '-',
+                approval_status: incident.approval_status || '-',
+            };
+        });
+    }, [filteredData]);
+
     /** -------------------- RENDER -------------------- */
     return (
         <Stack className="vwhome" gap={"16px"}>
@@ -460,6 +527,7 @@ const IncidentManagement: React.FC = () => {
                         }
                     />
                 </Stack>
+                <TipBox entityName="ai-incident-managements" />
 
                 {/* Incident by Status Cards */}
                 {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
@@ -486,7 +554,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setStatusFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!statusFilter && statusFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -504,7 +575,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setSeverityFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!severityFilter && severityFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -522,7 +596,10 @@ const IncidentManagement: React.FC = () => {
                                 onChange={(e: any) =>
                                     setApprovalFilter(e.target.value)
                                 }
-                                sx={incidentStatusSelect}
+                                sx={{
+                                    ...incidentStatusSelect,
+                                }}
+                                isFilterApplied={!!approvalFilter && approvalFilter !== "all"}
                                 customRenderValue={(value, selectedItem) => {
                                     if (value === "all") {
                                         return selectedItem.name;
@@ -541,28 +618,56 @@ const IncidentManagement: React.FC = () => {
                                 inputProps={{ "aria-label": "Search incidents" }}
                             />
                         </Box>
+
+                        {/* GroupBy button */}
+                        <GroupBy
+                            options={[
+                                { id: 'severity', label: 'Severity' },
+                                { id: 'status', label: 'Status' },
+                                { id: 'approval_status', label: 'Approval status' },
+                                { id: 'type', label: 'Type' },
+                                { id: 'ai_project', label: 'AI Project' },
+                                { id: 'reporter', label: 'Reporter' },
+                            ]}
+                            onGroupChange={handleGroupChange}
+                        />
                     </Stack>
 
-                    <Box data-joyride-id="add-incident-button">
-                        <CustomizableButton
-                            variant="contained"
-                            sx={addNewIncidentButton}
-                            text="Add new incident"
-                            icon={<AddCircleOutlineIcon />}
-                            onClick={handleNewIncidentClick}
-                            isDisabled={isCreatingDisabled}
+                    <Stack direction="row" gap="8px" alignItems="center">
+                        <ExportMenu
+                            data={exportData}
+                            columns={exportColumns}
+                            filename="incident-management"
+                            title="Incident Management"
                         />
-                    </Box>
+                        <Box data-joyride-id="add-incident-button">
+                            <CustomizableButton
+                                variant="contained"
+                                sx={addNewIncidentButton}
+                                text="Add new incident"
+                                icon={<AddCircleOutlineIcon />}
+                                onClick={handleNewIncidentClick}
+                                isDisabled={isCreatingDisabled}
+                            />
+                        </Box>
+                    </Stack>
                 </Stack>
 
-                <IncidentTable
-                    key={tableKey}
-                    data={filteredData}
-                    isLoading={isLoading}
-                    onEdit={handleEditIncident}
-                    onArchive={handleArchiveIncident}
-                    onView={handleViewIncident}
-                    archivedId={archiveId}
+                <GroupedTableView
+                    groupedData={groupedIncidents}
+                    ungroupedData={filteredData}
+                    renderTable={(data, options) => (
+                        <IncidentTable
+                            key={tableKey}
+                            data={data}
+                            isLoading={isLoading}
+                            onEdit={handleEditIncident}
+                            onArchive={handleArchiveIncident}
+                            onView={handleViewIncident}
+                            archivedId={archiveId}
+                            hidePagination={options?.hidePagination}
+                        />
+                    )}
                 />
             </Stack>
 

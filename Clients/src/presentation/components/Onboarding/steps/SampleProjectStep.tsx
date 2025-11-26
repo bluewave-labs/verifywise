@@ -65,7 +65,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
           sx={{
             width: "100%",
             height: "auto",
-            maxHeight: "200px",
+            maxHeight: "140px",
             borderRadius: "4px",
             objectFit: "cover",
             display: "block",

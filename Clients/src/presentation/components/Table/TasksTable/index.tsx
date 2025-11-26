@@ -185,6 +185,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   statusOptions,
   isUpdateDisabled = false,
   onRowClick,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -324,7 +325,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       <TableBody>
         {sortedTasks &&
           sortedTasks
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedTasks.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((task: TaskModel) => (
               <TableRow
                 key={task.id}
@@ -572,6 +576,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       users,
       onArchive,
       onEdit,
+      hidePagination,
     ]
   );
 
@@ -591,8 +596,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
               onSort={handleSort}
             />
             {tableBody}
-            <TableFooter>
-              <TableRow
+            {!hidePagination && (
+              <TableFooter>
+                <TableRow
                 sx={{
                   "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
@@ -677,6 +683,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 />
               </TableRow>
             </TableFooter>
+            )}
           </Table>
         </TableContainer>
       )}

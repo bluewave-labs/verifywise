@@ -39,6 +39,10 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
+import StyleGuide from "../../presentation/pages/StyleGuide";
+
+// Check if we're in development mode
+const isDev = import.meta.env.DEV;
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -139,5 +143,7 @@ export const createRoutes = (
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  // Style Guide - Development only
+  ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

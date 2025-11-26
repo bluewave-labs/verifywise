@@ -124,6 +124,7 @@ interface IncidentTableProps {
     onArchive?: (id: string, mode: string) => void;
     paginated?: boolean;
     archivedId?: string | null;
+    hidePagination?: boolean;
 }
 
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -160,6 +161,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     onArchive,
     paginated = true,
     archivedId,
+    hidePagination = false,
 }) => {
     const theme = useTheme();
     const [page, setPage] = useState(0);
@@ -386,8 +388,8 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 {sortedData?.length > 0 ? (
                     sortedData
                         .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
                         )
                         .map((incident) => (
                             <TableRow
@@ -567,7 +569,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {tableHeader}
                 {tableBody}
-                {paginated && (
+                {paginated && !hidePagination && (
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
                             <TableCell colSpan={3} sx={incidentShowingText(theme)}>

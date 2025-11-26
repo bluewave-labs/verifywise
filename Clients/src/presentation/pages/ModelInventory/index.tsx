@@ -51,6 +51,7 @@ import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
+import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { EvidenceType } from "../../../domain/enums/evidenceHub.enum";
@@ -58,6 +59,10 @@ import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evid
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { ExportMenu } from "../../components/Table/ExportMenu";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -93,7 +98,7 @@ const ModelInventory: React.FC = () => {
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -122,6 +127,15 @@ const ModelInventory: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  // GroupBy state - models tab
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // GroupBy state - model risks tab
+  const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
+
+  // GroupBy state - evidence hub tab
+  const { groupBy: groupByEvidence, groupSortOrder: groupSortOrderEvidence, handleGroupChange: handleGroupChangeEvidence } = useGroupByState();
 
     const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
 
@@ -195,6 +209,67 @@ const ModelInventory: React.FC = () => {
 
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
+
+  // Define how to get the group key for each model
+  const getModelInventoryGroupKey = (model: IModelInventory, field: string): string | string[] => {
+    switch (field) {
+      case 'provider':
+        return model.provider || 'Unknown Provider';
+      case 'status':
+        return model.status || 'Unknown Status';
+      case 'security_assessment':
+        return model.security_assessment ? 'Assessed' : 'Not Assessed';
+      case 'hosting_provider':
+        return model.hosting_provider || 'Unknown Hosting';
+      case 'approver':
+        if (model.approver) {
+          const user = users.find((u: any) => u.id === Number(model.approver));
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'No Approver';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered data
+  const groupedModelInventory = useTableGrouping({
+    data: filteredData,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getModelInventoryGroupKey,
+  });
+
+  // Define export columns for model inventory table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'provider', label: 'Provider' },
+      { id: 'model', label: 'Model' },
+      { id: 'version', label: 'Version' },
+      { id: 'approver', label: 'Approver' },
+      { id: 'security_assessment', label: 'Security Assessment' },
+      { id: 'status', label: 'Status' },
+      { id: 'status_date', label: 'Status Date' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredData.map((model: IModelInventory) => {
+      const approverUser = users.find((user: any) => user.id === model.approver);
+      const approverName = approverUser ? `${approverUser.name} ${approverUser.surname}` : '-';
+
+      return {
+        provider: model.provider || '-',
+        model: model.model || '-',
+        version: model.version || '-',
+        approver: approverName,
+        security_assessment: model.security_assessment ? 'Yes' : 'No',
+        status: model.status || '-',
+        status_date: model.status_date || '-',
+      };
+    });
+  }, [filteredData, users]);
 
    // Function to fetch evidence data
    const fetchEvidenceData = async (showLoading = true) => {
@@ -795,27 +870,169 @@ const ModelInventory: React.FC = () => {
     return filtered;
   }, [modelRisksData, modelRiskCategoryFilter, modelRiskLevelFilter]);
 
+  // Define how to get the group key for each model risk
+  const getModelRiskGroupKey = (risk: any, field: string): string | string[] => {
+    switch (field) {
+      case 'risk_category':
+        return risk.risk_category || 'Unknown';
+      case 'risk_level':
+        return risk.risk_level || 'Unknown';
+      case 'status':
+        return risk.status || 'Unknown';
+      case 'owner':
+        if (risk.owner) {
+          const user = users.find((u) => u.id == risk.owner);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'model_name':
+        if (risk.model_id) {
+          const model = modelInventoryData.find((m) => m.id == risk.model_id);
+          return model?.model || 'Unknown Model';
+        }
+        return 'No Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered model risks
+  const groupedModelRisks = useTableGrouping({
+    data: filteredModelRisks,
+    groupByField: groupByRisk,
+    sortOrder: groupSortOrderRisk,
+    getGroupKey: getModelRiskGroupKey,
+  });
+
   const filteredEvidenceHub = useMemo(() => {
     let filtered = evidenceHubData;
-  
+
     if (evidenceTypeFilter && evidenceTypeFilter !== "all") {
       filtered = filtered.filter(
         (e) => e.evidence_type === evidenceTypeFilter
       );
     }
-  
+
     if (searchTypeTerm?.trim()) {
       const lower = searchTypeTerm.toLowerCase();
       filtered = filtered.filter((e) =>
         e.evidence_name?.toLowerCase().includes(lower)
       );
     }
-  
+
     return filtered;
   }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
-  
-  
-  
+
+  // Define how to get the group key for each evidence
+  const getEvidenceGroupKey = (evidence: any, field: string): string | string[] => {
+    switch (field) {
+      case 'evidence_type':
+        return evidence.evidence_type || 'Unknown';
+      case 'uploaded_by':
+        if (evidence.uploaded_by) {
+          const user = users.find((u) => u.id == evidence.uploaded_by);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unknown';
+      case 'model':
+        if (evidence.model_id) {
+          const model = modelInventoryData.find((m) => m.id == evidence.model_id);
+          return model?.model || 'Unknown Model';
+        }
+        return 'No Model';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered evidence hub
+  const groupedEvidenceHub = useTableGrouping({
+    data: filteredEvidenceHub,
+    groupByField: groupByEvidence,
+    sortOrder: groupSortOrderEvidence,
+    getGroupKey: getEvidenceGroupKey,
+  });
+
+  // Export columns and data for Model Risks
+  const modelRisksExportColumns = useMemo(() => {
+    return [
+      { id: 'risk_name', label: 'Risk Name' },
+      { id: 'model_name', label: 'Model Name' },
+      { id: 'risk_category', label: 'Category' },
+      { id: 'risk_level', label: 'Risk Level' },
+      { id: 'status', label: 'Status' },
+      { id: 'owner', label: 'Owner' },
+      { id: 'target_date', label: 'Target Date' },
+    ];
+  }, []);
+
+  const modelRisksExportData = useMemo(() => {
+    return filteredModelRisks.map((risk: IModelRisk) => {
+      const ownerUser = users.find((user: any) => user.id == risk.owner);
+      const ownerName = ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : '-';
+
+      const model = modelInventoryData.find((m) => m.id === risk.model_id);
+      const modelName = model ? model.model : '-';
+
+      return {
+        risk_name: risk.risk_name || '-',
+        model_name: modelName,
+        risk_category: risk.risk_category || '-',
+        risk_level: risk.risk_level || '-',
+        status: risk.status || '-',
+        owner: ownerName,
+        target_date: risk.target_date || '-',
+      };
+    });
+  }, [filteredModelRisks, users, modelInventoryData]);
+
+  // Export columns and data for Evidence Hub
+  const evidenceHubExportColumns = useMemo(() => {
+    return [
+      { id: 'evidence_name', label: 'Evidence Name' },
+      { id: 'evidence_type', label: 'Type' },
+      { id: 'mapped_models', label: 'Mapped Models' },
+      { id: 'uploaded_by', label: 'Uploaded By' },
+      { id: 'uploaded_on', label: 'Uploaded On' },
+      { id: 'expiry_date', label: 'Expiry' },
+    ];
+  }, []);
+
+  const evidenceHubExportData = useMemo(() => {
+    return filteredEvidenceHub.map((evidence: EvidenceHubModel) => {
+      // Get uploader from first evidence file
+      const uploadedById = evidence.evidence_files?.[0]?.uploaded_by;
+      const uploaderUser = users.find((user: any) => user.id === uploadedById);
+      const uploaderName = uploaderUser ? `${uploaderUser.name} ${uploaderUser.surname}` : '-';
+
+      // Get upload date from first evidence file
+      const uploadDate = evidence.evidence_files?.[0]?.upload_date;
+      const formattedUploadDate = uploadDate ? new Date(uploadDate).toISOString().split('T')[0] : '-';
+
+      // Get mapped model names from mapped_model_ids
+      const mappedModelNames = evidence.mapped_model_ids
+        ?.map((modelId: number) => {
+          const model = modelInventoryData.find((m) => m.id === modelId);
+          return model ? `${model.provider} - ${model.model}` : null;
+        })
+        .filter(Boolean)
+        .join(', ') || '-';
+
+      // Format expiry date
+      const formattedExpiryDate = evidence.expiry_date
+        ? new Date(evidence.expiry_date).toISOString().split('T')[0]
+        : '-';
+
+      return {
+        evidence_name: evidence.evidence_name || '-',
+        evidence_type: evidence.evidence_type || '-',
+        mapped_models: mappedModelNames,
+        uploaded_by: uploaderName,
+        uploaded_on: formattedUploadDate,
+        expiry_date: formattedExpiryDate,
+      };
+    });
+  }, [filteredEvidenceHub, users, modelInventoryData]);
 
   // Model Risk handlers
   const handleNewModelRiskClick = () => {
@@ -1058,6 +1275,7 @@ const ModelInventory: React.FC = () => {
                       />
                   }
               />
+              <TipBox entityName="model-inventory" />
 
               {/* Summary Cards */}
               {activeTab === "models" && (
@@ -1157,10 +1375,27 @@ const ModelInventory: React.FC = () => {
                                       }}
                                   />
                               </Box>
+
+                              <GroupBy
+                                  options={[
+                                      { id: 'provider', label: 'Provider' },
+                                      { id: 'status', label: 'Status' },
+                                      { id: 'security_assessment', label: 'Security Assessment' },
+                                      { id: 'hosting_provider', label: 'Hosting Provider' },
+                                      { id: 'approver', label: 'Approver' },
+                                  ]}
+                                  onGroupChange={handleGroupChange}
+                              />
                           </Stack>
 
-                          {/* Right side: Analytics & Add Model buttons */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export, Analytics & Add Model buttons */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={exportData}
+                                  columns={exportColumns}
+                                  filename="model-inventory"
+                                  title="Model Inventory"
+                              />
                               <CustomizableButton
                                   variant="contained"
                                   onClick={() => setIsAnalyticsDrawerOpen(true)}
@@ -1181,14 +1416,21 @@ const ModelInventory: React.FC = () => {
                           </Stack>
                       </Stack>
 
-                      <ModelInventoryTable
-                          key={tableKey}
-                          data={filteredData}
-                          isLoading={isLoading}
-                          onEdit={handleEditModelInventory}
-                          onDelete={handleDeleteModelInventory}
-                          onCheckModelHasRisks={handleCheckModelHasRisks}
-                          deletingId={deletingId}
+                      <GroupedTableView
+                          groupedData={groupedModelInventory}
+                          ungroupedData={filteredData}
+                          renderTable={(data, options) => (
+                              <ModelInventoryTable
+                                  key={tableKey}
+                                  data={data}
+                                  isLoading={isLoading}
+                                  onEdit={handleEditModelInventory}
+                                  onDelete={handleDeleteModelInventory}
+                                  onCheckModelHasRisks={handleCheckModelHasRisks}
+                                  deletingId={deletingId}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}
@@ -1281,27 +1523,52 @@ const ModelInventory: React.FC = () => {
                                       return `Status: ${selectedItem.name.toLowerCase()}`;
                                   }}
                               />
-                          </Stack>
-                          <div data-joyride-id="add-model-risk-button">
-                              <CustomizableButton
-                                  variant="contained"
-                                  sx={addNewModelButtonStyle}
-                                  text="Add model risk"
-                                  icon={<AddCircleOutlineIcon size={16} />}
-                                  onClick={handleNewModelRiskClick}
-                                  isDisabled={isCreatingDisabled}
+                              <GroupBy
+                                  options={[
+                                      { id: 'risk_category', label: 'Category' },
+                                      { id: 'risk_level', label: 'Risk level' },
+                                      { id: 'status', label: 'Status' },
+                                      { id: 'model_name', label: 'Model' },
+                                      { id: 'owner', label: 'Owner' },
+                                  ]}
+                                  onGroupChange={handleGroupChangeRisk}
                               />
-                          </div>
+                          </Stack>
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={modelRisksExportData}
+                                  columns={modelRisksExportColumns}
+                                  filename="model-risks"
+                                  title="Model Risks"
+                              />
+                              <div data-joyride-id="add-model-risk-button">
+                                  <CustomizableButton
+                                      variant="contained"
+                                      sx={addNewModelButtonStyle}
+                                      text="Add model risk"
+                                      icon={<AddCircleOutlineIcon size={16} />}
+                                      onClick={handleNewModelRiskClick}
+                                      isDisabled={isCreatingDisabled}
+                                  />
+                              </div>
+                          </Stack>
                       </Stack>
 
-                      <ModelRisksTable
-                          data={filteredModelRisks}
-                          isLoading={isModelRisksLoading}
-                          onEdit={handleEditModelRisk}
-                          onDelete={handleDeleteModelRisk}
-                          deletingId={deletingModelRiskId}
-                          users={users}
-                          models={modelInventoryData}
+                      <GroupedTableView
+                          groupedData={groupedModelRisks}
+                          ungroupedData={filteredModelRisks}
+                          renderTable={(data, options) => (
+                              <ModelRisksTable
+                                  data={data}
+                                  isLoading={isModelRisksLoading}
+                                  onEdit={handleEditModelRisk}
+                                  onDelete={handleDeleteModelRisk}
+                                  deletingId={deletingModelRiskId}
+                                  users={users}
+                                  models={modelInventoryData}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}
@@ -1349,14 +1616,28 @@ const ModelInventory: React.FC = () => {
                                           ? selectedItem.name
                                           : `evidence: ${selectedItem.name.toLowerCase()}`;
                                       }}
-                                      
-                                    
+
+
                                   />
                               </div>
+                              <GroupBy
+                                  options={[
+                                      { id: 'evidence_type', label: 'Evidence type' },
+                                      { id: 'uploaded_by', label: 'Uploaded by' },
+                                      { id: 'model', label: 'Model' },
+                                  ]}
+                                  onGroupChange={handleGroupChangeEvidence}
+                              />
                           </Stack>
 
-                          {/* Right side: Add Upload Evidence */}
-                          <Stack direction="row" spacing={2}>
+                          {/* Right side: Export and Upload Evidence */}
+                          <Stack direction="row" gap="8px" alignItems="center">
+                              <ExportMenu
+                                  data={evidenceHubExportData}
+                                  columns={evidenceHubExportColumns}
+                                  filename="evidence-hub"
+                                  title="Evidence Hub"
+                              />
                               <div data-joyride-id="add-model-button">
                                   <CustomizableButton
                                       variant="contained"
@@ -1370,14 +1651,21 @@ const ModelInventory: React.FC = () => {
                           </Stack>
                       </Stack>
 
-                      <EvidenceHubTable
-                        key={tableKey}
-                        isLoading={isLoading}
-                        data={filteredEvidenceHub}
-                        onEdit={handleEditEvidence}
-                        onDelete={handleDeleteEvidence}
-                        modelInventoryData={modelInventoryData}
-                        deletingId={deletingEvidenceId}
+                      <GroupedTableView
+                          groupedData={groupedEvidenceHub}
+                          ungroupedData={filteredEvidenceHub}
+                          renderTable={(data, options) => (
+                              <EvidenceHubTable
+                                  key={tableKey}
+                                  isLoading={isLoading}
+                                  data={data}
+                                  onEdit={handleEditEvidence}
+                                  onDelete={handleDeleteEvidence}
+                                  modelInventoryData={modelInventoryData}
+                                  deletingId={deletingEvidenceId}
+                                  hidePagination={options?.hidePagination}
+                              />
+                          )}
                       />
                   </>
               )}

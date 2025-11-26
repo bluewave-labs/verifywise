@@ -1,8 +1,9 @@
 import React, { useMemo, memo } from 'react';
-import { Stack, Button } from '@mui/material';
+import { Stack, Button, Box } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Puzzle, Zap } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
+import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -15,6 +16,9 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const location = useLocation();
   const { userRoleName } = useAuth();
   const isAdmin = userRoleName === "Admin";
+
+  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+
 
   // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
@@ -36,6 +40,49 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         transition: 'opacity 0.2s ease',
       }}
     >
+      <Button
+        variant="contained"
+        size="small"
+        onClick={() => setIsRequestModalOpen(true)}
+        sx={{
+          background: '#F4F4F4',
+          color: '#344054',
+          fontWeight: 500,
+          fontSize: '13px', // Standardized font size
+          height: '32px', // Standardized medium height
+          minHeight: '32px',
+          padding: '8px 16px', // Standardized padding
+          borderRadius: '4px',
+          textTransform: 'none',
+          '&:hover': {
+            color: '#13715B',
+          },
+          transition: 'all 0.2s ease',
+        }}
+      >
+        Requests
+        <Box
+          component="span"
+          sx={{
+            backgroundColor: '#13715B',
+            color: '#fff',
+            px: '6px',
+            py: '4px',
+            ml: '8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 600,
+            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '20px',
+            textAlign: 'center'
+          }}
+        >
+          1
+        </Box>
+      </Button>
       <Button
         variant="contained"
         size="small"
@@ -89,7 +136,12 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       >
         Automations
       </Button>
+      <RequestorApprovalModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)} />
     </Stack>
+
+
   );
 });
 

@@ -1,0 +1,269 @@
+import { Box, Stack } from "@mui/material"
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
+import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
+import { useState, useMemo, useEffect } from "react";
+import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
+import { logEngine } from "../../../application/tools/log.engine";
+import {
+    addNewWorkflowButton,
+    workflowMainStack
+} from "./style";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
+import { ApprovalWorkflowStepModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
+
+const ApprovalWorkflows: React.FC = () => {
+    const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
+    const [selectWorkflowId, setSelectWorkflowId] = useState<string | null>(null);
+    const [modalMode, setModalMode] = useState("")
+
+    const MOCK_WORKFLOWS: ApprovalWorkflowModel[] = [
+        new ApprovalWorkflowModel({
+            id: 1,
+            type: "approval",
+            workflow_title: "Model Deployment Approval",
+            entity: 1,
+            steps: [
+                {
+                    step_name: "Initial Review",
+                    approver: 1,
+                    conditions: 1,
+                    description: "Review the model deployment request and initial documentation"
+                },
+                {
+                    step_name: "Technical Validation",
+                    approver: 2,
+                    conditions: 2,
+                    description: "Validate technical requirements and compliance"
+                }
+            ],
+            approval_status: "Pending" as any,
+            date_updated: new Date(),
+        }),
+        new ApprovalWorkflowModel({
+            id: 2,
+            type: "approval",
+            workflow_title: "Risk Assessment Approval",
+            entity: 1,
+            steps: [
+                {
+                    step_name: "Risk Analysis",
+                    approver: 2,
+                    conditions: 1,
+                    description: "Analyze potential risks and impacts"
+                }
+            ],
+            approval_status: "Approved" as any,
+            date_updated: new Date(),
+        }),
+    ];
+
+
+
+    const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
+
+    /** -------------------- FILTERING -------------------- */
+    const filteredData = useMemo(() => {
+        return workflowData;
+    }, [workflowData]);
+
+
+    /** -------------------- FETCHING ON LOAD -------------------- */
+    const fetchApprovalWorkflowData = async (showLoading = true) => {
+        if (showLoading) setIsLoading(true);
+        try {
+            if (!workflowData || workflowData.length == 0) {
+                setWorkflowData(MOCK_WORKFLOWS);
+            }
+            //TO-DO: fetch approval workflows from API
+
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to fetch approval workflows: ${error}`,
+            });
+        } finally {
+            if (showLoading) setIsLoading(false);
+        }
+    };
+
+
+    /** -------------------- FETCHING BY SELECTED ID -------------------- */
+    const fetchWorkflowDataById = async (id: string) => {
+        try {
+            setIsLoading(true);
+
+            const workflowFromState = workflowData.find(w => w.id?.toString() === id);
+            if (workflowFromState) {
+                setSelectWorkflow(workflowFromState);
+                return workflowFromState;
+            }
+
+            const mockWorkflow = MOCK_WORKFLOWS.find(w => w.id?.toString() === id);
+            if (mockWorkflow) {
+                setSelectWorkflow(mockWorkflow);
+                return mockWorkflow;
+            }
+
+            logEngine({
+                type: "error",
+                message: "No workflow data found for this ID.",
+            });
+            return
+        }
+        catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to fetch workflow by ID: ${error}`,
+            });
+            return null;
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    /** -------------------- INITIAL LOAD -------------------- */
+    useEffect(() => {
+        fetchApprovalWorkflowData();
+    }, []);
+
+    /** -------------------- WORKFLOW MODAL HANDLERS -------------------- */
+    const handleNewWorkflowClick = () => setIsNewWorkflowModalOpen(true);
+
+    const handleEditWorkflowClick = async (id: string, mode: string) => {
+        setSelectWorkflowId(id);
+        setModalMode(mode);
+        const workflow = await fetchWorkflowDataById(id);
+        if (workflow) {
+            setIsNewWorkflowModalOpen(true);
+        }
+    }
+
+    const handleWorkflowSuccess = async (formData: {
+        workflow_title: string;
+        entity: number;
+        steps: ApprovalWorkflowStepModel[];
+    }) => {
+        try {
+            if (selectWorkflow) {
+                logEngine({
+                    type: "info",
+                    message: `Would update workflow ${selectWorkflow.id} with: ${JSON.stringify(formData)}`,
+                });
+
+                //TO-DO: call API to update workflow
+                const updatedWorkflow = new ApprovalWorkflowModel({
+                    ...selectWorkflow,
+                    workflow_title: formData.workflow_title,
+                    entity: formData.entity,
+                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
+                    date_updated: new Date(),
+                });
+
+                setWorkflowData(prev => prev.map(w => w.id === selectWorkflow.id ? updatedWorkflow : w)
+                );
+
+                logEngine({
+                    type: "info",
+                    message: "Workflow updated successfully!",
+                });
+            } else {
+                logEngine({
+                    type: "info",
+                    message: `Would create new workflow with: ${JSON.stringify(formData)}`,
+                });
+
+                const newWorkflow = new ApprovalWorkflowModel({
+                    id: workflowData.length > 0
+                        ? Math.max(...workflowData.map(w => w.id || 0)) + 1
+                        : 1,
+                    type: "approval",
+                    workflow_title: formData.workflow_title,
+                    entity: formData.entity,
+                    steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
+                    approval_status: "Pending" as any,
+                    date_updated: new Date(),
+                });
+
+                setWorkflowData(prev => [...prev, newWorkflow]);
+                logEngine({
+                    type: "info",
+                    message: "Workflow created successfully!",
+                });
+            }
+            handleCloseModal();
+            await fetchApprovalWorkflowData(false);
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to save workflow: ${error}`,
+            });
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsNewWorkflowModalOpen(false);
+        setSelectWorkflow(null);
+        setSelectWorkflowId(null);
+        setModalMode("");
+    }
+
+    /** -------------------- RENDER -------------------- */
+    return (
+        <Stack className="vwhome" gap={"16px"}>
+            <PageBreadcrumbs />
+
+            <Stack sx={workflowMainStack}>
+                <Stack>
+                    <PageHeader
+                        title="Approval Workflows"
+                        description="A structured overview of all approval processes, including steps, conditions, and current status."
+                    />
+                </Stack>
+                <Stack
+                    direction="row"
+                    justifyContent="right"
+                >
+                    <Box data-joyride-id="add-incident-button">
+                        <CustomizableButton
+                            variant="contained"
+                            sx={addNewWorkflowButton}
+                            text="Add new workflow"
+                            icon={<AddCircleOutlineIcon />}
+                            onClick={handleNewWorkflowClick}
+                        />
+                    </Box>
+                </Stack>
+                {/* Approval Table */}
+                <ApprovalWorkflowsTable
+                    data={filteredData}
+                    isLoading={isLoading}
+                    onEdit={handleEditWorkflowClick}
+                />
+            </Stack>
+            <CreateNewApprovalWorkflow
+                isOpen={isNewWorkflowModalOpen}
+                setIsOpen={handleCloseModal}
+                initialData={
+                    selectWorkflow
+                        ? {
+                            workflow_title: selectWorkflow.workflow_title || "",
+                            entity: selectWorkflow.entity ?? 0,
+                            steps: selectWorkflow?.steps || [],
+                        }
+                        : undefined
+                }
+                isEdit={!!selectWorkflow}
+                mode={modalMode}
+                onSuccess={handleWorkflowSuccess}
+            />
+        </Stack>
+    )
+}
+
+export default ApprovalWorkflows;

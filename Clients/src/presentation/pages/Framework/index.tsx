@@ -22,6 +22,7 @@ import {
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import useFrameworks from "../../../application/hooks/useFrameworks";
+import useUsers from "../../../application/hooks/useUsers";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -30,6 +31,7 @@ import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
@@ -44,6 +46,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
+import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
 import FrameworkRisks from "./FrameworkRisks";
@@ -111,6 +114,7 @@ const Framework = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+  const { users } = useUsers();
 
   // Check if there are any organizational projects
   const organizationalProject = useMemo(() => {
@@ -275,6 +279,12 @@ const Framework = () => {
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("");
+  const [reviewerFilter, setReviewerFilter] = useState<string>("");
+  const [dueDateFilter, setDueDateFilter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
 
   // Status options following ProjectFrameworks pattern for ISO27001
   const iso27001StatusOptions = [
@@ -311,6 +321,14 @@ const Framework = () => {
     // { value: "audited", label: "Audited" },
     { value: "needs rework", label: "Needs Rework" },
   ];
+
+  // User options for owner and reviewer filters
+  const userOptions = useMemo(() => {
+    return users.map((user: any) => ({
+      value: user.id?.toString() || "",
+      label: `${user.name} ${user.surname}`,
+    }));
+  }, [users]);
 
   useEffect(() => {
     if (allVisible) {
@@ -403,11 +421,19 @@ const Framework = () => {
     subcategoryId,
   ]);
 
+  const resetFilters = () => {
+    setStatusFilter("");
+    setApplicabilityFilter("");
+    setSearchTerm("");
+    setOwnerFilter("");
+    setReviewerFilter("");
+    setDueDateFilter("");
+  }
+
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
     if (organizationalProject) {
-      setStatusFilter("");
-      setApplicabilityFilter("");
+      resetFilters();
     }
   }, [
     iso27001TabValue,
@@ -418,6 +444,9 @@ const Framework = () => {
 
   const handleFrameworkSelect = (index: number) => {
     if (organizationalProject) {
+      if(selectedFramework !== index) {
+        resetFilters();
+      }
       setSelectedFramework(index);
     }
   };
@@ -451,6 +480,27 @@ const Framework = () => {
       navigate(`/framework/${newValue}`);
     }
   };
+
+  useEffect(() => {
+    const getLinkedModelCount = async() => {
+      if (filteredFrameworks.length === 0) return;
+
+      const framework = filteredFrameworks[selectedFramework];
+      if (!framework) return;
+      const frameworkId = framework?.id;
+
+      const response = await getAllEntities({
+        routeUrl: `/modelInventory/by-frameworkId/${frameworkId}`,
+      });
+
+      if (response && response.data) {
+        setLinkedModelsCount(response.data.length);
+      }
+    };
+
+    getLinkedModelCount();
+
+  }, [filteredFrameworks, selectedFramework]);
 
   const renderFrameworkContent = () => {
     if (loading) {
@@ -534,19 +584,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              showStatusFilter={
-                iso27001TabValue === "clause" || iso27001TabValue === "annex"
-              }
-              showApplicabilityFilter={iso27001TabValue === "annex"}
-              statusOptions={iso27001StatusOptions}
-            />
-
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
                 project={organizationalProject}
@@ -554,8 +591,20 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clause27001Id}
                 initialSubClauseId={subClause27001Id}
+                searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -567,8 +616,21 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annex27001Id}
                 initialAnnexControlId={annexControl27001Id}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso27001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
           </TabContext>
@@ -602,19 +664,6 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              applicabilityFilter={applicabilityFilter}
-              onApplicabilityChange={setApplicabilityFilter}
-              showStatusFilter={
-                iso42001TabValue === "clauses" || iso42001TabValue === "annexes"
-              }
-              showApplicabilityFilter={iso42001TabValue === "annexes"}
-              statusOptions={iso42001StatusOptions}
-            />
-
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
                 project={organizationalProject}
@@ -622,8 +671,20 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                dueDateFilter={dueDateFilter}
                 initialClauseId={clauseId}
                 initialSubClauseId={subClauseId}
+                searchTerm={searchTerm}
+                onStatusChange={setStatusFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
 
@@ -635,8 +696,21 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                dueDateFilter={dueDateFilter}
                 initialAnnexId={annexId}
                 initialAnnexCategoryId={annexCategoryId}
+                searchTerm={searchTerm}
+                ownerFilter={ownerFilter}
+                reviewerFilter={reviewerFilter}
+                onStatusChange={setStatusFilter}
+                onApplicabilityChange={setApplicabilityFilter}
+                onOwnerChange={setOwnerFilter}
+                onReviewerChange={setReviewerFilter}
+                onDueDateChange={setDueDateFilter}
+                onSearchTermChange={setSearchTerm}
+                statusOptions={iso42001StatusOptions}
+                ownerOptions={userOptions}
+                reviewerOptions={userOptions}
               />
             </TabPanel>
           </TabContext>
@@ -810,6 +884,7 @@ const Framework = () => {
             <>
               <CustomizableButton
                 variant="contained"
+                text="Manage frameworks"
                 endIcon={<WhiteDownArrowIcon size={16} style={{ transform: rotated ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
                 onClick={(event: React.MouseEvent<any>) => {
                   setRotated((prev) => !prev);
@@ -867,7 +942,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Manage Frameworks"
+                    primary="Add/remove frameworks"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -888,7 +963,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Edit Project"
+                    primary="Edit project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -912,7 +987,7 @@ const Framework = () => {
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Delete Project"
+                    primary="Delete project"
                     primaryTypographyProps={{
                       fontSize: "13px",
                       fontWeight: 400,
@@ -946,6 +1021,9 @@ const Framework = () => {
           )}
         </Box>
       </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="framework" />
 
       {/* <Box
         sx={{
@@ -1126,6 +1204,7 @@ const Framework = () => {
                   label: "Linked models",
                   value: "linked-models",
                   icon: "Link",
+                  count: linkedModelsCount,
                 },
                 {
                   label: "Controls and Requirements",

@@ -35,7 +35,11 @@ import {
   TrainingRegistarModel,
   TrainingRegistarDTO
 } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -103,6 +107,9 @@ const Training: React.FC = () => {
   // ✅ Filter + search state
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // ✅ Status options
   const statusOptions = [
@@ -312,6 +319,30 @@ const Training: React.FC = () => {
     });
   }, [trainingData, statusFilter, searchTerm]);
 
+  // Define how to get the group key for each training
+  const getTrainingGroupKey = (training: TrainingRegistarModel, field: string): string | string[] => {
+    switch (field) {
+      case 'status':
+        return training.status || 'Unknown Status';
+      case 'provider':
+        return training.provider || 'Unknown Provider';
+      case 'department':
+        return training.department || 'Unknown Department';
+      case 'duration':
+        return training.duration || 'Unknown Duration';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Apply grouping to filtered training data
+  const groupedTraining = useTableGrouping({
+    data: filteredTraining,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getTrainingGroupKey,
+  });
+
   // Define export columns for training table
   const exportColumns = useMemo(() => {
     return [
@@ -416,6 +447,7 @@ const Training: React.FC = () => {
                     />
                  }
              />
+      <TipBox entityName="training" />
 
            {/* Filter + Search row */}
           <Stack
@@ -437,8 +469,8 @@ const Training: React.FC = () => {
                   sx={{
                     minWidth: "180px",
                     height: "34px",
-                    bgcolor: "#fff",
                   }}
+                  isFilterApplied={!!statusFilter && statusFilter !== "all"}
                 />
               </div>
 
@@ -451,6 +483,16 @@ const Training: React.FC = () => {
                   inputProps={{ "aria-label": "Search trainings" }}
                 />
               </Box>
+
+              <GroupBy
+                options={[
+                  { id: 'status', label: 'Status' },
+                  { id: 'provider', label: 'Provider' },
+                  { id: 'department', label: 'Department' },
+                  { id: 'duration', label: 'Duration' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
             </Stack>
 
             {/* Right side: Export and Add Button */}
@@ -480,11 +522,18 @@ const Training: React.FC = () => {
 
         {/* Table */}
         <Box sx={{ mt: 1 }}>
-          <TrainingTable
-            data={filteredTraining}
-            isLoading={isLoading}
-            onEdit={handleEditTraining}
-            onDelete={handleDeleteTraining}
+          <GroupedTableView
+            groupedData={groupedTraining}
+            ungroupedData={filteredTraining}
+            renderTable={(data, options) => (
+              <TrainingTable
+                data={data}
+                isLoading={isLoading}
+                onEdit={handleEditTraining}
+                onDelete={handleDeleteTraining}
+                hidePagination={options?.hidePagination}
+              />
+            )}
           />
         </Box>
 

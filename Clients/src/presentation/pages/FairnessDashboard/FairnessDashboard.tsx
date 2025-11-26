@@ -18,7 +18,12 @@ import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
+<<<<<<< HEAD
 //import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
+=======
+import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
+import TipBox from "../../components/TipBox";
+>>>>>>> upstream/develop
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState(() => {
@@ -270,7 +275,11 @@ export default function FairnessDashboard() {
       <Box>
         <PageHeader
           title="Bias & fairness dashboard"
-          description="Comprehensive AI model evaluation platform for bias detection, fairness assessment, and performance analysis. Configure evaluation parameters to analyze model behavior across protected attributes with multiple fairness metrics and bias detection methods."
+          description={
+            tab === "uploads"
+              ? "This table displays fairness evaluation results for uploaded models. To evaluate a new model, upload the model with its dataset, target column, and sensitive features. Only classification models with preprocessing steps (e.g., sklearn.Pipeline) are supported."
+              : "Comprehensive AI model evaluation platform for bias detection, fairness assessment, and performance analysis. Configure evaluation parameters to analyze model behavior across protected attributes with multiple fairness metrics and bias detection methods."
+          }
           rightContent={
             <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -279,6 +288,7 @@ export default function FairnessDashboard() {
           }
         />
       </Box>
+      <TipBox entityName="fairness-dashboard" />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert

@@ -37,7 +37,11 @@ import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import TipBox from "../../components/TipBox";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -77,10 +81,11 @@ const Tasks: React.FC = () => {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-
-
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
+
+  // Group by state management
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -287,6 +292,37 @@ const Tasks: React.FC = () => {
       }
     };
 
+  // Define how to get the group key for each task
+  const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
+    switch (field) {
+      case 'status':
+        return STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status || 'Unknown';
+      case 'priority':
+        return task.priority || 'No Priority';
+      case 'assignees':
+        if (task.assignees && task.assignees.length > 0) {
+          // Return array of assignee names - task will appear in multiple groups
+          return task.assignees.map((assigneeId) => {
+            const user = users.find((u) => u.id === Number(assigneeId));
+            return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+          });
+        }
+        return 'Unassigned';
+      case 'due_date':
+        return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date';
+      default:
+        return 'Other';
+    }
+  };
+
+  // Use the reusable grouping hook
+  const groupedTasks = useTableGrouping({
+    data: tasks,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getTaskGroupKey,
+  });
+
   // Export columns and data
   const exportColumns = useMemo(() => {
     return [
@@ -379,27 +415,32 @@ const Tasks: React.FC = () => {
             />
           }
         />
-        <Stack sx={vwhomeBodyControls} data-joyride-id="add-task-button">
-          <Stack direction="row" gap="8px" alignItems="center">
-            <ExportMenu
-              data={exportData}
-              columns={exportColumns}
-              filename="tasks"
-              title="Task Management"
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new task"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleIcon size={16} />}
-              onClick={handleCreateTask}
-              isDisabled={isCreatingDisabled}
-            />
-          </Stack>
+      </Stack>
+
+      {/* Tips */}
+      <TipBox entityName="tasks" />
+
+      {/* Controls */}
+      <Stack sx={{ ...vwhomeBodyControls, justifyContent: "flex-end" }} data-joyride-id="add-task-button">
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="tasks"
+            title="Task Management"
+          />
+          <CustomizableButton
+            variant="contained"
+            text="Add new task"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<AddCircleIcon size={16} />}
+            onClick={handleCreateTask}
+            isDisabled={isCreatingDisabled}
+          />
         </Stack>
       </Stack>
 
@@ -438,6 +479,7 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 140 }}
+                  isFilterApplied={statusFilters.length > 0}
                 />
 
                 <Select
@@ -461,7 +503,8 @@ const Tasks: React.FC = () => {
                       setPriorityFilters([value as TaskPriority]);
                     }
                   }}
-                  sx={{ width: 140 }}
+                  sx={{ width: 140}}
+                  isFilterApplied={priorityFilters.length > 0 }
                 />
 
                 <Select
@@ -488,9 +531,10 @@ const Tasks: React.FC = () => {
                     }
                   }}
                   sx={{ width: 160 }}
+                  isFilterApplied={assigneeFilters.length > 0}
                 />
 
-                <Stack direction="column" spacing={2} sx={{ width: 300 }} data-joyride-id="task-search">
+                <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">
                   <Typography
                     component="p"
                     variant="body1"
@@ -502,11 +546,33 @@ const Tasks: React.FC = () => {
                     Search
                   </Typography>
                   <SearchBox
-                    placeholder="Search tasks by title or description..."
+                    placeholder="Search tasks..."
                     value={searchQuery}
                     onChange={setSearchQuery}
                     inputProps={{ "aria-label": "Search tasks" }}
                     fullWidth={false}
+                  />
+                </Stack>
+
+                <Stack direction="column" spacing={2} sx={{ width: 'auto' }}>
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: "22px", visibility: 'hidden' }}
+                  >
+                    .
+                  </Typography>
+                  <GroupBy
+                    options={[
+                      { id: 'status', label: 'Status' },
+                      { id: 'priority', label: 'Priority' },
+                      { id: 'assignees', label: 'Assignees' },
+                      { id: 'due_date', label: 'Due date' },
+                    ]}
+                    onGroupChange={handleGroupChange}
                   />
                 </Stack>
 
@@ -551,20 +617,27 @@ const Tasks: React.FC = () => {
         )}
 
         {!isLoading && !error && (
-          <TasksTable
-            tasks={tasks}
-            users={users}
-            onArchive={handleDeleteTask}
-            onEdit={handleEditTask}
-            onStatusChange={handleTaskStatusChange}
-            statusOptions={TASK_STATUS_OPTIONS.map(
-              (status) => {
-                const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
-                  return displayStatus;
-              }
+          <GroupedTableView
+            groupedData={groupedTasks}
+            ungroupedData={tasks}
+            renderTable={(data, options) => (
+              <TasksTable
+                tasks={data}
+                users={users}
+                onArchive={handleDeleteTask}
+                onEdit={handleEditTask}
+                onStatusChange={handleTaskStatusChange}
+                statusOptions={TASK_STATUS_OPTIONS.map(
+                  (status) => {
+                    const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                    return displayStatus;
+                  }
+                )}
+                isUpdateDisabled={isCreatingDisabled}
+                onRowClick={handleEditTask}
+                hidePagination={options?.hidePagination}
+              />
             )}
-            isUpdateDisabled={isCreatingDisabled}
-            onRowClick={handleEditTask}
           />
         )}
       </Box>

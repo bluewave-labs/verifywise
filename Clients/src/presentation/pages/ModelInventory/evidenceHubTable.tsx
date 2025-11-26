@@ -23,6 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { User } from "../../../domain/types/User";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import EmptyState from "../../components/EmptyState";
+import FileIcon from "../../components/FileIcon";
 import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import {
     loadingContainerStyle,
@@ -59,6 +60,7 @@ interface EvidenceHubTableProps {
     paginated?: boolean;
     deletingId?: number | null;
     modelInventoryData: IModelInventory[];
+    hidePagination?: boolean;
 }
 
 const TABLE_COLUMNS = [
@@ -177,6 +179,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     paginated = true,
     deletingId,
     modelInventoryData,
+    hidePagination = false,
 }) => {
     const theme = useTheme();
     const [users, setUsers] = useState<User[]>([]);
@@ -345,8 +348,8 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                 {sortedData?.length ? (
                     sortedData
                         .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
                         )
                         .map((evidence) => (
                             <TableRow key={evidence.id}
@@ -360,7 +363,24 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                               e.stopPropagation();
                               onEdit?.(Number(evidence.id));
                             }}>
-                                <TableCell>{evidence.evidence_name}</TableCell>
+                                <TableCell>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                        }}
+                                    >
+                                        <FileIcon
+                                            fileName={
+                                                evidence.evidence_files && evidence.evidence_files.length > 0
+                                                    ? evidence.evidence_files[0].filename
+                                                    : ""
+                                            }
+                                        />
+                                        {evidence.evidence_name}
+                                    </Box>
+                                </TableCell>
                                 <TableCell>
                                     <TooltipCell
                                         value={evidence.evidence_type}
@@ -475,7 +495,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   theme={theme}
                 />
                 {tableBody}
-                {paginated && (
+                {paginated && !hidePagination && (
                     <TableFooter>
                         <TableRow sx={tableFooterRowStyle(theme)}>
                             <TableCell sx={showingTextCellStyle(theme)}>

@@ -73,6 +73,7 @@ export interface ModelInventoryTableProps {
   onCheckModelHasRisks?: (id: string) => Promise<boolean>;
   paginated?: boolean;
   deletingId?: string | null;
+  hidePagination?: boolean;
 }
 
 export interface ModelRisksTableProps {
@@ -83,6 +84,7 @@ export interface ModelRisksTableProps {
   deletingId?: number | null;
   users?: User[];
   models?: IModelInventory[];
+  hidePagination?: boolean;
 }
 
 export interface ModelRiskSummaryProps {

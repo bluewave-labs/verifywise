@@ -38,13 +38,28 @@ export async function deleteControl({
 export async function getControlByIdAndProject({
   controlId,
   projectFrameworkId,
+  owner,
+  approver,
+  dueDateFilter,
   signal,
 }: {
   controlId: number;
   projectFrameworkId: number;
+  owner?: string;
+  approver?: string;
+  dueDateFilter?: string;
   signal?: AbortSignal;
 }): Promise<any> {
-  const response = await apiServices.get(`/eu-ai-act/controlById?controlId=${controlId}&projectFrameworkId=${projectFrameworkId}`, {
+  const params = new URLSearchParams({
+    controlId: controlId.toString(),
+    projectFrameworkId: projectFrameworkId.toString(),
+  });
+
+  if (owner && owner !== '') params.append('owner', owner);
+  if (approver && approver !== '') params.append('approver', approver);
+  if (dueDateFilter && dueDateFilter !== '') params.append('dueDateFilter', dueDateFilter);
+
+  const response = await apiServices.get(`/eu-ai-act/controlById?${params.toString()}`, {
     signal,
   });
   return response.data;
@@ -94,13 +109,27 @@ export async function updateControl({
 export async function getControlsByControlCategoryId({
   controlCategoryId,
   projectFrameworkId,
+  owner,
+  approver,
+  dueDateFilter,
   signal,
 }: {
   controlCategoryId: number;
   projectFrameworkId: number;
+  owner?: string;
+  approver?: string;
+  dueDateFilter?: string;
   signal?: AbortSignal;
 }): Promise<any> {
-  const response = await apiServices.get(`/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`, {
+  const params = new URLSearchParams({
+    projectFrameworkId: projectFrameworkId.toString(),
+  });
+
+  if (owner && owner !== '') params.append('owner', owner);
+  if (approver && approver !== '') params.append('approver', approver);
+  if (dueDateFilter && dueDateFilter !== '') params.append('dueDateFilter', dueDateFilter);
+
+  const response = await apiServices.get(`/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?${params.toString()}`, {
     signal,
   });
   return response.data;

@@ -697,6 +697,70 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
       );`, { transaction });
 
+    // NIST AI RMF status ENUM creation (matches the fixed ENUM)
+    await sequelize.query(`
+      DO $$
+        BEGIN
+          CREATE TYPE enum_nist_ai_rmf_subcategories_status AS ENUM (
+            'Not started',
+            'Draft',
+            'In progress',
+            'Awaiting review',
+            'Awaiting approval',
+            'Implemented',
+            'Needs rework',
+            'Audited'
+          );
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `, { transaction });
+
+    // NIST AI RMF subcategories table
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".nist_ai_rmf_subcategories(
+        id SERIAL PRIMARY KEY,
+        subcategory_meta_id INTEGER NOT NULL,
+        projects_frameworks_id INTEGER NOT NULL,
+        index INTEGER,
+        title VARCHAR(255),
+        description TEXT,
+        implementation_description TEXT,
+        category_id INTEGER REFERENCES public.nist_ai_rmf_categories(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        is_demo BOOLEAN DEFAULT FALSE,
+        status enum_nist_ai_rmf_subcategories_status DEFAULT 'Not started',
+        auditor_feedback TEXT,
+        owner INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        reviewer INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        approver INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        due_date DATE,
+        evidence_links JSONB DEFAULT '[]',
+        tags TEXT[],
+        risksDelete JSONB DEFAULT '[]',
+        risksMitigated JSONB DEFAULT '[]',
+        FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE
+      );`, { transaction });
+
+    // NIST AI RMF subcategories indexes
+    await Promise.all([
+      `CREATE INDEX "${tenantHash}_nist_ai_rmf_subcategories_category_id_idx" ON "${tenantHash}".nist_ai_rmf_subcategories (category_id);`,
+      `CREATE INDEX "${tenantHash}_nist_ai_rmf_subcategories_status_idx" ON "${tenantHash}".nist_ai_rmf_subcategories (status);`,
+      `CREATE INDEX "${tenantHash}_nist_ai_rmf_subcategories_owner_idx" ON "${tenantHash}".nist_ai_rmf_subcategories (owner);`,
+      `CREATE INDEX "${tenantHash}_nist_ai_rmf_subcategories_created_at_idx" ON "${tenantHash}".nist_ai_rmf_subcategories (created_at);`
+    ].map(query => sequelize.query(query, { transaction })));
+
+    // NIST AI RMF risk linking table
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".nist_ai_rmf_subcategories__risks(
+        subcategory_id INT NOT NULL,
+        projects_risks_id INT NOT NULL,
+        PRIMARY KEY (subcategory_id, projects_risks_id),
+        FOREIGN KEY (subcategory_id) REFERENCES "${tenantHash}".nist_ai_rmf_subcategories(id) ON DELETE CASCADE,
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
+      );`, { transaction });
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".policy_manager (
         "id" SERIAL PRIMARY KEY,

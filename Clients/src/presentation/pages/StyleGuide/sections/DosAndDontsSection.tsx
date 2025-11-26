@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Stack, Typography, useTheme, Snackbar, Button } from "@mui/material";
+import { Box, Stack, Typography, useTheme, Snackbar } from "@mui/material";
 import { Check, X, Copy } from "lucide-react";
 
 const DosAndDontsSection: React.FC = () => {

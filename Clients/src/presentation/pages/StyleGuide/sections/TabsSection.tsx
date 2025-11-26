@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Snackbar } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
-import { Copy, User, Users, Settings, FileText, Bell } from "lucide-react";
+import { Copy, Users } from "lucide-react";
 import TabBar, { TabItem } from "../../../components/TabBar";
 import CodeBlock from "../components/CodeBlock";
 

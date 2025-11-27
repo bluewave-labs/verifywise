@@ -367,7 +367,7 @@ const LLMKeys = () => {
           onProceed={isCreateModalOpen ? handleCreateKey: handleEditKey}
           proceedButtonColor="primary"
           proceedButtonVariant="contained"
-          TitleFontSize={14}
+          TitleFontSize={0}
           confirmBtnSx={{
             backgroundColor: isCreateButtonDisabled ? "#ccc" : "#13715B",
             color: isCreateButtonDisabled ? "#666" : "#fff",

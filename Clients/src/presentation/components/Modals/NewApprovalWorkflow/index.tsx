@@ -11,7 +11,6 @@ import {
     stepNumberStyle,
 } from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
-import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const APPROVERS = [
@@ -63,13 +62,12 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     setIsOpen,
     initialData,
     isEdit = false,
-    mode,
     onSuccess
 }) => {
 
     const theme = useTheme();
     const [errors, setErrors] = useState<NewApprovalWorkflowFormErrors>({ steps: [] });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting] = useState(false);
 
     const [stepsCount, setStepsCount] = useState(1);
     const [workflowTitle, setWorkflowTitle] = useState("");

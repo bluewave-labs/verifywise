@@ -18,7 +18,7 @@ const ApprovalWorkflows: React.FC = () => {
     const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
-    const [selectWorkflowId, setSelectWorkflowId] = useState<string | null>(null);
+    const [, setSelectWorkflowId] = useState<string | null>(null);
     const [modalMode, setModalMode] = useState("")
 
     const MOCK_WORKFLOWS: ApprovalWorkflowModel[] = [

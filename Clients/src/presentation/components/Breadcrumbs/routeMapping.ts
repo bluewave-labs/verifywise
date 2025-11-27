@@ -81,6 +81,9 @@ export const routeMapping: Record<string, string> = {
 
   // Model inventory
   "/model-inventory": "Model Inventory",
+  "/model-inventory/model-risks": "Model risks",
+  "/model-inventory/mlflow": "MLFlow data",
+  "/model-inventory/evidence-hub": "Evidence hub",
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
@@ -130,6 +133,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Model inventory
   "/model-inventory": () => React.createElement(ListIcon, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/model-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/evidence-hub": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
   // Risk management
   "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),

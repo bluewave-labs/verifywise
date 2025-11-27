@@ -145,16 +145,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       value: "evidences",
       icon: "FolderOpen" as const,
     },
-    {
-      label: "Cross mappings",
-      value: "cross-mappings",
-      icon: "GitBranch" as const,
-    },
-    {
-      label: "Notes",
-      value: "notes",
-      icon: "StickyNote" as const,
-    },
   ];
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -868,72 +858,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                       </Box>
                     )}
                   </Stack>
-                </TabPanel>
-
-                <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
-                  <Stack spacing={3}>
-                    {/* Risk Management Section */}
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Risk Management
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Link relevant risks to this NIST AI RMF subcategory to ensure comprehensive coverage.
-                      </Typography>
-
-                      {/* Current Risks Display */}
-                      {currentRisks.length > 0 && (
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                            Currently Linked Risks ({currentRisks.length}):
-                          </Typography>
-                          <Stack spacing={1}>
-                            {currentRisks.map((risk) => (
-                              <Box
-                                key={risk.id}
-                                sx={{
-                                  p: 2,
-                                  border: "1px solid #e0e0e0",
-                                  borderRadius: 1,
-                                  backgroundColor: "#fafafa",
-                                }}
-                              >
-                                <Typography variant="body2" fontWeight="medium">
-                                  {risk.risk_name || risk.risk || `Risk #${risk.id}`}
-                                </Typography>
-                                {risk.description && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    {risk.description}
-                                  </Typography>
-                                )}
-                                {risk.owner_name && (
-                                  <Typography variant="caption" color="primary">
-                                    Owner: {risk.owner_name}
-                                  </Typography>
-                                )}
-                              </Box>
-                            ))}
-                          </Stack>
-                        </Box>
-                      )}
-
-                      {/* Link Risks Button */}
-                      <CustomizableButton
-                        onClick={() => setIsLinkedRisksModalOpen(true)}
-                        variant="outlined"
-                        startIcon={<Typography variant="body2">🔗</Typography>}
-                        isDisabled={isEditingDisabled}
-                      >
-                        {currentRisks.length > 0 ? "Manage Linked Risks" : "Link Risks"}
-                      </CustomizableButton>
-                    </Box>
-                  </Stack>
-                </TabPanel>
-
-                <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
-                  <Typography color="text.secondary" textAlign="center">
-                    Notes tab content will be implemented here.
-                  </Typography>
                 </TabPanel>
               </TabContext>
 

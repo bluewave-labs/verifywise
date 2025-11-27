@@ -12,6 +12,10 @@ import {
   getNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryStatus,
+  getNISTAIRMFProgress,
+  getNISTAIRMFAssignments,
+  getNISTAIRMFStatusBreakdown,
+  getNISTAIRMFOverview,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
 import {
   getRisksForNISTSubcategory,
@@ -65,30 +69,10 @@ router.patch(
   updateNISTAIRMFSubcategoryStatus
 ); // updating status of a specific NIST AI RMF subcategory by id
 
-// Risk linking endpoints for NIST AI RMF subcategories
-router.get(
-  "/subcategories/:id/risks",
-  authenticateJWT,
-  validateId("id"),
-  getRisksForNISTSubcategory
-); // getting all risks linked to a specific NIST AI RMF subcategory
-router.post(
-  "/subcategories/:id/risks",
-  authenticateJWT,
-  validateId("id"),
-  linkRisksToNISTSubcategory
-); // linking risks to a specific NIST AI RMF subcategory
-router.put(
-  "/subcategories/:id/risks",
-  authenticateJWT,
-  validateId("id"),
-  updateNISTSubcategoryRiskLinks
-); // updating risk links for a NIST AI RMF subcategory
-router.delete(
-  "/subcategories/:id/risks/:riskId",
-  authenticateJWT,
-  validateId("id"),
-  removeRiskFromNISTSubcategory
-); // removing a specific risk from a NIST AI RMF subcategory
+// Dashboard calculation endpoints
+router.get("/progress", authenticateJWT, getNISTAIRMFProgress); // get total and completed subcategories
+router.get("/assignments", authenticateJWT, getNISTAIRMFAssignments); // get total and assigned subcategories
+router.get("/status-breakdown", authenticateJWT, getNISTAIRMFStatusBreakdown); // get status breakdown
+router.get("/overview", authenticateJWT, getNISTAIRMFOverview); // get all functions with categories and subcategories
 
 export default router;

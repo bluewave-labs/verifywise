@@ -21,17 +21,22 @@ import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
 import { NISTAIRMFFunction } from "../types";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 interface NISTAIRMFManageProps {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  onStatusFilterChange?: (status: string) => void;
+  statusOptions?: { value: string; label: string }[];
 }
 
 const NISTAIRMFManage = ({
   project: _project,
   projectFrameworkId: _projectFrameworkId,
   statusFilter,
+  onStatusFilterChange,
+  statusOptions,
 }: NISTAIRMFManageProps) => {
   const { userId: _userId, userRoleName } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -323,8 +328,16 @@ const NISTAIRMFManage = ({
           color: "#1a1a1a",
         }}
       >
-        NIST AI RMF - Manage Categories
+        NIST AI RMF - Manage categories
       </Typography>
+      {onStatusFilterChange && statusOptions && (
+        <TabFilterBar
+          statusFilter={statusFilter || ""}
+          onStatusChange={onStatusFilterChange}
+          showStatusFilter={true}
+          statusOptions={statusOptions}
+        />
+      )}
       {categories &&
         categories.map((category: any) => (
           <Stack key={category.id} sx={{ ...styles.container, marginBottom: "2px" }}>

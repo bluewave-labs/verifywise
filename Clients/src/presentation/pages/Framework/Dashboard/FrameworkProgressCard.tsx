@@ -18,6 +18,11 @@ interface FrameworkData {
     totalAnnexcategories?: number;
     doneAnnexcategories?: number;
   };
+  // NIST AI RMF specific
+  nistProgress?: {
+    totalSubcategories: number;
+    doneSubcategories: number;
+  };
 }
 
 interface FrameworkProgressCardProps {
@@ -72,7 +77,83 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
         {frameworksData.map((framework) => {
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
+          const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
 
+          // For NIST AI RMF, show subcategories progress
+          if (isNISTAIRMF) {
+            const subcategoryDone = framework.nistProgress?.doneSubcategories || 0;
+            const subcategoryTotal = framework.nistProgress?.totalSubcategories || 0;
+            const subcategoryPercent = calculateProgress(subcategoryDone, subcategoryTotal);
+
+            return (
+              <Box key={framework.frameworkId}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    mb: 2,
+                    color: "#000000",
+                  }}
+                >
+                  {framework.frameworkName}
+                </Typography>
+
+                {/* Subcategories Progress */}
+                <Box>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto 1fr",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                      Subcategories
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
+                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                        {subcategoryDone}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                        /
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                        {subcategoryTotal}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "flex-end" }}>
+                      {getProgressIcon(subcategoryPercent)}
+                      <Typography
+                        sx={{
+                          fontSize: 12,
+                          color: subcategoryPercent === 100 ? "#13715B" : "#666666",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {subcategoryPercent}%
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={subcategoryPercent}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: "#F3F4F6",
+                      "& .MuiLinearProgress-bar": {
+                        backgroundColor: getProgressColor(subcategoryPercent),
+                        borderRadius: 3,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            );
+          }
+
+          // For ISO frameworks
           const clauseDone = framework.clauseProgress?.doneSubclauses || 0;
           const clauseTotal = framework.clauseProgress?.totalSubclauses || 0;
           const clausePercent = calculateProgress(clauseDone, clauseTotal);
@@ -162,7 +243,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                    {isISO27001 ? "Annexes" : isISO42001 ? "Annexes" : "Annexes"}
+                    Annexes
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
                     <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>

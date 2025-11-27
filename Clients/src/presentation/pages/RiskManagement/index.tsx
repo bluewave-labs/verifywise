@@ -639,7 +639,7 @@ const RiskManagement = () => {
               value={searchTerm}
               onChange={setSearchTerm}
               inputProps={{ "aria-label": "Search risks"}}
-              sx={{ width: 200 }}
+              fullWidth={false}
             />
           </Box>
           <Stack direction="row" gap="8px" alignItems="center">

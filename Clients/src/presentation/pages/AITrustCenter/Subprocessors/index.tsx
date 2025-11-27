@@ -509,14 +509,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
         <Box sx={styles.subprocessorsHeader}>
           <Box sx={styles.headerControls}>
             <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <CustomizableButton
-                sx={styles.addButton}
-                variant="contained"
-                onClick={handleOpenAddModal}
-                isDisabled={!formData?.info?.subprocessor_visible}
-                text="Add new subprocessor"
-                icon={<AddCircleOutlineIcon size={16} />}
-              />
               <GroupBy
                 options={[
                   { id: 'location', label: 'Location' },
@@ -525,15 +517,25 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 onGroupChange={handleGroupChange}
               />
             </Box>
-            <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>
-                Enabled and visible
-              </Typography>
-              <Toggle
-                checked={formData?.info?.subprocessor_visible ?? false}
-                onChange={(_, checked) =>
-                  handleFieldChange("info", "subprocessor_visible", checked)
-                }
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <Box sx={styles.toggleRow}>
+                <Typography sx={styles.toggleLabel}>
+                  Enabled and visible
+                </Typography>
+                <Toggle
+                  checked={formData?.info?.subprocessor_visible ?? false}
+                  onChange={(_, checked) =>
+                    handleFieldChange("info", "subprocessor_visible", checked)
+                  }
+                />
+              </Box>
+              <CustomizableButton
+                sx={styles.addButton}
+                variant="contained"
+                onClick={handleOpenAddModal}
+                isDisabled={!formData?.info?.subprocessor_visible}
+                text="Add new subprocessor"
+                icon={<AddCircleOutlineIcon size={16} />}
               />
             </Box>
           </Box>

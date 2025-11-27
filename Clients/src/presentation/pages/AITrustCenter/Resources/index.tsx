@@ -587,14 +587,6 @@ const TrustCenterResources: React.FC = () => {
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
           <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <CustomizableButton
-              sx={styles.addButton}
-              variant="contained"
-              onClick={handleOpenAddModal}
-              isDisabled={!formData?.info?.resources_visible}
-              text="Add new resource"
-              icon={<AddCircleOutlineIcon size={16} />}
-            />
             <GroupBy
               options={[
                 { id: 'description', label: 'Type' },
@@ -603,13 +595,23 @@ const TrustCenterResources: React.FC = () => {
               onGroupChange={handleGroupChange}
             />
           </Box>
-          <Box sx={styles.toggleRow}>
-            <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle
-              checked={formData?.info?.resources_visible ?? false}
-              onChange={(_, checked) =>
-                handleFieldChange("info", "resources_visible", checked)
-              }
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Box sx={styles.toggleRow}>
+              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Toggle
+                checked={formData?.info?.resources_visible ?? false}
+                onChange={(_, checked) =>
+                  handleFieldChange("info", "resources_visible", checked)
+                }
+              />
+            </Box>
+            <CustomizableButton
+              sx={styles.addButton}
+              variant="contained"
+              onClick={handleOpenAddModal}
+              isDisabled={!formData?.info?.resources_visible}
+              text="Add new resource"
+              icon={<AddCircleOutlineIcon size={16} />}
             />
           </Box>
         </Box>

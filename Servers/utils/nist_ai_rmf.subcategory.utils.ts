@@ -175,6 +175,167 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   return result[0][0] as NISTAIMRFSubcategoryModel;
 };
 
+/**
+ * Count total and completed subcategories for NIST AI RMF framework
+ * A subcategory is considered "done" when its status is "Implemented"
+ */
+export const countNISTAIRMFSubcategoriesProgress = async (
+  tenant: string
+): Promise<{
+  totalSubcategories: number;
+  doneSubcategories: number;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      COUNT(*) AS "totalSubcategories",
+      SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubcategories"
+    FROM "${tenant}".nist_ai_rmf_subcategories`,
+    {}
+  )) as [{ totalSubcategories: string; doneSubcategories: string }[], number];
+
+  return {
+    totalSubcategories: parseInt(result[0][0].totalSubcategories) || 0,
+    doneSubcategories: parseInt(result[0][0].doneSubcategories) || 0,
+  };
+};
+
+/**
+ * Count total and assigned subcategories for NIST AI RMF framework
+ * A subcategory is considered "assigned" when it has an owner
+ */
+export const countNISTAIRMFSubcategoriesAssignments = async (
+  tenant: string
+): Promise<{
+  totalSubcategories: number;
+  assignedSubcategories: number;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      COUNT(*) AS "totalSubcategories",
+      SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubcategories"
+    FROM "${tenant}".nist_ai_rmf_subcategories`,
+    {}
+  )) as [{ totalSubcategories: string; assignedSubcategories: string }[], number];
+
+  return {
+    totalSubcategories: parseInt(result[0][0].totalSubcategories) || 0,
+    assignedSubcategories: parseInt(result[0][0].assignedSubcategories) || 0,
+  };
+};
+
+/**
+ * Get status breakdown for NIST AI RMF subcategories
+ */
+export const getNISTAIRMFSubcategoriesStatusBreakdown = async (
+  tenant: string
+): Promise<{
+  notStarted: number;
+  draft: number;
+  inProgress: number;
+  awaitingReview: number;
+  awaitingApproval: number;
+  implemented: number;
+  needsRework: number;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      SUM(CASE WHEN status = 'Not started' OR status IS NULL THEN 1 ELSE 0 END) AS "notStarted",
+      SUM(CASE WHEN status = 'Draft' THEN 1 ELSE 0 END) AS "draft",
+      SUM(CASE WHEN status = 'In progress' THEN 1 ELSE 0 END) AS "inProgress",
+      SUM(CASE WHEN status = 'Awaiting review' THEN 1 ELSE 0 END) AS "awaitingReview",
+      SUM(CASE WHEN status = 'Awaiting approval' THEN 1 ELSE 0 END) AS "awaitingApproval",
+      SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "implemented",
+      SUM(CASE WHEN status = 'Needs rework' THEN 1 ELSE 0 END) AS "needsRework"
+    FROM "${tenant}".nist_ai_rmf_subcategories`,
+    {}
+  )) as [
+    {
+      notStarted: string;
+      draft: string;
+      inProgress: string;
+      awaitingReview: string;
+      awaitingApproval: string;
+      implemented: string;
+      needsRework: string;
+    }[],
+    number
+  ];
+
+  return {
+    notStarted: parseInt(result[0][0].notStarted) || 0,
+    draft: parseInt(result[0][0].draft) || 0,
+    inProgress: parseInt(result[0][0].inProgress) || 0,
+    awaitingReview: parseInt(result[0][0].awaitingReview) || 0,
+    awaitingApproval: parseInt(result[0][0].awaitingApproval) || 0,
+    implemented: parseInt(result[0][0].implemented) || 0,
+    needsRework: parseInt(result[0][0].needsRework) || 0,
+  };
+};
+
+/**
+ * Get all NIST AI RMF functions with their categories and subcategories for dashboard overview
+ */
+export const getNISTAIRMFDashboardOverview = async (
+  tenant: string
+): Promise<{
+  functions: {
+    id: number;
+    type: string;
+    title: string;
+    categories: {
+      id: number;
+      title: string;
+      subcategories: {
+        id: number;
+        title: string;
+        status: string;
+        owner: number | null;
+      }[];
+    }[];
+  }[];
+}> => {
+  // Get all functions (from public schema)
+  const functions = (await sequelize.query(
+    `SELECT id, type, title FROM public.nist_ai_rmf_functions ORDER BY index ASC, id ASC`,
+    {}
+  )) as [{ id: number; type: string; title: string }[], number];
+
+  // Get all categories (from public schema)
+  const categories = (await sequelize.query(
+    `SELECT id, title, function_id FROM public.nist_ai_rmf_categories ORDER BY index ASC, id ASC`,
+    {}
+  )) as [{ id: number; title: string; function_id: number }[], number];
+
+  // Get all subcategories (from tenant schema)
+  const subcategories = (await sequelize.query(
+    `SELECT id, title, status, owner, category_id FROM "${tenant}".nist_ai_rmf_subcategories ORDER BY index ASC, id ASC`,
+    {}
+  )) as [{ id: number; title: string; status: string; owner: number | null; category_id: number }[], number];
+
+  // Build the nested structure
+  const result = functions[0].map((func) => ({
+    id: func.id,
+    type: func.type,
+    title: func.title,
+    categories: categories[0]
+      .filter((cat) => cat.function_id === func.id)
+      .map((cat) => ({
+        id: cat.id,
+        title: cat.title,
+        subcategories: subcategories[0]
+          .filter((sub) => sub.category_id === cat.id)
+          .map((sub) => ({
+            id: sub.id,
+            title: sub.title,
+            status: sub.status || 'Not started',
+            owner: sub.owner,
+          })),
+      })),
+  }));
+
+  return { functions: result };
+};
+
 export const updateNISTAIRMFSubcategoryStatusByIdQuery = async (
   id: number,
   status: string,

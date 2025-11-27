@@ -47,7 +47,7 @@ const RiskLevel: FC<IRiskLevelProps> = ({
       : { level: "", color: "" };
 
   return (
-    <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 12.5 }}>
+    <Stack sx={{ flexDirection: "row", gap: "8px" }}>
       <Select
         id="likelihood-input"
         label="Likelihood"
@@ -55,7 +55,7 @@ const RiskLevel: FC<IRiskLevelProps> = ({
         value={likelihood}
         onChange={handleOnSelectChange("likelihood")}
         items={likelihoodItems}
-        sx={{ width: 220, backgroundColor: theme.palette.background.main }}
+        sx={{ width: "325px", backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
       <Select
@@ -65,12 +65,18 @@ const RiskLevel: FC<IRiskLevelProps> = ({
         value={riskSeverity}
         onChange={handleOnSelectChange("riskSeverity")}
         items={riskSeverityItems}
-        sx={{ width: 220, backgroundColor: theme.palette.background.main }}
+        sx={{ width: "325px", backgroundColor: theme.palette.background.main }}
         disabled={disabled}
       />
-      <Stack rowGap={2}>
+      <Stack gap={theme.spacing(2)}>
         <Typography
-          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          sx={{
+            fontSize: "13px",
+            fontWeight: 500,
+            color: theme.palette.text.secondary,
+            margin: 0,
+            height: "22px",
+          }}
         >
           Risk level
         </Typography>

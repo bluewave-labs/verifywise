@@ -780,12 +780,6 @@ const Vendors = () => {
                         borderRadius: theme.shape.borderRadius,
                       }}
                     />
-                    <SearchBox
-                      placeholder="Search vendors..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      sx={{ width: "180px" }}
-                    />
                     <Select
                       id="status-filter"
                       value={statusFilter}
@@ -802,6 +796,12 @@ const Vendors = () => {
                         minHeight: "34px",
                         borderRadius: theme.shape.borderRadius,
                       }}
+                    />
+                    <SearchBox
+                      placeholder="Search vendors..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      sx={{ width: "180px" }}
                     />
                     <GroupBy
                       options={[
@@ -853,7 +853,7 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack gap={2}>
+              <Stack spacing={2}>
                 <Stack
                   direction="row"
                   justifyContent="space-between"
@@ -909,7 +909,7 @@ const Vendors = () => {
                         borderRadius: theme.shape.borderRadius,
                       }}
                     />
-                    <Box sx={{ width: "300px" }}>
+                    <Box sx={{ width: "200px" }}>
                       <SearchBox
                         placeholder="Search risks..."
                         value={risksSearchTerm}
@@ -917,56 +917,40 @@ const Vendors = () => {
                         inputProps={{ "aria-label": "Search risks" }}
                       />
                     </Box>
+                    <GroupBy
+                      options={[
+                        { id: 'risk_severity', label: 'Risk severity' },
+                        { id: 'likelihood', label: 'Likelihood' },
+                        { id: 'risk_level', label: 'Risk level' },
+                        { id: 'vendor_name', label: 'Vendor' },
+                        { id: 'action_owner', label: 'Action owner' },
+                      ]}
+                      onGroupChange={handleGroupChangeRisk}
+                    />
                   </Stack>
-
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add new Risk"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      border: "1px solid #13715B",
-                      gap: 2,
-                    }}
-                    icon={<AddCircleOutlineIcon size={16} />}
-                    onClick={() => {
-                      setSelectedRisk(null);
-                      handleRiskModal();
-                    }}
-                    isDisabled={isCreatingDisabled}
-                  />
-                  <GroupBy
-                    options={[
-                      { id: 'risk_severity', label: 'Risk severity' },
-                      { id: 'likelihood', label: 'Likelihood' },
-                      { id: 'risk_level', label: 'Risk level' },
-                      { id: 'vendor_name', label: 'Vendor' },
-                      { id: 'action_owner', label: 'Action owner' },
-                    ]}
-                    onGroupChange={handleGroupChangeRisk}
-                  />
-                </Stack>
-                <Stack direction="row" gap="8px" alignItems="center">
-                  <ExportMenu
-                    data={vendorRisksExportData}
-                    columns={vendorRisksExportColumns}
-                    filename="vendor-risks"
-                    title="Vendor Risks"
-                  />
-                  <CustomizableButton
-                    variant="contained"
-                    text="Add new Risk"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      border: "1px solid #13715B",
-                      gap: 2,
-                    }}
-                    icon={<AddCircleOutlineIcon size={16} />}
-                    onClick={() => {
-                      setSelectedRisk(null);
-                      handleRiskModal();
-                    }}
-                    isDisabled={isCreatingDisabled}
-                  />
+                  <Stack direction="row" gap="8px" alignItems="center">
+                    <ExportMenu
+                      data={vendorRisksExportData}
+                      columns={vendorRisksExportColumns}
+                      filename="vendor-risks"
+                      title="Vendor Risks"
+                    />
+                    <CustomizableButton
+                      variant="contained"
+                      text="Add new risk"
+                      sx={{
+                        backgroundColor: "#13715B",
+                        border: "1px solid #13715B",
+                        gap: 2,
+                      }}
+                      icon={<AddCircleOutlineIcon size={16} />}
+                      onClick={() => {
+                        setSelectedRisk(null);
+                        handleRiskModal();
+                      }}
+                      isDisabled={isCreatingDisabled}
+                    />
+                  </Stack>
                 </Stack>
               </Stack>
             )

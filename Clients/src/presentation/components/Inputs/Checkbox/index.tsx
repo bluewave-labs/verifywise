@@ -21,9 +21,31 @@ import {
 } from "@mui/material";
 import "./index.css";
 
-import { Square, CheckSquare2 } from "lucide-react";
+import { Square } from "lucide-react";
 import { FC } from "react";
 import { CheckboxProps } from "../../../../domain/interfaces/iWidget";
+
+// Custom filled checkbox icon matching Lucide's Square dimensions
+const FilledCheckSquare: FC<{ size?: number }> = ({ size = 24 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Green filled rounded rectangle */}
+    <rect x="3" y="3" width="18" height="18" rx="2" fill="#13715B" />
+    {/* White checkmark */}
+    <path
+      d="M9 12l2 2 4-4"
+      stroke="white"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 const Checkbox: FC<CheckboxProps> = ({
   id,
@@ -47,7 +69,7 @@ const Checkbox: FC<CheckboxProps> = ({
     <MuiCheckbox
       disableRipple
       checked={isChecked}
-      checkedIcon={<CheckSquare2 size={16} />}
+      checkedIcon={<FilledCheckSquare size={16} />}
       icon={<Square size={16} />}
       value={value}
       onChange={onChange}

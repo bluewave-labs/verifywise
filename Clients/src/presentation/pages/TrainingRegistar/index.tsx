@@ -328,8 +328,6 @@ const Training: React.FC = () => {
         return training.provider || 'Unknown Provider';
       case 'department':
         return training.department || 'Unknown Department';
-      case 'duration':
-        return training.duration || 'Unknown Duration';
       default:
         return 'Other';
     }
@@ -489,7 +487,6 @@ const Training: React.FC = () => {
                   { id: 'status', label: 'Status' },
                   { id: 'provider', label: 'Provider' },
                   { id: 'department', label: 'Department' },
-                  { id: 'duration', label: 'Duration' },
                 ]}
                 onGroupChange={handleGroupChange}
               />

@@ -114,16 +114,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       value: "evidences",
       icon: "FolderOpen" as const,
     },
-    {
-      label: "Cross mappings",
-      value: "cross-mappings",
-      icon: "GitBranch" as const,
-    },
-    {
-      label: "Notes",
-      value: "notes",
-      icon: "StickyNote" as const,
-    },
   ];
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -835,17 +825,6 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   </Stack>
                 </TabPanel>
 
-                <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
-                  <Typography color="text.secondary" textAlign="center">
-                    Cross mappings tab content will be implemented here.
-                  </Typography>
-                </TabPanel>
-
-                <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
-                  <Typography color="text.secondary" textAlign="center">
-                    Notes tab content will be implemented here.
-                  </Typography>
-                </TabPanel>
               </TabContext>
 
               <Divider />

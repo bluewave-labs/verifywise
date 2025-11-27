@@ -5,6 +5,10 @@ import {
   getNISTAIRMFSubcategoryByIdQuery,
   updateNISTAIRMFSubcategoryByIdQuery,
   updateNISTAIRMFSubcategoryStatusByIdQuery,
+  countNISTAIRMFSubcategoriesProgress,
+  countNISTAIRMFSubcategoriesAssignments,
+  getNISTAIRMFSubcategoriesStatusBreakdown,
+  getNISTAIRMFDashboardOverview,
 } from "../utils/nist_ai_rmf.subcategory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logEvent } from "../utils/logger/dbLogger";
@@ -366,6 +370,170 @@ export async function updateNISTAIRMFSubcategoryStatus(
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get NIST AI RMF subcategories progress (total and completed)
+ */
+export async function getNISTAIRMFProgress(
+  req: Request,
+  res: Response
+): Promise<any> {
+  logProcessing({
+    description: "starting getNISTAIRMFProgress",
+    functionName: "getNISTAIRMFProgress",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug("📊 Calculating NIST AI RMF progress");
+
+  try {
+    const progress = await countNISTAIRMFSubcategoriesProgress(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Successfully retrieved NIST AI RMF progress: ${progress.doneSubcategories}/${progress.totalSubcategories}`,
+      functionName: "getNISTAIRMFProgress",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+
+    return res.status(200).json(STATUS_CODE[200](progress));
+  } catch (error) {
+    await logEvent(
+      "Error",
+      `Failed to get NIST AI RMF progress: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get NIST AI RMF progress: ${(error as Error).message}`,
+      functionName: "getNISTAIRMFProgress",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get NIST AI RMF subcategories assignments (total and assigned)
+ */
+export async function getNISTAIRMFAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  logProcessing({
+    description: "starting getNISTAIRMFAssignments",
+    functionName: "getNISTAIRMFAssignments",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug("📊 Calculating NIST AI RMF assignments");
+
+  try {
+    const assignments = await countNISTAIRMFSubcategoriesAssignments(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Successfully retrieved NIST AI RMF assignments: ${assignments.assignedSubcategories}/${assignments.totalSubcategories}`,
+      functionName: "getNISTAIRMFAssignments",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+
+    return res.status(200).json(STATUS_CODE[200](assignments));
+  } catch (error) {
+    await logEvent(
+      "Error",
+      `Failed to get NIST AI RMF assignments: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get NIST AI RMF assignments: ${(error as Error).message}`,
+      functionName: "getNISTAIRMFAssignments",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get NIST AI RMF subcategories status breakdown
+ */
+export async function getNISTAIRMFStatusBreakdown(
+  req: Request,
+  res: Response
+): Promise<any> {
+  logProcessing({
+    description: "starting getNISTAIRMFStatusBreakdown",
+    functionName: "getNISTAIRMFStatusBreakdown",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug("📊 Calculating NIST AI RMF status breakdown");
+
+  try {
+    const statusBreakdown = await getNISTAIRMFSubcategoriesStatusBreakdown(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Successfully retrieved NIST AI RMF status breakdown",
+      functionName: "getNISTAIRMFStatusBreakdown",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+
+    return res.status(200).json(STATUS_CODE[200](statusBreakdown));
+  } catch (error) {
+    await logEvent(
+      "Error",
+      `Failed to get NIST AI RMF status breakdown: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get NIST AI RMF status breakdown: ${(error as Error).message}`,
+      functionName: "getNISTAIRMFStatusBreakdown",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get NIST AI RMF dashboard overview with all functions, categories, and subcategories
+ */
+export async function getNISTAIRMFOverview(
+  req: Request,
+  res: Response
+): Promise<any> {
+  logProcessing({
+    description: "starting getNISTAIRMFOverview",
+    functionName: "getNISTAIRMFOverview",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug("📊 Fetching NIST AI RMF dashboard overview");
+
+  try {
+    const overview = await getNISTAIRMFDashboardOverview(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Successfully retrieved NIST AI RMF overview with ${overview.functions.length} functions`,
+      functionName: "getNISTAIRMFOverview",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+
+    return res.status(200).json(STATUS_CODE[200](overview));
+  } catch (error) {
+    await logEvent(
+      "Error",
+      `Failed to get NIST AI RMF overview: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get NIST AI RMF overview: ${(error as Error).message}`,
+      functionName: "getNISTAIRMFOverview",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

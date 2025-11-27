@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {
   MitigationFormValues,
   RiskFormValues,
@@ -22,6 +22,7 @@ export interface AddNewRiskFormProps {
   onLoading?: (message: any) => void;
   users?: User[]; // Optional users data to avoid calling useUsers hook
   usersLoading?: boolean; // Optional loading state
+  onSubmitRef?: MutableRefObject<(() => void) | null>; // Ref to expose submit function for StandardModal
 }
 
 export interface IRiskSectionProps {

@@ -1,16 +1,16 @@
-import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
-import { Box, Stack, Popover, Typography } from "@mui/material";
+import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon, TrendingUp, ChevronDown } from "lucide-react"
+import { BarChart3, ChevronDown } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import SearchBox from "../../components/Search/SearchBox";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
-import Popup from "../../components/Popup";
+import StandardModal from "../../components/Modals/StandardModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { deleteEntityById } from "../../../application/repository/entity.repository";
@@ -67,8 +67,6 @@ const RiskManagement = () => {
   const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
     useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-  const [aiRiskAnchor, setAiRiskAnchor] = useState<null | HTMLElement>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isIBMModalOpen, setIsIBMModalOpen] = useState(false);
   const [insertFromMenuAnchor, setInsertFromMenuAnchor] = useState<null | HTMLElement>(null);
@@ -95,6 +93,15 @@ const RiskManagement = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
+
+  // Modal state for StandardModal pattern
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
+  const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
+  const [isSubmitting] = useState(false);
+
+  // Refs for form submission
+  const onSubmitRef = useRef<(() => void) | null>(null);
+  const onAiRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -185,9 +192,7 @@ const RiskManagement = () => {
   // Auto-open create risk popup when navigating from "Add new..." dropdown
   useEffect(() => {
     if (location.state?.openCreateModal) {
-      // Create a temporary button element to use as anchor
-      const tempButton = document.createElement('button');
-      setAnchor(tempButton);
+      setIsRiskModalOpen(true);
       setSelectedRow([]);
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
@@ -197,14 +202,17 @@ const RiskManagement = () => {
 
   /**
    * Handle actions for project risk modal
-   * Set an anchor to open/close the add-new-risk-popup
    * Display tostify for create and update project risk
-   *
    */
-
-  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchor(anchor ? null : event.currentTarget);
+  const handleRiskModalClose = () => {
+    setIsRiskModalOpen(false);
     setSelectedRow([]);
+  };
+
+  const handleRiskModalSubmit = () => {
+    if (onSubmitRef.current) {
+      onSubmitRef.current();
+    }
   };
 
   const handleInsertFromMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -225,8 +233,15 @@ const RiskManagement = () => {
     handleInsertFromMenuClose();
   };
 
-  const handleAiRiskOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-    setAiRiskAnchor(aiRiskAnchor ? null : event.currentTarget);
+  const handleAiRiskModalClose = () => {
+    setIsAiRiskModalOpen(false);
+    setSelectedRiskData(null);
+  };
+
+  const handleAiRiskModalSubmit = () => {
+    if (onAiRiskSubmitRef.current) {
+      onAiRiskSubmitRef.current();
+    }
   };
 
   const handleRiskSelected = (riskData: {
@@ -250,9 +265,7 @@ const RiskManagement = () => {
       applicableProjects: riskData.applicableProjects || [],
       applicableFrameworks: riskData.applicableFrameworks || [],
     });
-    // Created a dummy anchor element to trigger the popup
-    const dummyElement = document.createElement("div");
-    setAiRiskAnchor(dummyElement);
+    setIsAiRiskModalOpen(true);
   };
 
   const handleLoading = (message: string) => {
@@ -472,25 +485,28 @@ const RiskManagement = () => {
               title="Risk Management"
             />
             <div data-joyride-id="analytics-button">
-              <CustomizableButton
-                variant="contained"
-                text="Analytics"
+              <IconButton
+                onClick={() => setIsAnalyticsDrawerOpen(true)}
+                aria-label="Analytics"
                 sx={{
-                  backgroundColor: "#7F56D9",
-                  border: "1px solid #7F56D9",
-                  gap: 2,
-                  "&:hover": {
-                    backgroundColor: "#6941C6",
+                  height: '34px',
+                  width: '34px',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #e5e7eb',
+                  backgroundColor: '#ffffff',
+                  '&:hover': {
+                    backgroundColor: '#f9fafb',
                   },
                 }}
-                onClick={() => setIsAnalyticsDrawerOpen(true)}
-                icon={<TrendingUp size={16} />}
-              />
+              >
+                <BarChart3 size={16} color="#344054" />
+              </IconButton>
             </div>
-            <div data-joyride-id="import-ai-risks-button">
+            <div data-joyride-id="add-risk-button">
               <CustomizableButton
                 variant="contained"
-                text="Insert risk from..."
+                text="Add new risk"
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
@@ -527,15 +543,89 @@ const RiskManagement = () => {
               >
                 <Box
                   role="menu"
-                  aria-label="Insert risk from database menu"
+                  aria-label="Add new risk menu"
                   sx={{
                     p: 2,
                     width: "420px",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                    gap: 2,
                   }}
                 >
+                  {/* Add new risk option */}
+                  <Box
+                    role="menuitem"
+                    tabIndex={0}
+                    aria-label="Add new risk manually"
+                    onClick={() => {
+                      handleInsertFromMenuClose();
+                      setIsRiskModalOpen(true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleInsertFromMenuClose();
+                        setIsRiskModalOpen(true);
+                      }
+                    }}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "12px 16px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "#fff",
+                      transition: "all 0.2s ease",
+                      mb: 2,
+                      "&:hover": {
+                        backgroundColor: "#f9fafb",
+                        border: "1px solid rgba(0, 0, 0, 0.12)",
+                      },
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "13px",
+                          color: "rgba(0, 0, 0, 0.85)",
+                        }}
+                      >
+                        Add new risk
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgba(0, 0, 0, 0.6)",
+                        }}
+                      >
+                        Create a custom risk manually
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Divider with text */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      mb: 2,
+                    }}
+                  >
+                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
+                    <Typography sx={{ fontSize: "11px", color: "rgba(0, 0, 0, 0.45)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Or import from
+                    </Typography>
+                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "rgba(0, 0, 0, 0.08)" }} />
+                  </Box>
+
+                  {/* AI Risk databases grid */}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: 2,
+                    }}
+                  >
                   <Box
                     role="menuitem"
                     tabIndex={0}
@@ -670,68 +760,38 @@ const RiskManagement = () => {
                       Academic research-based risks covering AI safety, fairness, and societal impact
                     </Typography>
                   </Box>
+                  </Box>
                 </Box>
               </Popover>
-            </div>
-            <div data-joyride-id="add-risk-button">
-              <CustomizableButton
-                variant="contained"
-                text="Add new risk"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                onClick={handleOpenOrClose}
-                icon={<AddCircleOutlineIcon size={16} />}
-                isDisabled={
-                  !allowedRoles.projectRisks.create.includes(userRoleName)
-                }
-              />
             </div>
           </Stack>
         </Stack>
 
-        {selectedRow.length > 0 && anchor ? (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
-                popupStatus="edit"
-                onSuccess={handleUpdate}
-                onError={handleError}
-                onLoading={handleLoading}
-                users={users}
-                usersLoading={usersLoading}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
+        {/* Add/Edit Risk Modal */}
+        <StandardModal
+          isOpen={isRiskModalOpen}
+          onClose={handleRiskModalClose}
+          title={selectedRow.length > 0 ? "Edit project risk" : "Add a new risk"}
+          description={selectedRow.length > 0
+            ? "Modify the risk details and mitigation strategies."
+            : "Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+          }
+          onSubmit={handleRiskModalSubmit}
+          submitButtonText={selectedRow.length > 0 ? "Update" : "Save"}
+          isSubmitting={isSubmitting}
+          maxWidth="1039px"
+        >
+          <AddNewRiskForm
+            closePopup={handleRiskModalClose}
+            popupStatus={selectedRow.length > 0 ? "edit" : "new"}
+            onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
+            onError={handleError}
+            onLoading={handleLoading}
+            users={users}
+            usersLoading={usersLoading}
+            onSubmitRef={onSubmitRef}
           />
-        ) : (
-          <Popup
-            popupId="add-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
-                popupStatus="new"
-                onSuccess={handleSuccess}
-                onError={handleError}
-                onLoading={handleLoading}
-                users={users}
-                usersLoading={usersLoading}
-              />
-            }
-            openPopupButtonName="Add new risk"
-            popupTitle="Add a new risk"
-            popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
-          />
-        )}
+        </StandardModal>
         {showCustomizableSkeleton ? (
           <CustomizableSkeleton
             variant="rectangular"
@@ -744,7 +804,7 @@ const RiskManagement = () => {
             setPage={setCurrentPagingation}
             page={currentPage}
             setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
-            setAnchor={setAnchor}
+            setAnchor={() => setIsRiskModalOpen(true)}
             onDeleteRisk={handleDelete}
             flashRow={currentRow}
           />
@@ -760,31 +820,29 @@ const RiskManagement = () => {
         setIsOpen={setIsIBMModalOpen}
         onRiskSelected={handleRiskSelected}
       />
-      {selectedRiskData && aiRiskAnchor && (
-        <Popup
-          popupId="add-risk-from-ai-popup"
-          popupContent={
-            <AddNewRiskForm
-              closePopup={() => {
-                setAiRiskAnchor(null);
-                setSelectedRiskData(null);
-              }}
-              popupStatus="new"
-              onSuccess={handleSuccess}
-              onError={handleError}
-              onLoading={handleLoading}
-              initialRiskValues={selectedRiskData}
-              users={users}
-              usersLoading={usersLoading}
-            />
-          }
-          openPopupButtonName="Add risk from AI database"
-          popupTitle="Add a new risk from AI database"
-          popupSubtitle="Review and edit the selected risk from the AI database before saving."
-          handleOpenOrClose={handleAiRiskOpenOrClose}
-          anchor={aiRiskAnchor}
+      {/* AI Risk Modal */}
+      <StandardModal
+        isOpen={isAiRiskModalOpen && !!selectedRiskData}
+        onClose={handleAiRiskModalClose}
+        title="Add a new risk from AI database"
+        description="Review and edit the selected risk from the AI database before saving."
+        onSubmit={handleAiRiskModalSubmit}
+        submitButtonText="Save"
+        isSubmitting={isSubmitting}
+        maxWidth="1039px"
+      >
+        <AddNewRiskForm
+          closePopup={handleAiRiskModalClose}
+          popupStatus="new"
+          onSuccess={handleSuccess}
+          onError={handleError}
+          onLoading={handleLoading}
+          initialRiskValues={selectedRiskData || undefined}
+          users={users}
+          usersLoading={usersLoading}
+          onSubmitRef={onAiRiskSubmitRef}
         />
-      )}
+      </StandardModal>
 
       {/* Analytics Drawer */}
       <AnalyticsDrawer

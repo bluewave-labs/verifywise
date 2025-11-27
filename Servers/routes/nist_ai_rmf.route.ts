@@ -12,6 +12,10 @@ import {
   getNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryStatus,
+  getNISTAIRMFProgress,
+  getNISTAIRMFAssignments,
+  getNISTAIRMFStatusBreakdown,
+  getNISTAIRMFOverview,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -58,5 +62,11 @@ router.patch(
   validateId("id"),
   updateNISTAIRMFSubcategoryStatus
 ); // updating status of a specific NIST AI RMF subcategory by id
+
+// Dashboard calculation endpoints
+router.get("/progress", authenticateJWT, getNISTAIRMFProgress); // get total and completed subcategories
+router.get("/assignments", authenticateJWT, getNISTAIRMFAssignments); // get total and assigned subcategories
+router.get("/status-breakdown", authenticateJWT, getNISTAIRMFStatusBreakdown); // get status breakdown
+router.get("/overview", authenticateJWT, getNISTAIRMFOverview); // get all functions with categories and subcategories
 
 export default router;

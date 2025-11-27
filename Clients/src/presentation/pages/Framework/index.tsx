@@ -32,7 +32,6 @@ import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import { getAllEntities } from "../../../application/repository/entity.repository";
-import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
@@ -751,19 +750,13 @@ const Framework = () => {
               </TabList>
             </Box>
 
-            {/* Filter Bar following ProjectFrameworks pattern */}
-            <TabFilterBar
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              showStatusFilter={true}
-              statusOptions={nistAiRmfStatusOptions}
-            />
-
             <TabPanel value="govern" sx={tabPanelStyle}>
               <NISTAIRMFGovern
                 project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
               />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
@@ -771,6 +764,8 @@ const Framework = () => {
                 project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
               />
             </TabPanel>
             <TabPanel value="measure" sx={tabPanelStyle}>
@@ -778,6 +773,8 @@ const Framework = () => {
                 project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
               />
             </TabPanel>
             <TabPanel value="manage" sx={tabPanelStyle}>
@@ -785,6 +782,8 @@ const Framework = () => {
                 project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusOptions={nistAiRmfStatusOptions}
               />
             </TabPanel>
           </TabContext>
@@ -1336,7 +1335,7 @@ const Framework = () => {
             }
           }}
           submitButtonText="Update framework"
-          maxWidth="900px"
+          maxWidth="780px"
         >
           <ProjectForm
             projectToEdit={organizationalProject}
@@ -1355,16 +1354,31 @@ const Framework = () => {
         <AddFrameworkModal
           open={isFrameworkModalOpen}
           onClose={() => setIsFrameworkModalOpen(false)}
-          frameworks={allFrameworks.filter((framework) => {
-            // Only show organizational frameworks (ISO 27001 and ISO 42001) for organizational projects
-            const isNotEuAiAct = !framework.name
-              .toLowerCase()
-              .includes("eu ai act");
-            const isIsoFramework =
-              framework.name.toLowerCase().includes("iso 27001") ||
-              framework.name.toLowerCase().includes("iso 42001");
-            return isNotEuAiAct && isIsoFramework;
-          })}
+          frameworks={allFrameworks
+            .filter((framework) => {
+              // Only show organizational frameworks (ISO 27001, ISO 42001, and NIST AI RMF) for organizational projects
+              const isNotEuAiAct = !framework.name
+                .toLowerCase()
+                .includes("eu ai act");
+              const isOrganizationalFramework =
+                framework.name.toLowerCase().includes("iso 27001") ||
+                framework.name.toLowerCase().includes("iso 42001") ||
+                framework.name.toLowerCase().includes("nist ai rmf");
+              return isNotEuAiAct && isOrganizationalFramework;
+            })
+            .sort((a, b) => {
+              // Sort order: ISO 42001 first, then NIST AI RMF, then ISO 27001
+              const aIsISO42001 = a.name.toLowerCase().includes("iso 42001");
+              const bIsISO42001 = b.name.toLowerCase().includes("iso 42001");
+              const aIsNISTAIRMF = a.name.toLowerCase().includes("nist ai rmf");
+              const bIsNISTAIRMF = b.name.toLowerCase().includes("nist ai rmf");
+
+              if (aIsISO42001 && !bIsISO42001) return -1;
+              if (!aIsISO42001 && bIsISO42001) return 1;
+              if (aIsNISTAIRMF && !bIsNISTAIRMF) return -1;
+              if (!aIsNISTAIRMF && bIsNISTAIRMF) return 1;
+              return 0;
+            })}
           project={organizationalProject}
           onFrameworksChanged={async () => {
             // Refresh both frameworks and project data

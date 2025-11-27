@@ -87,7 +87,7 @@ const TabFilterBar = ({
             value={statusFilter ?? ""}
             onChange={(e) => onStatusChange?.(e.target.value as string)}
             items={[
-              { _id: "", name: "Status: All (by default)" },
+              { _id: "", name: "All" },
               ...mapToSelectItems(statusOptions),
             ]}
             getOptionValue={(item) => item._id}
@@ -196,49 +196,6 @@ const TabFilterBar = ({
           </Box>
         )}
       </Box>
-      <Stack mt={0}>
-        {(statusFilter || ownerFilter || approverFilter || reviewerFilter || dueDateFilter ||
-          applicabilityFilter === "true" ||
-          applicabilityFilter === "false") && (
-          <Stack direction="row" spacing={10}>
-            <Typography variant="body2" sx={{ color: "gray" }}>Showing:</Typography>
-            {statusFilter && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Status: {statusFilter[0].toUpperCase() + statusFilter.slice(1)}
-              </Typography>
-            )}
-            {ownerFilter && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Owner: {ownerOptions.find((option) => option.value === ownerFilter)?.label}
-              </Typography>
-            )}
-            {approverFilter && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Approver: {approverOptions.find((option) => option.value === approverFilter)?.label}
-              </Typography>
-            )}
-            {reviewerFilter && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Reviewer: {reviewerOptions.find((option) => option.value === reviewerFilter)?.label}
-              </Typography>
-            )}
-            {dueDateFilter && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Due Date: {dueDateOptions.find((option) => option._id === dueDateFilter)?.name}
-              </Typography>
-            )}
-            {(applicabilityFilter === "true" ||
-              applicabilityFilter === "false") && (
-              <Typography variant="body2" sx={{ color: "gray" }}>
-                Showing:{" "}
-                {applicabilityFilter === "true"
-                  ? "Applicable"
-                  : "Not Applicable"}
-              </Typography>
-            )}
-          </Stack>
-        )}
-      </Stack>
     </Box>
   );
 };

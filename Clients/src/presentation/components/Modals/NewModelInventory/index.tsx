@@ -268,7 +268,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     // Create a mapping from framework ID to framework name
     const frameworkIdToNameMap = useMemo(() => {
         const map = new Map<number, string>();
-        const targetFrameworks = ["ISO 42001", "ISO 27001"];
+        const targetFrameworks = ["ISO 42001", "ISO 27001", "NIST AI RMF"];
 
         projectList.forEach((project) => {
             project.framework?.forEach((f) => {
@@ -789,7 +789,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         {/* Second Row: Approver, Status, Status Date */}
         <Stack
             direction={"row"}
-            justifyContent={"flex-start"}
+            justifyContent={"space-between"}
             spacing={6}
         >
             <SelectComponent

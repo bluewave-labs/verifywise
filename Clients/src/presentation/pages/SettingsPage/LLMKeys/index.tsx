@@ -108,7 +108,7 @@ const LLMKeys = () => {
     try {
       const response = await editLLMKey({ id: keyToEdit, body: formData });
       if (response && response.data) {
-        showAlert("success", "Success", "LLM Key editd successfully");
+        showAlert("success", "Success", "LLM Key edited successfully");
         fetchLLMKeys();
       }
     } catch (error) {
@@ -117,10 +117,9 @@ const LLMKeys = () => {
       setIsLoading(false);
       handleCloseCreateModal();
     }
-  }, [fetchLLMKeys, formKey, formName, showAlert]);
+  }, [fetchLLMKeys, formKey, formName, showAlert, keyToEdit]);
 
   const handleDeleteKey = useCallback(async () => {
-    console.log("Deleting key:", keyToDelete);
     if (!keyToDelete) return;
     setIsLoading(true);
     setDeletingKeyId(keyToDelete.id);
@@ -339,7 +338,7 @@ const LLMKeys = () => {
       {/* Create Key Modal */}
       {(isCreateModalOpen || isEditModalOpen) && (
         <DualButtonModal
-          title="Create New API Key"
+          title={isCreateModalOpen ? "Create New API Key" : "Edit API Key"}
           body={
             <Stack spacing={3}>
               <Typography sx={{ fontSize: 13, color: "#000000", mb: 1 }}>
@@ -368,7 +367,7 @@ const LLMKeys = () => {
           onProceed={isCreateModalOpen ? handleCreateKey: handleEditKey}
           proceedButtonColor="primary"
           proceedButtonVariant="contained"
-          TitleFontSize={0}
+          TitleFontSize={14}
           confirmBtnSx={{
             backgroundColor: isCreateButtonDisabled ? "#ccc" : "#13715B",
             color: isCreateButtonDisabled ? "#666" : "#fff",

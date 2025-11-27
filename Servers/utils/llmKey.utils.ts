@@ -17,7 +17,7 @@ export const getLLMKeyQuery = async (
   name: string
 ) => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".llm_keys WHERE name = : name;`, {
+    `SELECT * FROM "${tenant}".llm_keys WHERE name = :name;`, {
     replacements: { name },
     }) as [LLMKeyModel[], number];
   return result[0];

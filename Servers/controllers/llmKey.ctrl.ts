@@ -6,7 +6,6 @@ import { logEvent } from "../utils/logger/dbLogger";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { createLLMKeyQuery, deleteLLMKeyQuery, getLLMKeyQuery, getLLMKeysQuery, updateLLMKeyByIdQuery } from "../utils/llmKey.utils";
 import { ILLMKey } from "../domain.layer/interfaces/i.llmKey";
-import { logSuccess } from "../utils/logger/logHelper";
 
 const fileName = 'llmKey.ctrl.ts';
 
@@ -52,6 +51,12 @@ export const createLLMKey = async (req: Request, res: Response) => {
 
   const transaction = await sequelize.transaction();
   const { name, key } = req.body;
+
+  if (!name || typeof name !== 'string' || !key || typeof key !== 'string') {
+    await transaction.rollback();
+    return res.status(400).json(STATUS_CODE[400]("Name and key are required"));
+  }
+
 
   logStructured('processing', `starting LLM Key creation for ${name}`, functionName, fileName);
   logger.debug(`🛠️ Creating LLM Key: ${name}`);
@@ -104,12 +109,8 @@ export const updateLLMKey = async (req: Request, res: Response) => {
       return res.status(200).json(STATUS_CODE[200](llmKey));
     }
 
-    await logSuccess({
-      eventType: "Update",
-      description: `Key not found for update: ID ${id}`,
-      functionName,
-      fileName,
-    });
+    await transaction.rollback();
+    logStructured('error', `LLM Key not found for update: ID ${id}`, functionName, fileName);
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {

@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import Select from "../Inputs/Select";
 import { SearchBox } from "../Search";
 

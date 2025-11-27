@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense, useCallback } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { SearchBox } from "../../components/Search";
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -17,12 +17,10 @@ import {
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
-import SelectComponent from "../../components/Inputs/Select";
 import {
     addNewIncidentButton,
     incidentFilterRow,
     incidentMainStack,
-    incidentStatusSelect,
     incidentToastContainer,
 } from "./style";
 import IncidentTable from "./IncidentTable";
@@ -43,6 +41,8 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -65,24 +65,12 @@ const IncidentManagement: React.FC = () => {
     const [showAlert, setShowAlert] = useState(false);
     const [tableKey, setTableKey] = useState(0);
 
-    const [searchParams, setSearchParams] = useSearchParams();
     const { userRoleName } = useAuth();
 
     const [archiveId, setArchiveId] = useState<string | null>(null);
 
-    //   const statusFilter = useSelector((state: any) => state.ui?.incidents?.statusFilter || "all");
-    const [statusFilter, setStatusFilter] = useState(
-        searchParams.get("status") || "all"
-    );
-    const [severityFilter, setSeverityFilter] = useState(
-        searchParams.get("severity") || "all"
-    );
-    const [approvalFilter, setApprovalFilter] = useState(
-        searchParams.get("approval") || "all"
-    );
-    const [searchTerm, setSearchTerm] = useState(
-        searchParams.get("search") || ""
-    );
+    // Search state
+    const [searchTerm, setSearchTerm] = useState("");
 
     const [mode, setModalMode] = useState("");
 
@@ -92,46 +80,166 @@ const IncidentManagement: React.FC = () => {
     const isCreatingDisabled =
         !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
+    // FilterBy - Dynamic options generators
+    const getUniqueProjects = useCallback(() => {
+        const projectNames = new Set<string>();
+        incidentsData.forEach((incident) => {
+            if (incident.ai_project) {
+                projectNames.add(incident.ai_project);
+            }
+        });
+        return Array.from(projectNames)
+            .sort()
+            .map((project) => ({
+                value: project,
+                label: project,
+            }));
+    }, [incidentsData]);
+
+    const getUniqueReporters = useCallback(() => {
+        const reporters = new Set<string>();
+        incidentsData.forEach((incident) => {
+            if (incident.reporter) {
+                reporters.add(incident.reporter);
+            }
+        });
+        return Array.from(reporters)
+            .sort()
+            .map((reporter) => ({
+                value: reporter,
+                label: reporter,
+            }));
+    }, [incidentsData]);
+
+    const getUniqueTypes = useCallback(() => {
+        const types = new Set<string>();
+        incidentsData.forEach((incident) => {
+            if (incident.type) {
+                types.add(incident.type);
+            }
+        });
+        return Array.from(types)
+            .sort()
+            .map((type) => ({
+                value: type,
+                label: type,
+            }));
+    }, [incidentsData]);
+
+    // FilterBy - Filter columns configuration
+    const incidentFilterColumns: FilterColumn[] = useMemo(() => [
+        {
+            id: 'incident_id',
+            label: 'Incident ID',
+            type: 'text' as const,
+        },
+        {
+            id: 'ai_project',
+            label: 'AI project',
+            type: 'select' as const,
+            options: getUniqueProjects(),
+        },
+        {
+            id: 'type',
+            label: 'Type',
+            type: 'select' as const,
+            options: getUniqueTypes(),
+        },
+        {
+            id: 'severity',
+            label: 'Severity',
+            type: 'select' as const,
+            options: [
+                { value: Severity.MINOR, label: 'Minor' },
+                { value: Severity.SERIOUS, label: 'Serious' },
+                { value: Severity.VERY_SERIOUS, label: 'Very serious' },
+            ],
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            type: 'select' as const,
+            options: [
+                { value: IncidentManagementStatus.OPEN, label: 'Open' },
+                { value: IncidentManagementStatus.INVESTIGATED, label: 'Investigating' },
+                { value: IncidentManagementStatus.MITIGATED, label: 'Mitigated' },
+                { value: IncidentManagementStatus.CLOSED, label: 'Closed' },
+            ],
+        },
+        {
+            id: 'approval_status',
+            label: 'Approval status',
+            type: 'select' as const,
+            options: [
+                { value: AIIncidentManagementApprovalStatus.PENDING, label: 'Pending' },
+                { value: AIIncidentManagementApprovalStatus.APPROVED, label: 'Approved' },
+                { value: AIIncidentManagementApprovalStatus.REJECTED, label: 'Rejected' },
+                { value: AIIncidentManagementApprovalStatus.NOT_REQUIRED, label: 'Not required' },
+            ],
+        },
+        {
+            id: 'reporter',
+            label: 'Reporter',
+            type: 'select' as const,
+            options: getUniqueReporters(),
+        },
+        {
+            id: 'occurred_date',
+            label: 'Occurred date',
+            type: 'date' as const,
+        },
+    ], [getUniqueProjects, getUniqueReporters, getUniqueTypes]);
+
+    // FilterBy - Field value getter
+    const getIncidentFieldValue = useCallback(
+        (item: AIIncidentManagementModel, fieldId: string): string | number | Date | null | undefined => {
+            switch (fieldId) {
+                case 'incident_id':
+                    return item.incident_id;
+                case 'ai_project':
+                    return item.ai_project;
+                case 'type':
+                    return item.type;
+                case 'severity':
+                    return item.severity;
+                case 'status':
+                    return item.status;
+                case 'approval_status':
+                    return item.approval_status;
+                case 'reporter':
+                    return item.reporter;
+                case 'occurred_date':
+                    return item.occurred_date;
+                default:
+                    return null;
+            }
+        },
+        []
+    );
+
+    // FilterBy - Initialize hook
+    const { filterData: filterIncidentData, handleFilterChange: handleIncidentFilterChange } = useFilterBy<AIIncidentManagementModel>(getIncidentFieldValue);
+
     /** -------------------- FILTERING -------------------- */
     const filteredData = useMemo(() => {
-        return incidentsData.filter((i) => {
-            const matchesStatus =
-                statusFilter === "all" || i.status === statusFilter;
-            const matchesSeverity =
-                severityFilter === "all" || i.severity === severityFilter;
-            const matchesApproval =
-                approvalFilter === "all" ||
-                i.approval_status === approvalFilter;
-            const matchesSearch =
-                !searchTerm ||
-                (i.id || "")
-                    .toString()
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                (i.ai_project || "")
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                (i.reporter || "")
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase());
+        // Filter out archived items first
+        const nonArchivedData = incidentsData.filter((i) => !i.archived);
 
-            const isNotArchived = !i.archived; // <- filter out archived items
+        // Apply FilterBy conditions
+        let result = filterIncidentData(nonArchivedData);
 
-            return (
-                matchesStatus &&
-                matchesSeverity &&
-                matchesApproval &&
-                matchesSearch &&
-                isNotArchived
+        // Apply search filter last
+        if (searchTerm) {
+            const search = searchTerm.toLowerCase();
+            result = result.filter((i) =>
+                (i.id || "").toString().toLowerCase().includes(search) ||
+                (i.ai_project || "").toLowerCase().includes(search) ||
+                (i.reporter || "").toLowerCase().includes(search)
             );
-        });
-    }, [
-        incidentsData,
-        statusFilter,
-        severityFilter,
-        approvalFilter,
-        searchTerm,
-    ]);
+        }
+
+        return result;
+    }, [filterIncidentData, incidentsData, searchTerm]);
 
     // Define how to get the group key for each incident
     const getIncidentGroupKey = (incident: AIIncidentManagementModel, field: string): string | string[] => {
@@ -231,24 +339,6 @@ const IncidentManagement: React.FC = () => {
         fetchUsersData();
     }, []);
 
-    /** -------------------- URL SYNC -------------------- */
-    useEffect(() => {
-        const params = new URLSearchParams();
-
-        if (statusFilter !== "all") params.set("status", statusFilter);
-        if (severityFilter !== "all") params.set("severity", severityFilter);
-        if (approvalFilter !== "all") params.set("approval", approvalFilter);
-        if (searchTerm) params.set("search", searchTerm);
-
-        setSearchParams(params);
-        setTableKey((prev) => prev + 1);
-    }, [
-        statusFilter,
-        severityFilter,
-        approvalFilter,
-        searchTerm,
-        setSearchParams,
-    ]);
 
     /** -------------------- INCIDENT MODAL HANDLERS -------------------- */
     const handleNewIncidentClick = () => setIsNewIncidentModalOpen(true);
@@ -381,33 +471,6 @@ const IncidentManagement: React.FC = () => {
             });
         }
     };
-
-    /** -------------------- FILTER OPTIONS -------------------- */
-    const statusOptions = [
-        { _id: "all", name: "All statuses" },
-        { _id: IncidentManagementStatus.OPEN, name: "Open" },
-        { _id: IncidentManagementStatus.INVESTIGATED, name: "Investigating" },
-        { _id: IncidentManagementStatus.MITIGATED, name: "Mitigated" },
-        { _id: IncidentManagementStatus.CLOSED, name: "Closed" },
-    ];
-
-    const severityOptions = [
-        { _id: "all", name: "All severities" },
-        { _id: Severity.MINOR, name: "Minor" },
-        { _id: Severity.SERIOUS, name: "Serious" },
-        { _id: Severity.VERY_SERIOUS, name: "Very serious" },
-    ];
-
-    const approvalOptions = [
-        { _id: "all", name: "All approval statuses" },
-        { _id: AIIncidentManagementApprovalStatus.PENDING, name: "Pending" },
-        { _id: AIIncidentManagementApprovalStatus.APPROVED, name: "Approved" },
-        { _id: AIIncidentManagementApprovalStatus.REJECTED, name: "Rejected" },
-        {
-            _id: AIIncidentManagementApprovalStatus.NOT_REQUIRED,
-            name: "Not required",
-        },
-    ];
 
     /** -------------------- EXPORT DATA -------------------- */
     const exportColumns = useMemo(() => {
@@ -545,81 +608,12 @@ const IncidentManagement: React.FC = () => {
                     spacing={4}
                     sx={incidentFilterRow}
                 >
-                    <Stack direction="row" spacing={6} alignItems="center">
-                        <div data-joyride-id="incident-status-filter">
-                            <SelectComponent
-                                id="status-filter"
-                                value={statusFilter}
-                                items={statusOptions}
-                                onChange={(e: any) =>
-                                    setStatusFilter(e.target.value)
-                                }
-                                sx={{
-                                    ...incidentStatusSelect,
-                                }}
-                                isFilterApplied={!!statusFilter && statusFilter !== "all"}
-                                customRenderValue={(value, selectedItem) => {
-                                    if (value === "all") {
-                                        return selectedItem.name;
-                                    }
-                                    return `Status: ${selectedItem.name.toLowerCase()}`;
-                                }}
-                            />
-                        </div>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <FilterBy
+                            columns={incidentFilterColumns}
+                            onFilterChange={handleIncidentFilterChange}
+                        />
 
-                        <div data-joyride-id="incident-severity-filter">
-                            <SelectComponent
-                                id="severity-filter"
-                                value={severityFilter}
-                                items={severityOptions}
-                                onChange={(e: any) =>
-                                    setSeverityFilter(e.target.value)
-                                }
-                                sx={{
-                                    ...incidentStatusSelect,
-                                }}
-                                isFilterApplied={!!severityFilter && severityFilter !== "all"}
-                                customRenderValue={(value, selectedItem) => {
-                                    if (value === "all") {
-                                        return selectedItem.name;
-                                    }
-                                    return `Severity: ${selectedItem.name.toLowerCase()}`;
-                                }}
-                            />
-                        </div>
-
-                        <div data-joyride-id="incident-approval-filter">
-                            <SelectComponent
-                                id="approval-filter"
-                                value={approvalFilter}
-                                items={approvalOptions}
-                                onChange={(e: any) =>
-                                    setApprovalFilter(e.target.value)
-                                }
-                                sx={{
-                                    ...incidentStatusSelect,
-                                }}
-                                isFilterApplied={!!approvalFilter && approvalFilter !== "all"}
-                                customRenderValue={(value, selectedItem) => {
-                                    if (value === "all") {
-                                        return selectedItem.name;
-                                    }
-                                    return `Approval status: ${selectedItem.name.toLowerCase()}`;
-                                }}
-                            />
-                        </div>
-
-                        {/* Search box */}
-                        <Box sx={{ width: 200 }} data-joyride-id="incident-search">
-                            <SearchBox
-                                placeholder="Search incidents..."
-                                value={searchTerm}
-                                onChange={setSearchTerm}
-                                inputProps={{ "aria-label": "Search incidents" }}
-                            />
-                        </Box>
-
-                        {/* GroupBy button */}
                         <GroupBy
                             options={[
                                 { id: 'severity', label: 'Severity' },
@@ -631,6 +625,16 @@ const IncidentManagement: React.FC = () => {
                             ]}
                             onGroupChange={handleGroupChange}
                         />
+
+                        <Box data-joyride-id="incident-search">
+                            <SearchBox
+                                placeholder="Search incidents..."
+                                value={searchTerm}
+                                onChange={setSearchTerm}
+                                inputProps={{ "aria-label": "Search incidents" }}
+                                fullWidth={false}
+                            />
+                        </Box>
                     </Stack>
 
                     <Stack direction="row" gap="8px" alignItems="center">

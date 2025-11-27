@@ -397,10 +397,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
             ) : (
               <ButtonToggle
                 options={[
-                  { value: "0", label: "All" },
+                  { value: "0", label: "All", count: teamUsers.length },
                   ...roleItems.map((role) => ({
                     value: role._id.toString(),
                     label: role.name,
+                    count: teamUsers.filter((user) => user.roleId === role._id).length,
                   })),
                 ]}
                 value={filter}

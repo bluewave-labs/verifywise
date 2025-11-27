@@ -29,6 +29,11 @@ import {
   Activity,
   FileCode,
   Link,
+  User,
+  Lock,
+  Users,
+  Building2,
+  Key,
 } from "lucide-react";
 
 /**
@@ -50,6 +55,12 @@ export const routeMapping: Record<string, string> = {
 
   // Settings
   "/settings": "Settings",
+  "/settings/profile": "Profile",
+  "/settings/password": "Password",
+  "/settings/team": "Team",
+  "/settings/organization": "Organization",
+  "/settings/preferences": "Preferences",
+  "/settings/apikeys": "API keys",
   "/organization": "Organization Settings",
 
   // File management
@@ -142,6 +153,12 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Settings
   "/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings/profile": () => React.createElement(User, { size: 14, strokeWidth: 1.5 }),
+  "/settings/password": () => React.createElement(Lock, { size: 14, strokeWidth: 1.5 }),
+  "/settings/team": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/settings/organization": () => React.createElement(Building2, { size: 14, strokeWidth: 1.5 }),
+  "/settings/preferences": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings/apikeys": () => React.createElement(Key, { size: 14, strokeWidth: 1.5 }),
   "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // File management

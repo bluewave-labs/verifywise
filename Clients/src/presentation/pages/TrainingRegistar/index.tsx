@@ -5,7 +5,6 @@ import {
   Box,
   Stack,
   Fade,
-  SelectChangeEvent,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -27,7 +26,6 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-import Select from "../../components/Inputs/Select";
 import { SearchBox } from "../../components/Search";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
@@ -40,6 +38,8 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import TipBox from "../../components/TipBox";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -104,20 +104,11 @@ const Training: React.FC = () => {
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // ✅ Filter + search state
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Search state
   const [searchTerm, setSearchTerm] = useState("");
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
-
-  // ✅ Status options
-  const statusOptions = [
-    { _id: "all", name: "All Trainings" },
-    { _id: "Planned", name: "Planned" },
-    { _id: "In Progress", name: "In Progress" },
-    { _id: "Completed", name: "Completed" },
-  ];
 
   const fetchTrainingData = useCallback(async () => {
     setIsLoading(true);
@@ -304,20 +295,113 @@ const Training: React.FC = () => {
     }
   };
 
-  // Filtered trainings (KISS: Simplified logic)
-  const filteredTraining = useMemo(() => {
-    return trainingData.filter((training) => {
-      // Defensive: Handle missing training name
-      const trainingName = training.training_name?.toLowerCase() ?? '';
-      const search = searchTerm.toLowerCase();
-
-      // Simple, readable conditions
-      const matchesStatus = statusFilter === "all" || training.status === statusFilter;
-      const matchesSearch = !searchTerm || trainingName.includes(search);
-
-      return matchesStatus && matchesSearch;
+  // FilterBy - Dynamic options generators
+  const getUniqueProviders = useCallback(() => {
+    const providers = new Set<string>();
+    trainingData.forEach((training) => {
+      if (training.provider) {
+        providers.add(training.provider);
+      }
     });
-  }, [trainingData, statusFilter, searchTerm]);
+    return Array.from(providers)
+      .sort()
+      .map((provider) => ({
+        value: provider,
+        label: provider,
+      }));
+  }, [trainingData]);
+
+  const getUniqueDepartments = useCallback(() => {
+    const departments = new Set<string>();
+    trainingData.forEach((training) => {
+      if (training.department) {
+        departments.add(training.department);
+      }
+    });
+    return Array.from(departments)
+      .sort()
+      .map((department) => ({
+        value: department,
+        label: department,
+      }));
+  }, [trainingData]);
+
+  // FilterBy - Filter columns configuration
+  const trainingFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'training_name',
+      label: 'Training name',
+      type: 'text' as const,
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'Planned', label: 'Planned' },
+        { value: 'In Progress', label: 'In progress' },
+        { value: 'Completed', label: 'Completed' },
+      ],
+    },
+    {
+      id: 'provider',
+      label: 'Provider',
+      type: 'select' as const,
+      options: getUniqueProviders(),
+    },
+    {
+      id: 'department',
+      label: 'Department',
+      type: 'select' as const,
+      options: getUniqueDepartments(),
+    },
+    {
+      id: 'duration',
+      label: 'Duration',
+      type: 'text' as const,
+    },
+  ], [getUniqueProviders, getUniqueDepartments]);
+
+  // FilterBy - Field value getter
+  const getTrainingFieldValue = useCallback(
+    (item: TrainingRegistarModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'training_name':
+          return item.training_name;
+        case 'status':
+          return item.status;
+        case 'provider':
+          return item.provider;
+        case 'department':
+          return item.department;
+        case 'duration':
+          return item.duration;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterTrainingData, handleFilterChange: handleTrainingFilterChange } = useFilterBy<TrainingRegistarModel>(getTrainingFieldValue);
+
+  // Filtered trainings using FilterBy and search
+  const filteredTraining = useMemo(() => {
+    // First apply FilterBy conditions
+    let result = filterTrainingData(trainingData);
+
+    // Apply search filter last
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter((training) => {
+        const trainingName = training.training_name?.toLowerCase() ?? '';
+        return trainingName.includes(search);
+      });
+    }
+
+    return result;
+  }, [filterTrainingData, trainingData, searchTerm]);
 
   // Define how to get the group key for each training
   const getTrainingGroupKey = (training: TrainingRegistarModel, field: string): string | string[] => {
@@ -455,32 +539,12 @@ const Training: React.FC = () => {
             spacing={4}
             sx={{ width: "100%" }}
           >
-            {/* Left side: Dropdown + Search together */}
-            <Stack direction="row" spacing={6} alignItems="center">
-              {/* Dropdown Filter */}
-              <div data-joyride-id="training-status-filter">
-                <Select
-                  id="training-status"
-                  value={statusFilter}
-                  items={statusOptions}
-                  onChange={(e: SelectChangeEvent<string | number>) => setStatusFilter(e.target.value as string)}
-                  sx={{
-                    minWidth: "180px",
-                    height: "34px",
-                  }}
-                  isFilterApplied={!!statusFilter && statusFilter !== "all"}
-                />
-              </div>
-
-              {/* Search */}
-              <Box sx={{ width: 300 }}>
-                <SearchBox
-                  placeholder="Search trainings..."
-                  value={searchTerm}
-                  onChange={setSearchTerm}
-                  inputProps={{ "aria-label": "Search trainings" }}
-                />
-              </Box>
+            {/* Left side: FilterBy, GroupBy, Search */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <FilterBy
+                columns={trainingFilterColumns}
+                onFilterChange={handleTrainingFilterChange}
+              />
 
               <GroupBy
                 options={[
@@ -489,6 +553,14 @@ const Training: React.FC = () => {
                   { id: 'department', label: 'Department' },
                 ]}
                 onGroupChange={handleGroupChange}
+              />
+
+              <SearchBox
+                placeholder="Search trainings..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search trainings" }}
+                fullWidth={false}
               />
             </Stack>
 

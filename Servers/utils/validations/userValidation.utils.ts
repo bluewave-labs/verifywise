@@ -208,7 +208,7 @@ export const validatePasswordConfirmation = (password: any, confirmPassword: any
   if (password !== confirmPassword) {
     return {
       isValid: false,
-      message: 'Password confirmation does not match password',
+      message: 'Passwords do not match. Please ensure both fields are identical.',
       code: 'PASSWORD_MISMATCH'
     };
   }

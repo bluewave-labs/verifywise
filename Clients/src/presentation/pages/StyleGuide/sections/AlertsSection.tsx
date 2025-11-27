@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar } from "@mui/material";
 import { Copy, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-import Alert from "../../../components/Alert";
 import CodeBlock from "../components/CodeBlock";
 
 const alertSnippets = {

@@ -165,7 +165,7 @@ const IconsSection: React.FC = () => {
           }}
         >
           {filteredIcons.map((iconName) => {
-            const IconComponent = (LucideIcons as Record<string, React.FC<{ size?: number; color?: string }>>)[iconName];
+            const IconComponent = (LucideIcons as unknown as Record<string, React.FC<{ size?: number; color?: string }>>)[iconName];
             if (!IconComponent) return null;
             return (
               <Box

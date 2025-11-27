@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, Suspense, useMemo } from "react";
-import { Box, Stack, Fade } from "@mui/material";
+import { Box, Stack, Fade, IconButton } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { CirclePlus as AddCircleOutlineIcon, TrendingUp } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -1363,7 +1363,7 @@ const ModelInventory: React.FC = () => {
 
                               {/* Search */}
                               <Box
-                                  sx={{ width: 300 }}
+                                  sx={{ width: 200 }}
                                   data-joyride-id="model-search"
                               >
                                   <SearchBox
@@ -1396,13 +1396,23 @@ const ModelInventory: React.FC = () => {
                                   filename="model-inventory"
                                   title="Model Inventory"
                               />
-                              <CustomizableButton
-                                  variant="contained"
+                              <IconButton
                                   onClick={() => setIsAnalyticsDrawerOpen(true)}
-                                  sx={addNewModelButtonStyle}
-                                  icon={<TrendingUp size={16} />}
-                                  text="Analytics"
-                              />
+                                  aria-label="Analytics"
+                                  sx={{
+                                      height: '34px',
+                                      width: '34px',
+                                      padding: '8px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #e5e7eb',
+                                      backgroundColor: '#ffffff',
+                                      '&:hover': {
+                                          backgroundColor: '#f9fafb',
+                                      },
+                                  }}
+                              >
+                                  <BarChart3 size={16} color="#344054" />
+                              </IconButton>
                               <div data-joyride-id="add-model-button">
                                   <CustomizableButton
                                       variant="contained"
@@ -1583,26 +1593,12 @@ const ModelInventory: React.FC = () => {
                           alignItems="center"
                           sx={filterButtonRowStyle}
                       >
-                          {/* Left side: Search + evidence Type Filter */}
+                          {/* Left side: Evidence Type Filter + Search */}
                           <Stack
                               direction="row"
                               spacing={6}
                               alignItems="center"
                           >
-                              {/* Search */}
-                              <Box
-                                  sx={{ width: 300 }}
-                                  data-joyride-id="evidence-search"
-                              >
-                                  <SearchBox
-                                      placeholder="Search evidence..."
-                                      value={searchTypeTerm}
-                                      onChange={setSearchTypeTerm}
-                                      inputProps={{
-                                          "aria-label": "Search evidence",
-                                      }}
-                                  />
-                              </Box>
                               <div data-joyride-id="evidence-type-filter">
                                   <SelectComponent
                                       id="type-filter"
@@ -1620,6 +1616,20 @@ const ModelInventory: React.FC = () => {
 
                                   />
                               </div>
+                              {/* Search */}
+                              <Box
+                                  sx={{ width: 200 }}
+                                  data-joyride-id="evidence-search"
+                              >
+                                  <SearchBox
+                                      placeholder="Search evidence..."
+                                      value={searchTypeTerm}
+                                      onChange={setSearchTypeTerm}
+                                      inputProps={{
+                                          "aria-label": "Search evidence",
+                                      }}
+                                  />
+                              </Box>
                               <GroupBy
                                   options={[
                                       { id: 'evidence_type', label: 'Evidence type' },

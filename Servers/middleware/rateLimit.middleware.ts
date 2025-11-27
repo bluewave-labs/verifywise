@@ -5,7 +5,7 @@
  * Uses express-rate-limit with IPv6-safe IP normalization.
  *
  * Rate Limiters:
- * - fileOperationsLimiter: 15 requests/15min (for file uploads, downloads, deletions)
+ * - fileOperationsLimiter: 50 requests/15min (for file uploads, downloads, deletions)
  * - generalApiLimiter: 100 requests/15min (for standard API endpoints)
  * - authLimiter: 5 requests/15min (for authentication to prevent brute force)
  *
@@ -32,7 +32,7 @@ interface RateLimitConfig {
 const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     fileOperations: {
         windowMinutes: 15,
-        maxRequests: 15,
+        maxRequests: 50,
         message: 'Too many file operation requests from this IP, please try again after 15 minutes',
     },
     generalApi: {

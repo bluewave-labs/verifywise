@@ -42,6 +42,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   onRowClick,
   tableId = "ai-trust-center-table",
   disabled = false,
+  hidePagination = false,
 }: IAITrustCenterTableProps<T>) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -258,9 +259,10 @@ const AITrustCenterTable = <T extends { id: number }>({
         }}
       >
         {sortedData &&
-          sortedData
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((item) => (
+          (hidePagination
+            ? sortedData
+            : sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          ).map((item) => (
               <TableRow
                 key={item.id}
                 sx={{
@@ -286,7 +288,7 @@ const AITrustCenterTable = <T extends { id: number }>({
             ))}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled]
+    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination]
   );
 
   const emptyState = useMemo(
@@ -341,7 +343,7 @@ const AITrustCenterTable = <T extends { id: number }>({
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow
               sx={{

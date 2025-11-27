@@ -24,6 +24,9 @@ import { secureLogError } from "../../../application/utils/secureLogger.utils"; 
 import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
 import TipBox from "../../components/TipBox";
 import { SearchBox } from "../../components/Search";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 // Constants (DRY + Maintainability)
 const FILE_MANAGER_CONTEXT = "FileManager";
@@ -93,6 +96,9 @@ const FileManager: React.FC = (): JSX.Element => {
   // RBAC: Get user role for permission checks
   const { userRoleName } = useAuth();
 
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
   // REQUIREMENT: "Upload allowed for all users except Auditors"
   // SECURITY: Default-deny - require authenticated role that is not Auditor
   // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
@@ -156,6 +162,26 @@ const FileManager: React.FC = (): JSX.Element => {
 
     return filtered;
   }, [filesData, selectedProject, searchTerm]);
+
+  // Define how to get the group key for each file
+  const getFileGroupKey = useCallback((file: FileModel, field: string): string => {
+    switch (field) {
+      case 'project':
+        return file.projectTitle || 'No Project';
+      case 'uploader':
+        return file.uploaderName || file.uploader || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to filtered files
+  const groupedFiles = useTableGrouping({
+    data: filteredFiles,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getFileGroupKey,
+  });
 
   const boxStyles = useMemo(
     () => ({
@@ -243,7 +269,7 @@ const FileManager: React.FC = (): JSX.Element => {
               gap: 2,
             }}
           >
-            <Box sx={{ display: "flex", gap: 2, flex: 1 }}>
+            <Box sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}>
               <Select
                 id="project-filter"
                 value={selectedProject || "all"}
@@ -272,6 +298,13 @@ const FileManager: React.FC = (): JSX.Element => {
                   inputProps={{ "aria-label": "Search files" }}
                 />
               </Box>
+              <GroupBy
+                options={[
+                  { id: 'project', label: 'Project' },
+                  { id: 'uploader', label: 'Uploader' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
             </Box>
             {/* RBAC: Only show upload button for non-Auditors */}
             {isUploadAllowed && (
@@ -287,10 +320,17 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable
-              cols={COLUMNS}
-              files={filteredFiles}
-              onFileDeleted={handleFileDeleted}
+            <GroupedTableView
+              groupedData={groupedFiles}
+              ungroupedData={filteredFiles}
+              renderTable={(data, options) => (
+                <FileTable
+                  cols={COLUMNS}
+                  files={data}
+                  onFileDeleted={handleFileDeleted}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
             />
           </Box>
         </Stack>

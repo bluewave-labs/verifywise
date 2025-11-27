@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, SelectChangeEvent } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
@@ -17,6 +17,9 @@ import { PolicyManagerProps } from "../../../domain/interfaces/IPolicy";
 import PolicyStatusCard from "./PolicyStatusCard";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import useUsers from "../../../application/hooks/useUsers";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -39,6 +42,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // Auto-open create policy modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -135,6 +141,30 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
 
   const { users } = useUsers();
 
+  // Define how to get the group key for each policy
+  const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
+    switch (field) {
+      case 'status':
+        return policy.status || 'Unknown';
+      case 'author':
+        if (policy.author_id) {
+          const user = users.find((u) => u.id === policy.author_id);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, [users]);
+
+  // Apply grouping to filtered policies
+  const groupedPolicies = useTableGrouping({
+    data: filteredPolicies,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getPolicyGroupKey,
+  });
+
   // Define export columns for policy table
   const exportColumns = useMemo(() => {
     return [
@@ -184,7 +214,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         spacing={4}
         sx={{ width: "100%" }}
       >
-        {/* Left side: Dropdown + Search together */}
+        {/* Left side: Dropdown + Search + Group together */}
         <Stack direction="row" spacing={6} alignItems="center">
           {/* Dropdown Filter */}
           <div data-joyride-id="policy-status-filter">
@@ -212,6 +242,15 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
               inputProps={{ "aria-label": "Search policies" }}
             />
           </Box>
+
+          {/* Group By */}
+          <GroupBy
+            options={[
+              { id: 'status', label: 'Status' },
+              { id: 'author', label: 'Author' },
+            ]}
+            onGroupChange={handleGroupChange}
+          />
         </Stack>
 
         {/* Right side: Export and Add Button */}
@@ -252,10 +291,17 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
             imageAlt="No policies available"
           />
         ) : (
-          <PolicyTable
-            data={filteredPolicies}
-            onOpen={handleOpen}
-            onDelete={handleDelete}
+          <GroupedTableView
+            groupedData={groupedPolicies}
+            ungroupedData={filteredPolicies}
+            renderTable={(data, options) => (
+              <PolicyTable
+                data={data}
+                onOpen={handleOpen}
+                onDelete={handleDelete}
+                hidePagination={options?.hidePagination}
+              />
+            )}
           />
         )}
       </Box>

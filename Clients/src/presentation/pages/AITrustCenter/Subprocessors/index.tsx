@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -31,6 +31,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { Subprocessor } from "../../../../domain/interfaces/iAITrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
+import { GroupBy } from "../../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
 
 interface FormData {
   info?: {
@@ -161,6 +164,9 @@ const AITrustCenterSubprocessors: React.FC = () => {
     useDeleteAITrustCentreSubprocessorMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
@@ -424,6 +430,26 @@ const AITrustCenterSubprocessors: React.FC = () => {
     }
   };
 
+  // Define how to get the group key for each subprocessor
+  const getSubprocessorGroupKey = useCallback((subprocessor: Subprocessor, field: string): string => {
+    switch (field) {
+      case 'location':
+        return subprocessor.location || 'Unknown';
+      case 'purpose':
+        return subprocessor.purpose || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to subprocessors
+  const groupedSubprocessors = useTableGrouping({
+    data: subprocessors || [],
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getSubprocessorGroupKey,
+  });
+
   // Show loading state
   if (overviewLoading || subprocessorsLoading) {
     return (
@@ -482,14 +508,23 @@ const AITrustCenterSubprocessors: React.FC = () => {
       <Box sx={styles.container}>
         <Box sx={styles.subprocessorsHeader}>
           <Box sx={styles.headerControls}>
-            <CustomizableButton
-              sx={styles.addButton}
-              variant="contained"
-              onClick={handleOpenAddModal}
-              isDisabled={!formData?.info?.subprocessor_visible}
-              text="Add new subprocessor"
-              icon={<AddCircleOutlineIcon size={16} />}
-            />
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <CustomizableButton
+                sx={styles.addButton}
+                variant="contained"
+                onClick={handleOpenAddModal}
+                isDisabled={!formData?.info?.subprocessor_visible}
+                text="Add new subprocessor"
+                icon={<AddCircleOutlineIcon size={16} />}
+              />
+              <GroupBy
+                options={[
+                  { id: 'location', label: 'Location' },
+                  { id: 'purpose', label: 'Purpose' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+            </Box>
             <Box sx={styles.toggleRow}>
               <Typography sx={styles.toggleLabel}>
                 Enabled and visible
@@ -504,23 +539,30 @@ const AITrustCenterSubprocessors: React.FC = () => {
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <AITrustCenterTable
-            data={subprocessors || []}
-            columns={TABLE_COLUMNS}
-            isLoading={subprocessorsLoading}
-            paginated={true}
-            disabled={!formData?.info?.subprocessor_visible}
-            emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor, sortConfig) => (
-              <SubprocessorTableRow
-                key={subprocessor.id}
-                subprocessor={subprocessor}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                sortConfig={sortConfig}
+          <GroupedTableView
+            groupedData={groupedSubprocessors}
+            ungroupedData={subprocessors || []}
+            renderTable={(data, options) => (
+              <AITrustCenterTable
+                data={data}
+                columns={TABLE_COLUMNS}
+                isLoading={subprocessorsLoading}
+                paginated={true}
+                disabled={!formData?.info?.subprocessor_visible}
+                emptyStateText="No subprocessors found. Add your first subprocessor to get started."
+                renderRow={(subprocessor, sortConfig) => (
+                  <SubprocessorTableRow
+                    key={subprocessor.id}
+                    subprocessor={subprocessor}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    sortConfig={sortConfig}
+                  />
+                )}
+                tableId="subprocessors-table"
+                hidePagination={options?.hidePagination}
               />
             )}
-            tableId="subprocessors-table"
           />
         </Box>
 

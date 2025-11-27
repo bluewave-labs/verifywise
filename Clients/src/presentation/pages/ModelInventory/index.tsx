@@ -1363,7 +1363,7 @@ const ModelInventory: React.FC = () => {
 
                               {/* Search */}
                               <Box
-                                  sx={{ width: 300 }}
+                                  sx={{ width: 200 }}
                                   data-joyride-id="model-search"
                               >
                                   <SearchBox
@@ -1593,26 +1593,12 @@ const ModelInventory: React.FC = () => {
                           alignItems="center"
                           sx={filterButtonRowStyle}
                       >
-                          {/* Left side: Search + evidence Type Filter */}
+                          {/* Left side: Evidence Type Filter + Search */}
                           <Stack
                               direction="row"
                               spacing={6}
                               alignItems="center"
                           >
-                              {/* Search */}
-                              <Box
-                                  sx={{ width: 300 }}
-                                  data-joyride-id="evidence-search"
-                              >
-                                  <SearchBox
-                                      placeholder="Search evidence..."
-                                      value={searchTypeTerm}
-                                      onChange={setSearchTypeTerm}
-                                      inputProps={{
-                                          "aria-label": "Search evidence",
-                                      }}
-                                  />
-                              </Box>
                               <div data-joyride-id="evidence-type-filter">
                                   <SelectComponent
                                       id="type-filter"
@@ -1630,6 +1616,20 @@ const ModelInventory: React.FC = () => {
 
                                   />
                               </div>
+                              {/* Search */}
+                              <Box
+                                  sx={{ width: 200 }}
+                                  data-joyride-id="evidence-search"
+                              >
+                                  <SearchBox
+                                      placeholder="Search evidence..."
+                                      value={searchTypeTerm}
+                                      onChange={setSearchTypeTerm}
+                                      inputProps={{
+                                          "aria-label": "Search evidence",
+                                      }}
+                                  />
+                              </Box>
                               <GroupBy
                                   options={[
                                       { id: 'evidence_type', label: 'Evidence type' },

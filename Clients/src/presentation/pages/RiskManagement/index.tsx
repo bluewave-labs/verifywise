@@ -33,6 +33,9 @@ import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 /**
  * Set initial loading status for all CRUD process
@@ -102,6 +105,9 @@ const RiskManagement = () => {
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
   const onAiRiskSubmitRef = useRef<(() => void) | null>(null);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -383,6 +389,36 @@ const RiskManagement = () => {
     );
   }, [filteredRisks, searchTerm]);
 
+  // Define how to get the group key for each risk
+  const getRiskGroupKey = useCallback((risk: RiskModel, field: string): string => {
+    switch (field) {
+      case 'risk_level':
+        return risk.current_risk_level || risk.risk_level_autocalculated || 'Unknown';
+      case 'mitigation_status':
+        return risk.mitigation_status || 'Unknown';
+      case 'owner':
+        if (risk.risk_owner) {
+          const user = users.find((u) => u.id === risk.risk_owner);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unassigned';
+      case 'severity':
+        return risk.severity || 'Unknown';
+      case 'likelihood':
+        return risk.likelihood || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, [users]);
+
+  // Apply grouping to filtered risks
+  const groupedRisks = useTableGrouping({
+    data: searchFilteredRisks,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getRiskGroupKey,
+  });
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
@@ -475,6 +511,16 @@ const RiskManagement = () => {
               onChange={setSearchTerm}
               inputProps={{ "aria-label": "Search risks"}}
               sx={{ width: 140 }}
+            />
+            <GroupBy
+              options={[
+                { id: 'risk_level', label: 'Risk level' },
+                { id: 'mitigation_status', label: 'Mitigation status' },
+                { id: 'owner', label: 'Owner' },
+                { id: 'severity', label: 'Severity' },
+                { id: 'likelihood', label: 'Likelihood' },
+              ]}
+              onGroupChange={handleGroupChange}
             />
           </Box>
           <Stack direction="row" gap="8px" alignItems="center">
@@ -799,14 +845,21 @@ const RiskManagement = () => {
             height={200}
           />
         ) : (
-          <VWProjectRisksTable
-            rows={searchFilteredRisks}
-            setPage={setCurrentPagingation}
-            page={currentPage}
-            setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
-            setAnchor={() => setIsRiskModalOpen(true)}
-            onDeleteRisk={handleDelete}
-            flashRow={currentRow}
+          <GroupedTableView
+            groupedData={groupedRisks}
+            ungroupedData={searchFilteredRisks}
+            renderTable={(data, options) => (
+              <VWProjectRisksTable
+                rows={data}
+                setPage={setCurrentPagingation}
+                page={currentPage}
+                setSelectedRow={(row: RiskModel) => setSelectedRow([row])}
+                setAnchor={() => setIsRiskModalOpen(true)}
+                onDeleteRisk={handleDelete}
+                flashRow={currentRow}
+                hidePagination={options?.hidePagination}
+              />
+            )}
           />
         )}
       </Stack>

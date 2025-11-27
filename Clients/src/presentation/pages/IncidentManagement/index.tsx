@@ -610,7 +610,7 @@ const IncidentManagement: React.FC = () => {
                         </div>
 
                         {/* Search box */}
-                        <Box sx={{ width: 300 }} data-joyride-id="incident-search">
+                        <Box sx={{ width: 200 }} data-joyride-id="incident-search">
                             <SearchBox
                                 placeholder="Search incidents..."
                                 value={searchTerm}

@@ -42,9 +42,9 @@ export const createLLMKeyQuery = async (
   }
 
   const result = await sequelize.query(
-    `INSERT INTO "${tenant}".llm_keys (key, name) VALUES (:token, :name) RETURNING *;`, {
+    `INSERT INTO "${tenant}".llm_keys (key, name) VALUES (:key, :name) RETURNING *;`, {
     replacements: {
-      token: data.key,
+      key: data.key,
       name: data.name,
     },
     transaction

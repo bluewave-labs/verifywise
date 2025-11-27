@@ -2,7 +2,6 @@ import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "rea
 import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
-import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { BarChart3, ChevronDown } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
@@ -30,11 +29,12 @@ import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
-import { IFilterState } from "../../../domain/interfaces/i.filter";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 
 /**
@@ -91,8 +91,6 @@ const RiskManagement = () => {
   } | null>(null);
 
   // State for filtering
-  const [filteredRisks, setFilteredRisks] = useState<RiskModel[]>([]);
-  const [activeFilters, setActiveFilters] = useState<IFilterState | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
@@ -108,6 +106,150 @@ const RiskManagement = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // FilterBy configuration
+  const getUniqueOwners = useCallback(() => {
+    const ownerIds = new Set<string>();
+    projectRisks.forEach((risk) => {
+      if (risk.risk_owner) {
+        ownerIds.add(risk.risk_owner.toString());
+      }
+    });
+
+    return Array.from(ownerIds)
+      .sort()
+      .map((ownerId) => {
+        const user = users.find((u) => u.id.toString() === ownerId);
+        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${ownerId}`;
+        return { value: ownerId, label: userName };
+      });
+  }, [projectRisks, users]);
+
+  const filterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'risk_name',
+      label: 'Risk name',
+      type: 'text' as const,
+    },
+    {
+      id: 'risk_description',
+      label: 'Description',
+      type: 'text' as const,
+    },
+    {
+      id: 'severity',
+      label: 'Severity',
+      type: 'select' as const,
+      options: [
+        { value: 'Very High', label: 'Very High' },
+        { value: 'High', label: 'High' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Low', label: 'Low' },
+        { value: 'Very Low', label: 'Very Low' },
+      ],
+    },
+    {
+      id: 'likelihood',
+      label: 'Likelihood',
+      type: 'select' as const,
+      options: [
+        { value: 'Very High', label: 'Very High' },
+        { value: 'High', label: 'High' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Low', label: 'Low' },
+        { value: 'Very Low', label: 'Very Low' },
+      ],
+    },
+    {
+      id: 'risk_level',
+      label: 'Risk level',
+      type: 'select' as const,
+      options: [
+        { value: 'Very High', label: 'Very High' },
+        { value: 'High', label: 'High' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Low', label: 'Low' },
+        { value: 'Very Low', label: 'Very Low' },
+      ],
+    },
+    {
+      id: 'mitigation_status',
+      label: 'Mitigation status',
+      type: 'select' as const,
+      options: [
+        { value: 'Completed', label: 'Completed' },
+        { value: 'In Progress', label: 'In Progress' },
+        { value: 'Not Started', label: 'Not Started' },
+      ],
+    },
+    {
+      id: 'risk_owner',
+      label: 'Risk owner',
+      type: 'select' as const,
+      options: getUniqueOwners(),
+    },
+    {
+      id: 'impact',
+      label: 'Impact',
+      type: 'text' as const,
+    },
+    {
+      id: 'deadline',
+      label: 'Target date',
+      type: 'date' as const,
+    },
+    {
+      id: 'date_of_assessment',
+      label: 'Assessment date',
+      type: 'date' as const,
+    },
+  ], [getUniqueOwners]);
+
+  // Get field value for filtering
+  const getRiskFieldValue = useCallback((risk: RiskModel, fieldId: string): string | number | Date | null | undefined => {
+    switch (fieldId) {
+      case 'risk_name':
+        return risk.risk_name;
+      case 'risk_description':
+        return risk.risk_description;
+      case 'severity':
+        return risk.severity;
+      case 'likelihood':
+        return risk.likelihood;
+      case 'risk_level':
+        return risk.current_risk_level || risk.risk_level_autocalculated;
+      case 'mitigation_status':
+        return risk.mitigation_status;
+      case 'risk_owner':
+        return risk.risk_owner?.toString();
+      case 'impact':
+        return risk.impact;
+      case 'deadline':
+        return risk.deadline;
+      case 'date_of_assessment':
+        return risk.date_of_assessment;
+      default:
+        return null;
+    }
+  }, []);
+
+  const { filterData, handleFilterChange: handleFilterByChange } = useFilterBy<RiskModel>(getRiskFieldValue);
+
+  // Apply FilterBy and search filters
+  const filteredRisks = useMemo(() => {
+    // First apply FilterBy conditions
+    const filterByResults = filterData(projectRisks);
+
+    // Then apply search term
+    if (!searchTerm.trim()) {
+      return filterByResults;
+    }
+
+    return filterByResults.filter((risk) =>
+      risk.risk_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [filterData, projectRisks, searchTerm]);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -175,12 +317,11 @@ const RiskManagement = () => {
     });
   }, [filteredRisks, projectRisks, users]);
 
-  const fetchProjectRisks = useCallback(async (filter = 'active') => {
+  const fetchProjectRisks = useCallback(async (filter: 'active' | 'deleted' | 'all' = 'active') => {
     try {
-      const response = await getAllProjectRisks({ filter: filter as 'active' | 'deleted' | 'all' });
+      const response = await getAllProjectRisks({ filter });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
-      setFilteredRisks(response.data); // Initialize filtered risks
     } catch (error) {
       console.error("Error fetching project risks:", error);
       handleToast(
@@ -367,28 +508,6 @@ const RiskManagement = () => {
     setCurrentPage(page);
   };
 
-  const handleRiskFilterChange = (filtered: RiskModel[], filters: IFilterState) => {
-    setFilteredRisks(filtered);
-    setActiveFilters(filters);
-
-    // If deletion status filter changes, refetch data from API
-    if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
-      setShowCustomizableSkeleton(true);
-      fetchProjectRisks(filters.deletionStatus);
-    }
-  };
-
-  // Apply search filter on top of existing filters
-  const searchFilteredRisks = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return filteredRisks;
-    }
-
-    return filteredRisks.filter((risk) =>
-      risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [filteredRisks, searchTerm]);
-
   // Define how to get the group key for each risk
   const getRiskGroupKey = useCallback((risk: RiskModel, field: string): string => {
     switch (field) {
@@ -413,7 +532,7 @@ const RiskManagement = () => {
 
   // Apply grouping to filtered risks
   const groupedRisks = useTableGrouping({
-    data: searchFilteredRisks,
+    data: filteredRisks,
     groupByField: groupBy,
     sortOrder: groupSortOrder,
     getGroupKey: getRiskGroupKey,
@@ -498,20 +617,13 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <div data-joyride-id="risk-filters">
-              <RiskFilters
-                risks={projectRisks}
-                onFilterChange={handleRiskFilterChange}
+              <FilterBy
+                columns={filterColumns}
+                onFilterChange={handleFilterByChange}
               />
             </div>
-            <SearchBox
-              placeholder="Search risks..."
-              value={searchTerm}
-              onChange={setSearchTerm}
-              inputProps={{ "aria-label": "Search risks"}}
-              sx={{ width: 140 }}
-            />
             <GroupBy
               options={[
                 { id: 'risk_level', label: 'Risk level' },
@@ -521,6 +633,13 @@ const RiskManagement = () => {
                 { id: 'likelihood', label: 'Likelihood' },
               ]}
               onGroupChange={handleGroupChange}
+            />
+            <SearchBox
+              placeholder="Search risks..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              inputProps={{ "aria-label": "Search risks"}}
+              sx={{ width: 200 }}
             />
           </Box>
           <Stack direction="row" gap="8px" alignItems="center">
@@ -847,7 +966,7 @@ const RiskManagement = () => {
         ) : (
           <GroupedTableView
             groupedData={groupedRisks}
-            ungroupedData={searchFilteredRisks}
+            ungroupedData={filteredRisks}
             renderTable={(data, options) => (
               <VWProjectRisksTable
                 rows={data}

@@ -17,6 +17,7 @@ import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
+import LLMKeys from "./LLMKeys";
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
+  const isLLMKeysDisabled = !allowedRoles.llmKeys?.view?.includes(userRoleName);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { tab } = useParams<{ tab?: string }>();
@@ -39,6 +41,7 @@ export default function ProfilePage() {
       "team",
       "organization",
       "apikeys",
+      "llmkeys",
     ];
     return tabs;
   }, []);
@@ -169,6 +172,12 @@ export default function ProfilePage() {
               icon: "Key",
               disabled: isApiKeysDisabled,
             },
+            {
+              label: "LLM Keys",
+              value: "llmkeys",
+              icon: "Command",
+              disabled: isLLMKeysDisabled,
+            },
           ]}
           activeTab={activeTab}
           onChange={handleTabChange}
@@ -196,6 +205,10 @@ export default function ProfilePage() {
 
         <TabPanel value="apikeys">
           <ApiKeys />
+        </TabPanel>
+
+        <TabPanel value="llmkeys">
+          <LLMKeys />
         </TabPanel>
       </TabContext>
     </Stack>

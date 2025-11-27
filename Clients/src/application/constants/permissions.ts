@@ -49,6 +49,10 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  llmKeys: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
 };
 
 export default allowedRoles;

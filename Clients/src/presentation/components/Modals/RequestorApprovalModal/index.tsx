@@ -1,7 +1,7 @@
 // Lucide Icons
 import {
     Layers,
-    CheckCircle,
+    Check,
     Circle,
 } from "lucide-react";
 
@@ -120,14 +120,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
-            maxWidth="980px"
+            maxWidth="lg"
             onSubmit={() => { }}
             submitButtonText="Resubmit"
             title={"Approval requests "}
             description="Manage and review your requestor approvals."
         >
-            <Stack direction="row" spacing={6}>
-                <Box width="25%">
+            <Stack direction="row" spacing={12}>
+                <Box width="220px">
                     <Stack>
                         <Stack
                             component="aside"
@@ -291,12 +291,15 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 <Divider
                     orientation="vertical"
                     flexItem
-                    sx={{ borderColor: theme.palette.border.light, mx: 4, mr: 16 }}
+                    sx={{
+                        borderColor: theme.palette.border.light,
+                        mx: 4,
+                        mr: 16
+                    }}
                 />
                 <Stack spacing={8} direction="column"
                     sx={{
-                        ml: 16,
-                        paddingLeft: 20,
+                        paddingLeft: 8,
                     }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography fontWeight={600} fontSize={16} mb={2}>
@@ -306,96 +309,120 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     </Stack>
 
                     {/* STEPS */}
-                    <Stack spacing={4}>
+                    <Stack>
                         {getMockTimelineData().map((step, stepIndex) => (
                             <React.Fragment key={step.id}>
-                                <Stack direction="row" spacing={8} alignItems="flex-start">
-                                    <Box sx={stepNumberStyle}>{step.stepNumber}</Box>
-                                    <Stack>
-                                        <Typography fontWeight={500} fontSize={16}>
-                                            {step.title}
-                                        </Typography>
-                                        {step.date && (
-                                            <Typography fontSize={13} fontWeight={400} color="#999999">
-                                                {step.date}
-                                            </Typography>
-                                        )}
+                                <Box key={step.id} mb={6}>
+                                    <Stack direction="row" spacing={8} alignItems="flex-start">
+                                        <Box
+                                            sx={{
+                                                minWidth: '20px',
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: step.status === 'completed' ? '#11725B' : 'transparent',
+                                                border: step.status === 'completed' ? 'none' : '2px solid #CCCCCC',
+                                            }}
+                                        >
+                                            {step.status === 'completed' ? (
+                                                <Check size={12} color="#FFFFFF" />
+                                            ) : (
+                                                <Check size={12} color="#CCCCCC" strokeWidth={3} />
+                                            )}
+                                        </Box>
+                                        <Stack direction="column" sx={{ flex: 1 }}>
+                                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                <Typography fontWeight={500} fontSize={16}>
+                                                    {step.approvalResult
+                                                        ? `${step.title} - ${step.approvalResult}`
+                                                        : step.title
+                                                    }
+                                                </Typography>
+                                                {step.date && (
+                                                    <Typography fontSize={14} fontWeight={400} color="#999999">
+                                                        {step.date}
+                                                    </Typography>
+                                                )}
+                                            </Stack>
+                                        </Stack>
                                     </Stack>
-                                </Stack>
-                                <Stack direction="row" alignItems="flex-start" >
-                                    {stepIndex < getMockTimelineData().length - 1 && (
-                                        <Box>
+                                    <Stack direction="row" alignItems="stretch">
+                                        {stepIndex < getMockTimelineData().length - 1 && (
                                             <Divider
                                                 orientation="vertical"
                                                 flexItem
                                                 sx={{
-                                                    borderRightWidth: "1px",
-                                                    height: "216px",
+                                                    borderRightWidth: "0.5px",
                                                     borderColor: "#E0E0E0",
                                                     mt: 4,
-                                                    ml: 6,
+                                                    ml: 5,
                                                     mr: 12,
+                                                    mb: 2,
                                                 }}
                                             />
-                                        </Box>
-                                    )}
-                                    <Stack sx={{ flex: 1 }} spacing={6}>
-                                        {step.approverName && (
-                                            <Stack
-                                                direction="row"
-                                                spacing={4}
-                                                alignItems="center"
-                                                gap={2}>
-                                                <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
-                                                    {step.approverName}
-                                                </Typography>
-                                                {step.approverRole && (
-                                                    <>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4" fill="none">
-                                                            <circle cx="2" cy="2" r="2" fill="#CCCCCC" />
-                                                        </svg>
+                                        )}
+                                        <Stack sx={{ flex: 1 }} spacing={6} ml={2}>
+                                            {step.approverName && (
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={4}
+                                                    alignItems="center"
+                                                    gap={2}>
+                                                    <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
+                                                        {step.approverName}
+                                                    </Typography>
+                                                    {step.approverRole && (
+                                                        <>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4" fill="none">
+                                                                <circle cx="2" cy="2" r="2" fill="#CCCCCC" />
+                                                            </svg>
 
-                                                        <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
-                                                            {"Requestor"}
-                                                        </Typography>
-                                                    </>
-                                                )}
-                                            </Stack>
-                                        )}
-                                        {step.showDetailsLink && (
-                                            <Link
-                                                component="button"
-                                                variant="body2"
-                                                onClick={() => {
-                                                    console.log('See details clicked');
-                                                    // TODO: Implement details view
-                                                }}
-                                                sx={{
-                                                    color: '#13715B',
-                                                    fontSize: '13px',
-                                                    textDecoration: 'none',
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        textDecoration: 'underline',
-                                                    },
-                                                    alignSelf: 'flex-start',
-                                                }}
-                                            >
-                                                See details
-                                            </Link>
-                                        )}
-                                        {step.comment && (
-                                            <Stack direction="column" spacing={4}>
-                                                <Typography fontWeight={600} fontSize={14} color="#999999">
-                                                    Comment
-                                                </Typography>
-                                                <Typography fontWeight={500} fontSize={14}>
-                                                    {step.comment}
-                                                </Typography>
-                                            </Stack>
-                                        )}
+                                                            <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
+                                                                {step.approverRole}
+                                                            </Typography>
+                                                        </>
+                                                    )}
+                                                </Stack>
+                                            )}
+                                            {step.showDetailsLink && (
+                                                <Link
+                                                    component="button"
+                                                    variant="body2"
+                                                    onClick={() => {
+                                                        console.log('See details clicked');
+                                                        // TODO: Implement details view
+                                                    }}
+                                                    sx={{
+                                                        color: "#13715B",
+                                                        fontSize: '13px',
+                                                        fontWeight: 500,
+                                                        textDecoration: "underline",
+                                                        cursor: 'pointer',
+                                                        '&:hover': {
+                                                            color: "#0F5A47",
+                                                        },
+                                                        alignSelf: 'flex-start',
+                                                    }}
+                                                >
+                                                    See details
+                                                </Link>
+                                            )}
+                                            {step.comment && (
+                                                <Stack direction="column" spacing={4}>
+                                                    <Typography fontWeight={600} fontSize={14} color="#999999">
+                                                        Comment
+                                                    </Typography>
+                                                    <Typography fontWeight={500} fontSize={14}>
+                                                        {step.comment}
+                                                    </Typography>
+                                                </Stack>
+                                            )}
+                                        </Stack>
                                     </Stack>
-                                </Stack>
+                                </Box>
                             </React.Fragment>
                         ))}
                     </Stack>

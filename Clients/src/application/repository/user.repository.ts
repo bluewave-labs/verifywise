@@ -3,6 +3,7 @@ import { ApiResponse, User } from "../../domain/types/User";
 
 /**
  * User data for creating a new user
+ * Note: API expects snake_case (role_id) but we also accept roleId for flexibility
  */
 interface CreateUserData {
   name: string;
@@ -10,7 +11,9 @@ interface CreateUserData {
   email: string;
   password: string;
   roleId?: number;
+  role_id?: number;
   organizationId?: number;
+  organization_id?: number;
 }
 
 /**
@@ -64,7 +67,7 @@ interface ProfilePhotoResponse {
 export async function getUserById({
   userId,
 }: {
-  userId: number;
+  userId: number | string;
 }): Promise<ApiResponse<User>> {
   const response = await apiServices.get(`/users/${userId}`);
   return response.data as ApiResponse<User>;
@@ -87,8 +90,9 @@ export async function createNewUser({
     // Re-throw the error with the response data intact
     const axiosError = error as { response?: { status: number; data: unknown } };
     if (axiosError.response) {
+      const errorObj = error as Record<string, unknown>;
       throw {
-        ...error,
+        ...errorObj,
         status: axiosError.response.status,
         data: axiosError.response.data,
       };
@@ -101,7 +105,7 @@ export async function updateUserById({
   userId,
   userData,
 }: {
-  userId: number;
+  userId: number | string;
   userData: UpdateUserData;
 }): Promise<ApiResponse<User>> {
   const response = await apiServices.patch(`/users/${userId}`, userData);
@@ -113,7 +117,7 @@ export async function updatePassword({
   currentPassword,
   newPassword,
 }: {
-  userId: number;
+  userId: number | string;
   currentPassword: string;
   newPassword: string;
 }): Promise<ApiResponse<PasswordChangeResponse>> {
@@ -128,7 +132,7 @@ export async function updatePassword({
 export async function deleteUserById({
   userId,
 }: {
-  userId: number;
+  userId: number | string;
 }): Promise<ApiResponse<DeleteResponse>> {
   const response = await apiServices.delete(`/users/${userId}`);
   return response as ApiResponse<DeleteResponse>;
@@ -139,13 +143,22 @@ export async function checkUserExists(): Promise<UserExistsResponse> {
   return response.data;
 }
 
-export async function loginUser({ body }: { body: LoginCredentials }): Promise<ApiResponse<{ token: string }>> {
-  const response = await apiServices.post<{ token: string }>(`/users/login`, body);
+/**
+ * Login response with nested data structure
+ */
+interface LoginResponse {
+  data: {
+    token: string;
+  };
+}
+
+export async function loginUser({ body }: { body: LoginCredentials }): Promise<ApiResponse<LoginResponse>> {
+  const response = await apiServices.post<LoginResponse>(`/users/login`, body);
   return response;
 }
 
 export async function uploadUserProfilePhoto(
-  userId: number,
+  userId: number | string,
   photoFile: File,
 ): Promise<ApiResponse<ProfilePhotoResponse>> {
   const formData = new FormData();
@@ -163,7 +176,7 @@ export async function uploadUserProfilePhoto(
   return response;
 }
 
-export async function getUserProfilePhoto(userId: number): Promise<ProfilePhotoResponse> {
+export async function getUserProfilePhoto(userId: number | string): Promise<ProfilePhotoResponse> {
   const response = await apiServices.get<ProfilePhotoResponse>(`/users/${userId}/profile-photo`, {
     responseType: "json",
   });
@@ -173,10 +186,10 @@ export async function getUserProfilePhoto(userId: number): Promise<ProfilePhotoR
 /**
  * Deletes a user's profile photo.
  *
- * @param {number} userId - The ID of the user.
+ * @param {number | string} userId - The ID of the user.
  * @returns {Promise<ApiResponse<DeleteResponse>>} The response from the API.
  */
-export async function deleteUserProfilePhoto(userId: number): Promise<ApiResponse<DeleteResponse>> {
+export async function deleteUserProfilePhoto(userId: number | string): Promise<ApiResponse<DeleteResponse>> {
   const response = await apiServices.delete<DeleteResponse>(`/users/${userId}/profile-photo`);
   return response;
 }

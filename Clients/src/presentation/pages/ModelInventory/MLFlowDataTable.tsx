@@ -24,8 +24,7 @@ import {
 import { RefreshCw, XCircle, Eye, ChevronsUpDown } from "lucide-react";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
-import RiskChip from "../../components/RiskLevel/RiskChip";
-import { getSeverityColorByText } from "../../components/RiskLevel/constants";
+import VWChip from "../../components/Chip";
 import EmptyState from "../../components/EmptyState";
 import { vwhomeHeaderCards } from "../../pages/Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -273,7 +272,7 @@ const MLFlowDataTable: React.FC = () => {
                       {model.version}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      <RiskChip label={model.lifecycle_stage} backgroundColor={getSeverityColorByText(model.lifecycle_stage)} />
+                      <VWChip label={model.lifecycle_stage} />
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {formatDate(model.creation_timestamp)}

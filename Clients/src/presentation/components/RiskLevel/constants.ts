@@ -61,32 +61,3 @@ export enum Severity {
   Catastrophic = 5,
 }
 
-export const SEVERITY_COLOR_LOOKUP: Record<string, string> = Object.entries(
-  RISK_LABELS
-).reduce((acc, [key, val]) => {
-  acc[key.toLowerCase()] = val.color;
-  acc[val.text.toLowerCase()] = val.color;
-  return acc;
-}, {} as Record<string, string>);
-
-// Add model risk level mappings
-SEVERITY_COLOR_LOOKUP["low"] = RISK_LABELS.low.color;
-SEVERITY_COLOR_LOOKUP["medium"] = RISK_LABELS.medium.color;
-SEVERITY_COLOR_LOOKUP["high"] = RISK_LABELS.high.color;
-SEVERITY_COLOR_LOOKUP["critical"] = RISK_LABELS.critical.color;
-
-export const getSeverityColorByText = (severity: string): string => {
-  if (!severity) return "#B0B0B0";
-  const color = SEVERITY_COLOR_LOOKUP[severity.toLowerCase().trim()];
-  return color ?? "#B0B0B0";
-};
-
-// Reusable chip style object to avoid repetitive styling
-export const getRiskChipStyle = () => ({
-  color: "white",
-  fontWeight: 500,
-  borderRadius: "4px !important",
-  height: 34,
-  fontSize: 13,
-  minWidth: 110,
-});

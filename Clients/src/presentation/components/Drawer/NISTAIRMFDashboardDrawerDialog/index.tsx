@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, useRef, lazy } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { Box } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Button, CircularProgress } from "@mui/material";
+import { Button, CircularProgress, useTheme } from "@mui/material";
 import { Stack } from "@mui/material";
 import { Divider, Drawer, Typography } from "@mui/material";
-import { X as CloseIcon, Save as SaveIcon } from "lucide-react";
+import { X as CloseIcon, Save as SaveIcon, Trash2 as DeleteIcon, Eye as ViewIcon, Download as DownloadIcon, FileText as FileIcon } from "lucide-react";
 
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -15,18 +15,31 @@ import ChipInput from "../../Inputs/ChipInput";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Alert from "../../Alert";
 import TabBar from "../../TabBar";
+import LinkedRisksPopup from "../../LinkedRisks";
+import StandardModal from "../../Modals/StandardModal";
+
+const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 import {
   NISTAIRMFDrawerProps,
   NISTAIRMFStatus,
 } from "../../../pages/Framework/NIST-AI-RMF/types";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { updateEntityById, getEntityById } from "../../../../application/repository/entity.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import { FileData } from "../../../../domain/types/File";
 import { getFileById } from "../../../../application/repository/file.repository";
 import allowedRoles from "../../../../application/constants/permissions";
+
+// Type for risk objects
+interface LinkedRisk {
+  id: number;
+  risk_name: string;
+  risk_description?: string;
+  risk_level?: string;
+  mitigation_status?: string;
+}
 
 export const inputStyles = {
   minWidth: 200,
@@ -43,10 +56,24 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   category,
   function: functionType,
 }) => {
+  const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState("details");
+
+  // Risk linking state
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState(false);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [currentRisks, setCurrentRisks] = useState<number[]>([]);
+  const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRisk[]>([]);
+
+  // Risk detail modal state
+  const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
+  const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
+  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   const { userRoleName, userId } = useAuth();
   const { users } = useUsers();
@@ -75,6 +102,37 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     setUploadFiles([]);
     setDeletedFiles([]);
   }, [subcategory]);
+
+  // Fetch linked risks when subcategory changes
+  useEffect(() => {
+    const fetchLinkedRisks = async () => {
+      if (subcategory?.id) {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
+          });
+          if (response.data) {
+            const riskIds = response.data.map((risk: any) => risk.id);
+            setCurrentRisks(riskIds);
+            // Store full risk objects for display
+            setLinkedRiskObjects(response.data as LinkedRisk[]);
+          }
+        } catch (error) {
+          console.error("Error fetching linked risks:", error);
+          setCurrentRisks([]);
+          setLinkedRiskObjects([]);
+        }
+      } else {
+        setCurrentRisks([]);
+        setLinkedRiskObjects([]);
+      }
+      // Reset risk selection state
+      setSelectedRisks([]);
+      setDeletedRisks([]);
+    };
+
+    fetchLinkedRisks();
+  }, [subcategory?.id]);
 
   const [formData, setFormData] = useState({
     status: NISTAIRMFStatus.NOT_STARTED,
@@ -113,6 +171,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       label: "Evidence",
       value: "evidences",
       icon: "FolderOpen" as const,
+    },
+    {
+      label: "Cross mappings",
+      value: "cross-mappings",
+      icon: "Link" as const,
     },
   ];
 
@@ -296,6 +359,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("delete", JSON.stringify(deletedFiles));
 
+      // Add risk linking parameters
+      formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
+      formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+
       // Add uploaded files - use the exact same pattern as ISO frameworks
       uploadFiles.forEach((file: FileData) => {
         if (file.data instanceof Blob) {
@@ -325,12 +392,39 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         });
         setTimeout(() => setAlert(null), 3000); // 3 seconds
 
+        // Reset pending states after successful save
+        setUploadFiles([]);
+        setDeletedFiles([]);
+        setSelectedRisks([]);
+        setDeletedRisks([]);
+
+        // Refresh data from server
+        if (subcategory?.id) {
+          // Refresh evidence files
+          const subcategoryResponse = await getEntityById({
+            routeUrl: `/nist-ai-rmf/subcategories/byId/${subcategory.id}`,
+          });
+          if (subcategoryResponse.data?.evidence_links) {
+            setEvidenceFiles(subcategoryResponse.data.evidence_links);
+          }
+
+          // Refresh linked risks
+          const risksResponse = await getEntityById({
+            routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
+          });
+          if (risksResponse.data) {
+            const riskIds = risksResponse.data.map((risk: any) => risk.id);
+            setCurrentRisks(riskIds);
+            setLinkedRiskObjects(risksResponse.data as LinkedRisk[]);
+          }
+        }
+
         onSaveSuccess?.(
           true,
           "Subcategory updated successfully",
           subcategory.id
         );
-        onClose();
+        // Don't close the drawer - user can continue editing or close manually with X
       } else {
         throw new Error(
           response.data?.message || "Failed to update subcategory"
@@ -352,6 +446,66 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     }
   };
 
+  // Handle opening risk detail modal
+  const handleViewRiskDetails = async (risk: LinkedRisk) => {
+    setSelectedRiskForView(risk);
+    try {
+      // Fetch full risk data
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/${risk.id}`,
+      });
+      if (response.data) {
+        const riskData = response.data;
+        setRiskFormData({
+          riskName: riskData.risk_name || "",
+          actionOwner: riskData.risk_owner || 0,
+          aiLifecyclePhase: riskData.ai_lifecycle_phase || 0,
+          riskDescription: riskData.risk_description || "",
+          riskCategory: riskData.risk_category || [1],
+          potentialImpact: riskData.impact || "",
+          assessmentMapping: riskData.assessment_mapping || 0,
+          controlsMapping: riskData.controls_mapping || 0,
+          likelihood: riskData.likelihood_score || 1,
+          riskSeverity: riskData.severity_score || 1,
+          riskLevel: riskData.risk_level || 0,
+          reviewNotes: riskData.review_notes || "",
+          applicableProjects: riskData.applicable_projects || [],
+          applicableFrameworks: riskData.applicable_frameworks || [],
+        });
+        setIsRiskDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching risk details:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to load risk details",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
+
+  const handleRiskDetailModalClose = () => {
+    setIsRiskDetailModalOpen(false);
+    setSelectedRiskForView(null);
+    setRiskFormData(null);
+  };
+
+  const handleRiskUpdateSuccess = () => {
+    handleRiskDetailModalClose();
+    // Refresh linked risks
+    if (subcategory?.id) {
+      getEntityById({
+        routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}/risks`,
+      }).then((response) => {
+        if (response.data) {
+          const riskIds = response.data.map((risk: any) => risk.id);
+          setCurrentRisks(riskIds);
+          setLinkedRiskObjects(response.data as LinkedRisk[]);
+        }
+      });
+    }
+  };
+
   return (
     <>
       <Drawer
@@ -366,8 +520,10 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
           width: 600,
           margin: 0,
           "& .MuiDrawer-paper": {
+            width: 600,
             margin: 0,
             borderRadius: 0,
+            overflowX: "hidden",
           },
         }}
         anchor="right"
@@ -612,95 +768,15 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                 {/* Evidences Tab */}
                 <TabPanel value="evidences" sx={{ padding: "15px 20px" }}>
                   <Stack spacing={3}>
-                    {/* Existing Evidence Files */}
-                    {evidenceFiles.length > 0 && (
-                      <Stack spacing={2}>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 600 }}
-                        >
-                          Attached Evidence Files ({evidenceFiles.length})
-                        </Typography>
-                        {evidenceFiles.map((file) => (
-                          <Box
-                            key={file.id}
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              padding: 2,
-                              border: `1px solid #EAECF0`,
-                              borderRadius: 1,
-                              backgroundColor: "#FFFFFF",
-                              "&:hover": {
-                                backgroundColor: "#F9FAFB",
-                              },
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
-                                flex: 1,
-                                minWidth: 0,
-                              }}
-                            >
-                              <SaveIcon size={20} color="#475467" />
-                              <Box sx={{ minWidth: 0, flex: 1 }}>
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    fontWeight: 500,
-                                    color: "#1F2937",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  {file.fileName}
-                                </Typography>
-                                <Typography variant="caption" color="#6B7280">
-                                  {file.size &&
-                                    `${(file.size / 1024).toFixed(1)} KB`}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button
-                                size="small"
-                                variant="text"
-                                color="primary"
-                                onClick={() => {
-                                  handleEvidenceFileDownload(
-                                    file.id,
-                                    file.fileName
-                                  );
-                                }}
-                                sx={{ minWidth: "auto", padding: "4px 8px" }}
-                              >
-                                Download
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="text"
-                                color="error"
-                                onClick={() =>
-                                  handleDeleteEvidenceFile(file.id)
-                                }
-                                disabled={isEditingDisabled}
-                                sx={{ minWidth: "auto", padding: "4px 8px" }}
-                              >
-                                Delete
-                              </Button>
-                            </Box>
-                          </Box>
-                        ))}
-                      </Stack>
-                    )}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Evidence files
+                    </Typography>
+                    <Typography variant="body2" color="#6B7280">
+                      Upload evidence files to document how this subcategory is being implemented.
+                    </Typography>
 
-                    {/* File Upload Section */}
-                    <Box sx={{ mt: 2 }}>
+                    {/* File Upload Button */}
+                    <Box>
                       <input
                         type="file"
                         multiple
@@ -715,36 +791,179 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           e.target.value = ""; // Reset input
                         }}
                       />
-                      <Button
-                        variant="outlined"
-                        component="label"
-                        htmlFor="evidence-file-input"
-                        disabled={isEditingDisabled}
-                        sx={{
-                          borderColor: "#13715B",
-                          color: "#13715B",
-                          "&:hover": {
-                            borderColor: "#0e5c47",
-                            backgroundColor: "rgba(19, 113, 91, 0.04)",
-                          },
-                          "&:disabled": {
-                            borderColor: "#cccccc",
-                            color: "#cccccc",
-                          },
-                        }}
-                      >
-                        Add evidence files
-                      </Button>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Button
+                          variant="contained"
+                          component="label"
+                          htmlFor="evidence-file-input"
+                          disabled={isEditingDisabled}
+                          sx={{
+                            borderRadius: 2,
+                            width: 155,
+                            height: 25,
+                            fontSize: 11,
+                            border: "1px solid #D0D5DD",
+                            backgroundColor: "white",
+                            color: "#344054",
+                          }}
+                          disableRipple={
+                            theme.components?.MuiButton?.defaultProps?.disableRipple
+                          }
+                        >
+                          Add evidence files
+                        </Button>
+                        <Stack direction="row" spacing={2}>
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              color: "#344054",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {`${evidenceFiles.length || 0} files attached`}
+                          </Typography>
+                          {uploadFiles.length > 0 && (
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                color: "#13715B",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              {`+${uploadFiles.length} pending upload`}
+                            </Typography>
+                          )}
+                          {deletedFiles.length > 0 && (
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                color: "#D32F2F",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              {`-${deletedFiles.length} pending delete`}
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Stack>
                     </Box>
+
+                    {/* Existing Evidence Files */}
+                    {evidenceFiles.length > 0 && (
+                      <Stack spacing={1}>
+                        {evidenceFiles.map((file) => (
+                          <Box
+                            key={file.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 12px",
+                              border: "1px solid #EAECF0",
+                              borderRadius: "4px",
+                              backgroundColor: "#FFFFFF",
+                              "&:hover": {
+                                backgroundColor: "#F9FAFB",
+                              },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
+                                flex: 1,
+                                minWidth: 0,
+                              }}
+                            >
+                              <FileIcon size={18} color="#475467" />
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    color: "#1F2937",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {file.fileName}
+                                </Typography>
+                                {file.size && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: 11,
+                                      color: "#6B7280",
+                                    }}
+                                  >
+                                    {(file.size / 1024).toFixed(1)} KB
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                            <Box sx={{ display: "flex", gap: 0.5 }}>
+                              <Tooltip title="Download file">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                    handleEvidenceFileDownload(
+                                      file.id,
+                                      file.fileName
+                                    );
+                                  }}
+                                  sx={{
+                                    color: "#475467",
+                                    "&:hover": {
+                                      color: "#13715B",
+                                      backgroundColor: "rgba(19, 113, 91, 0.08)",
+                                    },
+                                  }}
+                                >
+                                  <DownloadIcon size={16} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete file">
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    handleDeleteEvidenceFile(file.id)
+                                  }
+                                  disabled={isEditingDisabled}
+                                  sx={{
+                                    color: "#475467",
+                                    "&:hover": {
+                                      color: "#D32F2F",
+                                      backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                    },
+                                    "&:disabled": {
+                                      color: "#D1D5DB",
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon size={16} />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
 
                     {/* Upload Queue Files */}
                     {uploadFiles.length > 0 && (
-                      <Stack spacing={2}>
+                      <Stack spacing={1}>
                         <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 600 }}
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#92400E",
+                          }}
                         >
-                          Files Ready to Upload ({uploadFiles.length})
+                          Pending upload
                         </Typography>
                         {uploadFiles.map((file) => (
                           <Box
@@ -753,9 +972,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "space-between",
-                              padding: 2,
-                              border: `1px solid #FEF3C7`,
-                              borderRadius: 1,
+                              padding: "10px 12px",
+                              border: "1px solid #FEF3C7",
+                              borderRadius: "4px",
                               backgroundColor: "#FFFBEB",
                             }}
                           >
@@ -763,16 +982,16 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                               sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 2,
+                                gap: 1.5,
                                 flex: 1,
                                 minWidth: 0,
                               }}
                             >
-                              <SaveIcon size={20} color="#D97706" />
+                              <FileIcon size={18} color="#D97706" />
                               <Box sx={{ minWidth: 0, flex: 1 }}>
                                 <Typography
-                                  variant="body2"
                                   sx={{
+                                    fontSize: 13,
                                     fontWeight: 500,
                                     color: "#92400E",
                                     overflow: "hidden",
@@ -782,21 +1001,33 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 >
                                   {file.fileName}
                                 </Typography>
-                                <Typography variant="caption" color="#B45309">
-                                  {file.size &&
-                                    `${(file.size / 1024).toFixed(1)} KB`}
-                                </Typography>
+                                {file.size && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: 11,
+                                      color: "#B45309",
+                                    }}
+                                  >
+                                    {(file.size / 1024).toFixed(1)} KB
+                                  </Typography>
+                                )}
                               </Box>
                             </Box>
-                            <Button
-                              size="small"
-                              variant="text"
-                              color="error"
-                              onClick={() => handleDeleteUploadFile(file.id)}
-                              sx={{ minWidth: "auto", padding: "4px 8px" }}
-                            >
-                              Remove
-                            </Button>
+                            <Tooltip title="Remove from queue">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeleteUploadFile(file.id)}
+                                sx={{
+                                  color: "#92400E",
+                                  "&:hover": {
+                                    color: "#D32F2F",
+                                    backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                  },
+                                }}
+                              >
+                                <DeleteIcon size={16} />
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         ))}
                       </Stack>
@@ -808,7 +1039,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           textAlign: "center",
                           py: 4,
                           color: "#6B7280",
-                          border: `2px dashed #D1D5DB`,
+                          border: "2px dashed #D1D5DB",
                           borderRadius: 1,
                           backgroundColor: "#F9FAFB",
                         }}
@@ -825,7 +1056,209 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   </Stack>
                 </TabPanel>
 
+                {/* Cross Mappings Tab */}
+                <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
+                  <Stack spacing={3}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Linked risks
+                    </Typography>
+                    <Typography variant="body2" color="#6B7280">
+                      Link risks from your risk database to this subcategory to
+                      track which risks are being addressed by this implementation.
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Button
+                        variant="contained"
+                        sx={{
+                          borderRadius: 2,
+                          width: 155,
+                          height: 25,
+                          fontSize: 11,
+                          border: "1px solid #D0D5DD",
+                          backgroundColor: "white",
+                          color: "#344054",
+                        }}
+                        disableRipple={
+                          theme.components?.MuiButton?.defaultProps?.disableRipple
+                        }
+                        onClick={() => setIsLinkedRisksModalOpen(true)}
+                        disabled={isEditingDisabled}
+                      >
+                        Add/remove risks
+                      </Button>
+                      <Stack direction="row" spacing={2}>
+                        <Typography
+                          sx={{
+                            fontSize: 11,
+                            color: "#344054",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {`${currentRisks.length || 0} risks linked`}
+                        </Typography>
+                        {selectedRisks.length > 0 && (
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              color: "#13715B",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {`+${selectedRisks.length} pending save`}
+                          </Typography>
+                        )}
+                        {deletedRisks.length > 0 && (
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              color: "#D32F2F",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {`-${deletedRisks.length} pending delete`}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Stack>
+
+                    {/* Linked risks list */}
+                    {linkedRiskObjects.length > 0 && (
+                      <Stack spacing={1}>
+                        {linkedRiskObjects
+                          .filter((risk) => !deletedRisks.includes(risk.id))
+                          .map((risk) => (
+                            <Box
+                              key={risk.id}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                padding: "10px 12px",
+                                border: "1px solid #EAECF0",
+                                borderRadius: "4px",
+                                backgroundColor: "#FFFFFF",
+                                "&:hover": {
+                                  backgroundColor: "#F9FAFB",
+                                },
+                              }}
+                            >
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    color: "#1F2937",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {risk.risk_name}
+                                </Typography>
+                                {risk.risk_level && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: 11,
+                                      color: "#6B7280",
+                                    }}
+                                  >
+                                    Risk level: {risk.risk_level}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Box sx={{ display: "flex", gap: 0.5 }}>
+                                <Tooltip title="View risk details">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleViewRiskDetails(risk)}
+                                    sx={{
+                                      color: "#475467",
+                                      "&:hover": {
+                                        color: "#13715B",
+                                        backgroundColor: "rgba(19, 113, 91, 0.08)",
+                                      },
+                                    }}
+                                  >
+                                    <ViewIcon size={16} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Unlink risk">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      // Add to deleted risks and remove from current
+                                      setDeletedRisks((prev) => [...prev, risk.id]);
+                                      handleAlert({
+                                        variant: "info",
+                                        body: "Risk marked for unlinking. Save to apply changes.",
+                                      });
+                                    }}
+                                    disabled={isEditingDisabled}
+                                    sx={{
+                                      color: "#475467",
+                                      "&:hover": {
+                                        color: "#D32F2F",
+                                        backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                      },
+                                      "&:disabled": {
+                                        color: "#D1D5DB",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteIcon size={16} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </Box>
+                          ))}
+                      </Stack>
+                    )}
+
+                    {currentRisks.length === 0 &&
+                      selectedRisks.length === 0 && (
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            py: 4,
+                            color: "#6B7280",
+                            border: `2px dashed #D1D5DB`,
+                            borderRadius: 1,
+                            backgroundColor: "#F9FAFB",
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            No risks linked yet
+                          </Typography>
+                          <Typography variant="caption" color="#9CA3AF">
+                            Click "Add/remove risks" to link risks from your
+                            risk database
+                          </Typography>
+                        </Box>
+                      )}
+                  </Stack>
+                </TabPanel>
+
               </TabContext>
+
+              {/* Linked Risks Modal */}
+              {isLinkedRisksModalOpen && (
+                <Suspense fallback={"Loading..."}>
+                  <LinkedRisksPopup
+                    onClose={() => setIsLinkedRisksModalOpen(false)}
+                    currentRisks={currentRisks
+                      .concat(selectedRisks)
+                      .filter((risk) => !deletedRisks.includes(risk))}
+                    setSelectecRisks={setSelectedRisks}
+                    _setDeletedRisks={setDeletedRisks}
+                    frameworkId={4}
+                    isOrganizational={true}
+                  />
+                </Suspense>
+              )}
 
               <Divider />
 
@@ -863,6 +1296,35 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
+
+      {/* Risk Detail Modal */}
+      <StandardModal
+        isOpen={isRiskDetailModalOpen && !!riskFormData}
+        onClose={handleRiskDetailModalClose}
+        title={`Risk: ${selectedRiskForView?.risk_name || "Risk Details"}`}
+        description="View and edit risk details"
+        onSubmit={() => onRiskSubmitRef.current?.()}
+        submitButtonText="Update"
+        maxWidth="1039px"
+      >
+        <Suspense fallback={<CircularProgress />}>
+          <AddNewRiskForm
+            closePopup={handleRiskDetailModalClose}
+            popupStatus="edit"
+            initialRiskValues={riskFormData}
+            onSuccess={handleRiskUpdateSuccess}
+            onError={(error) => {
+              setAlert({
+                variant: "error",
+                body: error?.message || "Failed to update risk",
+              });
+              setTimeout(() => setAlert(null), 3000);
+            }}
+            users={users}
+            onSubmitRef={onRiskSubmitRef}
+          />
+        </Suspense>
+      </StandardModal>
     </>
   );
 };

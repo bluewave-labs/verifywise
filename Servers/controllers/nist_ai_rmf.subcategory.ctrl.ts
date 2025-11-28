@@ -3,6 +3,7 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import {
   getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery,
   getNISTAIRMFSubcategoryByIdQuery,
+  getNISTAIRMFSubcategoryRisksQuery,
   updateNISTAIRMFSubcategoryByIdQuery,
   updateNISTAIRMFSubcategoryStatusByIdQuery,
   countNISTAIRMFSubcategoriesProgress,
@@ -127,6 +128,55 @@ export async function getNISTAIRMFSubcategoryById(
   }
 }
 
+/**
+ * Get all risks linked to a NIST AI RMF subcategory
+ */
+export async function getNISTAIRMFSubcategoryRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const subcategoryId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getNISTAIRMFSubcategoryRisks for subcategory ID ${subcategoryId}`,
+    functionName: "getNISTAIRMFSubcategoryRisks",
+    fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+  });
+  logger.debug(`🔍 Fetching risks for NIST AI RMF subcategory ${subcategoryId}`);
+
+  try {
+    const risks = await getNISTAIRMFSubcategoryRisksQuery(
+      subcategoryId,
+      req.tenantId!
+    );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Successfully retrieved ${risks.length} risks for NIST AI RMF subcategory ${subcategoryId}`,
+      functionName: "getNISTAIRMFSubcategoryRisks",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+    });
+
+    return res.status(200).json({
+      message: "Risks retrieved successfully",
+      data: risks,
+    });
+  } catch (error) {
+    await logEvent(
+      "Error",
+      `Failed to get NIST AI RMF subcategory risks: ${(error as Error).message}`
+    );
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get NIST AI RMF subcategory risks: ${(error as Error).message}`,
+      functionName: "getNISTAIRMFSubcategoryRisks",
+      fileName: "nist_ai_rmf.subcategory.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 export async function updateNISTAIRMFSubcategoryById(
   req: RequestWithFile,
   res: Response
@@ -147,6 +197,8 @@ export async function updateNISTAIRMFSubcategoryById(
       delete?: string;
       project_id?: string;
       tags?: string | string[]; // Tags come as JSON string from FormData
+      risksDelete?: string; // JSON string of risk IDs to delete
+      risksMitigated?: string; // JSON string of risk IDs to add
     };
 
     // Parse tags from JSON string if present
@@ -226,7 +278,11 @@ export async function updateNISTAIRMFSubcategoryById(
 
     const updatedSubcategory = await updateNISTAIRMFSubcategoryByIdQuery(
       subcategoryId,
-      subcategory,
+      {
+        ...subcategory,
+        risksDelete: subcategory.risksDelete,
+        risksMitigated: subcategory.risksMitigated,
+      },
       uploadedFiles,
       filesToDeleteAsStrings,
       req.tenantId!,

@@ -1,9 +1,9 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Fab, Tooltip, useTheme } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { BarChart3, ChevronDown } from "lucide-react"
+import { BarChart3, ChevronDown, MessageSquare } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
@@ -36,6 +36,7 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import RiskAdvisorChat from "../../components/RiskAdvisorChat";
 
 /**
  * Set initial loading status for all CRUD process
@@ -54,6 +55,7 @@ const initialLoadingState: LoadingStatus = {
 const RiskManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const theme = useTheme();
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -250,6 +252,7 @@ const RiskManagement = () => {
       risk.risk_description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [filterData, projectRisks, searchTerm]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -1034,6 +1037,36 @@ const RiskManagement = () => {
       />
 
       <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
+      
+      {!isChatOpen && (
+        <Tooltip title="Ask AI Risk Advisor" placement="left">
+          <Fab
+            color="primary"
+            aria-label="Open AI Risk Advisor"
+            onClick={() => setIsChatOpen(true)}
+            sx={{
+              position: 'fixed',
+              bottom: 44,
+              right: 44,
+              backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+                backgroundColor: '#0f604d',
+              },
+              boxShadow: '0px 4px 12px rgba(19, 113, 91, 0.3)',
+              zIndex: 1000,
+            }}
+          >
+            <MessageSquare size={24} />
+          </Fab>
+        </Tooltip>
+      )}
+
+      {/* AI Risk Advisor Chat */}
+      <RiskAdvisorChat
+        open={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        risks={projectRisks}
+      />
       </Stack>
     </Stack>
   );

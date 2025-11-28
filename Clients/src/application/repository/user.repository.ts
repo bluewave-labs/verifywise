@@ -1,6 +1,66 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { ApiResponse, User } from "../../domain/types/User";
 
+/**
+ * User data for creating a new user
+ */
+interface CreateUserData {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  roleId?: number;
+  organizationId?: number;
+}
+
+/**
+ * User data for updating an existing user
+ */
+interface UpdateUserData {
+  name?: string;
+  surname?: string;
+  email?: string;
+  roleId?: number;
+  organizationId?: number;
+}
+
+/**
+ * Login credentials
+ */
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * Response from password change endpoint
+ */
+interface PasswordChangeResponse {
+  message: string;
+}
+
+/**
+ * Response from delete endpoint
+ */
+interface DeleteResponse {
+  message: string;
+}
+
+/**
+ * Response from check user exists endpoint
+ */
+interface UserExistsResponse {
+  exists: boolean;
+}
+
+/**
+ * Response from profile photo upload
+ */
+interface ProfilePhotoResponse {
+  photoUrl?: string;
+  message?: string;
+}
+
 export async function getUserById({
   userId,
 }: {
@@ -18,18 +78,19 @@ export async function getAllUsers(): Promise<ApiResponse<User[]>> {
 export async function createNewUser({
   userData,
 }: {
-  userData: any;
+  userData: CreateUserData;
 }): Promise<ApiResponse<User>> {
   try {
     const response = await apiServices.post(`/users/register`, userData);
     return response as ApiResponse<User>;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Re-throw the error with the response data intact
-    if (error.response) {
+    const axiosError = error as { response?: { status: number; data: unknown } };
+    if (axiosError.response) {
       throw {
         ...error,
-        status: error.response.status,
-        data: error.response.data,
+        status: axiosError.response.status,
+        data: axiosError.response.data,
       };
     }
     throw error;
@@ -41,7 +102,7 @@ export async function updateUserById({
   userData,
 }: {
   userId: number;
-  userData: any;
+  userData: UpdateUserData;
 }): Promise<ApiResponse<User>> {
   const response = await apiServices.patch(`/users/${userId}`, userData);
   return response as ApiResponse<User>;
@@ -55,70 +116,55 @@ export async function updatePassword({
   userId: number;
   currentPassword: string;
   newPassword: string;
-}): Promise<any> {
+}): Promise<ApiResponse<PasswordChangeResponse>> {
   const response = await apiServices.patch(`/users/chng-pass/${userId}`, {
     id: userId,
     currentPassword,
     newPassword,
   });
-  return response;
+  return response as ApiResponse<PasswordChangeResponse>;
 }
 
 export async function deleteUserById({
   userId,
 }: {
   userId: number;
-}): Promise<any> {
+}): Promise<ApiResponse<DeleteResponse>> {
   const response = await apiServices.delete(`/users/${userId}`);
+  return response as ApiResponse<DeleteResponse>;
+}
+
+export async function checkUserExists(): Promise<UserExistsResponse> {
+  const response = await apiServices.get<UserExistsResponse>(`/users/check/exists`);
+  return response.data;
+}
+
+export async function loginUser({ body }: { body: LoginCredentials }): Promise<ApiResponse<{ token: string }>> {
+  const response = await apiServices.post<{ token: string }>(`/users/login`, body);
   return response;
-}
-
-export async function checkUserExists(): Promise<any> {
-  try {
-    const response = await apiServices.get(`/users/check/exists`);
-    return response.data;
-  } catch (error) {
-    console.error("Error checking if user exists:", error);
-    throw error;
-  }
-}
-
-export async function loginUser({ body }: { body: any }): Promise<any> {
-  try {
-    const response = await apiServices.post(`/users/login`, body);
-    return response;
-  } catch (error) {
-    console.error("Error logging in user:", error);
-    throw error;
-  }
 }
 
 export async function uploadUserProfilePhoto(
   userId: number,
   photoFile: File,
-): Promise<any> {
-  try {
-    const formData = new FormData();
-    formData.append("photo", photoFile);
+): Promise<ApiResponse<ProfilePhotoResponse>> {
+  const formData = new FormData();
+  formData.append("photo", photoFile);
 
-    const response = await apiServices.post(
-      `/users/${userId}/profile-photo`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+  const response = await apiServices.post<ProfilePhotoResponse>(
+    `/users/${userId}/profile-photo`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    );
-    return response;
-  } catch (error) {
-    console.error("Error uploading profile photo:", error);
-    throw error;
-  }
+    },
+  );
+  return response;
 }
 
-export async function getUserProfilePhoto(userId: number): Promise<any> {
-  const response = await apiServices.get(`/users/${userId}/profile-photo`, {
+export async function getUserProfilePhoto(userId: number): Promise<ProfilePhotoResponse> {
+  const response = await apiServices.get<ProfilePhotoResponse>(`/users/${userId}/profile-photo`, {
     responseType: "json",
   });
   return response.data;
@@ -128,14 +174,9 @@ export async function getUserProfilePhoto(userId: number): Promise<any> {
  * Deletes a user's profile photo.
  *
  * @param {number} userId - The ID of the user.
- * @returns {Promise<any>} The response from the API.
+ * @returns {Promise<ApiResponse<DeleteResponse>>} The response from the API.
  */
-export async function deleteUserProfilePhoto(userId: number): Promise<any> {
-  try {
-    const response = await apiServices.delete(`/users/${userId}/profile-photo`);
-    return response;
-  } catch (error) {
-    console.error("Error deleting profile photo:", error);
-    throw error;
-  }
+export async function deleteUserProfilePhoto(userId: number): Promise<ApiResponse<DeleteResponse>> {
+  const response = await apiServices.delete<DeleteResponse>(`/users/${userId}/profile-photo`);
+  return response;
 }

@@ -56,6 +56,7 @@ import llmKeyRouter from "./routes/llmKey.route";
 import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
+import advisorRouter from "./routes/advisor.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -150,6 +151,7 @@ try {
   app.use("/api/llm-keys", llmKeyRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/advisor", advisorRouter);
 
   // Adding background jobs in the Queue
   (async () => {

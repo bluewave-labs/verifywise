@@ -33,9 +33,10 @@ interface FrameworkData {
 
 interface FrameworkProgressCardProps {
   frameworksData: FrameworkData[];
+  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
-const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) => {
+const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgressCardProps) => {
   const calculateProgress = (done: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((done / total) * 100);
@@ -116,7 +117,19 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     const percent = calculateProgress(data.done, data.total);
 
                     return (
-                      <Box key={func.key}>
+                      <Box
+                        key={func.key}
+                        onClick={() => onNavigate?.(framework.frameworkName, func.key)}
+                        sx={{
+                          cursor: onNavigate ? "pointer" : "default",
+                          "&:hover": onNavigate ? {
+                            backgroundColor: "#F9FAFB",
+                            borderRadius: "4px",
+                            margin: "-4px",
+                            padding: "4px",
+                          } : {},
+                        }}
+                      >
                         <Box
                           sx={{
                             display: "grid",
@@ -201,7 +214,20 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
               </Typography>
 
               {/* Controls/Clauses Progress */}
-              <Box sx={{ mb: 2 }}>
+              <Box
+                onClick={() => onNavigate?.(framework.frameworkName, "clauses")}
+                sx={{
+                  mb: 2,
+                  cursor: onNavigate ? "pointer" : "default",
+                  "&:hover": onNavigate ? {
+                    backgroundColor: "#F9FAFB",
+                    borderRadius: "4px",
+                    margin: "-4px",
+                    marginBottom: "4px",
+                    padding: "4px",
+                  } : {},
+                }}
+              >
                 <Box
                   sx={{
                     display: "grid",
@@ -253,7 +279,18 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
               </Box>
 
               {/* Annexes Progress */}
-              <Box>
+              <Box
+                onClick={() => onNavigate?.(framework.frameworkName, "annexes")}
+                sx={{
+                  cursor: onNavigate ? "pointer" : "default",
+                  "&:hover": onNavigate ? {
+                    backgroundColor: "#F9FAFB",
+                    borderRadius: "4px",
+                    margin: "-4px",
+                    padding: "4px",
+                  } : {},
+                }}
+              >
                 <Box
                   sx={{
                     display: "grid",

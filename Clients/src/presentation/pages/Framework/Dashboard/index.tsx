@@ -1,5 +1,6 @@
 import { Box, Stack, Typography, CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -13,6 +14,12 @@ import StatusBreakdownCard from "./StatusBreakdownCard";
 import ControlCategoriesCard from "./ControlCategoriesCard";
 import AnnexOverviewCard from "./AnnexOverviewCard";
 import NISTFunctionsOverviewCard from "./NISTFunctionsOverviewCard";
+
+// localStorage keys for framework controls navigation
+const FRAMEWORK_SELECTED_KEY = "verifywise_framework_selected";
+const ISO27001_TAB_KEY = "verifywise_iso27001_tab";
+const ISO42001_TAB_KEY = "verifywise_iso42001_tab";
+const NIST_AI_RMF_TAB_KEY = "verifywise_nist_ai_rmf_tab";
 
 interface DashboardProps {
   organizationalProject: Project;
@@ -106,13 +113,56 @@ const tabListStyle = {
   },
 };
 
+const DASHBOARD_TAB_STORAGE_KEY = "verifywise_dashboard_active_tab";
+
 const FrameworkDashboard = ({
   organizationalProject,
   filteredFrameworks,
 }: DashboardProps) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [frameworksData, setFrameworksData] = useState<FrameworkData[]>([]);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem(DASHBOARD_TAB_STORAGE_KEY);
+    return savedTab ? parseInt(savedTab, 10) : 0;
+  });
+
+  // Handle navigation from dashboard cards to controls page
+  const handleNavigateToControls = (frameworkName: string, section: string) => {
+    const isISO27001 = frameworkName.toLowerCase().includes("iso 27001");
+    const isISO42001 = frameworkName.toLowerCase().includes("iso 42001");
+    const isNISTAIRMF = frameworkName.toLowerCase().includes("nist ai rmf");
+
+    // Determine framework index based on filtered frameworks
+    let frameworkIndex = 0;
+    if (isISO27001) {
+      frameworkIndex = filteredFrameworks.findIndex(f => f.name.toLowerCase().includes("iso 27001"));
+    } else if (isISO42001) {
+      frameworkIndex = filteredFrameworks.findIndex(f => f.name.toLowerCase().includes("iso 42001"));
+    } else if (isNISTAIRMF) {
+      frameworkIndex = filteredFrameworks.findIndex(f => f.name.toLowerCase().includes("nist ai rmf"));
+    }
+
+    if (frameworkIndex === -1) frameworkIndex = 0;
+
+    // Set localStorage for framework selection
+    localStorage.setItem(FRAMEWORK_SELECTED_KEY, frameworkIndex.toString());
+
+    // Set localStorage for sub-tab based on section
+    if (isISO27001) {
+      const tabValue = section === "annexes" ? "annex" : "clause";
+      localStorage.setItem(ISO27001_TAB_KEY, tabValue);
+    } else if (isISO42001) {
+      const tabValue = section === "annexes" ? "annexes" : "clauses";
+      localStorage.setItem(ISO42001_TAB_KEY, tabValue);
+    } else if (isNISTAIRMF) {
+      // For NIST AI RMF, section is one of: govern, map, measure, manage
+      localStorage.setItem(NIST_AI_RMF_TAB_KEY, section);
+    }
+
+    // Navigate to controls page
+    navigate("/framework/controls");
+  };
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -413,6 +463,7 @@ const FrameworkDashboard = ({
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     const newIndex = tabs.findIndex(tab => tab.id === newValue);
     setActiveTab(newIndex);
+    localStorage.setItem(DASHBOARD_TAB_STORAGE_KEY, newIndex.toString());
   };
 
   return (
@@ -428,8 +479,8 @@ const FrameworkDashboard = ({
           gap: "16px",
         }}
       >
-        <FrameworkProgressCard frameworksData={frameworksData} />
-        <AssignmentStatusCard frameworksData={frameworksData} />
+        <FrameworkProgressCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
+        <AssignmentStatusCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
         <StatusBreakdownCard frameworksData={frameworksData} />
       </Box>
 

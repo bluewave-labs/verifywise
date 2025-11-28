@@ -49,9 +49,10 @@ interface ExtendedFrameworkData extends BaseFrameworkData {
 /** Component props */
 interface AssignmentStatusCardProps {
   frameworksData: ExtendedFrameworkData[];
+  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
-const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => {
+const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCardProps) => {
   const [assignmentCounts, setAssignmentCounts] = useState<Map<number, AssignmentCounts>>(new Map());
   const [loading, setLoading] = useState(true);
 
@@ -298,10 +299,18 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                     return (
                       <Box
                         key={func.key}
+                        onClick={() => onNavigate?.(framework.frameworkName, func.key)}
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
+                          cursor: onNavigate ? "pointer" : "default",
+                          "&:hover": onNavigate ? {
+                            backgroundColor: "#F9FAFB",
+                            borderRadius: "4px",
+                            margin: "-4px",
+                            padding: "4px",
+                          } : {},
                         }}
                       >
                         <Typography sx={{ fontSize: 12, color: "#666666" }}>
@@ -369,10 +378,18 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
               <Stack spacing={1.5}>
                 {/* Clauses Assignment Display - Shows subclauses assignment status */}
                 <Box
+                  onClick={() => onNavigate?.(framework.frameworkName, "clauses")}
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    cursor: onNavigate ? "pointer" : "default",
+                    "&:hover": onNavigate ? {
+                      backgroundColor: "#F9FAFB",
+                      borderRadius: "4px",
+                      margin: "-4px",
+                      padding: "4px",
+                    } : {},
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
@@ -399,10 +416,18 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
 
                 {/* Annexes Assignment Display - Shows annex controls/categories assignment status */}
                 <Box
+                  onClick={() => onNavigate?.(framework.frameworkName, "annexes")}
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    cursor: onNavigate ? "pointer" : "default",
+                    "&:hover": onNavigate ? {
+                      backgroundColor: "#F9FAFB",
+                      borderRadius: "4px",
+                      margin: "-4px",
+                      padding: "4px",
+                    } : {},
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>

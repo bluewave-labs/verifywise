@@ -11,13 +11,13 @@ import {
   Box,
   Tooltip,
   TableFooter,
-  Chip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import EmptyState from "../../EmptyState";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
+import Chip from "../../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
@@ -545,37 +545,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   }}
                 >
                   {row.risk_severity ? (
-                    <Chip
-                      label={row.risk_severity}
-                      size="small"
-                      sx={{
-                        backgroundColor: (() => {
-                          const severity = row.risk_severity.toLowerCase();
-                          if (severity.includes('catastrophic')) return '#ffcdd2';
-                          if (severity.includes('critical')) return '#ffcdd2';
-                          if (severity.includes('major')) return '#ffe0b2';
-                          if (severity.includes('moderate')) return '#fff9c4';
-                          if (severity.includes('minor')) return '#c8e6c9';
-                          if (severity.includes('negligible')) return '#b2dfdb';
-                          return '#e0e0e0';
-                        })(),
-                        color: (() => {
-                          const severity = row.risk_severity.toLowerCase();
-                          if (severity.includes('catastrophic')) return '#c62828';
-                          if (severity.includes('critical')) return '#c62828';
-                          if (severity.includes('major')) return '#e65100';
-                          if (severity.includes('moderate')) return '#f57f17';
-                          if (severity.includes('minor')) return '#2e7d32';
-                          if (severity.includes('negligible')) return '#00695c';
-                          return '#424242';
-                        })(),
-                        borderRadius: "4px !important",
-                        fontWeight: 600,
-                        fontSize: "0.75rem",
-                        textTransform: "uppercase",
-                        height: 24,
-                      }}
-                    />
+                    <Chip label={row.risk_severity} />
                   ) : (
                     "-"
                   )}

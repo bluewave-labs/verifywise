@@ -139,6 +139,17 @@ const PasswordForm: React.FC = () => {
       return;
     }
 
+    if (!id) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "User session not found. Please log in again.",
+        isToast: false,
+        visible: true,
+      });
+      return;
+    }
+
     setShowToast(true); // Show CustomizableToast
 
     try {

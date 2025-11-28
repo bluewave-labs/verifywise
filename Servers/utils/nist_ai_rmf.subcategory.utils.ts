@@ -224,6 +224,110 @@ export const countNISTAIRMFSubcategoriesAssignments = async (
 };
 
 /**
+ * Count total and assigned subcategories for NIST AI RMF framework grouped by function
+ * A subcategory is considered "assigned" when it has an owner
+ * Returns counts for Govern, Map, Measure, Manage functions
+ */
+export const countNISTAIRMFSubcategoriesAssignmentsByFunction = async (
+  tenant: string
+): Promise<{
+  govern: { total: number; assigned: number };
+  map: { total: number; assigned: number };
+  measure: { total: number; assigned: number };
+  manage: { total: number; assigned: number };
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      f.type AS function_type,
+      COUNT(s.id) AS total,
+      SUM(CASE WHEN s.owner IS NOT NULL THEN 1 ELSE 0 END) AS assigned
+    FROM "${tenant}".nist_ai_rmf_subcategories s
+    JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+    JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+    GROUP BY f.type, f.index
+    ORDER BY f.index ASC`,
+    {}
+  )) as [{ function_type: string; total: string; assigned: string }[], number];
+
+  const defaultValue = { total: 0, assigned: 0 };
+  const functionMap: Record<string, { total: number; assigned: number }> = {
+    GOVERN: { ...defaultValue },
+    MAP: { ...defaultValue },
+    MEASURE: { ...defaultValue },
+    MANAGE: { ...defaultValue },
+  };
+
+  for (const row of result[0]) {
+    const key = row.function_type.toUpperCase();
+    if (key in functionMap) {
+      functionMap[key] = {
+        total: parseInt(row.total) || 0,
+        assigned: parseInt(row.assigned) || 0,
+      };
+    }
+  }
+
+  return {
+    govern: functionMap.GOVERN,
+    map: functionMap.MAP,
+    measure: functionMap.MEASURE,
+    manage: functionMap.MANAGE,
+  };
+};
+
+/**
+ * Count total and done subcategories for NIST AI RMF framework grouped by function
+ * A subcategory is considered "done" when its status is "Implemented"
+ * Returns counts for Govern, Map, Measure, Manage functions
+ */
+export const countNISTAIRMFSubcategoriesProgressByFunction = async (
+  tenant: string
+): Promise<{
+  govern: { total: number; done: number };
+  map: { total: number; done: number };
+  measure: { total: number; done: number };
+  manage: { total: number; done: number };
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      f.type AS function_type,
+      COUNT(s.id) AS total,
+      SUM(CASE WHEN s.status = 'Implemented' THEN 1 ELSE 0 END) AS done
+    FROM "${tenant}".nist_ai_rmf_subcategories s
+    JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+    JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+    GROUP BY f.type, f.index
+    ORDER BY f.index ASC`,
+    {}
+  )) as [{ function_type: string; total: string; done: string }[], number];
+
+  const defaultValue = { total: 0, done: 0 };
+  const functionMap: Record<string, { total: number; done: number }> = {
+    GOVERN: { ...defaultValue },
+    MAP: { ...defaultValue },
+    MEASURE: { ...defaultValue },
+    MANAGE: { ...defaultValue },
+  };
+
+  for (const row of result[0]) {
+    const key = row.function_type.toUpperCase();
+    if (key in functionMap) {
+      functionMap[key] = {
+        total: parseInt(row.total) || 0,
+        done: parseInt(row.done) || 0,
+      };
+    }
+  }
+
+  return {
+    govern: functionMap.GOVERN,
+    map: functionMap.MAP,
+    measure: functionMap.MEASURE,
+    manage: functionMap.MANAGE,
+  };
+};
+
+/**
  * Get status breakdown for NIST AI RMF subcategories
  */
 export const getNISTAIRMFSubcategoriesStatusBreakdown = async (

@@ -38,6 +38,12 @@ interface ExtendedFrameworkData extends BaseFrameworkData {
     totalSubcategories: number;
     assignedSubcategories: number;
   };
+  nistAssignmentsByFunction?: {
+    govern: { total: number; assigned: number };
+    map: { total: number; assigned: number };
+    measure: { total: number; assigned: number };
+    manage: { total: number; assigned: number };
+  };
 }
 
 /** Component props */
@@ -263,9 +269,15 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
 
           // Handle NIST AI RMF separately - uses pre-fetched data from Dashboard
           if (isNISTAIRMF) {
-            const nistAssignments = framework.nistAssignments;
-            const subcategoryAssigned = nistAssignments?.assignedSubcategories || 0;
-            const subcategoryTotal = nistAssignments?.totalSubcategories || 0;
+            const nistAssignmentsByFunction = framework.nistAssignmentsByFunction;
+
+            // Function display order and labels
+            const functions = [
+              { key: 'govern' as const, label: 'Govern' },
+              { key: 'map' as const, label: 'Map' },
+              { key: 'measure' as const, label: 'Measure' },
+              { key: 'manage' as const, label: 'Manage' },
+            ];
 
             return (
               <Box key={framework.frameworkId}>
@@ -281,33 +293,38 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                 </Typography>
 
                 <Stack spacing={1.5}>
-                  {/* Subcategories Assignment Display */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                      Subcategories
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {getAssignmentIcon(subcategoryAssigned, subcategoryTotal)}
-                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
-                        {subcategoryAssigned}
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
-                        /
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
-                        {subcategoryTotal}
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#666666", fontWeight: 400, ml: 1 }}>
-                        assigned
-                      </Typography>
-                    </Box>
-                  </Box>
+                  {functions.map((func) => {
+                    const data = nistAssignmentsByFunction?.[func.key] || { total: 0, assigned: 0 };
+                    return (
+                      <Box
+                        key={func.key}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                          {func.label}
+                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          {getAssignmentIcon(data.assigned, data.total)}
+                          <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            {data.assigned}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            /
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                            {data.total}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#666666", fontWeight: 400, ml: 1 }}>
+                            assigned
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
                 </Stack>
               </Box>
             );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
@@ -8,21 +8,28 @@ import StandardModal from "../../components/Modals/StandardModal";
 // import { useNavigate } from "react-router-dom";
 import BuiltInDatasetsPage from "./BuiltInDatasetsPage";
 import DatasetEditorPage from "./DatasetEditorPage";
-import DatasetsTable, { DatasetsTableRow } from "../../components/Table/DatasetsTable";
+import EvaluationTable from "../../components/Table/EvaluationTable";
+import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
+import SearchBox from "../../components/Search/SearchBox";
+import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 type ProjectDatasetsProps = { projectId: string };
+
+type UploadedDataset = {
+  id?: number;
+  name: string;
+  path: string;
+  size: number;
+  promptCount?: number;
+  createdAt?: string;
+};
 
 export function ProjectDatasets(_props: ProjectDatasetsProps) {
   const { projectId } = _props;
   void projectId;
-  const [uploads, setUploads] = useState<{ 
-    id?: number; 
-    name: string; 
-    path: string; 
-    size: number; 
-    promptCount?: number;
-    createdAt?: string; 
-  }[]>([]);
+  const [uploads, setUploads] = useState<UploadedDataset[]>([]);
   const [uploading, setUploading] = useState(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -30,7 +37,7 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
   const [mode, setMode] = useState<"uploads" | "builtin" | "editor">("uploads");
   const [editorPath, setEditorPath] = useState<string | null>(null);
   const [editorDatasetName, setEditorDatasetName] = useState<string | null>(null);
-  const [filter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const load = async () => {
     try {
@@ -45,6 +52,78 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
   useEffect(() => {
     load();
   }, []);
+
+  // Filter configuration (shared FilterBy component)
+  const datasetFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      { id: "name", label: "Dataset name", type: "text" },
+      { id: "path", label: "Path", type: "text" },
+    ],
+    []
+  );
+
+  const getDatasetFieldValue = useCallback(
+    (u: UploadedDataset, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case "name":
+          return u.name;
+        case "path":
+          return u.path;
+        default:
+          return "";
+      }
+    },
+    []
+  );
+
+  const { filterData, handleFilterChange } = useFilterBy<UploadedDataset>(getDatasetFieldValue);
+
+  const filteredUploads = useMemo(() => {
+    const afterFilter = filterData(uploads);
+    if (!searchTerm.trim()) return afterFilter;
+    const q = searchTerm.toLowerCase();
+    return afterFilter.filter((u) =>
+      [u.name, u.path].filter(Boolean).join(" ").toLowerCase().includes(q)
+    );
+  }, [uploads, filterData, searchTerm]);
+
+  const datasetRows: IEvaluationRow[] = useMemo(
+    () =>
+      filteredUploads.map<IEvaluationRow>((u) => ({
+        id: u.path,
+        name: u.name,
+        // Use model/ judge / dataset fields to match EvaluationTable expectations
+        model: u.name,
+        judge: u.promptCount !== undefined ? String(u.promptCount) : "—",
+        dataset: u.promptCount !== undefined ? `${u.promptCount} prompts` : "—",
+        status: "Completed",
+      })),
+    [filteredUploads]
+  );
+
+  const handleOpenDataset = (row: IEvaluationRow) => {
+    setEditorPath(String(row.id));
+    setEditorDatasetName(row.name || row.model || row.id);
+    setMode("editor");
+  };
+
+  const handleDeleteDataset = async (datasetId: string) => {
+    try {
+      setUploading(true);
+      await deepEvalDatasetsService.deleteDatasets([datasetId]);
+      setAlert({ variant: "success", body: "Deleted 1 dataset" });
+      setTimeout(() => setAlert(null), 3000);
+      await load();
+    } catch (err) {
+      setAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to delete dataset",
+      });
+      setTimeout(() => setAlert(null), 6000);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <Box sx={{ userSelect: "none" }}>
@@ -131,38 +210,62 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
             </Button>
           </Stack>
         </Box>
-      ) : (
-        <DatasetsTable
-          rows={
-            uploads.map<DatasetsTableRow>((u) => ({
-              id: u.path,
-              name: u.name,
-              description: "—",
-              prompts: u.promptCount ?? "—",
-              updated: u.createdAt,
-            }))
-          }
-          filter={filter}
-          onOpenRow={(row) => {
-            setEditorPath(String(row.id));
-            setEditorDatasetName(row.name);
-            setMode("editor");
-          }}
-          onDelete={async (selectedIds) => {
-            try {
-              setUploading(true);
-              await deepEvalDatasetsService.deleteDatasets(selectedIds);
-              setAlert({ variant: "success", body: `Deleted ${selectedIds.length} dataset(s)` });
-              setTimeout(() => setAlert(null), 3000);
-              await load();
-            } catch (err) {
-              setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete datasets" });
-              setTimeout(() => setAlert(null), 6000);
-            } finally {
-              setUploading(false);
-            }
-          }}
-        />
+        ) : (
+        <>
+          {/* Filters + Search + Group above the datasets table */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={3}
+            gap={2}
+          >
+            <Stack direction="row" alignItems="center" gap={2}>
+              <FilterBy
+                columns={datasetFilterColumns}
+                onFilterChange={handleFilterChange}
+              />
+              <GroupBy
+                options={[
+                  { id: "name", label: "Dataset name" },
+                ]}
+                onGroupChange={() => {
+                  /* Grouping behaviour for datasets can be added later */
+                }}
+              />
+              <SearchBox
+                placeholder="Search datasets..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search datasets" }}
+                fullWidth={false}
+              />
+            </Stack>
+          </Stack>
+
+          <Box mb={4}>
+            <EvaluationTable
+              columns={[
+                "DATASET",
+                "DESCRIPTION",
+                "PROMPTS",
+                "STATUS",
+                "OPEN",
+                "ACTION",
+              ]}
+              rows={datasetRows}
+              removeModel={{
+                onConfirm: handleDeleteDataset,
+              }}
+              // Reuse first page for datasets; they are typically few
+              page={0}
+              setCurrentPagingation={() => {
+                /* Pagination not needed for datasets yet */
+              }}
+              onShowDetails={handleOpenDataset}
+            />
+          </Box>
+        </>
       ))}
 
       <StandardModal

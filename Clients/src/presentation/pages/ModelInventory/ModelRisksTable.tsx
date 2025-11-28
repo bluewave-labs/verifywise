@@ -20,7 +20,7 @@ import TablePaginationActions from "../../components/TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-import RiskChip from "../../components/RiskLevel/RiskChip";
+import Chip from "../../components/Chip";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { User } from "../../../domain/types/User";
 import { ModelRisksTableProps } from "../../../domain/interfaces/i.modelInventory";
@@ -177,7 +177,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   {row.risk_category}
                 </TableCell>
                 <TableCell sx={getCellStyle(row)}>
-                  <RiskChip label={row.risk_level} />
+                  <Chip label={row.risk_level} />
                 </TableCell>
                 <TableCell sx={getCellStyle(row)}>
                   <Box

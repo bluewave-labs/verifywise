@@ -20,6 +20,16 @@ interface FrameworkData {
     totalAnnexcategories?: number;
     doneAnnexcategories?: number;
   };
+  // NIST AI RMF specific
+  nistStatusBreakdown?: {
+    notStarted: number;
+    draft: number;
+    inProgress: number;
+    awaitingReview: number;
+    awaitingApproval: number;
+    implemented: number;
+    needsRework: number;
+  };
 }
 
 interface StatusBreakdownCardProps {
@@ -183,6 +193,138 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
 
       <Stack spacing={5}>
         {frameworksData.map((framework, index) => {
+          const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
+
+          // Handle NIST AI RMF separately - uses pre-fetched status breakdown
+          if (isNISTAIRMF) {
+            const nistData = framework.nistStatusBreakdown;
+            if (!nistData) return null;
+
+            const nistStatusData: StatusData = {
+              "not started": nistData.notStarted || 0,
+              "draft": nistData.draft || 0,
+              "in progress": nistData.inProgress || 0,
+              "awaiting review": (nistData.awaitingReview || 0) + (nistData.awaitingApproval || 0),
+              "implemented": nistData.implemented || 0,
+              "needs rework": nistData.needsRework || 0,
+            };
+
+            const pieData = createPieData(nistStatusData);
+            const allStatuses = getAllStatuses(nistStatusData);
+            const total =
+              nistStatusData["not started"] +
+              nistStatusData["draft"] +
+              nistStatusData["in progress"] +
+              nistStatusData["awaiting review"] +
+              nistStatusData["implemented"] +
+              nistStatusData["needs rework"];
+
+            if (total === 0) {
+              return (
+                <Box key={framework.frameworkId}>
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: "#000000",
+                      mb: 2,
+                    }}
+                  >
+                    {framework.frameworkName}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                    No status data available
+                  </Typography>
+                </Box>
+              );
+            }
+
+            return (
+              <Box key={framework.frameworkId}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "#000000",
+                    mb: 1,
+                  }}
+                >
+                  {framework.frameworkName}
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 3,
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Donut Chart Column */}
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <Box sx={{ position: "relative", width: "120px", height: "120px" }}>
+                      <PieChart
+                        series={[
+                          {
+                            data: pieData,
+                            innerRadius: 30,
+                            outerRadius: 48,
+                            paddingAngle: 2,
+                            cornerRadius: 3,
+                            cx: 60,
+                            cy: 60,
+                          },
+                        ]}
+                        width={120}
+                        height={120}
+                        slotProps={{
+                          legend: { hidden: true } as any,
+                        }}
+                        sx={{
+                          "& .MuiChartsLegend-root": {
+                            display: "none !important",
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Status Table Column */}
+                  <Stack spacing={0.5}>
+                    {allStatuses.map((item) => (
+                      <Box
+                        key={item.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              backgroundColor: item.color,
+                            }}
+                          />
+                          <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                            {item.label}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                          {item.value}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </Box>
+            );
+          }
+
+          // For ISO frameworks
           const currentViewMode = viewMode.get(framework.frameworkId) || 'clauses';
           const data = currentViewMode === 'clauses'
             ? clauseStatusData.get(framework.frameworkId)

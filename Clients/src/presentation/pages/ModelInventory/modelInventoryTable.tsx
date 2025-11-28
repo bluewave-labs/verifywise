@@ -13,7 +13,6 @@ import {
   Typography,
   TableFooter,
   Tooltip,
-  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -33,8 +32,6 @@ import {
   setPaginationRowCount,
 } from "../../../application/utils/paginationStorage";
 import {
-  statusBadgeStyle,
-  securityAssessmentBadgeStyle,
   tableRowHoverStyle,
   tableRowDeletingStyle,
   loadingContainerStyle,
@@ -47,6 +44,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
+import Chip from "../../components/Chip";
 
 dayjs.extend(utc);
 
@@ -83,17 +81,13 @@ const TooltipCell: React.FC<{ value: string | null | undefined }> = ({
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
 }) => {
-  return <Box component="span" sx={statusBadgeStyle(status)}>{status}</Box>;
+  return <Chip label={status} />;
 };
 
 const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   assessment,
 }) => {
-  return (
-    <Box component="span" sx={securityAssessmentBadgeStyle(assessment)}>
-      {assessment ? "Yes" : "No"}
-    </Box>
-  );
+  return <Chip label={assessment ? "Yes" : "No"} />;
 };
 
 // const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({

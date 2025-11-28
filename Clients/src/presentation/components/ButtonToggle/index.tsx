@@ -69,6 +69,25 @@ const ButtonToggle: React.FC<IButtonToggleProps> = ({
           sx={getFrameworkTabStyle()}
         >
           {option.label}
+          {option.count !== undefined && (
+            <Box
+              component="span"
+              sx={{
+                ml: 2,
+                px: 1.5,
+                py: 0.25,
+                borderRadius: "10px",
+                bgcolor: option.value === value ? "#F2F4F7" : "#E4E7EC",
+                color: "#344054",
+                fontSize: "11px",
+                fontWeight: 500,
+                minWidth: "20px",
+                textAlign: "center",
+              }}
+            >
+              {option.count}
+            </Box>
+          )}
         </Box>
       ))}
     </Box>

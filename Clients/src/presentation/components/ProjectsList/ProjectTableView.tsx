@@ -16,6 +16,7 @@ import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import EmptyState from "../EmptyState";
+import Chip from "../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
@@ -172,33 +173,6 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
       month: "short",
       day: "numeric",
     });
-  };
-
-  const getRiskColor = (risk: string) => {
-    const style = (() => {
-      switch (risk.toLowerCase()) {
-        case "high risk":
-          return { bg: "#ffcdd2", color: "#c62828" }; // light red bg, dark red text
-        case "limited risk":
-          return { bg: "#fff3e0", color: "#b71c1c" }; // light orange bg, brown text
-        case "minimal risk":
-          return { bg: "#c8e6c9", color: "#388e3c" }; // light green bg, dark green text
-        default:
-          return { bg: "#f5f5f5", color: "#9e9e9e" }; // default grey
-      }
-    })();
-
-    return {
-      backgroundColor: style.bg,
-      color: style.color,
-      padding: "4px 8px",
-      borderRadius: "4px",
-      fontWeight: 500,
-      fontSize: "11px",
-      textTransform: "uppercase" as const,
-      display: "inline-block" as const,
-      letterSpacing: "0.5px",
-    };
   };
 
   const handleChangePage = useCallback((_event: unknown, newPage: number) => {
@@ -393,12 +367,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                     sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                 }}
               >
-                <Box
-                  component="span"
-                  sx={getRiskColor(project.ai_risk_classification)}
-                >
-                  {project.ai_risk_classification}
-                </Box>
+                <Chip label={project.ai_risk_classification} />
               </TableCell>
 
               <TableCell

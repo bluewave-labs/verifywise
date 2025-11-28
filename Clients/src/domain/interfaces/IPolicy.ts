@@ -8,6 +8,7 @@ export interface PolicyTableProps {
   onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;
+  hidePagination?: boolean;
 }
 
 export interface PolicyInput {

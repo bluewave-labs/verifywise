@@ -12,6 +12,7 @@ import AssignmentStatusCard from "./AssignmentStatusCard";
 import StatusBreakdownCard from "./StatusBreakdownCard";
 import ControlCategoriesCard from "./ControlCategoriesCard";
 import AnnexOverviewCard from "./AnnexOverviewCard";
+import NISTFunctionsOverviewCard from "./NISTFunctionsOverviewCard";
 
 interface DashboardProps {
   organizationalProject: Project;
@@ -33,6 +34,24 @@ interface FrameworkData {
     // ISO 42001 uses these fields
     totalAnnexcategories?: number;
     doneAnnexcategories?: number;
+  };
+  // NIST AI RMF specific data
+  nistProgress?: {
+    totalSubcategories: number;
+    doneSubcategories: number;
+  };
+  nistAssignments?: {
+    totalSubcategories: number;
+    assignedSubcategories: number;
+  };
+  nistStatusBreakdown?: {
+    notStarted: number;
+    draft: number;
+    inProgress: number;
+    awaitingReview: number;
+    awaitingApproval: number;
+    implemented: number;
+    needsRework: number;
   };
   assignmentStatus?: {
     assignedClauses: number;
@@ -103,10 +122,68 @@ const FrameworkDashboard = ({
 
           const isISO27001 = framework.name.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.name.toLowerCase().includes("iso 42001");
+          const isNISTAIRMF = framework.name.toLowerCase().includes("nist ai rmf");
 
           let clauseProgress, annexProgress, assignmentStatus, statusBreakdown;
+          let nistProgress, nistAssignments, nistStatusBreakdown;
 
-          if (isISO27001) {
+          if (isNISTAIRMF) {
+            // Fetch NIST AI RMF data
+            try {
+              const progressRes = await getEntityById({
+                routeUrl: `/nist-ai-rmf/progress`,
+              });
+              if (progressRes?.data) {
+                nistProgress = {
+                  totalSubcategories: progressRes.data.totalSubcategories || 0,
+                  doneSubcategories: progressRes.data.doneSubcategories || 0,
+                };
+              }
+            } catch (error) {
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching NIST AI RMF progress:`, error);
+              }
+              nistProgress = { totalSubcategories: 0, doneSubcategories: 0 };
+            }
+
+            try {
+              const assignmentsRes = await getEntityById({
+                routeUrl: `/nist-ai-rmf/assignments`,
+              });
+              if (assignmentsRes?.data) {
+                nistAssignments = {
+                  totalSubcategories: assignmentsRes.data.totalSubcategories || 0,
+                  assignedSubcategories: assignmentsRes.data.assignedSubcategories || 0,
+                };
+              }
+            } catch (error) {
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching NIST AI RMF assignments:`, error);
+              }
+              nistAssignments = { totalSubcategories: 0, assignedSubcategories: 0 };
+            }
+
+            try {
+              const statusRes = await getEntityById({
+                routeUrl: `/nist-ai-rmf/status-breakdown`,
+              });
+              if (statusRes?.data) {
+                nistStatusBreakdown = {
+                  notStarted: statusRes.data.notStarted || 0,
+                  draft: statusRes.data.draft || 0,
+                  inProgress: statusRes.data.inProgress || 0,
+                  awaitingReview: statusRes.data.awaitingReview || 0,
+                  awaitingApproval: statusRes.data.awaitingApproval || 0,
+                  implemented: statusRes.data.implemented || 0,
+                  needsRework: statusRes.data.needsRework || 0,
+                };
+              }
+            } catch (error) {
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching NIST AI RMF status breakdown:`, error);
+              }
+            }
+          } else if (isISO27001) {
             // Fetch ISO 27001 data
             try {
               const clauseProgressRes = await getEntityById({
@@ -220,6 +297,9 @@ const FrameworkDashboard = ({
             projectFrameworkId: Number(projectFrameworkId),
             clauseProgress,
             annexProgress,
+            nistProgress,
+            nistAssignments,
+            nistStatusBreakdown,
             assignmentStatus,
             statusBreakdown,
           };
@@ -281,10 +361,12 @@ const FrameworkDashboard = ({
   // Determine which frameworks are available
   const hasISO27001 = frameworksData.some(f => f.frameworkName.toLowerCase().includes("iso 27001"));
   const hasISO42001 = frameworksData.some(f => f.frameworkName.toLowerCase().includes("iso 42001"));
+  const hasNISTAIRMF = frameworksData.some(f => f.frameworkName.toLowerCase().includes("nist ai rmf"));
 
-  // Create tabs array with ISO 42001 first, then ISO 27001
+  // Create tabs array with ISO 42001 first, then NIST AI RMF, then ISO 27001
   const tabs: { id: string; label: string }[] = [];
   if (hasISO42001) tabs.push({ id: 'iso42001', label: 'ISO 42001' });
+  if (hasNISTAIRMF) tabs.push({ id: 'nist-ai-rmf', label: 'NIST AI RMF' });
   if (hasISO27001) tabs.push({ id: 'iso27001', label: 'ISO 27001' });
 
   // Handle tab change
@@ -357,6 +439,12 @@ const FrameworkDashboard = ({
             </Stack>
           </TabPanel>
 
+          <TabPanel value="nist-ai-rmf" sx={tabPanelStyle}>
+            <NISTFunctionsOverviewCard
+              frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("nist ai rmf"))}
+            />
+          </TabPanel>
+
           <TabPanel value="iso27001" sx={tabPanelStyle}>
             <Stack spacing={0}>
               {/* ISO 27001 Clauses Overview */}
@@ -377,7 +465,7 @@ const FrameworkDashboard = ({
       )}
 
       {/* Fallback when no frameworks */}
-      {!hasISO27001 && !hasISO42001 && (
+      {!hasISO27001 && !hasISO42001 && !hasNISTAIRMF && (
         <ControlCategoriesCard frameworksData={frameworksData} />
       )}
     </Stack>

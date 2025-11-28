@@ -20,7 +20,7 @@ import {
   paginationSelect,
 } from "../styles";
 import TablePaginationActions from "../../TablePagination";
-import RiskChip from "../../RiskLevel/RiskChip";
+import Chip from "../../Chip";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
 import {
@@ -124,7 +124,7 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
                   {row.status ? row.status : "-"}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.severity ? <RiskChip label={row.severity} /> : "-"}
+                  {row.severity ? <Chip label={row.severity} /> : "-"}
                 </TableCell>
                 <TableCell>
                   <CustomizableButton

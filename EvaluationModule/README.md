@@ -44,6 +44,7 @@ python run_deepeval_evaluation.py --config configs/deepeval_config.yaml
 ## Configuration
 
 Edit `configs/deepeval_config.yaml` to customize:
+
 - Judge LLM model and parameters
 - Dataset selection and filtering
 - Enabled metrics and thresholds
@@ -52,5 +53,6 @@ Edit `configs/deepeval_config.yaml` to customize:
 ## API Integration
 
 This module is integrated with the VerifyWise backend:
-- Backend: `BiasAndFairnessServers` (port 8000)
+
+- Backend: `EvalServer` (port 8000)
 - Frontend: `Clients/src/presentation/pages/EvalsDashboard`

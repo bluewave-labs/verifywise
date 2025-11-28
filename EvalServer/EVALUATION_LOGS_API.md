@@ -409,7 +409,7 @@ trace_logs = crud.get_trace_logs(db, parent_trace_id, "tenant_abc")
 ### Run Migrations
 
 ```bash
-cd BiasAndFairnessServers/src
+cd EvalServer/src
 alembic upgrade head
 ```
 

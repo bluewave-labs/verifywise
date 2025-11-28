@@ -6,7 +6,7 @@
 
 ```bash
 # Navigate to backend
-cd /Users/efeacar/verifywise/BiasAndFairnessServers/src
+cd /Users/efeacar/verifywise/EvalServer/src
 
 # Activate virtual environment
 source venv/bin/activate
@@ -21,7 +21,7 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 **Expected Output:**
 
 ```
-INFO:     Will watch for changes in these directories: ['/Users/efeacar/verifywise/BiasAndFairnessServers/src']
+INFO:     Will watch for changes in these directories: ['/Users/efeacar/verifywise/EvalServer/src']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:     Started reloader process [XXXXX] using watchfiles
 Running migrations...
@@ -245,7 +245,7 @@ INFO:     "GET /deepeval/projects/YOUR_PROJECT_ID/monitor/dashboard HTTP/1.1" 20
 psql -U your_user -d your_database -c "\dt"
 
 # Run migrations if needed
-cd BiasAndFairnessServers/src
+cd EvalServer/src
 alembic upgrade head
 ```
 
@@ -302,5 +302,5 @@ If you see data in all the cards and sections, congratulations! The Logs & Monit
 **Need help?** Check:
 
 - [Implementation Guide](./LOGS_AND_MONITORING_IMPLEMENTATION.md) - Full implementation docs
-- [Backend API Reference](../../../../../BiasAndFairnessServers/EVALUATION_LOGS_API.md) - API documentation
+- [Backend API Reference](../../../../../EvalServer/EVALUATION_LOGS_API.md) - API documentation
 - [Overall Plan](./BRAINTRUST_IMPLEMENTATION_PLAN.md) - Braintrust implementation roadmap

@@ -68,7 +68,7 @@ ollama pull assistant
 **2. Backend Running:**
 
 ```bash
-cd /Users/efeacar/verifywise/BiasAndFairnessServers/src
+cd /Users/efeacar/verifywise/EvalServer/src
 source venv/bin/activate
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -323,7 +323,7 @@ If still happening:
 
 ```bash
 # Re-run migrations
-cd BiasAndFairnessServers/src
+cd EvalServer/src
 alembic upgrade head
 ```
 
@@ -367,9 +367,9 @@ alembic upgrade head
 
 **Backend:**
 
-- `/BiasAndFairnessServers/src/routers/evaluation_logs.py` - API routes
-- `/BiasAndFairnessServers/src/utils/run_evaluation.py` - Evaluation runner
-- `/BiasAndFairnessServers/src/crud/evaluation_logs.py` - Database operations
+- `/EvalServer/src/routers/evaluation_logs.py` - API routes
+- `/EvalServer/src/utils/run_evaluation.py` - Evaluation runner
+- `/EvalServer/src/crud/evaluation_logs.py` - Database operations
 
 **Frontend:**
 

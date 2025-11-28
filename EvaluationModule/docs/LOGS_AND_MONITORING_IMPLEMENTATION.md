@@ -6,7 +6,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 **Related Documentation:**
 
-- [Backend API Documentation](../../../../../BiasAndFairnessServers/EVALUATION_LOGS_API.md) - Complete API reference
+- [Backend API Documentation](../../../../../EvalServer/EVALUATION_LOGS_API.md) - Complete API reference
 - [Quick Start Guide](./QUICKSTART_LOGS_MONITORING.md) - Testing and setup guide
 - [Implementation Plan](./BRAINTRUST_IMPLEMENTATION_PLAN.md) - Overall roadmap
 
@@ -20,8 +20,8 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 **Files:**
 
-- `/BiasAndFairnessServers/src/database/migrations/versions/create_logs_and_metrics_tables.py`
-- `/BiasAndFairnessServers/src/models/evaluation_logs.py`
+- `/EvalServer/src/database/migrations/versions/create_logs_and_metrics_tables.py`
+- `/EvalServer/src/models/evaluation_logs.py`
 
 **Tables Created:**
 
@@ -41,7 +41,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 #### 2. **CRUD Operations**
 
-**File:** `/BiasAndFairnessServers/src/crud/evaluation_logs.py`
+**File:** `/EvalServer/src/crud/evaluation_logs.py`
 
 **Implemented Functions:**
 
@@ -69,7 +69,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 #### 3. **API Controllers**
 
-**File:** `/BiasAndFairnessServers/src/controllers/evaluation_logs.py`
+**File:** `/EvalServer/src/controllers/evaluation_logs.py`
 
 **Implemented Controllers:**
 
@@ -80,7 +80,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 #### 4. **API Routes**
 
-**File:** `/BiasAndFairnessServers/src/routers/evaluation_logs.py`
+**File:** `/EvalServer/src/routers/evaluation_logs.py`
 
 **Endpoints Created:**
 
@@ -111,7 +111,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 
 #### 5. **Application Integration**
 
-**File:** `/BiasAndFairnessServers/src/app.py`
+**File:** `/EvalServer/src/app.py`
 
 - Registered evaluation_logs router
 - Auto-runs migrations on startup
@@ -225,7 +225,7 @@ This document summarizes the comprehensive Logs and Monitoring system implemente
 1. **Run Migrations:**
 
 ```bash
-cd BiasAndFairnessServers/src
+cd EvalServer/src
 alembic upgrade head
 ```
 
@@ -306,7 +306,7 @@ await metricsService.createMetric({
 ## 📁 File Structure
 
 ```
-BiasAndFairnessServers/
+EvalServer/
 ├── src/
 │   ├── models/
 │   │   └── evaluation_logs.py ✅ NEW

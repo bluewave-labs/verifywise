@@ -32,9 +32,17 @@ interface AssignmentCounts {
   annexTotal: number;
 }
 
+/** Extended framework data with NIST assignments */
+interface ExtendedFrameworkData extends BaseFrameworkData {
+  nistAssignments?: {
+    totalSubcategories: number;
+    assignedSubcategories: number;
+  };
+}
+
 /** Component props */
 interface AssignmentStatusCardProps {
-  frameworksData: BaseFrameworkData[];
+  frameworksData: ExtendedFrameworkData[];
 }
 
 const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => {
@@ -251,6 +259,59 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
           // Detect framework type for appropriate API endpoints and terminology
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
+          const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
+
+          // Handle NIST AI RMF separately - uses pre-fetched data from Dashboard
+          if (isNISTAIRMF) {
+            const nistAssignments = framework.nistAssignments;
+            const subcategoryAssigned = nistAssignments?.assignedSubcategories || 0;
+            const subcategoryTotal = nistAssignments?.totalSubcategories || 0;
+
+            return (
+              <Box key={framework.frameworkId}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    mb: 2,
+                    color: "#000000",
+                  }}
+                >
+                  {framework.frameworkName}
+                </Typography>
+
+                <Stack spacing={1.5}>
+                  {/* Subcategories Assignment Display */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                      Subcategories
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {getAssignmentIcon(subcategoryAssigned, subcategoryTotal)}
+                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                        {subcategoryAssigned}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                        /
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                        {subcategoryTotal}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: "#666666", fontWeight: 400, ml: 1 }}>
+                        assigned
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            );
+          }
 
           const counts = assignmentCounts.get(framework.frameworkId);
 
@@ -328,8 +389,7 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                    {/* All frameworks use "Annexes" terminology */}
-                    {isISO27001 ? "Annexes" : isISO42001 ? "Annexes" : "Annexes"}
+                    Annexes
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {/* Status icon with color-coded completion indicator */}

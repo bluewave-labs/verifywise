@@ -55,6 +55,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   isLoading,
   error,
   onRefresh,
+  hidePagination = false,
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -95,6 +96,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
         onRowClick={(id: string) => onOpen(Number(id))}
+        hidePagination={hidePagination}
         renderRow={(policy, sortConfig) => (
           <TableRow
             key={policy.id}

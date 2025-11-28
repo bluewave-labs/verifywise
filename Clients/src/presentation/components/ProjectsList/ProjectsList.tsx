@@ -1,20 +1,20 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
-import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import { IProjectListProps } from "../../../domain/interfaces/i.project";
-import { IProjectFilterState } from "../../../domain/interfaces/i.project.filter";
 import { SearchBox } from "../Search";
 import { GroupBy } from "../Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../Table/GroupedTableView";
 import { Project } from "../../../domain/types/Project";
 import { ExportMenu } from "../Table/ExportMenu";
+import { FilterBy, FilterColumn } from "../Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 import {
   projectWrapperStyle,
@@ -22,18 +22,13 @@ import {
   vwhomeBodyProjectsGrid,
 } from "./style";
 
-const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectListProps) => {
+const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
     "card"
   );
 
-  const [filters, setFilters] = useState<IProjectFilterState>({
-    riskLevel: "all",
-    owner: "all",
-    status: "all",
-  });
   const [users, setUsers] = useState<any[]>([]);
 
   // GroupBy state
@@ -67,39 +62,103 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     return userId;
   };
 
+  // FilterBy - Dynamic options generators
+  const getUniqueProjectOwners = useCallback(() => {
+    const ownerIds = new Set<string>();
+    projects.forEach((project) => {
+      if (project.owner) {
+        ownerIds.add(project.owner.toString());
+      }
+    });
+    return Array.from(ownerIds)
+      .sort()
+      .map((ownerId) => ({
+        value: ownerId,
+        label: getUserNameById(ownerId),
+      }));
+  }, [projects, users]);
+
+  const getUniqueProjectStatuses = useCallback(() => {
+    const statuses = new Set<string>();
+    projects.forEach((project) => {
+      if (project.status) {
+        statuses.add(project.status);
+      }
+    });
+    return Array.from(statuses)
+      .sort()
+      .map((status) => ({
+        value: status.toLowerCase(),
+        label: status,
+      }));
+  }, [projects]);
+
+  // FilterBy - Filter columns configuration
+  const projectFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'project_title',
+      label: 'Use case name',
+      type: 'text' as const,
+    },
+    {
+      id: 'ai_risk_classification',
+      label: 'Risk level',
+      type: 'select' as const,
+      options: [
+        { value: 'High Risk', label: 'High risk' },
+        { value: 'Limited Risk', label: 'Limited risk' },
+        { value: 'Minimal Risk', label: 'Minimal risk' },
+      ],
+    },
+    {
+      id: 'owner',
+      label: 'Owner',
+      type: 'select' as const,
+      options: getUniqueProjectOwners(),
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: getUniqueProjectStatuses(),
+    },
+    {
+      id: 'start_date',
+      label: 'Start date',
+      type: 'date' as const,
+    },
+  ], [getUniqueProjectOwners, getUniqueProjectStatuses]);
+
+  // FilterBy - Field value getter
+  const getProjectFieldValue = useCallback(
+    (item: Project, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'project_title':
+          return item.project_title;
+        case 'ai_risk_classification':
+          return item.ai_risk_classification;
+        case 'owner':
+          return item.owner?.toString();
+        case 'status':
+          return item.status?.toLowerCase();
+        case 'start_date':
+          return item.start_date;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterProjectData, handleFilterChange: handleProjectFilterChange } = useFilterBy<Project>(getProjectFieldValue);
+
+  // Filter projects using FilterBy and search
   const filteredProjects = useMemo(() => {
-    let result = [...projects];
+    // First apply FilterBy conditions
+    let result = filterProjectData(projects);
 
-    // Apply filters
-    if (filters.riskLevel !== "all") {
-      result = result.filter((project) => {
-        const riskLevel = (project.ai_risk_classification || "").toLowerCase();
-        switch (filters.riskLevel) {
-          case "high":
-            return riskLevel.includes("high");
-          case "limited":
-            return riskLevel.includes("limited");
-          case "minimal":
-            return riskLevel.includes("minimal");
-          default:
-            return true;
-        }
-      });
-    }
-
-    if (filters.owner !== "all") {
-      result = result.filter((project) => {
-        return project.owner?.toString() === filters.owner;
-      });
-    }
-
-    if (filters.status !== "all") {
-      result = result.filter((project) => {
-        return project.status?.toLowerCase() === filters.status.toLowerCase();
-      });
-    }
-
-    // Apply search filter last 
+    // Apply search filter last
     // Search by project title or uc_id
     if (searchTerm) {
       result = result.filter((p) =>
@@ -109,7 +168,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     }
 
     return result;
-  }, [projects, searchTerm, filters]);
+  }, [filterProjectData, projects, searchTerm]);
 
   // Define how to get the group key for each project/use case
   const getProjectGroupKey = (project: Project, field: string): string | string[] => {
@@ -137,14 +196,6 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     sortOrder: groupSortOrder,
     getGroupKey: getProjectGroupKey,
   });
-
-  const handleFilterChange = (key: keyof IProjectFilterState, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    if (onFilterChange) {
-      onFilterChange(filteredProjects, newFilters);
-    }
-  };
 
   // Extracted render logic
   const renderProjects = () => {
@@ -202,39 +253,6 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
     );
   };
 
-  const getUniqueOwners = () => {
-    const ownerIds = new Set<string>();
-    projects.forEach((project) => {
-      if (project.owner) {
-        ownerIds.add(project.owner.toString());
-      }
-    });
-
-    return Array.from(ownerIds)
-      .sort()
-      .map((ownerId) => ({
-        id: ownerId,
-        name: getUserNameById(ownerId),
-      }));
-  };
-
-  const getUniqueStatuses = () => {
-    const statuses = new Set<string>();
-    projects.forEach((project) => {
-      if (project.status) {
-        statuses.add(project.status);
-      }
-    });
-
-    return Array.from(statuses).sort().map((status) => ({
-      id: status.toLowerCase(),
-      name: status,
-    }));
-  };
-
-  const uniqueOwners = getUniqueOwners();
-  const uniqueStatuses = getUniqueStatuses();
-
   // Export columns and data for use cases
   const exportColumns = useMemo(() => {
     return [
@@ -276,61 +294,13 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
           mb: "16px",
         }}
       >
-        <Box sx={{ display: "flex", gap: "16px", alignItems: "flex-end", flex: 1 }}>
+        <Box sx={{ display: "flex", gap: "16px", alignItems: "center", flex: 1 }}>
           {projects && projects.length > 0 && (
             <>
-              <Select
-                id="risk-level-filter"
-                label="Risk level"
-                value={filters.riskLevel}
-                items={[
-                  { _id: "all", name: "All Levels" },
-                  { _id: "high", name: "High Risk" },
-                  { _id: "limited", name: "Limited Risk" },
-                  { _id: "minimal", name: "Minimal Risk" },
-                ]}
-                onChange={(e) => handleFilterChange("riskLevel", e.target.value.toString())}
-                sx={{ minWidth: 140 }}
+              <FilterBy
+                columns={projectFilterColumns}
+                onFilterChange={handleProjectFilterChange}
               />
-
-              <Select
-                id="owner-filter"
-                label="Owner"
-                value={filters.owner}
-                items={[
-                  { _id: "all", name: "All Owners" },
-                  ...uniqueOwners.map((owner) => ({
-                    _id: owner.id,
-                    name: owner.name,
-                  })),
-                ]}
-                onChange={(e) => handleFilterChange("owner", e.target.value.toString())}
-                sx={{ minWidth: 140 }}
-              />
-
-              <Select
-                id="status-filter"
-                label="Status"
-                value={filters.status}
-                items={[
-                  { _id: "all", name: "All Statuses" },
-                  ...uniqueStatuses.map((status) => ({
-                    _id: status.id,
-                    name: status.name,
-                  })),
-                ]}
-                onChange={(e) => handleFilterChange("status", e.target.value.toString())}
-                sx={{ minWidth: 140 }}
-              />
-
-              <Box sx={{ width: 300 }}>
-                <SearchBox
-                  placeholder="Search use cases..."
-                  value={searchTerm}
-                  onChange={setSearchTerm}
-                  inputProps={{ "aria-label": "Search use cases" }}
-                />
-              </Box>
 
               {viewMode === 'table' && (
                 <GroupBy
@@ -343,6 +313,14 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                   onGroupChange={handleGroupChange}
                 />
               )}
+
+              <SearchBox
+                placeholder="Search use cases..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search use cases" }}
+                fullWidth={false}
+              />
             </>
           )}
         </Box>

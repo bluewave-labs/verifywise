@@ -159,6 +159,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   paginated = false,
   table,
   onFileDeleted,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -273,10 +274,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     });
   }, [bodyData, sortConfig]);
 
-  const paginatedRows = sortedBodyData.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paginatedRows = hidePagination
+    ? sortedBodyData
+    : sortedBodyData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();

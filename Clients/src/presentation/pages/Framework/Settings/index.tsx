@@ -290,8 +290,8 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 3,
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "16px",
             alignItems: "stretch",
           }}
         >

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -34,6 +34,9 @@ import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITr
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import { Resource } from "../../../../domain/interfaces/iAITrustCenter";
+import { GroupBy } from "../../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
 
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{
@@ -159,6 +162,9 @@ const TrustCenterResources: React.FC = () => {
   const deleteResourceMutation = useDeleteAITrustCentreResourceMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
@@ -504,6 +510,26 @@ const TrustCenterResources: React.FC = () => {
     }
   };
 
+  // Define how to get the group key for each resource
+  const getResourceGroupKey = useCallback((resource: Resource, field: string): string => {
+    switch (field) {
+      case 'description':
+        return resource.description || 'Unknown';
+      case 'visible':
+        return resource.visible ? 'Visible' : 'Hidden';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to resources
+  const groupedResources = useTableGrouping({
+    data: resources || [],
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getResourceGroupKey,
+  });
+
   // Show loading state
   if (overviewLoading || resourcesLoading) {
     return (
@@ -560,45 +586,63 @@ const TrustCenterResources: React.FC = () => {
 
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
-          <CustomizableButton
-            sx={styles.addButton}
-            variant="contained"
-            onClick={handleOpenAddModal}
-            isDisabled={!formData?.info?.resources_visible}
-            text="Add new resource"
-            icon={<AddCircleOutlineIcon size={16} />}
-          />
-          <Box sx={styles.toggleRow}>
-            <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle
-              checked={formData?.info?.resources_visible ?? false}
-              onChange={(_, checked) =>
-                handleFieldChange("info", "resources_visible", checked)
-              }
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <GroupBy
+              options={[
+                { id: 'description', label: 'Type' },
+                { id: 'visible', label: 'Visibility' },
+              ]}
+              onGroupChange={handleGroupChange}
+            />
+          </Box>
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Box sx={styles.toggleRow}>
+              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Toggle
+                checked={formData?.info?.resources_visible ?? false}
+                onChange={(_, checked) =>
+                  handleFieldChange("info", "resources_visible", checked)
+                }
+              />
+            </Box>
+            <CustomizableButton
+              sx={styles.addButton}
+              variant="contained"
+              onClick={handleOpenAddModal}
+              isDisabled={!formData?.info?.resources_visible}
+              text="Add new resource"
+              icon={<AddCircleOutlineIcon size={16} />}
             />
           </Box>
         </Box>
 
         <Box sx={styles.tableWrapper}>
-          <AITrustCenterTable
-            data={resources || []}
-            columns={TABLE_COLUMNS}
-            isLoading={resourcesLoading}
-            paginated={true}
-            disabled={!formData?.info?.resources_visible}
-            emptyStateText="No resources found. Add your first resource to get started."
-                    renderRow={(resource, sortConfig) => (
-              <ResourceTableRow
-                key={resource.id}
-                resource={resource}
-                onDelete={handleDeleteResource}
-                onEdit={handleEditResource}
-                onMakeVisible={handleMakeVisible}
-                onDownload={handleDownload}
-                sortConfig={sortConfig}
+          <GroupedTableView
+            groupedData={groupedResources}
+            ungroupedData={resources || []}
+            renderTable={(data, options) => (
+              <AITrustCenterTable
+                data={data}
+                columns={TABLE_COLUMNS}
+                isLoading={resourcesLoading}
+                paginated={true}
+                disabled={!formData?.info?.resources_visible}
+                emptyStateText="No resources found. Add your first resource to get started."
+                renderRow={(resource, sortConfig) => (
+                  <ResourceTableRow
+                    key={resource.id}
+                    resource={resource}
+                    onDelete={handleDeleteResource}
+                    onEdit={handleEditResource}
+                    onMakeVisible={handleMakeVisible}
+                    onDownload={handleDownload}
+                    sortConfig={sortConfig}
+                  />
+                )}
+                tableId="resources-table"
+                hidePagination={options?.hidePagination}
               />
             )}
-            tableId="resources-table"
           />
         </Box>
 

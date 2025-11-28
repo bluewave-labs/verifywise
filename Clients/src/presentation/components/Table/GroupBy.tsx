@@ -191,12 +191,12 @@ export const GroupBy: React.FC<GroupByProps> = ({
           padding: '6px 12px',
           textTransform: 'none',
           color: '#374151',
-          borderColor: '#e5e7eb',
+          borderColor: '#d0d5dd',
           height: '34px',
           minWidth: selectedGroup ? '110px' : '80px',
           backgroundColor: open ? '#f0fdf4' : 'transparent',
           '&:hover': {
-            borderColor: '#d1d5db',
+            borderColor: '#98a2b3',
             backgroundColor: '#f0fdf4',
           },
         }}

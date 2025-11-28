@@ -22,6 +22,7 @@ export interface IAITrustCenterTableProps<T> {
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;
+  hidePagination?: boolean;
 }
 
 export interface IAuditRiskTableProps {
@@ -119,13 +120,15 @@ export interface IFileBasicTableProps {
   paginated?: boolean;
   table: string;
   onFileDeleted?: () => void | Promise<void>;
+  hidePagination?: boolean;
 }
 
 export interface IFileTableProps {
   cols: any[];
-  
+
   files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
+  hidePagination?: boolean;
 }
 
 export interface IProjectRiskTableBodyProps {
@@ -173,6 +176,7 @@ export interface ITableProps {
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
   renderRow?: (row: any, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
+  hidePagination?: boolean;
 }
 
 export interface IReportTableProps {
@@ -192,6 +196,7 @@ export interface IReportTablePropsExtended {
   removeReport: (id: number) => void;
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
+  hidePagination?: boolean;
 }
 
 export interface IRiskTableProps {

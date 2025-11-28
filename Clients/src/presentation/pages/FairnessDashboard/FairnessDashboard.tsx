@@ -18,12 +18,8 @@ import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
-<<<<<<< HEAD
 //import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
-=======
-import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
 import TipBox from "../../components/TipBox";
->>>>>>> upstream/develop
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState(() => {

@@ -39,7 +39,6 @@ export default function ProfilePage() {
       "team",
       "organization",
       "apikeys",
-      "llmkeys",
     ];
     return tabs;
   }, []);

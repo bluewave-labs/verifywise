@@ -44,6 +44,18 @@ interface FrameworkData {
     totalSubcategories: number;
     assignedSubcategories: number;
   };
+  nistAssignmentsByFunction?: {
+    govern: { total: number; assigned: number };
+    map: { total: number; assigned: number };
+    measure: { total: number; assigned: number };
+    manage: { total: number; assigned: number };
+  };
+  nistProgressByFunction?: {
+    govern: { total: number; done: number };
+    map: { total: number; done: number };
+    measure: { total: number; done: number };
+    manage: { total: number; done: number };
+  };
   nistStatusBreakdown?: {
     notStarted: number;
     draft: number;
@@ -125,7 +137,7 @@ const FrameworkDashboard = ({
           const isNISTAIRMF = framework.name.toLowerCase().includes("nist ai rmf");
 
           let clauseProgress, annexProgress, assignmentStatus, statusBreakdown;
-          let nistProgress, nistAssignments, nistStatusBreakdown;
+          let nistProgress, nistProgressByFunction, nistAssignments, nistAssignmentsByFunction, nistStatusBreakdown;
 
           if (isNISTAIRMF) {
             // Fetch NIST AI RMF data
@@ -147,6 +159,19 @@ const FrameworkDashboard = ({
             }
 
             try {
+              const progressByFunctionRes = await getEntityById({
+                routeUrl: `/nist-ai-rmf/progress-by-function`,
+              });
+              if (progressByFunctionRes?.data) {
+                nistProgressByFunction = progressByFunctionRes.data;
+              }
+            } catch (error) {
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching NIST AI RMF progress by function:`, error);
+              }
+            }
+
+            try {
               const assignmentsRes = await getEntityById({
                 routeUrl: `/nist-ai-rmf/assignments`,
               });
@@ -161,6 +186,19 @@ const FrameworkDashboard = ({
                 console.error(`Error fetching NIST AI RMF assignments:`, error);
               }
               nistAssignments = { totalSubcategories: 0, assignedSubcategories: 0 };
+            }
+
+            try {
+              const assignmentsByFunctionRes = await getEntityById({
+                routeUrl: `/nist-ai-rmf/assignments-by-function`,
+              });
+              if (assignmentsByFunctionRes?.data) {
+                nistAssignmentsByFunction = assignmentsByFunctionRes.data;
+              }
+            } catch (error) {
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching NIST AI RMF assignments by function:`, error);
+              }
             }
 
             try {
@@ -298,7 +336,9 @@ const FrameworkDashboard = ({
             clauseProgress,
             annexProgress,
             nistProgress,
+            nistProgressByFunction,
             nistAssignments,
+            nistAssignmentsByFunction,
             nistStatusBreakdown,
             assignmentStatus,
             statusBreakdown,

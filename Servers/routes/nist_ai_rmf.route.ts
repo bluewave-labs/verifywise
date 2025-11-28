@@ -13,7 +13,9 @@ import {
   updateNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryStatus,
   getNISTAIRMFProgress,
+  getNISTAIRMFProgressByFunction,
   getNISTAIRMFAssignments,
+  getNISTAIRMFAssignmentsByFunction,
   getNISTAIRMFStatusBreakdown,
   getNISTAIRMFOverview,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
@@ -65,7 +67,9 @@ router.patch(
 
 // Dashboard calculation endpoints
 router.get("/progress", authenticateJWT, getNISTAIRMFProgress); // get total and completed subcategories
+router.get("/progress-by-function", authenticateJWT, getNISTAIRMFProgressByFunction); // get progress grouped by function (Govern, Map, Measure, Manage)
 router.get("/assignments", authenticateJWT, getNISTAIRMFAssignments); // get total and assigned subcategories
+router.get("/assignments-by-function", authenticateJWT, getNISTAIRMFAssignmentsByFunction); // get assignments grouped by function (Govern, Map, Measure, Manage)
 router.get("/status-breakdown", authenticateJWT, getNISTAIRMFStatusBreakdown); // get status breakdown
 router.get("/overview", authenticateJWT, getNISTAIRMFOverview); // get all functions with categories and subcategories
 

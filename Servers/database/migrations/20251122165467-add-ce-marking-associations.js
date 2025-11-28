@@ -13,7 +13,7 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
         // Create ce_marking_policies association table
-        await queryInterface.sequelize.query(`CREATE TABLE "${tenantHash}".ce_marking_policies (
+        await queryInterface.sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_policies (
         id SERIAL PRIMARY KEY,
         ce_marking_id INTEGER NOT NULL,
         policy_id INTEGER NOT NULL,
@@ -27,7 +27,7 @@ module.exports = {
         );`, { transaction })
 
         // Create ce_marking_evidences association table
-        await queryInterface.sequelize.query(`CREATE TABLE "${tenantHash}".ce_marking_evidences (
+        await queryInterface.sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_evidences (
           id SERIAL PRIMARY KEY,
           ce_marking_id INTEGER NOT NULL,
           file_id INTEGER NOT NULL,

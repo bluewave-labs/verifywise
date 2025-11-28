@@ -1,10 +1,11 @@
 import React from "react";
 import CustomizablePolicyTable from "../Table/PolicyTable";
-import { TableRow, TableCell, Chip } from "@mui/material";
+import { TableRow, TableCell } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
 import { PolicyTableProps } from "../../../domain/interfaces/IPolicy";
+import Chip from "../Chip";
 
 const tableHeaders = [
   { id: "title", name: "Title" },
@@ -17,36 +18,6 @@ const tableHeaders = [
   { id: "updated_by", name: "Updated By" },
   { id: "actions", name: "Actions" },
 ];
-
-const getStatusChipProps = (status: string) => {
-  const statusStyles: Record<string, { bg: string; color: string }> = {
-    Draft: { bg: "#e0e0e0", color: "#616161" },
-    "Under Review": { bg: "#fff3e0", color: "#b71c1c" },
-    Approved: { bg: "#c8e6c9", color: "#388e3c" },
-    Published: { bg: "#bbdefb", color: "#1976d2" },
-    Archived: { bg: "#eeeeee", color: "#757575" },
-    Deprecated: { bg: "#ffebee", color: "#c62828" },
-  };
-
-  const style = statusStyles[status] || { bg: "#f5f5f5", color: "#9e9e9e" };
-
-  return {
-    label: status,
-    size: "small" as const,
-    sx: {
-      backgroundColor: style.bg,
-      color: style.color,
-      fontWeight: 500,
-      fontSize: "11px",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      borderRadius: "4px",
-      "& .MuiChip-label": {
-        padding: "4px 8px",
-      },
-    },
-  };
-};
 
 const PolicyTable: React.FC<PolicyTableProps> = ({
   data,
@@ -135,7 +106,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                 backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
               }}
             >
-              <Chip {...getStatusChipProps(policy.status)} />
+              <Chip label={policy.status} />
             </TableCell>
             <TableCell
               sx={{

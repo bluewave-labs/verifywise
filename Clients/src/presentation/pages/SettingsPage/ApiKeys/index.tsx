@@ -19,6 +19,7 @@ import { createApiToken, deleteApiToken, getApiTokens } from "../../../../applic
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
+import LLMKeys from "../LLMKeys";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -556,6 +557,8 @@ const ApiKeys = () => {
           TitleFontSize={0}
         />
       )}
+
+      <LLMKeys />
     </Stack>
   );
 };

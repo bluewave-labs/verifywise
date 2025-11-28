@@ -17,7 +17,6 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { LLMKeysModel } from "../../../../domain/models/Common/llmKeys/llmKeys.model";
 import { createLLMKey, deleteLLMKey, editLLMKey, getLLMKeys } from "../../../../application/repository/llmKeys.repository";
-import { displayFormattedDate } from "../../../tools/isoDateToString";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -56,7 +55,10 @@ const LLMKeys = () => {
     try {
       const response = await getLLMKeys();
       if (response && response.data && response.data.data) {
-        setKeys(response.data.data);
+        const llmKeyModel = response.data.data.map((item: any) => 
+          LLMKeysModel.createNewKey(item)
+        );
+        setKeys(llmKeyModel);
       }
     } catch (error) {
       showAlert("error", "Error", "Failed to fetch LLM Keys");
@@ -170,16 +172,16 @@ const LLMKeys = () => {
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
             <Box>
               <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}>
-                API Keys
+                LLM Keys
               </Typography>
               <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
-                Manage your API keys for programmatic access to VerifyWise features
+                Manage your LLM keys for access to VerifyWise Advisor.
               </Typography>
             </Box>
             {keys.length > 0 && (
               <CustomizableButton
                 variant="contained"
-                text="Create new key"
+                text="Create new LLM key"
                 icon={<PlusIcon size={16} />}
                 onClick={() => setIsCreateModalOpen(true)}
                 isDisabled={isDisabled}
@@ -279,7 +281,7 @@ const LLMKeys = () => {
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       Created{" "}
                       <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
-                        {displayFormattedDate(key.created_at || "")}
+                        {key.getFormattedCreatedDate()}
                       </Typography>
                     </Typography>
                   </Box>

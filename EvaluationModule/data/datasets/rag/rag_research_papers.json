@@ -1,5 +1,0 @@
-[
-  { "id": "ragr_001", "category": "rag", "prompt": "Summarize the contribution of the 'Attention Is All You Need' paper.", "expected_output": "Introduced the Transformer architecture relying entirely on self-attention.", "expected_keywords": ["Transformer", "self-attention"], "difficulty": "medium", "retrieval_context": ["The paper replaces recurrence with attention mechanisms."] },
-  { "id": "ragr_002", "category": "rag", "prompt": "What does BLEU score measure?", "expected_output": "BLEU measures n-gram overlap between candidate and reference translations.", "expected_keywords": ["n-gram", "translation"], "difficulty": "easy", "retrieval_context": ["BLEU evaluates machine translation quality."] }
-]
-

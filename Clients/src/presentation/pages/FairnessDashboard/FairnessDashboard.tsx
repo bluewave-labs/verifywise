@@ -1,24 +1,44 @@
 import {
   useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
   Suspense,
 } from "react";
 import {
   Box,
+  Typography,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Button,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
-import Tab from "@mui/material/Tab";
-import { styles } from "./styles";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  X as CloseGreyIcon,
+} from "lucide-react";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import { TabContext, TabPanel } from "@mui/lab";
+import TabBar from "../../components/TabBar";
+import { useNavigate } from "react-router-dom";
+import FairnessTable from "../../components/Table/FairnessTable";
+import Select from "../../components/Inputs/Select";
+import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
+import CustomizableToast from "../../components/Toast";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import PageHeader from "../../components/Layout/PageHeader";
 import PageTour from "../../components/PageTour";
 import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
-//import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
+import { FairnessModel } from "../../../domain/models/Common/biasFramework/biasFramework.model";
 import TipBox from "../../components/TipBox";
 
 export default function FairnessDashboard() {
@@ -28,195 +48,192 @@ export default function FairnessDashboard() {
     if (hash === "#biasModule") {
       return "biasModule";
     }
-    if (hash === "#deepeval") {
-      return "deepeval";
-    }
-    // Default to biasModule since ML evaluator (uploads) is commented out
-    return "biasModule";
+    return "uploads";
   });
-  // Commented out - related to ML evaluator tab
-  // const [dialogOpen, setDialogOpen] = useState(false);
-  // const [modelFile, setModelFile] = useState<File | null>(null);
-  // const [datasetFile, setDatasetFile] = useState<File | null>(null);
-  // const [targetColumn, setTargetColumn] = useState("");
-  // const [sensitiveColumn, setSensitiveColumn] = useState("");
-  // const [showToastNotification, setShowToastNotification] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [datasetFile, setDatasetFile] = useState<File | null>(null);
+  const [targetColumn, setTargetColumn] = useState("");
+  const [sensitiveColumn, setSensitiveColumn] = useState("");
+  const [columnOptions, setColumnOptions] = useState<string[]>([]);
+  const [showToastNotification, setShowToastNotification] = useState(false);
 
-  // Commented out - related to ML evaluator tab
-  // const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
+  const targetColumnItems = useMemo(() => {
+    return columnOptions.map((col) => ({ _id: col, name: col }));
+  }, [columnOptions]);
+
+  const [page, setPage] = useState(0);
+
+  const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Commented out - related to ML evaluator tab
-  // const fetchMetrics = async () => {
-  //   try {
-  //     const metrics = await fairnessService.getAllFairnessMetrics();
+  const fetchMetrics = async () => {
+    try {
+      const metrics = await fairnessService.getAllFairnessMetrics();
 
-  //     if (!metrics || metrics.length === 0) {
-  //       setUploadedModels([]); // Show empty table
-  //       return; // Don't raise error
-  //     }
+      if (!metrics || metrics.length === 0) {
+        setUploadedModels([]); // Show empty table
+        return; // Don't raise error
+      }
 
-  //     const formatted = metrics.map(
-  //       (item: {
-  //         metrics_id: number | string;
-  //         model_filename: string;
-  //         data_filename: string;
-  //       }) => ({
-  //         id: item.metrics_id, // use this for "ID" column
-  //         model: item.model_filename,
-  //         dataset: item.data_filename,
-  //         status: "Completed", // Assuming all fetched metrics are completed
-  //       })
-  //     );
-  //     setUploadedModels(formatted);
-  //   } catch {
-  //     setAlert({
-  //       variant: "error",
-  //       body: "Failed to fetch metrics. Please try again.",
-  //     });
-  //     setTimeout(() => setAlert(null), 8000);
-  //   }
-  // };
+      const formatted = metrics.map(
+        (item: {
+          metrics_id: number | string;
+          model_filename: string;
+          data_filename: string;
+        }) =>
+          FairnessModel.createFairnessModel({
+            id: item.metrics_id,
+            model: item.model_filename,
+            dataset: item.data_filename,
+            status: "Completed", // Assuming all fetched metrics are completed
+          })
+      );      
+      setUploadedModels(formatted);
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to fetch metrics. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    }
+  };
 
-  // useEffect(() => {
-  //   fetchMetrics();
-  // }, []);
+  useEffect(() => {
+    fetchMetrics();
+  }, []);
 
-  // Commented out - related to ML evaluator tab
-  // const modelInputRef = useRef<HTMLInputElement>(null);
-  // const datasetInputRef = useRef<HTMLInputElement>(null);
-  // const navigate = useNavigate();
+  const modelInputRef = useRef<HTMLInputElement>(null);
+  const datasetInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
-  // Commented out - related to ML evaluator tab
-  // const uploadFields: {
-  //   label: string;
-  //   accept: string;
-  //   file: File | null;
-  //   setFile: (file: File | null) => void;
-  //   ref: React.RefObject<HTMLInputElement>;
-  //   errorKey: "modelFile" | "datasetFile";
-  // }[] = [
-  //   {
-  //     label: "model",
-  //     accept: ".pkl",
-  //     file: modelFile,
-  //     setFile: setModelFile,
-  //     ref: modelInputRef,
-  //     errorKey: "modelFile",
-  //   },
-  //   {
-  //     label: "dataset",
-  //     accept: ".csv",
-  //     file: datasetFile,
-  //     setFile: setDatasetFile,
-  //     ref: datasetInputRef,
-  //     errorKey: "datasetFile",
-  //   },
-  // ];
+  const uploadFields: {
+    label: string;
+    accept: string;
+    file: File | null;
+    setFile: (file: File | null) => void;
+    ref: React.RefObject<HTMLInputElement>;
+    errorKey: "modelFile" | "datasetFile";
+  }[] = [
+    {
+      label: "model",
+      accept: ".pkl",
+      file: modelFile,
+      setFile: setModelFile,
+      ref: modelInputRef,
+      errorKey: "modelFile",
+    },
+    {
+      label: "dataset",
+      accept: ".csv",
+      file: datasetFile,
+      setFile: setDatasetFile,
+      ref: datasetInputRef,
+      errorKey: "datasetFile",
+    },
+  ];
 
-  // const FAIRNESS_COLUMNS = [
-  //   { id: "id", label: "Check ID" },
-  //   { id: "model", label: "Model" },
-  //   { id: "dataset", label: "Dataset" },
-  //   { id: "status", label: "Status" },
-  //   { id: "report", label: "Report" },
-  //   { id: "action", label: "Action" },
-  // ];
+  const FAIRNESS_COLUMNS = [
+    { id: "id", label: "Check ID" },
+    { id: "model", label: "Model" },
+    { id: "dataset", label: "Dataset" },
+    { id: "status", label: "Status" },
+    { id: "report", label: "Report" },
+    { id: "action", label: "Action" },
+  ];
 
-  // const [errors, setErrors] = useState({
-  //   modelFile: false,
-  //   datasetFile: false,
-  //   targetColumn: false,
-  //   sensitiveColumn: false,
-  // });
+  const [errors, setErrors] = useState({
+    modelFile: false,
+    datasetFile: false,
+    targetColumn: false,
+    sensitiveColumn: false,
+  });
 
-  // Commented out - related to ML evaluator tab
-  // const handleShowDetails = useCallback(
-  //   (model: FairnessModel) => {
-  //     if (model?.id) {
-  //       navigate(`/fairness-results/${model.id}`);
-  //     } else {
-  //       setAlert({
-  //         variant: "error",
-  //         body: "Invalid model:" + model.id + "Please try again.",
-  //       });
-  //       setTimeout(() => setAlert(null), 8000);
-  //     }
-  //   },
-  //   [navigate]
-  // );
+  const handleShowDetails = useCallback(
+    (model: FairnessModel) => {
+      if (model?.id) {
+        navigate(`/fairness-results/${model.id}`);
+      } else {
+        setAlert({
+          variant: "error",
+          body: "Invalid model:" + model.id + "Please try again.",
+        });
+        setTimeout(() => setAlert(null), 8000);
+      }
+    },
+    [navigate]
+  );
 
-  // Commented out - related to ML evaluator tab
-  // const resetForm = () => {
-  //   setDialogOpen(false);
-  //   setModelFile(null);
-  //   setDatasetFile(null);
-  //   setColumnOptions([]);
-  //   setTargetColumn("");
-  //   setSensitiveColumn("");
-  //   if (modelInputRef.current) modelInputRef.current.value = "";
-  //   if (datasetInputRef.current) datasetInputRef.current.value = "";
-  //   setErrors({
-  //     modelFile: false,
-  //     datasetFile: false,
-  //     targetColumn: false,
-  //     sensitiveColumn: false,
-  //   });
-  // };
+  const resetForm = () => {
+    setDialogOpen(false);
+    setModelFile(null);
+    setDatasetFile(null);
+    setColumnOptions([]);
+    setTargetColumn("");
+    setSensitiveColumn("");
+    if (modelInputRef.current) modelInputRef.current.value = "";
+    if (datasetInputRef.current) datasetInputRef.current.value = "";
+    setErrors({
+      modelFile: false,
+      datasetFile: false,
+      targetColumn: false,
+      sensitiveColumn: false,
+    });
+  };
 
-  // const confirmDelete = async (id: number) => {
-  //   if (id === null) return;
-  //   try {
-  //     await fairnessService.deleteFairnessCheck(id);
-  //     const filtered = uploadedModels.filter((model) => model.id !== id);
-  //     setUploadedModels(filtered);
-  //   } catch {
-  //     setAlert({
-  //       variant: "error",
-  //       body: "Failed to delete model. Please try again.",
-  //     });
-  //     setTimeout(() => setAlert(null), 8000);
-  //   }
-  // };
+  const confirmDelete = async (id: number) => {
+    if (id === null) return;
+    try {
+      await fairnessService.deleteFairnessCheck(id);
+      const filtered = uploadedModels.filter((model) => model.id !== id);
+      setUploadedModels(filtered);
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to delete model. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    }
+  };
 
-  // const handleSaveModel = async () => {
-  //   const newErrors = {
-  //     modelFile: !modelFile,
-  //     datasetFile: !datasetFile,
-  //     targetColumn: !targetColumn,
-  //     sensitiveColumn: !sensitiveColumn,
-  //   };
-  //   setErrors(newErrors);
+  const handleSaveModel = async () => {
+    const newErrors = {
+      modelFile: !modelFile,
+      datasetFile: !datasetFile,
+      targetColumn: !targetColumn,
+      sensitiveColumn: !sensitiveColumn,
+    };
+    setErrors(newErrors);
 
-  //   const hasError = Object.values(newErrors).some(Boolean);
-  //   if (hasError) return;
-  //   if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
+    const hasError = Object.values(newErrors).some(Boolean);
+    if (hasError) return;
+    if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
 
-  //   setShowToastNotification(true);
-  //   try {
-  //     await fairnessService.uploadFairnessFiles(
-  //       {
-  //         model: modelFile,
-  //         data: datasetFile,
-  //         target_column: targetColumn,
-  //         sensitive_column: sensitiveColumn,
-  //       },
-  //       setUploadedModels
-  //     );
+    setShowToastNotification(true);
+    try {
+      await fairnessService.uploadFairnessFiles(
+        {
+          model: modelFile,
+          data: datasetFile,
+          target_column: targetColumn,
+          sensitive_column: sensitiveColumn,
+        },
+        setUploadedModels
+      );
 
-  //     // await fetchMetrics(); // Refresh entire fairness model list with IDs
-  //     resetForm();
-  //   } catch {
-  //     setAlert({
-  //       variant: "error",
-  //       body: "Failed to upload model. Please try again.",
-  //     });
-  //     setTimeout(() => setAlert(null), 8000);
-  //   } finally {
-  //     setShowToastNotification(false);
-  //   }
-  // };
+      // await fetchMetrics(); // Refresh entire fairness model list with IDs
+      resetForm();
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to upload model. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    } finally {
+      setShowToastNotification(false);
+    }
+  };
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -224,11 +241,10 @@ export default function FairnessDashboard() {
     body: string;
   } | null>(null);
 
-  // Commented out - related to ML evaluator tab
-  // useModalKeyHandling({
-  //   isOpen: dialogOpen,
-  //   onClose: () => resetForm(),
-  // });
+  useModalKeyHandling({
+    isOpen: dialogOpen,
+    onClose: () => resetForm(),
+  });
 
   return (
     <Stack className="vwhome" gap="20px">
@@ -298,33 +314,25 @@ export default function FairnessDashboard() {
       )}
 
       <TabContext value={tab}>
-        <Box
-          sx={{ borderBottom: 1, borderColor: "divider" }}
-          data-joyride-id="fairness-tabs"
-        >
-          <TabList
-            onChange={(_, newVal) => setTab(newVal)}
-            TabIndicatorProps={{
-              style: { backgroundColor: "#13715B", height: "2px" },
-            }}
-            sx={styles.tabList}
-          >
-            {/* <Tab
-              label="ML evaluator"
-              value="uploads"
-              disableRipple
-              sx={{ textTransform: "none !important" }}
-            /> */}
-            <Tab
-              label="LLM evaluator"
-              value="biasModule"
-              disableRipple
-              sx={{ textTransform: "none !important" }}
-            />
-          </TabList>
-        </Box>
+        <TabBar
+          tabs={[
+            {
+              label: "ML evaluator",
+              value: "uploads",
+              icon: "Bot",
+            },
+            {
+              label: "LLM evaluator",
+              value: "biasModule",
+              icon: "MessageSquare",
+            },
+          ]}
+          activeTab={tab}
+          onChange={(_, newVal) => setTab(newVal)}
+          dataJoyrideId="fairness-tabs"
+        />
 
-        {/* <TabPanel value="uploads" sx={tabPanelStyle}>
+        <TabPanel value="uploads" sx={tabPanelStyle}>
           <Box display="flex" justifyContent="flex-end" mb={3}>
             <CustomizableButton
               variant="contained"
@@ -536,16 +544,15 @@ export default function FairnessDashboard() {
               </Stack>
             </DialogContent>
           </Dialog>
-        </TabPanel> */}
+        </TabPanel>
 
         <TabPanel value="biasModule" sx={tabPanelStyle}>
           <BiasAndFairnessModule />
         </TabPanel>
       </TabContext>
-      {/* Commented out - related to ML evaluator tab */}
-      {/* {showToastNotification && (
+      {showToastNotification && (
         <CustomizableToast title="Uploading the model. Please wait, this process may take some time..." />
-      )} */}
+      )}
 
       <PageTour
         steps={BiasAndFairnessSteps}

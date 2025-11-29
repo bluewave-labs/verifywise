@@ -210,10 +210,6 @@ const CustomizableButton = memo(
               minHeight: "34px",
               "&.Mui-disabled": {
                 pointerEvents: loading ? "none" : "auto",
-                "&:hover": {
-                  backgroundColor: "inherit",
-                  boxShadow: "none",
-                },
               },
             },
             ...(Array.isArray(sx) ? sx : [sx]),

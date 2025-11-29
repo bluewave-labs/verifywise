@@ -27,7 +27,6 @@ import {
   Puzzle,
   Zap,
   Activity,
-  FlaskConical,
   FileCode,
   Link,
   User,
@@ -100,8 +99,6 @@ export const routeMapping: Record<string, string> = {
   // Incident management
   "/ai-incident-managements": "Incident Management",
 
-  // LLM Evals
-  "/evals": "LLM Evals",
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": "Framework risks",
   "/framework/linked-models": "Linked models",
@@ -196,8 +193,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // MLFlow
   "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
 
-  // LLM Evals
-  "/evals": () => React.createElement(FlaskConical, { size: 14, strokeWidth: 1.5 }),
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
   "/framework/linked-models": () => React.createElement(Link, { size: 14, strokeWidth: 1.5 }),

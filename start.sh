@@ -50,7 +50,7 @@ EXPRESS_PID=$!
 green "▶️ Express → http://localhost:3000"
 
 # === Start FastAPI ===
-(cd EvalServer/src && source .venv/bin/activate && uvicorn app:app --reload --port 8000  >> ../fastapi.log 2>&1) &
+(cd BiasAndFairnessServers/src && source .venv/bin/activate && uvicorn app:app --reload --port 8000  >> ../fastapi.log 2>&1) &
 FASTAPI_PID=$!
 green "▶️ FastAPI → http://localhost:8000"
 

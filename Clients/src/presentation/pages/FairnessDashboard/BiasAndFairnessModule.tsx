@@ -1,13 +1,28 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { styles as S } from "./BiasAndFairnessModule.styles";
-import { Box, Button, Typography, Stack, FormControl, Select, MenuItem } from "@mui/material";
-import { CirclePlus as AddCircleOutlineIcon, ChevronDown } from "lucide-react";
+import {
+  Box,
+  Button,
+  Typography,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  TextField,
+  FormControl,
+  Select,
+  MenuItem,
+  CircularProgress,
+} from "@mui/material";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  X as CloseIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
+import { Suspense } from "react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import StandardModal from "../../components/Modals/StandardModal";
-const Field = lazy(() => import("../../components/Inputs/Field"));
-const SelectComponent = lazy(() => import("../../components/Inputs/Select"));
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import EvaluationTable from "../../../presentation/components/Table/EvaluationTable";
@@ -18,30 +33,18 @@ interface BiasAndFairnessConfig {
     source: string;
     split: string;
     platform: string;
-    protectedAttributes: string[];
   };
   model: {
     modelId: string;
     modelTask: string;
     labelBehavior: string;
-    enabled: boolean;
-    device: string;
-    temperature: number;
-    topP: number;
-    maxNewTokens: number;
   };
   targetColumn: string;
   metrics: {
-    fairnessEnabled: boolean;
     fairness: string[];
-    performanceEnabled: boolean;
     performance: string[];
   };
   postProcessing: {
-    binaryMapping: {
-      favorable: string;
-      unfavorable: string;
-    };
     attributeGroups: {
       sex: {
         privileged: string[];
@@ -69,44 +72,27 @@ interface BiasAndFairnessConfig {
       };
     };
   };
-  sampling: {
-    enabled: boolean;
-    nSamples: number;
-    randomSeed: number;
-  };
 }
 
 export default function BiasAndFairnessModule() {
   const [config, setConfig] = useState<BiasAndFairnessConfig>({
     dataset: {
-      name: "adult-census-income",
-      source: "scikit-learn/adult-census-income",
+      name: "",
+      source: "",
       split: "train",
       platform: "huggingface",
-      protectedAttributes: ["sex", "race"],
     },
     model: {
       modelId: "",
       modelTask: "binary_classification",
       labelBehavior: "binary",
-      enabled: true,
-      device: "cpu",
-      temperature: 0.7,
-      topP: 0.9,
-      maxNewTokens: 30,
     },
     targetColumn: "",
     metrics: {
-      fairnessEnabled: true,
       fairness: ["demographic_parity", "equalized_odds"],
-      performanceEnabled: true,
       performance: ["accuracy"],
     },
     postProcessing: {
-      binaryMapping: {
-        favorable: ">50K",
-        unfavorable: "<=50K",
-      },
       attributeGroups: {
         sex: {
           privileged: ["Male"],
@@ -137,7 +123,6 @@ export default function BiasAndFairnessModule() {
         },
       },
     },
-    sampling: { enabled: true, nSamples: 50, randomSeed: 42 },
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -241,34 +226,22 @@ export default function BiasAndFairnessModule() {
   const resetForm = () => {
     setConfig({
       dataset: {
-        name: "adult-census-income",
-        source: "scikit-learn/adult-census-income",
+        name: "",
+        source: "",
         split: "train",
         platform: "huggingface",
-        protectedAttributes: ["sex", "race"],
       },
       model: {
         modelId: "",
         modelTask: "binary_classification",
         labelBehavior: "binary",
-        enabled: true,
-        device: "cpu",
-        temperature: 0.7,
-        topP: 0.9,
-        maxNewTokens: 30,
       },
       targetColumn: "",
       metrics: {
-        fairnessEnabled: true,
         fairness: ["demographic_parity", "equalized_odds"],
-        performanceEnabled: true,
         performance: ["accuracy"],
       },
       postProcessing: {
-        binaryMapping: {
-          favorable: ">50K",
-          unfavorable: "<=50K",
-        },
         attributeGroups: {
           sex: {
             privileged: ["Male"],
@@ -298,11 +271,6 @@ export default function BiasAndFairnessModule() {
               "You are an ML assistant helping with fairness evaluation. Return STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra text.",
           },
         },
-      },
-      sampling: {
-        enabled: true,
-        nSamples: 50,
-        randomSeed: 42,
       },
     });
     setShowAdvancedSettings(false);
@@ -347,37 +315,22 @@ export default function BiasAndFairnessModule() {
           source: config.dataset.source,
           split: config.dataset.split,
           platform: config.dataset.platform,
-          protected_attributes: config.dataset.protectedAttributes,
+          protected_attributes: ["sex", "race"],
           target_column: config.targetColumn || "income",
         },
         model: {
           model_id: config.model.modelId,
           model_task: config.model.modelTask,
           label_behavior: config.model.labelBehavior,
-          huggingface: {
-            enabled: config.model.enabled,
-            device: config.model.device,
-            temperature: config.model.temperature,
-            top_p: config.model.topP,
-            max_new_tokens: config.model.maxNewTokens,
-            model_id: config.model.modelId,
-            system_prompt:
-              config.prompting.formatter === "tinyllama-chat"
-                ? config.prompting.formatters.tinyllamaChat.systemPrompt
-                : undefined,
-          },
         },
         metrics: {
-          fairness: config.metrics.fairnessEnabled ? config.metrics.fairness : [],
-          performance: config.metrics.performanceEnabled
-            ? config.metrics.performance
-            : [],
+          fairness: config.metrics.fairness,
+          performance: config.metrics.performance,
         },
         post_processing: {
           binary_mapping: {
-            favorable_outcome: config.postProcessing.binaryMapping.favorable,
-            unfavorable_outcome:
-              config.postProcessing.binaryMapping.unfavorable,
+            favorable_outcome: ">50K",
+            unfavorable_outcome: "<=50K",
           },
           attribute_groups: config.postProcessing?.attributeGroups,
         },
@@ -401,9 +354,9 @@ export default function BiasAndFairnessModule() {
           },
         },
         sampling: {
-          enabled: config.sampling.enabled,
-          n_samples: config.sampling.nSamples,
-          random_seed: config.sampling.randomSeed,
+          enabled: true,
+          n_samples: 50,
+          random_seed: 42,
         },
       };
 
@@ -587,283 +540,358 @@ export default function BiasAndFairnessModule() {
         />
       </Box>
 
-      {/* Configuration Modal */}
-      <StandardModal
-        isOpen={dialogOpen}
-        onClose={() => { setDialogOpen(false); resetForm(); }}
-        title="Configure Bias & Fairness Evaluation"
-        description="Configure your evaluation parameters to perform comprehensive bias and fairness analysis. We've provided default dataset and prompting configurations to help you get started quickly. You can test your model with these defaults or customize any settings to match your specific evaluation needs."
-        onSubmit={handleStartEvaluation}
-        submitButtonText={loading ? "" : "Start Evaluation"}
-        isSubmitting={loading}
-        maxWidth="900px"
+      {/* Configuration Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => {
+          setDialogOpen(false);
+          resetForm();
+        }}
+        maxWidth="md"
+        fullWidth
       >
-          <Stack spacing={6}>
-            {/* Model configuration */}
-            <Stack spacing={6}>
-              <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#13715B",
-                }}
-              >
-                Model configuration
+        <DialogTitle>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="flex-start"
+          >
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                Configure Bias & Fairness Evaluation
               </Typography>
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="modelId"
-                    label="Model id"
-                    width={220}
-                    placeholder="e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-                    value={config.model.modelId}
-                    onChange={(e) => handleModelChange("modelId", e.target.value)}
-                  />
-                </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                <SelectComponent
-                  id="modelTask"
-                  label="Model task type"
-                  value={config.model.modelTask}
-                  sx={{ width: 220 }}
-                  items={[
-                    { _id: "binary_classification", name: "Binary classification" },
-                    { _id: "multiclass_classification", name: "Multiclass classification" },
-                    { _id: "regression", name: "Regression" },
-                    { _id: "generation", name: "Generation (LLM)" },
-                    { _id: "ranking", name: "Ranking" },
-                  ]}
-                  onChange={(e) => handleModelTaskChange(String(e.target.value))}
-                />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                <SelectComponent
-                  id="labelBehavior"
-                  label="Label behavior"
-                  value={config.model.labelBehavior}
-                  sx={{ width: 220 }}
-                  items={[
-                    { _id: "binary", name: "Binary" },
-                    { _id: "categorical", name: "Categorical" },
-                    { _id: "continuous", name: "Continuous" },
-                  ]}
-                  onChange={(e) => handleModelChange("labelBehavior", String(e.target.value))}
-                />
-              </Suspense>
-            </Stack>
-
-              {/* Target column - for binary classification */}
-              {config.model.modelTask === "binary_classification" && (
-                <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="targetColumn"
-                    label="Target column"
-                    width={220}
-                    placeholder="e.g., income"
-                    value={config.targetColumn}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        targetColumn: e.target.value,
-                      }))
-                    }
-                  />
-                </Suspense>
-                </Stack>
-              )}
-
-              {/* Model runtime settings */}
-              <Stack direction="row" spacing={6}>
-              <Suspense fallback={<div>Loading...</div>}>
-                <SelectComponent
-                  id="device"
-                  label="Device"
-                  value={config.model.device}
-                  sx={{ width: 220 }}
-                  items={[
-                    { _id: "cpu", name: "CPU" },
-                    { _id: "cuda", name: "CUDA" },
-                    { _id: "mps", name: "MPS (Apple)" },
-                  ]}
-                  onChange={(e) => handleModelChange("device", String(e.target.value))}
-                />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Field
-                  id="temperature"
-                  label="Temperature"
-                  width={220}
-                  type="text"
-                  value={String(config.model.temperature ?? "")}
-                  onChange={(e) => {
-                    const normalized = e.target.value.replace(",", ".");
-                    setConfig((p) => ({
-                      ...p,
-                      model: { ...p.model, temperature: normalized === "" ? 0 : Number(normalized) },
-                    }));
-                  }}
-                />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Field
-                  id="topP"
-                  label="Top-p"
-                  width={220}
-                  type="text"
-                  value={String(config.model.topP ?? "")}
-                  onChange={(e) => {
-                    const normalized = e.target.value.replace(",", ".");
-                    setConfig((p) => ({
-                      ...p,
-                      model: { ...p.model, topP: normalized === "" ? 0 : Number(normalized) },
-                    }));
-                  }}
-                />
-              </Suspense>
-              </Stack>
-
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="maxNewTokens"
-                    label="Max new tokens"
-                    width={220}
-                    type="number"
-                    value={String(config.model.maxNewTokens)}
-                    onChange={(e) => setConfig((p) => ({ ...p, model: { ...p.model, maxNewTokens: Number(e.target.value) } }))}
-                  />
-                </Suspense>
-              </Stack>
-            </Stack>
-
-            {/* Dataset configuration */}
-            <Stack spacing={6}>
               <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#13715B",
-                }}
+                variant="body2"
+                sx={{ color: "#6B7280", fontSize: "0.875rem", lineHeight: 1.5 }}
               >
-                Dataset configuration
+                Configure your evaluation parameters to perform comprehensive
+                bias and fairness analysis. Fill in the dataset and model
+                information, select your desired metrics, and optionally
+                configure advanced settings for fine-tuned control.
               </Typography>
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="datasetName"
-                    label="Dataset name"
-                    width={220}
+            </Box>
+            <IconButton
+              onClick={() => {
+                setDialogOpen(false);
+                resetForm();
+              }}
+            >
+              <CloseIcon size={16} />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={6} sx={{ mt: 3 }}>
+            {/* Dataset Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Dataset Configuration
+              </Typography>
+              <Box sx={S.gridAutoFit250}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Dataset Name
+                  </Typography>
+                  <TextField
+                    fullWidth
                     placeholder="e.g., adult-census-income"
                     value={config.dataset.name}
-                    onChange={(e) => handleDatasetChange("name", e.target.value)}
+                    onChange={(e) =>
+                      handleDatasetChange("name", e.target.value)
+                    }
+                    size="small"
+                    sx={S.inputSmall}
                   />
-                </Suspense>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="datasetSource"
-                    label="Dataset source"
-                    width={220}
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Dataset Source
+                  </Typography>
+                  <TextField
+                    fullWidth
                     placeholder="e.g., scikit-learn/adult-census-income"
                     value={config.dataset.source}
-                    onChange={(e) => handleDatasetChange("source", e.target.value)}
+                    onChange={(e) =>
+                      handleDatasetChange("source", e.target.value)
+                    }
+                    size="small"
+                    sx={S.inputSmall}
                   />
-                </Suspense>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <SelectComponent
-                    id="split"
-                    label="Split"
-                    value={config.dataset.split}
-                    sx={{ width: 220 }}
-                    items={[
-                      { _id: "train", name: "Train" },
-                      { _id: "test", name: "Test" },
-                      { _id: "validation", name: "Validation" },
-                    ]}
-                    onChange={(e) => handleDatasetChange("split", String(e.target.value))}
-                  />
-                </Suspense>
-              </Stack>
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <SelectComponent
-                    id="platform"
-                    label="Platform"
-                    value={config.dataset.platform}
-                    sx={{ width: 220 }}
-                    items={[
-                      { _id: "huggingface", name: "HuggingFace" },
-                      { _id: "scikit-learn", name: "Scikit-learn" },
-                      { _id: "custom", name: "Custom" },
-                    ]}
-                    onChange={(e) => handleDatasetChange("platform", String(e.target.value))}
-                  />
-                </Suspense>
-              </Stack>
-            </Stack>
+                </Box>
+              </Box>
+              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Split
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.dataset.split}
+                      onChange={(e) =>
+                        handleDatasetChange("split", e.target.value)
+                      }
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="train">Train</MenuItem>
+                      <MenuItem value="test">Test</MenuItem>
+                      <MenuItem value="validation">Validation</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Platform
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.dataset.platform}
+                      onChange={(e) =>
+                        handleDatasetChange("platform", e.target.value)
+                      }
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="huggingface">HuggingFace</MenuItem>
+                      <MenuItem value="scikit-learn">Scikit-learn</MenuItem>
+                      <MenuItem value="custom">Custom</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+            </Box>
 
-            {/* Prompting configuration */}
-            <Stack spacing={6}>
-              <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#13715B",
-                }}
-              >
-                Prompting configuration
+            {/* Model Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Model Configuration
+              </Typography>
+              <Box sx={S.gridAutoFit250}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Model ID
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+                    value={config.model.modelId}
+                    onChange={(e) =>
+                      handleModelChange("modelId", e.target.value)
+                    }
+                    size="small"
+                    sx={S.inputSmall}
+                  />
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Model Task Type
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.model.modelTask}
+                      onChange={(e) => handleModelTaskChange(e.target.value)}
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="binary_classification">
+                        Binary Classification
+                      </MenuItem>
+                      <MenuItem value="multiclass_classification">
+                        Multiclass Classification
+                      </MenuItem>
+                      <MenuItem value="regression">Regression</MenuItem>
+                      <MenuItem value="generation">Generation (LLM)</MenuItem>
+                      <MenuItem value="ranking">Ranking</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+              <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      color: "#374151",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Label Behavior
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={config.model.labelBehavior}
+                      onChange={(e) =>
+                        handleModelChange("labelBehavior", e.target.value)
+                      }
+                      sx={S.inputSmall}
+                    >
+                      <MenuItem value="binary">Binary</MenuItem>
+                      <MenuItem value="categorical">Categorical</MenuItem>
+                      <MenuItem value="continuous">Continuous</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                {/* Target Column - Only show for binary classification */}
+                {config.model.modelTask === "binary_classification" ? (
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Target Column
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="e.g., income"
+                      value={config.targetColumn}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          targetColumn: e.target.value,
+                        }))
+                      }
+                      size="small"
+                      sx={S.inputSmall}
+                    />
+                  </Box>
+                ) : (
+                  <Box>
+                    {/* Empty box to maintain alignment when target column is hidden */}
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            {/* Prompting Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Prompting Configuration
+              </Typography>
+              <Typography variant="body2" sx={S.helperMuted}>
+                Configure prompt formatting and system instructions for model
+                inference.
               </Typography>
 
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <SelectComponent
-                    id="formatter"
-                    label="Formatter"
+              <Box sx={{ mt: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                    color: "#374151",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  Formatter
+                </Typography>
+                <FormControl fullWidth size="small">
+                  <Select
                     value={config.prompting.formatter}
-                    sx={{ width: 220 }}
-                    items={[
-                      { _id: "tinyllama-chat", name: "TinyLlama Chat" },
-                      { _id: "openai-chat-json", name: "OpenAI Chat JSON" },
-                    ]}
                     onChange={(e) =>
                       setConfig((prev) => ({
                         ...prev,
                         prompting: {
                           ...prev.prompting,
-                          formatter: String(e.target.value),
+                          formatter: e.target.value,
                         },
                       }))
                     }
-                  />
-                </Suspense>
-              </Stack>
+                    sx={S.inputSmall}
+                  >
+                    <MenuItem value="tinyllama-chat">TinyLlama Chat</MenuItem>
+                    <MenuItem value="openai-chat-json">
+                      OpenAI Chat JSON
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
 
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="defaultInstruction"
-                    label="Default instruction"
-                    width={680}
-                    type="description"
-                    rows={2}
-                    placeholder="e.g., Given the following demographic information about a person:"
-                    value={config.prompting.defaults.instruction}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        prompting: {
-                          ...prev.prompting,
-                          defaults: {
-                            ...prev.prompting.defaults,
-                            instruction: e.target.value,
-                          },
+              <Box sx={{ mt: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                    color: "#374151",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  Default Instruction
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="e.g., Given the following demographic information about a person:"
+                  value={config.prompting.defaults.instruction}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      prompting: {
+                        ...prev.prompting,
+                        defaults: {
+                          ...prev.prompting.defaults,
+                          instruction: e.target.value,
                         },
-                      }))
-                    }
-                  />
-                </Suspense>
-              </Stack>
+                      },
+                    }))
+                  }
+                  size="small"
+                  sx={S.inputSmall}
+                />
+              </Box>
 
               {/* TinyLlama Chat Formatter Settings */}
               {config.prompting.formatter === "tinyllama-chat" && (
@@ -884,62 +912,85 @@ export default function BiasAndFairnessModule() {
                       fontWeight: 600,
                     }}
                   >
-                    TinyLlama chat settings
+                    TinyLlama Chat Settings
                   </Typography>
-                  <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Field
-                        id="tinyllamaSystemPrompt"
-                        label="System prompt"
-                        width={680}
-                        type="description"
-                        rows={3}
-                        placeholder="e.g., You are a strict classifier..."
-                        value={config.prompting.formatters.tinyllamaChat.systemPrompt}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            prompting: {
-                              ...prev.prompting,
-                              formatters: {
-                                ...prev.prompting.formatters,
-                                tinyllamaChat: {
-                                  ...prev.prompting.formatters.tinyllamaChat,
-                                  systemPrompt: e.target.value,
-                                },
+                  <Box sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      System Prompt
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      placeholder="e.g., You are a strict classifier..."
+                      value={
+                        config.prompting.formatters.tinyllamaChat.systemPrompt
+                      }
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          prompting: {
+                            ...prev.prompting,
+                            formatters: {
+                              ...prev.prompting.formatters,
+                              tinyllamaChat: {
+                                ...prev.prompting.formatters.tinyllamaChat,
+                                systemPrompt: e.target.value,
                               },
                             },
-                          }))
-                        }
-                      />
-                    </Suspense>
-                  </Stack>
-                  <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Field
-                        id="tinyllamaAssistantPreamble"
-                        label="Assistant preamble"
-                        width={680}
-                        placeholder="e.g., The predicted income is "
-                        value={config.prompting.formatters.tinyllamaChat.assistantPreamble}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            prompting: {
-                              ...prev.prompting,
-                              formatters: {
-                                ...prev.prompting.formatters,
-                                tinyllamaChat: {
-                                  ...prev.prompting.formatters.tinyllamaChat,
-                                  assistantPreamble: e.target.value,
-                                },
+                          },
+                        }))
+                      }
+                      size="small"
+                      sx={S.inputSmall}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Assistant Preamble
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="e.g., The predicted income is "
+                      value={
+                        config.prompting.formatters.tinyllamaChat
+                          .assistantPreamble
+                      }
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          prompting: {
+                            ...prev.prompting,
+                            formatters: {
+                              ...prev.prompting.formatters,
+                              tinyllamaChat: {
+                                ...prev.prompting.formatters.tinyllamaChat,
+                                assistantPreamble: e.target.value,
                               },
                             },
-                          }))
-                        }
-                      />
-                    </Suspense>
-                  </Stack>
+                          },
+                        }))
+                      }
+                      size="small"
+                      sx={S.inputSmall}
+                    />
+                  </Box>
                 </Box>
               )}
 
@@ -962,66 +1013,56 @@ export default function BiasAndFairnessModule() {
                       fontWeight: 600,
                     }}
                   >
-                    OpenAI chat JSON settings
+                    OpenAI Chat JSON Settings
                   </Typography>
-                  <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Field
-                        id="openaiSystemPrompt"
-                        label="System prompt"
-                        width={680}
-                        type="description"
-                        rows={3}
-                        placeholder="e.g., You are an ML assistant..."
-                        value={config.prompting.formatters.openaiChatJson.systemPrompt}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            prompting: {
-                              ...prev.prompting,
-                              formatters: {
-                                ...prev.prompting.formatters,
-                                openaiChatJson: {
-                                  ...prev.prompting.formatters.openaiChatJson,
-                                  systemPrompt: e.target.value,
-                                },
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      System Prompt
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      placeholder="e.g., You are an ML assistant..."
+                      value={
+                        config.prompting.formatters.openaiChatJson.systemPrompt
+                      }
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          prompting: {
+                            ...prev.prompting,
+                            formatters: {
+                              ...prev.prompting.formatters,
+                              openaiChatJson: {
+                                ...prev.prompting.formatters.openaiChatJson,
+                                systemPrompt: e.target.value,
                               },
                             },
-                          }))
-                        }
-                      />
-                    </Suspense>
-                  </Stack>
+                          },
+                        }))
+                      }
+                      size="small"
+                      sx={S.inputSmall}
+                    />
+                  </Box>
                 </Box>
               )}
-            </Stack>
+            </Box>
 
-            {/* Metrics configuration */}
-            <Stack spacing={6}>
-              <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#13715B",
-                }}
-              >
-                Metrics configuration
+            {/* Metrics Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Metrics Configuration
               </Typography>
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <SelectComponent
-                    id="fairnessEnabled"
-                    label="Fairness metrics"
-                    value={String(config.metrics.fairnessEnabled)}
-                    sx={{ width: 220 }}
-                    items={[
-                      { _id: "true", name: "Fairness metrics enabled" },
-                      { _id: "false", name: "Fairness metrics disabled" },
-                    ]}
-                    onChange={(e) => setConfig((p) => ({ ...p, metrics: { ...p.metrics, fairnessEnabled: String(e.target.value) === "true" } }))}
-                  />
-                </Suspense>
-              </Stack>
               <Typography
                 variant="body2"
                 sx={{
@@ -1031,7 +1072,7 @@ export default function BiasAndFairnessModule() {
                   fontWeight: 500,
                 }}
               >
-                Fairness metrics for{" "}
+                Fairness Metrics for{" "}
                 {config.model.modelTask
                   .replace("_", " ")
                   .replace(/\b\w/g, (l) => l.toUpperCase())}{" "}
@@ -1041,64 +1082,42 @@ export default function BiasAndFairnessModule() {
                 Metrics automatically filtered based on your selected model task
                 type.
               </Typography>
-              <Stack direction="row" spacing={6}>
-                <Box sx={{ width: 680 }}>
-                  <FormControl fullWidth size="small">
-                    <Select
-                      multiple
-                      value={config.metrics.fairness}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          metrics: {
-                            ...prev.metrics,
-                            fairness:
-                              typeof e.target.value === "string"
-                                ? [e.target.value]
-                                : e.target.value,
-                          },
-                        }))
-                      }
-                      IconComponent={() => (
-                        <ChevronDown
-                          size={16}
-                          style={{
-                            position: 'absolute',
-                            right: '12px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            pointerEvents: 'none',
-                          }}
-                        />
-                      )}
-                      sx={S.inputSmall}
-                    >
-                      <MenuItem value="demographic_parity">
-                        Demographic Parity
-                      </MenuItem>
-                      <MenuItem value="equalized_odds">Equalized Odds</MenuItem>
-                      <MenuItem value="predictive_parity">
-                        Predictive Parity
-                      </MenuItem>
-                      <MenuItem value="equalized_opportunity">
-                        Equalized Opportunity
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Stack>
-            </Stack>
+              <FormControl fullWidth size="small">
+                <Select
+                  multiple
+                  value={config.metrics.fairness}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      metrics: {
+                        ...prev.metrics,
+                        fairness:
+                          typeof e.target.value === "string"
+                            ? [e.target.value]
+                            : e.target.value,
+                      },
+                    }))
+                  }
+                  sx={S.inputSmall}
+                >
+                  <MenuItem value="demographic_parity">
+                    Demographic Parity
+                  </MenuItem>
+                  <MenuItem value="equalized_odds">Equalized Odds</MenuItem>
+                  <MenuItem value="predictive_parity">
+                    Predictive Parity
+                  </MenuItem>
+                  <MenuItem value="equalized_opportunity">
+                    Equalized Opportunity
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
-            {/* Attribute groups */}
-            <Stack spacing={6}>
-              <Typography
-                sx={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#13715B",
-                }}
-              >
-                Attribute groups
+            {/* Attribute Groups Configuration */}
+            <Box>
+              <Typography variant="body1" sx={S.sectionTitle}>
+                Attribute Groups
               </Typography>
               <Typography variant="body2" sx={S.helperMuted}>
                 Define privileged and unprivileged groups for protected
@@ -1106,52 +1125,33 @@ export default function BiasAndFairnessModule() {
                 groups.
               </Typography>
 
-              {/* Protected attributes - user-defined */}
-              <Stack direction="row" spacing={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="protectedAttributes"
-                    label="Protected attributes"
-                    width={680}
-                    placeholder="e.g., sex, race, age"
-                    value={config.dataset.protectedAttributes.join(", ")}
-                    onChange={(e) => {
-                      const attributes = e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter((s) => s);
-                      setConfig((p) => ({
-                        ...p,
-                        dataset: {
-                          ...p.dataset,
-                          protectedAttributes: attributes,
-                        },
-                      }));
-                    }}
-                  />
-                </Suspense>
-              </Stack>
-
               {/* Sex Attribute Groups */}
               <Box sx={{ mb: 3 }}>
                 <Typography
+                  variant="body2"
                   sx={{
                     mb: 2,
-                    color: "#13715B",
+                    color: "#374151",
                     fontSize: "0.875rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                   }}
                 >
-                  Sex attribute groups
+                  Sex Attribute Groups
                 </Typography>
-                <Stack direction="row" spacing={6}>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="sexPrivileged"
-                      label="Privileged groups"
-                      width={220}
+                <Box sx={{ ...S.gridAutoFit250, gap: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ mb: 1, color: "#6B7280", fontSize: "0.75rem" }}
+                    >
+                      Privileged Groups
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., Male"
-                      value={config.postProcessing.attributeGroups.sex.privileged.join(", ")}
+                      value={config.postProcessing.attributeGroups.sex.privileged.join(
+                        ", "
+                      )}
                       onChange={(e) => {
                         const privileged = e.target.value
                           .split(",")
@@ -1165,21 +1165,31 @@ export default function BiasAndFairnessModule() {
                               ...prev.postProcessing.attributeGroups,
                               sex: {
                                 privileged,
-                                unprivileged: prev.postProcessing.attributeGroups.sex.unprivileged,
+                                unprivileged:
+                                  prev.postProcessing.attributeGroups.sex
+                                    .unprivileged,
                               },
                             },
                           },
                         }));
                       }}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="sexUnprivileged"
-                      label="Unprivileged groups"
-                      width={220}
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ mb: 1, color: "#6B7280", fontSize: "0.75rem" }}
+                    >
+                      Unprivileged Groups
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., Female"
-                      value={config.postProcessing.attributeGroups.sex.unprivileged.join(", ")}
+                      value={config.postProcessing.attributeGroups.sex.unprivileged.join(
+                        ", "
+                      )}
                       onChange={(e) => {
                         const unprivileged = e.target.value
                           .split(",")
@@ -1192,38 +1202,49 @@ export default function BiasAndFairnessModule() {
                             attributeGroups: {
                               ...prev.postProcessing.attributeGroups,
                               sex: {
-                                privileged: prev.postProcessing.attributeGroups.sex.privileged,
+                                privileged:
+                                  prev.postProcessing.attributeGroups.sex
+                                    .privileged,
                                 unprivileged,
                               },
                             },
                           },
                         }));
                       }}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                </Stack>
+                  </Box>
+                </Box>
               </Box>
 
               {/* Race Attribute Groups */}
               <Box sx={{ mb: 3 }}>
                 <Typography
+                  variant="body2"
                   sx={{
                     mb: 2,
-                    color: "#13715B",
+                    color: "#374151",
                     fontSize: "0.875rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                   }}
                 >
-                  Race attribute groups
+                  Race Attribute Groups
                 </Typography>
-                <Stack direction="row" spacing={6}>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="racePrivileged"
-                      label="Privileged groups"
-                      width={220}
+                <Box sx={{ ...S.gridAutoFit250, gap: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ mb: 1, color: "#6B7280", fontSize: "0.75rem" }}
+                    >
+                      Privileged Groups
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., White"
-                      value={config.postProcessing.attributeGroups.race.privileged.join(", ")}
+                      value={config.postProcessing.attributeGroups.race.privileged.join(
+                        ", "
+                      )}
                       onChange={(e) => {
                         const privileged = e.target.value
                           .split(",")
@@ -1237,21 +1258,31 @@ export default function BiasAndFairnessModule() {
                               ...prev.postProcessing.attributeGroups,
                               race: {
                                 privileged,
-                                unprivileged: prev.postProcessing.attributeGroups.race.unprivileged,
+                                unprivileged:
+                                  prev.postProcessing.attributeGroups.race
+                                    .unprivileged,
                               },
                             },
                           },
                         }));
                       }}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="raceUnprivileged"
-                      label="Unprivileged groups"
-                      width={220}
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ mb: 1, color: "#6B7280", fontSize: "0.75rem" }}
+                    >
+                      Unprivileged Groups
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., Black, Other"
-                      value={config.postProcessing.attributeGroups.race.unprivileged.join(", ")}
+                      value={config.postProcessing.attributeGroups.race.unprivileged.join(
+                        ", "
+                      )}
                       onChange={(e) => {
                         const unprivileged = e.target.value
                           .split(",")
@@ -1264,18 +1295,22 @@ export default function BiasAndFairnessModule() {
                             attributeGroups: {
                               ...prev.postProcessing.attributeGroups,
                               race: {
-                                privileged: prev.postProcessing.attributeGroups.race.privileged,
+                                privileged:
+                                  prev.postProcessing.attributeGroups.race
+                                    .privileged,
                                 unprivileged,
                               },
                             },
                           },
                         }));
                       }}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                </Stack>
+                  </Box>
+                </Box>
               </Box>
-            </Stack>
+            </Box>
 
             {/* Advanced Settings Button */}
             <Box
@@ -1284,99 +1319,178 @@ export default function BiasAndFairnessModule() {
               sx={{ mt: 2, mb: 2 }}
             >
               <Button
-                variant="contained"
+                variant="outlined"
                 onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-                sx={{
-                  backgroundColor: "#13715B",
-                  color: "white",
-                  textTransform: "none",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                  "&:hover": {
-                    backgroundColor: "#0F5A47",
-                  },
-                }}
+                sx={S.outlinedButton}
               >
-                {showAdvancedSettings ? "Hide" : "Show"} Advanced settings
+                {showAdvancedSettings ? "Hide" : "Show"} Advanced Settings
               </Button>
             </Box>
 
             {/* Advanced Settings */}
             {showAdvancedSettings && (
-              <Stack spacing={6}>
-                <Typography
-                  sx={{
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: "#13715B",
-                  }}
-                >
-                  Advanced settings
+              <Box>
+                <Typography variant="body1" sx={S.sectionTitle}>
+                  Advanced Settings
                 </Typography>
 
-                {/* Binary Mapping and Sampling */}
-                <Stack direction="row" spacing={6}>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="favorableOutcome"
-                      label="Favorable outcome"
-                      width={220}
+                <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Performance Metrics
+                    </Typography>
+                    <FormControl fullWidth size="small">
+                      <Select
+                        multiple
+                        value={config.metrics.performance}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              performance:
+                                typeof e.target.value === "string"
+                                  ? [e.target.value]
+                                  : e.target.value,
+                            },
+                          }))
+                        }
+                        sx={S.inputSmall}
+                      >
+                        <MenuItem value="accuracy">Accuracy</MenuItem>
+                        <MenuItem value="precision">Precision</MenuItem>
+                        <MenuItem value="recall">Recall</MenuItem>
+                        <MenuItem value="f1_score">F1 Score</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Favorable Outcome
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., >50K"
-                      value={config.postProcessing.binaryMapping.favorable}
-                      onChange={(e) => setConfig((p) => ({ ...p, postProcessing: { ...p.postProcessing, binaryMapping: { ...p.postProcessing.binaryMapping, favorable: e.target.value } } }))}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="unfavorableOutcome"
-                      label="Unfavorable outcome"
-                      width={220}
+                  </Box>
+                </Box>
+                <Box sx={{ ...S.gridAutoFit200, mt: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Unfavorable Outcome
+                    </Typography>
+                    <TextField
+                      fullWidth
                       placeholder="e.g., <=50K"
-                      value={config.postProcessing.binaryMapping.unfavorable}
-                      onChange={(e) => setConfig((p) => ({ ...p, postProcessing: { ...p.postProcessing, binaryMapping: { ...p.postProcessing.binaryMapping, unfavorable: e.target.value } } }))}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="sampleSize"
-                      label="Sample size"
-                      width={220}
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Sample Size
+                    </Typography>
+                    <TextField
+                      fullWidth
                       type="number"
-                      value={String(config.sampling.nSamples)}
-                      onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, nSamples: Number(e.target.value) } }))}
+                      defaultValue={50}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                </Stack>
-                
-                <Stack direction="row" spacing={6}>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="randomSeed"
-                      label="Random seed"
-                      width={220}
+                  </Box>
+                </Box>
+                <Box sx={{ ...S.gridAutoFit250, mt: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Random Seed
+                    </Typography>
+                    <TextField
+                      fullWidth
                       type="number"
-                      value={String(config.sampling.randomSeed)}
-                      onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, randomSeed: Number(e.target.value) } }))}
+                      defaultValue={42}
+                      size="small"
+                      sx={S.inputSmall}
                     />
-                  </Suspense>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <SelectComponent
-                      id="samplingEnabled"
-                      label="Sampling enabled"
-                      value={String(config.sampling.enabled)}
-                      sx={{ width: 220 }}
-                      items={[
-                        { _id: "true", name: "Yes" },
-                        { _id: "false", name: "No" },
-                      ]}
-                      onChange={(e) => setConfig((p) => ({ ...p, sampling: { ...p.sampling, enabled: String(e.target.value) === "true" } }))}
-                    />
-                  </Suspense>
-                </Stack>
-              </Stack>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1,
+                        color: "#374151",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Sampling Enabled
+                    </Typography>
+                    <FormControl fullWidth size="small">
+                      <Select defaultValue="true" sx={S.inputSmall}>
+                        <MenuItem value="true">Yes</MenuItem>
+                        <MenuItem value="false">No</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+              </Box>
             )}
+
+            {/* Action Button */}
+            <Box display="flex" justifyContent="flex-end">
+              <Button
+                variant="contained"
+                onClick={handleStartEvaluation}
+                disabled={loading}
+                sx={S.primaryButton}
+              >
+                {loading ? <CircularProgress size={20} /> : "Start Evaluation"}
+              </Button>
+            </Box>
           </Stack>
-      </StandardModal>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

@@ -1,62 +1,43 @@
-import { TableBody, TableRow, TableCell, Box, Chip } from "@mui/material";
+import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { Trash2 as TrashIcon } from "lucide-react";
 import Button from "../../../../components/Button/index";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
-const StatusChip: React.FC<{
+const StatusBadge: React.FC<{
   status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
 }> = ({ status }) => {
-  const getStatusStyles = () => {
-    switch (status) {
-      case "In Progress":
-      case "Running":
-        return {
-          backgroundColor: "#fff3e0",
-          color: "#ef6c00",
-        };
-      case "Completed":
-        return {
-          backgroundColor: "#c8e6c9",
-          color: "#388e3c",
-        };
-      case "Failed":
-        return {
-          backgroundColor: "#ffebee",
-          color: "#c62828",
-        };
-      case "Pending":
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-      default:
-        return {
-          backgroundColor: "#e0e0e0",
-          color: "#616161",
-        };
-    }
+  const statusStyles = {
+    "In Progress": {
+      bg: "#fff9c4",
+      color: "#fbc02d",
+      border: "1px solid #fbc02d",
+    },
+    Running: { bg: "#fff9c4", color: "#fbc02d", border: "1px solid #fbc02d" },
+    Completed: { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
+    Failed: { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
+    Pending: { bg: "#e3f2fd", color: "#1976d2", border: "1px solid #1976d2" },
   };
 
-  const styles = getStatusStyles();
+  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
 
   return (
-    <Chip
-      label={status}
-      size="small"
-      sx={{
-        ...styles,
-        fontWeight: 500,
-        fontSize: "11px",
+    <span
+      style={{
+        backgroundColor: style.bg,
+        color: style.color,
+        padding: "4px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+        fontSize: "0.75rem",
         textTransform: "uppercase",
-        letterSpacing: "0.5px",
-        borderRadius: "4px",
-        "& .MuiChip-label": {
-          padding: "4px 8px",
-        },
+        display: "inline-block",
+        border: style.border,
       }}
-    />
+    >
+      {status}
+    </span>
   );
 };
 
@@ -72,12 +53,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
       {rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) => (
-          <TableRow key={row.id} sx={{
-            ...singleTheme.tableStyles.primary.body.row,
-            "&:hover": {
-              cursor: "default",
-            },
-          }}>
+          <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -89,7 +65,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               {row.status === "Running" || row.status === "In Progress"
                 ? "Pending..."
-                : row.name || row.id}
+                : row.id}
             </TableCell>
             <TableCell
               sx={{
@@ -101,18 +77,6 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               {row.model}
             </TableCell>
-            {row.judge !== undefined && (
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  paddingLeft: "12px",
-                  paddingRight: "12px",
-                  textTransform: "none",
-                }}
-              >
-                {row.judge || "-"}
-              </TableCell>
-            )}
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -131,7 +95,9 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 textTransform: "none",
               }}
             >
-              <StatusChip status={row.status} />
+              <Box sx={{ width: "50%", ml: -4 }}>
+                <StatusBadge status={row.status} />
+              </Box>
             </TableCell>
             <TableCell
               sx={{

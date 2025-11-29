@@ -14,19 +14,6 @@ export default defineConfig({
     port: process.env.VITE_APP_PORT
       ? parseInt(process.env.VITE_APP_PORT)
       : 5173,
-    proxy: {
-      // Forward DeepEval and Bias&Fairness API requests to port 8000
-      '/api/deepeval': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-      '/api/bias_and_fairness': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
   },
   build: {
     // Generate manifest for cache busting

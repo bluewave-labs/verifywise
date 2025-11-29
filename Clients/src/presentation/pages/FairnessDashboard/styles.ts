@@ -23,7 +23,6 @@ export const styles = {
                       fontWeight: 500,
                       textTransform: "capitalize",
                       color: "#4B5563",
-                      fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
                       width: "fit-content",
                       minWidth: "unset",
                     },

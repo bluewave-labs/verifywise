@@ -9,6 +9,7 @@ const ReportingHeader = lazy(
 import HelperDrawer from "../../components/HelperDrawer";
 import PageTour from "../../components/PageTour";
 import ReportingSteps from "./ReportingSteps";
+import TipBox from "../../components/TipBox";
 
 const Reporting = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -61,6 +62,7 @@ const Reporting = () => {
           onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         />
       </Suspense>
+      <TipBox entityName="reporting" />
 
       <Stack data-joyride-id="reports-list">
         <Suspense fallback={"loading..."}>

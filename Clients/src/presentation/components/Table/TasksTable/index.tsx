@@ -11,8 +11,8 @@ import {
   Stack,
   Typography,
   TableFooter,
-  Chip,
   Box,
+  Chip as MuiChip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -21,35 +21,11 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
+import Chip from "../../Chip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
-
-// Priority badge styles (compact version similar to Model Inventory StatusBadge)
-const priorityBadgeStyle = (priority: string) => {
-  const priorityStyles = {
-    High: { bg: "#FFD6D6", color: "#D32F2F" },
-    Medium: { bg: "#FFE5D0", color: "#E64A19" },
-    Low: { bg: "#FFF8E1", color: "#795548" },
-  };
-
-  const style = priorityStyles[priority as keyof typeof priorityStyles] || {
-    bg: "#E0E0E0",
-    color: "#424242",
-  };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: "4px",
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -185,6 +161,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   statusOptions,
   isUpdateDisabled = false,
   onRowClick,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -324,7 +301,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       <TableBody>
         {sortedTasks &&
           sortedTasks
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedTasks.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((task: TaskModel) => (
               <TableRow
                 key={task.id}
@@ -355,7 +335,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     {task.categories && task.categories.length > 0 && (
                       <Stack direction="row" spacing={0.5} mt={1}>
                         {task.categories.slice(0, 2).map((category) => (
-                          <Chip
+                          <MuiChip
                             key={category}
                             label={category}
                             size="small"
@@ -369,7 +349,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           />
                         ))}
                         {task.categories.length > 2 && (
-                          <Chip
+                          <MuiChip
                             label={`+${task.categories.length - 2}`}
                             size="small"
                             sx={{
@@ -394,9 +374,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       sortConfig.key === "priority" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <Box component="span" sx={priorityBadgeStyle(task.priority)}>
-                    {task.priority}
-                  </Box>
+                  <Chip label={task.priority} />
                 </TableCell>
 
                 {/* Status */}
@@ -448,9 +426,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         })}
                       </Typography>
                       {task.isOverdue && (
-                        <Box component="span" sx={priorityBadgeStyle("High")}>
-                          OVERDUE
-                        </Box>
+                        <Chip label="Overdue" variant="error" />
                       )}
                     </Stack>
                   ) : (
@@ -572,6 +548,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       users,
       onArchive,
       onEdit,
+      hidePagination,
     ]
   );
 
@@ -591,8 +568,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
               onSort={handleSort}
             />
             {tableBody}
-            <TableFooter>
-              <TableRow
+            {!hidePagination && (
+              <TableFooter>
+                <TableRow
                 sx={{
                   "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
@@ -677,6 +655,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 />
               </TableRow>
             </TableFooter>
+            )}
           </Table>
         </TableContainer>
       )}

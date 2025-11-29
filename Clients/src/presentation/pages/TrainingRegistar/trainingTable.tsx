@@ -11,7 +11,6 @@ import {
   Stack,
   Typography,
   TableFooter,
-  Chip,
   Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
@@ -25,6 +24,7 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../domain/enums/status.enum";
+import Chip from "../../components/Chip";
 
 //const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -54,6 +54,7 @@ interface TrainingTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   paginated?: boolean;
+  hidePagination?: boolean;
 }
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
@@ -149,29 +150,7 @@ const SortableTableHead: React.FC<{
 const StatusBadge: React.FC<{ status: TrainingStatus }> = ({
   status,
 }) => {
-  const statusStyles = {
-    Planned: { bg: "#bbdefb", color: "#1976d2" },
-    "In Progress": { bg: "#fff9c4", color: "#fbc02d" },
-    Completed: { bg: "#c8e6c9", color: "#388e3c" },
-  };
-
-  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
-
-  return (
-    <Chip
-      label={status}
-      size="small"
-      sx={{
-        backgroundColor: style.bg,
-        color: style.color,
-        borderRadius: "4px !important",
-        fontWeight: 600,
-        fontSize: "0.75rem",
-        textTransform: "uppercase",
-        height: 24,
-      }}
-    />
-  );
+  return <Chip label={status} />;
 };
 
 const TrainingTable: React.FC<TrainingTableProps> = ({
@@ -180,6 +159,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   onEdit,
   onDelete,
   paginated = true,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -334,7 +314,10 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
       <TableBody>
         {sortedData?.length > 0 ? (
           sortedData
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             // Defensive: Filter out invalid records early (fail fast)
             .filter((training) => {
               const isValid = training.id !== undefined && training.id !== null;
@@ -484,7 +467,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
           onSort={handleSort}
         />
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow
               sx={{

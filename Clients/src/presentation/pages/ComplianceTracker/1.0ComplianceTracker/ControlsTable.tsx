@@ -14,7 +14,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { Dispatch, useCallback, useEffect, useState } from "react";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../components/Skeletons";
@@ -41,6 +41,10 @@ interface ControlsTableProps {
   projectId: number;
   projectFrameworkId: number;
   statusFilter?: string;
+  ownerFilter?: string;
+  approverFilter?: string;
+  dueDateFilter?: string;
+  setFilteredControlsCount: Dispatch<React.SetStateAction<number | null>>;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -51,6 +55,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   projectId,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  approverFilter,
+  dueDateFilter,
+  setFilteredControlsCount
 }) => {
   const { users } = useUsers();
   const currentProjectId = projectId;
@@ -70,17 +78,74 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const controlId = searchParams.get("controlId");
 
   useEffect(() => {
+    const fetchControls = async () => {
+      if (!currentProjectId) return;
+
+      setLoading(true);
+      try {
+        const response = await getControlsByControlCategoryId({
+          controlCategoryId,
+          projectFrameworkId,
+          owner: ownerFilter,
+          approver: approverFilter,
+          dueDateFilter: dueDateFilter,
+        });
+
+        const filteredControls = response.filter((control: Control) => {
+          return (
+            control.status?.toLowerCase() === statusFilter ||
+            statusFilter === ""
+          );
+        });
+
+        if (ownerFilter || approverFilter || dueDateFilter || statusFilter) {
+          setFilteredControlsCount?.(filteredControls.length);
+        } else {
+          setFilteredControlsCount(null);
+        }
+
+        setControls(filteredControls);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchControls();
+  }, [
+    currentProjectId, 
+    controlCategoryId, 
+    projectFrameworkId, 
+    refreshTrigger, 
+    ownerFilter, 
+    approverFilter, 
+    dueDateFilter, 
+    statusFilter,
+    setFilteredControlsCount
+  ]);
+
+  useEffect(() => {
     if (controlId) {
       const controlExists = controls.find(
         (control) => control.id === Number(controlId)
       );
       if (controlExists) {
         (async () => {
-          await handleRowClick(Number(controlId));
+          const subControlsResponse = await getControlByIdAndProject({
+            controlId: controlExists.id!,
+            projectFrameworkId,
+            owner: ownerFilter,
+            approver: approverFilter,
+            dueDateFilter: dueDateFilter,
+          });
+          setSelectedControl(subControlsResponse.data);
+          setSelectedRow(Number(controlId));
+          setModalOpen(true);
         })();
       }
     }
-  }, [controlId, controls]);
+  }, [controlId, controls, loading, projectFrameworkId, ownerFilter, approverFilter, dueDateFilter]);
 
   // Reset state when project changes
   useEffect(() => {
@@ -93,13 +158,17 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setAlert(null);
   }, [currentProjectId]);
 
-  const handleRowClick = async (id: number) => {
+  const handleRowClick = async (control: Control) => {
     const subControlsResponse = await getControlByIdAndProject({
-      controlId: id,
+      controlId: control.id!,
       projectFrameworkId,
+      owner: ownerFilter,
+      approver: approverFilter,
+      dueDateFilter: dueDateFilter,
     });
+
     setSelectedControl(subControlsResponse.data);
-    setSelectedRow(id);
+    setSelectedRow(control.id!);
     setModalOpen(true);
   };
 
@@ -147,34 +216,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     }, 1000);
     handleCloseModal();
   };
-  useEffect(() => {
-    const fetchControls = async () => {
-      if (!currentProjectId) return;
-
-      setLoading(true);
-      try {
-        const response = await getControlsByControlCategoryId({
-          controlCategoryId,
-          projectFrameworkId,
-        });
-
-        const filteredControls = response.filter((control: Control) => {
-          return (
-            control.status?.toLowerCase() === statusFilter ||
-            statusFilter === ""
-          );
-        });
-
-        setControls(filteredControls);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchControls();
-  }, [controlCategoryId, currentProjectId, refreshTrigger, statusFilter]);
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
@@ -242,6 +283,26 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
+            {controls.length === 0 && (
+              <StyledTableRow isflashing={0}>
+                <TableCell
+                  sx={styles.descriptionCell}
+                  colSpan={columns.length}
+                >
+                  <Typography
+                    sx={{ 
+                      textAlign: "center", 
+                      display: "block", 
+                      color: "#666", 
+                      fontSize: "13px",
+                      textTransform: "none"
+                    }}
+                  >
+                    No controls found for the selected filters.
+                  </Typography>
+                </TableCell>
+              </StyledTableRow>
+            )}
             {controls
               .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
               .map((control: Control) => {
@@ -251,7 +312,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                   <StyledTableRow
                     key={control.id}
                     onClick={() =>
-                      control.id !== undefined && handleRowClick(control.id)
+                      control.id !== undefined && handleRowClick(control)
                     }
                     isflashing={currentFlashRow === control.id ? 1 : 0}
                   >

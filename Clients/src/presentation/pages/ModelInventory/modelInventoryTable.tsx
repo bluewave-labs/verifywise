@@ -13,7 +13,6 @@ import {
   Typography,
   TableFooter,
   Tooltip,
-  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -33,8 +32,6 @@ import {
   setPaginationRowCount,
 } from "../../../application/utils/paginationStorage";
 import {
-  statusBadgeStyle,
-  securityAssessmentBadgeStyle,
   tableRowHoverStyle,
   tableRowDeletingStyle,
   loadingContainerStyle,
@@ -47,6 +44,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
+import Chip from "../../components/Chip";
 
 dayjs.extend(utc);
 
@@ -83,17 +81,13 @@ const TooltipCell: React.FC<{ value: string | null | undefined }> = ({
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
 }) => {
-  return <Box component="span" sx={statusBadgeStyle(status)}>{status}</Box>;
+  return <Chip label={status} />;
 };
 
 const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   assessment,
 }) => {
-  return (
-    <Box component="span" sx={securityAssessmentBadgeStyle(assessment)}>
-      {assessment ? "Yes" : "No"}
-    </Box>
-  );
+  return <Chip label={assessment ? "Yes" : "No"} />;
 };
 
 // const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
@@ -128,6 +122,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onCheckModelHasRisks,
   paginated = true,
   deletingId,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -224,7 +219,10 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <TableBody>
         {data?.length > 0 ? (
           data
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(data.length, 100) : page * rowsPerPage + rowsPerPage
+            )
             .map((modelInventory) => (
               <TableRow
                 key={modelInventory.id}
@@ -403,7 +401,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow sx={tableFooterRowStyle(theme)}>
               <TableCell sx={showingTextCellStyle(theme)}>

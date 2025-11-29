@@ -79,7 +79,7 @@ const SetNewPassword: React.FC = () => {
     }
 
     if (values.password !== values.confirmPassword) {
-      return "Passwords do not match";
+      return "Password confirmation does not match. Please re-enter.";
     }
 
     return null;

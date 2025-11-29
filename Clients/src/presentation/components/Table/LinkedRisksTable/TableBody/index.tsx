@@ -11,7 +11,7 @@ import { ChevronsUpDown } from "lucide-react";
 import Checkbox from "../../../Inputs/Checkbox";
 
 import singleTheme from "../../../../themes/v1SingleTheme";
-import RiskChip from "../../../RiskLevel/RiskChip";
+import Chip from "../../../Chip";
 import {
   paginationStyle,
   paginationDropdown,
@@ -106,7 +106,7 @@ const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {row.risk_severity ? (
-                    <RiskChip label={row.risk_severity} />
+                    <Chip label={row.risk_severity} />
                   ) : (
                     "-"
                   )}

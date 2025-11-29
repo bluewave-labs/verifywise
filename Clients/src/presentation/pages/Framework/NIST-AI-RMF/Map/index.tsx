@@ -21,17 +21,22 @@ import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
 import { NISTAIRMFFunction } from "../types";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 interface NISTAIRMFMapProps {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  onStatusFilterChange?: (status: string) => void;
+  statusOptions?: { value: string; label: string }[];
 }
 
 const NISTAIRMFMap = ({
   project: _project,
   projectFrameworkId: _projectFrameworkId,
   statusFilter,
+  onStatusFilterChange,
+  statusOptions,
 }: NISTAIRMFMapProps) => {
   const { userId: _userId, userRoleName } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -309,7 +314,7 @@ const NISTAIRMFMap = ({
   }
 
   return (
-    <Stack className="nist-ai-rmf-map" spacing={2}>
+    <Stack className="nist-ai-rmf-map" spacing={0}>
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
@@ -318,16 +323,24 @@ const NISTAIRMFMap = ({
           ...styles.title,
           mt: 4,
           mb: 3,
-          fontSize: 20,
+          fontSize: 15,
           fontWeight: 600,
           color: "#1a1a1a",
         }}
       >
-        NIST AI RMF - Map Categories
+        NIST AI RMF - Map categories
       </Typography>
+      {onStatusFilterChange && statusOptions && (
+        <TabFilterBar
+          statusFilter={statusFilter || ""}
+          onStatusChange={onStatusFilterChange}
+          showStatusFilter={true}
+          statusOptions={statusOptions}
+        />
+      )}
       {categories &&
         categories.map((category: any) => (
-          <Stack key={category.id} sx={{ ...styles.container, mb: 2 }}>
+          <Stack key={category.id} sx={{ ...styles.container, marginBottom: "2px" }}>
             <Accordion
               key={category.id}
               expanded={expanded === category.id}
@@ -356,7 +369,7 @@ const NISTAIRMFMap = ({
                 />
                 <Stack sx={{ paddingLeft: "2.5px", flex: 1 }}>
                   <Typography
-                    fontSize={14}
+                    fontSize={13}
                     fontWeight={600}
                     color="#1a1a1a"
                     sx={{ lineHeight: 1.3 }}

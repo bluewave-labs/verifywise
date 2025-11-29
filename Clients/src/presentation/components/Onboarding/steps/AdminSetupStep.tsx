@@ -2,30 +2,29 @@ import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { UserPlus, Settings, Shield } from "lucide-react";
-import Alert from "../../Alert";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
   const setupTasks = [
     {
       icon: <UserPlus size={24} />,
-      title: "Invite Team Members",
+      title: "Invite team members",
+      hint: "Settings → Team",
       description: "Add colleagues to collaborate on compliance and risk management tasks.",
-      action: "Go to Settings → Team to send invitations",
       color: "#3B82F6",
     },
     {
       icon: <Shield size={24} />,
-      title: "Enable Frameworks",
+      title: "Enable frameworks",
+      hint: "Settings → Frameworks",
       description: "Activate the compliance frameworks relevant to your organization.",
-      action: "Visit Framework Settings to enable EU AI Act, ISO standards, and more",
       color: "#8B5CF6",
     },
     {
       icon: <Settings size={24} />,
-      title: "Configure Organization Settings",
+      title: "Configure organization settings",
+      hint: "Settings → Organization",
       description: "Customize branding, notifications, and organizational preferences.",
-      action: "Access these options in Settings → Organization",
       color: "#10B981",
     },
   ];
@@ -95,7 +94,7 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
               },
             }}
           >
-            <Stack direction="row" spacing={2} marginBottom={2}>
+            <Stack direction="row" spacing={2}>
               <Box
                 sx={{
                   width: "48px",
@@ -112,46 +111,33 @@ const AdminSetupStep: React.FC<OnboardingStepProps> = () => {
                 {task.icon}
               </Box>
               <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: "15px",
-                    fontWeight: 600,
-                    color: "#111827",
-                    marginBottom: 0.5,
-                  }}
-                >
-                  {task.title}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1} marginBottom={0.5}>
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      color: "#111827",
+                    }}
+                  >
+                    {task.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "15px",
+                      color: "#6B7280",
+                    }}
+                  >
+                    ({task.hint})
+                  </Typography>
+                </Stack>
                 <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
                   {task.description}
                 </Typography>
               </Box>
             </Stack>
-            <Box
-              sx={{
-                padding: 1.5,
-                backgroundColor: "#F9FAFB",
-                borderRadius: "6px",
-                borderLeft: `3px solid ${task.color}`,
-              }}
-            >
-              <Typography sx={{ fontSize: "12px", color: "#374151", fontStyle: "italic" }}>
-                💡 {task.action}
-              </Typography>
-            </Box>
           </Box>
         ))}
       </Stack>
-
-      <Alert
-        variant="info"
-        body="You can complete these setup tasks at any time after onboarding. They're available in your Settings menu."
-        hasIcon={false}
-        sx={{
-          position: "static",
-          padding: "12px 16px",
-        }}
-      />
     </Stack>
   );
 };

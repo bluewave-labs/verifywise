@@ -1,8 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  GetRequestParams,
-  RequestParams,
-} from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 export interface CreateShareLinkParams {

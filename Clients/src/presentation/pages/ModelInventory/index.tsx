@@ -496,6 +496,7 @@ const ModelInventory: React.FC = () => {
     shareAllFields: true,
     allowDataExport: true,
     allowViewersToOpenRecords: false,
+    displayToolbar: true,
   });
   const [isShareEnabled, setIsShareEnabled] = useState(false);
   const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);
@@ -1001,7 +1002,7 @@ const ModelInventory: React.FC = () => {
     try {
       // Fetch ALL existing share links for this resource and disable them
       console.log("Fetching all share links for model/0...");
-      const existingLinksResponse = await apiServices.get("/shares/model/0");
+      const existingLinksResponse: any = await apiServices.get("/shares/model/0");
       const existingLinks = existingLinksResponse?.data?.data || [];
 
       console.log(`Found ${existingLinks.length} existing share links:`, existingLinks);

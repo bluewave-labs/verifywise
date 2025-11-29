@@ -1,6 +1,7 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { getTenantHash } from "../tools/getTenantHash";
+import { createNistAiRmfTablesForTenant } from "./COMPLETE_NIST_AI_RMF_IMPLEMENTATION";
 
 export const createNewTenant = async (organization_id: number, transaction: Transaction) => {
   try {
@@ -1060,6 +1061,10 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `, { transaction });    
+
+    // NIST AI RMF FRAMEWORK TABLES CREATION
+    console.log(`🏗️ Creating NIST AI RMF tables for new tenant: ${tenantHash}`);
+    await createNistAiRmfTablesForTenant(tenantHash, transaction);
     
   }
   catch (error) {

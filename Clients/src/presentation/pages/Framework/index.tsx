@@ -83,6 +83,12 @@ const tabListStyle = {
   },
 };
 
+// localStorage keys for persisting tab state
+const FRAMEWORK_SELECTED_KEY = "verifywise_framework_selected";
+const ISO27001_TAB_KEY = "verifywise_iso27001_tab";
+const ISO42001_TAB_KEY = "verifywise_iso42001_tab";
+const NIST_AI_RMF_TAB_KEY = "verifywise_nist_ai_rmf_tab";
+
 const Framework = () => {
   const [searchParams] = useSearchParams();
   const { tab } = useParams<{ tab?: string }>();
@@ -270,10 +276,54 @@ const Framework = () => {
 
   // Default to "dashboard"
   const [mainTabValue, setMainTabValue] = useState(tab || "dashboard");
-  const [selectedFramework, setSelectedFramework] = useState<number>(0);
-  const [iso27001TabValue, setIso27001TabValue] = useState("clause");
-  const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
-  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState("govern");
+  const [selectedFramework, setSelectedFramework] = useState<number>(() => {
+    const saved = localStorage.getItem(FRAMEWORK_SELECTED_KEY);
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [iso27001TabValue, setIso27001TabValue] = useState(() => {
+    return localStorage.getItem(ISO27001_TAB_KEY) || "clause";
+  });
+  const [iso42001TabValue, setIso42001TabValue] = useState(() => {
+    return localStorage.getItem(ISO42001_TAB_KEY) || "clauses";
+  });
+  const [nistAiRmfTabValue, setNistAiRmfTabValue] = useState(() => {
+    return localStorage.getItem(NIST_AI_RMF_TAB_KEY) || "govern";
+  });
+
+  // Sync mainTabValue with URL tab param when navigating programmatically
+  useEffect(() => {
+    const newTabValue = tab || "dashboard";
+    if (newTabValue !== mainTabValue) {
+      setMainTabValue(newTabValue);
+
+      // When navigating to controls, re-read localStorage for framework/tab selection
+      if (newTabValue === "controls") {
+        const savedFramework = localStorage.getItem(FRAMEWORK_SELECTED_KEY);
+        if (savedFramework !== null) {
+          const frameworkIndex = parseInt(savedFramework, 10);
+          if (!isNaN(frameworkIndex) && frameworkIndex !== selectedFramework) {
+            setSelectedFramework(frameworkIndex);
+          }
+        }
+
+        // Re-read sub-tab values from localStorage
+        const savedIso27001Tab = localStorage.getItem(ISO27001_TAB_KEY);
+        if (savedIso27001Tab && savedIso27001Tab !== iso27001TabValue) {
+          setIso27001TabValue(savedIso27001Tab);
+        }
+
+        const savedIso42001Tab = localStorage.getItem(ISO42001_TAB_KEY);
+        if (savedIso42001Tab && savedIso42001Tab !== iso42001TabValue) {
+          setIso42001TabValue(savedIso42001Tab);
+        }
+
+        const savedNistTab = localStorage.getItem(NIST_AI_RMF_TAB_KEY);
+        if (savedNistTab && savedNistTab !== nistAiRmfTabValue) {
+          setNistAiRmfTabValue(savedNistTab);
+        }
+      }
+    }
+  }, [tab]);
 
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -447,6 +497,7 @@ const Framework = () => {
         resetFilters();
       }
       setSelectedFramework(index);
+      localStorage.setItem(FRAMEWORK_SELECTED_KEY, index.toString());
     }
   };
 
@@ -455,6 +506,7 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso27001TabValue(newValue);
+    localStorage.setItem(ISO27001_TAB_KEY, newValue);
   };
 
   const handleIso42001TabChange = (
@@ -462,6 +514,7 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso42001TabValue(newValue);
+    localStorage.setItem(ISO42001_TAB_KEY, newValue);
   };
 
   const handleNistAiRmfTabChange = (
@@ -469,6 +522,7 @@ const Framework = () => {
     newValue: string
   ) => {
     setNistAiRmfTabValue(newValue);
+    localStorage.setItem(NIST_AI_RMF_TAB_KEY, newValue);
   };
 
   const handleMainTabChange = (_: React.SyntheticEvent, newValue: string) => {

@@ -11,7 +11,8 @@
     "migrate-db": "npx sequelize db:migrate --debug",
     "worker": "node dist/jobs/worker.js",
     "watch": "tsc-watch --noClear --onSuccess \"npm-run-all postbuild start\"",
-    "reset-db": "ts-node scripts/resetDatabase.ts"
+    "reset-db": "ts-node scripts/resetDatabase.ts",
+    "generate-dbml": "node scripts/generateDbml.js"
   },
   "author": "",
   "license": "ISC",

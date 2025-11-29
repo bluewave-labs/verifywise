@@ -133,7 +133,10 @@ async function createNistStatusEnumIfNeeded(queryInterface, transaction) {
       await queryInterface.sequelize.query(`
         CREATE TYPE enum_nist_ai_rmf_subcategories_status AS ENUM (
           'Not started',
+          'Draft',
           'In progress',
+          'Awaiting review',
+          'Awaiting approval',
           'Implemented',
           'Needs rework',
           'Audited'

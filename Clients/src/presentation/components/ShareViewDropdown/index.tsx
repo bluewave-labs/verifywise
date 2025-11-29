@@ -10,7 +10,6 @@ import {
   Copy,
   RotateCw,
   ExternalLink,
-  Link as LinkIcon,
   Info,
 } from "lucide-react";
 import Toggle from "../Inputs/Toggle";
@@ -28,6 +27,8 @@ export interface ShareViewSettings {
   allowDataExport: boolean;
   /** Whether to allow viewers to open individual records */
   allowViewersToOpenRecords: boolean;
+  /** Whether to display toolbar in the shared view */
+  displayToolbar: boolean;
 }
 
 /**
@@ -64,6 +65,7 @@ const defaultSettings: ShareViewSettings = {
   shareAllFields: false,
   allowDataExport: true,
   allowViewersToOpenRecords: false,
+  displayToolbar: true,
 };
 
 /**

@@ -139,7 +139,7 @@ const SharedView: React.FC = () => {
   const isTableView = Array.isArray(data);
 
   // Define columns to show based on resource type and available data
-  const getTableColumns = (resourceType: string) => {
+  const getTableColumns = (_resourceType: string) => {
     // Show all columns that the backend returns (backend handles filtering based on shareAllFields setting)
     if (data && data.length > 0) {
       return Object.keys(data[0]).filter(key => key !== 'id');

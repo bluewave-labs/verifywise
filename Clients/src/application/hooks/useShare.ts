@@ -62,7 +62,7 @@ export const useCreateShareLink = () => {
       const response = await createShareLink(params);
       return response?.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate the list query for this resource
       queryClient.invalidateQueries({
         queryKey: shareQueryKeys.list(variables.resource_type, variables.resource_id),

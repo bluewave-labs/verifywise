@@ -65,7 +65,7 @@ const ManageShareLinks: React.FC<ManageShareLinksProps> = ({
     try {
       await updateMutation.mutateAsync({
         id,
-        body: { is_enabled: !currentEnabled },
+        is_enabled: !currentEnabled,
       });
     } catch (error) {
       console.error("Failed to toggle share link:", error);

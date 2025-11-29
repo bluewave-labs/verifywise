@@ -321,7 +321,9 @@ Project VerifyWise {
     }
 
     if (table.note) {
-      tableDbml += `\n  Note: '${table.note.replace(/'/g, "\\'")}'\n`;
+      // Escape backslashes first, then single quotes
+      const escapedNote = table.note.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      tableDbml += `\n  Note: '${escapedNote}'\n`;
     }
 
     tableDbml += '}\n\n';

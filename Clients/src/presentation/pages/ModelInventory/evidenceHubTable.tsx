@@ -479,12 +479,6 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         );
     }
 
-    if (!data || data.length === 0) {
-        return (
-            <EmptyState message="There is currently no data in this table." />
-        );
-    }
-
     return (
         <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={singleTheme.tableStyles.primary.frame}>
@@ -495,7 +489,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   theme={theme}
                 />
                 {tableBody}
-                {paginated && !hidePagination && (
+                {paginated && !hidePagination && data && data.length > 0 && (
                     <TableFooter>
                         <TableRow sx={tableFooterRowStyle(theme)}>
                             <TableCell sx={showingTextCellStyle(theme)}>

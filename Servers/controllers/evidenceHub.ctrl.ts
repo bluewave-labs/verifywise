@@ -12,6 +12,11 @@ import {
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { ValidationError } from "../utils/validations/validation.utils";
+import {
+    recordEvidenceAddedToModel,
+    recordEvidenceRemovedFromModel,
+    recordEvidenceFieldChangeForModel,
+} from "../utils/modelInventoryChangeHistory.utils";
 
 
 export async function getAllEvidences(req: Request, res: Response) {
@@ -82,6 +87,21 @@ export async function createNewEvidence(req: Request, res: Response) {
         });
 
         const savedEvidence = await createNewEvidenceQuery(evidence, req.tenantId!, transaction);
+
+        // Track evidence addition for all mapped models
+        if (savedEvidence.mapped_model_ids && savedEvidence.mapped_model_ids.length > 0) {
+            for (const modelId of savedEvidence.mapped_model_ids) {
+                await recordEvidenceAddedToModel(
+                    modelId,
+                    req.userId!,
+                    req.tenantId!,
+                    savedEvidence.evidence_name,
+                    savedEvidence.evidence_type,
+                    transaction
+                );
+            }
+        }
+
         await transaction.commit();
 
         logStructured("successful", "new evidence created", "createNewEvidence", "evidenceHub.controller.ts");
@@ -114,8 +134,82 @@ export async function updateEvidenceById(req: Request, res: Response) {
             return res.status(404).json(STATUS_CODE[404]("Evidence not found"));
         }
 
+        // Track model mapping changes
+        const oldMappedModels = existingEvidence.mapped_model_ids || [];
+        const newMappedModels = req.body.mapped_model_ids || [];
+
+        // Models that were added
+        const addedModels = newMappedModels.filter((id: number) => !oldMappedModels.includes(id));
+        // Models that were removed
+        const removedModels = oldMappedModels.filter(id => !newMappedModels.includes(id));
+
+        // Track field changes for models that remain mapped
+        const continuingModels = newMappedModels.filter((id: number) => oldMappedModels.includes(id));
+
         Object.assign(existingEvidence, { ...req.body, updated_at: new Date() });
         const updatedEvidence = await updateEvidenceByIdQuery(evidenceId, existingEvidence, req.tenantId!, transaction);
+
+        // Record evidence added to new models
+        for (const modelId of addedModels) {
+            await recordEvidenceAddedToModel(
+                modelId,
+                req.userId!,
+                req.tenantId!,
+                updatedEvidence.evidence_name,
+                updatedEvidence.evidence_type,
+                transaction
+            );
+        }
+
+        // Record evidence removed from old models
+        for (const modelId of removedModels) {
+            await recordEvidenceRemovedFromModel(
+                modelId,
+                req.userId!,
+                req.tenantId!,
+                existingEvidence.evidence_name,
+                existingEvidence.evidence_type,
+                transaction
+            );
+        }
+
+        // Track field changes for continuing models
+        if (continuingModels.length > 0) {
+            // Check each field for changes
+            const fieldsToTrack = [
+                { field: 'evidence_name', label: 'Name' },
+                { field: 'evidence_type', label: 'Type' },
+                { field: 'description', label: 'Description' },
+                { field: 'expiry_date', label: 'Expiry Date' }
+            ];
+
+            for (const { field, label } of fieldsToTrack) {
+                const oldValue = (existingEvidence as any)[field];
+                const newValue = req.body[field];
+
+                if (newValue !== undefined && oldValue !== newValue) {
+                    const oldStr = oldValue ? String(oldValue) : "-";
+                    const newStr = newValue ? String(newValue) : "-";
+
+                    if (oldStr !== newStr) {
+                        // Record for all continuing models
+                        for (const modelId of continuingModels) {
+                            await recordEvidenceFieldChangeForModel(
+                                modelId,
+                                req.userId!,
+                                req.tenantId!,
+                                updatedEvidence.evidence_name,
+                                label,
+                                oldStr,
+                                newStr,
+                                transaction
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         await transaction.commit();
 
         return res.status(200).json(STATUS_CODE[200](updatedEvidence.toSafeJSON()));
@@ -144,6 +238,20 @@ export async function deleteEvidenceById(req: Request, res: Response) {
         const existingEvidence = await getEvidenceByIdQuery(evidenceId, req.tenantId!) as EvidenceHubModel;
         if (!existingEvidence) {
             return res.status(404).json(STATUS_CODE[404]("Evidence not found"));
+        }
+
+        // Track evidence removal for all mapped models
+        if (existingEvidence.mapped_model_ids && existingEvidence.mapped_model_ids.length > 0) {
+            for (const modelId of existingEvidence.mapped_model_ids) {
+                await recordEvidenceRemovedFromModel(
+                    modelId,
+                    req.userId!,
+                    req.tenantId!,
+                    existingEvidence.evidence_name,
+                    existingEvidence.evidence_type,
+                    transaction
+                );
+            }
         }
 
         await deleteEvidenceByIdQuery(evidenceId, req.tenantId!, transaction);

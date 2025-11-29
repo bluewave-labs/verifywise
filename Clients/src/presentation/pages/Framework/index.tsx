@@ -290,6 +290,41 @@ const Framework = () => {
     return localStorage.getItem(NIST_AI_RMF_TAB_KEY) || "govern";
   });
 
+  // Sync mainTabValue with URL tab param when navigating programmatically
+  useEffect(() => {
+    const newTabValue = tab || "dashboard";
+    if (newTabValue !== mainTabValue) {
+      setMainTabValue(newTabValue);
+
+      // When navigating to controls, re-read localStorage for framework/tab selection
+      if (newTabValue === "controls") {
+        const savedFramework = localStorage.getItem(FRAMEWORK_SELECTED_KEY);
+        if (savedFramework !== null) {
+          const frameworkIndex = parseInt(savedFramework, 10);
+          if (!isNaN(frameworkIndex) && frameworkIndex !== selectedFramework) {
+            setSelectedFramework(frameworkIndex);
+          }
+        }
+
+        // Re-read sub-tab values from localStorage
+        const savedIso27001Tab = localStorage.getItem(ISO27001_TAB_KEY);
+        if (savedIso27001Tab && savedIso27001Tab !== iso27001TabValue) {
+          setIso27001TabValue(savedIso27001Tab);
+        }
+
+        const savedIso42001Tab = localStorage.getItem(ISO42001_TAB_KEY);
+        if (savedIso42001Tab && savedIso42001Tab !== iso42001TabValue) {
+          setIso42001TabValue(savedIso42001Tab);
+        }
+
+        const savedNistTab = localStorage.getItem(NIST_AI_RMF_TAB_KEY);
+        if (savedNistTab && savedNistTab !== nistAiRmfTabValue) {
+          setNistAiRmfTabValue(savedNistTab);
+        }
+      }
+    }
+  }, [tab]);
+
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");

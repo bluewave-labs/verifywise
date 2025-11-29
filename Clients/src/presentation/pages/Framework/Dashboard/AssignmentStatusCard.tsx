@@ -49,10 +49,9 @@ interface ExtendedFrameworkData extends BaseFrameworkData {
 /** Component props */
 interface AssignmentStatusCardProps {
   frameworksData: ExtendedFrameworkData[];
-  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
-const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCardProps) => {
+const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => {
   const [assignmentCounts, setAssignmentCounts] = useState<Map<number, AssignmentCounts>>(new Map());
   const [loading, setLoading] = useState(true);
 
@@ -261,8 +260,8 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
           Monitor task assignment coverage for clauses and annexes. Displays how many items have been assigned to team members.
         </Typography>
 
-      <Stack spacing={5}>
-        {frameworksData.map((framework) => {
+      <Stack spacing={0}>
+        {frameworksData.map((framework, index) => {
           // Detect framework type for appropriate API endpoints and terminology
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
@@ -282,6 +281,19 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
 
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -299,18 +311,10 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
                     return (
                       <Box
                         key={func.key}
-                        onClick={() => onNavigate?.(framework.frameworkName, func.key)}
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          cursor: onNavigate ? "pointer" : "default",
-                          "&:hover": onNavigate ? {
-                            backgroundColor: "#F9FAFB",
-                            borderRadius: "4px",
-                            margin: "-4px",
-                            padding: "4px",
-                          } : {},
                         }}
                       >
                         <Typography sx={{ fontSize: 12, color: "#666666" }}>
@@ -335,6 +339,9 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
                     );
                   })}
                 </Stack>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
@@ -345,6 +352,19 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
           if (loading || !counts) {
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -358,12 +378,28 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
                 <Typography sx={{ fontSize: 12, color: "#666666" }}>
                   Loading assignment data...
                 </Typography>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
 
           return (
             <Box key={framework.frameworkId}>
+              {/* Divider between framework sections */}
+              {index > 0 && (
+                <Box
+                  sx={{
+                    height: "1px",
+                    backgroundColor: "#E5E7EB",
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
+                  }}
+                />
+              )}
+
               <Typography
                 sx={{
                   fontSize: 13,
@@ -378,18 +414,10 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
               <Stack spacing={1.5}>
                 {/* Clauses Assignment Display - Shows subclauses assignment status */}
                 <Box
-                  onClick={() => onNavigate?.(framework.frameworkName, "clauses")}
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    cursor: onNavigate ? "pointer" : "default",
-                    "&:hover": onNavigate ? {
-                      backgroundColor: "#F9FAFB",
-                      borderRadius: "4px",
-                      margin: "-4px",
-                      padding: "4px",
-                    } : {},
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
@@ -416,18 +444,10 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
 
                 {/* Annexes Assignment Display - Shows annex controls/categories assignment status */}
                 <Box
-                  onClick={() => onNavigate?.(framework.frameworkName, "annexes")}
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    cursor: onNavigate ? "pointer" : "default",
-                    "&:hover": onNavigate ? {
-                      backgroundColor: "#F9FAFB",
-                      borderRadius: "4px",
-                      margin: "-4px",
-                      padding: "4px",
-                    } : {},
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
@@ -451,6 +471,9 @@ const AssignmentStatusCard = ({ frameworksData, onNavigate }: AssignmentStatusCa
                   </Box>
                 </Box>
               </Stack>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

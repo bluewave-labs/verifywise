@@ -54,31 +54,37 @@ const handleError = (error: any) => {
       );
     }
   } catch (e) {
-    console.error("Error in handleError:", e);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error in handleError:", e);
+    }
     throw e;
   }
 };
 
-// Logging function
+// Logging function - only logs in development mode
 const logRequest = (
   method: string,
   endpoint: string,
   params?: any,
   data?: any
 ) => {
-  console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
-    params,
-    data,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
+      params,
+      data,
+    });
+  }
 };
 
 const logResponse = (method: string, endpoint: string, response: any) => {
-  console.table(
-    `[API Response] ${method.toUpperCase()} ${endpoint} ${
-      response.data.message
-    }`,
-    response.status
-  );
+  if (process.env.NODE_ENV === 'development') {
+    console.table(
+      `[API Response] ${method.toUpperCase()} ${endpoint} ${
+        response.data.message
+      }`,
+      response.status
+    );
+  }
 };
 
 export const apiServices = {

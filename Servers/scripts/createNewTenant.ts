@@ -841,6 +841,26 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create model_inventory_change_history table for tracking changes
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_inventory_change_history (
+        id SERIAL PRIMARY KEY,
+        model_inventory_id INTEGER NOT NULL REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`, { transaction });
+
+    // Create indexes for model_inventory_change_history
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_model_id ON "${tenantHash}".model_inventory_change_history(model_inventory_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_changed_at ON "${tenantHash}".model_inventory_change_history(changed_at DESC);`
+    ].map(query => sequelize.query(query, { transaction })));
+
     await sequelize.query(
       `
       CREATE TABLE "${tenantHash}".model_risks (

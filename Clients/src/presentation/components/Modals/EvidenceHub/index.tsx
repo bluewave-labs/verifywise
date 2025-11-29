@@ -6,7 +6,6 @@ import {
     Typography,
     IconButton,
     Tooltip,
-    TextField,
 } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { UploadIcon } from "lucide-react";
@@ -17,11 +16,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import SelectComponent from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import Autocomplete from "@mui/material/Autocomplete";
 import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import { EvidenceType } from "../../../../domain/enums/evidenceHub.enum";
 import Field from "../../Inputs/Field";
 import { useTheme } from "@mui/material";
+import CustomizableMultiSelect from "../../Inputs/Select/Multi";
 
 interface NewEvidenceHubProps {
     isOpen: boolean;
@@ -30,6 +29,7 @@ interface NewEvidenceHubProps {
     onError?: (error: any) => void;
     initialData?: EvidenceHubModel;
     isEdit?: boolean;
+    preselectedModelId?: number;
 }
 
 export interface FileResponse {
@@ -126,6 +126,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
     onError,
     initialData,
     isEdit = false,
+    preselectedModelId,
 }) => {
     const [values, setValues] = useState<EvidenceHubModel>(
         initialData || initialState
@@ -140,7 +141,16 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
     // Reset on open/close
     useEffect(() => {
         if (isOpen) {
-            setValues(initialData || initialState);
+            const baseValues = initialData || initialState;
+            // If creating new evidence from a model modal, include that model ID
+            if (!isEdit && preselectedModelId) {
+                setValues({
+                    ...baseValues,
+                    mapped_model_ids: [preselectedModelId],
+                });
+            } else {
+                setValues(baseValues);
+            }
             setErrors({});
             setIsSubmitting(false);
             fetchModels();
@@ -149,7 +159,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
             setErrors({});
             setIsSubmitting(false);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, isEdit, preselectedModelId]);
 
     // Fetch models for multi-select
     const fetchModels = async () => {
@@ -325,151 +335,19 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 {/* Second Row: Mapped Models */}
                 <Stack direction="row" justifyContent="flex-start" spacing={6}>
                     <Suspense fallback={<div>Loading...</div>}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
+                        <CustomizableMultiSelect
+                            label="Mapped models"
+                            value={values.mapped_model_ids || []}
+                            onChange={(event) => {
+                                setValues({
+                                    ...values,
+                                    mapped_model_ids: event.target.value as number[],
+                                });
                             }}
-                        >
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    mb: 2,
-                                    fontWeight: 450,
-                                    color: theme.palette.text.primary,
-                                }}
-                            >
-                                Mapped models
-                            </Typography>
-
-                            <Autocomplete
-                                multiple
-                                size="small"
-                                freeSolo
-                                options={modelOptions || []}
-                                getOptionLabel={(option) =>
-                                    typeof option === "string"
-                                        ? option
-                                        : option.name
-                                }
-                                value={modelOptions.filter(
-                                    (m, index, self) =>
-                                        values.mapped_model_ids?.includes(
-                                            m._id
-                                        ) &&
-                                        self.findIndex(
-                                            (x) => x._id === m._id
-                                        ) === index // ensure uniqueness
-                                )}
-                                onChange={(_event, newValue) => {
-                                    const mappedIds = newValue.map(
-                                        (v) =>
-                                            typeof v === "string" ? 0 : v._id // ignore strings or assign 0
-                                    );
-                                    setValues({
-                                        ...values,
-                                        mapped_model_ids: mappedIds,
-                                    });
-                                }}
-                                onInputChange={(
-                                    _event,
-                                    newInputValue,
-                                    reason
-                                ) => {
-                                    if (reason === "input") {
-                                        setValues((prev) => ({
-                                            ...prev,
-                                            lastMappedModelInput: newInputValue,
-                                        }));
-                                    }
-                                }}
-                                renderOption={(props, option, index) => {
-                                    return (
-                                        <Box
-                                            component="li"
-                                            {...props}
-                                            key={
-                                                typeof option === "string"
-                                                    ? `${option}-${index}`
-                                                    : option._id
-                                            }
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontSize: 13,
-                                                    color: theme.palette.text
-                                                        .primary,
-                                                }}
-                                            >
-                                                {typeof option === "string"
-                                                    ? option
-                                                    : option.name}
-                                            </Typography>
-                                        </Box>
-                                    );
-                                }}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        placeholder="Select or enter models"
-                                        error={Boolean(errors.mapped_model_ids)}
-                                        helperText={errors.mapped_model_ids}
-                                        variant="outlined"
-                                        sx={{
-                                            width: "100%",
-                                            "& .MuiAutocomplete-inputRoot": {
-                                                flexWrap: "wrap",
-                                                minHeight: 34, // initial height
-                                                padding: "2px 6px",
-                                                transition: "height 0.2s ease",
-                                            },
-                                            "& .MuiAutocomplete-tag": {
-                                                margin: "2px 2px",
-                                            },
-                                            "& .MuiInputBase-input": {
-                                                padding: "4px 6px",
-                                                fontSize: 13,
-                                            },
-                                        }}
-                                    />
-                                )}
-                                popupIcon={<i data-lucide="chevron-downa"></i>}
-                                filterOptions={(options, state) =>
-                                    options.filter((option) =>
-                                        (typeof option === "string"
-                                            ? option
-                                            : option.name
-                                        )
-                                            .toLowerCase()
-                                            .includes(
-                                                state.inputValue.toLowerCase()
-                                            )
-                                    )
-                                }
-                                slotProps={{
-                                    paper: {
-                                        sx: {
-                                            "& .MuiAutocomplete-listbox": {
-                                                "& .MuiAutocomplete-option": {
-                                                    fontSize: 13,
-                                                    color: theme.palette.text
-                                                        .primary,
-                                                    padding: "8px 12px",
-                                                },
-                                                "& .MuiAutocomplete-option.Mui-focused":
-                                                    {
-                                                        backgroundColor:
-                                                            theme.palette
-                                                                .background
-                                                                .accent,
-                                                    },
-                                            },
-                                        },
-                                    },
-                                }}
-                            />
-                        </Box>
+                            items={modelOptions}
+                            placeholder="Select models"
+                            error={errors.mapped_model_ids}
+                        />
                     </Suspense>
                 </Stack>
 

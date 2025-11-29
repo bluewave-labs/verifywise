@@ -147,6 +147,9 @@ const ModelInventory: React.FC = () => {
   // GroupBy state - evidence hub tab
   const { groupBy: groupByEvidence, groupSortOrder: groupSortOrderEvidence, handleGroupChange: handleGroupChangeEvidence } = useGroupByState();
 
+  // Preselected model ID for evidence creation (used by change history feature)
+  const [preselectedModelId, setPreselectedModelId] = useState<number | undefined>(undefined);
+
   // FilterBy - Dynamic options generators for Models tab
   const getUniqueProviders = useCallback(() => {
     const providers = new Set<string>();
@@ -482,7 +485,7 @@ const ModelInventory: React.FC = () => {
   // FilterBy - Initialize hook for Evidence Hub tab
   const { filterData: filterEvidenceData, handleFilterChange: handleEvidenceFilterChange } = useFilterBy<EvidenceHubModel>(getEvidenceFieldValue);
 
-    const [isEvidenceLoading, setEvidenceLoading] = useState(false);
+  const [isEvidenceLoading, setEvidenceLoading] = useState(false);
 
     const [ deletingEvidenceId, setDeletingEvidenceId] = useState<number | null>(
       null
@@ -831,9 +834,10 @@ const ModelInventory: React.FC = () => {
     setSelectedEvidenceHub(null);
   };
 
-  const handleAddEvidence = () => {
+  const handleAddEvidence = (modelId?: number) => {
     setIsEvidenceHubModalOpen(true);
     setSelectedEvidenceHub(null);
+    setPreselectedModelId(modelId);
   };
 
   const handleEditModelInventory = async (id: string) => {
@@ -907,6 +911,7 @@ const ModelInventory: React.FC = () => {
   const handleClosEvidenceModal = () => {
     setSelectedEvidenceHub(null);
     setIsEvidenceHubModalOpen(false);
+    setPreselectedModelId(undefined);
   };
 
   // Share view handlers
@@ -2208,6 +2213,7 @@ const ModelInventory: React.FC = () => {
               onError={handleEvidenceUploadModalError}
               isEdit={!!selectedEvidenceHub}
               initialData={selectedEvidenceHub || undefined}
+              preselectedModelId={preselectedModelId}
           />
 
           <PageTour

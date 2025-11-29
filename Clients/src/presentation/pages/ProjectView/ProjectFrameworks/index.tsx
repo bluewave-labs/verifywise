@@ -26,6 +26,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -62,6 +63,7 @@ const ProjectFrameworks = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { users } = useUsers();
 
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
@@ -75,11 +77,9 @@ const ProjectFrameworks = ({
 
   // Filter out organizational frameworks
   const nonOrganizationalFrameworks = useMemo(
-    () =>
-      allFrameworks.filter(
-        (framework: Framework) => !framework.is_organizational
-      ),
-    [allFrameworks]
+    () => {
+        return allFrameworks.filter((framework: Framework) => !framework.is_organizational)
+    }, [allFrameworks]
   );
 
   useEffect(() => {
@@ -90,8 +90,7 @@ const ProjectFrameworks = ({
     );
   }, [allVisible, tracker, changeComponentVisibility]);
 
-  const associatedFrameworkIds =
-    project.framework?.map((f) => f.framework_id) || [];
+  const associatedFrameworkIds = project.framework?.map((f) => f.framework_id) || [];
 
   const projectFrameworks = useMemo(
     () =>
@@ -134,6 +133,7 @@ const ProjectFrameworks = ({
     selectedFrameworkId,
     initialFrameworkId,
     hasInitialized,
+    searchParams
   ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
@@ -145,24 +145,14 @@ const ProjectFrameworks = ({
     setTracker("compliance");
   };
 
-  if (error) {
-    return (
-      <Box sx={containerStyle}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button onClick={refreshFilteredFrameworks} variant="contained">
-          Retry
-        </Button>
-      </Box>
-    );
-  }
-
   const isEUAIAct = Number(selectedFrameworkId) === FRAMEWORK_IDS.EU_AI_ACT;
   const tabs = TRACKER_TABS;
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("");
+  const [approverFilter, setApproverFilter] = useState<string>("");
+  const [dueDateFilter, setDueDateFilter] = useState<string>("");
 
   const euAIActStatusOptions = [
     { value: "waiting", label: "Waiting" },
@@ -182,10 +172,31 @@ const ProjectFrameworks = ({
       : euAIActAssessmentsOptions
     : [];
 
+  // User options for owner and approver filters
+  const userOptions = useMemo(() => {
+    return users.map((user: any) => ({
+      value: user.id?.toString() || "",
+      label: `${user.name} ${user.surname}`,
+    }));
+  }, [users]);
+
   useEffect(() => {
     setStatusFilter("");
     setApplicabilityFilter("");
   }, [tracker]);
+
+  if (error) {
+    return (
+      <Box sx={containerStyle}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button onClick={refreshFilteredFrameworks} variant="contained">
+          Retry
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={containerStyle}>
@@ -231,6 +242,17 @@ const ProjectFrameworks = ({
         }
         showApplicabilityFilter={false}
         statusOptions={statusOptions}
+        ownerFilter={ownerFilter}
+        onOwnerChange={setOwnerFilter}
+        approverFilter={approverFilter}
+        onApproverChange={setApproverFilter}
+        dueDateFilter={dueDateFilter}
+        onDueDateChange={setDueDateFilter}
+        showOwnerFilter={isEUAIAct && tracker === "compliance"}
+        showApproverFilter={isEUAIAct && tracker === "compliance"}
+        showDueDateFilter={isEUAIAct && tracker === "compliance"}
+        ownerOptions={userOptions}
+        approverOptions={userOptions}
       />
 
       <AddFrameworkModal
@@ -283,6 +305,9 @@ const ProjectFrameworks = ({
               <ComplianceTracker
                 project={project}
                 statusFilter={statusFilter}
+                ownerFilter={ownerFilter}
+                approverFilter={approverFilter}
+                dueDateFilter={dueDateFilter}
               />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
@@ -294,7 +319,13 @@ const ProjectFrameworks = ({
           </>
         ) : (
           <TabPanel value="compliance" sx={tabPanelStyle}>
-            <ComplianceTracker project={project} statusFilter={statusFilter} />
+            <ComplianceTracker
+              project={project}
+              statusFilter={statusFilter}
+              ownerFilter={ownerFilter}
+              approverFilter={approverFilter}
+              dueDateFilter={dueDateFilter}
+            />
           </TabPanel>
         )}
       </TabContext>

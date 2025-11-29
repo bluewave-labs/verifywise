@@ -68,6 +68,7 @@ export interface IFilterButtonProps {
 export interface IButtonToggleOption {
   value: string;
   label: string;
+  count?: number;
 }
 
 export interface IButtonToggleProps {

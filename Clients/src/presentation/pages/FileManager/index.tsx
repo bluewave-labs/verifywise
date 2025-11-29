@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Stack, Box, Typography, SelectChangeEvent } from "@mui/material";
+import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
@@ -12,7 +12,6 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { getUserFilesMetaData } from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
@@ -22,10 +21,17 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
 import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+import TipBox from "../../components/TipBox";
+import { SearchBox } from "../../components/Search";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 // Constants (DRY + Maintainability)
-const FILE_MANAGER_CONTEXT = 'FileManager';
-const AUDITOR_ROLE = 'Auditor'; // Role that cannot upload files
+const FILE_MANAGER_CONTEXT = "FileManager";
+const AUDITOR_ROLE = "Auditor"; // Role that cannot upload files
 
 const COLUMN_NAMES = [
   "File",
@@ -58,22 +64,19 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Fetch projects for the dropdown
+  // Fetch projects for the dropdown options
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
-  // State for selected project
-  const [selectedProject, setSelectedProject] = useState<
-    string | number | null
-  >("all");
-
   // Use hook for initial data load (keeps hook unchanged as requested)
-  const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
+  const { filesData: initialFilesData, loading: initialLoading } =
+    useUserFilesMetaData();
 
   // Local state to manage files (allows manual refresh)
   const [filesData, setFilesData] = useState<FileModel[]>([]);
@@ -89,10 +92,14 @@ const FileManager: React.FC = (): JSX.Element => {
   // RBAC: Get user role for permission checks
   const { userRoleName } = useAuth();
 
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
   // REQUIREMENT: "Upload allowed for all users except Auditors"
   // SECURITY: Default-deny - require authenticated role that is not Auditor
   // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
-  const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+  const isUploadAllowed =
+    Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
 
   // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
   const refetch = useCallback(async () => {
@@ -104,7 +111,7 @@ const FileManager: React.FC = (): JSX.Element => {
     } catch (error) {
       // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
       //  includes user ID/email/name which violates GDPR/compliance
-      secureLogError('Error refetching files', FILE_MANAGER_CONTEXT);
+      secureLogError("Error refetching files", FILE_MANAGER_CONTEXT);
       setFilesData([]);
     } finally {
       setLoadingFiles(false);
@@ -115,7 +122,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleUploadClick = useCallback(() => {
     // Defensive: Double-check permission before opening modal
     if (!isUploadAllowed) {
-      console.warn('[FileManager] Upload attempt by unauthorized role:', userRoleName);
+      console.warn(
+        "[FileManager] Upload attempt by unauthorized role:",
+        userRoleName,
+      );
       return;
     }
     setIsUploadModalOpen(true);
@@ -131,13 +141,124 @@ const FileManager: React.FC = (): JSX.Element => {
     refetch();
   }, [refetch]);
 
+  // FilterBy - Dynamic options generators
+  const getUniqueProjects = useCallback(() => {
+    const projectIds = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.projectId) {
+        projectIds.add(file.projectId.toString());
+      }
+    });
+    return Array.from(projectIds)
+      .map((projectId) => {
+        const project = projects.find((p: Project) => p.id.toString() === projectId);
+        return {
+          value: projectId,
+          label: project?.project_title || `Project ${projectId}`,
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [filesData, projects]);
+
+  const getUniqueUploaders = useCallback(() => {
+    const uploaders = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.uploaderName || file.uploader) {
+        uploaders.add(file.uploaderName || file.uploader || '');
+      }
+    });
+    return Array.from(uploaders)
+      .filter(Boolean)
+      .sort()
+      .map((uploader) => ({
+        value: uploader,
+        label: uploader,
+      }));
+  }, [filesData]);
+
+  // FilterBy - Filter columns configuration
+  const fileFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'fileName',
+      label: 'File name',
+      type: 'text' as const,
+    },
+    {
+      id: 'projectId',
+      label: 'Use case',
+      type: 'select' as const,
+      options: getUniqueProjects(),
+    },
+    {
+      id: 'uploader',
+      label: 'Uploader',
+      type: 'select' as const,
+      options: getUniqueUploaders(),
+    },
+    {
+      id: 'uploadDate',
+      label: 'Upload date',
+      type: 'date' as const,
+    },
+  ], [getUniqueProjects, getUniqueUploaders]);
+
+  // FilterBy - Field value getter
+  const getFileFieldValue = useCallback(
+    (item: FileModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'fileName':
+          return item.fileName;
+        case 'projectId':
+          return item.projectId?.toString();
+        case 'uploader':
+          return item.uploaderName || item.uploader;
+        case 'uploadDate':
+          return item.uploadDate;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterFileData, handleFilterChange: handleFileFilterChange } = useFilterBy<FileModel>(getFileFieldValue);
+
+  // Filter files using FilterBy and search
   const filteredFiles = useMemo(() => {
-    if (selectedProject === "all" || selectedProject === null) {
-      return filesData;
+    // First apply FilterBy conditions
+    let result = filterFileData(filesData);
+
+    // Apply search filter last
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((file) =>
+        file.fileName?.toLowerCase().includes(query),
+      );
     }
 
-    return filesData.filter((file) => file.projectId === selectedProject);
-  }, [filesData, selectedProject]);
+    return result;
+  }, [filterFileData, filesData, searchTerm]);
+
+  // Define how to get the group key for each file
+  const getFileGroupKey = useCallback((file: FileModel, field: string): string => {
+    switch (field) {
+      case 'project':
+        return file.projectTitle || 'No Project';
+      case 'uploader':
+        return file.uploaderName || file.uploader || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to filtered files
+  const groupedFiles = useTableGrouping({
+    data: filteredFiles,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getFileGroupKey,
+  });
 
   const boxStyles = useMemo(
     () => ({
@@ -146,7 +267,7 @@ const FileManager: React.FC = (): JSX.Element => {
       pointerEvents: loadingFiles ? "none" : "auto",
       opacity: loadingFiles ? 0.5 : 1,
     }),
-    [filteredFiles.length, loadingFiles]
+    [filteredFiles.length, loadingFiles],
   );
 
   useEffect(() => {
@@ -177,32 +298,34 @@ const FileManager: React.FC = (): JSX.Element => {
         quickActions={[
           {
             label: "Filter by Project",
-            description: "Use the project dropdown to view files from specific use cases",
-            primary: true
+            description:
+              "Use the project dropdown to view files from specific use cases",
+            primary: true,
           },
           {
             label: "Download Files",
-            description: "Download individual files directly from the table"
-          }
+            description: "Download individual files directly from the table",
+          },
         ]}
         useCases={[
           "View all files uploaded through *framework evidence uploads* and *compliance activities*",
-          "Track which files belong to specific *projects and frameworks*"
+          "Track which files belong to specific *projects and frameworks*",
         ]}
         keyFeatures={[
           "**Centralized file listing** showing all uploaded evidence and documents",
           "*Project filtering* to view files from specific use cases",
-          "*Source navigation* to jump directly to the framework section where files were uploaded"
+          "*Source navigation* to jump directly to the framework section where files were uploaded",
         ]}
         tips={[
           "Use the *project filter* to focus on files from specific use cases",
           "Click on the *source* to navigate to where the file was originally uploaded",
-          "Files shown here are uploaded through various *framework and compliance sections*"
+          "Files shown here are uploaded through various *framework and compliance sections*",
         ]}
       />
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
+      <TipBox entityName="file-manager" />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
         <>
@@ -214,25 +337,35 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <Select
-              id="project-filter"
-              value={selectedProject || "all"}
-              items={[
-                { _id: "all", name: "All use cases" },
-                ...projects.map((project: Project) => ({
-                  _id: project.id.toString(),
-                  name: project.project_title,
-                }))
-              ]}
-              onChange={(e: SelectChangeEvent<string | number>) => setSelectedProject(e.target.value)}
-              sx={{
-                width: "fit-content",
-                minWidth: "200px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}>
+              <FilterBy
+                columns={fileFilterColumns}
+                onFilterChange={handleFileFilterChange}
+              />
+              <GroupBy
+                options={[
+                  { id: 'project', label: 'Project' },
+                  { id: 'uploader', label: 'Uploader' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+              <SearchBox
+                placeholder="Search files by name..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search files" }}
+                fullWidth={false}
+              />
+            </Box>
             {/* RBAC: Only show upload button for non-Auditors */}
             {isUploadAllowed && (
               <CustomizableButton
@@ -247,7 +380,18 @@ const FileManager: React.FC = (): JSX.Element => {
             )}
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={handleFileDeleted} />
+            <GroupedTableView
+              groupedData={groupedFiles}
+              ungroupedData={filteredFiles}
+              renderTable={(data, options) => (
+                <FileTable
+                  cols={COLUMNS}
+                  files={data}
+                  onFileDeleted={handleFileDeleted}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
+            />
           </Box>
         </Stack>
       )}

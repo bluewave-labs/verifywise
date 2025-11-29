@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
-  SelectChangeEvent,
   Stack,
   Table,
   TableBody,
@@ -24,7 +23,6 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
-import Select from "../../components/Inputs/Select";
 import { SearchBox } from "../../components/Search";
 import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import {
@@ -34,6 +32,8 @@ import {
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import TagChip from "../../components/Tags/TagChip";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 const POLICY_TEMPLATES_SORTING_KEY = "verifywise_policy_templates_sorting";
 
@@ -144,7 +144,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     PolicyTemplate | undefined
   >(undefined);
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>
@@ -220,25 +219,59 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
     });
   }, []);
 
-  const filterOptions = [
-    { _id: "all", name: "All Policy Templates" },
-    ...[...Object.values(PolicyTemplateCategory)].map((value) => ({
-      _id: value,
-      name: value,
-    })),
-  ];
+  // Define the type for policy template items
+  type PolicyTemplateItem = typeof policyTemplates[number];
 
-  // Filter + search
+  // FilterBy - Filter columns configuration
+  const policyTemplateFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'title',
+      label: 'Title',
+      type: 'text' as const,
+    },
+    {
+      id: 'category',
+      label: 'Category',
+      type: 'select' as const,
+      options: [...Object.values(PolicyTemplateCategory)].map((value) => ({
+        value: value,
+        label: value,
+      })),
+    },
+  ], []);
+
+  // FilterBy - Field value getter
+  const getPolicyTemplateFieldValue = useCallback(
+    (item: PolicyTemplateItem, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'title':
+          return item.title;
+        case 'category':
+          return item.category;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterPolicyTemplateData, handleFilterChange: handlePolicyTemplateFilterChange } = useFilterBy<PolicyTemplateItem>(getPolicyTemplateFieldValue);
+
+  // Filter + search using FilterBy
   const filteredPolicyTemplates = useMemo(() => {
-    return policyTemplates.filter((p) => {
-      const matchesCategory =
-        categoryFilter === "all" ? true : p.category === categoryFilter;
-      const matchesSearch = p.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [categoryFilter, searchTerm]);
+    let result = filterPolicyTemplateData(policyTemplates);
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((p) =>
+        p.title.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [filterPolicyTemplateData, searchTerm]);
 
   // Sort the filtered templates based on current sort configuration
   const sortedPolicyTemplates = useMemo(() => {
@@ -304,31 +337,23 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
 
   return (
     <Stack>
-      <Stack direction="row" spacing={6} alignItems="center" mb={8}>
-        {/* Dropdown Filter */}
+      <Stack direction="row" spacing={2} alignItems="center" mb={8}>
+        {/* FilterBy */}
         <div data-joyride-id="policy-status-filter">
-          <Select
-            id="policy-category"
-            value={categoryFilter}
-            items={filterOptions}
-            onChange={(e: SelectChangeEvent<string | number>) =>
-              setCategoryFilter(`${e.target.value}`)
-            }
-            sx={{
-              minWidth: "225px",
-              height: "34px",
-              bgcolor: theme.palette.background.paper,
-            }}
+          <FilterBy
+            columns={policyTemplateFilterColumns}
+            onFilterChange={handlePolicyTemplateFilterChange}
           />
         </div>
 
         {/* Search */}
-        <Box sx={{ width: 300 }} data-joyride-id="policy-search">
+        <Box data-joyride-id="policy-search">
           <SearchBox
             placeholder="Search policy templates..."
             value={searchTerm}
             onChange={setSearchTerm}
             inputProps={{ "aria-label": "Search policy templates" }}
+            fullWidth={false}
           />
         </Box>
       </Stack>

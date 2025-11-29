@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Theme, SxProps } from "@mui/material/styles";
-import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 // Main page styles (index.tsx)
 export const mainStackStyle = {
@@ -71,44 +70,6 @@ export const summaryCardLabelStyle = (theme: Theme) => ({
 });
 
 // Table component styles (modelInventoryTable.tsx)
-export const statusBadgeStyle = (status: ModelInventoryStatus) => {
-  const statusStyles = {
-    [ModelInventoryStatus.APPROVED]: { bg: "#E6F4EA", color: "#138A5E" },
-    [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#795548" }, // Brown-ish
-    [ModelInventoryStatus.RESTRICTED]: { bg: "#FFE5D0", color: "#E64A19" },
-    [ModelInventoryStatus.BLOCKED]: { bg: "#FFD6D6", color: "#D32F2F" },
-  };
-
-  const style = statusStyles[status] || { bg: "#E0E0E0", color: "#424242" };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: "4px",
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
-
-export const securityAssessmentBadgeStyle = (assessment: boolean) => {
-  const style = assessment
-    ? { bg: "#E6F4EA", color: "#138A5E" }
-    : { bg: "#FFD6D6", color: "#D32F2F" };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: "4px",
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
 
 // Capabilities chips
 export const capabilitiesChipContainerStyle = {

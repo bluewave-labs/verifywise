@@ -2,12 +2,13 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Stack,
   Typography,
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { styles } from "../Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
@@ -23,21 +24,48 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO27001Annex = ({
   project,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  reviewerFilter,
+  dueDateFilter,
   applicabilityFilter,
   initialAnnexId,
   initialAnnexControlId,
+  searchTerm,
+  onStatusChange,
+  onApplicabilityChange,
+  onOwnerChange,
+  onReviewerChange,
+  onDueDateChange,
+  onSearchTermChange,
+  statusOptions,
+  ownerOptions,
+  reviewerOptions,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
+  ownerFilter?: string;
+  reviewerFilter?: string;
+  dueDateFilter?: string;
   applicabilityFilter?: string;
   initialAnnexId?: string | null;
   initialAnnexControlId?: string | null;
+  searchTerm: string;
+  onStatusChange?: (val: string) => void;
+  onApplicabilityChange?: (val: string) => void;
+  onOwnerChange?: (val: string) => void;
+  onReviewerChange?: (val: string) => void;
+  onDueDateChange?: (val: string) => void;
+  onSearchTermChange?: (val: string) => void;
+  statusOptions?: { label: string; value: string }[];
+  ownerOptions?: { label: string; value: string }[];
+  reviewerOptions?: { label: string; value: string }[];
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -54,6 +82,88 @@ const ISO27001Annex = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const annexId = initialAnnexId;
   const annexControlId = initialAnnexControlId;
+
+  // Shared function to filter controls based on all active filters
+  const filterControls = useCallback((controls: any[]) => {
+    let filtered = controls;
+
+    // Apply status filter
+    if (statusFilter && statusFilter !== "") {
+      filtered = filtered.filter(
+        (control: any) =>
+          control.status?.toLowerCase() === statusFilter.toLowerCase(),
+      );
+    }
+
+    // Apply owner filter
+    if (ownerFilter && ownerFilter !== "") {
+      filtered = filtered.filter(
+        (control: any) => control.owner?.toString() === ownerFilter,
+      );
+    }
+
+    // Apply reviewer filter
+    if (reviewerFilter && reviewerFilter !== "") {
+      filtered = filtered.filter(
+        (control: any) => control.reviewer?.toString() === reviewerFilter,
+      );
+    }
+
+    // Apply due date filter
+    if (dueDateFilter && dueDateFilter !== "") {
+      filtered = filtered.filter((control: any) => {
+        if (control.due_date) {
+          const dueDate = new Date(control.due_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          const filterDays = parseInt(dueDateFilter);
+          return daysUntilDue >= 0 && daysUntilDue <= filterDays;
+        }
+        return false;
+      });
+    }
+
+    // Apply applicability filter
+    if (
+      applicabilityFilter &&
+      applicabilityFilter !== "all" &&
+      applicabilityFilter !== ""
+    ) {
+      const isApplicable = applicabilityFilter === "true";
+      filtered = filtered.filter(
+        (control: any) => Boolean(control.applicable) === isApplicable,
+      );
+    }
+
+    return filtered;
+  }, [statusFilter, ownerFilter, reviewerFilter, dueDateFilter, applicabilityFilter]);
+
+  // Check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return !!(
+      (statusFilter && statusFilter !== "") ||
+      (ownerFilter && ownerFilter !== "") ||
+      (reviewerFilter && reviewerFilter !== "") ||
+      (dueDateFilter && dueDateFilter !== "") ||
+      (applicabilityFilter && applicabilityFilter !== "all" && applicabilityFilter !== "")
+    );
+  }, [statusFilter, ownerFilter, reviewerFilter, dueDateFilter, applicabilityFilter]);
+
+  // Calculate filtered controls count for all annexes
+  const filteredControlsCountMemo = useMemo(() => {
+    const counts: { [key: number]: number } = {};
+
+    if (annexes) {
+      annexes.forEach((annex: any) => {
+        const controls = annex.annexControls || [];
+        const filteredControls = filterControls(controls);
+        counts[annex.id ?? 0] = filteredControls.length;
+      });
+    }
+
+    return counts;
+  }, [annexes, filterControls]);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -90,6 +200,16 @@ const ISO27001Annex = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annexId, annexes, annexControlId, annexId, annexControlId]);
+
+
+  const filteredAnnexes = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return annexes;
+    }
+    return annexes.filter((annex: any) =>
+      annex.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [annexes, searchTerm]);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -220,48 +340,70 @@ const ISO27001Annex = ({
           <Typography sx={{ ...styles.title, mt: 4 }}>
             Annex A : Reference Controls (Statement of Applicability)
           </Typography>
-          {annexes &&
-            annexes.map((annex: any) => (
-              <Stack key={annex.id} sx={styles.container}>
-                <Accordion
-                  key={annex.id}
-                  expanded={expanded === annex.id}
-                  onChange={handleAccordionChange(annex.id ?? 0)}
-                  sx={styles.accordion}
-                >
-                  <AccordionSummary sx={styles.accordionSummary}>
-                    <RightArrowBlack size={16}
-                      style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
-                    />
-                    <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
-                      {annex.arrangement}.{annex.order_no} {annex.title}
-                    </Typography>
-                  </AccordionSummary>
+          <TabFilterBar
+            statusFilter={statusFilter}
+            onStatusChange={onStatusChange}
+            applicabilityFilter={applicabilityFilter}
+            onApplicabilityChange={onApplicabilityChange}
+            ownerFilter={ownerFilter}
+            onOwnerChange={onOwnerChange}
+            reviewerFilter={reviewerFilter}
+            onReviewerChange={onReviewerChange}
+            dueDateFilter={dueDateFilter}
+            onDueDateChange={onDueDateChange}
+            showStatusFilter={true}
+            showApplicabilityFilter={true}
+            showOwnerFilter={true}
+            showReviewerFilter={true}
+            showDueDateFilter={true}
+            statusOptions={statusOptions}
+            ownerOptions={ownerOptions}
+            reviewerOptions={reviewerOptions}
+            showSearchBar={true}
+            searchTerm={searchTerm}
+            setSearchTerm={onSearchTermChange as any}
+          />
+          {filteredAnnexes &&
+            filteredAnnexes.map((annex: any) => {
+              const count = filteredControlsCountMemo[annex.id ?? 0];
+              const chipColor = count !== undefined && count > 0
+                ? { bg: "#E6F4EA", color: "#138A5E" }
+                : { bg: "#FFF8E1", color: "#795548" };
+              return (
+                <Stack key={annex.id} sx={styles.container}>
+                  <Accordion
+                    key={annex.id}
+                    expanded={expanded === annex.id}
+                    onChange={handleAccordionChange(annex.id ?? 0)}
+                    sx={styles.accordion}
+                  >
+                    <AccordionSummary sx={styles.accordionSummary}>
+                      <RightArrowBlack size={16}
+                        style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
+                      />
+                      <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
+                        {annex.arrangement}.{annex.order_no} {annex.title}
+                      </Typography>
+                      {hasActiveFilters && count !== undefined && (
+                        <Box component="span" sx={{
+                          backgroundColor: chipColor.bg,
+                          color: chipColor.color,
+                          padding: "4px 8px",
+                          borderRadius: "2px",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          ml: 4,
+                        }}>
+                          {count} filtered
+                        </Box>
+                      )}
+                    </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
                     {(() => {
-                      let filteredControls = annex.annexControls || [];
+                      const controls = annex.annexControls || [];
 
-                      // Apply status filter
-                      if (statusFilter && statusFilter !== "") {
-                        filteredControls = filteredControls.filter(
-                          (control: any) =>
-                            control.status?.toLowerCase() ===
-                            statusFilter.toLowerCase(),
-                        );
-                      }
-
-                      // Apply applicability filter
-                      if (
-                        applicabilityFilter &&
-                        applicabilityFilter !== "all" &&
-                        applicabilityFilter !== ""
-                      ) {
-                        const isApplicable = applicabilityFilter === "true";
-                        filteredControls = filteredControls.filter(
-                          (control: any) =>
-                            Boolean(control.applicable) === isApplicable,
-                        );
-                      }
+                      // Use shared filtering function
+                      const filteredControls = filterControls(controls);
 
                       return filteredControls.length > 0 ? (
                         filteredControls.map((control: any, index: number) => (
@@ -301,7 +443,8 @@ const ISO27001Annex = ({
                   </AccordionDetails>
                 </Accordion>
               </Stack>
-            ))}
+              );
+            })}
           {drawerOpen && (
             <VWISO27001AnnexDrawerDialog
               title={annexTitle}

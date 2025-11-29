@@ -22,7 +22,7 @@ const background = {
 };
 
 const fontFamilyDefault =
-  "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif";
+  "'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
 
 const shadow =
   "0px 4px 24px -4px rgba(16, 24, 40, 0.08), 0px 3px 3px -3px rgba(16, 24, 40, 0.03)";

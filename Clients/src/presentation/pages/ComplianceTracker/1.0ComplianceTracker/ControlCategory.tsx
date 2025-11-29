@@ -7,6 +7,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Stack,
   Typography,
 } from "@mui/material";
@@ -28,6 +29,9 @@ interface ControlCategoryProps {
   projectId: number;
   projectFrameworkId: number;
   statusFilter?: string;
+  ownerFilter?: string;
+  approverFilter?: string;
+  dueDateFilter?: string;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
@@ -36,13 +40,21 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   projectId,
   projectFrameworkId,
   statusFilter,
+  ownerFilter,
+  approverFilter,
+  dueDateFilter
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [filteredControlsCount, setFilteredControlsCount] = useState<number | null>(null);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
+
+  const chipColor = filteredControlsCount !== null && filteredControlsCount > 0
+  ? { bg: "#E6F4EA", color: "#138A5E" }
+  : { bg: "#FFF8E1", color: "#795548" };
 
   return (
     <Stack className="control-category">
@@ -84,6 +96,19 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
           >
             {controlCategory.order_no} {controlCategory.title}
           </Typography>
+          {filteredControlsCount !== null && (
+            <Box component="span" sx={{
+              backgroundColor: chipColor.bg,
+              color: chipColor.color,
+              padding: "4px 8px",
+              borderRadius: "2px",
+              fontSize: 13,
+              fontWeight: 500,
+              ml: 4,
+            }}>
+              {filteredControlsCount} filtered
+            </Box>
+          )}
         </AccordionSummary>
         <AccordionDetails
           className="control-category-accordion-details"
@@ -97,6 +122,10 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             projectId={projectId}
             projectFrameworkId={projectFrameworkId}
             statusFilter={statusFilter}
+            ownerFilter={ownerFilter}
+            approverFilter={approverFilter}
+            dueDateFilter={dueDateFilter}
+            setFilteredControlsCount={setFilteredControlsCount}
           />
         </AccordionDetails>
       </Accordion>

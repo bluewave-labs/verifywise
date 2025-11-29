@@ -45,6 +45,7 @@ const CustomizablePolicyTable = ({
   setSelectedRow,
   setAnchorEl,
   renderRow,
+  hidePagination = false,
 }: ITableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -262,8 +263,7 @@ const CustomizablePolicyTable = ({
 
   const tableBody = (
     <TableBody>
-      {sortedData
-        ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      {(hidePagination ? sortedData : sortedData?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage))
         .map((row) =>
           renderRow ? (
             renderRow(row, sortConfig)
@@ -310,7 +310,7 @@ const CustomizablePolicyTable = ({
           <Table sx={singleTheme.tableStyles.primary.frame}>
             {tableHeader}
             {tableBody}
-            {paginated && (
+            {paginated && !hidePagination && (
               <TableFooter>
                 <TableRow
                   sx={{

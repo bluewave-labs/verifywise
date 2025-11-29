@@ -33,10 +33,9 @@ interface FrameworkData {
 
 interface FrameworkProgressCardProps {
   frameworksData: FrameworkData[];
-  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
-const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgressCardProps) => {
+const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) => {
   const calculateProgress = (done: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((done / total) * 100);
@@ -80,8 +79,8 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
           Track implementation progress across clauses and annexes. Shows completion percentage and progress bars for each framework component.
         </Typography>
 
-      <Stack spacing={5}>
-        {frameworksData.map((framework) => {
+      <Stack spacing={0}>
+        {frameworksData.map((framework, index) => {
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
           const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
@@ -100,6 +99,18 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
 
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -117,19 +128,7 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
                     const percent = calculateProgress(data.done, data.total);
 
                     return (
-                      <Box
-                        key={func.key}
-                        onClick={() => onNavigate?.(framework.frameworkName, func.key)}
-                        sx={{
-                          cursor: onNavigate ? "pointer" : "default",
-                          "&:hover": onNavigate ? {
-                            backgroundColor: "#F9FAFB",
-                            borderRadius: "4px",
-                            margin: "-4px",
-                            padding: "4px",
-                          } : {},
-                        }}
-                      >
+                      <Box key={func.key}>
                         <Box
                           sx={{
                             display: "grid",
@@ -182,6 +181,9 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
                     );
                   })}
                 </Stack>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
@@ -202,6 +204,19 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
 
           return (
             <Box key={framework.frameworkId}>
+              {/* Divider between framework sections */}
+              {index > 0 && (
+                <Box
+                  sx={{
+                    height: "1px",
+                    backgroundColor: "#E5E7EB",
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
+                  }}
+                />
+              )}
+
               <Typography
                 sx={{
                   fontSize: 13,
@@ -214,20 +229,7 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
               </Typography>
 
               {/* Controls/Clauses Progress */}
-              <Box
-                onClick={() => onNavigate?.(framework.frameworkName, "clauses")}
-                sx={{
-                  mb: 2,
-                  cursor: onNavigate ? "pointer" : "default",
-                  "&:hover": onNavigate ? {
-                    backgroundColor: "#F9FAFB",
-                    borderRadius: "4px",
-                    margin: "-4px",
-                    marginBottom: "4px",
-                    padding: "4px",
-                  } : {},
-                }}
-              >
+              <Box sx={{ mb: 2 }}>
                 <Box
                   sx={{
                     display: "grid",
@@ -279,18 +281,7 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
               </Box>
 
               {/* Annexes Progress */}
-              <Box
-                onClick={() => onNavigate?.(framework.frameworkName, "annexes")}
-                sx={{
-                  cursor: onNavigate ? "pointer" : "default",
-                  "&:hover": onNavigate ? {
-                    backgroundColor: "#F9FAFB",
-                    borderRadius: "4px",
-                    margin: "-4px",
-                    padding: "4px",
-                  } : {},
-                }}
-              >
+              <Box>
                 <Box
                   sx={{
                     display: "grid",
@@ -340,6 +331,9 @@ const FrameworkProgressCard = ({ frameworksData, onNavigate }: FrameworkProgress
                   }}
                 />
               </Box>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

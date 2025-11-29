@@ -479,8 +479,8 @@ const FrameworkDashboard = ({
           gap: "16px",
         }}
       >
-        <FrameworkProgressCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
-        <AssignmentStatusCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
+        <FrameworkProgressCard frameworksData={frameworksData} />
+        <AssignmentStatusCard frameworksData={frameworksData} />
         <StatusBreakdownCard frameworksData={frameworksData} />
       </Box>
 
@@ -518,6 +518,7 @@ const FrameworkDashboard = ({
               {/* ISO 42001 Clauses Overview */}
               <ControlCategoriesCard
                 frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 42001"))}
+                onNavigate={handleNavigateToControls}
               />
 
               {/* 16px spacing before annexes */}
@@ -526,6 +527,7 @@ const FrameworkDashboard = ({
               {/* ISO 42001 Annexes Overview */}
               <AnnexOverviewCard
                 frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 42001"))}
+                onNavigate={handleNavigateToControls}
               />
             </Stack>
           </TabPanel>
@@ -533,6 +535,7 @@ const FrameworkDashboard = ({
           <TabPanel value="nist-ai-rmf" sx={tabPanelStyle}>
             <NISTFunctionsOverviewCard
               frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("nist ai rmf"))}
+              onNavigate={handleNavigateToControls}
             />
           </TabPanel>
 
@@ -541,6 +544,7 @@ const FrameworkDashboard = ({
               {/* ISO 27001 Clauses Overview */}
               <ControlCategoriesCard
                 frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 27001"))}
+                onNavigate={handleNavigateToControls}
               />
 
               {/* 16px spacing before annexes */}
@@ -549,6 +553,7 @@ const FrameworkDashboard = ({
               {/* ISO 27001 Annexes Overview */}
               <AnnexOverviewCard
                 frameworksData={frameworksData.filter(f => f.frameworkName.toLowerCase().includes("iso 27001"))}
+                onNavigate={handleNavigateToControls}
               />
             </Stack>
           </TabPanel>
@@ -557,7 +562,7 @@ const FrameworkDashboard = ({
 
       {/* Fallback when no frameworks */}
       {!hasISO27001 && !hasISO42001 && !hasNISTAIRMF && (
-        <ControlCategoriesCard frameworksData={frameworksData} />
+        <ControlCategoriesCard frameworksData={frameworksData} onNavigate={handleNavigateToControls} />
       )}
     </Stack>
   );

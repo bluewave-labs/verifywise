@@ -191,7 +191,7 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
         }}
       >
 
-      <Stack spacing={5}>
+      <Stack spacing={0}>
         {frameworksData.map((framework, index) => {
           const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
 
@@ -222,6 +222,19 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
             if (total === 0) {
               return (
                 <Box key={framework.frameworkId}>
+                  {/* Divider between framework sections */}
+                  {index > 0 && (
+                    <Box
+                      sx={{
+                        height: "1px",
+                        backgroundColor: "#E5E7EB",
+                        mx: "-16px", // Extend to card edges
+                        mb: 4,
+                        mt: 1,
+                      }}
+                    />
+                  )}
+
                   <Typography
                     sx={{
                       fontSize: 13,
@@ -235,12 +248,28 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
                     No status data available
                   </Typography>
+
+                  {/* Add bottom margin for spacing before next section */}
+                  {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
                 </Box>
               );
             }
 
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -284,6 +313,30 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                           "& .MuiChartsLegend-root": {
                             display: "none !important",
                           },
+                          "& .MuiChartsTooltip-root": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-root *": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-mark": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-labelCell": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-valueCell": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table td": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table th": {
+                            fontSize: "13px !important",
+                          },
                         }}
                       />
                     </Box>
@@ -320,6 +373,9 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                     ))}
                   </Stack>
                 </Box>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
@@ -344,6 +400,19 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
           if (total === 0) {
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                   <Typography
                     sx={{
@@ -374,27 +443,26 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                 <Typography sx={{ fontSize: 12, color: "#666666" }}>
                   No status data available
                 </Typography>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
 
           const allStatuses = getAllStatuses(data);
-          const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
-
-          // Check if we need to add a divider before ISO 27001
-          const needsDivider = index > 0 && isISO27001 &&
-            frameworksData[index - 1]?.frameworkName.toLowerCase().includes("iso 42001");
 
           return (
             <Box key={framework.frameworkId}>
-              {/* Add divider between ISO 42001 and ISO 27001 */}
-              {needsDivider && (
+              {/* Divider between framework sections */}
+              {index > 0 && (
                 <Box
                   sx={{
                     height: "1px",
                     backgroundColor: "#E5E7EB",
-                    my: 3,
-                    mx: -2, // Extend beyond the content padding
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
                   }}
                 />
               )}
@@ -460,28 +528,28 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                           display: "none !important",
                         },
                         "& .MuiChartsTooltip-root": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-root *": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-mark": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-labelCell": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-valueCell": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table td": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table th": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                       }}
                     />
@@ -519,6 +587,9 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                   ))}
                 </Stack>
               </Box>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

@@ -55,10 +55,10 @@ def run_complete_pipeline():
     # Step 1: Run Model Inference
     print("\n📊 Step 1: Running Model Inference...")
     try:
-        inference_pipeline = InferencePipeline()
+        inference_pipeline = InferencePipeline(config_manager)
         
         # Run inference with config settings
-        inference_results = inference_pipeline.run_batch_inference(
+        inference_results = inference_pipeline.run(
             batch_size=None,  # No batching for now
             limit_samples=None,  # Use all samples
             auto_save=True
@@ -163,11 +163,16 @@ def run_complete_pipeline():
             print(f"      {metric.capitalize()}: {value:.4f}")
         
         # Compile comprehensive results
+        # Get model_id safely (handle different config structures)
+        model_id = getattr(config.model, 'model_id', None)
+        if model_id is None and hasattr(config.model, 'huggingface'):
+            model_id = getattr(config.model.huggingface, 'model_id', 'unknown')
+        
         comprehensive_results = {
             'metadata': {
                 'evaluation_type': 'complete_pipeline_evaluation',
                 'dataset': config.dataset.name,
-                'model': config.model.huggingface.model_id,
+                'model': model_id or 'unknown',
                 'model_task': config.model.model_task,
                 'label_behavior': config.model.label_behavior,
                 'evaluation_timestamp': pd.Timestamp.now().isoformat(),

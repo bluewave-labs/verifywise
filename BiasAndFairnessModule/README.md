@@ -38,6 +38,17 @@ This project aims to explore and validate methodologies for evaluating **bias** 
 - **Exposure Disparity**: Difference in response exposure between groups
 - **Representation Disparity**: Difference in representation between groups
 
+### DeepEval Integration
+
+- **Answer Relevancy**: Measures if the answer is relevant to the input
+- **Bias Detection**: Identifies potential biases in responses
+- **Toxicity Detection**: Detects toxic or harmful content
+- **Faithfulness**: Checks if the answer is faithful to provided context
+- **Hallucination Detection**: Identifies fabricated information
+- **Contextual Relevancy**: Evaluates if context is relevant to input
+
+See [DeepEval Quick Start Guide](DEEPEVAL_QUICKSTART.md) for detailed usage instructions.
+
 ## What We're Doing
 
 - Running experiments using different **open/close-source LLMs** and **benchmark or custom datasets**
@@ -157,14 +168,31 @@ python run_tests.py         # Then run directly
 ### 3. Run Evaluation
 
 ```bash
-# Run the complete evaluation pipeline
-python src/inference/evaluation_runner.py
+# Run the complete fairness evaluation pipeline
+python run_full_evaluation.py
 
 # Or use the CLI
 python -m src.cli predict --config configs/config.yaml
 ```
 
-### 4. Running Python Scripts Directly
+### 4. Run DeepEval Evaluation (Optional)
+
+For comprehensive LLM evaluation with DeepEval metrics:
+
+```bash
+# Set OpenAI API key (required for DeepEval metrics)
+export OPENAI_API_KEY='your-api-key-here'
+
+# Run DeepEval evaluation on inference results
+python run_deepeval_evaluation.py
+
+# Or with specific options
+python run_deepeval_evaluation.py --use-bias --use-toxicity --limit 20
+```
+
+See [DeepEval Quick Start Guide](DEEPEVAL_QUICKSTART.md) for detailed instructions.
+
+### 5. Running Python Scripts Directly
 
 **Important**: When running Python scripts directly (not through `make`), you need to activate the virtual environment first:
 

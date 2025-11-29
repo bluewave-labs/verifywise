@@ -191,9 +191,9 @@ export const biasAndFairnessService = {
    * Polls evaluation status until completion or failure
    */
   async pollEvaluationStatus(
-    evaluationId: string, 
+    evaluationId: string,
     onProgress?: (status: EvaluationStatus) => void,
-    maxAttempts: number = 60 // 5 minutes with 5-second intervals
+    maxAttempts: number = 60 // ~10 minutes with 10-second intervals
   ): Promise<EvaluationStatus> {
     let attempts = 0;
     
@@ -209,8 +209,8 @@ export const biasAndFairnessService = {
           return status;
         }
         
-        // Wait 5 seconds before next poll
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Wait 10 seconds before next poll
+        await new Promise(resolve => setTimeout(resolve, 10000));
         attempts++;
       } catch (error) {
         console.error("Error polling evaluation status:", error);

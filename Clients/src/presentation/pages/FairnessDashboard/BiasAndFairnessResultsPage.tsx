@@ -17,6 +17,7 @@ import { TabContext, TabPanel } from "@mui/lab";
 import TabBar from "../../components/TabBar";
 import {
   Copy as CopyIcon,
+  Check as CheckIcon,
   Download as DownloadIcon,
   ChevronDown as ExpandMoreIcon,
   ChevronUp as ExpandLessIcon,
@@ -227,6 +228,61 @@ const metricDescriptions: { [metric: string]: string } = {
   precision: "Proportion of positive predictions that are correct",
   recall: "Proportion of actual positives that are correctly identified",
   f1_score: "Harmonic mean of precision and recall",
+};
+
+// Define Monaco Editor theme once for consistent colors between JSON and YAML
+const defineMonacoTheme = (monaco: typeof import("monaco-editor")) => {
+  // Always redefine the theme to ensure it's applied
+  monaco.editor.defineTheme("verifywise-config", {
+    base: "vs",
+    inherit: true, // Inherit base theme but override specific tokens
+    rules: [
+      // JSON property names (keys) - blue
+      { token: "property.name.json", foreground: "0451A5" },
+      // YAML keys - MUST be blue - try all possible token types
+      { token: "variable.other.readwrite.yaml", foreground: "0451A5" },
+      { token: "variable.yaml", foreground: "0451A5" },
+      { token: "entity.name.tag.yaml", foreground: "0451A5" },
+      { token: "keyword.definition.yaml", foreground: "0451A5" },
+      // YAML keys might be tokenized as plain text before colons
+      { token: "constant.language.yaml", foreground: "0451A5" },
+      // YAML list items (the "-" prefix) - blue
+      { token: "punctuation.definition.list.begin.yaml", foreground: "0451A5" },
+      // String values - JSON and YAML - red/brown
+      { token: "string.json", foreground: "A31515" },
+      { token: "string.yaml", foreground: "A31515" },
+      { token: "string.quoted.double.json", foreground: "A31515" },
+      { token: "string.quoted.single.json", foreground: "A31515" },
+      { token: "string.unquoted.yaml", foreground: "A31515" },
+      { token: "string.quoted.double.yaml", foreground: "A31515" },
+      { token: "string.quoted.single.yaml", foreground: "A31515" },
+      // Numbers - JSON and YAML - green
+      { token: "number.json", foreground: "098658" },
+      { token: "number.yaml", foreground: "098658" },
+      { token: "constant.numeric.yaml", foreground: "098658" },
+      // Booleans - green (more specific than constant.language.yaml)
+      { token: "constant.language.boolean.json", foreground: "098658" },
+      { token: "constant.language.boolean.yaml", foreground: "098658" },
+      { token: "keyword.json", foreground: "098658" },
+      { token: "constant.language.json", foreground: "098658" },
+      // Punctuation - black
+      { token: "delimiter", foreground: "000000" },
+      { token: "delimiter.json", foreground: "000000" },
+      { token: "delimiter.yaml", foreground: "000000" },
+      { token: "delimiter.comma.json", foreground: "000000" },
+      { token: "delimiter.bracket.json", foreground: "000000" },
+      { token: "delimiter.colon.json", foreground: "000000" },
+      { token: "delimiter.colon.yaml", foreground: "000000" },
+      { token: "delimiter.array.json", foreground: "000000" },
+      { token: "delimiter.bracket.yaml", foreground: "000000" },
+      { token: "punctuation", foreground: "000000" },
+    ],
+    colors: {
+      "editor.background": "#FFFFFF",
+      "editor.foreground": "#000000",
+      "editor.lineHighlightBackground": "#F5F5F5",
+    },
+  });
 };
 
 export default function BiasAndFairnessResultsPage() {
@@ -633,7 +689,7 @@ export default function BiasAndFairnessResultsPage() {
       setAlert({
         variant: "success",
         title: "Configuration Updated",
-        body: "Configuration updated successfully and re-evaluation has started! 🔄",
+        body: "Configuration updated successfully and re-evaluation has started!"
       });
 
       // Hide alert after 5 seconds
@@ -763,7 +819,7 @@ export default function BiasAndFairnessResultsPage() {
             onChange={(_, newVal) => setTab(newVal)}
           />
 
-          <TabPanel value="overview" sx={{ ...tabPanelStyle, pt: 2 }}>
+          <TabPanel value="overview" sx={{ ...tabPanelStyle, pt: 2, pb: 6 }}>
             <Stack spacing={4}>
               {/* Performance Metrics */}
               {Object.keys(performance).length > 0 && (
@@ -1330,7 +1386,7 @@ export default function BiasAndFairnessResultsPage() {
             </Stack>
           </TabPanel>
 
-          <TabPanel value="explorer" sx={{ ...tabPanelStyle, pt: 2 }}>
+          <TabPanel value="explorer" sx={{ ...tabPanelStyle, pt: 2, pb: 6 }}>
             <Box>
               <Typography variant="h6" sx={{ mb: 2, ...STYLES.bodyText }}>
                 Metric selection
@@ -1632,7 +1688,7 @@ export default function BiasAndFairnessResultsPage() {
             </Box>
           </TabPanel>
 
-          <TabPanel value="settings" sx={{ ...tabPanelStyle, pt: 2 }}>
+          <TabPanel value="settings" sx={{ ...tabPanelStyle, pt: 2, pb: 6 }}>
             <Box>
               {/* Evaluation Information */}
               <Box mb={4}>
@@ -1953,16 +2009,22 @@ export default function BiasAndFairnessResultsPage() {
                   <Box display="flex" gap={2}>
                     {metrics?.config_data && !isConfigEditMode && (
                       <>
+                        {/* Copy YAML button with visual feedback */}
                         <IconButton
-                          onClick={() => {
-                            const configText = JSON.stringify(
+                          onClick={async () => {
+                            const yamlText = yaml.dump(
                               typeof metrics.config_data === "string"
                                 ? JSON.parse(metrics.config_data)
                                 : metrics.config_data,
-                              null,
-                              2
+                              { indent: 2, lineWidth: -1 }
                             );
-                            navigator.clipboard.writeText(configText);
+                            try {
+                              await navigator.clipboard.writeText(yamlText);
+                              setShowCopyToast(true);
+                              setTimeout(() => setShowCopyToast(false), 1500);
+                            } catch (err) {
+                              console.error("Failed to copy YAML config:", err);
+                            }
                           }}
                           sx={{
                             width: "36px",
@@ -1975,7 +2037,11 @@ export default function BiasAndFairnessResultsPage() {
                             },
                           }}
                         >
-                          <CopyIcon size={18} />
+                          {showCopyToast ? (
+                            <CheckIcon size={18} />
+                          ) : (
+                            <CopyIcon size={18} />
+                          )}
                         </IconButton>
                         <Button
                           variant="contained"
@@ -2029,23 +2095,32 @@ export default function BiasAndFairnessResultsPage() {
                       }}
                     >
                       <Editor
+                        key={`config-editor-${isConfigEditMode ? "edit" : "view"}`}
                         height="600px"
-                        defaultLanguage={isConfigEditMode ? "yaml" : "json"}
+                        language="yaml"
                         value={
                           isConfigEditMode
                             ? editedConfig
-                            : JSON.stringify(
+                            : yaml.dump(
                                 typeof metrics.config_data === "string"
                                   ? JSON.parse(metrics.config_data)
                                   : metrics.config_data,
-                                null,
-                                2
+                                { indent: 2, lineWidth: -1 }
                               )
                         }
                         onChange={(value) =>
                           isConfigEditMode && setEditedConfig(value || "")
                         }
-                        theme="vs"
+                        theme="verifywise-config"
+                        beforeMount={(monaco) => {
+                          // Always define theme to ensure it's available
+                          defineMonacoTheme(monaco);
+                        }}
+                        onMount={(editor, monaco) => {
+                          // Ensure YAML language and theme are applied
+                          monaco.editor.setModelLanguage(editor.getModel()!, "yaml");
+                          monaco.editor.setTheme("verifywise-config");
+                        }}
                         options={{
                           readOnly: !isConfigEditMode,
                           minimap: { enabled: false },
@@ -2064,6 +2139,7 @@ export default function BiasAndFairnessResultsPage() {
                           folding: true,
                           automaticLayout: true,
                           tabSize: 2,
+                          colorDecorators: true,
                         }}
                       />
                     </Box>
@@ -2071,7 +2147,8 @@ export default function BiasAndFairnessResultsPage() {
                       <Box
                         display="flex"
                         justifyContent="flex-end"
-                        mt={2}
+                        mt={8}
+                        mb={10}
                         gap={2}
                       >
                         <Button
@@ -2124,7 +2201,7 @@ export default function BiasAndFairnessResultsPage() {
             </Box>
           </TabPanel>
 
-          <TabPanel value="visualizations" sx={{ ...tabPanelStyle, pt: 2 }}>
+          <TabPanel value="visualizations" sx={{ ...tabPanelStyle, pt: 2, pb: 6 }}>
             <Stack spacing={4}>
               <Box>
                 <Typography

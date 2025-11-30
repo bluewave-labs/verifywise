@@ -715,6 +715,62 @@ export const updateTaskByIdQuery = async (
   return updatedTask;
 };
 
+// Helper function to get task by ID including archived (for restore/hard delete operations)
+const getTaskByIdIncludingArchivedQuery = async (
+  taskId: number,
+  { userId, role }: GetTasksOptions,
+  tenant: string,
+  userOrganizationId: number
+): Promise<TasksModel | null> => {
+  const baseQueryParts: string[] = [
+    `SELECT DISTINCT t.*`,
+    `FROM "${tenant}".tasks t`,
+  ];
+  const whereConditions: string[] = ["t.id = :taskId"];
+  const replacements: QueryReplacements = { taskId };
+
+  // Role-based visibility rules (without excluding deleted tasks)
+  addVisibilityLogic(
+    baseQueryParts,
+    whereConditions,
+    replacements,
+    { userId, role },
+    tenant,
+    userOrganizationId
+  );
+
+  baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
+  const finalQuery = baseQueryParts.join("\n");
+
+  const tasks = await sequelize.query(finalQuery, {
+    replacements,
+    mapToModel: true,
+    model: TasksModel,
+    type: QueryTypes.SELECT,
+  });
+
+  if (tasks.length > 0) {
+    const task = tasks[0] as TasksModel;
+
+    // Add assignees following the project members pattern
+    const assignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: task.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (task.dataValues as any)["assignees"] = assignees.map(
+      (a: any) => a.user_id
+    );
+
+    return task;
+  }
+
+  return null;
+};
+
 // Soft delete task (only creator or admin)
 export const deleteTaskByIdQuery = async (
   {
@@ -732,7 +788,8 @@ export const deleteTaskByIdQuery = async (
   },
   tenant: string
 ): Promise<boolean> => {
-  const task = await getTaskByIdQuery(
+  // Use helper that includes archived tasks to fix 404 bug when archiving already-archived task
+  const task = await getTaskByIdIncludingArchivedQuery(
     id,
     { userId, role },
     tenant,
@@ -841,6 +898,150 @@ export const deleteTaskByIdQuery = async (
       );
     }
   }
+
+  return true;
+};
+
+// Restore archived task (only creator or admin)
+export const restoreTaskByIdQuery = async (
+  {
+    id,
+    userId,
+    role,
+    transaction,
+    organizationId,
+  }: {
+    id: number;
+    userId: number;
+    role: string;
+    transaction: Transaction;
+    organizationId: number;
+  },
+  tenant: string
+): Promise<TasksModel | null> => {
+  // Use helper that includes archived tasks
+  const task = await getTaskByIdIncludingArchivedQuery(
+    id,
+    { userId, role },
+    tenant,
+    organizationId
+  );
+
+  if (!task) {
+    return null;
+  }
+
+  // Check if task is actually archived
+  if (task.status !== TaskStatus.DELETED) {
+    throw new ValidationException(
+      "Task is not archived",
+      "task",
+      "restore"
+    );
+  }
+
+  // Only creator or admin can restore
+  const isCreator = task.creator_id === userId;
+  const isAdmin = role === "Admin";
+
+  if (!isCreator && !isAdmin) {
+    throw new ForbiddenException(
+      "Only task creator or admin can restore tasks",
+      "task",
+      "restore"
+    );
+  }
+
+  // Restore by setting status back to OPEN
+  const result = (await sequelize.query(
+    `UPDATE "${tenant}".tasks SET status = :status WHERE id = :id RETURNING *;`,
+    {
+      replacements: {
+        status: TaskStatus.OPEN,
+        id: id,
+      },
+      transaction,
+    }
+  )) as [TasksModel[], number];
+
+  const restoredTask = result[0][0];
+
+  // Add assignees to the response
+  const existingAssignees = await sequelize.query(
+    `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+    {
+      replacements: { task_id: id },
+      mapToModel: true,
+      model: TaskAssigneesModel,
+    }
+  );
+  (restoredTask as any)["assignees"] = existingAssignees.map(
+    (a: any) => a.user_id
+  );
+
+  return restoredTask;
+};
+
+// Hard delete task - permanently removes from database (only creator or admin)
+export const hardDeleteTaskByIdQuery = async (
+  {
+    id,
+    userId,
+    role,
+    transaction,
+    organizationId,
+  }: {
+    id: number;
+    userId: number;
+    role: string;
+    transaction: Transaction;
+    organizationId: number;
+  },
+  tenant: string
+): Promise<boolean> => {
+  // Use helper that includes archived tasks
+  const task = await getTaskByIdIncludingArchivedQuery(
+    id,
+    { userId, role },
+    tenant,
+    organizationId
+  );
+
+  if (!task) {
+    return false;
+  }
+
+  // Only creator or admin can hard delete
+  const isCreator = task.creator_id === userId;
+  const isAdmin = role === "Admin";
+
+  if (!isCreator && !isAdmin) {
+    throw new ForbiddenException(
+      "Only task creator or admin can permanently delete tasks",
+      "task",
+      "hard_delete"
+    );
+  }
+
+  // First delete task assignees
+  await sequelize.query(
+    `DELETE FROM "${tenant}".task_assignees WHERE task_id = :id`,
+    {
+      replacements: { id },
+      type: QueryTypes.DELETE,
+      transaction,
+    }
+  );
+
+  // Then hard delete the task
+  const result = await sequelize.query(
+    `DELETE FROM "${tenant}".tasks WHERE id = :id RETURNING id;`,
+    {
+      replacements: { id },
+      type: QueryTypes.DELETE,
+      transaction,
+    }
+  );
 
   return true;
 };

@@ -208,38 +208,70 @@ export default function ProjectOverview({
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
                       <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>EXPERIMENT ID</TableCell>
-                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>CREATED</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>MODEL</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>JUDGE</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>DATASET</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "11px", color: "#374151", textTransform: "uppercase" }}>STATUS</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {[...experiments]
                       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                       .slice(0, 5)
-                      .map((exp) => (
-                      <TableRow
-                        key={exp.id}
-                        hover
-                        onClick={() => navigate(`/evals/${projectId}/experiment/${exp.id}`)}
-                        sx={{
-                          cursor: "pointer",
-                          "&:hover": {
-                            backgroundColor: "#F9FAFB",
-                          },
-                        }}
-                      >
-                        <TableCell sx={{ fontSize: "12px", fontFamily: exp.name ? "inherit" : "monospace" }}>
-                          {exp.name || exp.id}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: "11px", color: "#6B7280" }}>
-                          {new Date(exp.created_at).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                      .map((exp) => {
+                        const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
+                        const modelName = cfg?.model?.name || "-";
+                        const judgeName = cfg?.judgeLlm?.model || cfg?.judgeLlm?.provider || "-";
+                        const statusLabel = exp.status === "completed" ? "Completed" :
+                          exp.status === "failed" ? "Failed" :
+                          exp.status === "running" ? "Running" : "Pending";
+                        const statusColor = exp.status === "completed" ? "#065F46" :
+                          exp.status === "failed" ? "#991B1B" :
+                          exp.status === "running" ? "#1E40AF" : "#6B7280";
+                        const statusBg = exp.status === "completed" ? "#D1FAE5" :
+                          exp.status === "failed" ? "#FEE2E2" :
+                          exp.status === "running" ? "#DBEAFE" : "#F3F4F6";
+                        return (
+                          <TableRow
+                            key={exp.id}
+                            hover
+                            onClick={() => navigate(`/evals/${projectId}/experiment/${exp.id}`)}
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": {
+                                backgroundColor: "#F9FAFB",
+                              },
+                            }}
+                          >
+                            <TableCell sx={{ fontSize: "12px", fontFamily: exp.name ? "inherit" : "monospace" }}>
+                              {exp.name || exp.id}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "12px", color: "#374151" }}>
+                              {modelName}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "12px", color: "#374151" }}>
+                              {judgeName}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              -
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={statusLabel}
+                                size="small"
+                                sx={{
+                                  backgroundColor: statusBg,
+                                  color: statusColor,
+                                  fontWeight: 500,
+                                  fontSize: "11px",
+                                  height: "22px",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </TableContainer>

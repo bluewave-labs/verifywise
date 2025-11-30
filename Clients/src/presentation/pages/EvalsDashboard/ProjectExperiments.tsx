@@ -150,7 +150,6 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   };
 
   const handleDeleteExperiment = async (experimentId: string) => {
-    // Confirmation is handled by ConfirmableDeleteIconButton
     try {
       await experimentsService.deleteExperiment(experimentId);
       setAlert({ variant: "success", body: "Eval deleted" });

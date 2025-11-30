@@ -1,7 +1,6 @@
-import { TableBody, TableRow, TableCell, Box, Chip } from "@mui/material";
-import singleTheme from "../../../../themes/v1SingleTheme";
+import { TableBody, TableRow, TableCell, Chip, Box } from "@mui/material";
 import { Trash2 as TrashIcon } from "lucide-react";
-import Button from "../../../../components/Button/index";
+import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
@@ -72,12 +71,17 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
       {rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) => (
-          <TableRow key={row.id} sx={{
-            ...singleTheme.tableStyles.primary.body.row,
-            "&:hover": {
-              cursor: "default",
-            },
-          }}>
+          <TableRow
+            key={row.id}
+            onClick={() => onShowDetails(row)}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+              },
+            }}
+          >
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -133,49 +137,27 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               <StatusChip status={row.status} />
             </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <Box display="flex" justifyContent="left">
-                <Button
-                  onClick={() => onShowDetails(row)}
-                  sx={{
-                    ml: -2,
-                    fontSize: "18 !important",
-                    backgroundColor: "#13715B", // keep your styling
-                    color: "white",
-                    textTransform: "none",
-                    opacity: row.status !== "Completed" ? 0.5 : 1,
-                    pointerEvents: row.status !== "Completed" ? "none" : "auto",
-                    "&:hover": {
-                      backgroundColor: "#13715B",
-                    },
-                  }}
-                >
-                  Show
-                </Button>
-              </Box>
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <ConfirmableDeleteIconButton
-                disabled={false}
-                id={row.id}
-                onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
-                title={`Delete this evaluation?`}
-                message={`Are you sure you want to delete evaluation ID ${row.id} (Status: ${row.status})? This action is non-recoverable.`}
-                customIcon={<TrashIcon size={20} />}
-              />
-            </TableCell>
+            {onRemoveModel && (
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                  <ConfirmableDeleteIconButton
+                    disabled={false}
+                    id={row.id}
+                    onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
+                    title="Delete this evaluation?"
+                    message={`Are you sure you want to delete evaluation "${row.name || row.id}"?`}
+                    customIcon={<TrashIcon size={18} color="#667085" />}
+                  />
+                </Box>
+              </TableCell>
+            )}
           </TableRow>
         ))}
     </TableBody>

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
-  Button,
   Stack,
   Drawer,
   Divider,
@@ -15,8 +14,10 @@ import {
   TableCell,
   TableBody,
   useTheme,
+  Button,
 } from "@mui/material";
 import { Database, Upload, Download, X } from "lucide-react";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
 import { deepEvalDatasetsService, type DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
@@ -240,44 +241,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         onChange={handleFileChange}
       />
 
-      {/* Header + controls */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Stack spacing={0.5}>
-          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
-            Datasets
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-            Manage your uploaded datasets for this tenant. Browse built‑in presets or upload your own JSON files.
-          </Typography>
-        </Stack>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={uploading}
-            sx={{ textTransform: "none" }}
-            startIcon={<Upload size={14} />}
-            onClick={handleUploadClick}
-          >
-            {uploading ? "Uploading..." : "Upload dataset"}
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<Database size={14} />}
-            sx={{ textTransform: "none", bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-            onClick={() => {
-              if (!projectId) return;
-              navigate(`/evals/${projectId}/datasets/built-in`);
-            }}
-          >
-            Browse built‑in
-          </Button>
-        </Stack>
-      </Stack>
-
-      {/* Filters + search */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      {/* Filters + search + action buttons */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ marginBottom: "18px" }} gap={2}>
         <Stack direction="row" alignItems="center" gap={2}>
           <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
           <GroupBy
@@ -296,6 +261,34 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             onChange={setSearchTerm}
             inputProps={{ "aria-label": "Search datasets" }}
             fullWidth={false}
+          />
+        </Stack>
+        <Stack direction="row" spacing={2}>
+          <CustomizableButton
+            variant="outlined"
+            text={uploading ? "Uploading..." : "Upload dataset"}
+            icon={<Upload size={16} />}
+            onClick={handleUploadClick}
+            isDisabled={uploading}
+            sx={{
+              border: "1px solid #d0d5dd",
+              color: "#344054",
+              gap: 2,
+            }}
+          />
+          <CustomizableButton
+            variant="contained"
+            text="Browse datasets"
+            icon={<Database size={16} />}
+            onClick={() => {
+              if (!projectId) return;
+              navigate(`/evals/${projectId}/datasets/built-in`);
+            }}
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
           />
         </Stack>
       </Stack>

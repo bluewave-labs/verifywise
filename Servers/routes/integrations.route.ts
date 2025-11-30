@@ -78,32 +78,68 @@ router.post('/configure', async (req: Request, res: Response) => {
 // GET /api/integrations/mlflow/models - Get MLFlow models
 router.get('/models', async (req: Request, res: Response) => {
   try {
-    const models = await mlflowService.getModels(req.tenantId!);
-    // await mlflowService.recordSyncResult(
-    //   "success",
-    //   req.tenantId!,
-    //   `Synced ${models.length} model(s) via manual request`,
-    // );
-    return res.status(200).json(models);
-  } catch (error) {
-    console.error('Error fetching MLFlow models:', error);
+    // First check if MLFlow is configured
+    const configSummary = await mlflowService.getConfigurationSummary(req.tenantId!);
+    if (!configSummary.configured) {
+      // Return 200 with empty models and configured: false
+      // This is not an error - MLFlow simply isn't set up yet
+      return res.status(200).json({
+        configured: false,
+        models: [],
+      });
+    }
 
+    const models = await mlflowService.getModels(req.tenantId!);
+    return res.status(200).json({
+      configured: true,
+      models: models,
+    });
+  } catch (error) {
     const message =
       error instanceof Error
         ? error.message
         : 'Failed to fetch MLFlow models';
+    const errorCode = (error as any)?.code || '';
 
-    // await mlflowService.recordSyncResult("error", req.tenantId!, message);
-
-    if (error instanceof Error && error.message.includes('not configured')) {
-      return res.status(400).json({
-        success: false,
-        error: 'MLFlow integration is not configured. Please configure it first.',
+    // Check if this is a configuration-related error
+    if (error instanceof ValidationException ||
+        (error instanceof Error && (
+          message.includes('not configured') ||
+          message.includes('URL is required') ||
+          message.includes('tracking server')
+        ))) {
+      return res.status(200).json({
+        configured: false,
+        models: [],
       });
     }
 
-    return res.status(500).json({
-      success: false,
+    // Check if this is a connection error (MLflow server unreachable)
+    // Handle gracefully without logging - this is expected when MLflow isn't running
+    if (errorCode === 'ECONNREFUSED' ||
+        errorCode === 'ETIMEDOUT' ||
+        errorCode === 'ENOTFOUND' ||
+        errorCode === 'ECONNRESET' ||
+        message.includes('ECONNREFUSED') ||
+        message.includes('ETIMEDOUT') ||
+        message.includes('connect') ||
+        message.includes('timeout') ||
+        message.includes('network')) {
+      return res.status(200).json({
+        configured: true,
+        connected: false,
+        models: [],
+        message: 'MLFlow server is not reachable',
+      });
+    }
+
+    // Only log unexpected errors
+    console.error('Error fetching MLFlow models:', error);
+
+    return res.status(200).json({
+      configured: true,
+      connected: false,
+      models: [],
       error: 'Failed to fetch MLFlow models',
     });
   }

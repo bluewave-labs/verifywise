@@ -91,20 +91,33 @@ const MLFlowDataTable: React.FC = () => {
     setWarning(null);
 
     try {
-      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
+      const response = await apiServices.get<{ configured: boolean; connected?: boolean; models: any[]; message?: string; error?: string }>("/integrations/mlflow/models");
 
-      if (response.data && Array.isArray(response.data)) {
-        setMlflowData(response.data);
+      if (response.data) {
+        // Handle new response format: { configured: boolean, connected?: boolean, models: [], message?: string }
+        if ('models' in response.data && Array.isArray(response.data.models)) {
+          // Check various states
+          if (!response.data.configured) {
+            setWarning("Configure the MLFlow integration to start syncing live data.");
+          } else if (response.data.connected === false) {
+            // MLFlow is configured but server is not reachable
+            setWarning(response.data.message || "MLFlow server is not reachable.");
+          } else if (response.data.error) {
+            setWarning(response.data.error);
+          }
+          setMlflowData(response.data.models);
+        } else if (Array.isArray(response.data)) {
+          // Backwards compatibility: handle old format where response is directly an array
+          setMlflowData(response.data as unknown as any[]);
+        } else {
+          setMlflowData([]);
+        }
       } else {
-        throw new Error("Invalid data format from API");
+        setMlflowData([]);
       }
     } catch (err: any) {
-      console.error("Error fetching MLFlow data:", err);
-      if (err?.status === 400) {
-        setWarning("Configure the MLFlow integration to start syncing live data.");
-      } else {
-        setWarning("Unable to reach the MLFlow backend.");
-      }
+      // Only show warning for actual errors - backend should return 200 for most cases now
+      setWarning("Unable to reach the MLFlow backend.");
       setMlflowData([]);
     } finally {
       setLoading(false);

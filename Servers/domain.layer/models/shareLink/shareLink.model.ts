@@ -111,8 +111,9 @@ export class ShareLinkModel extends Model<ShareLinkModel> implements IShareLink 
   /**
    * Get the full shareable URL
    */
-  getShareableUrl(baseUrl: string = "https://app.verifywise.com"): string {
-    return `${baseUrl}/shared/${this.resource_type}s/${this.share_token}`;
+  getShareableUrl(baseUrl?: string): string {
+    const url = baseUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+    return `${url}/shared/${this.resource_type}s/${this.share_token}`;
   }
 
   /**

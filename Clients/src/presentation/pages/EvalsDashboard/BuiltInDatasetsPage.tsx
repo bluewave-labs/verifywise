@@ -4,14 +4,26 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
-import { ArrowLeft, X, Settings, ChevronDown } from "lucide-react";
+import { ArrowLeft, X, Settings, ChevronDown, Upload } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TabBar from "../../components/TabBar";
 import { TabContext } from "@mui/lab";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { getSelectStyles } from "../../utils/inputStyles";
 
-type ListedDataset = { key: string; name: string; path: string; use_case: "chatbot" | "rag" | "agent" | "safety" };
+type ListedDataset = {
+  key: string;
+  name: string;
+  path: string;
+  use_case: "chatbot" | "rag" | "agent" | "safety";
+  // Optional metadata for richer cards (if provided by backend)
+  test_count?: number;
+  categories?: string[];
+  category_count?: number;
+  difficulty?: { easy: number; medium: number; hard: number };
+  description?: string;
+  tags?: string[];
+};
 
 type BuiltInEmbedProps = { embed?: boolean; onOpenEditor?: (path: string, name: string) => void; onBack?: () => void };
 export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
@@ -43,6 +55,8 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [allProjects, setAllProjects] = useState<{ id: string; name: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -115,6 +129,37 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
     agent: "Agentic tasks that involve tools and multi‑step plans.",
     safety: "Safety prompts for toxicity/harassment/PII leakage and related checks.",
   }), []);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const resp = await deepEvalDatasetsService.uploadDataset(file);
+      setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
+      setTimeout(() => setAlert(null), 4000);
+      // Reload groups so any new datasets that are exposed via list() appear
+      const res = await deepEvalDatasetsService.list();
+      setGroups(res);
+    } catch (err) {
+      console.error("Upload failed", err);
+      setAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Upload failed",
+      });
+      setTimeout(() => setAlert(null), 6000);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const getCategoryLabel = (name: string): string => {
     const n = name.toLowerCase();
@@ -261,9 +306,9 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
       {/* Title with back button when embedded */}
       {embed ? (
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-          <IconButton 
-            size="small" 
-            onClick={() => _props.onBack ? _props.onBack() : window.history.back()} 
+          <IconButton
+            size="small"
+            onClick={() => (_props.onBack ? _props.onBack() : window.history.back())}
             aria-label="Back"
           >
             <ArrowLeft size={18} />
@@ -273,12 +318,39 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
           </Typography>
         </Stack>
       ) : (
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "16px" }}>
-            Built‑in datasets
-          </Typography>
-        </Stack>
+        <>
+          {/* Hidden file input for uploads */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            hidden
+            onChange={handleFileChange}
+          />
+
+          <Box sx={{ mb: 3 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
+                Datasets
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={uploading}
+                onClick={handleUploadClick}
+                sx={{ textTransform: "none" }}
+                startIcon={<Upload size={14} />}
+              >
+                {uploading ? "Uploading..." : "Upload JSON"}
+              </Button>
+            </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+              Use pre-built datasets for chatbot, RAG, and safety evaluations, or upload your own custom datasets in JSON format.
+            </Typography>
+          </Box>
+        </>
       )}
+
       <Stack direction="row" spacing={2}>
         {selected && (
         <Box sx={{ width: 360 }}>
@@ -396,56 +468,153 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: "13px", textTransform: "capitalize", mb: 1 }}>
                     {uc}
                   </Typography>
-                  <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap" }}>
-                    {(groups[uc] || []).map((ds) => (
-                          <Paper key={ds.key} variant="outlined" sx={{ p: 1.25, width: 480 }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.75 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: "13px" }}>{ds.name}</Typography>
-                          <Chip
-                            size="small"
-                            label={getCategoryLabel(ds.name)}
-                            sx={{
-                              height: 18,
-                              fontSize: "10px",
-                              bgcolor: (() => {
-                                const label = getCategoryLabel(ds.name);
-                                if (label === "Coding") return "#E6F4EF";
-                                if (label === "Math") return "#E6F1FF";
-                                if (label === "Reasoning") return "#FFF4E6";
-                                return "#F3F4F6";
-                              })(),
-                            }}
-                          />
-                        </Stack>
-                        <Typography sx={{ fontSize: "12px", color: "#4B5563", mb: 1 }}>
-                          {descriptions[uc]}
-                        </Typography>
-                        <Stack direction="row" spacing={1}>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                sx={{ textTransform: "none", bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-                                onClick={() => {
-                                  setSelected(ds);
-                                  // scroll viewer into view after it renders
-                                  setTimeout(() => {
-                                    viewerTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                  }, 0);
+                  <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
+                    {(groups[uc] || []).map((ds) => {
+                      const difficultyText = (() => {
+                        if (!ds.difficulty) return "";
+                        const { easy, medium, hard } = ds.difficulty;
+                        const parts: string[] = [];
+                        if (easy) parts.push(`${easy} easy`);
+                        if (medium) parts.push(`${medium} medium`);
+                        if (hard) parts.push(`${hard} hard`);
+                        return parts.join(", ");
+                      })();
+
+                      return (
+                        <Paper
+                          key={ds.key}
+                          variant="outlined"
+                          sx={{
+                            p: 2,
+                            width: 380,
+                            borderRadius: 2,
+                            borderColor: "#E5E7EB",
+                            boxShadow: "none",
+                            backgroundColor: "#FFFFFF",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 600, fontSize: "14px", mb: 0.5 }}>
+                            {ds.name}
+                          </Typography>
+
+                          {ds.description && (
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "12px", color: "#4B5563", lineHeight: 1.6 }}
+                            >
+                              {ds.description}
+                            </Typography>
+                          )}
+
+                          {(ds.test_count !== undefined ||
+                            ds.category_count !== undefined ||
+                            difficultyText) && (
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "11px", color: "#4B5563" }}
+                            >
+                              {ds.test_count !== undefined && (
+                                <strong>
+                                  {ds.test_count} test{ds.test_count !== 1 ? "s" : ""}
+                                </strong>
+                              )}
+                              {ds.category_count !== undefined && ds.category_count > 0 && (
+                                <>
+                                  {" "}
+                                  – {ds.category_count}{" "}
+                                  {ds.category_count === 1 ? "category" : "categories"}
+                                </>
+                              )}
+                              {difficultyText && (
+                                <>
+                                  {" "}
+                                  – {difficultyText}
+                                </>
+                              )}
+                            </Typography>
+                          )}
+
+                          {ds.categories && ds.categories.length > 0 && (
+                            <Box sx={{ mt: 0.5 }}>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontSize: "10px",
+                                  textTransform: "uppercase",
+                                  fontWeight: 600,
+                                  color: "#6B7280",
+                                  letterSpacing: "0.5px",
                                 }}
                               >
-                            View prompts
-                          </Button>
-                          <Button
-                            size="small"
-                                variant="contained"
-                                sx={{ textTransform: "none", bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
-                                onClick={() => openEditor(ds.path, ds.name)}
-                          >
-                            Open in editor
-                          </Button>
-                        </Stack>
-                      </Paper>
-                    ))}
+                                Topics
+                              </Typography>
+                              <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", mt: 0.5 }}>
+                                {ds.categories.slice(0, 4).map((c) => (
+                                  <Chip
+                                    key={c}
+                                    size="small"
+                                    label={c}
+                                    sx={{
+                                      height: 20,
+                                      fontSize: "10px",
+                                      borderRadius: "999px",
+                                      backgroundColor: "#F3F4F6",
+                                      color: "#4B5563",
+                                    }}
+                                  />
+                                ))}
+                                {ds.categories.length > 4 && (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ fontSize: "10px", color: "#6B7280", ml: 0.5 }}
+                                  >
+                                    +{ds.categories.length - 4} more
+                                  </Typography>
+                                )}
+                              </Stack>
+                            </Box>
+                          )}
+
+                          <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              sx={{
+                                textTransform: "none",
+                                bgcolor: "#13715B",
+                                "&:hover": { bgcolor: "#0F5E4B" },
+                              }}
+                              onClick={() => {
+                                setSelected(ds);
+                                setTimeout(() => {
+                                  viewerTopRef.current?.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                  });
+                                }, 0);
+                              }}
+                            >
+                              View prompts
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              sx={{
+                                textTransform: "none",
+                                bgcolor: "#13715B",
+                                "&:hover": { bgcolor: "#0F5E4B" },
+                              }}
+                              onClick={() => openEditor(ds.path, ds.name)}
+                            >
+                              Open in editor
+                            </Button>
+                          </Stack>
+                        </Paper>
+                      );
+                    })}
                   </Stack>
                 </Box>
               ))}

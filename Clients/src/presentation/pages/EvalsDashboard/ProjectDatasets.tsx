@@ -1,117 +1,142 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
   Button,
   Stack,
-  Chip,
   Drawer,
   Divider,
-  Table,
-  TableBody,
-  TableCell,
+  Chip,
+  CircularProgress,
   TableContainer,
+  Table,
   TableHead,
   TableRow,
-  TableFooter,
-  TablePagination,
-  CircularProgress,
+  TableCell,
+  TableBody,
   useTheme,
 } from "@mui/material";
-import { Download, Database, X } from "lucide-react";
+import { Database, Upload, Download, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { deepEvalDatasetsService, type DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import ModalStandard from "../../components/Modals/StandardModal";
+import EvaluationTable from "../../components/Table/EvaluationTable";
+import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
+import SearchBox from "../../components/Search/SearchBox";
+import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
-import TablePaginationActions from "../../components/TablePagination";
-import IconButtonComponent from "../../components/IconButton";
-
-const STORAGE_KEY = "datasets_rows_per_page";
-const DEFAULT_ROWS_PER_PAGE = 10;
 
 type ProjectDatasetsProps = { projectId: string };
 
-type ListedDataset = {
-  key: string;
+type UserDataset = {
+  id: number;
   name: string;
   path: string;
-  use_case: "chatbot" | "rag" | "safety" | "agent";
-  test_count?: number;
-  categories?: string[];
-  category_count?: number;
-  difficulty?: { easy: number; medium: number; hard: number };
-  description?: string;
-  tags?: string[];
+  size: number;
+  promptCount?: number;
+  createdAt: string | null;
 };
 
-export function ProjectDatasets(_props: ProjectDatasetsProps) {
-  // Mark prop as intentionally unused (keeps component signature stable)
-  void _props.projectId;
+export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
+  const navigate = useNavigate();
   const theme = useTheme();
-  const [datasets, setDatasets] = useState<Record<"chatbot" | "rag" | "safety" | "agent", ListedDataset[]>>({
-    chatbot: [],
-    rag: [],
-    safety: [],
-    agent: [],
-  });
+  const [datasets, setDatasets] = useState<UserDataset[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Drawer state for viewing dataset content
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedDataset, setSelectedDataset] = useState<ListedDataset | null>(null);
+  const [selectedDataset, setSelectedDataset] = useState<UserDataset | null>(null);
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPromptRecord[]>([]);
   const [loadingPrompts, setLoadingPrompts] = useState(false);
 
-  // Pagination state
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? parseInt(stored, 10) : DEFAULT_ROWS_PER_PAGE;
-  });
+  const loadDatasets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await deepEvalDatasetsService.listMy();
+      setDatasets(res.datasets || []);
+    } catch (err) {
+      console.error("Failed to load datasets", err);
+      setDatasets([]);
+      setAlert({
+        variant: "error",
+        body: "Failed to load datasets",
+      });
+      setTimeout(() => setAlert(null), 5000);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleChangePage = useCallback(
-    (_: unknown, newPage: number) => setPage(newPage),
+  useEffect(() => {
+    void loadDatasets();
+  }, [loadDatasets]);
+
+  const filterColumns: FilterColumn[] = useMemo(
+    () => [
+      { id: "name", label: "Dataset name", type: "text" },
+      { id: "prompts", label: "Prompts", type: "text" },
+      { id: "createdAt", label: "Created", type: "date" },
+    ],
     []
   );
 
-  const handleChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(newRowsPerPage);
-      localStorage.setItem(STORAGE_KEY, newRowsPerPage.toString());
-      setPage(0);
+  const getFieldValue = useCallback(
+    (d: UserDataset, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case "name":
+          return d.name;
+        case "prompts":
+          return d.promptCount;
+        case "createdAt":
+          return d.createdAt ? new Date(d.createdAt) : null;
+        default:
+          return "";
+      }
     },
     []
   );
 
-  // Delete dataset handler
-  const handleDeleteDataset = async (datasetPath: string) => {
-    try {
-      await deepEvalDatasetsService.deleteDatasets([datasetPath]);
-      setAlert({ variant: "success", body: "Dataset deleted successfully" });
-      setTimeout(() => setAlert(null), 4000);
-      await load();
-    } catch (err) {
-      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete dataset" });
-      setTimeout(() => setAlert(null), 6000);
-    }
-  };
+  const { filterData, handleFilterChange } = useFilterBy<UserDataset>(getFieldValue);
 
-  const handleDatasetClick = async (ds: ListedDataset) => {
+  const filteredDatasets = useMemo(() => {
+    const afterFilter = filterData(datasets);
+    if (!searchTerm.trim()) return afterFilter;
+    const q = searchTerm.toLowerCase();
+    return afterFilter.filter((d) =>
+      [d.name, d.path].filter(Boolean).join(" ").toLowerCase().includes(q)
+    );
+  }, [datasets, filterData, searchTerm]);
+
+  const tableColumns = ["DATASET", "PROMPTS", "CREATED", "STATUS", "REPORT", "ACTION"];
+
+  const tableRows: IEvaluationRow[] = filteredDatasets.map((d) => ({
+    id: d.path, // we use path as the unique identifier for edit/delete
+    name: d.name,
+    model: d.name,
+    judge: `${d.promptCount ?? 0} prompts`,
+    dataset: d.createdAt ? new Date(d.createdAt).toLocaleString() : "-",
+    status: "Completed",
+  }));
+
+  const handleOpenEditor = async (row: IEvaluationRow) => {
+    // Open the dataset preview drawer and load prompts for the selected dataset
+    const ds = datasets.find((d) => d.path === row.id) || null;
     setSelectedDataset(ds);
     setDrawerOpen(true);
-    setLoadingPrompts(true);
-    setDatasetPrompts([]);
-
     try {
-      const result = await deepEvalDatasetsService.read(ds.path);
-      setDatasetPrompts(result.prompts || []);
+      setLoadingPrompts(true);
+      const res = await deepEvalDatasetsService.read(row.id);
+      setDatasetPrompts(res.prompts || []);
     } catch (err) {
-      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to load dataset content" });
-      setTimeout(() => setAlert(null), 6000);
+      console.error("Failed to load dataset prompts", err);
+      setDatasetPrompts([]);
     } finally {
       setLoadingPrompts(false);
     }
@@ -123,19 +148,18 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
     setDatasetPrompts([]);
   };
 
-  const load = async () => {
+  const handleDeleteDataset = async (path: string) => {
     try {
-      const list = await deepEvalDatasetsService.list();
-      setDatasets(list);
-    } catch (e) {
-      setAlert({ variant: "error", body: e instanceof Error ? e.message : "Failed to load datasets" });
-      setTimeout(() => setAlert(null), 6000);
+      await deepEvalDatasetsService.deleteDatasets([path]);
+      setAlert({ variant: "success", body: "Dataset deleted" });
+      setTimeout(() => setAlert(null), 3000);
+      void loadDatasets();
+    } catch (err) {
+      console.error("Failed to delete dataset", err);
+      setAlert({ variant: "error", body: "Failed to delete dataset" });
+      setTimeout(() => setAlert(null), 5000);
     }
   };
-
-  useEffect(() => {
-    load();
-  }, []);
 
   const handleUploadClick = () => {
     setUploadModalOpen(true);
@@ -187,8 +211,9 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
       const resp = await deepEvalDatasetsService.uploadDataset(file);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
-      await load();
+      void loadDatasets();
     } catch (err) {
+      console.error("Upload failed", err);
       setAlert({
         variant: "error",
         body: err instanceof Error ? err.message : "Upload failed",
@@ -196,7 +221,6 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
       setTimeout(() => setAlert(null), 6000);
     } finally {
       setUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -207,27 +231,7 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      <Box sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
-            Datasets
-          </Typography>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={uploading}
-            onClick={handleUploadClick}
-            sx={{ textTransform: "none" }}
-          >
-            {uploading ? "Uploading..." : "Upload JSON"}
-          </Button>
-        </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
-          Use pre-built datasets for chatbot, RAG, and safety evaluations, or upload your own custom datasets in JSON format.
-        </Typography>
-      </Box>
-
-      {/* Hidden file input */}
+      {/* Hidden file input for uploads */}
       <input
         ref={fileInputRef}
         type="file"
@@ -236,200 +240,86 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
         onChange={handleFileChange}
       />
 
-      {/* Datasets Table */}
-      {(() => {
-        // Flatten all datasets into a single list with use_case
-        const allDatasets = [
-          ...datasets.chatbot.map(ds => ({ ...ds, use_case: "chatbot" as const })),
-          ...datasets.rag.map(ds => ({ ...ds, use_case: "rag" as const })),
-          ...datasets.safety.map(ds => ({ ...ds, use_case: "safety" as const })),
-          ...datasets.agent.map(ds => ({ ...ds, use_case: "agent" as const })),
-        ];
+      {/* Header + controls */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack spacing={0.5}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
+            Datasets
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+            Manage your uploaded datasets for this tenant. Browse built‑in presets or upload your own JSON files.
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={uploading}
+            sx={{ textTransform: "none" }}
+            startIcon={<Upload size={14} />}
+            onClick={handleUploadClick}
+          >
+            {uploading ? "Uploading..." : "Upload dataset"}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Database size={14} />}
+            sx={{ textTransform: "none", bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
+            onClick={() => {
+              if (!projectId) return;
+              navigate(`/evals/${projectId}/datasets/built-in`);
+            }}
+          >
+            Browse built‑in
+          </Button>
+        </Stack>
+      </Stack>
 
-        const getCategoryColor = (category: string) => {
-          switch (category) {
-            case "rag": return { bg: "#DBEAFE", color: "#1E40AF" };
-            case "chatbot": return { bg: "#D1FAE5", color: "#065F46" };
-            case "safety": return { bg: "#FEE2E2", color: "#991B1B" };
-            case "agent": return { bg: "#FEF3C7", color: "#92400E" };
-            default: return { bg: "#E5E7EB", color: "#374151" };
-          }
-        };
+      {/* Filters + search */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack direction="row" alignItems="center" gap={2}>
+          <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
+          <GroupBy
+            options={[
+              { id: "name", label: "Name" },
+              { id: "prompts", label: "Prompts" },
+              { id: "createdAt", label: "Created" },
+            ]}
+            onGroupChange={() => {
+              /* Grouping behaviour can be added later */
+            }}
+          />
+          <SearchBox
+            placeholder="Search datasets..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            inputProps={{ "aria-label": "Search datasets" }}
+            fullWidth={false}
+          />
+        </Stack>
+      </Stack>
 
-        if (allDatasets.length === 0) {
-          return (
-            <Box sx={{ textAlign: "center", py: 8 }}>
-              <Typography variant="body2" color="text.secondary">
-                No datasets available.
-              </Typography>
-            </Box>
-          );
-        }
+      {/* Table of user datasets */}
+      <Box mb={4}>
+        <EvaluationTable
+          columns={tableColumns}
+          rows={tableRows}
+          removeModel={{
+            onConfirm: handleDeleteDataset,
+          }}
+          page={page}
+          setCurrentPagingation={setPage}
+          onShowDetails={handleOpenEditor}
+        />
+        {loading && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: "12px" }}>
+            Loading datasets...
+          </Typography>
+        )}
+      </Box>
 
-        // Paginate the datasets
-        const paginatedDatasets = rowsPerPage > 0
-          ? allDatasets.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          : allDatasets;
-
-        return (
-          <TableContainer>
-            <Table sx={singleTheme.tableStyles.primary.frame}>
-              <TableHead
-                sx={{
-                  backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
-                }}
-              >
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "35%" }}>
-                    Name
-                  </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "12%" }}>
-                    Category
-                  </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "10%" }}>
-                    Tests
-                  </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "35%" }}>
-                    Topics
-                  </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "8%" }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedDatasets.map((ds) => {
-                  const categoryColors = getCategoryColor(ds.use_case);
-                  return (
-                    <TableRow
-                      key={ds.key}
-                      onClick={() => handleDatasetClick(ds)}
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.row,
-                        cursor: "pointer",
-                        "&:hover": {
-                          backgroundColor: "#f5f5f5",
-                        },
-                      }}
-                    >
-                      {/* Name */}
-                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Database size={14} color="#6B7280" />
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                            {ds.name}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-
-                      {/* Category */}
-                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        <Chip
-                          label={ds.use_case.charAt(0).toUpperCase() + ds.use_case.slice(1)}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "11px",
-                            fontWeight: 500,
-                            backgroundColor: categoryColors.bg,
-                            color: categoryColors.color,
-                            borderRadius: "4px",
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* Tests */}
-                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        <Typography sx={{ fontSize: "13px", color: "#374151" }}>
-                          {ds.test_count !== undefined ? ds.test_count : "-"}
-                        </Typography>
-                      </TableCell>
-
-                      {/* Topics */}
-                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        {ds.categories && ds.categories.length > 0 ? (
-                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                            {ds.categories.slice(0, 3).map((cat, idx) => (
-                              <Chip
-                                key={idx}
-                                label={cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                size="small"
-                                sx={{
-                                  height: 20,
-                                  fontSize: "10px",
-                                  backgroundColor: "#E5E7EB",
-                                  color: "#374151",
-                                  borderRadius: "4px",
-                                }}
-                              />
-                            ))}
-                            {ds.categories.length > 3 && (
-                              <Chip
-                                label={`+${ds.categories.length - 3}`}
-                                size="small"
-                                sx={{
-                                  height: 20,
-                                  fontSize: "10px",
-                                  backgroundColor: "#E5E7EB",
-                                  color: "#374151",
-                                  borderRadius: "4px",
-                                }}
-                              />
-                            )}
-                          </Box>
-                        ) : (
-                          <Typography sx={{ fontSize: "12px", color: "#9CA3AF" }}>-</Typography>
-                        )}
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell
-                        sx={singleTheme.tableStyles.primary.body.cell}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconButtonComponent
-                          id={ds.key}
-                          onDelete={() => handleDeleteDataset(ds.path)}
-                          onEdit={() => {}}
-                          onMouseEvent={() => {}}
-                          warningTitle="Delete this dataset?"
-                          warningMessage="This action cannot be undone. The dataset will be permanently removed."
-                          type="dataset"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                    colSpan={5}
-                    count={allDatasets.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                    sx={{
-                      borderBottom: "none",
-                      "& .MuiTablePagination-toolbar": {
-                        minHeight: "52px",
-                      },
-                      "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                        fontSize: "13px",
-                      },
-                    }}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </TableContainer>
-        );
-      })()}
-
-      {/* Upload Instructions Modal */}
+      {/* Upload instructions modal */}
       <ModalStandard
         isOpen={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
@@ -633,7 +523,7 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {datasetPrompts.map((prompt, index) => (
+                  {datasetPrompts.map((prompt: DatasetPromptRecord, index: number) => (
                     <TableRow
                       key={prompt.id || index}
                       sx={singleTheme.tableStyles.primary.body.row}
@@ -704,5 +594,4 @@ export function ProjectDatasets(_props: ProjectDatasetsProps) {
     </Box>
   );
 }
-
 

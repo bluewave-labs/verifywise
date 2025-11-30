@@ -279,7 +279,6 @@ export const getShareLinkByToken = async (req: Request, res: Response) => {
       expires_at: shareLink.expires_at,
       created_at: shareLink.created_at,
       updated_at: shareLink.updated_at,
-      tenant_schema: tenantSchema,
       is_valid: true,
     };
 
@@ -308,9 +307,17 @@ export const updateShareLink = async (req: Request, res: Response) => {
   console.log(`[UPDATE DEBUG] ID: ${id}, is_enabled: ${is_enabled} (type: ${typeof is_enabled}), settings: ${JSON.stringify(settings)}`);
 
   try {
+    // Validate tenant hash format
+    if (!isValidTenantHash(tenantId)) {
+      await transaction.rollback();
+      throw new ValidationException("Invalid tenant identifier");
+    }
+
+    const safeTenantId = safeSQLIdentifier(tenantId);
+
     // First, fetch the share link to verify ownership
     const selectQuery = `
-      SELECT * FROM "${tenantId}".share_links
+      SELECT * FROM "${safeTenantId}".share_links
       WHERE id = $1
       LIMIT 1;
     `;
@@ -366,7 +373,7 @@ export const updateShareLink = async (req: Request, res: Response) => {
     binds.push(parseInt(id));
 
     const updateQuery = `
-      UPDATE "${tenantId}".share_links
+      UPDATE "${safeTenantId}".share_links
       SET ${updates.join(', ')}
       WHERE id = $${bindIndex}
       RETURNING *;
@@ -428,9 +435,17 @@ export const deleteShareLink = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Deleting share link: ${id} in tenant ${tenantId}`);
 
   try {
+    // Validate tenant hash format
+    if (!isValidTenantHash(tenantId)) {
+      await transaction.rollback();
+      throw new ValidationException("Invalid tenant identifier");
+    }
+
+    const safeTenantId = safeSQLIdentifier(tenantId);
+
     // First, fetch the share link to verify ownership
     const selectQuery = `
-      SELECT * FROM "${tenantId}".share_links
+      SELECT * FROM "${safeTenantId}".share_links
       WHERE id = $1
       LIMIT 1;
     `;
@@ -458,7 +473,7 @@ export const deleteShareLink = async (req: Request, res: Response) => {
 
     // Delete the share link
     const deleteQuery = `
-      DELETE FROM "${tenantId}".share_links
+      DELETE FROM "${safeTenantId}".share_links
       WHERE id = $1;
     `;
 
@@ -650,10 +665,27 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
         // Resource-specific essential fields
         switch (resourceType) {
           case 'model':
+            // Consolidate provider/model columns into a single display name
+            // Use provider_model if available, otherwise construct from provider + model
+            let modelName = record.provider_model;
+            if (!modelName) {
+              // Check if model already contains provider prefix (e.g., "OpenAI - gpt-3.5-turbo")
+              const modelValue = record.model || '';
+              const providerValue = record.provider || '';
+              if (modelValue.includes(' - ') && modelValue.toLowerCase().includes(providerValue.toLowerCase())) {
+                // Model already contains provider prefix, use as-is
+                modelName = modelValue;
+              } else if (providerValue && modelValue) {
+                // Construct combined name
+                modelName = `${providerValue} - ${modelValue}`;
+              } else {
+                // Fallback to whatever is available
+                modelName = modelValue || providerValue || 'Unknown';
+              }
+            }
             return {
               id: record.id,
-              provider: record.provider,
-              model: record.model,
+              model_name: modelName,
               version: record.version,
               status: record.status,
               created_at: record.created_at,
@@ -687,16 +719,39 @@ export const getSharedDataByToken = async (req: Request, res: Response) => {
     console.log(`[SHARE VIEW DEBUG] Filtered data sample (first record):`, Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]) : 'no data');
     console.log(`[SHARE VIEW DEBUG] Column count - Original: ${Array.isArray(resourceData) && resourceData[0] ? Object.keys(resourceData[0]).length : 0}, Filtered: ${Array.isArray(filteredData) && filteredData[0] ? Object.keys(filteredData[0]).length : 0}`);
 
-    // Post-process: Replace approver ID with approver_name for models
+    // Post-process: For models, consolidate provider_model and replace approver ID
     if (resourceType === 'model' && filteredData) {
       const processRecord = (record: any) => {
+        let result = { ...record };
+
+        // Consolidate provider_model: if empty, construct from provider + model
+        if (!result.provider_model && (result.provider || result.model)) {
+          const modelValue = result.model || '';
+          const providerValue = result.provider || '';
+
+          // Check if model already contains provider prefix (e.g., "OpenAI - gpt-3.5-turbo")
+          if (modelValue.includes(' - ') && providerValue && modelValue.toLowerCase().includes(providerValue.toLowerCase())) {
+            result.provider_model = modelValue;
+          } else if (providerValue && modelValue) {
+            result.provider_model = `${providerValue} ${modelValue}`;
+          } else {
+            result.provider_model = modelValue || providerValue || '';
+          }
+        }
+
+        // Remove redundant provider and model columns when we have provider_model
+        if (result.provider_model) {
+          const { provider, model, ...rest } = result;
+          result = { provider_model: result.provider_model, ...rest };
+        }
+
         // If we have approver_name from the JOIN, use it; otherwise keep the ID
-        if (record.approver_name !== undefined) {
-          const { approver_name, approver, ...rest } = record;
+        if (result.approver_name !== undefined) {
+          const { approver_name, approver, ...rest } = result;
           // Use the name if it exists, otherwise fallback to "User ID: {approver}"
           return { ...rest, approver: approver_name || `User ID: ${approver}` };
         }
-        return record;
+        return result;
       };
 
       if (Array.isArray(filteredData)) {

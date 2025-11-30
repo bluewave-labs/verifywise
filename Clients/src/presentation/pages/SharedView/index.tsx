@@ -68,13 +68,30 @@ const SharedView: React.FC = () => {
     const data = shareData.data;
     if (!data) return;
 
-    const headers = Object.keys(data);
-    const values = Object.values(data);
+    let csv: string;
 
-    const csv = [
-      headers.join(","),
-      values.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(","),
-    ].join("\n");
+    if (Array.isArray(data)) {
+      // Table view - array of records
+      if (data.length === 0) return;
+
+      const headers = Object.keys(data[0]).filter((key) => key !== "id");
+      const rows = data.map((row: any) =>
+        headers
+          .map((key) => `"${String(row[key] ?? "").replace(/"/g, '""')}"`)
+          .join(",")
+      );
+
+      csv = [headers.join(","), ...rows].join("\n");
+    } else {
+      // Single record view - key-value pairs
+      const headers = Object.keys(data);
+      const values = Object.values(data);
+
+      csv = [
+        headers.join(","),
+        values.map((v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","),
+      ].join("\n");
+    }
 
     // Download CSV
     const blob = new Blob([csv], { type: "text/csv" });

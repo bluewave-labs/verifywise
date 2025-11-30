@@ -23,6 +23,8 @@ import {
   deleteTask,
   updateTaskStatus,
   getTaskById,
+  restoreTask,
+  hardDeleteTask,
 } from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
@@ -58,7 +60,7 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.IN_PROGRESS]: "In progress", // Show lowercase in UI
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  [TaskStatus.DELETED]: "Deleted",
+  [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
 // Reverse mapping for API calls
@@ -347,6 +349,35 @@ const Tasks: React.FC = () => {
       }
     };
 
+  const handleRestoreTask = async (taskId: number) => {
+    try {
+      const response = await restoreTask({ id: taskId });
+      // Repository returns response.data directly, so check for response.data (the actual task)
+      if (response?.data) {
+        // Update the task in the list with restored status
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
+              ? { ...task, status: TaskStatus.OPEN }
+              : task
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error restoring task:", error);
+    }
+  };
+
+  const handleHardDeleteTask = async (taskId: number) => {
+    try {
+      await hardDeleteTask({ id: taskId });
+      // Remove the task from the list completely
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    } catch (error) {
+      console.error("Error permanently deleting task:", error);
+    }
+  };
+
   // Define how to get the group key for each task
   const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
     switch (field) {
@@ -595,6 +626,8 @@ const Tasks: React.FC = () => {
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
                 hidePagination={options?.hidePagination}
+                onRestore={handleRestoreTask}
+                onHardDelete={handleHardDeleteTask}
               />
             )}
           />

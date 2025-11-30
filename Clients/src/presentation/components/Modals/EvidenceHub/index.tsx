@@ -332,8 +332,8 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                     />
                 </Stack>
 
-                {/* Second Row: Mapped Models */}
-                <Stack direction="row" justifyContent="flex-start" spacing={6}>
+                {/* Second Row: Mapped Models (full width) */}
+                <Box sx={{ width: 648 }}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <CustomizableMultiSelect
                             label="Mapped models"
@@ -347,20 +347,18 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                             items={modelOptions}
                             placeholder="Select models"
                             error={errors.mapped_model_ids}
+                            sx={{ width: "100%" }}
                         />
                     </Suspense>
-                </Stack>
+                </Box>
 
-                <Stack
-                    direction={"row"}
-                    justifyContent={"flex-start"}
-                    spacing={6}
-                >
+                {/* Third Row: Description (full width) */}
+                <Box sx={{ width: 648 }}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <Field
                             id="description"
                             label="Description"
-                            width={"100%"}
+                            width="100%"
                             value={values.description || ""}
                             onChange={handleTextChange("description")}
                             isRequired
@@ -368,13 +366,10 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                             error={errors.description}
                         />
                     </Suspense>
-                </Stack>
+                </Box>
 
-                <Stack
-                    direction={"row"}
-                    justifyContent={"flex-start"}
-                    spacing={6}
-                >
+                {/* Fourth Row: Expiry date (2-column layout, 2nd column empty) */}
+                <Stack direction="row" spacing={6}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <DatePicker
                             label="Expiry date"
@@ -391,6 +386,8 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                             error={errors.expiry_date}
                         />
                     </Suspense>
+                    {/* Empty second column to match 2-column layout */}
+                    <Box sx={{ width: 300 }} />
                 </Stack>
 
                 {/* File Upload Section */}

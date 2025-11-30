@@ -106,15 +106,21 @@ export default function EvalsSidebar({
             sx={{
               fontSize: 13,
               width: "100%",
+              height: "34px",
               backgroundColor: theme.palette.background.main,
               position: "relative",
               cursor: "pointer",
+              "& .MuiOutlinedInput-root": {
+                height: "34px",
+              },
               "& .MuiSelect-select": {
                 padding: "0 32px 0 10px !important",
-                height: "34px",
+                height: "34px !important",
+                minHeight: "34px !important",
                 display: "flex",
                 alignItems: "center",
-                lineHeight: 2,
+                lineHeight: 1,
+                boxSizing: "border-box",
               },
               ...getSelectStyles(theme),
             }}

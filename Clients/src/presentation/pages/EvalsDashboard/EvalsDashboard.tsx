@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography } from "@mui/material";
-import { Workflow, Home, FlaskConical, FileSearch, Bot } from "lucide-react";
+import { Workflow, Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2 } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
+import VWLink from "../../components/Link/VWLink";
+import Alert from "../../components/Alert";
+import CustomAxios from "../../../infrastructure/api/customAxios";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
@@ -20,6 +24,15 @@ import ProjectScorers from "./ProjectScorers";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
+
+const LLM_PROVIDERS = [
+  { _id: "openai", name: "OpenAI" },
+  { _id: "anthropic", name: "Anthropic" },
+  { _id: "google", name: "Google (Gemini)" },
+  { _id: "xai", name: "xAI" },
+  { _id: "mistral", name: "Mistral" },
+  { _id: "huggingface", name: "Hugging Face" },
+];
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -52,6 +65,13 @@ export default function EvalsDashboard() {
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [initialLoading, setInitialLoading] = useState(true);
+
+  // API key modal state
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [newApiKey, setNewApiKey] = useState("");
+  const [apiKeySaving, setApiKeySaving] = useState(false);
+  const [apiKeyAlert, setApiKeyAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
   // Onboarding state: "org" | "project" | null (null = completed)
   const [onboardingStep, setOnboardingStep] = useState<"org" | "project" | null>(null);
@@ -275,13 +295,70 @@ export default function EvalsDashboard() {
     }
   };
 
+  // Tab label and icon mapping for breadcrumbs
+  const getTabInfo = (tabValue: string): { label: string; icon: React.ReactNode } => {
+    const tabMap: Record<string, { label: string; icon: React.ReactNode }> = {
+      overview: { label: "Overview", icon: <LayoutDashboard size={14} strokeWidth={1.5} /> },
+      experiments: { label: "Experiments", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+      datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
+      scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
+      configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
+      organizations: { label: "Organizations", icon: <Building2 size={14} strokeWidth={1.5} /> },
+    };
+    return tabMap[tabValue] || { label: tabValue, icon: <Workflow size={14} strokeWidth={1.5} /> };
+  };
+
+  // Handle API key modal submission
+  const handleAddApiKey = async () => {
+    if (!selectedProvider || !newApiKey.trim()) {
+      setApiKeyAlert({
+        variant: "error",
+        body: "Please select a provider and enter an API key",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+      return;
+    }
+
+    setApiKeySaving(true);
+    try {
+      const response = await CustomAxios.post('/evaluation-llm-keys', {
+        provider: selectedProvider,
+        apiKey: newApiKey,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to add API key');
+      }
+
+      setApiKeyAlert({
+        variant: "success",
+        body: "API key added successfully",
+      });
+      setTimeout(() => {
+        setApiKeyAlert(null);
+        setApiKeyModalOpen(false);
+        setSelectedProvider("");
+        setNewApiKey("");
+      }, 1500);
+    } catch (err) {
+      setApiKeyAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to add API key",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+    } finally {
+      setApiKeySaving(false);
+    }
+  };
+
   // Build breadcrumbs based on current view
+  const tabInfo = getTabInfo(tab);
   const breadcrumbItems =
     !orgId
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           {
-            label: "LLM Evals",
+            label: "LLM evals",
             path: "/evals",
             icon: <FlaskConical size={14} strokeWidth={1.5} />,
             onClick: async () => {
@@ -301,17 +378,18 @@ export default function EvalsDashboard() {
               navigate("/evals");
             },
           },
-          { label: "Organizations" },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : projectId && currentProject
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-          { label: currentProject.name, icon: <Workflow size={14} strokeWidth={1.5} /> },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ];
 
   return (
@@ -402,30 +480,7 @@ export default function EvalsDashboard() {
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
                       LLM use case
                     </Typography>
-                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-                      <Box
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          cursor: "not-allowed",
-                          backgroundColor: "#FFFFFF",
-                          opacity: 0.6,
-                        }}
-                      >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <Workflow size={20} color="#13715B" />
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents (coming soon)</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                              Agentic workflows and end-to-end task completion will be available shortly.
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Box>
-
+                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
                       <Box
                         sx={{
                           border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
@@ -477,19 +532,9 @@ export default function EvalsDashboard() {
                     </Typography>
                     <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
                       These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
-                      <Typography
-                        component="span"
-                        onClick={() => navigate("/evals/settings")}
-                        sx={{
-                          color: "#13715B",
-                          cursor: "pointer",
-                          textDecoration: "none",
-                          fontWeight: 500,
-                          "&:hover": { textDecoration: "underline" },
-                        }}
-                      >
+                      <VWLink onClick={() => setApiKeyModalOpen(true)} showIcon={false}>
                         Add API key
-                      </Typography>
+                      </VWLink>
                     </Typography>
                     <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
                       No API keys configured yet.
@@ -555,29 +600,7 @@ export default function EvalsDashboard() {
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-              <Box
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "not-allowed",
-                  backgroundColor: "#FFFFFF",
-                  opacity: 0.6,
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Workflow size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents (coming soon)</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Agentic workflows and end-to-end task completion will be available shortly.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
                 sx={{
@@ -787,6 +810,43 @@ export default function EvalsDashboard() {
               </Box>
             </Box>
           </Box>
+        </Stack>
+      </ModalStandard>
+
+      {/* Add API Key Modal */}
+      <ModalStandard
+        isOpen={apiKeyModalOpen}
+        onClose={() => {
+          setApiKeyModalOpen(false);
+          setSelectedProvider("");
+          setNewApiKey("");
+          setApiKeyAlert(null);
+        }}
+        title="Add API key"
+        description="Add an LLM provider API key to use for running evaluations."
+        onSubmit={handleAddApiKey}
+        submitButtonText="Add API key"
+        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim()}
+      >
+        {apiKeyAlert && <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />}
+        <Stack spacing={3}>
+          <Select
+            id="provider-select"
+            label="Select provider"
+            placeholder="Select a provider from the list"
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value as string)}
+            items={LLM_PROVIDERS}
+          />
+          <Field
+            label="API key"
+            value={newApiKey}
+            onChange={(e) => setNewApiKey(e.target.value)}
+            placeholder="Enter your API key..."
+            type="password"
+            autoComplete="off"
+            isDisabled={!selectedProvider}
+          />
         </Stack>
       </ModalStandard>
     </Box>

@@ -22,6 +22,8 @@ import {
 import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap, Target, MessageSquare, Lightbulb, Shield } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
+import { deepEvalProjectsService, type DeepEvalProject } from "../../../infrastructure/api/deepEvalProjectsService";
+import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import MetricCard from "../../components/Cards/MetricCard";
 import EvalsSidebar from "./EvalsSidebar";
 
@@ -37,11 +39,37 @@ export default function ExperimentDetail() {
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
 
   useEffect(() => {
     loadExperimentData();
+    loadProjects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experimentId]);
+
+  const loadProjects = async () => {
+    try {
+      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      if (org) {
+        const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
+        const projectsData = await Promise.all(
+          projectIds.map((id) => deepEvalProjectsService.getProject(id).catch(() => null))
+        );
+        const validProjects = projectsData.filter((p): p is DeepEvalProject => p !== null);
+        setAllProjects(validProjects);
+      }
+    } catch (err) {
+      console.error("Failed to load projects:", err);
+    }
+  };
+
+  const handleProjectChange = (newProjectId: string) => {
+    if (newProjectId === "create_new") {
+      navigate("/evals");
+    } else {
+      navigate(`/evals/${newProjectId}#experiments`);
+    }
+  };
 
   const loadExperimentData = async () => {
     if (!experimentId) return;
@@ -196,6 +224,9 @@ export default function ExperimentDetail() {
           activeTab="experiments"
           onTabChange={handleTabChange}
           disabled={false}
+          allProjects={allProjects}
+          selectedProjectId={projectId}
+          onProjectChange={handleProjectChange}
         />
 
         {/* Main content */}

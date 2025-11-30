@@ -265,7 +265,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format (exact match to Bias & Fairness structure)
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => ({
     id: exp.id,

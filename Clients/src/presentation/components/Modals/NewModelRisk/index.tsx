@@ -11,6 +11,7 @@ import {
   Stack,
   Typography,
   TextField,
+  Box,
 } from "@mui/material";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -321,99 +322,115 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       <Stack spacing={6}>
         {/* First Row: Risk Name, Category, Risk Level */}
         <Stack direction="row" spacing={6}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Field
-              id="riskName"
-              label="Risk name"
-              width={220}
-              value={values.risk_name}
-              onChange={handleOnTextFieldChange("risk_name")}
-              error={errors.risk_name}
+          <Box sx={{ flex: 1 }}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Field
+                id="riskName"
+                label="Risk name"
+                width="100%"
+                value={values.risk_name}
+                onChange={handleOnTextFieldChange("risk_name")}
+                error={errors.risk_name}
+                isRequired
+                sx={fieldStyle}
+                placeholder="e.g., Model accuracy decline"
+              />
+            </Suspense>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <SelectComponent
+              id="riskCategory"
+              label="Risk category"
+              value={values.risk_category}
+              error={errors.risk_category}
               isRequired
-              sx={fieldStyle}
-              placeholder="e.g., Model accuracy decline"
+              sx={{ width: "100%" }}
+              items={riskCategoryOptions}
+              onChange={handleOnSelectChange("risk_category")}
+              placeholder="Select category"
             />
-          </Suspense>
-          <SelectComponent
-            id="riskCategory"
-            label="Risk category"
-            value={values.risk_category}
-            error={errors.risk_category}
-            isRequired
-            sx={{ width: 220 }}
-            items={riskCategoryOptions}
-            onChange={handleOnSelectChange("risk_category")}
-            placeholder="Select category"
-          />
-          <SelectComponent
-            id="riskLevel"
-            label="Risk level"
-            value={values.risk_level}
-            error={errors.risk_level}
-            isRequired
-            sx={{ width: 220 }}
-            items={riskLevelOptions}
-            onChange={handleOnSelectChange("risk_level")}
-            placeholder="Select risk level"
-          />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <SelectComponent
+              id="riskLevel"
+              label="Risk level"
+              value={values.risk_level}
+              error={errors.risk_level}
+              isRequired
+              sx={{ width: "100%" }}
+              items={riskLevelOptions}
+              onChange={handleOnSelectChange("risk_level")}
+              placeholder="Select risk level"
+            />
+          </Box>
         </Stack>
 
         {/* Second Row: Status, Owner, Target Date */}
         <Stack direction="row" spacing={6}>
-          <SelectComponent
-            id="status"
-            label="Status"
-            value={values.status}
-            error={errors.status}
-            isRequired
-            sx={{ width: 220 }}
-            items={statusOptions}
-            onChange={handleOnSelectChange("status")}
-            placeholder="Select status"
-          />
-          <SelectComponent
-            id="owner"
-            label="Owner"
-            value={values.owner}
-            error={errors.owner}
-            isRequired
-            sx={{ width: 220 }}
-            items={userOptions}
-            onChange={handleOnSelectChange("owner")}
-            placeholder="Select owner"
-            disabled={isLoadingUsers}
-          />
-          <Suspense fallback={<div>Loading...</div>}>
-            <DatePicker
-              label="Target date"
-              date={
-                values.target_date
-                  ? dayjs(values.target_date)
-                  : dayjs(new Date())
-              }
-              handleDateChange={handleDateChange}
-              sx={{
-                width: 220,
-                backgroundColor: "#FFFFFF",
-              }}
+          <Box sx={{ flex: 1 }}>
+            <SelectComponent
+              id="status"
+              label="Status"
+              value={values.status}
+              error={errors.status}
               isRequired
-              error={errors.target_date}
+              sx={{ width: "100%" }}
+              items={statusOptions}
+              onChange={handleOnSelectChange("status")}
+              placeholder="Select status"
             />
-          </Suspense>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <SelectComponent
+              id="owner"
+              label="Owner"
+              value={values.owner}
+              error={errors.owner}
+              isRequired
+              sx={{ width: "100%" }}
+              items={userOptions}
+              onChange={handleOnSelectChange("owner")}
+              placeholder="Select owner"
+              disabled={isLoadingUsers}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <DatePicker
+                label="Target date"
+                date={
+                  values.target_date
+                    ? dayjs(values.target_date)
+                    : dayjs(new Date())
+                }
+                handleDateChange={handleDateChange}
+                sx={{
+                  width: "100%",
+                  backgroundColor: "#FFFFFF",
+                }}
+                isRequired
+                error={errors.target_date}
+              />
+            </Suspense>
+          </Box>
         </Stack>
 
         {/* Third Row: Model (Optional) */}
         <Stack direction="row" spacing={6}>
-          <SelectComponent
-            id="modelId"
-            label="Associated model (optional)"
-            value={values.model_id ?? ""}
-            sx={{ width: 220 }}
-            items={modelOptions}
-            onChange={handleOnSelectChange("model_id")}
-            placeholder="Select model"
-            disabled={isLoadingModels}
-          />
+          <Box sx={{ flex: 1 }}>
+            <SelectComponent
+              id="modelId"
+              label="Associated model (optional)"
+              value={values.model_id ?? ""}
+              sx={{ width: "100%" }}
+              items={modelOptions}
+              onChange={handleOnSelectChange("model_id")}
+              placeholder="Select model"
+              disabled={isLoadingModels}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }} />
+          <Box sx={{ flex: 1 }} />
         </Stack>
 
         {/* Description Section */}

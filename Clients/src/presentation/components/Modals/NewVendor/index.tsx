@@ -734,7 +734,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       />
       
       {/* Vendor Scorecard Section */}
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ width: 686 }}>
         <Box
           sx={{
             display: "flex",

@@ -7,6 +7,22 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Check if organizations table exists first
+      const [tableExists] = await queryInterface.sequelize.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = 'organizations'
+        );`,
+        { transaction }
+      );
+
+      if (!tableExists[0]?.exists) {
+        console.log('⚠️ organizations table does not exist yet - skipping share_links creation (will be created on next run)');
+        await transaction.commit();
+        return;
+      }
+
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM organizations;`,
         { transaction }
@@ -63,6 +79,22 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Check if organizations table exists first
+      const [tableExists] = await queryInterface.sequelize.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = 'organizations'
+        );`,
+        { transaction }
+      );
+
+      if (!tableExists[0]?.exists) {
+        console.log('⚠️ organizations table does not exist - nothing to drop');
+        await transaction.commit();
+        return;
+      }
+
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM organizations;`,
         { transaction }

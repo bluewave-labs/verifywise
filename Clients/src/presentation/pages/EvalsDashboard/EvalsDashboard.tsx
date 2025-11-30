@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio } from "@mui/material";
 import { Workflow, Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2 } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
@@ -34,15 +34,20 @@ const LLM_PROVIDERS = [
   { _id: "huggingface", name: "Hugging Face" },
 ];
 
+const LAST_PROJECT_KEY = "evals_last_project_id";
+
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Determine tab from URL hash or default (only when viewing a project)
+  // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
-    if (!projectId) return "overview"; // Default, but won't be used
     const hash = location.hash.replace("#", "");
+    // When no projectId, default to "overview" to show projects list (unless explicitly on organizations)
+    if (!projectId) {
+      return hash === "organizations" ? "organizations" : "overview";
+    }
     return hash || "overview";
   });
 
@@ -52,6 +57,13 @@ export default function EvalsDashboard() {
     const hash = location.hash.replace("#", "");
     setTab(hash || "overview");
   }, [location.hash, projectId]);
+
+  // Persist projectId to localStorage when it changes
+  useEffect(() => {
+    if (projectId) {
+      localStorage.setItem(LAST_PROJECT_KEY, projectId);
+    }
+  }, [projectId]);
 
   const [currentProject, setCurrentProject] = useState<DeepEvalProject | null>(null);
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
@@ -102,6 +114,18 @@ export default function EvalsDashboard() {
             if (!projectIds || projectIds.length === 0) {
               // Org exists but no projects - go to project step
               setOnboardingStep("project");
+            } else {
+              // Org has projects - check for last project or redirect to first available
+              const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+              if (lastProjectId && projectIds.includes(lastProjectId)) {
+                // Redirect to last used project
+                navigate(`/evals/${lastProjectId}#overview`, { replace: true });
+                return;
+              } else if (projectIds.length > 0) {
+                // Last project not found, use first project in list
+                navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+                return;
+              }
             }
           } else {
             // Has orgs but none selected - select first one
@@ -111,6 +135,16 @@ export default function EvalsDashboard() {
             const projectIds = await deepEvalOrgsService.getProjectsForOrg(orgs[0].id);
             if (!projectIds || projectIds.length === 0) {
               setOnboardingStep("project");
+            } else {
+              // Redirect to first project
+              const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+              if (lastProjectId && projectIds.includes(lastProjectId)) {
+                navigate(`/evals/${lastProjectId}#overview`, { replace: true });
+                return;
+              } else if (projectIds.length > 0) {
+                navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+                return;
+              }
             }
           }
         }
@@ -124,12 +158,15 @@ export default function EvalsDashboard() {
     };
 
     // Only run onboarding check when not viewing a specific project
-    if (!projectId) {
+    // Skip redirect if explicitly on organizations tab (check both hash and tab state)
+    const hash = location.hash.replace("#", "");
+    if (!projectId && hash !== "organizations" && tab !== "organizations") {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
     }
-  }, [projectId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, navigate]);
 
   // Load all projects for the dropdown and current project
   useEffect(() => {
@@ -480,49 +517,57 @@ export default function EvalsDashboard() {
                     <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
                       LLM use case
                     </Typography>
-                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-                      <Box
-                        sx={{
-                          border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          backgroundColor: "#FFFFFF",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <FileSearch size={20} color="#13715B" />
-                          </Box>
+                    <RadioGroup
+                      value={currentProject?.useCase || "chatbot"}
+                      onChange={(e) => {
+                        if (currentProject) {
+                          setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
+                        }
+                      }}
+                    >
+                      <FormControlLabel
+                        value="rag"
+                        control={
+                          <Radio
+                            sx={{
+                              color: "#d0d5dd",
+                              "&.Mui-checked": { color: "#13715B" },
+                              "& .MuiSvgIcon-root": { fontSize: 20 },
+                            }}
+                          />
+                        }
+                        label={
                           <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                            <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                               Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
-                            </Box>
+                            </Typography>
                           </Box>
-                        </Box>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          border: currentProject?.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          backgroundColor: "#FFFFFF",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <Bot size={20} color="#13715B" />
-                          </Box>
+                        }
+                        sx={{ alignItems: "flex-start", mb: 1.5 }}
+                      />
+                      <FormControlLabel
+                        value="chatbot"
+                        control={
+                          <Radio
+                            sx={{
+                              color: "#d0d5dd",
+                              "&.Mui-checked": { color: "#13715B" },
+                              "& .MuiSvgIcon-root": { fontSize: 20 },
+                            }}
+                          />
+                        }
+                        label={
                           <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                            <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbots</Typography>
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                               Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
-                            </Box>
+                            </Typography>
                           </Box>
-                        </Box>
-                      </Box>
-                    </Box>
+                        }
+                        sx={{ alignItems: "flex-start" }}
+                      />
+                    </RadioGroup>
                   </Box>
 
                   {/* LLM API Keys */}

@@ -3,6 +3,7 @@ CRUD operations for DeepEval scorers (metric definitions).
 """
 
 from typing import List, Dict, Any, Optional
+import json
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
@@ -125,7 +126,7 @@ async def create_scorer(
       "description": description,
       "type": scorer_type,
       "metric_key": metric_key,
-      "config": config or {},
+      "config": json.dumps(config or {}),
       "enabled": enabled,
       "default_threshold": default_threshold,
       "weight": weight,
@@ -192,7 +193,7 @@ async def update_scorer(
     params["metric_key"] = metric_key
   if config is not None:
     updates.append("config = :config")
-    params["config"] = config
+    params["config"] = json.dumps(config)
   if enabled is not None:
     updates.append("enabled = :enabled")
     params["enabled"] = enabled

@@ -285,7 +285,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Performance Chart */}
-      <Card sx={{ mb: 4 }}>
+      <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
         <CardContent>
           <Box mb={2}>
             <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
@@ -334,7 +334,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       </Card>
 
       {/* Filters + Search + Group directly above the table */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} gap={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ marginBottom: "18px" }} gap={2}>
         <Stack direction="row" alignItems="center" gap={2}>
           <FilterBy columns={experimentFilterColumns} onFilterChange={handleFilterChange} />
           <GroupBy

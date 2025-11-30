@@ -99,33 +99,6 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/model-inventory' }
   },
   {
-    id: 'nav-risk-management',
-    label: 'Risk Management',
-    description: 'Manage and monitor risks',
-    keywords: ['risks', 'threats', 'vulnerabilities'],
-    group: COMMAND_GROUPS[0],
-    icon: GraduationCap,
-    action: { type: 'navigate', payload: '/training' }
-  },
-  {
-    id: 'nav-file-manager',
-    label: 'File Manager',
-    description: 'Evidence and documents',
-    keywords: ['files', 'documents', 'evidence'],
-    group: COMMAND_GROUPS[0],
-    icon: Folder,
-    action: { type: 'navigate', payload: '/file-manager' }
-  },
-  {
-    id: 'nav-event-tracker',
-    label: 'Event Tracker',
-    description: 'Event tracking and audit logs',
-    keywords: ['logs', 'events', 'audit', 'monitoring', 'watch', 'tower'],
-    group: COMMAND_GROUPS[0],
-    icon: Activity,
-    action: { type: 'navigate', payload: '/event-tracker' }
-  },
-  {
     id: 'nav-framework',
     label: 'Framework',
     description: 'Organizational framework view',

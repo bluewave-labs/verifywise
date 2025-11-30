@@ -423,32 +423,26 @@ export default function ExperimentDetail() {
           }
         });
 
-        // Map to display names - add common metric variations
+        // Determine enabled metrics from experiment config and map to display names
+        const enabled: Record<string, unknown> =
+          (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
+
+        // Standard metric set we expose in the UI; these are independent of the
+        // underlying implementation (G‑Eval vs classic), so we keep names clean.
         const displayMap: Record<string, string> = {
-          answerCorrectness: "Answer correctness",
-          coherence: "Coherence",
-          tonality: "Tonality",
-          safety: "Safety",
+          answerRelevancy: "Answer Relevancy",
           bias: "Bias",
           toxicity: "Toxicity",
-          Bias: "Bias",
-          Toxicity: "Toxicity",
-          "Contextual Relevancy": "Contextual Relevancy",
-          "Answer Relevancy": "Answer Relevancy",
-          "Faithfulness": "Faithfulness",
-          "Hallucination": "Hallucination",
-          "Knowledge Retention": "Knowledge Retention",
-          "contextual_relevancy": "Contextual Relevancy",
-          "answer_relevancy": "Answer Relevancy",
-          "faithfulness": "Faithfulness",
-          "hallucination": "Hallucination",
-          "knowledge_retention": "Knowledge Retention",
-          "G-Eval (Coherence)": "Coherence",
-          "G-Eval (Fluency)": "Fluency",
-          "G-Eval (Consistency)": "Consistency",
-          "G-Eval (Relevance)": "Relevance",
-          "G-Eval (Correctness)": "Correctness",
+          faithfulness: "Faithfulness",
+          hallucination: "Hallucination",
+          contextualRelevancy: "Contextual Relevancy",
         };
+
+        // Use the config to drive which metrics we show cards for; if nothing is
+        // configured we fall back to whatever we discover in metric_scores.
+        const orderedLabels = Object.keys(displayMap)
+          .filter((k) => !!enabled?.[k])
+          .map((k) => displayMap[k]);
 
         // Always show all metrics found in the data
         if (Object.keys(metricsSum).length === 0) return null;
@@ -554,31 +548,33 @@ export default function ExperimentDetail() {
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, fontSize: "14px" }}>
               Overall statistics
             </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-              {Object.keys(metricsSum).map((metricKey) => {
-                const entry = metricsSum[metricKey];
-                const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
-                const count = entry ? entry.count : 0;
-                const friendlyLabel = displayMap[metricKey] || metricKey;
-                const percentageValue = avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`;
-                const subtitleText = avgValue === undefined ? "No data yet" : `Average across ${count} samples`;
-                const BackgroundIcon = metricIcons[metricKey] || TrendingUp;
-                const explanation = metricExplanations[metricKey] || `Evaluation metric: ${friendlyLabel}`;
-                const metricType = metricTypeMap[metricKey] || "neutral";
+              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
+                {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
+                  const rawLabel = label;
+                  const entry = metricsSum[rawLabel] || metricsSum[`G-Eval (${rawLabel})`];
+                  const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
+                  const count = entry ? entry.count : 0;
+                  // Strip any "G-Eval (...)" prefix for display; we don't surface
+                  // the implementation detail in the UI.
+                  const friendlyLabel = rawLabel.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
 
-                return (
-                  <Box key={metricKey} sx={{ border: "1px solid #E5E7EB", borderRadius: 2, overflow: "hidden" }}>
-                    <MetricCard
-                      title={friendlyLabel}
-                      value={percentageValue}
-                      subtitle={subtitleText}
-                      tooltipText={explanation}
-                      navigable={false}
-                      compact={true}
-                      backgroundIcon={BackgroundIcon}
-                      metricType={metricType}
-                    />
-                  </Box>
+                  return (
+                  <Card key={rawLabel} variant="outlined">
+                    <CardContent sx={{ p: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                        <TrendingUp size={14} color="#13715B" />
+                        <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 600, color: "#6B7280" }}>
+                          {friendlyLabel}
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 700 }}>
+                        {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px" }}>
+                        {avgValue === undefined ? "No data yet" : `Average across ${count} samples`}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </Box>

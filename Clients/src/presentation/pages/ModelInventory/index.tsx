@@ -716,14 +716,23 @@ const ModelInventory: React.FC = () => {
   const fetchMLFlowData = async () => {
     setIsMlflowLoading(true);
     try {
-      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
-      if (response.data && Array.isArray(response.data)) {
-        setMlflowData(response.data);
+      const response = await apiServices.get<{ configured: boolean; models: any[] }>("/integrations/mlflow/models");
+      if (response.data) {
+        // Handle new response format: { configured: boolean, models: [] }
+        if ('models' in response.data && Array.isArray(response.data.models)) {
+          setMlflowData(response.data.models);
+        } else if (Array.isArray(response.data)) {
+          // Backwards compatibility: handle old format where response is directly an array
+          setMlflowData(response.data as unknown as any[]);
+        } else {
+          setMlflowData([]);
+        }
       } else {
         setMlflowData([]);
       }
     } catch (error) {
-      console.error("Error fetching MLFlow data:", error);
+      // Only log unexpected errors, not "not configured" scenarios
+      // The backend now handles "not configured" gracefully with 200 status
       setMlflowData([]);
     } finally {
       setIsMlflowLoading(false);

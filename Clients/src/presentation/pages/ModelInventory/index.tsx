@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, Suspense, useMemo, useCallback } from "react";
+import React, { useState, useEffect, Suspense, useMemo, useCallback, useRef } from "react";
 import { Box, Stack, Fade, IconButton } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -70,6 +70,8 @@ const REDIRECT_DELAY_MS = 2000;
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [modelInventoryData, setModelInventoryData] = useState<
     IModelInventory[]
   >([]);
@@ -751,6 +753,46 @@ const ModelInventory: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Handle modelId and evidenceId URL params to open edit modal from Wise Search
+  useEffect(() => {
+    if (hasProcessedUrlParam.current || isLoading) return;
+
+    const modelId = searchParams.get("modelId");
+    const evidenceId = searchParams.get("evidenceId");
+
+    if (modelId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch model inventory and open edit modal
+      getEntityById({ routeUrl: `/modelInventory/${modelId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedModelInventory(response.data);
+            setIsNewModelInventoryModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching model from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    } else if (evidenceId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch evidence and open edit modal
+      getEntityById({ routeUrl: `/evidenceHub/${evidenceId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedEvidenceHub(response.data);
+            setIsEvidenceHubModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching evidence from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    }
+  }, [searchParams, isLoading, setSearchParams]);
 
   // Auto-open create model modal when navigating from "Add new..." dropdown
   useEffect(() => {

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Stack } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
@@ -29,6 +29,8 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
   }, [location.state, navigate, location.pathname]);
 
-  const handleOpen = (id?: number) => {
+  const handleOpen = useCallback((id?: number) => {
     if (!id) {
       setSelectedPolicy(null); // Ensure selectedPolicy is null for new policy
       setShowModal(true); // Open modal
@@ -66,7 +68,18 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       setSelectedPolicy(p);
       setShowModal(true); // Open modal with selected policy
     }
-  };
+  }, [policies]);
+
+  // Handle policyId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const policyId = searchParams.get("policyId");
+    if (policyId && !hasProcessedUrlParam.current && policies.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleOpen function which sets selectedPolicy and opens modal
+      handleOpen(parseInt(policyId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, policies, setSearchParams, handleOpen]);
 
   const handleAddNewPolicy = () => {
     handleOpen();

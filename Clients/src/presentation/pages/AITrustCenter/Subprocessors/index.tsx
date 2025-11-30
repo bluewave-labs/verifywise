@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense, useCallback } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -145,6 +146,8 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -208,6 +211,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle subprocessorId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const subprocessorId = searchParams.get("subprocessorId");
+    if (subprocessorId && !hasProcessedUrlParam.current && subprocessors && subprocessors.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEdit function which opens the modal
+      handleEdit(parseInt(subprocessorId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, subprocessors, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (

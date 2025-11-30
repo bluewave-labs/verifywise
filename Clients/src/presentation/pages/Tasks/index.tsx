@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback, useRef } from "react";
 import {
   Box,
   Stack,
   Typography,
 } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
@@ -21,6 +22,7 @@ import {
   updateTask,
   deleteTask,
   updateTaskStatus,
+  getTaskById,
 } from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
@@ -62,6 +64,7 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
 // Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +78,9 @@ const Tasks: React.FC = () => {
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
+
+  // Track if we've already processed the URL param to avoid duplicate fetches
+  const hasProcessedUrlParam = useRef(false);
 
   // Group by state management
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -124,6 +130,35 @@ const Tasks: React.FC = () => {
     };
     fetchTasks();
   }, [includeArchived]);
+
+  // Handle taskId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const taskId = searchParams.get("taskId");
+    if (taskId && !hasProcessedUrlParam.current && !isLoading) {
+      hasProcessedUrlParam.current = true;
+
+      // First check if task is already in the loaded list
+      const existingTask = tasks.find((t) => t.id === parseInt(taskId, 10));
+      if (existingTask) {
+        setEditingTask(existingTask);
+        // Clear the URL param after opening modal
+        setSearchParams({}, { replace: true });
+      } else {
+        // Fetch the task if not in list (might be archived)
+        getTaskById({ id: taskId })
+          .then((response) => {
+            if (response?.data) {
+              setEditingTask(response.data);
+              setSearchParams({}, { replace: true });
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching task from URL param:", err);
+            setSearchParams({}, { replace: true });
+          });
+      }
+    }
+  }, [searchParams, tasks, isLoading, setSearchParams]);
 
   // FilterBy - Dynamic options generators
   const getUniqueAssignees = useCallback(() => {

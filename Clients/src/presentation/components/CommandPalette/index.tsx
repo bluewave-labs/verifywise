@@ -1,13 +1,30 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, CircularProgress } from '@mui/material'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import {
+  Search,
+  FolderTree,
+  Flag,
+  Building2,
+  GitBranch,
+  AlertTriangle,
+  GraduationCap,
+  FileText,
+  Brain,
+  Shield,
+  AlertCircle,
+  Clock,
+  X
+} from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
 import commandRegistry from '../../../application/commands/registry'
 import CommandActionHandler, { CommandActionHandlers } from '../../../application/commands/actionHandler'
 import { Command as CommandType, CommandContext } from '../../../application/commands/types'
+import { useWiseSearch, getEntityDisplayName } from '../../../application/hooks/useWiseSearch'
+import { SearchResult } from '../../../infrastructure/api/searchService'
 import './styles.css'
 
 interface CommandPaletteProps {
@@ -15,20 +32,50 @@ interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void
 }
 
+// Map entity types to icons
+const ENTITY_ICONS: Record<string, React.FC<{ size?: number }>> = {
+  projects: FolderTree,
+  tasks: Flag,
+  vendors: Building2,
+  vendor_risks: AlertTriangle,
+  model_inventories: GitBranch,
+  evidence_hub: FileText,
+  project_risks: AlertTriangle,
+  file_manager: FileText,
+  policy_manager: Shield,
+  policy_templates: FileText,
+  ai_trust_center_resources: Brain,
+  ai_trust_center_subprocessors: Building2,
+  training_registar: GraduationCap,
+  incident_management: AlertCircle,
+}
+
 const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
-  const [search, setSearch] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
+
+  // Wise Search integration
+  const {
+    query: search,
+    setQuery: setSearch,
+    results: searchResults,
+    flatResults,
+    isLoading: isSearching,
+    totalCount,
+    recentSearches,
+    addToRecent,
+    removeFromRecent,
+    isSearchMode
+  } = useWiseSearch()
 
   // Create command context
   const commandContext: CommandContext = useMemo(() => ({
     currentPath: location.pathname,
     userRole: userRoleName || 'Viewer',
-    permissions: [], // This could be expanded based on your permission system
-    searchTerm: search
-  }), [location.pathname, userRoleName, search])
-
+    permissions: [],
+    searchTerm: isSearchMode ? '' : search // Only filter commands when not in search mode
+  }), [location.pathname, userRoleName, search, isSearchMode])
 
   // Get filtered commands
   const commands = useMemo(() => {
@@ -53,7 +100,28 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     return Array.from(groups.values()).sort((a, b) => a.group.priority - b.group.priority)
   }, [commands])
 
-  // Command action handlers - memoized to prevent unnecessary re-renders
+  // Group search results by entity type with deduplication
+  const groupedSearchResults = useMemo(() => {
+    return Object.entries(searchResults).map(([entityType, data]) => {
+      // Deduplicate results by id within each entity type
+      const seenIds = new Set<number>()
+      const uniqueResults = data.results.filter((result) => {
+        if (seenIds.has(result.id)) {
+          return false
+        }
+        seenIds.add(result.id)
+        return true
+      })
+      return {
+        entityType,
+        displayName: getEntityDisplayName(entityType),
+        results: uniqueResults,
+        count: uniqueResults.length
+      }
+    })
+  }, [searchResults])
+
+  // Command action handlers
   const actionHandlers: CommandActionHandlers = useMemo(() => ({
     navigate: (path: string) => {
       navigate(path)
@@ -61,16 +129,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     },
 
     modal: (modalType: string) => {
-      // This will be implemented to trigger modals
       console.log('Open modal:', modalType)
       onOpenChange(false)
-      // TODO: Implement modal triggers based on your modal system
     },
 
     function: (funcName: string, params?: unknown) => {
       switch (funcName) {
         case 'navigateToSettingsTab':
-          // Navigate to settings page with specific tab
           navigate('/settings', { state: { activeTab: params } })
           break
         default:
@@ -80,13 +145,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     },
 
     filter: (filterConfig: unknown) => {
-      // This will be implemented for filtering
       console.log('Apply filter:', filterConfig)
       onOpenChange(false)
     },
 
     export: (exportType: string) => {
-      // This will be implemented for exports
       console.log('Export:', exportType)
       onOpenChange(false)
     }
@@ -98,21 +161,48 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     actionHandler.execute(command.action)
   }, [actionHandler])
 
+  const handleSearchResultSelect = useCallback((result: SearchResult) => {
+    // Add to recent searches
+    addToRecent(search)
+    // Navigate to the result
+    navigate(result.route)
+    onOpenChange(false)
+  }, [navigate, onOpenChange, addToRecent, search])
+
+  const handleRecentSearchClick = useCallback((query: string) => {
+    setSearch(query)
+  }, [setSearch])
+
+  const handleRemoveRecentSearch = useCallback((e: React.MouseEvent, timestamp: number) => {
+    e.stopPropagation()
+    removeFromRecent(timestamp)
+  }, [removeFromRecent])
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       onOpenChange(false)
     }
   }, [onOpenChange])
 
+  // Reset search when closing
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    if (!newOpen) {
+      setSearch('')
+    }
+    onOpenChange(newOpen)
+  }, [onOpenChange, setSearch])
+
   if (!open) return null
 
   return (
     <Command.Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       className="command-dialog"
       onKeyDown={handleKeyDown}
       aria-describedby="command-palette-description"
+      value=""
+      onValueChange={() => {}}
     >
       <Dialog.Title asChild>
         <VisuallyHidden>Command Palette</VisuallyHidden>
@@ -126,7 +216,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
         <Command.Input
           value={search}
           onValueChange={setSearch}
-          placeholder="Search for commands, pages, or actions..."
+          placeholder="Search for commands, pages, or data..."
           className="command-input"
           aria-label="Search commands"
           aria-describedby="command-palette-help"
@@ -136,83 +226,202 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
         />
 
         <div id="command-palette-help" className="sr-only">
-          {commands.length} commands available. Type to filter commands.
+          {isSearchMode
+            ? `${totalCount} results found. Type to search across all data.`
+            : `${commands.length} commands available. Type to filter commands.`
+          }
         </div>
 
         <Command.List className="command-list">
-          <Command.Empty className="command-empty">
-            <Typography color="text.secondary">
-              No commands found for "{search}"
-            </Typography>
-          </Command.Empty>
+          {/* Loading state for search */}
+          {isSearching && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 3 }}>
+              <CircularProgress size={20} sx={{ color: '#13715B' }} />
+              <Typography sx={{ ml: 2, color: '#666' }}>Searching...</Typography>
+            </Box>
+          )}
 
+          {/* Empty state */}
+          {!isSearching && isSearchMode && flatResults.length === 0 && (
+            <Command.Empty className="command-empty">
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                <Search size={24} color="#999" />
+                <Typography color="text.secondary">
+                  No results found for "{search}"
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Try different keywords or check spelling
+                </Typography>
+              </Box>
+            </Command.Empty>
+          )}
 
-          {groupedCommands.map(({ group, commands: groupCommands }: { group: any, commands: CommandType[] }) => (
-            <Command.Group key={group.id} heading={group.label} className="command-group">
-              {groupCommands.map((command) => (
-                <Command.Item
-                  key={command.id}
-                  value={`${command.label} ${command.description} ${command.keywords?.join(' ')}`}
-                  onSelect={() => handleCommandSelect(command)}
-                  className="command-item"
-                  role="option"
-                  aria-describedby={command.description ? `desc-${command.id}` : undefined}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-                    {command.icon && (
-                      <Box
-                        sx={{
-                          color: '#7B9A7A',
-                          opacity: 0.8,
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                        aria-hidden="true"
+          {/* Search Results */}
+          {isSearchMode && !isSearching && flatResults.length > 0 && (
+            <>
+              <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" sx={{ color: '#999', fontWeight: 400 }}>
+                  {totalCount} result{totalCount !== 1 ? 's' : ''} found
+                </Typography>
+              </Box>
+
+              {groupedSearchResults.map(({ entityType, displayName, results }) => (
+                <Command.Group key={entityType} heading={displayName} className="command-group">
+                  {results.map((result) => {
+                    const IconComponent = ENTITY_ICONS[entityType] || FileText
+                    return (
+                      <Command.Item
+                        key={`${entityType}-${result.id}`}
+                        value={`${entityType}-${result.id}-${result.title} ${result.subtitle || ''}`}
+                        onSelect={() => handleSearchResultSelect(result)}
+                        className="command-item"
+                        role="option"
                       >
-                        <command.icon size={16} strokeWidth={1.5} />
-                      </Box>
-                    )}
-                    <Typography variant="body2" fontWeight={500} sx={{ flex: 0, whiteSpace: 'nowrap' }}>
-                      {command.label}
-                    </Typography>
-                    {command.description && (
-                      <Typography
-                        id={`desc-${command.id}`}
-                        variant="caption"
-                        sx={{
-                          marginLeft: 'auto',
-                          color: '#999',
-                          opacity: 0.8
-                        }}
-                        aria-label={`Description: ${command.description}`}
-                      >
-                        {command.description}
-                      </Typography>
-                    )}
-                    {command.shortcut && (
-                      <Box sx={{ display: 'flex', gap: 0.5 }} aria-label={`Keyboard shortcut: ${command.shortcut.join(' ')}`}>
-                        {command.shortcut.map((key: string, index: number) => (
-                          <Typography
-                            key={index}
-                            variant="caption"
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                          <Box
                             sx={{
-                              backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '11px'
+                              color: '#7B9A7A',
+                              opacity: 0.8,
+                              display: 'flex',
+                              alignItems: 'center',
+                              marginRight: '4px'
                             }}
                             aria-hidden="true"
                           >
-                            {key}
-                          </Typography>
-                        ))}
-                      </Box>
-                    )}
-                  </Box>
-                </Command.Item>
+                            <IconComponent size={16} />
+                          </Box>
+                          <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                            <Typography variant="body2" className="command-item-title" noWrap>
+                              {result.title}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Command.Item>
+                    )
+                  })}
+                </Command.Group>
               ))}
-            </Command.Group>
-          ))}
+            </>
+          )}
+
+          {/* Commands (show when not in search mode) */}
+          {!isSearchMode && (
+            <>
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && !search && (
+                <Command.Group heading="Recent searches" className="command-group">
+                  {recentSearches.map((recent) => (
+                    <Command.Item
+                      key={recent.timestamp}
+                      value={`recent ${recent.query}`}
+                      onSelect={() => handleRecentSearchClick(recent.query)}
+                      className="command-item"
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                        <Clock size={16} color="#7B9A7A" opacity={0.8} style={{ marginRight: '4px' }} />
+                        <Typography variant="body2" sx={{ flex: 1 }}>{recent.query}</Typography>
+                        <Box
+                          component="button"
+                          onClick={(e: React.MouseEvent) => handleRemoveRecentSearch(e, recent.timestamp)}
+                          sx={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '4px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '4px',
+                            color: '#999',
+                            '&:hover': {
+                              background: 'rgba(0, 0, 0, 0.05)',
+                              color: '#666',
+                            },
+                          }}
+                          aria-label={`Remove "${recent.query}" from recent searches`}
+                        >
+                          <X size={14} />
+                        </Box>
+                      </Box>
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              )}
+
+              <Command.Empty className="command-empty">
+                <Typography color="text.secondary">
+                  No commands found for "{search}"
+                </Typography>
+              </Command.Empty>
+
+              {groupedCommands.map(({ group, commands: groupCommands }: { group: { id: string; label: string; priority: number }, commands: CommandType[] }) => (
+                <Command.Group key={group.id} heading={group.label} className="command-group">
+                  {groupCommands.map((command) => (
+                    <Command.Item
+                      key={command.id}
+                      value={`${command.label} ${command.description} ${command.keywords?.join(' ')}`}
+                      onSelect={() => handleCommandSelect(command)}
+                      className="command-item"
+                      role="option"
+                      aria-describedby={command.description ? `desc-${command.id}` : undefined}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                        {command.icon && (
+                          <Box
+                            sx={{
+                              color: '#7B9A7A',
+                              opacity: 0.8,
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                            aria-hidden="true"
+                          >
+                            <command.icon size={16} strokeWidth={1.5} />
+                          </Box>
+                        )}
+                        <Typography variant="body2" className="command-item-title" sx={{ flex: 0, whiteSpace: 'nowrap' }}>
+                          {command.label}
+                        </Typography>
+                        {command.description && (
+                          <Typography
+                            id={`desc-${command.id}`}
+                            variant="caption"
+                            sx={{
+                              marginLeft: 'auto',
+                              color: '#999',
+                              opacity: 0.8
+                            }}
+                            aria-label={`Description: ${command.description}`}
+                          >
+                            {command.description}
+                          </Typography>
+                        )}
+                        {command.shortcut && (
+                          <Box sx={{ display: 'flex', gap: 0.5 }} aria-label={`Keyboard shortcut: ${command.shortcut.join(' ')}`}>
+                            {command.shortcut.map((key: string, index: number) => (
+                              <Typography
+                                key={index}
+                                variant="caption"
+                                sx={{
+                                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '11px'
+                                }}
+                                aria-hidden="true"
+                              >
+                                {key}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              ))}
+            </>
+          )}
         </Command.List>
 
         {/* Navigation hints footer */}
@@ -226,14 +435,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box className="command-footer-key">
-              ↑↓
+              arrow up arrow down
             </Box>
             <Typography sx={{ fontSize: '10px', color: '#666' }}>Navigate</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box className="command-footer-key">
-              ↵
+              enter
             </Box>
             <Typography sx={{ fontSize: '10px', color: '#666' }}>Select</Typography>
           </Box>
@@ -247,7 +456,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
 
           <Box sx={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Box className="command-footer-key">
-              ⌘K
+              Cmd+K
             </Box>
           </Box>
         </Box>

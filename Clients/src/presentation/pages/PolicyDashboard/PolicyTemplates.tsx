@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Stack,
@@ -139,6 +140,8 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   fetchAll,
 }) => {
   const theme = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedPolicyTemplate, setSelectedPolicyTemplate] = useState<
     PolicyTemplate | undefined
@@ -167,6 +170,27 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
   useEffect(() => {
     localStorage.setItem(POLICY_TEMPLATES_SORTING_KEY, JSON.stringify(sortConfig));
   }, [sortConfig]);
+
+  // Handle templateId URL param to open modal from Wise Search
+  useEffect(() => {
+    const templateId = searchParams.get("templateId");
+    if (templateId && !hasProcessedUrlParam.current) {
+      hasProcessedUrlParam.current = true;
+      const id = parseInt(templateId, 10);
+      // Find and open the template
+      const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
+      if (selectedPolicy) {
+        const template: PolicyTemplate = {
+          title: selectedPolicy.title,
+          tags: selectedPolicy.tags,
+          content: selectedPolicy.content,
+        };
+        setSelectedPolicyTemplate(template);
+        setShowModal(true);
+      }
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleClose = () => {
     setShowModal(false);

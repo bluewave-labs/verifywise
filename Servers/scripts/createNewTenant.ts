@@ -1246,6 +1246,37 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create share_links table for sharing views
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".share_links (
+        id SERIAL PRIMARY KEY,
+        share_token VARCHAR(64) UNIQUE NOT NULL,
+        resource_type VARCHAR(50) NOT NULL,
+        resource_id INTEGER NOT NULL,
+        created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        settings JSONB DEFAULT '{"shareAllFields": false, "allowDataExport": true, "allowViewersToOpenRecords": false, "displayToolbar": true}'::jsonb,
+        is_enabled BOOLEAN DEFAULT true,
+        expires_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for share_links table
+    await sequelize.query(
+      `CREATE INDEX share_links_token_idx ON "${tenantHash}".share_links(share_token);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX share_links_resource_idx ON "${tenantHash}".share_links(resource_type, resource_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX share_links_created_by_idx ON "${tenantHash}".share_links(created_by);`,
+      { transaction }
+    );
+
     // NIST AI RMF FRAMEWORK TABLES CREATION
     console.log(`🏗️ Creating NIST AI RMF tables for new tenant: ${tenantHash}`);
     await createNistAiRmfTablesForTenant(tenantHash, transaction);

@@ -9,7 +9,7 @@
 
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { wiseSearch, getTotalResultCount, GroupedSearchResults } from "../utils/search.utils";
+import { wiseSearch, getTotalResultCount, GroupedSearchResults, SEARCH_CONSTANTS } from "../utils/search.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 
 /**
@@ -37,17 +37,18 @@ export async function search(req: Request, res: Response): Promise<any> {
     }
 
     const query = (req.query.q as string) || "";
-    const limit = parseInt(req.query.limit as string, 10) || 20;
-    const offset = parseInt(req.query.offset as string, 10) || 0;
+    const rawLimit = parseInt(req.query.limit as string, 10) || SEARCH_CONSTANTS.DEFAULT_LIMIT;
+    const limit = Math.min(Math.max(1, rawLimit), SEARCH_CONSTANTS.MAX_LIMIT);
+    const offset = Math.max(0, parseInt(req.query.offset as string, 10) || 0);
 
     // Validate minimum query length
-    if (query.trim().length < 3) {
+    if (query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH) {
       return res.status(200).json(
         STATUS_CODE[200]({
           results: {},
           totalCount: 0,
           query,
-          message: "Query must be at least 3 characters",
+          message: `Query must be at least ${SEARCH_CONSTANTS.MIN_QUERY_LENGTH} characters`,
         })
       );
     }

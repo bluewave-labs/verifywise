@@ -32,10 +32,10 @@ const KeyboardBadge: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 );
 
 // Tooltip content for Wise Search
-const WiseSearchTooltipContent = () => (
+const WiseSearchTooltipContent: React.FC<{ isMac: boolean }> = ({ isMac }) => (
   <Box>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-      <KeyboardBadge>⌘</KeyboardBadge>
+      <KeyboardBadge>{isMac ? '⌘' : 'Ctrl'}</KeyboardBadge>
       <KeyboardBadge>K</KeyboardBadge>
     </Box>
     <Box sx={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '13px', lineHeight: 1.5 }}>
@@ -75,6 +75,15 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const { userRoleName } = useAuth();
   const isAdmin = userRoleName === "Admin";
 
+  // Detect if user is on Mac for keyboard shortcuts
+  const isMac = useMemo(() => {
+    if (typeof navigator !== 'undefined') {
+      return navigator.platform?.toLowerCase().includes('mac') ||
+             navigator.userAgent?.toLowerCase().includes('mac');
+    }
+    return false;
+  }, []);
+
   const isMainDashboard = useMemo(
     () => location.pathname === '/' || location.pathname === '',
     [location.pathname]
@@ -112,7 +121,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       }}
     >
       {/* Wise Search */}
-      <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent />} placement="bottom" maxWidth={280}>
+      <VWTooltip header="Wise Search" content={<WiseSearchTooltipContent isMac={isMac} />} placement="bottom" maxWidth={280}>
         <IconButton size="small" onClick={handleOpenCommandPalette} sx={{ ...baseStyles, ...STYLE.search }}>
           <Search size={16} />
         </IconButton>

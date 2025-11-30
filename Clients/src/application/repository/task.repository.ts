@@ -232,3 +232,57 @@ export async function updateTaskStatus({
     throw error;
   }
 }
+
+/**
+ * Restores an archived task back to active status
+ *
+ * @param {object} params - Parameters for restoring a task
+ * @param {string|number} params.id - The task ID
+ * @param {string} [params.authToken] - Optional auth token
+ * @returns {Promise<any>} The restored task data
+ * @throws Will throw an error if the request fails
+ */
+export async function restoreTask({
+  id,
+  authToken = getAuthToken(),
+}: {
+  id: string | number;
+  authToken?: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.put(`/tasks/${id}/restore`, {}, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error restoring task:", error);
+    throw error;
+  }
+}
+
+/**
+ * Permanently deletes a task (hard delete)
+ *
+ * @param {object} params - Parameters for hard deleting a task
+ * @param {string|number} params.id - The task ID
+ * @param {string} [params.authToken] - Optional auth token
+ * @returns {Promise<any>} The deletion response
+ * @throws Will throw an error if the request fails
+ */
+export async function hardDeleteTask({
+  id,
+  authToken = getAuthToken(),
+}: {
+  id: string | number;
+  authToken?: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.delete(`/tasks/${id}/hard`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error permanently deleting task:", error);
+    throw error;
+  }
+}

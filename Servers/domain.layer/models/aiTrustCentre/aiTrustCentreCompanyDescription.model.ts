@@ -5,6 +5,8 @@ type IAITrustCentreOverviewCompanyDescription = IAITrustCentreOverview["company_
 
 @Table({
   tableName: "ai_trust_center_company_description",
+  timestamps: true,
+  underscored: true,
 })
 export class AITrustCenterCompanyDescriptionModel extends Model<AITrustCenterCompanyDescriptionModel> implements IAITrustCentreOverviewCompanyDescription {
   @Column({
@@ -52,4 +54,16 @@ export class AITrustCenterCompanyDescriptionModel extends Model<AITrustCenterCom
     allowNull: false,
   })
   compliance_doc_text!: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

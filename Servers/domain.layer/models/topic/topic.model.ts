@@ -16,6 +16,8 @@ import {
 
 @Table({
   tableName: "topics",
+  timestamps: true,
+  underscored: true,
 })
 export class TopicModel extends Model<TopicModel> implements ITopic {
   @Column({
@@ -50,8 +52,15 @@ export class TopicModel extends Model<TopicModel> implements ITopic {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new topic with comprehensive validation
@@ -208,6 +217,7 @@ export class TopicModel extends Model<TopicModel> implements ITopic {
       assessment_id: this.assessment_id,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 

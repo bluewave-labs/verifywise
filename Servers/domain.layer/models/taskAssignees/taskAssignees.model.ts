@@ -45,8 +45,20 @@ export class TaskAssigneesModel
   })
   assigned_at?: Date;
 
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
+
   /**
-   * Create a new task assignee 
+   * Create a new task assignee
    */
   static async createNewTaskAssignee(
     taskId: number,

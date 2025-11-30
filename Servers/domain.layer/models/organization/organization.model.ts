@@ -37,7 +37,8 @@ import {
 
 @Table({
   tableName: "organizations",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class OrganizationModel
   extends Model<OrganizationModel>
@@ -61,8 +62,15 @@ export class OrganizationModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Creates a new organization with validation

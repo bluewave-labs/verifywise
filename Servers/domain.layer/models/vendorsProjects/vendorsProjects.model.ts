@@ -11,6 +11,8 @@ import { IVendorsProjects } from "../../interfaces/i.vendorProjects";
 
 @Table({
   tableName: "vendor_projects",
+  timestamps: true,
+  underscored: true,
 })
 export class VendorsProjectsModel
   extends Model<VendorsProjectsModel>
@@ -36,6 +38,18 @@ export class VendorsProjectsModel
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   static async createNewVendorProject(
     vendorId: number,

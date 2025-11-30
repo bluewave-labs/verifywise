@@ -15,6 +15,8 @@ import {
 
 @Table({
   tableName: "project_frameworks",
+  timestamps: true,
+  underscored: true,
 })
 export class ProjectFrameworksModel
   extends Model<ProjectFrameworksModel>
@@ -40,6 +42,18 @@ export class ProjectFrameworksModel
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new project-framework association with validation

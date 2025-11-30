@@ -16,6 +16,8 @@ import {
 
 @Table({
   tableName: "subtopics",
+  timestamps: true,
+  underscored: true,
 })
 export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
   @Column({
@@ -50,8 +52,15 @@ export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new subtopic with comprehensive validation
@@ -212,6 +221,7 @@ export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
       topic_id: this.topic_id,
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
+      updated_at: this.updated_at?.toISOString(),
     };
   }
 

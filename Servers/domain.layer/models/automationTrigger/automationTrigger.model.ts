@@ -5,7 +5,8 @@ import { ValidationException } from "../../exceptions/custom.exception";
 @Table({
   tableName: "automation_triggers",
   schema: "public",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class AutomationTriggerModel extends Model<AutomationTriggerModel> implements IAutomationTrigger {
   @Column({
@@ -39,6 +40,18 @@ export class AutomationTriggerModel extends Model<AutomationTriggerModel> implem
     allowNull: true,
   })
   description?: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new automation trigger
@@ -141,6 +154,8 @@ export class AutomationTriggerModel extends Model<AutomationTriggerModel> implem
       label: this.label,
       event_name: this.event_name,
       description: this.description,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

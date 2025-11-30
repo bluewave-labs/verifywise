@@ -8,7 +8,8 @@ import {
 
 @Table({
   tableName: "frameworks",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class FrameworkModel
   extends Model<FrameworkModel>
@@ -33,8 +34,15 @@ export class FrameworkModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at!: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.BOOLEAN,

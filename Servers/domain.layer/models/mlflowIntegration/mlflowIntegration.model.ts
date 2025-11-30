@@ -158,13 +158,13 @@ export class MLFlowIntegrationModel
 
   @Column({
     type: DataType.DATE,
-    allowNull: true,
+    allowNull: false,
   })
   created_at?: Date;
 
   @Column({
     type: DataType.DATE,
-    allowNull: true,
+    allowNull: false,
   })
   updated_at?: Date;
 }

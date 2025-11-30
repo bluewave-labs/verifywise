@@ -6,7 +6,8 @@ import { AutomationActionModel } from "../automationAction/automationAction.mode
 
 @Table({
   tableName: "automation_actions",
-  timestamps: false,
+  timestamps: true,
+  underscored: true,
 })
 export class TenantAutomationActionModel extends Model<TenantAutomationActionModel> implements ITenantAutomationAction {
   @Column({
@@ -49,6 +50,18 @@ export class TenantAutomationActionModel extends Model<TenantAutomationActionMod
     defaultValue: 1,
   })
   order?: number;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new tenant automation action
@@ -201,6 +214,8 @@ export class TenantAutomationActionModel extends Model<TenantAutomationActionMod
       action_type: this.action_type?.toJSON(),
       params: this.params,
       order: this.order,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

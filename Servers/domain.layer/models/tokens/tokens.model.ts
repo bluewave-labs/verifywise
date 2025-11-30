@@ -4,6 +4,8 @@ import { UserModel } from "../user/user.model";
 
 @Table({
   tableName: "tokens",
+  timestamps: true,
+  underscored: true,
 })
 export class TokenModel extends Model<TokenModel> implements IToken {
   @Column({
@@ -28,8 +30,15 @@ export class TokenModel extends Model<TokenModel> implements IToken {
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
+    allowNull: false,
   })
   created_at!: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.DATE,

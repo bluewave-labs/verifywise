@@ -4,6 +4,8 @@ import { FileModel } from "../file/file.model";
 
 @Table({
   tableName: "ai_trust_center_resources",
+  timestamps: true,
+  underscored: true,
 })
 export class AITrustCenterResourcesModel extends Model<AITrustCenterResourcesModel> implements IAITrustCentreResources {
   @Column({
@@ -38,5 +40,17 @@ export class AITrustCenterResourcesModel extends Model<AITrustCenterResourcesMod
     defaultValue: true,
   })
   visible!: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
 }

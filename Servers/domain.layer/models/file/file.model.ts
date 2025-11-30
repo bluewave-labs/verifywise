@@ -48,6 +48,8 @@ export interface FileList extends FileType {
 
 @Table({
   tableName: "files",
+  timestamps: true,
+  underscored: true,
 })
 export class FileModel extends Model<File> {
   @Column({
@@ -113,4 +115,16 @@ export class FileModel extends Model<File> {
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

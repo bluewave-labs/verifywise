@@ -17,6 +17,7 @@ import {
 @Table({
   tableName: "control_categories",
   timestamps: true,
+  underscored: true,
 })
 export class ControlCategoryModel
   extends Model<ControlCategoryModel>
@@ -54,8 +55,15 @@ export class ControlCategoryModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new control category with validation

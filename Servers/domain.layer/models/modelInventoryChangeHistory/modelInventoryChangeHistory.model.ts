@@ -24,8 +24,7 @@ export interface IModelInventoryChangeHistory {
 @Table({
   tableName: "model_inventory_change_history",
   timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
+  underscored: true,
 })
 export class ModelInventoryChangeHistoryModel
   extends Model<ModelInventoryChangeHistoryModel>
@@ -89,7 +88,12 @@ export class ModelInventoryChangeHistoryModel
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    defaultValue: DataType.NOW,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

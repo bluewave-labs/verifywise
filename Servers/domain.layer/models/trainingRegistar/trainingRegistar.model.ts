@@ -9,6 +9,8 @@ import {
 
 @Table({
   tableName: "trainingregistar",
+  timestamps: true,
+  underscored: true,
 })
 export class TrainingRegistarModel
   extends Model<TrainingRegistarModel>
@@ -56,6 +58,18 @@ export class TrainingRegistarModel
     type: DataType.STRING,
   })
   description!: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Create a new training register with comprehensive validation

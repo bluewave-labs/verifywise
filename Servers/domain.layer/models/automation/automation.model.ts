@@ -7,8 +7,7 @@ import { UserModel } from "../user/user.model";
 @Table({
   tableName: "automations",
   timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
+  underscored: true,
 })
 export class AutomationModel extends Model<AutomationModel> implements IAutomation {
   @Column({
@@ -61,9 +60,14 @@ export class AutomationModel extends Model<AutomationModel> implements IAutomati
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    defaultValue: DataType.NOW,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   /**
    * Factory method to create a new automation
@@ -102,7 +106,6 @@ export class AutomationModel extends Model<AutomationModel> implements IAutomati
     automation.trigger_id = trigger_id;
     automation.created_by = created_by;
     automation.is_active = is_active;
-    automation.created_at = new Date();
 
     return automation;
   }
@@ -223,6 +226,7 @@ export class AutomationModel extends Model<AutomationModel> implements IAutomati
       created_by: this.created_by,
       creator: this.creator?.toSafeJSON(),
       created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 }

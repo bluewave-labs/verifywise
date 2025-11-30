@@ -6,6 +6,7 @@ import { ValidationException } from "../../exceptions/custom.exception";
 @Table({
   tableName: "model_inventories",
   timestamps: true,
+  underscored: true,
 })
 export class ModelInventoryModel
   extends Model<ModelInventoryModel>
@@ -114,11 +115,13 @@ export class ModelInventoryModel
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at?: Date;
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   updated_at?: Date;
 

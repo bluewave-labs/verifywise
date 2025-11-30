@@ -5,8 +5,7 @@ import { IModelInventoryHistory } from "../../interfaces/i.modelInventoryHistory
 @Table({
   tableName: "model_inventory_history",
   timestamps: true,
-  createdAt: "created_at",
-  updatedAt: false,
+  underscored: true,
 })
 export class ModelInventoryHistoryModel extends Model<ModelInventoryHistoryModel> implements IModelInventoryHistory {
   @Column({
@@ -55,7 +54,12 @@ export class ModelInventoryHistoryModel extends Model<ModelInventoryHistoryModel
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    defaultValue: DataType.NOW,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

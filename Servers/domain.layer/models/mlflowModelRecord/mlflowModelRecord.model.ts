@@ -130,4 +130,16 @@ export class MLFlowModelRecordModel
     type: DataType.DATE,
   })
   last_synced_at?: Date | null;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 }

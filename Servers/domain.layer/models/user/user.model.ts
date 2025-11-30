@@ -56,6 +56,8 @@ import { OrganizationModel } from "../organization/organization.model";
 
 @Table({
   tableName: "users",
+  timestamps: true,
+  underscored: true,
 })
 export class UserModel extends Model<UserModel> {
   @Column({
@@ -93,6 +95,7 @@ export class UserModel extends Model<UserModel> {
 
   @Column({
     type: DataType.DATE,
+    allowNull: false,
   })
   created_at!: Date;
 
@@ -100,6 +103,12 @@ export class UserModel extends Model<UserModel> {
     type: DataType.DATE,
   })
   last_login!: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.BOOLEAN,

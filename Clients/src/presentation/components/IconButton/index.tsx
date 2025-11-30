@@ -39,11 +39,18 @@ const IconButton: React.FC<IconButtonProps> = ({
   onView,
   onSendTest,
   onToggleEnable,
+  // Task-specific props
+  isArchived,
+  onRestore,
+  onHardDelete,
+  hardDeleteWarningTitle,
+  hardDeleteWarningMessage,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [_, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
+  const [isOpenHardDeleteModal, setIsOpenHardDeleteModal] = useState(false);
   const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
     useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
@@ -172,6 +179,25 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleRestore = (e?: React.SyntheticEvent) => {
+    if (onRestore) {
+      onRestore();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleHardDelete = (e?: React.SyntheticEvent) => {
+    if (onHardDelete) {
+      onHardDelete();
+    }
+    setIsOpenHardDeleteModal(false);
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -186,6 +212,8 @@ const IconButton: React.FC<IconButtonProps> = ({
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
    * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
+   * - For type "Task" (active), the menu item will be "edit", "archive", "delete".
+   * - For type "Task" (archived), the menu item will be "restore", "delete".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
   const getListOfButtons = () => {
@@ -202,6 +230,12 @@ const IconButton: React.FC<IconButtonProps> = ({
     } else if (type === "integration") {
       // slack integration
       return ["Send Test", "Activate/Deactivate", "remove"];
+    } else if (type === "Task" || type === "task") {
+      // Task-specific actions based on archived status
+      if (isArchived) {
+        return ["restore", "delete"];
+      }
+      return ["edit", "archive", "delete"];
     } else {
       return ["edit", "remove"];
     }
@@ -216,11 +250,18 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (item === "make visible") {
       return isVisible ? "Make Hidden" : "Make Visible";
     }
-    if (item === "remove" && type === "Task") {
-      return "Archive";
-    }
     if (item === "archive" && type === "Incident") {
       return "Archive incident";
+    }
+    // Task-specific labels
+    if ((type === "Task" || type === "task") && item === "archive") {
+      return "Archive";
+    }
+    if ((type === "Task" || type === "task") && item === "delete") {
+      return "Delete";
+    }
+    if ((type === "Task" || type === "task") && item === "restore") {
+      return "Restore";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -280,6 +321,26 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleSendTestNotification(e);
               } else if (item === "Activate/Deactivate") {
                 await handleToggleStatus(e);
+              } else if (item === "restore") {
+                // Task restore action
+                handleRestore(e);
+              } else if (item === "delete" && (type === "Task" || type === "task")) {
+                // Task hard delete action
+                if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
+                  setIsOpenHardDeleteModal(true);
+                  if (e) closeDropDownMenu(e);
+                } else {
+                  handleHardDelete(e);
+                }
+              } else if (item === "archive" && (type === "Task" || type === "task")) {
+                // Task archive action (soft delete)
+                if (warningTitle && warningMessage) {
+                  setIsOpenRemoveModal(true);
+                  if (e) closeDropDownMenu(e);
+                } else {
+                  onDelete();
+                  if (e) closeDropDownMenu(e);
+                }
               } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
@@ -296,7 +357,7 @@ const IconButton: React.FC<IconButtonProps> = ({
             }}
             disabled={isDisabled}
             sx={
-              item === "remove" || item === "archive"
+              item === "remove" || item === "archive" || item === "delete"
                 ? { color: "#d32f2f" }
                 : {}
             }
@@ -355,6 +416,17 @@ const IconButton: React.FC<IconButtonProps> = ({
           warningTitle={warningTitle}
           warningMessage={warningMessage}
           onCancel={(e) => handleCancle(e)}
+          type={type}
+        />
+      )}
+      {hardDeleteWarningTitle && hardDeleteWarningMessage && (
+        <BasicModal
+          isOpen={isOpenHardDeleteModal}
+          setIsOpen={() => setIsOpenHardDeleteModal(false)}
+          onDelete={handleHardDelete}
+          warningTitle={hardDeleteWarningTitle}
+          warningMessage={hardDeleteWarningMessage}
+          onCancel={() => setIsOpenHardDeleteModal(false)}
           type={type}
         />
       )}

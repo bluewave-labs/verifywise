@@ -307,90 +307,89 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
             <Stack spacing={6}>
                 {/* First Row: Evidence Name and Type */}
                 <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Field
-                            id="evidence-name"
-                            label="Evidence name"
-                            sx={{ width: 300 }}
-                            value={values.evidence_name}
-                            onChange={handleTextChange("evidence_name")}
-                            error={errors.evidence_name}
+                    <Box sx={{ flex: 1 }}>
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Field
+                                id="evidence-name"
+                                label="Evidence name"
+                                width="100%"
+                                value={values.evidence_name}
+                                onChange={handleTextChange("evidence_name")}
+                                error={errors.evidence_name}
+                                isRequired
+                                placeholder="Evidence name"
+                            />
+                        </Suspense>
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                        <SelectComponent
+                            id="evidence-type"
+                            label="Evidence type"
+                            items={evidenceTypes}
+                            value={values.evidence_type}
+                            onChange={handleSelectChange("evidence_type")}
+                            error={errors.evidence_type}
+                            placeholder="Select evidence type"
                             isRequired
-                            placeholder="Evidence name"
+                            sx={{ width: "100%" }}
                         />
-                    </Suspense>
-                    <SelectComponent
-                        id="evidence-type"
-                        label="Evidence type"
-                        items={evidenceTypes}
-                        value={values.evidence_type}
-                        onChange={handleSelectChange("evidence_type")}
-                        error={errors.evidence_type}
-                        placeholder="Select evidence type"
-                        isRequired
-                        sx={{ width: 300 }}
+                    </Box>
+                </Stack>
+
+                {/* Second Row: Mapped Models (full width) */}
+                <Suspense fallback={<div>Loading...</div>}>
+                    <CustomizableMultiSelect
+                        label="Mapped models"
+                        value={values.mapped_model_ids || []}
+                        onChange={(event) => {
+                            setValues({
+                                ...values,
+                                mapped_model_ids: event.target.value as number[],
+                            });
+                        }}
+                        items={modelOptions}
+                        placeholder="Select models"
+                        error={errors.mapped_model_ids}
+                        sx={{ width: "100%" }}
                     />
-                </Stack>
+                </Suspense>
 
-                {/* Second Row: Mapped Models */}
-                <Stack direction="row" justifyContent="flex-start" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <CustomizableMultiSelect
-                            label="Mapped models"
-                            value={values.mapped_model_ids || []}
-                            onChange={(event) => {
-                                setValues({
-                                    ...values,
-                                    mapped_model_ids: event.target.value as number[],
-                                });
-                            }}
-                            items={modelOptions}
-                            placeholder="Select models"
-                            error={errors.mapped_model_ids}
-                        />
-                    </Suspense>
-                </Stack>
+                {/* Third Row: Description (full width) */}
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                        id="description"
+                        label="Description"
+                        width="100%"
+                        value={values.description || ""}
+                        onChange={handleTextChange("description")}
+                        isRequired
+                        placeholder="Description"
+                        error={errors.description}
+                    />
+                </Suspense>
 
-                <Stack
-                    direction={"row"}
-                    justifyContent={"flex-start"}
-                    spacing={6}
-                >
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Field
-                            id="description"
-                            label="Description"
-                            width={"100%"}
-                            value={values.description || ""}
-                            onChange={handleTextChange("description")}
-                            isRequired
-                            placeholder="Description"
-                            error={errors.description}
-                        />
-                    </Suspense>
-                </Stack>
-
-                <Stack
-                    direction={"row"}
-                    justifyContent={"flex-start"}
-                    spacing={6}
-                >
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <DatePicker
-                            label="Expiry date"
-                            date={
-                                values.expiry_date
-                                    ? dayjs(values.expiry_date)
-                                    : null
-                            }
-                            handleDateChange={handleDateChange}
-                            sx={{
-                                width: 300,
-                                backgroundColor: theme.palette.background.main,
-                            }}
-                            error={errors.expiry_date}
-                        />
-                    </Suspense>
+                {/* Fourth Row: Expiry date (half width) */}
+                <Stack direction="row" spacing={6}>
+                    <Box sx={{ flex: 1 }}>
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <DatePicker
+                                label="Expiry date"
+                                date={
+                                    values.expiry_date
+                                        ? dayjs(values.expiry_date)
+                                        : null
+                                }
+                                handleDateChange={handleDateChange}
+                                sx={{
+                                    width: "100%",
+                                    backgroundColor: theme.palette.background.main,
+                                }}
+                                error={errors.expiry_date}
+                            />
+                        </Suspense>
+                    </Box>
+                    {/* Empty second column to match 2-column layout */}
+                    <Box sx={{ flex: 1 }} />
                 </Stack>
 
                 {/* File Upload Section */}

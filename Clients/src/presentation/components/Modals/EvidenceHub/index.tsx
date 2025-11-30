@@ -333,7 +333,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 </Stack>
 
                 {/* Second Row: Mapped Models (full width) */}
-                <Box sx={{ width: 648 }}>
+                <Box sx={{ width: 600 }}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <CustomizableMultiSelect
                             label="Mapped models"
@@ -353,7 +353,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                 </Box>
 
                 {/* Third Row: Description (full width) */}
-                <Box sx={{ width: 648 }}>
+                <Box sx={{ width: 600 }}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <Field
                             id="description"

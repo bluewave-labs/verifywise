@@ -1,12 +1,12 @@
  
  
-import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import React, { useState, useEffect, useCallback, Suspense, useMemo, useRef } from "react";
 import {
   Box,
   Stack,
   Fade,
 } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -81,6 +81,8 @@ const createAlert = (variant: AlertVariant, body: string, title?: string): Alert
 const Training: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [trainingData, setTrainingData] = useState<TrainingRegistarModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false);
@@ -157,6 +159,17 @@ const Training: React.FC = () => {
     }
     // Dependencies: location contains state from mega dropdown navigation, navigate used for state clearing
   }, [location, navigate]);
+
+  // Handle trainingId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const trainingId = searchParams.get("trainingId");
+    if (trainingId && !hasProcessedUrlParam.current && !isLoading) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEditTraining pattern which fetches details and opens modal
+      handleEditTraining(trainingId);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, isLoading, setSearchParams]);
 
   const handleNewTrainingClick = () => {
     setIsNewTrainingModalOpen(true);

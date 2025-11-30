@@ -18,6 +18,10 @@ import {
   AlertCircle,
   Clock,
   X,
+  ArrowUp,
+  ArrowDown,
+  CornerDownLeft,
+  ChevronRight,
   LucideIcon
 } from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
@@ -158,6 +162,15 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
+
+  // Detect if user is on Mac for keyboard shortcuts
+  const isMac = useMemo(() => {
+    if (typeof navigator !== 'undefined') {
+      return navigator.platform?.toLowerCase().includes('mac') ||
+             navigator.userAgent?.toLowerCase().includes('mac')
+    }
+    return false
+  }, [])
 
   // Track if welcome banner should be shown
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
@@ -337,7 +350,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
         <Command.Input
           value={search}
           onValueChange={setSearch}
-          placeholder="Search for commands, pages, or data..."
+          placeholder="Search for everything, everywhere..."
           className="command-input"
           aria-label="Search commands"
           aria-describedby="command-palette-help"
@@ -421,6 +434,19 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                               {result.title}
                             </Typography>
                           </Box>
+                          <Box
+                            className="command-item-chevron"
+                            sx={{
+                              color: '#999',
+                              display: 'flex',
+                              alignItems: 'center',
+                              opacity: 0,
+                              transition: 'opacity 0.15s ease-in-out',
+                            }}
+                            aria-hidden="true"
+                          >
+                            <ChevronRight size={14} />
+                          </Box>
                         </Box>
                       </Command.Item>
                     )
@@ -491,7 +517,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                       role="option"
                       aria-describedby={command.description ? `desc-${command.id}` : undefined}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                         {command.icon && (
                           <Box
                             sx={{
@@ -541,6 +567,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                             ))}
                           </Box>
                         )}
+                        <Box
+                          className="command-item-chevron"
+                          sx={{
+                            color: '#999',
+                            display: 'flex',
+                            alignItems: 'center',
+                            opacity: 0,
+                            transition: 'opacity 0.15s ease-in-out',
+                            marginLeft: command.shortcut || command.description ? '8px' : 'auto',
+                          }}
+                          aria-hidden="true"
+                        >
+                          <ChevronRight size={14} />
+                        </Box>
                       </Box>
                     </Command.Item>
                   ))}
@@ -560,15 +600,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
           minHeight: '24px'
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box className="command-footer-key">
-              arrow up arrow down
+            <Box className="command-footer-key" sx={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+              <ArrowUp size={10} />
+              <ArrowDown size={10} />
             </Box>
             <Typography sx={{ fontSize: '10px', color: '#666' }}>Navigate</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box className="command-footer-key">
-              enter
+            <Box className="command-footer-key" sx={{ display: 'flex', alignItems: 'center' }}>
+              <CornerDownLeft size={10} />
             </Box>
             <Typography sx={{ fontSize: '10px', color: '#666' }}>Select</Typography>
           </Box>
@@ -581,9 +622,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
           </Box>
 
           <Box sx={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography sx={{ fontSize: '10px', color: '#666' }}>You can use</Typography>
             <Box className="command-footer-key">
-              Cmd+K
+              {isMac ? '⌘' : 'Ctrl'}
             </Box>
+            <Box className="command-footer-key">
+              K
+            </Box>
+            <Typography sx={{ fontSize: '10px', color: '#666' }}>to easily open Wise Search</Typography>
           </Box>
         </Box>
       </div>

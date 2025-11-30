@@ -145,6 +145,16 @@
   opacity: 0.9 !important;
 }
 
+/* Chevron icon - show on hover */
+.command-item .command-item-chevron {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.command-item:hover .command-item-chevron {
+  opacity: 1;
+}
+
 /* What's New Section */
 .whats-new-section {
   border-bottom: 1px solid #e5e5e5;
@@ -370,6 +380,16 @@
 
   .command-item:hover .command-item-title {
     font-weight: 500;
+  }
+
+  /* Chevron icon - dark mode */
+  .command-item .command-item-chevron {
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+  }
+
+  .command-item:hover .command-item-chevron {
+    opacity: 1;
   }
 
   .command-list::-webkit-scrollbar-thumb {

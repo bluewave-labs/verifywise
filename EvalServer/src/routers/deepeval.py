@@ -21,6 +21,10 @@ from controllers.deepeval import (
     read_deepeval_dataset_controller,
     list_user_datasets_controller,
     delete_user_datasets_controller,
+    list_deepeval_scorers_controller,
+    create_deepeval_scorer_controller,
+    update_deepeval_scorer_controller,
+    delete_deepeval_scorer_controller,
 )
 
 router = APIRouter()
@@ -283,4 +287,42 @@ async def delete_user_datasets(request: Request):
     body = await request.json()
     paths = body.get("paths", [])
     return await delete_user_datasets_controller(tenant=tenant, paths=paths)
+
+
+# ==================== SCORERS ====================
+
+@router.get("/scorers")
+async def list_scorers_endpoint(request: Request, project_id: str | None = None):
+    """
+    List scorer definitions for the current tenant (optionally for a single project).
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await list_deepeval_scorers_controller(tenant=tenant, project_id=project_id)
+
+
+@router.post("/scorers")
+async def create_scorer_endpoint(request: Request, payload: dict = Body(...)):
+    """
+    Create a new scorer definition.
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await create_deepeval_scorer_controller(tenant=tenant, payload=payload)
+
+
+@router.put("/scorers/{scorer_id}")
+async def update_scorer_endpoint(request: Request, scorer_id: str, payload: dict = Body(...)):
+    """
+    Update an existing scorer definition.
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await update_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
+
+
+@router.delete("/scorers/{scorer_id}")
+async def delete_scorer_endpoint(request: Request, scorer_id: str):
+    """
+    Delete a scorer definition.
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await delete_deepeval_scorer_controller(scorer_id, tenant=tenant)
 

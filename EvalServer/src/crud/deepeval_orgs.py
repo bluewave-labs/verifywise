@@ -77,3 +77,16 @@ async def get_projects_for_org(org_id: str, tenant: str, db: AsyncSession) -> Li
     return [row[0] for row in res.fetchall()]
 
 
+async def delete_org(org_id: str, tenant: str, db: AsyncSession) -> bool:
+    """
+    Delete an organization by ID. Returns True if a row was removed.
+    """
+    schema = _schema_for_tenant(tenant)
+    res = await db.execute(
+        text(f'DELETE FROM "{schema}".deepeval_organizations WHERE id = :id'),
+        {"id": org_id},
+    )
+    # res.rowcount may be None on some DB backends; treat None as 0
+    return bool(getattr(res, "rowcount", 0))
+
+

@@ -23,6 +23,12 @@ if bias_fairness_path not in sys.path:
 from database.redis import get_job_status, set_job_status, delete_job_status
 from database.db import get_db
 from crud.deepeval_datasets import create_user_dataset, list_user_datasets
+from crud.deepeval_scorers import (
+    list_scorers,
+    create_scorer,
+    update_scorer,
+    delete_scorer,
+)
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -869,4 +875,152 @@ async def delete_user_datasets_controller(tenant: str, paths: list[str]) -> JSON
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete datasets: {e}")
+
+
+# ==================== SCORERS ====================
+
+async def list_deepeval_scorers_controller(
+    tenant: str,
+    project_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    List scorer definitions for the current tenant (optionally filtered by project).
+    """
+    try:
+        async with get_db() as db:
+            items = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+            return JSONResponse(status_code=200, content={"scorers": items})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list scorers: {e}")
+
+
+async def create_deepeval_scorer_controller(
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Create a new scorer definition.
+
+    Expected payload (fields optional except name, type, metric_key):
+    {
+      "id": "optional custom id; generated if missing",
+      "projectId": "project_123" | null,
+      "name": "Answer correctness (LLM)",
+      "description": "...",
+      "type": "llm" | "builtin" | "custom",
+      "metricKey": "answer_correctness",
+      "config": { ... scorer-specific config ... },
+      "enabled": true,
+      "defaultThreshold": 0.7,
+      "weight": 1.0
+    }
+    """
+    from uuid import uuid4
+
+    scorer_id = payload.get("id") or f"scorer_{uuid4().hex}"
+    project_id = payload.get("projectId")
+    name = payload.get("name")
+    scorer_type = payload.get("type") or "llm"
+    metric_key = payload.get("metricKey")
+
+    if not name or not metric_key:
+        raise HTTPException(status_code=400, detail="Both 'name' and 'metricKey' are required")
+
+    description = payload.get("description")
+    config = payload.get("config") or {}
+    enabled = bool(payload.get("enabled", True))
+    default_threshold = payload.get("defaultThreshold")
+    weight = payload.get("weight")
+    created_by = payload.get("createdBy")
+
+    try:
+        async with get_db() as db:
+            created = await create_scorer(
+                scorer_id=scorer_id,
+                project_id=project_id,
+                name=name,
+                description=description,
+                scorer_type=scorer_type,
+                metric_key=metric_key,
+                config=config,
+                enabled=enabled,
+                default_threshold=default_threshold,
+                weight=weight,
+                tenant=tenant,
+                created_by=created_by,
+                db=db,
+            )
+            await db.commit()
+
+        if not created:
+            raise HTTPException(status_code=500, detail="Failed to create scorer")
+
+        return JSONResponse(status_code=201, content=created)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create scorer: {e}")
+
+
+async def update_deepeval_scorer_controller(
+    scorer_id: str,
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Update an existing scorer definition.
+    """
+    try:
+        async with get_db() as db:
+            updated = await update_scorer(
+                scorer_id=scorer_id,
+                tenant=tenant,
+                name=payload.get("name"),
+                description=payload.get("description"),
+                scorer_type=payload.get("type"),
+                metric_key=payload.get("metricKey"),
+                config=payload.get("config"),
+                enabled=payload.get("enabled"),
+                default_threshold=payload.get("defaultThreshold"),
+                weight=payload.get("weight"),
+                db=db,
+            )
+            await db.commit()
+
+        if not updated:
+            raise HTTPException(status_code=404, detail="Scorer not found")
+
+        return JSONResponse(status_code=200, content=updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update scorer: {e}")
+
+
+async def delete_deepeval_scorer_controller(
+    scorer_id: str,
+    *,
+    tenant: str,
+) -> JSONResponse:
+    """
+    Delete a scorer definition.
+    """
+    try:
+        async with get_db() as db:
+            deleted = await delete_scorer(scorer_id=scorer_id, tenant=tenant, db=db)
+            await db.commit()
+
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Scorer not found")
+
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Scorer deleted successfully", "id": scorer_id},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete scorer: {e}")
 

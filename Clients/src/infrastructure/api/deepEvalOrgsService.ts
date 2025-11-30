@@ -42,6 +42,15 @@ class DeepEvalOrgsService {
     return (res.data?.projectIds as string[]) || [];
   }
 
+  async deleteOrg(orgId: string): Promise<void> {
+    await CustomAxios.delete(`/deepeval/orgs/${orgId}`);
+    // If the deleted org was the current one, clear it from local storage
+    const current = localStorage.getItem(this.CURRENT_ORG_KEY);
+    if (current === orgId) {
+      await this.clearCurrentOrg();
+    }
+  }
+
   // Frontend convenience: remember current org locally only for UX
   private CURRENT_ORG_KEY = "vw_evals_current_org";
   async setCurrentOrg(orgId: string): Promise<void> {

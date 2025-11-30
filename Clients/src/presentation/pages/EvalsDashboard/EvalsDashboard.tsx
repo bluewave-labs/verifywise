@@ -16,10 +16,10 @@ import ProjectsList from "./ProjectsList";
 import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
+import ProjectScorers from "./ProjectScorers";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
-// (duplicate removed) ModalStandard is already imported above
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -387,15 +387,8 @@ export default function EvalsDashboard() {
                 <ProjectDatasets projectId={projectId} />
               )}
 
-              {tab === "scorers" && (
-                <Box sx={{ p: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
-                    Scorers
-                  </Typography>
-                  <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                    Configure and manage the evaluation scorers used in your experiments. This section is under active development.
-                  </Typography>
-                </Box>
+              {tab === "scorers" && projectId && (
+                <ProjectScorers projectId={projectId} />
               )}
 
               {tab === "configuration" && (

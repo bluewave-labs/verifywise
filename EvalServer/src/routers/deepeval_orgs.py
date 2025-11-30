@@ -6,6 +6,7 @@ from controllers.deepeval_orgs import (
     create_org_controller,
     get_all_orgs_controller,
     get_projects_for_org_controller,
+    delete_org_controller,
 )
 
 router = APIRouter()
@@ -25,5 +26,13 @@ async def create_org(request: Request, body: dict = Body(...)):
 @router.get("/orgs/{org_id}/projects")
 async def org_projects(org_id: str, request: Request):
     return await get_projects_for_org_controller(org_id=org_id, tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
+
+
+@router.delete("/orgs/{org_id}")
+async def delete_org(org_id: str, request: Request):
+    """
+    Delete an organization.
+    """
+    return await delete_org_controller(org_id=org_id, tenant=getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default")))
 
 

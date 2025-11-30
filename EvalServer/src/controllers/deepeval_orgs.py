@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from database.db import get_db
-from crud.deepeval_orgs import create_org, get_all_orgs, get_projects_for_org
+from crud.deepeval_orgs import create_org, get_all_orgs, get_projects_for_org, delete_org
 
 
 async def create_org_controller(name: str, tenant: str) -> JSONResponse:
@@ -39,5 +39,24 @@ async def get_projects_for_org_controller(org_id: str, tenant: str) -> JSONRespo
             return JSONResponse(status_code=200, content={"projectIds": ids})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch projects for org: {e}")
+
+
+async def delete_org_controller(org_id: str, tenant: str) -> JSONResponse:
+    """
+    Delete an organization. For now, we allow deletion even if projects still
+    reference this org; projects will simply have a dangling org_id.
+    """
+    try:
+        async with get_db() as db:
+            removed = await delete_org(org_id=org_id, tenant=tenant, db=db)
+            await db.commit()
+        if not removed:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        # 204 No Content
+        return JSONResponse(status_code=204, content=None)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete organization: {e}")
 
 

@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useState, useEffect } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Box, Typography, CircularProgress } from '@mui/material'
+import { Box, Typography, CircularProgress, Button } from '@mui/material'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import {
@@ -33,6 +33,9 @@ interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void
 }
 
+// localStorage key for tracking if user has dismissed the welcome banner
+const WISE_SEARCH_WELCOME_DISMISSED_KEY = 'verifywise_wise_search_welcome_dismissed'
+
 // Map entity types to icons
 const ENTITY_ICONS: Record<string, LucideIcon> = {
   projects: FolderTree,
@@ -51,10 +54,127 @@ const ENTITY_ICONS: Record<string, LucideIcon> = {
   incident_management: AlertCircle,
 }
 
+// Welcome banner component
+const WiseSearchWelcomeBanner: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => (
+  <Box
+    sx={{
+      background: 'linear-gradient(135deg, #1a1a1f 0%, #252530 100%)',
+      borderRadius: '8px',
+      padding: '16px 20px',
+      margin: '8px',
+      marginBottom: '12px',
+      position: 'relative',
+      overflow: 'hidden',
+    }}
+  >
+    {/* Decorative gradient blob */}
+    <Box
+      sx={{
+        position: 'absolute',
+        top: -20,
+        right: -20,
+        width: 100,
+        height: 100,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(19, 113, 91, 0.3) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }}
+    />
+
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Box sx={{ flex: 1 }}>
+        <Typography
+          sx={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: '#ffffff',
+            letterSpacing: '-0.01em',
+            mb: 2,
+          }}
+        >
+          Wise Search
+        </Typography>
+
+        <Typography
+          sx={{
+            fontSize: '13px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            lineHeight: 1.5,
+            mb: 3,
+          }}
+        >
+          Search across all projects, tasks, vendors, policies, and more in your workspace. Start typing to find anything instantly.
+        </Typography>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            onClick={onDismiss}
+            size="small"
+            sx={{
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              color: '#ffffff',
+              fontSize: '12px',
+              fontWeight: 500,
+              padding: '6px 16px',
+              borderRadius: '4px',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              },
+            }}
+          >
+            Got it
+          </Button>
+        </Box>
+      </Box>
+
+      <Box
+        component="button"
+        onClick={onDismiss}
+        sx={{
+          background: 'none',
+          border: 'none',
+          padding: '4px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '4px',
+          color: 'rgba(255, 255, 255, 0.5)',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            color: '#ffffff',
+          },
+        }}
+        aria-label="Dismiss welcome message"
+      >
+        <X size={16} />
+      </Box>
+    </Box>
+  </Box>
+)
+
 const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
+
+  // Track if welcome banner should be shown
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
+
+  // Check localStorage on mount to see if user has dismissed the banner
+  useEffect(() => {
+    const dismissed = localStorage.getItem(WISE_SEARCH_WELCOME_DISMISSED_KEY)
+    if (!dismissed) {
+      setShowWelcomeBanner(true)
+    }
+  }, [])
+
+  // Handler to dismiss the welcome banner
+  const handleDismissWelcome = useCallback(() => {
+    setShowWelcomeBanner(false)
+    localStorage.setItem(WISE_SEARCH_WELCOME_DISMISSED_KEY, 'true')
+  }, [])
 
   // Wise Search integration
   const {
@@ -234,6 +354,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
         </div>
 
         <Command.List className="command-list">
+          {/* Welcome Banner - shown only for first-time users */}
+          {showWelcomeBanner && !search && (
+            <WiseSearchWelcomeBanner onDismiss={handleDismissWelcome} />
+          )}
+
           {/* Loading state for search */}
           {isSearching && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 3 }}>

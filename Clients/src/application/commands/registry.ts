@@ -63,15 +63,6 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/overview' }
   },
   {
-    id: 'nav-tasks',
-    label: 'Tasks',
-    description: 'Task management',
-    keywords: ['tasks', 'todo', 'assignments'],
-    group: COMMAND_GROUPS[0],
-    icon: AlertTriangle,
-    action: { type: 'navigate', payload: '/risk-management' }
-  },
-  {
     id: 'nav-framework',
     label: 'Organizational view',
     description: 'Organizational framework view',
@@ -99,15 +90,6 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/model-inventory' }
   },
   {
-    id: 'nav-framework',
-    label: 'Framework',
-    description: 'Organizational framework view',
-    keywords: ['compliance', 'frameworks', 'iso', 'eu ai act', 'organizational'],
-    group: COMMAND_GROUPS[0],
-    icon: Building,
-    action: { type: 'navigate', payload: '/framework' }
-  },
-{
     id: 'nav-risk-management',
     label: 'Risk Management',
     description: 'Manage and monitor risks',

@@ -15,16 +15,10 @@ export default defineConfig({
       ? parseInt(process.env.VITE_APP_PORT)
       : 5173,
     proxy: {
-      // Forward DeepEval and Bias&Fairness API requests to port 8000
-      '/api/deepeval': {
-        target: 'http://localhost:8000',
+      // Forward all API requests to Node.js server which handles auth and proxies to FastAPI
+      '/api': {
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-      '/api/bias_and_fairness': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

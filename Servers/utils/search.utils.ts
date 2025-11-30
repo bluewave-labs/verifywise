@@ -19,6 +19,15 @@ import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 
 /**
+ * Search constants
+ */
+export const SEARCH_CONSTANTS = {
+  MIN_QUERY_LENGTH: 3,
+  DEFAULT_LIMIT: 20,
+  MAX_LIMIT: 100,
+};
+
+/**
  * Sanitize tenant ID to prevent SQL injection
  * Only allows alphanumeric characters, underscores, and hyphens
  */
@@ -27,6 +36,36 @@ function sanitizeTenantId(tenantId: string): string {
     throw new Error("Invalid tenant ID format");
   }
   return tenantId;
+}
+
+/**
+ * Whitelist of allowed table names for search queries
+ * This prevents SQL injection via table name manipulation
+ */
+const ALLOWED_TABLE_NAMES = new Set([
+  "projects",
+  "tasks",
+  "vendors",
+  "vendor_risks",
+  "model_inventories",
+  "evidence_hub",
+  "risks",
+  "file_manager",
+  "policy_manager",
+  "ai_trust_center_resources",
+  "ai_trust_center_subprocessor",
+  "trainingregistar",
+  "ai_incident_managements",
+]);
+
+/**
+ * Validate table name against whitelist to prevent SQL injection
+ */
+function validateTableName(tableName: string): string {
+  if (!ALLOWED_TABLE_NAMES.has(tableName)) {
+    throw new Error(`Invalid table name: ${tableName}`);
+  }
+  return tableName;
 }
 
 /**
@@ -331,13 +370,16 @@ async function searchEntity(
     replacements.vendorIds = vendorIds;
   }
 
+  // Validate table name against whitelist (SQL injection prevention)
+  const safeTableName = validateTableName(config.tableName);
+
   // Build and execute query
   const sql = `
-    SELECT DISTINCT * FROM "${safeTenantId}".${config.tableName}
+    SELECT DISTINCT * FROM "${safeTenantId}".${safeTableName}
     WHERE ${conditions.join(" AND ")}
     LIMIT :limit
   `;
-  replacements.limit = limit;
+  replacements.limit = Math.min(limit, SEARCH_CONSTANTS.MAX_LIMIT);
 
   try {
     const rows = await sequelize.query(sql, {
@@ -371,8 +413,8 @@ async function searchEntity(
 export async function wiseSearch(options: SearchOptions): Promise<GroupedSearchResults> {
   const { query, tenantId, userId } = options;
 
-  // Minimum 3 characters required
-  if (!query || query.trim().length < 3) {
+  // Minimum characters required for search
+  if (!query || query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH) {
     return {};
   }
 

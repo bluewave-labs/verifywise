@@ -17,7 +17,8 @@ import {
   Shield,
   AlertCircle,
   Clock,
-  X
+  X,
+  LucideIcon
 } from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
 import commandRegistry from '../../../application/commands/registry'
@@ -33,7 +34,7 @@ interface CommandPaletteProps {
 }
 
 // Map entity types to icons
-const ENTITY_ICONS: Record<string, React.FC<{ size?: number }>> = {
+const ENTITY_ICONS: Record<string, LucideIcon> = {
   projects: FolderTree,
   tasks: Flag,
   vendors: Building2,

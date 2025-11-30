@@ -1,9 +1,20 @@
 import CustomAxios from "./customAxios";
 
+export interface OrgMember {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+}
+
 export interface DeepEvalOrg {
   id: string;
   name: string;
   createdAt: string;
+  created_at?: string;
+  projects_count?: number;
+  members?: OrgMember[];
+  member_ids?: number[];
 }
 
 class DeepEvalOrgsService {
@@ -12,9 +23,18 @@ class DeepEvalOrgsService {
     return res.data as { orgs: DeepEvalOrg[] };
   }
 
-  async createOrg(name: string): Promise<{ org: DeepEvalOrg }> {
-    const res = await CustomAxios.post("/deepeval/orgs", { name });
+  async createOrg(name: string, memberIds?: number[]): Promise<{ org: DeepEvalOrg }> {
+    const res = await CustomAxios.post("/deepeval/orgs", { name, member_ids: memberIds });
     return res.data as { org: DeepEvalOrg };
+  }
+
+  async updateOrg(orgId: string, name: string, memberIds?: number[]): Promise<{ org: DeepEvalOrg }> {
+    const res = await CustomAxios.put(`/deepeval/orgs/${orgId}`, { name, member_ids: memberIds });
+    return res.data as { org: DeepEvalOrg };
+  }
+
+  async deleteOrg(orgId: string): Promise<void> {
+    await CustomAxios.delete(`/deepeval/orgs/${orgId}`);
   }
 
   async getProjectsForOrg(orgId: string): Promise<string[]> {

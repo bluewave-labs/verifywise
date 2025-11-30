@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
-import { Play, TrendingUp } from "lucide-react";
+import { Play } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 import Alert from "../../components/Alert";
 import NewExperimentModal from "./NewExperimentModal";
@@ -294,7 +294,42 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
             Track metric scores across eval runs
           </Typography>
 
-          <PerformanceChart projectId={projectId} />
+          <Box sx={{ position: "relative" }}>
+            <Box sx={{
+              filter: experiments.length === 0 ? "blur(4px)" : "none",
+              pointerEvents: experiments.length === 0 ? "none" : "auto",
+            }}>
+              <PerformanceChart projectId={projectId} />
+            </Box>
+            {experiments.length === 0 && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "rgba(255, 255, 255, 0.6)",
+                  zIndex: 1,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    color: "#374151",
+                    textAlign: "center",
+                    px: 3,
+                  }}
+                >
+                  You can start tracking metrics once you define your experiments
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 

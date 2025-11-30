@@ -23,6 +23,7 @@ import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap, Target, Me
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 import MetricCard from "../../components/Cards/MetricCard";
+import EvalsSidebar from "./EvalsSidebar";
 
 export default function ExperimentDetail() {
   const { projectId, experimentId } = useParams<{ projectId: string; experimentId: string }>();
@@ -172,14 +173,36 @@ export default function ExperimentDetail() {
     return html;
   };
 
+  // Handler for sidebar tab changes - navigate to the appropriate route
+  const handleTabChange = (newTab: string) => {
+    if (newTab === "experiments") {
+      navigate(`/evals/${projectId}#experiments`);
+    } else if (newTab === "organizations") {
+      navigate(`/evals#organizations`);
+    } else {
+      navigate(`/evals/${projectId}#${newTab}`);
+    }
+  };
+
   return (
     <Box>
-      <Box>
+      <Box sx={{ mb: 2 }}>
         <PageBreadcrumbs items={breadcrumbItems} />
       </Box>
-      
+
+      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
+        {/* Sidebar - always visible */}
+        <EvalsSidebar
+          activeTab="experiments"
+          onTabChange={handleTabChange}
+          disabled={false}
+        />
+
+        {/* Main content */}
+        <Box sx={{ flex: 1 }}>
+
       {/* Header */}
-      <Box sx={{ mb: 3, mt: 2 }}>
+      <Box sx={{ mb: 3 }}>
         {/* Experiment Name with inline editing */}
         <Box
           sx={{
@@ -890,6 +913,8 @@ export default function ExperimentDetail() {
           </Box>
         </CardContent>
       </Card>
+        </Box>
+      </Box>
     </Box>
   );
 }

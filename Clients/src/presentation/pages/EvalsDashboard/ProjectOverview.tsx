@@ -12,7 +12,7 @@ import {
   Paper,
   Chip,
 } from "@mui/material";
-import { Play, Beaker, Eye } from "lucide-react";
+import { Play, Beaker } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService, type Experiment } from "../../../infrastructure/api/evaluationLogsService";
@@ -111,68 +111,8 @@ export default function ProjectOverview({
         />
       </Box>
 
-      {/* Two-column layout like Braintrust */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-        {/* Left: Observability / Tracing */}
-        <Box
-          sx={{
-            border: "1px solid #E5E7EB",
-            borderRadius: 2,
-            p: 4,
-            backgroundColor: "#FFFFFF",
-          }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, fontSize: "15px" }}>
-            Observability
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4, fontSize: "13px" }}>
-            Monitor your LLM interactions
-          </Typography>
-
-          {/* Empty state */}
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 6,
-              px: 2,
-            }}
-          >
-            <Box sx={{ mb: 3 }}>
-              <Eye size={36} color="#9CA3AF" strokeWidth={1} />
-            </Box>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 1, fontSize: "14px" }}
-            >
-              Get started with observability
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mb: 3, fontSize: "13px", maxWidth: 400, mx: "auto", lineHeight: 1.6 }}
-            >
-              Capture user interactions for monitoring, real-time scoring and review; annotate logs and use them as the source for evaluations.
-            </Typography>
-            <CustomizableButton
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                fontSize: "13px",
-                borderColor: "#D0D5DD",
-                color: "#344054",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                  borderColor: "#D0D5DD",
-                },
-              }}
-            >
-              Setup tracing
-            </CustomizableButton>
-          </Box>
-        </Box>
-
-        {/* Right: Evaluation / Experiments */}
-        <Box
+      {/* Evaluation / Experiments section */}
+      <Box
           sx={{
             border: "1px solid #E5E7EB",
             borderRadius: 2,
@@ -306,7 +246,6 @@ export default function ProjectOverview({
             </Box>
           )}
         </Box>
-      </Box>
 
       {/* New Experiment Modal */}
       <NewExperimentModal

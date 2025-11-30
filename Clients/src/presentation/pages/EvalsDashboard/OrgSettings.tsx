@@ -73,11 +73,6 @@ export default function OrgSettings() {
     }
   };
 
-  const maskApiKey = (key: string): string => {
-    if (key.length <= 8) return "***";
-    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
-  };
-
   const handleAddKey = async () => {
     if (!selectedProvider || !newApiKey.trim()) {
       setAlert({
@@ -262,6 +257,7 @@ export default function OrgSettings() {
         <Box>
           <Stack spacing={2}>
             <Select
+              id="provider-select"
               label="Select provider"
               placeholder="Select a provider from the list"
               value={selectedProvider}

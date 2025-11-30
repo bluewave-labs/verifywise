@@ -201,7 +201,8 @@ export async function getTableCounts({
     signal,
   });
   // Backend returns { message: "OK", data: counts }, so we need response.data.data
-  return response.data.data || response.data;
+  const data = response.data as { data?: Record<string, { unreadCount: number; fileCount: number }> };
+  return data.data || data as unknown as Record<string, { unreadCount: number; fileCount: number }>;
 }
 
 /**

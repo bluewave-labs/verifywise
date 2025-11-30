@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, MenuItem, Select, Divider, Stack, Typography, useTheme, IconButton } from "@mui/material";
-import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown, Plus, Workflow, Home, FlaskConical, Settings, FileSearch, Bot } from "lucide-react";
-import { getSelectStyles } from "../../utils/inputStyles";
-import TabBar from "../../components/TabBar";
+import { Box, Stack, Typography } from "@mui/material";
+import { Workflow, Home, FlaskConical, FileSearch, Bot } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -27,7 +25,6 @@ export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
 
   // Determine tab from URL hash or default (only when viewing a project)
   const [tab, setTab] = useState(() => {
@@ -49,25 +46,70 @@ export default function EvalsDashboard() {
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
   const [orgCreateOpen, setOrgCreateOpen] = useState(false);
   const [orgCreating, setOrgCreating] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Load orgs and current org (re-run when URL search changes to support "Manage organizations" from children)
+  // Onboarding state: "org" | "project" | null (null = completed)
+  const [onboardingStep, setOnboardingStep] = useState<"org" | "project" | null>(null);
+  const [onboardingOrgName, setOnboardingOrgName] = useState("");
+  const [onboardingProjectName, setOnboardingProjectName] = useState("");
+  const [onboardingProjectDesc, setOnboardingProjectDesc] = useState("");
+  const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
+  const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
+
+  // Load current org on mount and check if onboarding is needed
   useEffect(() => {
-    const loadOrgs = async () => {
-      const [{ orgs }, { org }] = await Promise.all([
-        deepEvalOrgsService.getAllOrgs(),
-        deepEvalOrgsService.getCurrentOrg(),
-      ]);
-      setOrgs(orgs);
-      setOrgId(org?.id || null);
+    const loadAndCheckOnboarding = async () => {
+      try {
+        // Check if there are any organizations
+        const { orgs } = await deepEvalOrgsService.getAllOrgs();
+
+        if (!orgs || orgs.length === 0) {
+          // No organizations - start onboarding
+          setOnboardingStep("org");
+          setOrgId(null);
+        } else {
+          // Has organizations - check for current org
+          const { org } = await deepEvalOrgsService.getCurrentOrg();
+          if (org) {
+            setOrgId(org.id);
+            // Check if this org has any projects
+            const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
+            if (!projectIds || projectIds.length === 0) {
+              // Org exists but no projects - go to project step
+              setOnboardingStep("project");
+            }
+          } else {
+            // Has orgs but none selected - select first one
+            await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+            setOrgId(orgs[0].id);
+            // Check if this org has any projects
+            const projectIds = await deepEvalOrgsService.getProjectsForOrg(orgs[0].id);
+            if (!projectIds || projectIds.length === 0) {
+              setOnboardingStep("project");
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check onboarding:", err);
+        // On error, show org creation
+        setOnboardingStep("org");
+      } finally {
+        setInitialLoading(false);
+      }
     };
-    loadOrgs();
-  }, [location.search]);
+
+    // Only run onboarding check when not viewing a specific project
+    if (!projectId) {
+      loadAndCheckOnboarding();
+    } else {
+      setInitialLoading(false);
+    }
+  }, [projectId]);
 
   // Load all projects for the dropdown and current project
   useEffect(() => {
@@ -120,7 +162,7 @@ export default function EvalsDashboard() {
     loadCounts();
   }, [projectId, currentProject]);
 
-  const handleTabChange = (_: unknown, newValue: string) => {
+  const handleTabChange = (newValue: string) => {
     setTab(newValue);
     // Update URL hash
     navigate(`${location.pathname}#${newValue}`, { replace: true });
@@ -135,6 +177,65 @@ export default function EvalsDashboard() {
   };
 
   // Organization selection is handled in ProjectsList; keep org state here only
+
+  // Onboarding: Create organization
+  const handleOnboardingCreateOrg = async () => {
+    if (!onboardingOrgName.trim()) return;
+    setOnboardingSubmitting(true);
+    try {
+      const { org } = await deepEvalOrgsService.createOrg(onboardingOrgName.trim());
+      await deepEvalOrgsService.setCurrentOrg(org.id);
+      setOrgId(org.id);
+      setOnboardingStep("project");
+      setOnboardingOrgName("");
+    } catch (err) {
+      console.error("Failed to create organization:", err);
+    } finally {
+      setOnboardingSubmitting(false);
+    }
+  };
+
+  // Onboarding: Create project
+  const handleOnboardingCreateProject = async () => {
+    if (!onboardingProjectName.trim() || !orgId) return;
+    setOnboardingSubmitting(true);
+    try {
+      await deepEvalProjectsService.createProject({
+        name: onboardingProjectName.trim(),
+        description: onboardingProjectDesc,
+        useCase: onboardingProjectUseCase,
+        defaultDataset: onboardingProjectUseCase,
+        orgId: orgId,
+      });
+
+      // Reload projects
+      const data = await deepEvalProjectsService.getAllProjects();
+      setAllProjects(data.projects);
+
+      // Link project to org and navigate
+      const createdProject = data.projects.find((p) => p.name === onboardingProjectName.trim());
+      if (createdProject) {
+        try {
+          await deepEvalOrgsService.addProjectToOrg(orgId, createdProject.id);
+        } catch (e) {
+          console.warn("Failed to link project to org:", e);
+        }
+        // Onboarding complete - close modal and navigate
+        setOnboardingStep(null);
+        setOnboardingProjectName("");
+        setOnboardingProjectDesc("");
+        setOnboardingProjectUseCase("chatbot");
+        navigate(`/evals/${createdProject.id}#overview`);
+      } else {
+        // If project not found, just close onboarding
+        setOnboardingStep(null);
+      }
+    } catch (err) {
+      console.error("Failed to create project:", err);
+    } finally {
+      setOnboardingSubmitting(false);
+    }
+  };
 
   const handleCreateProject = async () => {
     setLoading(true);
@@ -227,388 +328,205 @@ export default function EvalsDashboard() {
           </Box>
         )}
 
-        {/* Top row: Project selector (when in project), Settings on right */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: 2,
-            mb: 2,
-          }}
-        >
-        {projectId && allProjects.length > 0 && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              gap: 2,
-              mb: 2,
-            }}
-          >
-
-            {/* Project selector (only when in a project context) */}
-            <Stack gap={theme.spacing(2)} className="select-wrapper" sx={{ mb: 2 }}>
-              <Typography
-                component="p"
-                variant="body1"
-                color={theme.palette.text.secondary}
-                fontWeight={500}
-                fontSize="13px"
-                sx={{
-                  margin: 0,
-                  height: "22px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                Project
-              </Typography>
-              <Select
-                className="select-component"
-                value={projectId}
-                onChange={(e) => handleProjectChange(e.target.value)}
-                displayEmpty
-                IconComponent={() => (
-                  <ChevronDown
-                    size={16}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
-                      color: theme.palette.text.tertiary,
-                    }}
-                  />
-                )}
-                MenuProps={{
-                  disableScrollLock: true,
-                  PaperProps: {
-                    sx: {
-                      borderRadius: theme.shape.borderRadius,
-                      boxShadow: theme.boxShadow,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        fontSize: 13,
-                        color: theme.palette.text.primary,
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                        "&.Mui-selected": {
-                          backgroundColor: theme.palette.background.accent,
-                          "&:hover": {
-                            backgroundColor: theme.palette.background.accent,
-                          },
-                        },
-                        "& .MuiTouchRipple-root": {
-                          display: "none",
-                        },
-                      },
-                    },
-                  },
-                }}
-                sx={{
-                  fontSize: 13,
-                  minWidth: "200px",
-                  maxWidth: "300px",
-                  backgroundColor: theme.palette.background.main,
-                  position: "relative",
-                  cursor: "pointer",
-                  "& .MuiSelect-select": {
-                    padding: "0 32px 0 10px !important",
-                    height: "34px",
-                    display: "flex",
-                    alignItems: "center",
-                    lineHeight: 2,
-                  },
-                  ...getSelectStyles(theme),
-                }}
-              >
-                {allProjects.map((proj) => (
-                  <MenuItem
-                    key={proj.id}
-                    value={proj.id}
-                    sx={{
-                      fontSize: 13,
-                      color: theme.palette.text.tertiary,
-                      borderRadius: theme.shape.borderRadius,
-                      margin: theme.spacing(2),
-                    }}
-                  >
-                    {proj.name}
-                  </MenuItem>
-                ))}
-                <Divider sx={{ my: 0.5 }} />
-                <MenuItem
-                  value="create_new"
-                  sx={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: theme.palette.primary.main,
-                    borderRadius: theme.shape.borderRadius,
-                    margin: theme.spacing(2),
-                  }}
-                >
-                  <Plus size={14} style={{ marginRight: 8 }} />
-                  Create project
-                </MenuItem>
-              </Select>
-            </Stack>
-          </Box>
-          )}
-
-          {/* Spacer pushes right-side controls */}
-          <Box sx={{ flex: 1 }} />
-          {/* Organization dropdown only on LLM Evals root (no project selected) */}
-          {!projectId && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mr: 1 }}>
-              <Box sx={{ fontSize: "11px", color: "#6B7280", mb: 0.5, fontWeight: 600 }}>
-                Organization
-              </Box>
-              <Select
-                value={orgId || ""}
-                onChange={async (e) => {
-                  const val = String(e.target.value);
-                  if (val === "manage_orgs") {
-                    await deepEvalOrgsService.clearCurrentOrg();
-                    setOrgId(null);
-                    navigate("/evals"); // shows org selector
-                    return;
-                  }
-                  await deepEvalOrgsService.setCurrentOrg(val);
-                  setOrgId(val);
-                  // Hard reload to ensure all project lists reflect the newly selected organization
-                  // This avoids stale caches in nested components that only load on mount.
-                  navigate("/evals");
-                  setTimeout(() => {
-                    if (typeof window !== "undefined") {
-                      window.location.reload();
-                    }
-                  }, 0);
-                }}
-                displayEmpty
-                IconComponent={() => <ChevronDown size={14} style={{ marginRight: 8 }} />}
-                sx={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  minWidth: "220px",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "6px",
-                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                  "& .MuiSelect-select": { py: 0.75, px: 1.5, display: "flex", alignItems: "center", gap: 1 },
-                }}
-              >
-                <MenuItem value="manage_orgs">Manage organizations</MenuItem>
-                <Divider sx={{ my: 0.5 }} />
-                {orgs.map((o) => (
-                  <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
-                ))}
-              </Select>
-            </Box>
-          )}
-          {/* Project settings button (visible when in a project) */}
-          {projectId && (
-            <IconButton
-              aria-label="project-settings"
-              onClick={() => navigate(`/evals/${projectId}/configuration`)}
-              sx={{
-                border: "1px solid #E5E7EB",
-                width: 36,
-                height: 36,
-                borderRadius: "8px",
-                backgroundColor: "#FFFFFF",
-                "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
-              }}
-              title="Project settings"
-            >
-              <Settings size={20} />
-            </IconButton>
-          )}
-        </Box>
       </Box>
 
-      <Box sx={{ px: !projectId && orgId ? 0 : 3, py: 2 }}>
-        {!orgId ? (
-          <OrganizationSelector onSelected={async () => {
-            const { org } = await deepEvalOrgsService.getCurrentOrg();
-            setOrgId(org?.id || null);
-          }} />
-        ) : !projectId ? (
-          <ProjectsList />
-        ) : (
-          // Project detail view with tabs
-          <TabContext value={tab}>
-          <Box sx={{ mb: 3 }}>
-            <TabBar
-              tabs={[
-                { label: "Overview", value: "overview", icon: "LayoutDashboard" },
-                { label: "Experiments", value: "experiments", icon: "FlaskConical", count: experimentsCount },
-                { label: "Datasets", value: "datasets", icon: "Database", count: datasetsCount },
-                { label: "Scorers", value: "scorers", icon: "Award" },
-                { label: "Configuration", value: "configuration", icon: "Settings" },
-              ]}
-              activeTab={tab}
-              onChange={handleTabChange}
-            />
-          </Box>
+      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
+        {/* Sidebar - always visible, disabled items when no project selected */}
+        <EvalsSidebar
+          activeTab={tab}
+          onTabChange={handleTabChange}
+          experimentsCount={experimentsCount}
+          datasetsCount={datasetsCount}
+          disabled={!projectId}
+          allProjects={allProjects}
+          selectedProjectId={projectId}
+          onProjectChange={handleProjectChange}
+        />
 
-          <TabPanel value="overview" sx={{ p: 0 }}>
-            <ProjectOverview
-              projectId={projectId}
-              project={currentProject}
-              onProjectUpdate={setCurrentProject}
-            />
-          </TabPanel>
+        {/* Main content */}
+        <Box sx={{ flex: 1 }}>
+          {/* Show nothing while initially loading to prevent flash */}
+          {initialLoading && !projectId ? null : (
+          /* Organizations tab - always accessible, shows org management */
+          tab === "organizations" ? (
+            <OrganizationSelector onSelected={async () => {
+              const { org } = await deepEvalOrgsService.getCurrentOrg();
+              setOrgId(org?.id || null);
+              // Navigate back to projects list after selecting an org
+              if (!projectId) {
+                setTab("overview");
+                navigate("/evals#overview", { replace: true });
+              }
+            }} />
+          ) : !projectId ? (
+            /* No project selected - show projects list (or org selector if no org) */
+            !orgId ? (
+              <OrganizationSelector onSelected={async () => {
+                const { org } = await deepEvalOrgsService.getCurrentOrg();
+                setOrgId(org?.id || null);
+              }} />
+            ) : (
+              <ProjectsList />
+            )
+          ) : (
+            /* Project selected - show tab content */
+            <>
+              {tab === "overview" && (
+                <ProjectOverview
+                  projectId={projectId}
+                  project={currentProject}
+                  onProjectUpdate={setCurrentProject}
+                />
+              )}
 
-          <TabPanel value="experiments" sx={{ p: 0 }}>
-            <ProjectExperiments projectId={projectId} />
-          </TabPanel>
+              {tab === "experiments" && (
+                <ProjectExperiments projectId={projectId} />
+              )}
 
-          <TabPanel value="datasets" sx={{ p: 0 }}>
-            <ProjectDatasets projectId={projectId} />
-          </TabPanel>
+              {tab === "datasets" && (
+                <ProjectDatasets projectId={projectId} />
+              )}
 
-          <TabPanel value="scorers" sx={{ p: 0 }}>
-            <Box sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
-                Scorers
-              </Typography>
-              <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                Configure and manage the evaluation scorers used in your experiments. This section is under active development.
-              </Typography>
-            </Box>
-          </TabPanel>
+              {tab === "scorers" && (
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
+                    Scorers
+                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                    Configure and manage the evaluation scorers used in your experiments. This section is under active development.
+                  </Typography>
+                </Box>
+              )}
 
-          <TabPanel value="configuration" sx={{ p: 0 }}>
-            <Box sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
-                Project configuration
-              </Typography>
-              
-              {/* LLM Use Case */}
-              <Box sx={{ mt: 4, mb: 4 }}>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
-                  LLM Use Case
-                </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-                  <Box
-                    sx={{
-                      border: "1px solid #E5E7EB",
-                      borderRadius: 2,
-                      p: 2,
-                      cursor: "not-allowed",
-                      backgroundColor: "#FFFFFF",
-                      opacity: 0.6,
-                    }}
-                  >
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                      <Box sx={{ mt: 0.25 }}>
-                        <Workflow size={20} color="#13715B" />
+              {tab === "configuration" && (
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
+                    Project configuration
+                  </Typography>
+
+                  {/* LLM Use Case */}
+                  <Box sx={{ mt: 4, mb: 4 }}>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
+                      LLM use case
+                    </Typography>
+                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
+                      <Box
+                        sx={{
+                          border: "1px solid #E5E7EB",
+                          borderRadius: 2,
+                          p: 2,
+                          cursor: "not-allowed",
+                          backgroundColor: "#FFFFFF",
+                          opacity: 0.6,
+                        }}
+                      >
+                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                          <Box sx={{ mt: 0.25 }}>
+                            <Workflow size={20} color="#13715B" />
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents (coming soon)</Box>
+                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                              Agentic workflows and end-to-end task completion will be available shortly.
+                            </Box>
+                          </Box>
+                        </Box>
                       </Box>
-                      <Box>
-                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents (coming soon)</Box>
-                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                          Agentic workflows and end-to-end task completion will be available shortly.
+
+                      <Box
+                        sx={{
+                          border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                          borderRadius: 2,
+                          p: 2,
+                          backgroundColor: "#FFFFFF",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                          <Box sx={{ mt: 0.25 }}>
+                            <FileSearch size={20} color="#13715B" />
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
+                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                              Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          border: currentProject?.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                          borderRadius: 2,
+                          p: 2,
+                          backgroundColor: "#FFFFFF",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                          <Box sx={{ mt: 0.25 }}>
+                            <Bot size={20} color="#13715B" />
+                          </Box>
+                          <Box>
+                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                              Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                            </Box>
+                          </Box>
                         </Box>
                       </Box>
                     </Box>
                   </Box>
-                  
-                  <Box
-                    sx={{
-                      border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                      borderRadius: 2,
-                      p: 2,
-                      backgroundColor: "#FFFFFF",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                      <Box sx={{ mt: 0.25 }}>
-                        <FileSearch size={20} color="#13715B" />
-                      </Box>
-                      <Box>
-                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                          Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
-                        </Box>
-                      </Box>
-                    </Box>
+
+                  {/* LLM API Keys */}
+                  <Box sx={{ mt: 4 }}>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 1 }}>
+                      LLM API keys
+                    </Typography>
+                    <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
+                      These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
+                      <Typography
+                        component="span"
+                        onClick={() => navigate("/evals/settings")}
+                        sx={{
+                          color: "#13715B",
+                          cursor: "pointer",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                          "&:hover": { textDecoration: "underline" },
+                        }}
+                      >
+                        Add API key
+                      </Typography>
+                    </Typography>
+                    <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
+                      No API keys configured yet.
+                    </Typography>
                   </Box>
-                  
-                  <Box
-                    sx={{
-                      border: currentProject?.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                      borderRadius: 2,
-                      p: 2,
-                      backgroundColor: "#FFFFFF",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                      <Box sx={{ mt: 0.25 }}>
-                        <Bot size={20} color="#13715B" />
-                      </Box>
-                      <Box>
-                        <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                        <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                          Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
-                        </Box>
-                      </Box>
-                    </Box>
+
+                  {/* Save Changes Button */}
+                  <Box sx={{ mt: 4 }}>
+                    <button
+                      disabled
+                      style={{
+                        backgroundColor: "#E5E7EB",
+                        color: "#9CA3AF",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "8px 16px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      Save changes
+                    </button>
                   </Box>
                 </Box>
-              </Box>
-              
-              {/* LLM API Keys */}
-              <Box sx={{ mt: 4 }}>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 1 }}>
-                  LLM API Keys
-                </Typography>
-                <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
-                  These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
-                  <Typography
-                    component="span"
-                    onClick={() => navigate("/evals/settings")}
-                    sx={{
-                      color: "#13715B",
-                      cursor: "pointer",
-                      textDecoration: "none",
-                      fontWeight: 500,
-                      "&:hover": { textDecoration: "underline" },
-                    }}
-                  >
-                    Add API key
-                  </Typography>
-                </Typography>
-                <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
-                  No API keys configured yet.
-                </Typography>
-              </Box>
-              
-              {/* Save Changes Button */}
-              <Box sx={{ mt: 4 }}>
-                <button
-                  disabled
-                  style={{
-                    backgroundColor: "#E5E7EB",
-                    color: "#9CA3AF",
-                    border: "none",
-                    borderRadius: "6px",
-                    padding: "8px 16px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "not-allowed",
-                  }}
-                >
-                  Save changes
-                </button>
-              </Box>
-            </Box>
-          </TabPanel>
-        </TabContext>
-      )}
+              )}
+            </>
+          ))}
+        </Box>
+      </Box>
 
       {/* Create Project Modal */}
       <ModalStandard
@@ -670,13 +588,18 @@ export default function EvalsDashboard() {
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
                 sx={{
-                  border: newProject.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  border: "1px solid",
+                  borderColor: newProject.useCase === "rag" ? "#13715B" : "#E5E7EB",
                   borderRadius: 2,
                   p: 2,
                   cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                  backgroundColor: newProject.useCase === "rag" ? "#F7F9F8" : "#FFFFFF",
+                  boxShadow: newProject.useCase === "rag" ? "0 0 0 1px #13715B" : "none",
+                  transition: "background-color 0.2s ease, border-color 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "#F7F9F8",
+                  },
                 }}
               >
                 <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
@@ -694,13 +617,18 @@ export default function EvalsDashboard() {
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
                 sx={{
-                  border: newProject.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
+                  border: "1px solid",
+                  borderColor: newProject.useCase === "chatbot" ? "#13715B" : "#E5E7EB",
                   borderRadius: 2,
                   p: 2,
                   cursor: "pointer",
-                  backgroundColor: "#FFFFFF",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#13715B", boxShadow: "0 4px 10px rgba(0,0,0,0.05)" },
+                  backgroundColor: newProject.useCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
+                  boxShadow: newProject.useCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
+                  transition: "background-color 0.2s ease, border-color 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "#F7F9F8",
+                  },
                 }}
               >
                 <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
@@ -752,7 +680,122 @@ export default function EvalsDashboard() {
           />
         </Stack>
       </ModalStandard>
-    </Box>
+
+      {/* Onboarding Modal - Step 1: Create Organization */}
+      <ModalStandard
+        isOpen={onboardingStep === "org"}
+        onClose={() => {}} // Cannot be dismissed
+        title="Welcome to LLM evals"
+        description="Let's get started by creating your first organization. Organizations help you group projects and manage access."
+        onSubmit={handleOnboardingCreateOrg}
+        submitButtonText="Create organization"
+        isSubmitting={onboardingSubmitting || !onboardingOrgName.trim()}
+      >
+        <Stack spacing={3}>
+          <Field
+            label="Organization name"
+            value={onboardingOrgName}
+            onChange={(e) => setOnboardingOrgName(e.target.value)}
+            placeholder="e.g., My Company"
+            isRequired
+          />
+        </Stack>
+      </ModalStandard>
+
+      {/* Onboarding Modal - Step 2: Create Project */}
+      <ModalStandard
+        isOpen={onboardingStep === "project"}
+        onClose={() => {}} // Cannot be dismissed
+        title="Create your first project"
+        description="Projects help you organize your LLM evaluations. Each project can have its own datasets, experiments, and configurations."
+        onSubmit={handleOnboardingCreateProject}
+        submitButtonText="Create project"
+        isSubmitting={onboardingSubmitting || !onboardingProjectName.trim()}
+      >
+        <Stack spacing={3}>
+          <Field
+            label="Project name"
+            value={onboardingProjectName}
+            onChange={(e) => setOnboardingProjectName(e.target.value)}
+            placeholder="e.g., Coding Tasks Evaluation"
+            isRequired
+          />
+
+          <Field
+            label="Description"
+            value={onboardingProjectDesc}
+            onChange={(e) => setOnboardingProjectDesc(e.target.value)}
+            placeholder="Brief description of this project..."
+          />
+
+          {/* LLM Use Case - card selection */}
+          <Box>
+            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+              LLM use case
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+              <Box
+                onClick={() => setOnboardingProjectUseCase("rag")}
+                sx={{
+                  border: "1px solid",
+                  borderColor: onboardingProjectUseCase === "rag" ? "#13715B" : "#E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: onboardingProjectUseCase === "rag" ? "#F7F9F8" : "#FFFFFF",
+                  boxShadow: onboardingProjectUseCase === "rag" ? "0 0 0 1px #13715B" : "none",
+                  transition: "background-color 0.2s ease, border-color 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "#F7F9F8",
+                  },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <FileSearch size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate retrieval-augmented generation
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box
+                onClick={() => setOnboardingProjectUseCase("chatbot")}
+                sx={{
+                  border: "1px solid",
+                  borderColor: onboardingProjectUseCase === "chatbot" ? "#13715B" : "#E5E7EB",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  backgroundColor: onboardingProjectUseCase === "chatbot" ? "#F7F9F8" : "#FFFFFF",
+                  boxShadow: onboardingProjectUseCase === "chatbot" ? "0 0 0 1px #13715B" : "none",
+                  transition: "background-color 0.2s ease, border-color 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "#F7F9F8",
+                  },
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                  <Box sx={{ mt: 0.25 }}>
+                    <Bot size={20} color="#13715B" />
+                  </Box>
+                  <Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
+                      Evaluate conversational experiences
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Stack>
+      </ModalStandard>
     </Box>
   );
 }

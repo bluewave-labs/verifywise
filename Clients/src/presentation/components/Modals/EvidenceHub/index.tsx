@@ -307,29 +307,33 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
             <Stack spacing={6}>
                 {/* First Row: Evidence Name and Type */}
                 <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Field
-                            id="evidence-name"
-                            label="Evidence name"
-                            sx={{ flex: 1 }}
-                            value={values.evidence_name}
-                            onChange={handleTextChange("evidence_name")}
-                            error={errors.evidence_name}
+                    <Box sx={{ flex: 1 }}>
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Field
+                                id="evidence-name"
+                                label="Evidence name"
+                                width="100%"
+                                value={values.evidence_name}
+                                onChange={handleTextChange("evidence_name")}
+                                error={errors.evidence_name}
+                                isRequired
+                                placeholder="Evidence name"
+                            />
+                        </Suspense>
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                        <SelectComponent
+                            id="evidence-type"
+                            label="Evidence type"
+                            items={evidenceTypes}
+                            value={values.evidence_type}
+                            onChange={handleSelectChange("evidence_type")}
+                            error={errors.evidence_type}
+                            placeholder="Select evidence type"
                             isRequired
-                            placeholder="Evidence name"
+                            sx={{ width: "100%" }}
                         />
-                    </Suspense>
-                    <SelectComponent
-                        id="evidence-type"
-                        label="Evidence type"
-                        items={evidenceTypes}
-                        value={values.evidence_type}
-                        onChange={handleSelectChange("evidence_type")}
-                        error={errors.evidence_type}
-                        placeholder="Select evidence type"
-                        isRequired
-                        sx={{ flex: 1 }}
-                    />
+                    </Box>
                 </Stack>
 
                 {/* Second Row: Mapped Models (full width) */}
@@ -366,22 +370,24 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
 
                 {/* Fourth Row: Expiry date (half width) */}
                 <Stack direction="row" spacing={6}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <DatePicker
-                            label="Expiry date"
-                            date={
-                                values.expiry_date
-                                    ? dayjs(values.expiry_date)
-                                    : null
-                            }
-                            handleDateChange={handleDateChange}
-                            sx={{
-                                flex: 1,
-                                backgroundColor: theme.palette.background.main,
-                            }}
-                            error={errors.expiry_date}
-                        />
-                    </Suspense>
+                    <Box sx={{ flex: 1 }}>
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <DatePicker
+                                label="Expiry date"
+                                date={
+                                    values.expiry_date
+                                        ? dayjs(values.expiry_date)
+                                        : null
+                                }
+                                handleDateChange={handleDateChange}
+                                sx={{
+                                    width: "100%",
+                                    backgroundColor: theme.palette.background.main,
+                                }}
+                                error={errors.expiry_date}
+                            />
+                        </Suspense>
+                    </Box>
                     {/* Empty second column to match 2-column layout */}
                     <Box sx={{ flex: 1 }} />
                 </Stack>

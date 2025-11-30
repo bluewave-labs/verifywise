@@ -311,7 +311,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                         <Field
                             id="evidence-name"
                             label="Evidence name"
-                            sx={{ width: 300 }}
+                            sx={{ flex: 1 }}
                             value={values.evidence_name}
                             onChange={handleTextChange("evidence_name")}
                             error={errors.evidence_name}
@@ -328,47 +328,43 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                         error={errors.evidence_type}
                         placeholder="Select evidence type"
                         isRequired
-                        sx={{ width: 300 }}
+                        sx={{ flex: 1 }}
                     />
                 </Stack>
 
                 {/* Second Row: Mapped Models (full width) */}
-                <Box sx={{ width: 612 }}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <CustomizableMultiSelect
-                            label="Mapped models"
-                            value={values.mapped_model_ids || []}
-                            onChange={(event) => {
-                                setValues({
-                                    ...values,
-                                    mapped_model_ids: event.target.value as number[],
-                                });
-                            }}
-                            items={modelOptions}
-                            placeholder="Select models"
-                            error={errors.mapped_model_ids}
-                            sx={{ width: "100%" }}
-                        />
-                    </Suspense>
-                </Box>
+                <Suspense fallback={<div>Loading...</div>}>
+                    <CustomizableMultiSelect
+                        label="Mapped models"
+                        value={values.mapped_model_ids || []}
+                        onChange={(event) => {
+                            setValues({
+                                ...values,
+                                mapped_model_ids: event.target.value as number[],
+                            });
+                        }}
+                        items={modelOptions}
+                        placeholder="Select models"
+                        error={errors.mapped_model_ids}
+                        sx={{ width: "100%" }}
+                    />
+                </Suspense>
 
                 {/* Third Row: Description (full width) */}
-                <Box sx={{ width: 612 }}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Field
-                            id="description"
-                            label="Description"
-                            width="100%"
-                            value={values.description || ""}
-                            onChange={handleTextChange("description")}
-                            isRequired
-                            placeholder="Description"
-                            error={errors.description}
-                        />
-                    </Suspense>
-                </Box>
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                        id="description"
+                        label="Description"
+                        width="100%"
+                        value={values.description || ""}
+                        onChange={handleTextChange("description")}
+                        isRequired
+                        placeholder="Description"
+                        error={errors.description}
+                    />
+                </Suspense>
 
-                {/* Fourth Row: Expiry date (2-column layout, 2nd column empty) */}
+                {/* Fourth Row: Expiry date (half width) */}
                 <Stack direction="row" spacing={6}>
                     <Suspense fallback={<div>Loading...</div>}>
                         <DatePicker
@@ -380,14 +376,14 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                             }
                             handleDateChange={handleDateChange}
                             sx={{
-                                width: 300,
+                                flex: 1,
                                 backgroundColor: theme.palette.background.main,
                             }}
                             error={errors.expiry_date}
                         />
                     </Suspense>
                     {/* Empty second column to match 2-column layout */}
-                    <Box sx={{ width: 300 }} />
+                    <Box sx={{ flex: 1 }} />
                 </Stack>
 
                 {/* File Upload Section */}

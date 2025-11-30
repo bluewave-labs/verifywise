@@ -59,7 +59,7 @@ function App() {
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { completeOnboarding, state } = useOnboarding();
+  const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
@@ -69,14 +69,15 @@ function App() {
   useEffect(() => {
     // Only show modal if:
     // 1. User is authenticated (has token and userId)
-    // 2. Onboarding is not complete (first login)
-    // 3. Currently on dashboard route (/)
-    if (token && userId && !state.isComplete && isDashboardRoute) {
+    // 2. Onboarding state is loaded (not loading)
+    // 3. Onboarding is not complete (first login)
+    // 4. Currently on dashboard route (/)
+    if (token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute) {
       setShowModal(true);
     } else {
       setShowModal(false);
     }
-  }, [token, userId, state.isComplete, isDashboardRoute]);
+  }, [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]);
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();

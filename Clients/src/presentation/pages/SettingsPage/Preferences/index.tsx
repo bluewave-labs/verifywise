@@ -140,7 +140,7 @@ const Preferences: React.FC = () => {
           <Stack sx={{ marginTop: theme.spacing(20) }}>
             <Select
               id="risk-classification-input"
-              label="Date Format"
+              label="Date format"
               placeholder="Select an option"
               value={dateFormat}
               onChange={handleOnSelectChange}

@@ -41,6 +41,7 @@ const Select: React.FC<SelectProps> = ({
   getOptionValue,
   disabled,
   customRenderValue,
+  isFilterApplied = false,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -50,14 +51,19 @@ const Select: React.FC<SelectProps> = ({
     margin: theme.spacing(2),
   };
 
-  // Extract width from sx prop to apply to wrapper Stack
-  const extractedWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
-    ? (sx as any).width
-    : undefined;
+  // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
+  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? {
+        width: (sx as any).width,
+        flexGrow: (sx as any).flexGrow,
+        minWidth: (sx as any).minWidth,
+        maxWidth: (sx as any).maxWidth,
+      }
+    : {};
 
-  // Create a copy of sx without width to pass to MuiSelect
-  const sxWithoutWidth = sx && typeof sx === 'object' && !Array.isArray(sx)
-    ? Object.fromEntries(Object.entries(sx).filter(([key]) => key !== 'width'))
+  // Create a copy of sx without layout props to pass to MuiSelect
+  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
     : sx;
 
   const renderValue = (value: unknown) => {
@@ -96,9 +102,7 @@ const Select: React.FC<SelectProps> = ({
     <Stack
       gap={theme.spacing(2)}
       className="select-wrapper"
-      sx={{
-        width: extractedWidth,
-      }}
+      sx={extractedLayoutProps}
     >
       {label && (
         <Typography
@@ -149,6 +153,7 @@ const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
+          style: { zIndex: 10001 },
           PaperProps: {
             sx: {
               borderRadius: theme.shape.borderRadius,
@@ -157,13 +162,16 @@ const Select: React.FC<SelectProps> = ({
               "& .MuiMenuItem-root": {
                 fontSize: 13,
                 color: theme.palette.text.primary,
+                transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
+                  color: "#13715B",
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
+                    color: "#13715B",
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -177,11 +185,11 @@ const Select: React.FC<SelectProps> = ({
           fontSize: 13,
           minWidth: "125px",
           width: "100%",
-          backgroundColor: theme.palette.background.main,
+          backgroundColor: isFilterApplied ? theme.palette.background.fill : theme.palette.background.main,
           position: "relative",
           cursor: "pointer",
           ...getSelectStyles(theme, { hasError: !!error }),
-          ...sxWithoutWidth,
+          ...sxWithoutLayoutProps,
         }}
       >
         {items.map(

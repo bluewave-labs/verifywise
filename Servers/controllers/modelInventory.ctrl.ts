@@ -11,6 +11,12 @@ import {
   getModelByProjectIdQuery,
   getModelByFrameworkIdQuery,
 } from "../utils/modelInventory.utils";
+import {
+  recordModelInventoryCreation,
+  recordModelInventoryDeletion,
+  trackModelInventoryChanges,
+  recordMultipleFieldChanges,
+} from "../utils/modelInventoryChangeHistory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
@@ -214,6 +220,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    security_assessment_data,
     is_demo,
     projects,
     frameworks,
@@ -245,6 +252,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
       biases,
       limitations,
       hosting_provider,
+      security_assessment_data,
       is_demo,
     });
 
@@ -257,6 +265,16 @@ export async function createNewModelInventory(req: Request, res: Response) {
       frameworks || [],
       transaction
     );
+
+    // Record creation in change history
+    await recordModelInventoryCreation(
+      savedModelInventory.id!,
+      req.userId!,
+      req.tenantId!,
+      modelInventory,
+      transaction
+    );
+
     await transaction.commit();
 
     logStructured(
@@ -318,6 +336,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    security_assessment_data,
     is_demo,
     projects,
     frameworks,
@@ -354,6 +373,25 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         .json(STATUS_CODE[404]("Model inventory not found"));
     }
 
+    // Track changes before updating
+    const changes = await trackModelInventoryChanges(currentModelInventory, {
+      provider_model,
+      provider,
+      model,
+      version,
+      approver,
+      capabilities,
+      security_assessment,
+      status,
+      status_date,
+      reference_link,
+      biases,
+      limitations,
+      hosting_provider,
+      security_assessment_data,
+      is_demo,
+    });
+
     // Update the model inventory using the static method
     const updatedModelInventory = ModelInventoryModel.updateModelInventory(
       currentModelInventory,
@@ -371,6 +409,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         biases,
         limitations,
         hosting_provider,
+        security_assessment_data,
         is_demo,
       }
     );
@@ -387,6 +426,18 @@ export async function updateModelInventoryById(req: Request, res: Response) {
       req.tenantId!,
       transaction
     );
+
+    // Record changes in change history
+    if (changes.length > 0) {
+      await recordMultipleFieldChanges(
+        modelInventoryId,
+        req.userId!,
+        req.tenantId!,
+        changes,
+        transaction
+      );
+    }
+
     await transaction.commit();
 
     logStructured(
@@ -455,6 +506,15 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
 
     // Use the existing database query approach for deleting
     transaction = await sequelize.transaction();
+
+    // Record deletion in change history before deleting
+    await recordModelInventoryDeletion(
+      modelInventoryId,
+      req.userId!,
+      req.tenantId!,
+      transaction
+    );
+
     await deleteModelInventoryByIdQuery(modelInventoryId, deleteRisks, req.tenantId!, transaction);
     await transaction.commit();
 

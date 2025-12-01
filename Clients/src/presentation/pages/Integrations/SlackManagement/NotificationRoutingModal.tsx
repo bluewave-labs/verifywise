@@ -265,7 +265,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                 variant="outlined"
                 onClick={() => handleSendTestNotification(type.name)}
                 size="medium"
-                text="Send Test"
+                text="Send test"
                 sx={{
                   backgroundColor: theme.palette.background.main,
                   color: theme.palette.primary.main,

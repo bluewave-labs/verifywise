@@ -29,30 +29,32 @@ export const uploadFileToManager = async (
   file: Express.Multer.File,
   userId: number,
   orgId: number,
-  tenant: string
+  tenant: string,
+  modelId?: number
 ): Promise<any> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
   // Sanitize filename to remove dangerous characters
   const safeName = sanitizeFilename(file.originalname) || "file";
 
-  // Insert file metadata and content into database
-  const query = `
+    // Insert file metadata and content into database
+    const query = `
     INSERT INTO "${tenant}".file_manager
-      (filename, size, mimetype, content, uploaded_by, upload_date, org_id, is_demo)
+      (filename, size, mimetype, file_path, uploaded_by, upload_date, model_id,  org_id, is_demo)
     VALUES
-      (:filename, :size, :mimetype, :content, :uploaded_by, NOW(), :org_id, false)
+      (:filename, :size, :mimetype, :file_path, :uploaded_by, NOW(), :model_id, :org_id, false)
     RETURNING *
-  `;
+    `;
 
   const result = await sequelize.query(query, {
     replacements: {
       filename: safeName,
       size: file.size,
       mimetype: file.mimetype,
-      content: file.buffer, // Store file content in database
       uploaded_by: userId,
       org_id: orgId,
+      model_id: modelId !== undefined ? modelId : null, 
+      file_path: safeName
     },
     type: QueryTypes.SELECT,
   });
@@ -67,14 +69,20 @@ export const uploadFileToManager = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<any>} File metadata
  */
-export const getFileById = async (fileId: number, tenant: string): Promise<any> => {
+export const getFileById = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<any> => {
 
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
-  const query = `
+  let query = `
     SELECT * FROM "${tenant}".file_manager
     WHERE id = :fileId
   `;
+
+  if (!isFileManagerFile) {
+    query = `
+      SELECT * FROM "${tenant}".files WHERE id = :fileId
+    `;
+  }
 
   const result = await sequelize.query(query, {
     replacements: { fileId },
@@ -191,15 +199,23 @@ export const logFileAccess = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<boolean>} True if file was deleted successfully
  */
-export const deleteFile = async (fileId: number, tenant: string): Promise<boolean> => {
+export const deleteFile = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<boolean> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
   // Delete from database (file content is stored in database)
-  const query = `
+  let query = `
     DELETE FROM "${tenant}".file_manager
     WHERE id = :fileId
     RETURNING id
   `;
+
+  if (!isFileManagerFile) {
+    query = `
+      DELETE FROM "${tenant}".files
+      WHERE id = :fileId
+      RETURNING id
+    `;
+  }
 
   const result = await sequelize.query(query, {
     replacements: { fileId },

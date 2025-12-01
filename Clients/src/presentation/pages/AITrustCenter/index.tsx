@@ -24,6 +24,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import TabBar from "../../components/TabBar";
 import { useAITrustCentreResourcesQuery } from "../../../application/hooks/useAITrustCentreResourcesQuery";
 import { useAITrustCentreSubprocessorsQuery } from "../../../application/hooks/useAITrustCentreSubprocessorsQuery";
+import TipBox from "../../components/TipBox";
 
 const AITrustCenter: React.FC = () => {
 const params = useParams<{ tab?: string }>();
@@ -110,7 +111,8 @@ const tabValue = params.tab || "overview";
                     />
                  }
              />
-      
+      <TipBox entityName="ai-trust-center" />
+
 
       <Stack>
         <TabContext value={tabValue}>

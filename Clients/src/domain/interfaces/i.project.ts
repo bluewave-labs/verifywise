@@ -13,6 +13,7 @@ export interface IProjectListProps {
 
 export interface IProjectTableViewProps {
   projects: Project[];
+  hidePagination?: boolean;
 }
 
 export interface IProjectRiskMitigationProps {

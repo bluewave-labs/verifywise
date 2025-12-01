@@ -36,7 +36,7 @@ const IncidentStatusCard: React.FC<IncidentStatusCardProps> = ({ incidents }) =>
               sx={{
                 ...incidentManagementTileCard,
                 color: level.color,
-                border: `1px solid #E5E7EB`,
+                border: `1px solid #d0d5dd`,
                 cursor: "default",
                 borderRadius: 2
               }}

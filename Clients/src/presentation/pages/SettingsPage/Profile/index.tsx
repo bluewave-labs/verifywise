@@ -219,6 +219,11 @@ interface AlertState {
       return;
     }
 
+    if (!id) {
+      showAlert("error", "Error", "User session not found. Please log in again.");
+      return;
+    }
+
     setSaving(true);
     setShowToast(true);
 
@@ -430,6 +435,11 @@ interface AlertState {
         return;
       }
 
+      if (!id) {
+        showAlert("error", "Error", "User session not found. Please log in again.");
+        return;
+      }
+
       // Create preview
       const previewUrl = URL.createObjectURL(file);
       setSelectedImagePreview(previewUrl);
@@ -484,6 +494,11 @@ interface AlertState {
   );
 
   const handleRemoveImageConfirm = useCallback(async () => {
+    if (!id) {
+      showAlert("error", "Error", "User session not found. Please log in again.");
+      return;
+    }
+
     setImageRemoving(true);
     try {
       // Call API to delete profile photo
@@ -716,7 +731,7 @@ interface AlertState {
 
         {isDeleteModalOpen && (
           <DualButtonModal
-            title="Confirm Delete"
+            title="Confirm delete"
             body={
               <Typography fontSize={13}>
                 Are you sure you want to delete your account? This action is
@@ -855,7 +870,7 @@ interface AlertState {
       </Stack>
       {isRemoveImageModalOpen && (
         <DualButtonModal
-          title="Remove Profile Photo"
+          title="Remove profile photo"
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove your profile photo?

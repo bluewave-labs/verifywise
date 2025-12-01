@@ -18,7 +18,7 @@ import { loginUser } from "../../../../application/repository/user.repository";
 const LoginLoadingOverlay: React.FC = () => {
   const theme = useTheme();
   const text = "Processing your request. Please wait...";
-  const words = text.split(' ');
+  const words = text.split(" ");
 
   return (
     <Stack
@@ -55,27 +55,29 @@ const LoginLoadingOverlay: React.FC = () => {
           fontSize: 13,
         }}
       >
-        <Box sx={{ display: 'inline-block' }}>
+        <Box sx={{ display: "inline-block" }}>
           {words.map((word, wordIndex) => (
             <React.Fragment key={wordIndex}>
-              {word.split('').map((char, charIndex) => {
-                const totalIndex = words.slice(0, wordIndex).join(' ').length +
-                                 (wordIndex > 0 ? 1 : 0) + charIndex;
+              {word.split("").map((char, charIndex) => {
+                const totalIndex =
+                  words.slice(0, wordIndex).join(" ").length +
+                  (wordIndex > 0 ? 1 : 0) +
+                  charIndex;
 
                 return (
                   <Box
                     key={`${wordIndex}-${charIndex}`}
                     component="span"
                     sx={{
-                      display: 'inline-block',
+                      display: "inline-block",
                       animation: `colorWave 2s ease-in-out infinite`,
                       animationDelay: `${totalIndex * 0.1}s`,
-                      '@keyframes colorWave': {
-                        '0%, 100%': {
-                          color: '#6b7280',
+                      "@keyframes colorWave": {
+                        "0%, 100%": {
+                          color: "#6b7280",
                         },
-                        '50%': {
-                          color: '#13715B',
+                        "50%": {
+                          color: "#13715B",
                         },
                       },
                     }}
@@ -144,7 +146,7 @@ const Login: React.FC = () => {
       body: values,
     })
       .then((response) => {
-        setValues(initialState); // Extract `userData` from API response
+        setValues(initialState);
 
         if (response.status === 202) {
           const token = response.data.data.token;
@@ -158,7 +160,7 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
-          localStorage.setItem('root_version', __APP_VERSION__);
+          localStorage.setItem("root_version", __APP_VERSION__);
 
           logEngine({
             type: "info",
@@ -169,60 +171,61 @@ const Login: React.FC = () => {
             setIsSubmitting(false);
             navigate("/");
           }, 3000);
-        } else if (response.status === 404) {
-          logEngine({
-            type: "event",
-            message: "User not found. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "User not found. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 403) {
-          logEngine({
-            type: "event",
-            message: "Invalid password. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Invalid password. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else {
-          logEngine({
-            type: "error",
-            message: "Unexpected response. Please try again.",
-          });
-
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Unexpected response. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
         }
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
 
-        logEngine({
-          type: "error",
-          message: `An error occurred: ${error.message}`,
-        });
+        setIsSubmitting(false);
 
-        let message = "Error submitting form";
-        if (error.message === "Not Found") {
-          message = "User not found. Please try again.";
+        let message = "An error occurred. Please try again.";
+        const status = error.response?.status;
+        const responseData = error.response?.data;
+
+        if (status === 401) {
+          // Backend returns: { message: "Unauthorized", data: "Invalid email or password" }
+          message = "Invalid email or password";
+
+          logEngine({
+            type: "event",
+            message: "Invalid credentials during login.",
+          });
+        } else if (status === 500) {
+          // Backend returns: { message: "Internal Server Error", error: <error message> }
+          const errorMessage = responseData?.error || responseData?.message;
+          message = errorMessage
+            ? `Server error: ${errorMessage}`
+            : "Internal server error. Please try again later.";
+
+          logEngine({
+            type: "error",
+            message: `Server error during login: ${
+              errorMessage || "Unknown error"
+            }`,
+          });
+        } else if (error.message === "Network Error" || !error.response) {
+          message =
+            "Network error. Please check your connection and try again.";
+
+          logEngine({
+            type: "error",
+            message: "Network error during login.",
+          });
+        } else {
+          // Handle other status codes
+          const errorMessage =
+            responseData?.message || responseData?.error || error.message;
+          message =
+            errorMessage || "An unexpected error occurred. Please try again.";
+
+          logEngine({
+            type: "error",
+            message: `Unexpected error during login: ${errorMessage}`,
+          });
         }
 
-        setIsSubmitting(false);
         setAlert({ variant: "error", body: message });
-        setTimeout(() => setAlert(null), 3000);
+        setTimeout(() => setAlert(null), 5000);
       });
   };
 
@@ -253,9 +256,7 @@ const Login: React.FC = () => {
         </Suspense>
       )}
 
-      {isSubmitting && (
-        <LoginLoadingOverlay />
-      )}
+      {isSubmitting && <LoginLoadingOverlay />}
       <Background
         style={{
           position: "absolute",

@@ -7,17 +7,18 @@ const fontSizes = {
 export const tableStyles = {
   primary: {
     frame: {
-      border: "1px solid #EEEEEE",
+      border: "1px solid #d0d5dd",
       borderRadius: "4px",
       "& td, & th": {
         border: 0,
       },
     },
     header: {
-      backgroundColors: "#fafafa",
+      backgroundColors: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
       row: {
         textTransform: "uppercase",
-        borderBottom: "1px solid #EEEEEE",
+        borderBottom: "1px solid #d0d5dd",
+        background: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
       },
       cell: {
         color: "#475467",
@@ -35,7 +36,7 @@ export const tableStyles = {
       backgroundColor: "white",
       row: {
         textTransform: "capitalize",
-        borderBottom: "1px solid #EEEEEE",
+        borderBottom: "1px solid #d0d5dd",
         backgroundColor: "white",
         transition: "background-color 0.3s ease-in-out",
         "&:hover td": {

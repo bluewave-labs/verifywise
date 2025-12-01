@@ -173,6 +173,9 @@ export async function getControlById(
 ): Promise<any> {
   const controlId = parseInt(req.query.controlId as string);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner = req.query.owner ? parseInt(req.query.owner as string) : undefined;
+  const approver = req.query.approver ? parseInt(req.query.approver as string) : undefined;
+  const dueDateFilter = req.query.dueDateFilter ? parseInt(req.query.dueDateFilter as string) : undefined;
 
   logProcessing({
     description: `starting getControlById for control ID ${controlId} and project framework ID ${projectFrameworkId}`,
@@ -187,6 +190,9 @@ export async function getControlById(
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 
@@ -239,27 +245,14 @@ export async function saveControls(
       user_id: number;
       project_id: number;
       delete: string;
-      risksDelete: string;
-      risksMitigated: string;
     };
 
-    // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlEUByIdQuery(
-      controlId,
-      {
-        status: Control.status,
-        approver: Control.approver,
-        risk_review: Control.risk_review,
-        owner: Control.owner,
-        reviewer: Control.reviewer,
-        due_date: Control.due_date,
-        implementation_details: Control.implementation_details,
-        risksDelete: JSON.parse(Control.risksDelete || "[]") as number[],
-        risksMitigated: JSON.parse(Control.risksMitigated || "[]") as number[],
-      },
-      req.tenantId!,
-      transaction
-    );
+    // Control-level status fields are no longer managed here - they exist only at subcontrol level
+    // The control record in database doesn't need to be updated - all editable fields are at subcontrol level
+    // We return a simple control object for the response
+    const control: any = {
+      id: controlId,
+    };
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
@@ -872,6 +865,9 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   const controlCategoryId = parseInt(req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+  const owner = req.query.owner && req.query.owner !== '' ? parseInt(req.query.owner as string) : undefined;
+  const approver = req.query.approver && req.query.approver !== '' ? parseInt(req.query.approver as string) : undefined;
+  const dueDateFilter = req.query.dueDateFilter && req.query.dueDateFilter !== '' ? parseInt(req.query.dueDateFilter as string) : undefined;
 
   logProcessing({
     description: `starting getControlsByControlCategoryId for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
@@ -886,6 +882,9 @@ export async function getControlsByControlCategoryId(
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
       projectFrameworkId,
+      owner,
+      approver,
+      dueDateFilter,
       req.tenantId!
     );
 

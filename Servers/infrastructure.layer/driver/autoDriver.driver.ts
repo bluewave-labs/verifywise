@@ -23,7 +23,7 @@ import { AiRiskClassification } from "../../domain.layer/enums/ai-risk-classific
 import { updateAITrustCentreOverviewQuery } from "../../utils/aiTrustCentre.utils";
 import { IVendor } from "../../domain.layer/interfaces/i.vendor";
 import { createISO27001FrameworkQuery } from "../../utils/iso27001.utils";
-// import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
+import { ensureNISTAI_RMFDInfrastructure, createNISTAI_RMFFrameworkQuery, deleteProjectFrameworkNISTQuery } from "../../utils/nistAiRmfCorrect.utils";
 
 export async function insertMockData(
   tenant: string,
@@ -121,7 +121,7 @@ export async function insertMockData(
             }
             return acc;
           }, []),
-          [2, 3], // frameworks
+          [2, 3, 4], // frameworks - ISO 42001, ISO 27001, NIST AI RMF
           tenant,
           users[0].id!,
           transaction,
@@ -135,6 +135,17 @@ export async function insertMockData(
           true
         );
         await createISO27001FrameworkQuery(
+          projectOrg.id!,
+          true,
+          tenant,
+          transaction,
+          true
+        );
+
+        // Pre-check: Ensure NIST AI RMF infrastructure exists before creating framework
+        await ensureNISTAI_RMFDInfrastructure(tenant);
+
+        await createNISTAI_RMFFrameworkQuery(
           projectOrg.id!,
           true,
           tenant,
@@ -174,7 +185,7 @@ export async function insertMockData(
           approval_status: "In Progress",
           date_of_assessment: new Date(Date.now()),
           projects: [project.id!],
-          frameworks: [2, 3], // ISO frameworks
+          frameworks: [2, 3, 4], // ISO frameworks + NIST AI RMF
         },
         tenant,
         transaction
@@ -255,7 +266,7 @@ export async function insertMockData(
           soc2_type_i: true,
           soc2_type_ii: true,
           iso_27001: true,
-          isoISO_42001: true,
+          iso_42001: true,
           ccpa: true,
           gdpr: true,
           hipaa: true,
@@ -295,12 +306,15 @@ export async function insertMockData(
 export async function deleteMockData(tenant: string) {
   const transaction = await sequelize.transaction();
   try {
-    const demoProject = (await getData(
+    const demoProjects = (await getData(
       "projects",
       tenant,
       transaction
     )) as ProjectModel[];
-    for (let project of demoProject) {
+    for (let project of demoProjects) {
+      // Delete NIST AI RMF framework data first
+      await deleteProjectFrameworkNISTQuery(project.id!, tenant, transaction);
+      // Then delete the project
       await deleteProjectByIdQuery(project.id!, tenant, transaction);
     }
     // delete vendor related data

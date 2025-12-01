@@ -39,7 +39,7 @@ const HeaderCard = ({ title, count, disableNavigation = false, icon }: HeaderCar
   return (
     <Stack
       sx={{
-        border: "1px solid #eaecf0",
+        border: "1px solid #d0d5dd",
         borderRadius: 2,
         background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
         minWidth: 228,
@@ -52,7 +52,7 @@ const HeaderCard = ({ title, count, disableNavigation = false, icon }: HeaderCar
         "&:hover": isClickable
           ? {
             background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
-            borderColor: "#D1D5DB",
+            borderColor: "#d0d5dd",
           }
           : {},
       }}

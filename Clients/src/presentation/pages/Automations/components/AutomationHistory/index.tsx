@@ -13,10 +13,10 @@ import {
   TablePagination,
   Stack,
   useTheme,
-  Chip,
   TableFooter,
 } from '@mui/material';
 import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight } from 'lucide-react';
+import Chip from '../../../../components/Chip';
 import CustomAxios from '../../../../../infrastructure/api/customAxios';
 import { AutomationExecutionLog } from '../../../../../domain/types/Automation';
 import TablePaginationActions from '../../../../components/TablePagination';
@@ -96,28 +96,13 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
     setExpandedRows(newExpanded);
   };
 
-  const getStatusChipConfig = (status: 'success' | 'partial_success' | 'failure') => {
-    const configs = {
-      success: {
-        bg: '#E6F4EA',
-        color: '#138A5E',
-        icon: <CheckCircle size={14} />,
-        label: 'Success'
-      },
-      partial_success: {
-        bg: '#FFF8E1',
-        color: '#795000',
-        icon: <AlertCircle size={14} />,
-        label: 'Partial Success'
-      },
-      failure: {
-        bg: '#FFD6D6',
-        color: '#D32F2F',
-        icon: <XCircle size={14} />,
-        label: 'Failure'
-      },
+  const getStatusLabel = (status: 'success' | 'partial_success' | 'failure') => {
+    const labels = {
+      success: 'Success',
+      partial_success: 'Partial Success',
+      failure: 'Failure',
     };
-    return configs[status];
+    return labels[status];
   };
 
 
@@ -354,28 +339,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                         </Typography>
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        {(() => {
-                          const config = getStatusChipConfig(log.status);
-                          return (
-                            <Chip
-                              icon={config.icon}
-                              label={config.label}
-                              size="small"
-                              sx={{
-                                backgroundColor: config.bg,
-                                color: config.color,
-                                fontWeight: 500,
-                                fontSize: '11px',
-                                textTransform: 'uppercase',
-                                borderRadius: '4px',
-                                height: '24px',
-                                '& .MuiChip-icon': {
-                                  color: config.color,
-                                },
-                              }}
-                            />
-                          );
-                        })()}
+                        <Chip label={getStatusLabel(log.status)} />
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography sx={{ fontSize: 13 }}>
@@ -555,20 +519,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                               </Typography>
                                             </Stack>
 
-                                            <Chip
-                                              label={action.status.toUpperCase()}
-                                              size="small"
-                                              sx={{
-                                                backgroundColor: action.status === 'success' ? '#E6F4EA' : '#FFD6D6',
-                                                color: action.status === 'success' ? '#138A5E' : '#D32F2F',
-                                                fontWeight: 600,
-                                                fontSize: '10px',
-                                                textTransform: 'uppercase',
-                                                borderRadius: '4px',
-                                                height: '20px',
-                                                letterSpacing: '0.5px',
-                                              }}
-                                            />
+                                            <Chip label={action.status === 'success' ? 'Success' : 'Failure'} />
                                           </Stack>
 
                                           {/* Step Details */}

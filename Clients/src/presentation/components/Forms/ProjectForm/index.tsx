@@ -435,13 +435,13 @@ const ProjectForm = ({
         handleSubmit();
       }}
       sx={{
-        width: "fit-content",
+        width: useStandardModal ? "100%" : "fit-content",
         backgroundColor: useStandardModal ? "transparent" : "#FCFCFD",
         padding: useStandardModal ? 0 : 10,
         borderRadius: "4px",
         gap: useStandardModal ? 6 : 8,
         ...sx,
-        maxWidth: "760px",
+        maxWidth: useStandardModal ? "100%" : "760px",
       }}
     >
       {isSubmitting && (
@@ -660,7 +660,7 @@ const ProjectForm = ({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select Users"
+                    placeholder="Select users"
                     error={!!errors.members}
                     sx={teamMembersRenderInputStyle}
                   />

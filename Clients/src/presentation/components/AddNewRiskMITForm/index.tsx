@@ -10,13 +10,14 @@ import {
   TableHead,
   TableRow,
   Radio,
-  TextField,
+  Tooltip,
 } from "@mui/material";
 import EmptyState from "../EmptyState";
 import riskData from "../../assets/MITAIRISKDB.json";
 import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
+import { SearchBox } from "../Search";
 
 // Types
 interface RiskData {
@@ -166,8 +167,8 @@ const AddNewRiskMITModal = ({
   }, [setIsOpen]);
 
   const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearch(e.target.value);
+    (value: string) => {
+      setSearch(value);
     },
     []
   );
@@ -252,46 +253,28 @@ const AddNewRiskMITModal = ({
           >
             Search from the risk database:
           </Typography>
-          <TextField
-            id="risk-search-input"
-            size="small"
+          <SearchBox
             value={search}
             onChange={handleSearchChange}
             placeholder="Search by name, category, or description..."
-            aria-label="Search risks"
+            inputProps={{ "aria-label": "Search risks" }}
             sx={{
               width: { xs: "100%", sm: MODAL_CONFIG.SEARCH_FIELD_WIDTH },
               maxWidth: MODAL_CONFIG.SEARCH_FIELD_WIDTH,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: theme.spacing(0.5),
-                height: 34,
-                fontSize: 13,
-                "& input::placeholder": {
-                  fontSize: 13,
-                },
-                "& fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-                "&:hover fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-                "&.Mui-focused fieldset": {
-                  borderRadius: theme.spacing(0.5),
-                },
-              },
             }}
           />
         </Stack>
         <Stack
           sx={{
-            maxHeight: MODAL_CONFIG.MAX_HEIGHT,
+            height: MODAL_CONFIG.MAX_HEIGHT,
+            minHeight: MODAL_CONFIG.MAX_HEIGHT,
             overflow: "auto",
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: theme.spacing(1),
           }}
         >
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 900 }}>
               <TableHead>
                 <TableRow>
                   {TITLE_OF_COLUMNS.map((column) => (
@@ -334,15 +317,15 @@ const AddNewRiskMITModal = ({
                       cursor: "pointer",
                       backgroundColor:
                         selectedId === risk.Id
-                          ? theme.palette.action.selected
+                          ? "rgba(19, 113, 91, 0.04)"
                           : "inherit",
                       "&:hover": {
                         backgroundColor: theme.palette.action.hover,
                       },
                       "&:focus": {
                         backgroundColor: theme.palette.action.focus,
-                        outline: `2px solid ${theme.palette.primary.main}`,
-                        outlineOffset: -2,
+                        outline: `1px solid ${theme.palette.primary.main}`,
+                        outlineOffset: -1,
                       },
                     }}
                     tabIndex={0}
@@ -365,20 +348,32 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       sx={{
                         maxWidth: 200,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk.Summary}
+                      <span style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}>
+                        {risk.Summary}
+                      </span>
                     </TableCell>
                     <TableCell
                       sx={{
                         maxWidth: 250,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk.Description}
+                      <Tooltip title={risk.Description} arrow placement="top-start">
+                        <span style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}>{risk.Description}</span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <Typography
@@ -417,11 +412,17 @@ const AddNewRiskMITModal = ({
                     <TableCell
                       sx={{
                         maxWidth: 150,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
-                      {risk["Risk Category"]}
+                      <span style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}>
+                        {risk["Risk Category"]}
+                      </span>
                     </TableCell>
                   </TableRow>
                 ))}

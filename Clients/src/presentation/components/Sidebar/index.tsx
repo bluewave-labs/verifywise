@@ -38,7 +38,6 @@ import {
   FileText,
   Scale,
   MessageCircle,
-  MessageSquare,
   Brain,
   Shield,
   GraduationCap,
@@ -50,6 +49,11 @@ import {
   FolderCog,
   Database,
   Heart,
+  HelpCircle,
+  Newspaper,
+  Users,
+  Headphones,
+  Trash2,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -73,13 +77,13 @@ const getMenuGroups = (): IMenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Use cases",
+        name: "Use Cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
         highlightPaths: ["/project-view"],
       },
       {
-        name: "Organizational view",
+        name: "Organizational View",
         icon: <Layers size={16} strokeWidth={1.5} />,
         path: "/framework",
       },
@@ -227,7 +231,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const dispatch = useDispatch();
   const [slideoverOpen, setSlideoverOpen] = useState(false);
-  const [managementAnchorEl, setManagementAnchorEl] = useState<null | HTMLElement>(null);
+  const [managementAnchorEl, setManagementAnchorEl] =
+    useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
@@ -380,9 +385,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       gap={theme.spacing(2)}
       sx={{
         height: "100vh",
-        border: 1,
-        borderColor: theme.palette.border.light,
-        borderRadius: theme.shape.borderRadius,
+        border: "none",
+        borderRight: `1px solid ${theme.palette.border.dark}`,
+        borderRadius: 0,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
           backgroundColor: theme.palette.background.main,
@@ -399,7 +404,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
-        sx={{ position: 'relative' }}
+        sx={{ position: "relative" }}
       >
         <Stack
           direction="row"
@@ -407,63 +412,60 @@ const Sidebar: React.FC<SidebarProps> = ({
           gap={theme.spacing(4)}
           className="app-title"
         >
-          <Box
-            onMouseEnter={handleLogoHover}
-            sx={{ position: 'relative' }}
-          >
+          <Box onMouseEnter={handleLogoHover} sx={{ position: "relative" }}>
             {/* Heart Icon - Rises behind and appears above logo */}
             {showHeartIcon && (
               <Tooltip title="Spread some love!">
                 <IconButton
                   onClick={handleHeartClick}
                   sx={{
-                    position: 'absolute',
-                    top: '-20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
+                    position: "absolute",
+                    top: "-20px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
                     padding: 0,
                     zIndex: 10,
-                    '&:hover': {
-                      backgroundColor: 'transparent',
+                    "&:hover": {
+                      backgroundColor: "transparent",
                     },
                     animation: heartReturning
-                      ? 'slideDownBehind 0.5s ease-in forwards'
-                      : 'slideUpFromBehind 0.5s ease-out',
-                    '@keyframes slideUpFromBehind': {
-                      '0%': {
+                      ? "slideDownBehind 0.5s ease-in forwards"
+                      : "slideUpFromBehind 0.5s ease-out",
+                    "@keyframes slideUpFromBehind": {
+                      "0%": {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(35px)',
+                        transform: "translateX(-50%) translateY(35px)",
                         zIndex: -1,
                       },
-                      '60%': {
+                      "60%": {
                         zIndex: -1,
                       },
-                      '70%': {
+                      "70%": {
                         opacity: 1,
                         zIndex: 10,
                       },
-                      '100%': {
+                      "100%": {
                         opacity: 1,
-                        transform: 'translateX(-50%) translateY(0)',
+                        transform: "translateX(-50%) translateY(0)",
                         zIndex: 10,
                       },
                     },
-                    '@keyframes slideDownBehind': {
-                      '0%': {
+                    "@keyframes slideDownBehind": {
+                      "0%": {
                         opacity: 1,
-                        transform: 'translateX(-50%) translateY(0)',
+                        transform: "translateX(-50%) translateY(0)",
                         zIndex: 10,
                       },
-                      '30%': {
+                      "30%": {
                         opacity: 0.7,
                         zIndex: 10,
                       },
-                      '40%': {
+                      "40%": {
                         zIndex: -1,
                       },
-                      '100%': {
+                      "100%": {
                         opacity: 0,
-                        transform: 'translateX(-50%) translateY(35px)',
+                        transform: "translateX(-50%) translateY(35px)",
                         zIndex: -1,
                       },
                     },
@@ -479,7 +481,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Tooltip>
             )}
             <RouterLink to="/">
-              <img src={Logo} alt="Logo" width={32} height={30} style={{ position: 'relative', zIndex: 1 }} />
+              <img
+                src={Logo}
+                alt="Logo"
+                width={32}
+                height={30}
+                style={{ position: "relative", zIndex: 1 }}
+              />
             </RouterLink>
           </Box>
           <MuiLink
@@ -979,17 +987,49 @@ const Sidebar: React.FC<SidebarProps> = ({
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
-              background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+              background: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
+                (item) =>
+                  location.pathname.startsWith(`${item.path}/`) ||
+                  location.pathname === item.path
+              )
                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                 : "transparent",
-              border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+              border: getManagementItems(
+                hasDemoData,
+                onOpenCreateDemoData,
+                onOpenDeleteDemoData
+              ).some(
+                (item) =>
+                  location.pathname.startsWith(`${item.path}/`) ||
+                  location.pathname === item.path
+              )
                 ? "1px solid #D8D8D8"
                 : "1px solid transparent",
               "&:hover": {
-                background: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+                background: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
+                  (item) =>
+                    location.pathname.startsWith(`${item.path}/`) ||
+                    location.pathname === item.path
+                )
                   ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                   : "#F9F9F9",
-                border: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item =>location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path)
+                border: getManagementItems(
+                  hasDemoData,
+                  onOpenCreateDemoData,
+                  onOpenDeleteDemoData
+                ).some(
+                  (item) =>
+                    location.pathname.startsWith(`${item.path}/`) ||
+                    location.pathname === item.path
+                )
                   ? "1px solid #D8D8D8"
                   : "1px solid transparent",
               },
@@ -1011,16 +1051,34 @@ const Sidebar: React.FC<SidebarProps> = ({
                 width: "16px",
                 mr: 0,
                 "& svg": {
-                  color: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  color: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                   transition: "color 0.2s ease, stroke 0.2s ease",
                 },
                 "& svg path": {
-                  stroke: getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).some(item => item.path && location.pathname.includes(item.path))
+                  stroke: getManagementItems(
+                    hasDemoData,
+                    onOpenCreateDemoData,
+                    onOpenDeleteDemoData
+                  ).some(
+                    (item) => item.path && location.pathname.includes(item.path)
+                  )
                     ? "#13715B !important"
                     : `${theme.palette.text.tertiary} !important`,
                 },
@@ -1048,7 +1106,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               size={16}
               strokeWidth={1.5}
               style={{
-                transform: managementAnchorEl ? "rotate(180deg)" : "rotate(0deg)",
+                transform: managementAnchorEl
+                  ? "rotate(180deg)"
+                  : "rotate(0deg)",
                 transition: "transform 0.2s ease",
               }}
             />
@@ -1071,7 +1131,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           slotProps={{
             paper: {
               sx: {
-                width: managementAnchorEl ? managementAnchorEl.offsetWidth : "auto",
+                width: managementAnchorEl
+                  ? managementAnchorEl.offsetWidth
+                  : "auto",
                 minWidth: collapsed ? "180px" : "auto",
                 borderRadius: theme.shape.borderRadius,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -1081,7 +1143,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             },
           }}
         >
-          {getManagementItems(hasDemoData, onOpenCreateDemoData, onOpenDeleteDemoData).map((item) => (
+          {getManagementItems(
+            hasDemoData,
+            onOpenCreateDemoData,
+            onOpenDeleteDemoData
+          ).map((item) => (
             <MenuItem
               key={item.path || item.name}
               onClick={() => {
@@ -1129,18 +1195,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                     height: "16px",
                     flexShrink: 0,
                     "& svg": {
-                      color: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
-                      stroke: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      color:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
+                      stroke:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
                       transition: "color 0.2s ease, stroke 0.2s ease",
                     },
                     "& svg path": {
-                      stroke: (item.path && location.pathname.includes(item.path))
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      stroke:
+                        item.path && location.pathname.includes(item.path)
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
                     },
                   }}
                 >
@@ -1222,7 +1291,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         ) : (
           <>
-            {/* <Avatar small={true} /> */}
+            <Avatar
+              user={userAvator}
+              size="small"
+              sx={{ ml: theme.spacing(2) }}
+            />
             <Box ml={theme.spacing(2)}>
               <Typography component="span" fontWeight={500}>
                 {user.name} {user.surname}
@@ -1261,13 +1334,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           transitionDuration={0}
           PaperProps={{
             sx: {
-              width: collapsed ? "180px" : "220px", // Slightly smaller than sidebar to fit within
-              height: "auto", // Let height adjust to content
+              width: collapsed ? "260px" : "300px", // Single column width
+              height: "auto",
               maxHeight: "fit-content",
               position: "absolute",
-              bottom: "80px", // Position closer to the 3-dot button
-              left: collapsed ? "30px" : "30px", // Center within sidebar with some margin
-              borderRadius: "4px",
+              bottom: "80px",
+              left: collapsed ? "30px" : "30px",
+              borderRadius: "8px",
               boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
               border: `1px solid ${theme.palette.divider}`,
               backgroundColor: "transparent",
@@ -1279,9 +1352,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             ref={drawerRef}
             sx={{
               backgroundColor: theme.palette.background.main,
-              borderRadius: "4px",
+              borderRadius: "8px",
               border: `1px solid ${theme.palette.divider}`,
-              p: 1.5,
+              overflow: "hidden",
+              p: 1, // 8px padding around entire content
               animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",
               "@keyframes fadeIn": {
                 "0%": {
@@ -1293,115 +1367,362 @@ const Sidebar: React.FC<SidebarProps> = ({
               },
             }}
           >
-            {collapsed && (
-              <Box
-                sx={{
-                  mb: 1.5,
-                  pb: 1,
-                  borderBottom: `1px solid ${theme.palette.divider}`,
-                }}
-              >
-                <Typography component="span" fontWeight={500} fontSize="13px">
-                  {user.name} {user.surname}
-                </Typography>
+            {/* Single Column Layout */}
+            <Stack spacing={2}>
+              {/* Account Section */}
+              <Box>
                 <Typography
+                  variant="overline"
                   sx={{
-                    textTransform: "capitalize",
-                    fontSize: "13px",
-                    color: theme.palette.text.secondary,
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                    letterSpacing: "0.5px",
+                    px: theme.spacing(4),
+                    pb: 1,
                   }}
                 >
-                  {ROLES[user.roleId as keyof typeof ROLES]}
+                  ACCOUNT
                 </Typography>
+
+                <Stack spacing={1}>
+                  {/* My Profile */}
+                  <ListItemButton
+                    onClick={() => {
+                      navigate("/settings");
+                      closePopup();
+                    }}
+                    sx={{
+                      minHeight: "48px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      py: 1,
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+                        <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                          {user.name} {user.surname}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "11px",
+                            color: theme.palette.text.secondary,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {ROLES[user.roleId as keyof typeof ROLES]}
+                        </Typography>
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: theme.palette.text.secondary,
+                        }}
+                      >
+                        {user.email}
+                      </Typography>
+                    </Box>
+                  </ListItemButton>
+
+                  {/* Create Demo Data / Delete Demo Data */}
+                  {hasDemoData ? (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenDeleteDemoData) {
+                          onOpenDeleteDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Trash2 size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Delete demo data
+                      </Typography>
+                    </ListItemButton>
+                  ) : (
+                    <ListItemButton
+                      onClick={() => {
+                        if (onOpenCreateDemoData) {
+                          onOpenCreateDemoData();
+                        }
+                        closePopup();
+                      }}
+                      sx={{
+                        height: "32px",
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        px: theme.spacing(4),
+                        "& svg": {
+                          color: theme.palette.text.tertiary,
+                          stroke: theme.palette.text.tertiary,
+                        },
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                        },
+                        "&:hover svg": {
+                          color: "#13715B !important",
+                          stroke: "#13715B !important",
+                        },
+                        "&:hover svg path": {
+                          stroke: "#13715B !important",
+                        },
+                      }}
+                    >
+                      <Database size={16} strokeWidth={1.5} />
+                      <Typography sx={{ fontSize: "13px" }}>
+                        Create demo data
+                      </Typography>
+                    </ListItemButton>
+                  )}
+                </Stack>
               </Box>
-            )}
 
-            <Stack spacing={0.5}>
-              <ListItemButton
-                onClick={() => {
-                  window.open(
-                    "https://verifywise.ai/contact",
-                    "_blank",
-                    "noreferrer"
-                  );
-                  closePopup();
-                }}
-                sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
-                }}
-              >
-                <MessageCircle size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Feedback</Typography>
-              </ListItemButton>
-
-              <ListItemButton
-                onClick={() => {
-                  window.open(
-                    "https://discord.gg/d3k3E4uEpR",
-                    "_blank",
-                    "noreferrer"
-                  );
-                  closePopup();
-                }}
-                sx={{
-                  gap: theme.spacing(3),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
-                  fontSize: "13px",
-                }}
-              >
-                <MessageSquare size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  Ask on Discord
+              {/* Explore VerifyWise Section */}
+              <Box>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                    letterSpacing: "0.5px",
+                    px: theme.spacing(4),
+                    pb: 1,
+                  }}
+                >
+                  EXPLORE VERIFYWISE
                 </Typography>
-              </ListItemButton>
 
+                <Stack spacing={1}>
+                  {/* Help Center */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://docs.verifywise.ai",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <HelpCircle size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Help center
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* What's New */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/blog",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Newspaper size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      What's new?
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* User Community */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://discord.gg/d3k3E4uEpR",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Users size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      User community
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* Get Support */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/contact",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Headphones size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Get support
+                    </Typography>
+                  </ListItemButton>
+
+                  {/* Give Feedback */}
+                  <ListItemButton
+                    onClick={() => {
+                      window.open(
+                        "https://verifywise.ai/contact",
+                        "_blank",
+                        "noreferrer"
+                      );
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <MessageCircle size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>
+                      Give feedback
+                    </Typography>
+                  </ListItemButton>
+                </Stack>
+              </Box>
+
+              {/* Divider */}
+              <Divider sx={{ my: 1 }} />
+
+              {/* Logout */}
               <ListItemButton
                 onClick={logout}
                 sx={{
-                  gap: theme.spacing(3),
+                  height: "32px",
+                  gap: theme.spacing(4),
                   borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(2),
-                  py: theme.spacing(1.5),
+                  px: theme.spacing(4),
                   "& svg": {
-                    width: "16px",
-                    height: "16px",
+                    color: theme.palette.text.tertiary,
+                    stroke: theme.palette.text.tertiary,
                   },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
+                  "&:hover": {
+                    backgroundColor: "#F9FAFB",
                   },
                   "&:hover svg": {
                     color: "#13715B !important",
@@ -1410,11 +1731,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   "&:hover svg path": {
                     stroke: "#13715B !important",
                   },
-                  fontSize: "13px",
                 }}
               >
                 <LogOut size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Log out</Typography>
+                <Typography sx={{ fontSize: "13px" }}>Logout</Typography>
               </ListItemButton>
             </Stack>
           </Box>

@@ -16,6 +16,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
+import FileIcon from "../../FileIcon";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
@@ -158,6 +159,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   paginated = false,
   table,
   onFileDeleted,
+  hidePagination = false,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -272,10 +274,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     });
   }, [bodyData, sortConfig]);
 
-  const paginatedRows = sortedBodyData.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paginatedRows = hidePagination
+    ? sortedBodyData
+    : sortedBodyData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -317,9 +318,9 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
 
   // Create delete handler for a specific file
   const createDeleteHandler = useCallback(
-    (fileId: string) => async () => {
+    (fileId: string, source?: string) => async () => {
       try {
-        await deleteFileFromManager({ id: fileId });
+        await deleteFileFromManager({ id: fileId, source });
         // After successful delete, refresh the list
         if (onFileDeleted) {
           onFileDeleted();
@@ -357,7 +358,16 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
                   }}
                 >
-                  {row.fileName}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <FileIcon fileName={row.fileName} />
+                    {row.fileName}
+                  </Box>
                 </TableCell>
                 <TableCell
                   sx={{
@@ -421,8 +431,8 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     id={Number(row.id)}
                     type="report"
                     onEdit={() => {}}
-                    onDownload={() => handleDownload(row.id, row.fileName)}
-                    onDelete={createDeleteHandler(row.id)}
+                    onDownload={() => handleDownload(row.id, row.fileName, row.source)}
+                    onDelete={createDeleteHandler(row.id, row.source)}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
                     onMouseEvent={() => {}}

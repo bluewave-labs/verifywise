@@ -21,14 +21,11 @@ import {
 } from "../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
 import { SubtopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/subTopicStructEU.model";
 import { TopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/topicStructEU.model";
-import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
 import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";
-import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 import { AnswerEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/answerEURisks.model";
-import { ControlsEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/controlsEURisks.model";
 import { validateRiskArray } from "./utility.utils";
 
 const getDemoAnswers = (): string[] => {
@@ -151,12 +148,44 @@ export const getTopicByIdForProjectQuery = async (
   return topic;
 };
 
-const getSubControlsCalculations = async (controlId: number, tenant: string) => {
+const getSubControlsCalculations = async (
+  controlId: number,
+  tenant: string,
+  owner?: number,
+  approver?: number,
+  dueDateFilter?: number
+) => {
+  // Build WHERE conditions dynamically
+  const conditions: string[] = ['c.id = :control_id'];
+  const replacements: any = { control_id: controlId };
+
+  // Add owner filter if provided
+  if (owner !== undefined) {
+    conditions.push('sc.owner = :owner');
+    replacements.owner = owner;
+  }
+
+  // Add approver filter if provided
+  if (approver !== undefined) {
+    conditions.push('sc.approver = :approver');
+    replacements.approver = approver;
+  }
+
+  // Add due date filter if provided (filters for due dates within the specified number of days)
+  if (dueDateFilter !== undefined) {
+    conditions.push(`sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`);
+    replacements.dueDateFilter = dueDateFilter;
+  }
+
+  const whereClause = conditions.join(' AND ');
+
+  const query = `SELECT COUNT(*) AS "numberOfSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "numberOfDoneSubcontrols" FROM
+    "${tenant}".controls_eu c JOIN "${tenant}".subcontrols_eu sc ON c.id = sc.control_id WHERE ${whereClause};`;
+
   const result = (await sequelize.query(
-    `SELECT COUNT(*) AS "numberOfSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "numberOfDoneSubcontrols" FROM
-      "${tenant}".controls_eu c JOIN "${tenant}".subcontrols_eu sc ON c.id = sc.control_id WHERE c.id = :control_id;`,
+    query,
     {
-      replacements: { control_id: controlId },
+      replacements,
     }
   )) as [
       { numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[],
@@ -171,6 +200,9 @@ const getSubControlsCalculations = async (controlId: number, tenant: string) => 
 export const getControlByIdForProjectQuery = async (
   controlStructId: number,
   projectFrameworkId: number,
+  owner: number | undefined,
+  approver: number | undefined,
+  dueDateFilter: number | undefined,
   tenant: string
 ): Promise<Partial<ControlEU & ControlStructEUModel> | null> => {
   const controlId = (await sequelize.query(
@@ -184,12 +216,19 @@ export const getControlByIdForProjectQuery = async (
   )) as [{ id: number }[], number];
   const controls = await getControlByIdQuery(controlId[0][0].id, tenant);
   const control = controls[0];
-  const subControls = await getSubControlsByIdQuery(control.id!, tenant);
+  const subControls = await getSubControlsByIdQuery(control.id!, owner, approver, dueDateFilter, tenant);
+
   (control as any).subControls = [];
   for (let subControl of subControls) {
     (control as any).subControls.push({ ...subControl });
   }
-  const subControlsCalculations = await getSubControlsCalculations(control.id!, tenant);
+  const subControlsCalculations = await getSubControlsCalculations(
+    control.id!,
+    tenant,
+    owner,
+    approver,
+    dueDateFilter
+  );
   (control as any).numberOfSubcontrols = parseInt(
     subControlsCalculations.numberOfSubcontrols
   );
@@ -336,6 +375,9 @@ export const getControlStructByControlCategoryIdQuery = async (
 export const getControlStructByControlCategoryIdForAProjectQuery = async (
   controlCategoryId: number,
   projectFrameworkId: number,
+  owner: number | undefined,
+  approver: number | undefined,
+  dueDateFilter: number | undefined,
   tenant: string
 ) => {
   const controlsStruct = (await sequelize.query(
@@ -353,7 +395,11 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
     ];
   for (let control of controlsStruct[0]) {
     const subControlsCalculations = await getSubControlsCalculations(
-      control.control_id!, tenant
+      control.control_id!,
+      tenant,
+      owner,
+      approver,
+      dueDateFilter
     );
     (control as any).numberOfSubcontrols = parseInt(
       subControlsCalculations.numberOfSubcontrols
@@ -362,7 +408,7 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
       subControlsCalculations.numberOfDoneSubcontrols
     );
   }
-  return controlsStruct[0];
+  return controlsStruct[0].filter((control) => (control as any).numberOfSubcontrols > 0);
 };
 
 export const getControlByIdQuery = async (
@@ -393,27 +439,41 @@ export const getControlByIdQuery = async (
     }
   )) as [Partial<ControlEUModel & ControlStructEUModel>[], number];
   const control = result[0];
-  for (let c of control) {
-    (c as any).risks = [];
-    const risks = (await sequelize.query(
-      `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
-      {
-        replacements: { id: c.id },
-        transaction,
-      }
-    )) as [{ projects_risks_id: number }[], number];
-    for (let risk of risks[0]) {
-      (c as any).risks.push(risk.projects_risks_id);
-    }
-  }
   return control
 };
 
 export const getSubControlsByIdQuery = async (
   subControlId: number,
+  owner: number | undefined,
+  approver: number | undefined,
+  dueDateFilter: number | undefined,
   tenant: string,
   transaction: Transaction | null = null
 ) => {
+  // Build WHERE conditions dynamically
+  const conditions: string[] = ['sc.control_id = :control_id'];
+  const replacements: any = { control_id: subControlId };
+
+  // Add owner filter if provided
+  if (owner !== undefined) {
+    conditions.push('sc.owner = :owner');
+    replacements.owner = owner;
+  }
+
+  // Add approver filter if provided
+  if (approver !== undefined) {
+    conditions.push('sc.approver = :approver');
+    replacements.approver = approver;
+  }
+
+  // Add due date filter if provided (filters for due dates within the specified number of days)
+  if (dueDateFilter !== undefined) {
+    conditions.push(`sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`);
+    replacements.dueDateFilter = dueDateFilter;
+  }
+
+  const whereClause = conditions.join(' AND ');
+
   const subControls = (await sequelize.query(
     `SELECT 
       scs.title AS title,
@@ -434,10 +494,10 @@ export const getSubControlsByIdQuery = async (
       sc.evidence_description AS evidence_description,
       sc.feedback_description AS feedback_description,
       sc.created_at AS created_at
-    FROM "${tenant}".subcontrols_eu sc JOIN public.subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id
+    FROM "${tenant}".subcontrols_eu sc JOIN public.subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE ${whereClause}
     ORDER BY created_at DESC, id ASC;`,
     {
-      replacements: { control_id: subControlId },
+      replacements,
       ...(transaction && { transaction }),
     }
   )) as [Partial<SubcontrolEUModel | ControlStructEUModel>[], number];
@@ -467,6 +527,9 @@ export const getCompliancesEUByIdQuery = async (
       ].dataValues.controls.push(control);
       const subControls = await getSubControlsByIdQuery(
         control.id!,
+        undefined,
+        undefined,
+        undefined,
         tenant,
         transaction
       );
@@ -756,10 +819,7 @@ export const createEUFrameworkQuery = async (
 
 export const updateControlEUByIdQuery = async (
   id: number,
-  control: Partial<ControlEU & {
-    risksDelete: number[];
-    risksMitigated: number[];
-  }>,
+  control: Partial<ControlEU>,
   tenant: string,
   transaction: Transaction
 ): Promise<ControlEU> => {
@@ -800,49 +860,6 @@ export const updateControlEUByIdQuery = async (
     transaction,
   });
   const controlResult = result[0];
-  (controlResult as any).dataValues.risks = [];
-
-  const risks = (await sequelize.query(
-    `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
-    {
-      replacements: { id },
-      transaction,
-    }
-  )) as [ControlsEURisksModel[], number];
-  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
-  currentRisks = currentRisks.filter((r) => !(validateRiskArray(control.risksDelete || [], "risksDelete")).includes(r));
-  currentRisks = currentRisks.concat(validateRiskArray(control.risksMitigated || [], "risksMitigated"));
-
-  await sequelize.query(
-    `DELETE FROM "${tenant}".controls_eu__risks WHERE control_id = :id;`,
-    {
-      replacements: { id },
-      transaction,
-    }
-  );
-
-  if (currentRisks.length > 0) {
-    // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:control_id${i}, :projects_risks_id${i})`).join(", ");
-    const replacements: { [key: string]: any } = {};
-
-    // Build replacement parameters safely
-    currentRisks.forEach((risk, i) => {
-      replacements[`control_id${i}`] = id;
-      replacements[`projects_risks_id${i}`] = risk;
-    });
-
-    const subClauseRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".controls_eu__risks (control_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
-      {
-        replacements,
-        transaction,
-      }
-    )) as [{ projects_risks_id: number }[], number];
-    for (let risk of subClauseRisksInsertResult[0]) {
-      (controlResult as any).dataValues.risks.push(risk.projects_risks_id);
-    }
-  }
 
   return controlResult;
 };

@@ -1,10 +1,7 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Stack, Typography } from "@mui/material";
-import {
-  vwhomeBody,
-  vwhomeHeading,
-} from "./style";
+import { vwhomeBody, vwhomeHeading } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../components/Forms/ProjectForm";
@@ -21,7 +18,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
-
+import TipBox from "../../../components/TipBox";
 
 const Home = () => {
   const location = useLocation();
@@ -106,27 +103,28 @@ const Home = () => {
         quickActions={[
           {
             label: "Create New Project",
-            description: "Start a new AI governance project or compliance initiative",
-            primary: true
+            description:
+              "Start a new AI governance project or compliance initiative",
+            primary: true,
           },
           {
             label: "View Metrics",
-            description: "Check your compliance status and governance metrics"
-          }
+            description: "Check your compliance status and governance metrics",
+          },
         ]}
         useCases={[
           "*Daily monitoring* of *governance activities* and *compliance status*",
-          "*Executive reporting* with *real-time metrics* and *progress tracking*"
+          "*Executive reporting* with *real-time metrics* and *progress tracking*",
         ]}
         keyFeatures={[
           "**Real-time project status tracking** with *progress indicators*",
           "*Aggregated compliance metrics* across all *governance areas*",
-          "*Quick access* to *pending tasks* and *upcoming deadlines*"
+          "*Quick access* to *pending tasks* and *upcoming deadlines*",
         ]}
         tips={[
           "*Check the dashboard daily* to stay on top of *governance activities*",
           "Use *project filters* to focus on *specific initiatives* or teams",
-          "Set up *dashboard alerts* for *critical compliance thresholds*"
+          "Set up *dashboard alerts* for *critical compliance thresholds*",
         ]}
       />
       {/* Use Cases Header */}
@@ -141,8 +139,11 @@ const Home = () => {
           </Stack>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+          Use case is a real-world scenario describing how an AI system is
+          applied within an organization to achieve a defined purpose or
+          outcome.
         </Typography>
+        <TipBox entityName="overview" />
       </Stack>
 
       {/* Projects List */}
@@ -160,9 +161,7 @@ const Home = () => {
               }}
               icon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setIsProjectFormModalOpen(true)}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
+              isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
             />
           </div>
         }

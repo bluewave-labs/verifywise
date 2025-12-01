@@ -33,6 +33,9 @@ import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
+import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
+import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
+import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
@@ -40,6 +43,7 @@ import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
 import tokenRoutes from "./routes/tokens.route";
+import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
 import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
@@ -48,6 +52,10 @@ import YAML from "yamljs";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
+import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
+import evidenceHubRouter from "./routes/evidenceHub.route";
+import ceMarkingRoutes from "./routes/ceMarking.route";
+import searchRoutes from "./routes/search.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -99,7 +107,7 @@ try {
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
-    }),
+    })
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
@@ -139,6 +147,9 @@ try {
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
+  app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
+  app.use("/api/model-inventory-change-history", modelInventoryChangeHistoryRoutes);
+  app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
@@ -149,16 +160,21 @@ try {
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
   app.use("/api/tokens", tokenRoutes);
+  app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
   app.use("/api/user-preferences", userPreferenceRouter);
+  app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
+  app.use("/api/evidenceHub", evidenceHubRouter);
 
   // Adding background jobs in the Queue
   (async () => {
     await addAllJobs();
   })();
   app.use("/api/ai-incident-managements", aiIncidentRouter);
+  app.use("/api/ce-marking", ceMarkingRoutes);
+  app.use("/api/search", searchRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

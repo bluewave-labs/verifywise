@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 // Type definitions for API responses
@@ -40,6 +41,7 @@ export interface FileUploadResponse {
     mimetype: string;
     upload_date: string;
     uploaded_by: number;
+    modelId?: string; // optional
   };
 }
 
@@ -51,7 +53,7 @@ export async function getFileById({
   id: string;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<Blob> {
+}): Promise<Blob | ArrayBuffer> {
   const response = await apiServices.get<any>(`/files/${id}`, {
     signal,
     responseType,
@@ -110,13 +112,19 @@ export async function getUserFilesMetaData({
  */
 export async function uploadFileToManager({
   file,
+  model_id, // add this
   signal,
 }: {
   file: File;
+  model_id?: string | number | undefined | null; // allow all safe cases
   signal?: AbortSignal;
 }): Promise<FileUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
+
+   // Append model_id only if it's defined and valid
+  formData.append("model_id", model_id ? String(model_id) : ""); // ✅ always present
+
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary
   const response = await apiServices.post<FileUploadResponse>("/file-manager", formData, {
@@ -140,11 +148,13 @@ export async function uploadFileToManager({
 export async function downloadFileFromManager({
   id,
   signal,
+  source,
 }: {
   id: string;
   signal?: AbortSignal;
+  source?: string;
 }): Promise<Blob> {
-  const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
     signal,
     responseType: "blob",
   });
@@ -162,11 +172,13 @@ export async function downloadFileFromManager({
 export async function deleteFileFromManager({
   id,
   signal,
+  source,
 }: {
   id: string;
   signal?: AbortSignal;
+  source?: string;
 }): Promise<any> {
-  const response = await apiServices.delete<any>(`/file-manager/${id}`, {
+  const response = await apiServices.delete<any>(`/file-manager/${id}?isFileManagerFile=${source === "File Manager"}`, {
     signal,
   });
   return response.data;

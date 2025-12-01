@@ -51,6 +51,7 @@ export interface IVWProjectRisksTable {
   setPage: (pageNo: number) => void;
   page: number;
   flashRow: number | null;
+  hidePagination?: boolean;
 }
 
 export interface IVWProjectRisksTableRow {

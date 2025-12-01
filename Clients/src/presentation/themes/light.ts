@@ -22,7 +22,7 @@ const background = {
 };
 
 const fontFamilyDefault =
-  "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif";
+  "'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
 
 const shadow =
   "0px 4px 24px -4px rgba(16, 24, 40, 0.08), 0px 3px 3px -3px rgba(16, 24, 40, 0.03)";
@@ -75,7 +75,7 @@ const light = createTheme({
       grid: "#a2a3a3",
     },
     unresolved: { main: "#4e5ba6", light: "#e2eaf7", bg: "#f2f4f7" },
-    divider: "#eaecf0",
+    divider: "#d0d5dd",
   },
   shape: {
     borderRadius: 2,
@@ -210,7 +210,7 @@ const light = createTheme({
     MuiTableHead: {
       styleOverrides: {
         root: {
-          backgroundColor: background.accent,
+          background: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
         },
       },
     },

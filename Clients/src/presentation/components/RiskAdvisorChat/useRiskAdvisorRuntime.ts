@@ -68,8 +68,13 @@ export const useRiskAdvisorRuntime = (risks: any[] = []) => {
           content: [
             {
               type: 'text' as const,
-              text: assistantContent,
+              text: assistantContent?.markdown ? assistantContent.markdown : assistantContent,
             },
+            {
+              type: 'data' as const,
+              name: 'chartData',
+              data: assistantContent?.chartData ? assistantContent.chartData : null
+            }
           ],
           status: { type: 'complete' as const, reason: 'stop' as const },
         };

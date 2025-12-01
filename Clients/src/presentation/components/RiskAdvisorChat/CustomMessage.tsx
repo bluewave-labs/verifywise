@@ -1,8 +1,9 @@
 import { FC } from 'react';
 import { Stack, Box, useTheme, Avatar } from '@mui/material';
-import { MessagePrimitive, useMessagePartText } from '@assistant-ui/react';
+import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
 
 import { Bot, User } from 'lucide-react';
+import { ChartRenderer } from './ChartRenderer';
 
 const MessageText: FC = () => {
   const data = useMessagePartText();
@@ -13,6 +14,21 @@ const MessageText: FC = () => {
   }
 
   return <>{data.text}</>;
+};
+
+const MessageChart: FC = () => {
+  const message = useAssistantState(({ message }) => message);
+
+  // Find the chart data in the message content
+  const chartContent = message.content.find(
+    (part: any) => part.type === 'data' && part.name === 'chartData'
+  ) as { type: 'data'; name: string; data: any } | undefined;
+
+  if (!chartContent || !chartContent.data) {
+    return null;
+  }
+
+  return <ChartRenderer chartData={chartContent.data} />;
 };
 
 export const CustomMessage: FC = () => {
@@ -140,6 +156,7 @@ export const CustomMessage: FC = () => {
               >
                 <MessagePrimitive.Content components={{ Text: MessageText }} />
               </Box>
+              <MessageChart />
             </Stack>
           </MessagePrimitive.If>
         </Stack>

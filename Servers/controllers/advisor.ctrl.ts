@@ -6,23 +6,6 @@ import { getLLMKeysQuery } from "../utils/llmKey.utils";
 
 const fileName = "advisor.ctrl.ts";
 
-const getAdvisorType = (typeParam: string | undefined): string => {
-    switch (typeParam) {
-        case "risk":
-            return `You are an AI Risk Management Advisor for Verifyise. You help users analyze, understand, and manage AI-related risks in their organization.
-            You have access to the following tools:
-            1. fetch_risks: Retrieve specific risks based on filters
-            2. get_risk_analytics: Get analytics and distributions across risk dimensions
-            3. get_executive_summary: Get high-level overview of risk landscape
-            
-            When answering questions:
-            - Be concise and actionable
-            - Use specific data from the tools
-            - Provide an apology message if anything other than risk related query is asked.`;
-        default:
-            return `You are a general-purpose AI Advisor for Verifyise. You assist users with a wide range of topics related to Verifyise's services and products.`;
-    }
-}
 
 export async function runAdvisor(req: Request, res: Response) {
     const functionName = "runAdvisor";
@@ -51,8 +34,6 @@ export async function runAdvisor(req: Request, res: Response) {
 
         logger.debug(`Running advisor for tenant: ${tenantId}, user: ${userId}, prompt: ${prompt.substring(0, 100)}...`);
 
-        const systemPrompt = getAdvisorType(advisorType);
-
         const clients = await getLLMKeysQuery(tenantId);
 
         if (clients.length === 0) {
@@ -64,10 +45,10 @@ export async function runAdvisor(req: Request, res: Response) {
         const baseURL = apiKey.name.toLocaleLowerCase() === 'anthropic' ? 'https://api.anthropic.com/v1' : "";
 
         const response = await runAgent({
-            apiKey: apiKey.key || "", 
-            baseURL, 
-            systemPrompt, 
-            userPrompt: prompt, 
+            apiKey: apiKey.key || "",
+            baseURL,
+            advisorType,
+            userPrompt: prompt,
             tenant: tenantId
         });
 
@@ -78,7 +59,31 @@ export async function runAdvisor(req: Request, res: Response) {
             fileName
         );
 
-        return res.status(200).json({ prompt, response });
+        // Parse the structured response for risk advisor
+        let parsedResponse: any = response;
+        if (advisorType === 'risk') {
+            try {
+                // Try to parse JSON response from LLM
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsedResponse = JSON.parse(jsonMatch[0]);
+                } else {
+                    // Fallback: if LLM didn't return JSON, wrap the response
+                    parsedResponse = {
+                        markdown: response,
+                        chartData: null
+                    };
+                }
+            } catch (error) {
+                logger.warn(`Failed to parse structured response, using raw response: ${error}`);
+                parsedResponse = {
+                    markdown: response,
+                    chartData: null
+                };
+            }
+        }
+
+        return res.status(200).json({ prompt, response: parsedResponse });
     } catch (error) {
         logStructured("error", "failed to get VerifyWise advisor response", functionName, fileName);
         logger.error("❌ Error in getting VerifyWise advisor response:", error);

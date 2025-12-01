@@ -1,16 +1,17 @@
 import { OpenAI } from "openai";
 import { toolsDefinition } from "./tools";
 import { availableTools } from "./functions";
+import { getAdvisorPrompt } from "./prompts";
 
 interface AdvisorParams {
     apiKey: string;
     baseURL: string;
-    systemPrompt: string;
+    advisorType: string;
     userPrompt: string;
     tenant: string;
 }
 
-export const runAgent = async ({apiKey, baseURL, systemPrompt, userPrompt, tenant}: AdvisorParams) => {
+export const runAgent = async ({apiKey, baseURL, advisorType, userPrompt, tenant}: AdvisorParams) => {
     // 1. SETUP: Configure client
     const client = new OpenAI({
         apiKey: apiKey,
@@ -20,7 +21,7 @@ export const runAgent = async ({apiKey, baseURL, systemPrompt, userPrompt, tenan
     // Initialize conversation history with system context
     const systemMessage = {
         role: "system",
-        content: systemPrompt
+        content: getAdvisorPrompt(advisorType),
     };
 
     const messages: any[] = [

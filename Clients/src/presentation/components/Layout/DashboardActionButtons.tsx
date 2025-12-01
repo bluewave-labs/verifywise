@@ -18,6 +18,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const isAdmin = userRoleName === "Admin";
 
   const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+  const [isRequestor, setIsRequestor] = React.useState(false);
 
 
   // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
@@ -40,10 +41,10 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         transition: 'opacity 0.2s ease',
       }}
     >
-      <Button
+        <Button
         variant="contained"
         size="small"
-        onClick={() => setIsRequestModalOpen(true)}
+        onClick={() => {setIsRequestModalOpen(true); setIsRequestor(false);}}
         sx={{
           background: '#F4F4F4',
           color: '#344054',
@@ -60,11 +61,54 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           transition: 'all 0.2s ease',
         }}
       >
-        Requests
+        Approval requests
         <Box
           component="span"
           sx={{
-            backgroundColor: '#13715B',
+            backgroundColor: '#999999',
+            color: '#fff',
+            px: '6px',
+            py: '4px',
+            ml: '8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 600,
+            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '20px',
+            textAlign: 'center'
+          }}
+        >
+          1
+        </Box>
+      </Button>
+      <Button
+        variant="contained"
+        size="small"
+        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(true); }}
+        sx={{
+          background: '#F4F4F4',
+          color: '#344054',
+          fontWeight: 500,
+          fontSize: '13px', // Standardized font size
+          height: '32px', // Standardized medium height
+          minHeight: '32px',
+          padding: '8px 16px', // Standardized padding
+          borderRadius: '4px',
+          textTransform: 'none',
+          '&:hover': {
+            color: '#13715B',
+          },
+          transition: 'all 0.2s ease',
+        }}
+      >
+        Requestor requests
+        <Box
+          component="span"
+          sx={{
+            backgroundColor: '#999999',
             color: '#fff',
             px: '6px',
             py: '4px',
@@ -138,6 +182,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       </Button>
       <RequestorApprovalModal
         isOpen={isRequestModalOpen}
+        isRequestor={isRequestor}
         onClose={() => setIsRequestModalOpen(false)} />
     </Stack>
 

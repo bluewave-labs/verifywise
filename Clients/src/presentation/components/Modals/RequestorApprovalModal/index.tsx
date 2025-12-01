@@ -1,5 +1,4 @@
 import {
-    Layers,
     Check,
     ChevronRight,
 } from "lucide-react";
@@ -8,14 +7,12 @@ import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typog
 import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
-import { IMenuGroup } from "../../../../domain/interfaces/i.menu";
 import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 
 import {
     getMenuGroups,
     getMockTimelineData,
-    ITimelineStep,
     MenuItemId
 } from './mockData';
 
@@ -41,6 +38,7 @@ const getWorkflowChipProps = (value: string) => {
 interface IRequestorApprovalProps {
     isOpen: boolean;
     onClose: () => void;
+    isRequestor: boolean;
 }
 
 const menuGroups = getMenuGroups();
@@ -51,7 +49,8 @@ const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
 
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
-    onClose
+    onClose,
+    isRequestor
 }) => {
     const theme = useTheme();
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -85,10 +84,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             maxWidth="1000px"
-            onSubmit={() => { }}
-            submitButtonText="Resubmit"
-            cancelButtonText="Withdraw"
-            title={"Approval requests "}
+            onSubmit={() => { isRequestor ? console.log("Resubmit clicked") : console.log("Submit clicked"); }}
+            submitButtonText={isRequestor ? "Resubmit" : "Submit"}
+            cancelButtonText="Cancel"
+            title={isRequestor ? "Resubmit Approval Request" : "Approval requests"}
             description="Manage and review your requestor approvals."
         >
             <Stack direction="row" spacing={12} >

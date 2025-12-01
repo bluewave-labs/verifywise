@@ -40,7 +40,7 @@ export async function recordHistorySnapshot(
 
     return result[0];
   } catch (error) {
-    console.error(`Error recording history snapshot for parameter ${parameter}:`, error);
+    console.error('Error recording history snapshot for parameter %s:', parameter, error);
     throw error;
   }
 }

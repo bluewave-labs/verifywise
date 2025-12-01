@@ -18,7 +18,7 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-import { TrendingUp, X, Pencil, Check } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
 interface ExperimentDetailContentProps {
@@ -393,16 +393,17 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
 
       {/* Overall Stats Header */}
       {logs.length > 0 && (() => {
-        // Calculate overall averages found in logs
-        const metricsSum: Record<string, { sum: number; count: number }> = {};
+        // Calculate overall averages and per-sample scores for sparklines
+        const metricsSum: Record<string, { sum: number; count: number; scores: number[] }> = {};
         logs.forEach((log) => {
           if (log.metadata?.metric_scores) {
             Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
               const score = typeof value === "number" ? value : (value as { score?: number })?.score;
               if (typeof score === "number") {
-                if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0 };
+                if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0, scores: [] };
                 metricsSum[key].sum += score;
                 metricsSum[key].count += 1;
+                metricsSum[key].scores.push(score);
               }
             });
           }
@@ -412,77 +413,242 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
         const enabled: Record<string, unknown> =
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
-        // Standard metric set we expose in the UI
-        const displayMap: Record<string, string> = {
-          answerRelevancy: "Answer Relevancy",
-          bias: "Bias",
-          toxicity: "Toxicity",
-          faithfulness: "Faithfulness",
-          hallucination: "Hallucination",
-          contextualRelevancy: "Contextual Relevancy",
+        // Metric definitions with categories
+        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" }> = {
+          answerRelevancy: { label: "Answer Relevancy", category: "quality" },
+          faithfulness: { label: "Faithfulness", category: "quality" },
+          contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
+          bias: { label: "Bias", category: "safety" },
+          toxicity: { label: "Toxicity", category: "safety" },
+          hallucination: { label: "Hallucination", category: "safety" },
         };
 
-        const orderedLabels = Object.keys(displayMap)
+        // Get score color based on value thresholds
+        const getScoreColor = (score: number | undefined) => {
+          if (score === undefined) return { bg: "#F3F4F6", text: "#6B7280", icon: "#6B7280" };
+          if (score >= 0.7) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
+          if (score >= 0.4) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
+          return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
+        };
+
+        // Get delta indicator (simulated - in real app would compare to previous experiment)
+        const getDeltaIndicator = (scores: number[]) => {
+          if (scores.length < 2) return null;
+          const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
+          const secondHalf = scores.slice(Math.floor(scores.length / 2));
+          const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+          const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+          const delta = secondAvg - firstAvg;
+          if (Math.abs(delta) < 0.02) return { type: "neutral" as const, value: 0 };
+          return { type: delta > 0 ? "up" as const : "down" as const, value: Math.abs(delta * 100) };
+        };
+
+        // Simple SVG sparkline component
+        const Sparkline = ({ scores, color }: { scores: number[]; color: string }) => {
+          if (scores.length < 2) return null;
+          const width = 60;
+          const height = 20;
+          const padding = 2;
+          const maxScore = Math.max(...scores);
+          const minScore = Math.min(...scores);
+          const range = maxScore - minScore || 1;
+
+          const points = scores.map((score, i) => {
+            const x = padding + (i / (scores.length - 1)) * (width - 2 * padding);
+            const y = height - padding - ((score - minScore) / range) * (height - 2 * padding);
+            return `${x},${y}`;
+          }).join(" ");
+
+          return (
+            <svg width={width} height={height} style={{ marginLeft: "auto" }}>
+              <polyline
+                points={points}
+                fill="none"
+                stroke={color}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          );
+        };
+
+        const orderedMetrics = Object.keys(metricDefinitions)
           .filter((k) => !!enabled?.[k])
-          .map((k) => displayMap[k]);
+          .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
         if (Object.keys(metricsSum).length === 0) return null;
 
-        return (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, fontSize: "14px" }}>
-              Overall statistics
-            </Typography>
-              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-                {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
-                  const rawLabel = label;
-                  const entry = metricsSum[rawLabel] || metricsSum[`G-Eval (${rawLabel})`];
-                  const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
-                  const count = entry ? entry.count : 0;
-                  const friendlyLabel = rawLabel.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
+        // Group metrics by category
+        const qualityMetrics = orderedMetrics.filter((m) => m.category === "quality");
+        const safetyMetrics = orderedMetrics.filter((m) => m.category === "safety");
 
-                  return (
-                  <Card key={rawLabel} variant="outlined">
-                    <CardContent sx={{ p: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                        <TrendingUp size={14} color="#13715B" />
-                        <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 600, color: "#6B7280" }}>
-                          {friendlyLabel}
-                        </Typography>
-                      </Box>
-                      <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 700 }}>
-                        {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+        // Get icon for metric type (for background watermark)
+        const getMetricIcon = (metricKey: string) => {
+          switch (metricKey) {
+            case "answerRelevancy": return Sparkles;
+            case "faithfulness": return Check;
+            case "contextualRelevancy": return Sparkles;
+            case "bias": return Shield;
+            case "toxicity": return Shield;
+            case "hallucination": return Shield;
+            default: return Sparkles;
+          }
+        };
+
+        const renderMetricCard = (metric: { key: string; label: string; category: string }) => {
+          const entry = metricsSum[metric.label] || metricsSum[`G-Eval (${metric.label})`] || metricsSum[metric.key];
+          const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
+          const count = entry ? entry.count : 0;
+          const scores = entry?.scores || [];
+          const colors = getScoreColor(avgValue);
+          const delta = getDeltaIndicator(scores);
+          const BackgroundIcon = getMetricIcon(metric.key);
+
+          return (
+            <Card
+              key={metric.key}
+              elevation={0}
+              sx={{
+                position: "relative",
+                overflow: "hidden",
+                background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+                  "& .background-icon": {
+                    opacity: 0.04,
+                    transform: "translateY(-10px)",
+                  },
+                },
+              }}
+            >
+              {/* Background watermark icon */}
+              <Box
+                className="background-icon"
+                sx={{
+                  position: "absolute",
+                  bottom: "-32px",
+                  right: "-32px",
+                  opacity: 0.015,
+                  transform: "translateY(0px)",
+                  zIndex: 0,
+                  pointerEvents: "none",
+                  transition: "opacity 0.2s ease, transform 0.3s ease",
+                }}
+              >
+                <BackgroundIcon size={96} color="#374151" />
+              </Box>
+
+              <CardContent sx={{ p: 2, position: "relative", zIndex: 1, "&:last-child": { pb: 2 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontSize: "13px", fontWeight: 400, color: "#6B7280" }}>
+                    {metric.label}
+                  </Typography>
+                  {delta && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: "4px",
+                        backgroundColor: delta.type === "up" ? "#D1FAE5" : delta.type === "down" ? "#FEE2E2" : "#F3F4F6",
+                      }}
+                    >
+                      {delta.type === "up" ? (
+                        <TrendingUp size={10} color="#10B981" />
+                      ) : delta.type === "down" ? (
+                        <TrendingDown size={10} color="#EF4444" />
+                      ) : (
+                        <Minus size={10} color="#6B7280" />
+                      )}
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          fontWeight: 600,
+                          color: delta.type === "up" ? "#065F46" : delta.type === "down" ? "#991B1B" : "#6B7280",
+                        }}
+                      >
+                        {delta.value.toFixed(1)}%
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px" }}>
-                        {avgValue === undefined ? "No data yet" : `Average across ${count} samples`}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Box>
+                    </Box>
+                  )}
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        color: colors.text,
+                        lineHeight: 1.2,
+                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                      }}
+                    >
+                      {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", mt: 0.5, display: "block" }}>
+                      {avgValue === undefined ? "No data yet" : `${count} samples`}
+                    </Typography>
+                  </Box>
+                  {scores.length >= 2 && <Sparkline scores={scores} color={colors.icon} />}
+                </Box>
+              </CardContent>
+            </Card>
+          );
+        };
+
+        return (
+          <Box>
+            {/* Quality Metrics Section */}
+            {qualityMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Quality metrics
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {qualityMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
+
+            {/* Safety Metrics Section */}
+            {safetyMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Safety metrics
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {safetyMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
           </Box>
         );
       })()}
 
       {/* Split Panel Layout */}
-      <Card sx={{ overflow: "hidden" }}>
+      <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+        All samples
+      </Typography>
+      <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
           <Box sx={{
             display: "grid",
             gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr",
-            height: "calc(100vh - 360px)",
-            minHeight: "420px",
+            maxHeight: "calc(100vh - 360px)",
+            minHeight: logs.length > 0 ? "auto" : "200px",
             transition: "grid-template-columns 0.2s ease",
           }}>
             {/* Left: Samples List */}
-            <Box sx={{ display: "flex", flexDirection: "column", height: "100%", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, pl: 2, pr: 2, pt: 2, pb: 1 }}>
-                All samples
-              </Typography>
-
-              <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-                <TableContainer sx={{ maxHeight: "100%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
+              <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "calc(100vh - 360px)" }}>
+                <TableContainer>
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
@@ -584,7 +750,7 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
-                height: "100%",
+                maxHeight: "calc(100vh - 360px)",
                 animation: "slideInRight 0.3s ease-out",
                 "@keyframes slideInRight": {
                   from: {

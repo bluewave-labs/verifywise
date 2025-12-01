@@ -161,22 +161,6 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
     }
   };
 
-  const getCategoryLabel = (name: string): string => {
-    const n = name.toLowerCase();
-    if (n.includes("coding") || n.includes("code")) return "Coding";
-    if (n.includes("math")) return "Math";
-    if (n.includes("reason") || n.includes("logic")) return "Reasoning";
-    if (n.includes("customer")) return "Customer Support";
-    if (n.includes("wikipedia")) return "Knowledge";
-    if (n.includes("product")) return "Docs";
-    if (n.includes("tools")) return "Tools";
-    if (n.includes("multistep") || n.includes("planning")) return "Planning";
-    if (n.includes("pii")) return "PII";
-    if (n.includes("harassment") || n.includes("hate")) return "Harassment/Hate";
-    if (n.includes("harmful")) return "Harmful";
-    return "General";
-  };
-
   return (
     <Box sx={{ p: 2 }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}

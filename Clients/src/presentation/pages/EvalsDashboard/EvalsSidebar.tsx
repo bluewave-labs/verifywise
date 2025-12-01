@@ -1,5 +1,6 @@
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Select, MenuItem, Typography, Divider } from "@mui/material";
-import { LayoutDashboard, FlaskConical, Database, Award, Settings, Building2, ChevronDown, Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Select, MenuItem, Typography, Divider, Popover, TextField, Button, Stack } from "@mui/material";
+import { LayoutDashboard, FlaskConical, Database, Award, Settings, Building2, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import type { DeepEvalProject } from "./types";
 
@@ -33,6 +34,10 @@ interface EvalsSidebarProps {
   allProjects?: DeepEvalProject[];
   selectedProjectId?: string;
   onProjectChange?: (projectId: string) => void;
+  // Project actions
+  onRenameProject?: (projectId: string) => void;
+  onCopyProjectId?: (projectId: string) => void;
+  onDeleteProject?: (projectId: string) => void;
   // Recent items
   recentExperiments?: RecentExperiment[];
   recentProjects?: RecentProject[];
@@ -50,12 +55,20 @@ export default function EvalsSidebar({
   allProjects = [],
   selectedProjectId,
   onProjectChange,
+  onRenameProject,
+  onCopyProjectId,
+  onDeleteProject,
   recentExperiments = [],
   recentProjects = [],
   onExperimentClick,
   onProjectClick,
 }: EvalsSidebarProps) {
   const theme = useTheme();
+  const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
+  const [createProjectAnchor, setCreateProjectAnchor] = useState<HTMLElement | null>(null);
+  const [selectOpen, setSelectOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const preventCloseRef = useRef(false);
 
   const sidebarItems: SidebarItem[] = [
     { label: "Overview", value: "overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
@@ -86,6 +99,19 @@ export default function EvalsSidebar({
             value={selectedProjectId || ""}
             onChange={(e) => onProjectChange(e.target.value)}
             displayEmpty
+            open={selectOpen}
+            onOpen={() => setSelectOpen(true)}
+            onClose={() => {
+              // Only close if no popover is open and we're not about to open one
+              if (!actionsAnchor && !createProjectAnchor && !preventCloseRef.current) {
+                setSelectOpen(false);
+              }
+              preventCloseRef.current = false;
+            }}
+            renderValue={(value) => {
+              const project = allProjects.find((p) => p.id === value);
+              return project?.name || "Select project";
+            }}
             IconComponent={() => (
               <ChevronDown
                 size={16}
@@ -147,23 +173,54 @@ export default function EvalsSidebar({
               ...getSelectStyles(theme),
             }}
           >
-            {allProjects.map((proj) => (
-              <MenuItem
-                key={proj.id}
-                value={proj.id}
-                sx={{
-                  fontSize: 13,
-                  color: theme.palette.text.tertiary,
-                  borderRadius: "4px",
-                  margin: theme.spacing(2),
-                }}
-              >
-                {proj.name}
-              </MenuItem>
-            ))}
+            {allProjects.map((proj) => {
+              const isSelected = proj.id === selectedProjectId;
+              const hasActions = onRenameProject || onCopyProjectId || onDeleteProject;
+              return (
+                <MenuItem
+                  key={proj.id}
+                  value={proj.id}
+                  onClick={(e) => {
+                    // If this is the selected project and we have actions, open submenu instead
+                    if (isSelected && hasActions) {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      preventCloseRef.current = true;
+                      setActionsAnchor(e.currentTarget as HTMLElement);
+                    }
+                    // Otherwise, let the normal select behavior happen
+                  }}
+                  sx={{
+                    fontSize: 13,
+                    color: theme.palette.text.tertiary,
+                    borderRadius: "4px",
+                    margin: theme.spacing(2),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                    {proj.name}
+                  </span>
+                  {isSelected && hasActions && (
+                    <ChevronRight
+                      size={14}
+                      style={{ marginLeft: 8, flexShrink: 0, color: theme.palette.text.tertiary }}
+                    />
+                  )}
+                </MenuItem>
+              );
+            })}
             <Divider sx={{ my: 0.5 }} />
             <MenuItem
               value="create_new"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                preventCloseRef.current = true;
+                setCreateProjectAnchor(e.currentTarget as HTMLElement);
+              }}
               sx={{
                 fontSize: 13,
                 fontWeight: 500,
@@ -176,6 +233,193 @@ export default function EvalsSidebar({
               Create project
             </MenuItem>
           </Select>
+
+          {/* Project actions popover */}
+          <Popover
+            open={Boolean(actionsAnchor)}
+            anchorEl={actionsAnchor}
+            onClose={() => {
+              setActionsAnchor(null);
+              setSelectOpen(false);
+            }}
+            anchorOrigin={{
+              vertical: "center",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "center",
+              horizontal: "left",
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  borderRadius: "4px",
+                  boxShadow: theme.shadows[3],
+                  ml: 0.5,
+                  minWidth: 140,
+                },
+              },
+            }}
+          >
+            <List disablePadding sx={{ py: 0.5 }}>
+              {onRenameProject && (
+                <ListItemButton
+                  onClick={() => {
+                    if (selectedProjectId) onRenameProject(selectedProjectId);
+                    setActionsAnchor(null);
+                  }}
+                  sx={{
+                    height: 32,
+                    px: 1.5,
+                    "&:hover": { backgroundColor: theme.palette.background.accent },
+                  }}
+                >
+                  <ListItemText
+                    primary="Rename project"
+                    primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
+                  />
+                </ListItemButton>
+              )}
+              {onCopyProjectId && (
+                <ListItemButton
+                  onClick={() => {
+                    if (selectedProjectId) onCopyProjectId(selectedProjectId);
+                    setActionsAnchor(null);
+                  }}
+                  sx={{
+                    height: 32,
+                    px: 1.5,
+                    "&:hover": { backgroundColor: theme.palette.background.accent },
+                  }}
+                >
+                  <ListItemText
+                    primary="Copy project ID"
+                    primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
+                  />
+                </ListItemButton>
+              )}
+              {onDeleteProject && (
+                <ListItemButton
+                  onClick={() => {
+                    if (selectedProjectId) onDeleteProject(selectedProjectId);
+                    setActionsAnchor(null);
+                  }}
+                  sx={{
+                    height: 32,
+                    px: 1.5,
+                    "&:hover": { backgroundColor: theme.palette.background.accent },
+                  }}
+                >
+                  <ListItemText
+                    primary="Delete project"
+                    primaryTypographyProps={{ fontSize: 13, color: "#DC2626" }}
+                  />
+                </ListItemButton>
+              )}
+            </List>
+          </Popover>
+
+          {/* Create project popover */}
+          <Popover
+            open={Boolean(createProjectAnchor)}
+            anchorEl={createProjectAnchor}
+            onClose={() => {
+              setCreateProjectAnchor(null);
+              setSelectOpen(false);
+              setNewProjectName("");
+            }}
+            anchorOrigin={{
+              vertical: "center",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "center",
+              horizontal: "left",
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  borderRadius: "4px",
+                  boxShadow: theme.shadows[3],
+                  ml: 0.5,
+                  minWidth: 240,
+                  p: 2,
+                },
+              },
+            }}
+          >
+            <Stack spacing={2}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary }}>
+                Create new project
+              </Typography>
+              <TextField
+                size="small"
+                placeholder="Project name"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newProjectName.trim()) {
+                    onProjectChange?.("create_new:" + newProjectName.trim());
+                    setCreateProjectAnchor(null);
+                    setSelectOpen(false);
+                    setNewProjectName("");
+                  }
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    fontSize: 13,
+                    height: 34,
+                    borderRadius: "4px",
+                  },
+                }}
+              />
+              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setCreateProjectAnchor(null);
+                    setSelectOpen(false);
+                    setNewProjectName("");
+                  }}
+                  sx={{
+                    fontSize: 12,
+                    textTransform: "none",
+                    color: theme.palette.text.secondary,
+                    height: 28,
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={!newProjectName.trim()}
+                  onClick={() => {
+                    if (newProjectName.trim()) {
+                      onProjectChange?.("create_new:" + newProjectName.trim());
+                      setCreateProjectAnchor(null);
+                      setSelectOpen(false);
+                      setNewProjectName("");
+                    }
+                  }}
+                  sx={{
+                    fontSize: 12,
+                    textTransform: "none",
+                    backgroundColor: "#13715B",
+                    height: 28,
+                    "&:hover": { backgroundColor: "#0f5a47" },
+                    "&.Mui-disabled": {
+                      backgroundColor: "#e0e0e0",
+                      color: "#9e9e9e",
+                    },
+                  }}
+                >
+                  Create
+                </Button>
+              </Stack>
+            </Stack>
+          </Popover>
           </Box>
       )}
 

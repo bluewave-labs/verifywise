@@ -54,7 +54,7 @@ async def create_org(
 async def get_all_orgs(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
     schema = _schema_for_tenant(tenant)
     res = await db.execute(
-        text(f'SELECT id, name, created_at FROM "{schema}".deepeval_organizations ORDER BY created_at DESC')
+        text(f'SELECT id, name, created_at, member_ids FROM "{schema}".deepeval_organizations ORDER BY created_at DESC')
     )
     orgs: List[Dict[str, Any]] = []
     for row in res.mappings().all():
@@ -63,6 +63,7 @@ async def get_all_orgs(tenant: str, db: AsyncSession) -> List[Dict[str, Any]]:
                 "id": row["id"],
                 "name": row["name"],
                 "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+                "member_ids": row["member_ids"],
             }
         )
     return orgs
@@ -75,6 +76,39 @@ async def get_projects_for_org(org_id: str, tenant: str, db: AsyncSession) -> Li
         {"org_id": org_id},
     )
     return [row[0] for row in res.fetchall()]
+
+
+async def update_org(
+    org_id: str,
+    name: str,
+    member_ids: Optional[List[int]],
+    tenant: str,
+    db: AsyncSession,
+) -> Optional[Dict[str, Any]]:
+    """
+    Update an organization's name and member_ids.
+    """
+    schema = _schema_for_tenant(tenant)
+    result = await db.execute(
+        text(
+            f'''
+            UPDATE "{schema}".deepeval_organizations
+            SET name = :name, member_ids = :member_ids
+            WHERE id = :id
+            RETURNING id, name, created_at, member_ids
+            '''
+        ),
+        {"id": org_id, "name": name, "member_ids": member_ids},
+    )
+    row = result.mappings().first()
+    if row:
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+            "member_ids": row["member_ids"],
+        }
+    return None
 
 
 async def delete_org(org_id: str, tenant: str, db: AsyncSession) -> bool:

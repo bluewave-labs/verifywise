@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio } from "@mui/material";
-import { Workflow, Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save } from "lucide-react";
+import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -127,6 +127,16 @@ export default function EvalsDashboard() {
   const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
 
+  // Project actions state (rename, delete)
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameProjectId, setRenameProjectId] = useState<string | null>(null);
+  const [renameProjectName, setRenameProjectName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [projectActionAlert, setProjectActionAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+
   // Helper function to add a recent experiment
   const addRecentExperiment = (experiment: RecentExperiment) => {
     setRecentExperiments((prev) => {
@@ -196,43 +206,38 @@ export default function EvalsDashboard() {
           const { org } = await deepEvalOrgsService.getCurrentOrg();
           if (org) {
             setOrgId(org.id);
-            // Check if this org has any projects
-            const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
-            if (!projectIds || projectIds.length === 0) {
-              // Org exists but no projects - go to project step
-              setOnboardingStep("project");
-            } else {
-              // Org has projects - check for last project or redirect to first available
-              const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
-              if (lastProjectId && projectIds.includes(lastProjectId)) {
-                // Redirect to last used project
-                navigate(`/evals/${lastProjectId}#overview`, { replace: true });
-                return;
-              } else if (projectIds.length > 0) {
-                // Last project not found, use first project in list
-                navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
-                return;
-              }
-            }
           } else {
             // Has orgs but none selected - select first one
             await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
             setOrgId(orgs[0].id);
-            // Check if this org has any projects
-            const projectIds = await deepEvalOrgsService.getProjectsForOrg(orgs[0].id);
-            if (!projectIds || projectIds.length === 0) {
-              setOnboardingStep("project");
-            } else {
-              // Redirect to first project
-              const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
-              if (lastProjectId && projectIds.includes(lastProjectId)) {
+          }
+
+          // Check for last project - try to redirect regardless of org association
+          const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+          if (lastProjectId) {
+            // Verify the project still exists
+            try {
+              const projectData = await deepEvalProjectsService.getProject(lastProjectId);
+              if (projectData?.project) {
                 navigate(`/evals/${lastProjectId}#overview`, { replace: true });
                 return;
-              } else if (projectIds.length > 0) {
-                navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
-                return;
               }
+            } catch {
+              // Project doesn't exist anymore, clear from localStorage
+              localStorage.removeItem(LAST_PROJECT_KEY);
             }
+          }
+
+          // No last project - check current org's projects for onboarding
+          const currentOrgId = org?.id || orgs[0].id;
+          const projectIds = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
+          if (!projectIds || projectIds.length === 0) {
+            // Org exists but no projects - go to project step
+            setOnboardingStep("project");
+          } else if (projectIds.length > 0) {
+            // Redirect to first project in org
+            navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+            return;
           }
         }
       } catch (err) {
@@ -324,6 +329,81 @@ export default function EvalsDashboard() {
       setCreateProjectModalOpen(true);
     } else {
       navigate(`/evals/${newProjectId}#${tab}`);
+    }
+  };
+
+  // Project action handlers
+  const handleRenameProject = (projectIdToRename: string) => {
+    const proj = allProjects.find((p) => p.id === projectIdToRename);
+    if (proj) {
+      setRenameProjectId(projectIdToRename);
+      setRenameProjectName(proj.name);
+      setRenameModalOpen(true);
+    }
+  };
+
+  const handleCopyProjectId = (projectIdToCopy: string) => {
+    navigator.clipboard.writeText(projectIdToCopy);
+    setProjectActionAlert({ variant: "success", body: "Project ID copied to clipboard" });
+    setTimeout(() => setProjectActionAlert(null), 3000);
+  };
+
+  const handleDeleteProject = (projectIdToDelete: string) => {
+    setDeleteProjectId(projectIdToDelete);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmRename = async () => {
+    if (!renameProjectId || !renameProjectName.trim()) return;
+    setRenaming(true);
+    try {
+      await deepEvalProjectsService.updateProject(renameProjectId, { name: renameProjectName.trim() });
+      // Reload projects list
+      const data = await deepEvalProjectsService.getAllProjects();
+      setAllProjects(data.projects);
+      // Update current project if it was renamed
+      if (projectId === renameProjectId) {
+        const updated = data.projects.find((p) => p.id === renameProjectId);
+        if (updated) setCurrentProject(updated);
+      }
+      setProjectActionAlert({ variant: "success", body: "Project renamed successfully" });
+      setTimeout(() => setProjectActionAlert(null), 3000);
+      setRenameModalOpen(false);
+      setRenameProjectId(null);
+      setRenameProjectName("");
+    } catch (err) {
+      setProjectActionAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to rename project" });
+      setTimeout(() => setProjectActionAlert(null), 5000);
+    } finally {
+      setRenaming(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteProjectId) return;
+    setDeleting(true);
+    try {
+      await deepEvalProjectsService.deleteProject(deleteProjectId);
+      // Reload projects list
+      const data = await deepEvalProjectsService.getAllProjects();
+      setAllProjects(data.projects);
+      // If we deleted the current project, navigate away
+      if (projectId === deleteProjectId) {
+        if (data.projects.length > 0) {
+          navigate(`/evals/${data.projects[0].id}#overview`);
+        } else {
+          navigate("/evals#overview");
+        }
+      }
+      setProjectActionAlert({ variant: "success", body: "Project deleted successfully" });
+      setTimeout(() => setProjectActionAlert(null), 3000);
+      setDeleteModalOpen(false);
+      setDeleteProjectId(null);
+    } catch (err) {
+      setProjectActionAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
+      setTimeout(() => setProjectActionAlert(null), 5000);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -539,7 +619,7 @@ export default function EvalsDashboard() {
 
       </Box>
 
-      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
+      <Box sx={{ display: "flex", gap: "16px" }}>
         {/* Sidebar - always visible, disabled items when no project selected */}
         <EvalsSidebar
           activeTab={tab}
@@ -551,6 +631,9 @@ export default function EvalsDashboard() {
           allProjects={allProjects}
           selectedProjectId={projectId}
           onProjectChange={handleProjectChange}
+          onRenameProject={handleRenameProject}
+          onCopyProjectId={handleCopyProjectId}
+          onDeleteProject={handleDeleteProject}
           recentExperiments={recentExperiments}
           recentProjects={recentProjects}
           onExperimentClick={(experimentId, expProjectId) => {
@@ -1065,9 +1148,58 @@ export default function EvalsDashboard() {
             placeholder="Enter your API key..."
             type="password"
             autoComplete="off"
-            isDisabled={!selectedProvider}
+            disabled={!selectedProvider}
           />
         </Stack>
+      </ModalStandard>
+
+      {/* Project action alert */}
+      {projectActionAlert && (
+        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+          <Alert variant={projectActionAlert.variant} body={projectActionAlert.body} />
+        </Box>
+      )}
+
+      {/* Rename Project Modal */}
+      <ModalStandard
+        isOpen={renameModalOpen}
+        onClose={() => {
+          setRenameModalOpen(false);
+          setRenameProjectId(null);
+          setRenameProjectName("");
+        }}
+        title="Rename project"
+        description="Enter a new name for this project."
+        onSubmit={handleConfirmRename}
+        submitButtonText="Rename"
+        isSubmitting={renaming || !renameProjectName.trim()}
+      >
+        <Field
+          label="Project name"
+          value={renameProjectName}
+          onChange={(e) => setRenameProjectName(e.target.value)}
+          placeholder="Enter project name..."
+          isRequired
+        />
+      </ModalStandard>
+
+      {/* Delete Project Modal */}
+      <ModalStandard
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeleteProjectId(null);
+        }}
+        title="Delete project"
+        description="Are you sure you want to delete this project? This will permanently remove all experiments, datasets, and scorers associated with this project. This action cannot be undone."
+        onSubmit={handleConfirmDelete}
+        submitButtonText="Delete project"
+        isSubmitting={deleting}
+      >
+        <Typography variant="body2" color="text.secondary">
+          To confirm, you are about to delete the project:{" "}
+          <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
+        </Typography>
       </ModalStandard>
     </Box>
   );

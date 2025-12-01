@@ -11,9 +11,8 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Autocomplete,
-  TextField,
   Button,
+  SelectChangeEvent,
 } from "@mui/material";
 import { deepEvalOrgsService, type OrgMember } from "../../../infrastructure/api/deepEvalOrgsService";
 import { getAllUsers } from "../../../application/repository/user.repository";
@@ -24,6 +23,7 @@ import IconButtonComponent from "../../components/IconButton";
 import singleTheme from "../../themes/v1SingleTheme";
 import { Beaker, CirclePlus } from "lucide-react";
 import Alert from "../../components/Alert";
+import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
 
 interface Props {
   onSelected: () => void;
@@ -57,13 +57,14 @@ const tableColumns = [
 export default function OrganizationSelector({ onSelected }: Props) {
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newOrg, setNewOrg] = useState<{ name: string; selectedUsers: UserOption[] }>({ name: "", selectedUsers: [] });
+  const [newOrg, setNewOrg] = useState<{ name: string; selectedUserIds: number[] }>({ name: "", selectedUserIds: [] });
   const [editOpen, setEditOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [editName, setEditName] = useState("");
-  const [editSelectedUsers, setEditSelectedUsers] = useState<UserOption[]>([]);
+  const [editSelectedUserIds, setEditSelectedUserIds] = useState<number[]>([]);
   const [updating, setUpdating] = useState(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
 
@@ -74,21 +75,41 @@ export default function OrganizationSelector({ onSelected }: Props) {
 
   const loadOrgs = async () => {
     try {
+      setLoading(true);
       const { orgs } = await deepEvalOrgsService.getAllOrgs();
-      // Fetch actual project counts for each org
-      const orgsWithCounts = await Promise.all(
+      // Load users first to resolve member_ids
+      const usersResponse = await getAllUsers();
+      const allUsers = usersResponse.data || [];
+      const userMap = new Map<number, UserOption>(
+        allUsers.map((u: UserOption) => [u.id, u])
+      );
+      // Fetch actual project counts and resolve members for each org
+      const orgsWithData = await Promise.all(
         orgs.map(async (org) => {
+          // Resolve member_ids to actual user objects
+          const memberIds = org.member_ids || [];
+          const members: OrgMember[] = memberIds
+            .map((id: number) => userMap.get(id))
+            .filter((u): u is UserOption => !!u)
+            .map((u) => ({
+              id: u.id,
+              name: u.name,
+              surname: u.surname,
+              email: u.email,
+            }));
           try {
             const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
-            return { ...org, projects_count: projectIds.length };
+            return { ...org, projects_count: projectIds.length, members };
           } catch {
-            return { ...org, projects_count: org.projects_count ?? 0 };
+            return { ...org, projects_count: org.projects_count ?? 0, members };
           }
         })
       );
-      setOrgs(orgsWithCounts);
+      setOrgs(orgsWithData);
     } catch (err) {
       console.error("Failed to load organizations:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -115,15 +136,9 @@ export default function OrganizationSelector({ onSelected }: Props) {
   const handleEdit = (org: Organization) => {
     setEditingOrg(org);
     setEditName(org.name);
-    // Set the selected users based on existing members
+    // Set the selected user IDs based on existing members
     const existingMembers = org.members || [];
-    const selectedUsers = existingMembers.map(m => ({
-      id: m.id,
-      name: m.name,
-      surname: m.surname,
-      email: m.email,
-    }));
-    setEditSelectedUsers(selectedUsers);
+    setEditSelectedUserIds(existingMembers.map(m => m.id));
     setEditOpen(true);
   };
 
@@ -143,14 +158,13 @@ export default function OrganizationSelector({ onSelected }: Props) {
     if (!editingOrg || !editName.trim()) return;
     setUpdating(true);
     try {
-      const memberIds = editSelectedUsers.map(u => u.id);
-      await deepEvalOrgsService.updateOrg(editingOrg.id, editName.trim(), memberIds);
+      await deepEvalOrgsService.updateOrg(editingOrg.id, editName.trim(), editSelectedUserIds);
       setAlert({ variant: "success", body: "Organization updated successfully" });
       setTimeout(() => setAlert(null), 4000);
       setEditOpen(false);
       setEditingOrg(null);
       setEditName("");
-      setEditSelectedUsers([]);
+      setEditSelectedUserIds([]);
       await loadOrgs();
     } catch (err) {
       setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to update organization" });
@@ -207,7 +221,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
         </Stack>
       </Stack>
 
-      {orgs.length === 0 ? (
+      {!loading && orgs.length === 0 ? (
         <Box
           sx={{
             display: "flex",
@@ -361,7 +375,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
         isOpen={createOpen}
         onClose={() => {
           setCreateOpen(false);
-          setNewOrg({ name: "", selectedUsers: [] });
+          setNewOrg({ name: "", selectedUserIds: [] });
         }}
         title="Create organization"
         description="Name your organization and select members to begin organizing projects and experiments."
@@ -369,12 +383,11 @@ export default function OrganizationSelector({ onSelected }: Props) {
           if (!newOrg.name.trim()) return;
           setCreating(true);
           try {
-            const memberIds = newOrg.selectedUsers.map(u => u.id);
-            const { org } = await deepEvalOrgsService.createOrg(newOrg.name.trim(), memberIds);
+            const { org } = await deepEvalOrgsService.createOrg(newOrg.name.trim(), newOrg.selectedUserIds);
             // Persist as current org and close modal
             await deepEvalOrgsService.setCurrentOrg(org.id);
             setCreateOpen(false);
-            setNewOrg({ name: "", selectedUsers: [] });
+            setNewOrg({ name: "", selectedUserIds: [] });
             onSelected();
           } finally {
             setCreating(false);
@@ -391,55 +404,16 @@ export default function OrganizationSelector({ onSelected }: Props) {
             placeholder="e.g., VerifyEvals"
             isRequired
           />
-          <Box>
-            <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 1, color: "#344054" }}>
-              Members
-            </Typography>
-            <Autocomplete
-              multiple
-              options={users}
-              value={newOrg.selectedUsers}
-              onChange={(_, newValue) => setNewOrg({ ...newOrg, selectedUsers: newValue })}
-              getOptionLabel={(option) => `${option.name} ${option.surname}`}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select members..."
-                  size="small"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "13px",
-                      borderRadius: "4px",
-                    },
-                  }}
-                />
-              )}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                      {option.name} {option.surname}
-                    </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>
-                      {option.email}
-                    </Typography>
-                  </Box>
-                </li>
-              )}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option.id}
-                    label={`${option.name} ${option.surname}`}
-                    size="small"
-                    sx={{ fontSize: "12px" }}
-                  />
-                ))
-              }
-            />
-          </Box>
+          <CustomizableMultiSelect
+            label="Members"
+            items={users.map(u => ({ _id: u.id, name: u.name, surname: u.surname, email: u.email }))}
+            value={newOrg.selectedUserIds}
+            onChange={(event: SelectChangeEvent<string | number | (string | number)[]>) => {
+              const selected = event.target.value as number[];
+              setNewOrg({ ...newOrg, selectedUserIds: selected });
+            }}
+            placeholder="Select members..."
+          />
         </Stack>
       </StandardModal>
 
@@ -450,7 +424,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
           setEditOpen(false);
           setEditingOrg(null);
           setEditName("");
-          setEditSelectedUsers([]);
+          setEditSelectedUserIds([]);
         }}
         title="Edit organization"
         description="Update the organization name and members."
@@ -466,55 +440,16 @@ export default function OrganizationSelector({ onSelected }: Props) {
             placeholder="e.g., VerifyEvals"
             isRequired
           />
-          <Box>
-            <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 1, color: "#344054" }}>
-              Members
-            </Typography>
-            <Autocomplete
-              multiple
-              options={users}
-              value={editSelectedUsers}
-              onChange={(_, newValue) => setEditSelectedUsers(newValue)}
-              getOptionLabel={(option) => `${option.name} ${option.surname}`}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select members..."
-                  size="small"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "13px",
-                      borderRadius: "4px",
-                    },
-                  }}
-                />
-              )}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                      {option.name} {option.surname}
-                    </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>
-                      {option.email}
-                    </Typography>
-                  </Box>
-                </li>
-              )}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option.id}
-                    label={`${option.name} ${option.surname}`}
-                    size="small"
-                    sx={{ fontSize: "12px" }}
-                  />
-                ))
-              }
-            />
-          </Box>
+          <CustomizableMultiSelect
+            label="Members"
+            items={users.map(u => ({ _id: u.id, name: u.name, surname: u.surname, email: u.email }))}
+            value={editSelectedUserIds}
+            onChange={(event: SelectChangeEvent<string | number | (string | number)[]>) => {
+              const selected = event.target.value as number[];
+              setEditSelectedUserIds(selected);
+            }}
+            placeholder="Select members..."
+          />
         </Stack>
       </StandardModal>
     </Box>

@@ -5,7 +5,7 @@ import ConfirmableDeleteIconButton from "../../../../components/Modals/Confirmab
 import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
 const StatusChip: React.FC<{
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
 }> = ({ status }) => {
   const getStatusStyles = () => {
     switch (status) {
@@ -29,6 +29,11 @@ const StatusChip: React.FC<{
         return {
           backgroundColor: "#e0e0e0",
           color: "#616161",
+        };
+      case "Available":
+        return {
+          backgroundColor: "#e3f2fd",
+          color: "#1565c0",
         };
       default:
         return {

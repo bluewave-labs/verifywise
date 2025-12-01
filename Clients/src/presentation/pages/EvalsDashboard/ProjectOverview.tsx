@@ -29,7 +29,6 @@ export default function ProjectOverview({
 }: ProjectOverviewProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<{ totalExperiments: number; lastRunDate: string | null; avgMetrics: Record<string, number> } | null>(null);
   const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
@@ -43,13 +42,8 @@ export default function ProjectOverview({
         onProjectUpdate(projectData.project);
       }
 
-      // Load project stats and experiments
-      const [statsData, experimentsData] = await Promise.all([
-        deepEvalProjectsService.getProjectStats(projectId),
-        experimentsService.getExperiments({ project_id: projectId, limit: 10 }),
-      ]);
-      
-      setStats(statsData.stats);
+      // Load experiments
+      const experimentsData = await experimentsService.getExperiments({ project_id: projectId, limit: 10 });
       setExperiments(experimentsData.experiments || []);
     } catch (err) {
       console.error("Failed to load overview data:", err);
@@ -79,7 +73,7 @@ export default function ProjectOverview({
     );
   }
 
-  const hasExperiments = experiments.length > 0 || (stats?.totalExperiments ?? 0) > 0;
+  const hasExperiments = experiments.length > 0;
 
   return (
     <Box>
@@ -110,13 +104,12 @@ export default function ProjectOverview({
       </Box>
 
       {/* Two-column layout */}
-      <Box sx={{ display: "flex", gap: 3 }}>
+      <Box sx={{ display: "flex", gap: "16px" }}>
         {/* Column 1: Recent experiments */}
         <Box
           sx={{
             flex: 1,
             borderRadius: 2,
-            p: 4,
           }}
         >
           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>

@@ -54,7 +54,7 @@ export interface IEvaluationRow {
   model: string;
   judge?: string;
   dataset: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
 }
 
 export interface IEvaluationTableBodyProps {

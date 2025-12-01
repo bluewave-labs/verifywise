@@ -9,47 +9,33 @@ import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
 import { IMenuGroup } from "../../../../domain/interfaces/i.menu";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 
+import {
+    getMenuGroups,
+    getMockTimelineData,
+    ITimelineStep,
+    MenuItemId
+} from './mockData';
 
-
-const getMenuGroups = (): IMenuGroup[] => [
-    {
-        name: "WAITING FOR APPROVAL",
-        items: [
-            {
-                name: "AI Marketing Tool",
-                path: "/overview",
-                icon: <Layers size={16} strokeWidth={1.5} />,
-                highlightPaths: ["/project-view"],
-            },
-            {
-                name: "Medical AI Platform",
-                icon: <Layers size={16} strokeWidth={1.5} />,
-                path: "/framework",
-            },
-        ],
-
-    },
-    {
-        name: "APPROVED REQUESTS",
-        items: [
-            {
-                name: "Ecommerce AI Solution online test",
-                path: "/overview",
-                icon: <Layers size={16} strokeWidth={1.5} />,
-                highlightPaths: ["/project-view"],
-            },
-            {
-                name: "HR Analytics Tool",
-                icon: <Layers size={16} strokeWidth={1.5} />,
-                path: "/framework",
-            },
-        ],
-
-    },
-];
-
+//  badge style generator
+const getWorkflowChipProps = (value: string) => {
+    const styles: Record<string, { bg: string; color: string }> = {
+        [ApprovalStatus.APPROVED]: {
+            bg: "#E6F4EA",
+            color: "#2E7D32",
+        },
+        [ApprovalStatus.REJECTED]: {
+            bg: "#FDECEA",
+            color: "#C62828",
+        },
+        [ApprovalStatus.PENDING]: {
+            bg: "#F5F5F5",
+            color: "#616161",
+        },
+    };
+}
 
 
 interface IRequestorApprovalProps {
@@ -57,56 +43,11 @@ interface IRequestorApprovalProps {
     onClose: () => void;
 }
 
-interface ITimelineStep {
-    id: number;
-    stepNumber: number;
-    title: string;
-    status: 'completed' | 'pending' | 'rejected';
-    approverName?: string;
-    approverRole?: string;
-    date?: string;
-    comment?: string;
-    showDetailsLink?: boolean;
-    approvalResult?: "approved" | 'rejected' | 'pending';
-}
-
 const menuGroups = getMenuGroups();
 
 const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
     return "pending";
 };
-
-const getMockTimelineData = (): ITimelineStep[] => [
-    {
-        id: 1,
-        stepNumber: 1,
-        title: "Request submitted",
-        status: 'completed',
-        approverName: "Mary Johnson",
-        approverRole: 'Requestor',
-        date: "2024/01/15",
-        showDetailsLink: true,
-    },
-    {
-        id: 2,
-        stepNumber: 2,
-        title: "Manager Approval",
-        status: 'pending',
-        approverName: "John Smith",
-        approverRole: "Manager",
-        date: "2024/01/16",
-        comment: "Please provide additional documentation.",
-        approvalResult: 'pending',
-    },
-    {
-        id: 3,
-        stepNumber: 3,
-        title: "Approval step 2",
-        status: 'pending',
-        approverName: "James Smith",
-        approverRole: 'Approver',
-    },
-];
 
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
@@ -118,12 +59,26 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         "APPROVED REQUESTS": false
     });
 
+    const [selectedItemId, setSelectedItemId] = useState<MenuItemId | null>(null);
+
     const handleGroupAccordionChange = (groupName: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
         setExpandedGroups(prev => ({
             ...prev,
             [groupName]: isExpanded
         }));
     };
+
+    useEffect(() => {
+        // Set first menu item as selected by default
+        const firstGroup = menuGroups[0];
+        if (firstGroup && firstGroup.items.length > 0) {
+            const firstItem = firstGroup.items[0];
+            // Set the integer ID of the first item
+            if (firstItem.id !== undefined) {
+                setSelectedItemId(firstItem.id);
+            }
+        }
+    }, []);
 
     return (
         <StandardModal
@@ -132,7 +87,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             maxWidth="1000px"
             onSubmit={() => { }}
             submitButtonText="Resubmit"
-            cancelButtonText = "Withdraw"
+            cancelButtonText="Withdraw"
             title={"Approval requests "}
             description="Manage and review your requestor approvals."
         >
@@ -280,7 +235,19 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             ? "selected-path"
                                                                             : "unselected"
                                                                     }
-                                                                    //onClick={() => navigate(`${item.path}`)}
+                                                                    onClick={() => {
+                                                                        // Set selected item ID (integer)
+                                                                        if (item.id !== undefined) {
+                                                                            setSelectedItemId(item.id);
+                                                                        }
+                                                                    }}
+                    
+                                                                    // class={
+                                                                    //     // Update this condition to check selectedItemId
+                                                                    //     (item.id !== undefined && selectedItemId === item.id)
+                                                                    //         ? "selected-path"
+                                                                    //         : "unselected"
+                                                                    // }
                                                                     sx={{
                                                                         height: "32px",
                                                                         gap: theme.spacing(4),
@@ -354,12 +321,13 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                         <Typography fontWeight={600} fontSize={16} mb={2}>
                             Approval timeline
                         </Typography>
+
                         <Chip label={getOverallStatus()} />
                     </Stack>
 
                     {/* STEPS */}
                     <Stack>
-                        {getMockTimelineData().map((step, stepIndex) => (
+                        {getMockTimelineData(selectedItemId || undefined).map((step, stepIndex, steps) => (
                             <React.Fragment key={step.id}>
                                 <Box key={step.id} mb={12}>
                                     <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">
@@ -399,7 +367,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                         </Stack>
                                     </Stack>
                                     <Stack direction="row" alignItems="stretch">
-                                        {stepIndex < getMockTimelineData().length && (
+                                        {stepIndex < steps.length && (
                                             <Divider
                                                 orientation="vertical"
                                                 flexItem

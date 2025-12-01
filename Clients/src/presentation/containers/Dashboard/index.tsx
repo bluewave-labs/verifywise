@@ -271,7 +271,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       maxWidth="100%"
       className="home-layout"
       flexDirection="row"
-      gap={14}
+      gap={0}
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar

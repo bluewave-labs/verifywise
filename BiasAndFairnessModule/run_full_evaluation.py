@@ -388,7 +388,7 @@ def _print_pipeline_summary(comprehensive_results: dict, clean_results: dict):
     if fairness_values:
         max_disparity_sex = max(fairness_values.values())
         max_metric_sex = max(fairness_values, key=fairness_values.get)
-        print(f"   Highest sex-based disparity: {max_metric_sex} = {max_disparity_sex:.4f}")
+        print(f"   Sex-based disparities detected. (Metric name and value omitted for privacy.)")
     
     fairness_values_race = {k: v for k, v in comprehensive_results['fairness_metrics'].items() 
                            if v is not None and 'race' in k}

@@ -252,7 +252,7 @@ def _run_metric(metric_name: str, y_true: np.ndarray, y_pred: np.ndarray,
         race_value = convert_metric_to_float(race_result, metric_name)
         all_results[f"{metric_name}_race"] = race_value
         
-        print(f"      ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
+        print(f"      ✅ {metric_name}: computed for sex and race (values not logged for privacy)")
         
     except Exception as e:
         print(f"      ❌ {metric_name}: Error - {str(e)}")

@@ -119,7 +119,7 @@ export async function getCurrentParameterCounts(
 
     return counts;
   } catch (error) {
-    console.error(`Error getting current parameter counts for ${parameter}:`, error);
+    console.error('Error getting current parameter counts for %s:', parameter, error);
     throw error;
   }
 }

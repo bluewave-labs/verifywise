@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio } from "@mui/material";
-import { Workflow, Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2 } from "lucide-react";
+import { Workflow, Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -10,10 +10,12 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import VWLink from "../../components/Link/VWLink";
 import Alert from "../../components/Alert";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomAxios from "../../../infrastructure/api/customAxios";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalScorersService } from "../../../infrastructure/api/deepEvalScorersService";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -21,6 +23,7 @@ import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
+import ExperimentDetailContent from "./ExperimentDetailContent";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
@@ -35,6 +38,19 @@ const LLM_PROVIDERS = [
 ];
 
 const LAST_PROJECT_KEY = "evals_last_project_id";
+const RECENT_EXPERIMENTS_KEY = "evals_recent_experiments";
+const RECENT_PROJECTS_KEY = "evals_recent_projects";
+
+interface RecentExperiment {
+  id: string;
+  name: string;
+  projectId: string;
+}
+
+interface RecentProject {
+  id: string;
+  name: string;
+}
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -76,7 +92,25 @@ export default function EvalsDashboard() {
   const [newOrgName, setNewOrgName] = useState("");
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
+  const [scorersCount, setScorersCount] = useState<number>(0);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
+  const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_EXPERIMENTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_PROJECTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // API key modal state
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
@@ -92,6 +126,59 @@ export default function EvalsDashboard() {
   const [onboardingProjectDesc, setOnboardingProjectDesc] = useState("");
   const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
+
+  // Helper function to add a recent experiment
+  const addRecentExperiment = (experiment: RecentExperiment) => {
+    setRecentExperiments((prev) => {
+      const filtered = prev.filter((e) => e.id !== experiment.id);
+      const updated = [experiment, ...filtered].slice(0, 10); // Keep max 10
+      localStorage.setItem(RECENT_EXPERIMENTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Helper function to add a recent project
+  const addRecentProject = (project: RecentProject) => {
+    setRecentProjects((prev) => {
+      const filtered = prev.filter((p) => p.id !== project.id);
+      const updated = [project, ...filtered].slice(0, 10); // Keep max 10
+      localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Track current project as recent when viewed
+  useEffect(() => {
+    if (projectId && currentProject) {
+      addRecentProject({ id: currentProject.id, name: currentProject.name });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, currentProject?.id]);
+
+  // Track experiment as recent when viewed
+  useEffect(() => {
+    if (selectedExperimentId && projectId) {
+      // We'll need to fetch the experiment name - for now use the ID
+      // The name will be updated when ExperimentDetailContent loads
+      experimentsService.getExperiment(selectedExperimentId).then((data) => {
+        if (data.experiment) {
+          addRecentExperiment({
+            id: selectedExperimentId,
+            name: data.experiment.name || selectedExperimentId,
+            projectId: projectId,
+          });
+        }
+      }).catch(() => {
+        // If fetch fails, still add with ID as name
+        addRecentExperiment({
+          id: selectedExperimentId,
+          name: selectedExperimentId,
+          projectId: projectId,
+        });
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedExperimentId, projectId]);
 
   // Load current org on mount and check if onboarding is needed
   useEffect(() => {
@@ -204,15 +291,20 @@ export default function EvalsDashboard() {
         });
         setExperimentsCount(experimentsData.experiments?.length || 0);
 
-        // Load datasets count - count all datasets across all categories
+        // Load datasets count - count built-in datasets (same as what's shown in the Datasets tab)
         const datasetsData = await deepEvalDatasetsService.list();
         const totalCount = Object.values(datasetsData).reduce((sum, datasets) => {
           return sum + (Array.isArray(datasets) ? datasets.length : 0);
         }, 0);
         setDatasetsCount(totalCount);
+
+        // Load scorers count
+        const scorersData = await deepEvalScorersService.list({ project_id: projectId });
+        setScorersCount(scorersData.scorers?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
         setDatasetsCount(0);
+        setScorersCount(0);
       }
     };
 
@@ -221,6 +313,8 @@ export default function EvalsDashboard() {
 
   const handleTabChange = (newValue: string) => {
     setTab(newValue);
+    // Clear selected experiment when switching tabs
+    setSelectedExperimentId(null);
     // Update URL hash
     navigate(`${location.pathname}#${newValue}`, { replace: true });
   };
@@ -452,10 +546,30 @@ export default function EvalsDashboard() {
           onTabChange={handleTabChange}
           experimentsCount={experimentsCount}
           datasetsCount={datasetsCount}
+          scorersCount={scorersCount}
           disabled={!projectId}
           allProjects={allProjects}
           selectedProjectId={projectId}
           onProjectChange={handleProjectChange}
+          recentExperiments={recentExperiments}
+          recentProjects={recentProjects}
+          onExperimentClick={(experimentId, expProjectId) => {
+            if (expProjectId !== projectId) {
+              navigate(`/evals/${expProjectId}#experiments`);
+              // After navigation, set the experiment ID
+              setTimeout(() => {
+                setSelectedExperimentId(experimentId);
+                setTab("experiments");
+              }, 100);
+            } else {
+              setSelectedExperimentId(experimentId);
+              setTab("experiments");
+              navigate(`${location.pathname}#experiments`, { replace: true });
+            }
+          }}
+          onProjectClick={(clickedProjectId) => {
+            navigate(`/evals/${clickedProjectId}#overview`);
+          }}
         />
 
         {/* Main content */}
@@ -491,11 +605,26 @@ export default function EvalsDashboard() {
                   projectId={projectId}
                   project={currentProject}
                   onProjectUpdate={setCurrentProject}
+                  onViewExperiment={(experimentId) => {
+                    setSelectedExperimentId(experimentId);
+                    setTab("experiments");
+                    navigate(`${location.pathname}#experiments`, { replace: true });
+                  }}
                 />
               )}
 
               {tab === "experiments" && (
-                <ProjectExperiments projectId={projectId} />
+                selectedExperimentId ? (
+                  <ExperimentDetailContent
+                    experimentId={selectedExperimentId}
+                    onBack={() => setSelectedExperimentId(null)}
+                  />
+                ) : (
+                  <ProjectExperiments
+                    projectId={projectId}
+                    onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
+                  />
+                )
               )}
 
               {tab === "datasets" && (
@@ -507,103 +636,149 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "configuration" && (
-                <Box sx={{ p: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
-                    Project configuration
-                  </Typography>
-
-                  {/* LLM Use Case */}
-                  <Box sx={{ mt: 4, mb: 4 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+                  {/* LLM Use Case Card */}
+                  <Box
+                    sx={{
+                      background: "#fff",
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      p: "20px 24px",
+                      boxShadow: "none",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 3, color: "#344054" }}>
                       LLM use case
                     </Typography>
-                    <RadioGroup
-                      value={currentProject?.useCase || "chatbot"}
-                      onChange={(e) => {
-                        if (currentProject) {
-                          setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
-                        }
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "220px 1fr",
+                        rowGap: "20px",
+                        columnGap: "80px",
+                        alignItems: "flex-start",
                       }}
                     >
-                      <FormControlLabel
-                        value="rag"
-                        control={
-                          <Radio
-                            sx={{
-                              color: "#d0d5dd",
-                              "&.Mui-checked": { color: "#13715B" },
-                              "& .MuiSvgIcon-root": { fontSize: 20 },
-                            }}
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                              Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ alignItems: "flex-start", mb: 1.5 }}
-                      />
-                      <FormControlLabel
-                        value="chatbot"
-                        control={
-                          <Radio
-                            sx={{
-                              color: "#d0d5dd",
-                              "&.Mui-checked": { color: "#13715B" },
-                              "& .MuiSvgIcon-root": { fontSize: 20 },
-                            }}
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbots</Typography>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                              Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ alignItems: "flex-start" }}
-                      />
-                    </RadioGroup>
+                      {/* Use Case Row */}
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Use case type</Typography>
+                        <Typography sx={{ fontSize: 12, color: "#888" }}>
+                          Select the type of LLM application you want to evaluate
+                        </Typography>
+                      </Box>
+                      <RadioGroup
+                        value={currentProject?.useCase || "chatbot"}
+                        onChange={(e) => {
+                          if (currentProject) {
+                            setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
+                          }
+                        }}
+                      >
+                        <FormControlLabel
+                          value="rag"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="chatbot"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbots</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: "flex-start" }}
+                        />
+                      </RadioGroup>
+                    </Box>
                   </Box>
 
-                  {/* LLM API Keys */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 1 }}>
+                  {/* LLM API Keys Card */}
+                  <Box
+                    sx={{
+                      background: "#fff",
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      p: "20px 24px",
+                      boxShadow: "none",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 3, color: "#344054" }}>
                       LLM API keys
                     </Typography>
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
-                      These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
-                      <VWLink onClick={() => setApiKeyModalOpen(true)} showIcon={false}>
-                        Add API key
-                      </VWLink>
-                    </Typography>
-                    <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
-                      No API keys configured yet.
-                    </Typography>
-                  </Box>
-
-                  {/* Save Changes Button */}
-                  <Box sx={{ mt: 4 }}>
-                    <button
-                      disabled
-                      style={{
-                        backgroundColor: "#E5E7EB",
-                        color: "#9CA3AF",
-                        border: "none",
-                        borderRadius: "6px",
-                        padding: "8px 16px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "not-allowed",
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "220px 1fr",
+                        rowGap: "20px",
+                        columnGap: "80px",
+                        alignItems: "flex-start",
                       }}
                     >
-                      Save changes
-                    </button>
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>API keys</Typography>
+                        <Typography sx={{ fontSize: 12, color: "#888" }}>
+                          Encrypted keys for running evaluations
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
+                          These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
+                          <VWLink onClick={() => setApiKeyModalOpen(true)} showIcon={false}>
+                            Add API key
+                          </VWLink>
+                        </Typography>
+                        <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
+                          No API keys configured yet.
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Box>
+
+                  {/* Save Button */}
+                  <Stack>
+                    <CustomizableButton
+                      sx={{
+                        alignSelf: "flex-end",
+                        width: "fit-content",
+                        gap: 2,
+                        backgroundColor: "#ccc",
+                        border: "1px solid #ccc",
+                      }}
+                      icon={<Save size={16} />}
+                      variant="contained"
+                      onClick={() => {}}
+                      isDisabled={true}
+                      text="Save changes"
+                    />
+                  </Stack>
                 </Box>
               )}
             </>

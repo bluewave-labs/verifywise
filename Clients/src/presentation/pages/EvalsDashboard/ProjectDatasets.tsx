@@ -19,7 +19,7 @@ import {
 import { Database, Upload, Download, X } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { useNavigate } from "react-router-dom";
-import { deepEvalDatasetsService, type DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import ModalStandard from "../../components/Modals/StandardModal";
 import EvaluationTable from "../../components/Table/EvaluationTable";
@@ -32,19 +32,14 @@ import singleTheme from "../../themes/v1SingleTheme";
 
 type ProjectDatasetsProps = { projectId: string };
 
-type UserDataset = {
-  id: number;
-  name: string;
-  path: string;
-  size: number;
+type BuiltInDataset = ListedDataset & {
   promptCount?: number;
-  createdAt: string | null;
 };
 
 export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [datasets, setDatasets] = useState<UserDataset[]>([]);
+  const [datasets, setDatasets] = useState<BuiltInDataset[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,15 +48,24 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedDataset, setSelectedDataset] = useState<UserDataset | null>(null);
+  const [selectedDataset, setSelectedDataset] = useState<BuiltInDataset | null>(null);
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPromptRecord[]>([]);
   const [loadingPrompts, setLoadingPrompts] = useState(false);
 
   const loadDatasets = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await deepEvalDatasetsService.listMy();
-      setDatasets(res.datasets || []);
+      // Load built-in datasets instead of user datasets
+      const res = await deepEvalDatasetsService.list();
+      // Flatten all categories into a single array
+      const allDatasets: BuiltInDataset[] = [];
+      (["chatbot", "rag", "agent", "safety"] as const).forEach((category) => {
+        const categoryDatasets = res[category] || [];
+        categoryDatasets.forEach((ds) => {
+          allDatasets.push(ds);
+        });
+      });
+      setDatasets(allDatasets);
     } catch (err) {
       console.error("Failed to load datasets", err);
       setDatasets([]);
@@ -82,21 +86,23 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const filterColumns: FilterColumn[] = useMemo(
     () => [
       { id: "name", label: "Dataset name", type: "text" },
-      { id: "prompts", label: "Prompts", type: "text" },
-      { id: "createdAt", label: "Created", type: "date" },
+      { id: "use_case", label: "Use case", type: "select", options: [
+        { value: "chatbot", label: "Chatbot" },
+        { value: "rag", label: "RAG" },
+        { value: "agent", label: "Agent" },
+        { value: "safety", label: "Safety" },
+      ]},
     ],
     []
   );
 
   const getFieldValue = useCallback(
-    (d: UserDataset, fieldId: string): string | number | Date | null | undefined => {
+    (d: BuiltInDataset, fieldId: string): string | number | Date | null | undefined => {
       switch (fieldId) {
         case "name":
           return d.name;
-        case "prompts":
-          return d.promptCount;
-        case "createdAt":
-          return d.createdAt ? new Date(d.createdAt) : null;
+        case "use_case":
+          return d.use_case;
         default:
           return "";
       }
@@ -104,26 +110,26 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     []
   );
 
-  const { filterData, handleFilterChange } = useFilterBy<UserDataset>(getFieldValue);
+  const { filterData, handleFilterChange } = useFilterBy<BuiltInDataset>(getFieldValue);
 
   const filteredDatasets = useMemo(() => {
     const afterFilter = filterData(datasets);
     if (!searchTerm.trim()) return afterFilter;
     const q = searchTerm.toLowerCase();
     return afterFilter.filter((d) =>
-      [d.name, d.path].filter(Boolean).join(" ").toLowerCase().includes(q)
+      [d.name, d.path, d.use_case].filter(Boolean).join(" ").toLowerCase().includes(q)
     );
   }, [datasets, filterData, searchTerm]);
 
-  const tableColumns = ["DATASET", "PROMPTS", "CREATED", "STATUS", "REPORT", "ACTION"];
+  const tableColumns = ["DATASET", "USE CASE", "PATH", "STATUS", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredDatasets.map((d) => ({
-    id: d.path, // we use path as the unique identifier for edit/delete
+    id: d.path, // we use path as the unique identifier
     name: d.name,
     model: d.name,
-    judge: `${d.promptCount ?? 0} prompts`,
-    dataset: d.createdAt ? new Date(d.createdAt).toLocaleString() : "-",
-    status: "Completed",
+    judge: d.use_case.charAt(0).toUpperCase() + d.use_case.slice(1),
+    dataset: d.path,
+    status: "Available",
   }));
 
   const handleOpenEditor = async (row: IEvaluationRow) => {

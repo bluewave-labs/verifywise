@@ -1,7 +1,18 @@
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Select, MenuItem, Divider } from "@mui/material";
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Select, MenuItem, Typography, Divider } from "@mui/material";
 import { LayoutDashboard, FlaskConical, Database, Award, Settings, Building2, ChevronDown, Plus } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import type { DeepEvalProject } from "./types";
+
+interface RecentExperiment {
+  id: string;
+  name: string;
+  projectId: string;
+}
+
+interface RecentProject {
+  id: string;
+  name: string;
+}
 
 interface SidebarItem {
   label: string;
@@ -16,11 +27,17 @@ interface EvalsSidebarProps {
   onTabChange: (value: string) => void;
   experimentsCount?: number;
   datasetsCount?: number;
+  scorersCount?: number;
   disabled?: boolean;
   // Project selector props
   allProjects?: DeepEvalProject[];
   selectedProjectId?: string;
   onProjectChange?: (projectId: string) => void;
+  // Recent items
+  recentExperiments?: RecentExperiment[];
+  recentProjects?: RecentProject[];
+  onExperimentClick?: (experimentId: string, projectId: string) => void;
+  onProjectClick?: (projectId: string) => void;
 }
 
 export default function EvalsSidebar({
@@ -28,10 +45,15 @@ export default function EvalsSidebar({
   onTabChange,
   experimentsCount = 0,
   datasetsCount = 0,
+  scorersCount = 0,
   disabled = false,
   allProjects = [],
   selectedProjectId,
   onProjectChange,
+  recentExperiments = [],
+  recentProjects = [],
+  onExperimentClick,
+  onProjectClick,
 }: EvalsSidebarProps) {
   const theme = useTheme();
 
@@ -39,7 +61,7 @@ export default function EvalsSidebar({
     { label: "Overview", value: "overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
     { label: "Experiments", value: "experiments", icon: <FlaskConical size={16} strokeWidth={1.5} />, count: experimentsCount, disabledWhenNoProject: true },
     { label: "Datasets", value: "datasets", icon: <Database size={16} strokeWidth={1.5} />, count: datasetsCount, disabledWhenNoProject: true },
-    { label: "Scorers", value: "scorers", icon: <Award size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
+    { label: "Scorers", value: "scorers", icon: <Award size={16} strokeWidth={1.5} />, count: scorersCount, disabledWhenNoProject: true },
     { label: "Configuration", value: "configuration", icon: <Settings size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
     { label: "Organizations", value: "organizations", icon: <Building2 size={16} strokeWidth={1.5} />, disabledWhenNoProject: false },
   ];
@@ -59,7 +81,7 @@ export default function EvalsSidebar({
     >
       {/* Project selector at top of sidebar */}
       {allProjects.length > 0 && onProjectChange && (
-        <Box sx={{ px: 1 }}>
+        <Box sx={{ px: 1, mt: 1 }}>
           <Select
             value={selectedProjectId || ""}
             onChange={(e) => onProjectChange(e.target.value)}
@@ -154,9 +176,10 @@ export default function EvalsSidebar({
               Create project
             </MenuItem>
           </Select>
-          <Divider sx={{ my: 1 }} />
-        </Box>
+          </Box>
       )}
+
+      <Box sx={{ height: "8px" }} />
 
       <List component="nav" disablePadding sx={{ px: 1 }}>
         {sidebarItems.map((item) => {
@@ -281,6 +304,108 @@ export default function EvalsSidebar({
           );
         })}
       </List>
+
+      {/* Recent experiments section */}
+      {recentExperiments.length > 0 && (
+        <Box sx={{ px: 1, marginTop: "16px" }}>
+          <Typography
+            sx={{
+              fontSize: "10px",
+              fontWeight: 500,
+              color: theme.palette.text.disabled,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              px: theme.spacing(3),
+              mb: 0.5,
+            }}
+          >
+            Recent experiments
+          </Typography>
+          <List component="nav" disablePadding>
+            {recentExperiments.slice(0, 3).map((exp) => (
+              <ListItemButton
+                key={exp.id}
+                onClick={() => onExperimentClick?.(exp.id, exp.projectId)}
+                disableRipple
+                sx={{
+                  height: "30px",
+                  borderRadius: "4px",
+                  px: theme.spacing(3),
+                  mb: 0.25,
+                  "&:hover": {
+                    backgroundColor: "#F9F9F9",
+                  },
+                }}
+              >
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "12px",
+                      color: theme.palette.text.secondary,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    },
+                  }}
+                >
+                  {exp.name}
+                </ListItemText>
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+      )}
+
+      {/* Recent projects section */}
+      {recentProjects.length > 0 && (
+        <Box sx={{ px: 1, marginTop: "16px", marginBottom: "16px" }}>
+          <Typography
+            sx={{
+              fontSize: "10px",
+              fontWeight: 500,
+              color: theme.palette.text.disabled,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              px: theme.spacing(3),
+              mb: 0.5,
+            }}
+          >
+            Recent projects
+          </Typography>
+          <List component="nav" disablePadding>
+            {recentProjects.slice(0, 3).map((proj) => (
+              <ListItemButton
+                key={proj.id}
+                onClick={() => onProjectClick?.(proj.id)}
+                disableRipple
+                sx={{
+                  height: "30px",
+                  borderRadius: "4px",
+                  px: theme.spacing(3),
+                  mb: 0.25,
+                  "&:hover": {
+                    backgroundColor: "#F9F9F9",
+                  },
+                }}
+              >
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "12px",
+                      color: theme.palette.text.secondary,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    },
+                  }}
+                >
+                  {proj.name}
+                </ListItemText>
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+      )}
     </Box>
   );
 }

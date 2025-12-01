@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -19,17 +18,15 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap, Target, MessageSquare, Lightbulb, Shield } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { TrendingUp, X, Pencil, Check } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
-import { deepEvalProjectsService, type DeepEvalProject } from "../../../infrastructure/api/deepEvalProjectsService";
-import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
-import MetricCard from "../../components/Cards/MetricCard";
-import EvalsSidebar from "./EvalsSidebar";
 
-export default function ExperimentDetail() {
-  const { projectId, experimentId } = useParams<{ projectId: string; experimentId: string }>();
-  const navigate = useNavigate();
+interface ExperimentDetailContentProps {
+  experimentId: string;
+  onBack: () => void;
+}
+
+export default function ExperimentDetailContent({ experimentId, onBack }: ExperimentDetailContentProps) {
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
@@ -39,37 +36,11 @@ export default function ExperimentDetail() {
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
 
   useEffect(() => {
     loadExperimentData();
-    loadProjects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [experimentId]);
-
-  const loadProjects = async () => {
-    try {
-      const { org } = await deepEvalOrgsService.getCurrentOrg();
-      if (org) {
-        const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
-        const projectsData = await Promise.all(
-          projectIds.map((id) => deepEvalProjectsService.getProject(id).catch(() => null))
-        );
-        const validProjects = projectsData.filter((p): p is DeepEvalProject => p !== null);
-        setAllProjects(validProjects);
-      }
-    } catch (err) {
-      console.error("Failed to load projects:", err);
-    }
-  };
-
-  const handleProjectChange = (newProjectId: string) => {
-    if (newProjectId === "create_new") {
-      navigate("/evals");
-    } else {
-      navigate(`/evals/${newProjectId}#experiments`);
-    }
-  };
 
   const loadExperimentData = async () => {
     if (!experimentId) return;
@@ -84,8 +55,6 @@ export default function ExperimentDetail() {
       setExperiment(expData.experiment);
       const loadedLogs = logsData.logs || [];
       setLogs(loadedLogs);
-
-      // Don't auto-select - let user choose
     } catch (err) {
       console.error("Failed to load experiment data:", err);
     } finally {
@@ -160,17 +129,10 @@ export default function ExperimentDetail() {
   if (!experiment) {
     return (
       <Box p={4}>
-        <Typography>Eval not found</Typography>
+        <Typography>Experiment not found</Typography>
       </Box>
     );
   }
-
-  const breadcrumbItems = [
-    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-    { label: "Experiments", icon: <List size={14} strokeWidth={1.5} />, onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Eval", icon: <Zap size={14} strokeWidth={1.5} /> },
-  ];
 
   // Lightweight Markdown -> HTML converter for common syntax
   const markdownToHtml = (md: string): string => {
@@ -201,36 +163,28 @@ export default function ExperimentDetail() {
     return html;
   };
 
-  // Handler for sidebar tab changes - navigate to the appropriate route
-  const handleTabChange = (newTab: string) => {
-    if (newTab === "experiments") {
-      navigate(`/evals/${projectId}#experiments`);
-    } else if (newTab === "organizations") {
-      navigate(`/evals#organizations`);
-    } else {
-      navigate(`/evals/${projectId}#${newTab}`);
-    }
-  };
-
   return (
     <Box>
+      {/* Back button */}
       <Box sx={{ mb: 2 }}>
-        <PageBreadcrumbs items={breadcrumbItems} />
+        <Typography
+          component="span"
+          onClick={onBack}
+          sx={{
+            fontSize: "13px",
+            color: "#13715B",
+            cursor: "pointer",
+            textDecoration: "underline",
+            textDecorationStyle: "dashed",
+            textUnderlineOffset: "3px",
+            "&:hover": {
+              color: "#0f5a47",
+            },
+          }}
+        >
+          ← Back to experiments
+        </Typography>
       </Box>
-
-      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
-        {/* Sidebar - always visible */}
-        <EvalsSidebar
-          activeTab="experiments"
-          onTabChange={handleTabChange}
-          disabled={false}
-          allProjects={allProjects}
-          selectedProjectId={projectId}
-          onProjectChange={handleProjectChange}
-        />
-
-        {/* Main content */}
-        <Box sx={{ flex: 1 }}>
 
       {/* Header */}
       <Box sx={{ mb: 3 }}>
@@ -458,8 +412,7 @@ export default function ExperimentDetail() {
         const enabled: Record<string, unknown> =
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
-        // Standard metric set we expose in the UI; these are independent of the
-        // underlying implementation (G‑Eval vs classic), so we keep names clean.
+        // Standard metric set we expose in the UI
         const displayMap: Record<string, string> = {
           answerRelevancy: "Answer Relevancy",
           bias: "Bias",
@@ -469,110 +422,11 @@ export default function ExperimentDetail() {
           contextualRelevancy: "Contextual Relevancy",
         };
 
-        // Use the config to drive which metrics we show cards for; if nothing is
-        // configured we fall back to whatever we discover in metric_scores.
         const orderedLabels = Object.keys(displayMap)
           .filter((k) => !!enabled?.[k])
           .map((k) => displayMap[k]);
 
-        // Always show all metrics found in the data
         if (Object.keys(metricsSum).length === 0) return null;
-
-        // Map metric keys to appropriate icons
-        const metricIcons: Record<string, React.ComponentType<any>> = {
-          answerCorrectness: Target,
-          coherence: MessageSquare,
-          tonality: Lightbulb,
-          safety: Shield,
-          bias: Shield,
-          toxicity: Shield,
-          Bias: Shield,
-          Toxicity: Shield,
-          "Contextual Relevancy": Target,
-          "Answer Relevancy": Target,
-          "Faithfulness": Shield,
-          "Hallucination": Shield,
-          "Knowledge Retention": Lightbulb,
-          "contextual_relevancy": Target,
-          "knowledge_retention": Lightbulb,
-          "answer_relevancy": Target,
-          "faithfulness": Shield,
-          "hallucination": Shield,
-          "G-Eval (Coherence)": MessageSquare,
-          "G-Eval (Fluency)": Lightbulb,
-          "G-Eval (Consistency)": Target,
-          "G-Eval (Relevance)": Target,
-          "G-Eval (Correctness)": Target,
-        };
-
-        // Map metric keys to their explanations
-        const metricExplanations: Record<string, string> = {
-          answerCorrectness: "Measures how factually accurate and correct the AI's response is compared to the expected answer. Higher scores indicate the model provides accurate information without hallucinations or errors.",
-          coherence: "Evaluates how logically structured and well-organized the response is. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
-          tonality: "Assesses whether the AI's tone and style match the desired communication style. This includes checking for appropriate formality, empathy, and alignment with brand voice.",
-          safety: "Detects harmful, toxic, biased, or inappropriate content in the AI's responses. Higher scores indicate the model avoids generating unsafe or problematic outputs.",
-          bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
-          toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
-          Bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
-          Toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
-          "Contextual Relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
-          "Answer Relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
-          "Faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
-          "Hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
-          "Knowledge Retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
-          "Role Adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
-          "Conversation Relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
-          "Conversation Completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
-          "contextual_relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
-          "knowledge_retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
-          "role_adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
-          "conversation_relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
-          "conversation_completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
-          "answer_relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
-          "faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
-          "hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
-          "G-Eval (Coherence)": "Evaluates how logically structured and well-organized the response is using G-Eval framework. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
-          "G-Eval (Fluency)": "Assesses how natural and smooth the language flows in the AI's response. Higher scores indicate more human-like, grammatically correct, and easy-to-read text.",
-          "G-Eval (Consistency)": "Measures whether the response maintains logical consistency throughout, without contradicting itself or previous statements. Higher scores indicate better internal coherence.",
-          "G-Eval (Relevance)": "Evaluates how well the response addresses the user's question or prompt. Higher scores mean the response stays on-topic and provides pertinent information.",
-          "G-Eval (Correctness)": "Assesses the factual accuracy and correctness of the information provided in the response. Higher scores indicate more accurate and reliable answers.",
-        };
-
-        // Map metric keys to their evaluation direction (lower-is-better vs higher-is-better)
-        const metricTypeMap: Record<string, "lower-is-better" | "higher-is-better" | "neutral"> = {
-          // Lower is better (negative metrics)
-          bias: "lower-is-better",
-          toxicity: "lower-is-better",
-          Bias: "lower-is-better",
-          Toxicity: "lower-is-better",
-          "Hallucination": "lower-is-better",
-          "hallucination": "lower-is-better",
-
-          // Higher is better (positive metrics)
-          answerCorrectness: "higher-is-better",
-          coherence: "higher-is-better",
-          tonality: "higher-is-better",
-          safety: "higher-is-better",
-          "Contextual Relevancy": "higher-is-better",
-          "Answer Relevancy": "higher-is-better",
-          "Faithfulness": "higher-is-better",
-          "Knowledge Retention": "higher-is-better",
-          "Role Adherence": "higher-is-better",
-          "Conversation Relevancy": "higher-is-better",
-          "Conversation Completeness": "higher-is-better",
-          "contextual_relevancy": "higher-is-better",
-          "answer_relevancy": "higher-is-better",
-          "faithfulness": "higher-is-better",
-          "knowledge_retention": "higher-is-better",
-          "role_adherence": "higher-is-better",
-          "conversation_relevancy": "higher-is-better",
-          "conversation_completeness": "higher-is-better",
-          "G-Eval (Coherence)": "higher-is-better",
-          "G-Eval (Fluency)": "higher-is-better",
-          "G-Eval (Consistency)": "higher-is-better",
-          "G-Eval (Relevance)": "higher-is-better",
-          "G-Eval (Correctness)": "higher-is-better",
-        };
 
         return (
           <Box sx={{ mb: 3 }}>
@@ -585,8 +439,6 @@ export default function ExperimentDetail() {
                   const entry = metricsSum[rawLabel] || metricsSum[`G-Eval (${rawLabel})`];
                   const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
                   const count = entry ? entry.count : 0;
-                  // Strip any "G-Eval (...)" prefix for display; we don't surface
-                  // the implementation detail in the UI.
                   const friendlyLabel = rawLabel.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
 
                   return (
@@ -613,14 +465,14 @@ export default function ExperimentDetail() {
         );
       })()}
 
-      {/* Split Panel Layout (Braintrust style) */}
+      {/* Split Panel Layout */}
       <Card sx={{ overflow: "hidden" }}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-          <Box sx={{ 
-            display: "grid", 
-            gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr", 
-            height: "calc(100vh - 260px)",
-            minHeight: "520px",
+          <Box sx={{
+            display: "grid",
+            gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr",
+            height: "calc(100vh - 360px)",
+            minHeight: "420px",
             transition: "grid-template-columns 0.2s ease",
           }}>
             {/* Left: Samples List */}
@@ -757,7 +609,7 @@ export default function ExperimentDetail() {
                   flexShrink: 0
                 }}>
                   <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600 }}>
-                    Evaluation Metrics
+                    Evaluation metrics
                   </Typography>
                   <Box
                     component="button"
@@ -783,7 +635,7 @@ export default function ExperimentDetail() {
 
                 {/* Scrollable content */}
                 <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", p: 3 }}>
-                {/* Metric Scores (Judge's Opinion) */}
+                {/* Metric Scores */}
                 {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
                   <Box sx={{ mb: 3 }}>
                     <Stack spacing={1.5}>
@@ -792,7 +644,7 @@ export default function ExperimentDetail() {
                         const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
                         const reason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
                         const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
-                        
+
                          return (
                            <Box key={metricName} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -875,7 +727,7 @@ export default function ExperimentDetail() {
                       {selectedLog.token_count && (
                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Token Count
+                            Token count
                           </Typography>
                           <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
                             {selectedLog.token_count}
@@ -940,8 +792,6 @@ export default function ExperimentDetail() {
           </Box>
         </CardContent>
       </Card>
-        </Box>
-      </Box>
     </Box>
   );
 }

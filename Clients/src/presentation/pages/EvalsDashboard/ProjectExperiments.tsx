@@ -16,6 +16,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 interface ProjectExperimentsProps {
   projectId: string;
+  onViewExperiment?: (experimentId: string) => void;
 }
 
 interface ExperimentWithMetrics extends Experiment {
@@ -28,7 +29,7 @@ interface AlertState {
   body: string;
 }
 
-export default function ProjectExperiments({ projectId }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -146,7 +147,11 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   };
 
   const handleViewExperiment = (row: IEvaluationRow) => {
-    navigate(`/evals/${projectId}/experiment/${row.id}`);
+    if (onViewExperiment) {
+      onViewExperiment(row.id);
+    } else {
+      navigate(`/evals/${projectId}/experiment/${row.id}`);
+    }
   };
 
   const handleDeleteExperiment = async (experimentId: string) => {

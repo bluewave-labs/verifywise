@@ -52,7 +52,7 @@ export interface IEvaluationRow {
   id: string;
   model: string;
   dataset: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
 }
 
 export interface IEvaluationTableBodyProps {
@@ -60,7 +60,7 @@ export interface IEvaluationTableBodyProps {
   page: number;
   rowsPerPage: number;
   onShowDetails: (model: IEvaluationRow) => void;
-  onRemoveModel: {
+  onRemoveModel?: {
     onConfirm: (id: string) => void;
   };
 }
@@ -68,7 +68,7 @@ export interface IEvaluationTableBodyProps {
 export interface IEvaluationTableProps {
   columns: string[];
   rows: IEvaluationRow[];
-  removeModel: {
+  removeModel?: {
     onConfirm: (id: string) => void; // actually deletes
   };
   page: number;

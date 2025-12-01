@@ -64,6 +64,7 @@
     "dayjs": "^1.11.13",
     "dompurify": "3.3.0",
     "dotenv": "^16.4.7",
+    "emoji-picker-react": "^4.16.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.11.0",
     "js-yaml": "^4.1.1",

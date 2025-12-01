@@ -104,12 +104,13 @@ cd ..
 cp .env.dev Servers/.env
 ```
 
-In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:
+In `.env` file, change FRONTEND_URL:
 
 ```
 FRONTEND_URL=http://localhost:5173
-ALLOWED_ORIGINS=["http://localhost:5173", "http://localhost:8082"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host (localhost, 127.0.0.1) where the backend is running.
 
 Run the PostgreSQL container with the following command:
 
@@ -174,8 +175,9 @@ Make sure to change the JWT_SECRET variable to your liking, and change `localhos
 ```
 BACKEND_URL=http://64.23.242.4:3000
 FRONTEND_URL=http://64.23.242.4:8080
-ALLOWED_ORIGINS=["http://64.23.242.4:5173", "http://64.23.242.4:8080"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host where the backend is running.
 
 Change the permissions of the `install.sh` script to make it executable, and then execute it.
 
@@ -285,8 +287,9 @@ sudo certbot --nginx -d domainname.com
 ```
 BACKEND_URL=https://domainname.com/api
 FRONTEND_URL=https://domainname.com
-ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host where the backend is running.
 
 9. Restart the application
 

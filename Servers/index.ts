@@ -49,8 +49,6 @@ import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
-import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
@@ -82,14 +80,30 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl
-  );
-
   app.use(
     cors({
       origin: (origin, callback) => {
-        testOrigin({ origin, allowedOrigins, callback });
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        try {
+          const originUrl = new URL(origin);
+          const requestHost = originUrl.hostname;
+
+          // Allow if origin is from same host (localhost, 127.0.0.1, or actual host)
+          const allowedHosts = [host, 'localhost', '127.0.0.1', '::1'];
+
+          if (allowedHosts.includes(requestHost)) {
+            return callback(null, true);
+          }
+
+          // Reject other origins
+          return callback(new Error("Not allowed by CORS"));
+        } catch (error) {
+          return callback(new Error("Invalid origin"));
+        }
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],

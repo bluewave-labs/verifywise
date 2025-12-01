@@ -48,6 +48,7 @@ import {
   AlertCircle,
   FolderCog,
   Database,
+  Beaker,
   Heart,
   HelpCircle,
   Newspaper,
@@ -111,6 +112,11 @@ const getMenuGroups = (): IMenuGroup[] => [
         name: "Bias & Fairness",
         icon: <Scale size={16} strokeWidth={1.5} />,
         path: "/fairness-dashboard",
+      },
+      {
+        name: "LLM Evals",
+        icon: <Beaker size={16} strokeWidth={1.5} />,
+        path: "/evals",
       },
       {
         name: "Training Registry",

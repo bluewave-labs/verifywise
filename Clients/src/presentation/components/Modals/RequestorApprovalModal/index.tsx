@@ -10,7 +10,7 @@ import type { FC } from "react";
 import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 import StepDetailsModal from './StepDetailsModal';
-import { getStepDetails, IStepDetails } from './mockData';
+import { getStepDetails, IMenuItemExtended, IStepDetails } from './mockData';
 
 import {
     getMenuGroups,
@@ -18,7 +18,6 @@ import {
     MenuItemId
 } from './mockData';
 
-//  badge style generator
 const getWorkflowChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
         [ApprovalStatus.APPROVED]: {
@@ -34,8 +33,26 @@ const getWorkflowChipProps = (value: string) => {
             color: "#616161",
         },
     };
-}
 
+    const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
+
+    return {
+        label: value,
+        size: "small" as const,
+        sx: {
+            backgroundColor: style.bg,
+            color: style.color,
+            fontWeight: 500,
+            fontSize: "11px",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            borderRadius: "4px",
+            "& .MuiChip-label": {
+                padding: "4px 8px",
+            },
+        },
+    };
+};
 
 interface IRequestorApprovalProps {
     isOpen: boolean;
@@ -45,9 +62,6 @@ interface IRequestorApprovalProps {
 
 const menuGroups = getMenuGroups();
 
-const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
-    return "pending";
-};
 
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
@@ -65,7 +79,16 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     const [selectedStepDetails, setSelectedStepDetails] = useState<IStepDetails | null>(null);
 
 
-    const [selectedItemId, setSelectedItemId] = useState<MenuItemId | null>(null);
+    const [selectedItem, setSelectedItem] = useState<IMenuItemExtended | null>(null);
+
+
+    const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
+        if (selectedItem === undefined || selectedItem === null) {
+            return 'pending';
+        }
+        return selectedItem.status || 'pending';
+        return "pending";
+    };
 
     const handleGroupAccordionChange = (groupName: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
         setExpandedGroups(prev => ({
@@ -89,7 +112,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             const firstItem = firstGroup.items[0];
             // Set the integer ID of the first item
             if (firstItem.id !== undefined) {
-                setSelectedItemId(firstItem.id);
+                setSelectedItem(firstItem);
             }
         }
     }, []);
@@ -252,7 +275,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                     onClick={() => {
                                                                         // Set selected item ID (integer)
                                                                         if (item.id !== undefined) {
-                                                                            setSelectedItemId(item.id);
+                                                                            setSelectedItem(item);
                                                                         }
                                                                     }}
 
@@ -348,12 +371,16 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             Approval timeline
                         </Typography>
 
-                        <Chip label={getOverallStatus()} />
+                        <Chip
+                            {...(getWorkflowChipProps(
+                                getOverallStatus()
+                            ) || {})}
+                        />
                     </Stack>
 
                     {/* STEPS */}
                     <Stack>
-                        {getMockTimelineData(selectedItemId || undefined).map((step, stepIndex, steps) => (
+                        {getMockTimelineData(selectedItem?.id || undefined).map((step, stepIndex, steps) => (
                             <React.Fragment key={step.id}>
                                 <Box key={step.id} mb={12}>
                                     <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">

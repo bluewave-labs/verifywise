@@ -30,6 +30,7 @@ export interface IStepDetails {
 
 export interface IMenuItemExtended extends IMenuItem  {
     id: number;
+    status: 'approved' | 'rejected' | 'pending';
 }
 
 export interface IMenuGroupExtended {
@@ -49,12 +50,14 @@ export const getMenuGroups = (): IMenuGroupExtended[] => [
                 path: "/overview",
                 icon: "<Layers size={16} strokeWidth={1.5} />",
                 highlightPaths: ["/project-view"],
+                status: 'pending',
             },
             {
                 id: 2,
                 name: "Medical AI Platform",
                 icon: "<Layers size={16} strokeWidth={1.5} />",
                 path: "/framework",
+                status: 'rejected',
             },
         ],
 
@@ -68,12 +71,14 @@ export const getMenuGroups = (): IMenuGroupExtended[] => [
                 path: "/overview",
                 icon: "<Layers size={16} strokeWidth={1.5} />",
                 highlightPaths: ["/project-view"],
+                status: 'approved',
             },
             {
                 id: 4,
                 name: "HR Analytics Tool",
                 icon: "<Layers size={16} strokeWidth={1.5} />",
                 path: "/framework",
+                status: 'pending',
             },
         ],
 
@@ -83,7 +88,7 @@ export const getMenuGroups = (): IMenuGroupExtended[] => [
 
 export const getMockTimelineData = (itemId?: MenuItemId): ITimelineStep[] => {
     if (itemId === undefined || itemId === null) {
-        return [];
+        return [];  
     }
     return timelineDataMap[itemId] || [];
 };

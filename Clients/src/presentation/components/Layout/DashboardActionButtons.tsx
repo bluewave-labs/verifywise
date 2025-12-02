@@ -41,10 +41,10 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         transition: 'opacity 0.2s ease',
       }}
     >
-        <Button
+      <Button
         variant="contained"
         size="small"
-        onClick={() => {setIsRequestModalOpen(true); setIsRequestor(false);}}
+        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(false); }}
         sx={{
           background: '#F4F4F4',
           color: '#344054',
@@ -65,8 +65,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         <Box
           component="span"
           sx={{
-            backgroundColor: '#eaecf0',
-            color: '#fff',
+            backgroundColor: '#CBCFD7',
+            color: '#374151',
             px: '6px',
             py: '4px',
             ml: '8px',
@@ -108,8 +108,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         <Box
           component="span"
           sx={{
-            backgroundColor: '#eaecf0',
-            color: '#fff',
+            backgroundColor: '#CBCFD7',
+            color: '#374151',
             px: '6px',
             py: '4px',
             ml: '8px',

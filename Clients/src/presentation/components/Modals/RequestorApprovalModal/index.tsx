@@ -309,6 +309,18 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                         ))}
                                                     </AccordionDetails>
                                                 </Accordion>
+                                                {index === 0 && (
+                                                    <Divider
+                                                        orientation="horizontal"
+                                                        flexItem
+                                                        sx={{
+                                                            borderColor: theme.palette.border.light,
+                                                            mx: 4,
+                                                            mr: 16,
+                                                            width: '248px'
+                                                        }}
+                                                    />
+                                                )}
                                             </React.Fragment>
                                         ))}
                                     </List>

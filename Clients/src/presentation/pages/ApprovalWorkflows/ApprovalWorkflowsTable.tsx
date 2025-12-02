@@ -3,21 +3,30 @@ import {
     Table,
     TableHead,
     TableBody,
+    TableFooter,
+    TablePagination,
     TableRow,
     TableCell,
     Box,
     useTheme,
     Chip,
     Stack,
+    Typography,
 } from "@mui/material";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import {
     ApprovalStatus
 } from "../../../domain/enums/aiApprovalWorkflow.enum";
+import TablePaginationActions from "../../components/TablePagination";
 
 import {
     workflowRowHover,
-    worklowTableRowDeletingStyle
+    worklowTableRowDeletingStyle,
+    workflowFooterRow,
+    workflowShowingText,
+    workflowPaginationMenu,
+    workflowPaginationSelect,
+    workflowPagination,
 } from "./style";
 import CustomIconButton from "../../components/IconButton";
 
@@ -79,6 +88,8 @@ const TABLE_COLUMNS = [
 ];
 
 const WORKFLOW_TABLE_SORTING_KEY = "verifywise_workflow_table_sorting";
+const DEFAULT_ROWS_PER_PAGE = 10;
+const STORAGE_KEY = 'workflow-table-rows-per-page';
 
 type SortDirection = "asc" | "desc" | null;
 type SortConfig = {
@@ -103,6 +114,13 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 }) => {
 
     const theme = useTheme();
+    const [page, setPage] = useState(0);
+
+    // Initialize rowsPerPage from localStorage or default
+    const [rowsPerPage, setRowsPerPage] = useState(() => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? parseInt(stored, 10) : DEFAULT_ROWS_PER_PAGE;
+    });
 
     // Initialize sorting state from localStorage or default to no sorting
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -121,6 +139,22 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
     useEffect(() => {
         localStorage.setItem(WORKFLOW_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
     }, [sortConfig]);
+
+    // Pagination handlers
+    const handleChangePage = useCallback(
+        (_: unknown, newPage: number) => setPage(newPage),
+        []
+    );
+    
+    const handleChangeRowsPerPage = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const newRowsPerPage = parseInt(event.target.value, 10);
+            setRowsPerPage(newRowsPerPage);
+            localStorage.setItem(STORAGE_KEY, newRowsPerPage.toString());
+            setPage(0);
+        },
+        []
+    );
 
     // Sorting handler
     const handleSort = useCallback((columnId: string) => {
@@ -268,11 +302,26 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
         [sortConfig, handleSort, theme]
     );
 
+    // Paginate the sorted data
+    const paginatedData = useMemo(() => {
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        return sortedData.slice(startIndex, endIndex);
+    }, [sortedData, page, rowsPerPage]);
+
+    // Calculate display range for "Showing X-Y of Z"
+    const getRange = useMemo(() => {
+        if (!sortedData || sortedData.length === 0) return "0-0";
+        const start = page * rowsPerPage + 1;
+        const end = Math.min((page + 1) * rowsPerPage, sortedData.length);
+        return `${start}-${end}`;
+    }, [page, rowsPerPage, sortedData]);
+
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {sortedData?.length > 0 ? (
-                    sortedData.map((workflow) => (
+                {paginatedData?.length > 0 ? (
+                    paginatedData.map((workflow) => (
                         <TableRow
                             key={workflow.id}
                             sx={{
@@ -368,12 +417,11 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                         >
                             No approval workflow data available.
                         </TableCell>
-
                     </TableRow>
                 )}
             </TableBody>
         ),
-        [sortedData, archivedId, onEdit, onArchive]
+        [paginatedData, archivedId, onEdit, onArchive, sortConfig]
     );
 
     return (
@@ -381,6 +429,39 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {tableHeader}
                 {tableBody}
+                <TableFooter>
+                    <TableRow sx={workflowFooterRow(theme)}>
+                        <TableCell colSpan={3} sx={workflowShowingText(theme)}>
+                            Showing {getRange} of {sortedData?.length} workflow(s)
+                        </TableCell>
+                        <TablePagination
+                            count={sortedData?.length ?? 0}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            rowsPerPage={rowsPerPage}
+                            rowsPerPageOptions={[5, 10, 15, 25]}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            ActionsComponent={(props) => (
+                                <TablePaginationActions {...props} />
+                            )}
+                            labelRowsPerPage="Rows per page"
+                            labelDisplayedRows={({ page, count }) =>
+                                `Page ${page + 1} of ${Math.max(
+                                    0,
+                                    Math.ceil(count / rowsPerPage)
+                                )}`
+                            }
+                            slotProps={{
+                                select: {
+                                    MenuProps: workflowPaginationMenu(theme),
+                                    sx: workflowPaginationSelect(theme),
+                                },
+                            }}
+                            sx={workflowPagination(theme)}
+                            colSpan={3}
+                        />
+                    </TableRow>
+                </TableFooter>
             </Table>
         </TableContainer>
     )

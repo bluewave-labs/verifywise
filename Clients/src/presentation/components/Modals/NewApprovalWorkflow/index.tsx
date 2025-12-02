@@ -106,23 +106,36 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         const newErrors: NewApprovalWorkflowFormErrors = {
             steps: []
         };
-        if (!workflowTitle.trim())
-            newErrors.workflow_title = "Workflow title is required."
-        if (entity < 1)
-            newErrors.entity = "Entity is required."
+        let hasErrors = false;
+        
+        if (!workflowTitle.trim()) {
+            newErrors.workflow_title = "Workflow title is required.";
+            hasErrors = true;
+        }
+        if (entity < 1) {
+            newErrors.entity = "Entity is required.";
+            hasErrors = true;
+        }
         for (let i = 0; i < workflowSteps.length; i++) {
             const step = workflowSteps[i];
             newErrors.steps.push({})
-            if (!step.step_name || !step.step_name.trim())
-                newErrors.steps[i].step_name = "Step name is required."
-            if (!step.approver)
-                newErrors.steps[i].approver = "Approver is required."
-            if (!step.conditions)
-                newErrors.steps[i].conditions = "Conditions are required."
+            if (!step.step_name || !step.step_name.trim()) {
+                newErrors.steps[i].step_name = "Step name is required.";
+                hasErrors = true;
+            }
+            if (!step.approver) {
+                newErrors.steps[i].approver = "Approver is required.";
+                hasErrors = true;
+            }
+            if (!step.conditions) {
+                newErrors.steps[i].conditions = "Conditions are required.";
+                hasErrors = true;
+            }
         }
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return !hasErrors;
     }
+    
     const handleSave = () => {
         if (validateForm()) {
             const formData = {

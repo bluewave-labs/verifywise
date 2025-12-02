@@ -2,7 +2,7 @@ import { Box, Stack } from "@mui/material"
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import { logEngine } from "../../../application/tools/log.engine";
 import {
@@ -13,6 +13,10 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
 import { ApprovalWorkflowStepModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
+import { ApprovalStatus } from "../../../domain/enums/aiApprovalWorkflow.enum";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { SearchBox } from "../../components/Search";
 
 const ApprovalWorkflows: React.FC = () => {
     const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
@@ -20,6 +24,9 @@ const ApprovalWorkflows: React.FC = () => {
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
     const [selectWorkflowId, setSelectWorkflowId] = useState<string | null>(null);
     const [modalMode, setModalMode] = useState("")
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
 
     const MOCK_WORKFLOWS: ApprovalWorkflowModel[] = [
         new ApprovalWorkflowModel({
@@ -62,14 +69,69 @@ const ApprovalWorkflows: React.FC = () => {
         }),
     ];
 
+    // FilterBy - Filter columns configuration
+    const workflowFilterColumns: FilterColumn[] = useMemo(() => [
+        {
+            id: 'workflow_title',
+            label: 'Title',
+            type: 'text' as const,
+        },
+        {
+            id: 'entity',
+            label: 'Entity',
+            type: 'select' as const,
+            options: [
+                { value: '1', label: 'Use case' },
+            ],
+        },
+        {
+            id: 'approval_status',
+            label: 'Approval Status',
+            type: 'select' as const,
+            options: [
+                { value: ApprovalStatus.PENDING, label: 'Pending' },
+                { value: ApprovalStatus.APPROVED, label: 'Approved' },
+                { value: ApprovalStatus.REJECTED, label: 'Rejected' },
+            ],
+        },
+    ], []);
 
+    // FilterBy - Field value getter
+    const getWorkflowFieldValue = useCallback(
+        (item: ApprovalWorkflowModel, fieldId: string): string | number | Date | null | undefined => {
+            switch (fieldId) {
+                case 'workflow_title':
+                    return item.workflow_title;
+                case 'entity':
+                    return item.entity?.toString();
+                case 'approval_status':
+                    return item.approval_status;
+                default:
+                    return null;
+            }
+        },
+        []
+    );
 
-    const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
+    // FilterBy - Initialize hook
+    const { filterData: filterWorkflowData, handleFilterChange: handleWorkflowFilterChange } = useFilterBy<ApprovalWorkflowModel>(getWorkflowFieldValue);
 
     /** -------------------- FILTERING -------------------- */
     const filteredData = useMemo(() => {
-        return workflowData;
-    }, [workflowData]);
+        // Apply FilterBy conditions
+        let result = filterWorkflowData(workflowData);
+
+        // Apply search filter
+        if (searchTerm) {
+            const search = searchTerm.toLowerCase();
+            result = result.filter((w) =>
+                (w.workflow_title || "").toLowerCase().includes(search) ||
+                (w.id || "").toString().toLowerCase().includes(search)
+            );
+        }
+
+        return result;
+    }, [filterWorkflowData, workflowData, searchTerm]);
 
 
     /** -------------------- FETCHING ON LOAD -------------------- */
@@ -227,9 +289,26 @@ const ApprovalWorkflows: React.FC = () => {
                 </Stack>
                 <Stack
                     direction="row"
-                    justifyContent="right"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    spacing={2}
+                    sx={{ mb: 2 }}
                 >
-                    <Box data-joyride-id="add-incident-button">
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <FilterBy
+                            columns={workflowFilterColumns}
+                            onFilterChange={handleWorkflowFilterChange}
+                        />
+                        <SearchBox
+                            placeholder="Search workflows..."
+                            value={searchTerm}
+                            onChange={setSearchTerm}
+                            inputProps={{ "aria-label": "Search workflows" }}
+                            fullWidth={false}
+                        />
+                       
+                    </Stack>
+                    <Box data-joyride-id="add-workflow-button">
                         <CustomizableButton
                             variant="contained"
                             sx={addNewWorkflowButton}

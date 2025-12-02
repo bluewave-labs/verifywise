@@ -22,8 +22,9 @@ import {
 import CustomIconButton from "../../components/IconButton";
 
 import { singleTheme } from "../../themes";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 const entities = [
     { _id: 1, name: "Use case" }
@@ -77,6 +78,13 @@ const TABLE_COLUMNS = [
     { id: "actions", label: "ACTIONS" },
 ];
 
+const WORKFLOW_TABLE_SORTING_KEY = "verifywise_workflow_table_sorting";
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
 
 interface ApprovalWorkflowTableProps {
     data: ApprovalWorkflowModel[];
@@ -95,6 +103,89 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 }) => {
 
     const theme = useTheme();
+
+    // Initialize sorting state from localStorage or default to no sorting
+    const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+        const saved = localStorage.getItem(WORKFLOW_TABLE_SORTING_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return { key: "", direction: null };
+            }
+        }
+        return { key: "", direction: null };
+    });
+
+    // Save sorting state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(WORKFLOW_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+    }, [sortConfig]);
+
+    // Sorting handler
+    const handleSort = useCallback((columnId: string) => {
+        setSortConfig((prevConfig) => {
+            if (prevConfig.key === columnId) {
+                // Toggle direction if same column, or clear if already descending
+                if (prevConfig.direction === "asc") {
+                    return { key: columnId, direction: "desc" };
+                } else if (prevConfig.direction === "desc") {
+                    return { key: "", direction: null };
+                }
+            }
+            // New column or first sort
+            return { key: columnId, direction: "asc" };
+        });
+    }, []);
+
+    // Sort the workflow data based on current sort configuration
+    const sortedData = useMemo(() => {
+        if (!data || !sortConfig.key || !sortConfig.direction) {
+            return data || [];
+        }
+
+        const sortableData = [...data];
+
+        return sortableData.sort((a: ApprovalWorkflowModel, b: ApprovalWorkflowModel) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            const sortKey = sortConfig.key.trim().toLowerCase();
+
+            // Handle different column types for workflows
+            if (sortKey.includes("title")) {
+                aValue = a.workflow_title?.toLowerCase() || "";
+                bValue = b.workflow_title?.toLowerCase() || "";
+            } else if (sortKey.includes("entity")) {
+                const aEntity = entities.find(e => e._id == a.entity)?.name || "";
+                const bEntity = entities.find(e => e._id == b.entity)?.name || "";
+                aValue = aEntity.toLowerCase();
+                bValue = bEntity.toLowerCase();
+            } else if (sortKey.includes("steps")) {
+                aValue = a.steps?.length || 0;
+                bValue = b.steps?.length || 0;
+            } else if (sortKey.includes("approval") && sortKey.includes("status")) {
+                aValue = a.approval_status?.toLowerCase() || "";
+                bValue = b.approval_status?.toLowerCase() || "";
+            } else if (sortKey.includes("date") && sortKey.includes("updated")) {
+                aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+                bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+            } else {
+                return 0;
+            }
+
+            // Handle string comparisons
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                const comparison = aValue.localeCompare(bValue);
+                return sortConfig.direction === "asc" ? comparison : -comparison;
+            }
+
+            // Handle number comparisons
+            if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [data, sortConfig]);
 
     const tableHeader = useMemo(
         () => (
@@ -135,6 +226,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                         }
                                         : {}),
                                 }}
+                                onClick={() => sortable && handleSort(column.label)}
                             >
                                 <Box
                                     sx={{
@@ -144,7 +236,28 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                         gap: theme.spacing(2),
                                     }}
                                 >
-                                    {column.label}
+                                    <div style={{ fontWeight: 400, color: sortConfig.key === column.label ? "primary.main" : "inherit" }}>
+                                        {column.label}
+                                    </div>
+                                    {sortable && (
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                                            }}
+                                        >
+                                            {sortConfig.key === column.label && sortConfig.direction === "asc" && (
+                                                <ChevronUp size={16} />
+                                            )}
+                                            {sortConfig.key === column.label && sortConfig.direction === "desc" && (
+                                                <ChevronDown size={16} />
+                                            )}
+                                            {sortConfig.key !== column.label && (
+                                                <ChevronsUpDown size={16} />
+                                            )}
+                                        </Box>
+                                    )}
                                 </Box>
                             </TableCell>
                         );
@@ -152,14 +265,14 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 </TableRow>
             </TableHead>
         ),
-        [theme]
+        [sortConfig, handleSort, theme]
     );
 
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {data?.length > 0 ? (
-                    data.map((workflow) => (
+                {sortedData?.length > 0 ? (
+                    sortedData.map((workflow) => (
                         <TableRow
                             key={workflow.id}
                             sx={{
@@ -173,7 +286,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: "#fafafa",
+                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("title") ? "#f5f5f5" : "#fafafa",
                                 }}
                             >
                                 {workflow.workflow_title}
@@ -181,7 +294,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: "#ffffff",
+                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("entity") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
                                 {entities.find(e => e._id == workflow.entity)?.name}
@@ -189,7 +302,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: "#ffffff",
+                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("steps") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
                                 {workflow.steps?.length}
@@ -197,7 +310,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: "#ffffff",
+                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approval") && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
                                 <Chip
@@ -209,7 +322,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: "#ffffff",
+                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("updated") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
                                 {workflow.date_updated
@@ -260,7 +373,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 )}
             </TableBody>
         ),
-        [data, theme]
+        [sortedData, archivedId, onEdit, onArchive]
     );
 
     return (

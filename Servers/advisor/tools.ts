@@ -94,5 +94,28 @@ export const toolsDefinition: any[] = [
                 required: []
             }
         }
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_risk_history_timeseries",
+            description: "Get historical timeseries data for risk parameters over a specified timeframe. Use this tool to show trends and changes over time for severity, likelihood, mitigation status, or risk level. Perfect for answering questions about risk trends, historical changes, and how risks have evolved. Returns time-stamped data points that can be visualized as line charts.",
+            parameters: {
+                type: "object",
+                properties: {
+                    parameter: {
+                        type: "string",
+                        enum: ["severity", "likelihood", "mitigation_status", "risk_level"],
+                        description: "The risk parameter to track over time. 'severity' shows how risk severities changed, 'likelihood' tracks probability changes, 'mitigation_status' shows mitigation progress, and 'risk_level' tracks overall risk levels."
+                    },
+                    timeframe: {
+                        type: "string",
+                        enum: ["7days", "15days", "1month", "3months", "6months", "1year"],
+                        description: "The time period to analyze. Shorter timeframes (7days, 15days, 1month) show daily data points, while longer timeframes (3months, 6months) show weekly data, and 1year shows monthly data."
+                    }
+                },
+                required: ["parameter", "timeframe"]
+            }
+        }
     }
 ];

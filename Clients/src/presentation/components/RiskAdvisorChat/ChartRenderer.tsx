@@ -11,12 +11,18 @@ import {
   TableBody, 
   TableCell 
 } from '@mui/material';
-import { BarChart, PieChart } from '@mui/x-charts';
+import { BarChart, PieChart, LineChart } from '@mui/x-charts';
 
 interface ChartData {
-  type: 'bar' | 'pie' | 'table' | 'donut';
+  type: 'bar' | 'pie' | 'table' | 'donut' | 'line';
   data: {label: string, value: number, color?: string}[] ;
   title: string;
+  // For line charts with multiple series (timeseries data)
+  series?: Array<{
+    label: string;
+    data: number[];
+  }>;
+  xAxisLabels?: string[];
 }
 
 interface ChartRendererProps {
@@ -27,16 +33,47 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
   const theme = useTheme();
   const size = 150;
 
-  if (!chartData || !chartData.data || chartData.data.length === 0) {
+  if (!chartData || (chartData.type !== 'line' && (!chartData.data || chartData.data.length === 0))) {
     return null;
   }
 
-  const { type, data, title } = chartData;
-  
+  const { type, data, title, series, xAxisLabels } = chartData;
+
   const renderChart = () => {
     const labels = data.map(item => item.label);
     const dataValues = data.map(item => item.value);
     switch (type) {
+      case 'line':
+        // Line chart for timeseries data
+        if (series && xAxisLabels) {
+          return (
+            <LineChart
+              xAxis={[{
+                scaleType: 'point',
+                data: xAxisLabels,
+              }]}
+              series={series.map(s => ({
+                data: s.data,
+                label: s.label,
+                curve: 'linear',
+              }))}
+              height={250}
+              width={320}
+              margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+            />
+          );
+        }
+        // Fallback for simple line chart
+        return (
+          <LineChart
+            xAxis={[{ scaleType: 'point', data: labels }]}
+            series={[{ data: dataValues, curve: 'linear' }]}
+            height={250}
+            width={320}
+            margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+          />
+        );
+
       case 'bar':
         return (
           <BarChart

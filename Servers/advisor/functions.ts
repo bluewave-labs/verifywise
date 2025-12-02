@@ -1,5 +1,6 @@
 import { IRisk } from "../domain.layer/interfaces/I.risk";
 import { getAllRisksQuery, getRisksByProjectQuery, getRisksByFrameworkQuery } from "../utils/risk.utils";
+import { getTimeseriesForTimeframe } from "../utils/history/riskHistory.utils";
 
 
 export interface FetchRisksParams {
@@ -297,10 +298,44 @@ const getExecutiveSummary = async (
   }
 };
 
+
+
+export interface RiskHistoryTimeseriesParams {
+  parameter: "severity" | "likelihood" | "mitigation_status" | "risk_level";
+  timeframe: "7days" | "15days" | "1month" | "3months" | "6months" | "1year";
+}
+
+export interface TimeseriesDataPoint {
+  timestamp: Date;
+  data: Record<string, number>;
+}
+
+const getRiskHistoryTimeseries = async (
+  params: RiskHistoryTimeseriesParams,
+  tenant: string
+): Promise<TimeseriesDataPoint[]> => {
+  try {
+    const { parameter, timeframe } = params;
+
+    // Fetch timeseries data using the utility function
+    const timeseriesData = await getTimeseriesForTimeframe(
+      parameter,
+      timeframe,
+      tenant
+    );
+
+    return timeseriesData;
+  } catch (error) {
+    console.error("Error getting risk history timeseries:", error);
+    throw new Error(`Failed to get risk history timeseries: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
 const availableTools: any = {
     "fetch_risks": fetchRisks,
     "get_risk_analytics": getRiskAnalytics,
-    "get_executive_summary": getExecutiveSummary
+    "get_executive_summary": getExecutiveSummary,
+    "get_risk_history_timeseries": getRiskHistoryTimeseries
 };
 
 export {availableTools};

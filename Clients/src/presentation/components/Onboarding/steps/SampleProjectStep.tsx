@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Stack, FormControl, Checkbox, FormControlLabel, SelectChangeEvent } from "@mui/material";
+import { Box, Typography, Stack, FormControl, Checkbox, SelectChangeEvent } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { DEMO_PROJECT_BANNER } from "../onboardingConstants";
 import Select from "../../../components/Inputs/Select";
@@ -65,7 +65,7 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
           sx={{
             width: "100%",
             height: "auto",
-            maxHeight: "200px",
+            maxHeight: "140px",
             borderRadius: "4px",
             objectFit: "cover",
             display: "block",
@@ -128,19 +128,17 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
               marginBottom: 1,
             }}
           >
-            Select a use case template <span style={{ color: "#DC2626" }}>*</span>
+            Demo use case <span style={{ color: "#DC2626" }}>*</span>
           </Typography>
           <Select
             id="use-case-select"
             label=""
+            placeholder="Select a use case template"
             value={sampleProject?.useCaseName || ""}
             onChange={handleUseCaseChange}
             items={USE_CASE_TEMPLATES}
             sx={{ width: "100%" }}
           />
-          <Typography sx={{ fontSize: "12px", color: "#6B7280", marginTop: 1 }}>
-            This will be the name of your demo project
-          </Typography>
         </FormControl>
 
         {/* Framework Selection */}
@@ -153,110 +151,84 @@ const SampleProjectStep: React.FC<OnboardingStepProps> = ({
               marginBottom: 2,
             }}
           >
-            Select framework(s) to apply <span style={{ color: "#DC2626" }}>*</span>
+            Select regulations/frameworks to apply <span style={{ color: "#DC2626" }}>*</span>
           </Typography>
 
-          <Stack spacing={1.5}>
-            {hasFrameworks ? (
-              allFrameworks.map((framework: Framework) => (
-                <FormControlLabel
+          {hasFrameworks ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 2,
+              }}
+            >
+              {allFrameworks.map((framework: Framework) => (
+                <Box
                   key={framework.id}
-                  control={
-                    <Checkbox
-                      checked={selectedFrameworks.includes(Number(framework.id))}
-                      onChange={() => handleFrameworkToggle(Number(framework.id))}
-                      sx={{
-                        color: "#D0D5DD",
-                        "&.Mui-checked": {
-                          color: "#13715B",
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Box>
-                      <Typography sx={{ fontSize: "13px", color: "#111827", fontWeight: 500 }}>
-                        {framework.name}
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        {framework.description || "Compliance framework for AI governance"}
-                      </Typography>
-                    </Box>
-                  }
+                  onClick={() => handleFrameworkToggle(Number(framework.id))}
                   sx={{
-                    margin: 0,
                     padding: 2,
-                    border: "1px solid #E5E7EB",
+                    border: selectedFrameworks.includes(Number(framework.id))
+                      ? "2px solid #13715B"
+                      : "1px solid #E5E7EB",
                     borderRadius: "4px",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    backgroundColor: selectedFrameworks.includes(Number(framework.id))
+                      ? "#F0FDF4"
+                      : "white",
+                    transition: "all 0.2s",
                     "&:hover": {
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: selectedFrameworks.includes(Number(framework.id))
+                        ? "#F0FDF4"
+                        : "#F9FAFB",
+                      borderColor: "#13715B",
                     },
                   }}
-                />
-              ))
-            ) : (
-              <Box
-                sx={{
-                  padding: 2,
-                  backgroundColor: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  borderRadius: "4px",
-                }}
-              >
-                <Typography sx={{ fontSize: "12px", color: "#991B1B" }}>
-                  No frameworks available. Please contact support if this issue persists.
-                </Typography>
-              </Box>
-            )}
-          </Stack>
-
-          <Typography sx={{ fontSize: "12px", color: "#6B7280", marginTop: 1 }}>
-            You can select multiple frameworks. At least one is required.
-          </Typography>
+                >
+                  <Checkbox
+                    checked={selectedFrameworks.includes(Number(framework.id))}
+                    onChange={() => handleFrameworkToggle(Number(framework.id))}
+                    sx={{
+                      padding: 0,
+                      color: "#D0D5DD",
+                      "&.Mui-checked": {
+                        color: "#13715B",
+                      },
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: "12px",
+                      color: "#111827",
+                      fontWeight: 500,
+                      textAlign: "center",
+                    }}
+                  >
+                    {framework.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                padding: 2,
+                backgroundColor: "#FEF2F2",
+                border: "1px solid #FECACA",
+                borderRadius: "4px",
+              }}
+            >
+              <Typography sx={{ fontSize: "12px", color: "#991B1B" }}>
+                No frameworks available. Please contact support if this issue persists.
+              </Typography>
+            </Box>
+          )}
         </FormControl>
-
-        {/* Demo Risks Info */}
-        <Box
-          sx={{
-            padding: 3,
-            backgroundColor: "#F0FDF4",
-            border: "1px solid #D1FAE5",
-            borderRadius: "4px",
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#13715B",
-              marginBottom: 1,
-            }}
-          >
-            What's included in your demo project:
-          </Typography>
-          <Stack spacing={0.5} sx={{ paddingLeft: 2 }}>
-            {[
-              "Sample risks mapped to your selected framework(s)",
-              "Pre-configured risk severity and likelihood levels",
-              "Example mitigation controls and strategies",
-              "Simulated compliance status and tracking",
-            ].map((item, index) => (
-              <Box key={index} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box
-                  sx={{
-                    width: "4px",
-                    height: "4px",
-                    borderRadius: "50%",
-                    backgroundColor: "#13715B",
-                  }}
-                />
-                <Typography sx={{ fontSize: "12px", color: "#344054" }}>
-                  {item}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
 
         {/* Validation Message */}
         {!hasRequiredSelections && (

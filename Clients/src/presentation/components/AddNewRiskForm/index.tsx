@@ -127,6 +127,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   initialMitigationValues = mitigationInitialState,
   users: usersProp,
   usersLoading: usersLoadingProp,
+  onSubmitRef,
 }) => {
   const theme = useTheme();
   const disableRipple =
@@ -168,6 +169,18 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     !allowedRoles.projectRisks.edit.includes(userRoleName);
   const isCreatingDisabled =
     !allowedRoles.projectRisks.create.includes(userRoleName);
+
+  // Expose submit function via ref for StandardModal pattern
+  useEffect(() => {
+    if (onSubmitRef) {
+      onSubmitRef.current = riskFormSubmitHandler;
+    }
+    return () => {
+      if (onSubmitRef) {
+        onSubmitRef.current = null;
+      }
+    };
+  });
 
   useEffect(() => {
     if (popupStatus === "edit" && !usersLoading && users?.length) {
@@ -776,7 +789,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             value="risks"
             sx={{
               p: COMPONENT_CONSTANTS.TAB_PADDING,
-              maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT,
+              // Only set maxHeight when not in StandardModal (no onSubmitRef)
+              ...(onSubmitRef ? {} : { maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT }),
             }}
           >
             <RiskSection
@@ -784,13 +798,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               setRiskValues={setRiskValues}
               riskErrors={riskErrors}
               userRoleName={userRoleName}
+              disableInternalScroll={!!onSubmitRef}
             />
           </TabPanel>
           <TabPanel
             value="mitigation"
             sx={{
               p: COMPONENT_CONSTANTS.TAB_PADDING,
-              maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT,
+              // Only set maxHeight when not in StandardModal (no onSubmitRef)
+              ...(onSubmitRef ? {} : { maxHeight: COMPONENT_CONSTANTS.MAX_HEIGHT }),
             }}
           >
             <MitigationSection
@@ -798,41 +814,45 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               setMitigationValues={setMitigationValues}
               mitigationErrors={mitigationErrors}
               userRoleName={userRoleName}
+              disableInternalScroll={!!onSubmitRef}
             />
           </TabPanel>
         </Suspense>
-        <Box sx={{ display: "flex" }}>
-          <CustomizableButton
-            sx={{
-              alignSelf: "flex-end",
-              width: "fit-content",
-              backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR,
-              border: `1px solid ${COMPONENT_CONSTANTS.PRIMARY_COLOR}`,
-              gap: 2,
-              borderRadius: COMPONENT_CONSTANTS.BORDER_RADIUS,
-              maxHeight: COMPONENT_CONSTANTS.BUTTON_HEIGHT,
-              textTransform: "inherit",
-              boxShadow: "none",
-              ml: "auto",
-              mr: 0,
-              mt: COMPONENT_CONSTANTS.TAB_MARGIN_TOP,
-              "&:hover": { boxShadow: "none" },
-            }}
-            icon={
-              popupStatus === "new" ? (
-                <SaveIcon size={16} />
-              ) : (
-                <UpdateIconSVGWhite size={16} />
-              )
-            }
-            variant="contained"
-            onClick={riskFormSubmitHandler}
-            text={popupStatus === "new" ? "Save" : "Update"}
-            isDisabled={
-              popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
-            }
-          />
-        </Box>
+        {/* Only show internal button when not using StandardModal pattern (no onSubmitRef) */}
+        {!onSubmitRef && (
+          <Box sx={{ display: "flex" }}>
+            <CustomizableButton
+              sx={{
+                alignSelf: "flex-end",
+                width: "fit-content",
+                backgroundColor: COMPONENT_CONSTANTS.PRIMARY_COLOR,
+                border: `1px solid ${COMPONENT_CONSTANTS.PRIMARY_COLOR}`,
+                gap: 2,
+                borderRadius: COMPONENT_CONSTANTS.BORDER_RADIUS,
+                maxHeight: COMPONENT_CONSTANTS.BUTTON_HEIGHT,
+                textTransform: "inherit",
+                boxShadow: "none",
+                ml: "auto",
+                mr: 0,
+                mt: COMPONENT_CONSTANTS.TAB_MARGIN_TOP,
+                "&:hover": { boxShadow: "none" },
+              }}
+              icon={
+                popupStatus === "new" ? (
+                  <SaveIcon size={16} />
+                ) : (
+                  <UpdateIconSVGWhite size={16} />
+                )
+              }
+              variant="contained"
+              onClick={riskFormSubmitHandler}
+              text={popupStatus === "new" ? "Save" : "Update"}
+              isDisabled={
+                popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
+              }
+            />
+          </Box>
+        )}
       </TabContext>
     </Stack>
   );

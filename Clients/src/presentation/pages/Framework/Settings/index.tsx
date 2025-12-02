@@ -204,7 +204,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             color: "#000000",
           }}
         >
-          Framework Settings
+          Framework settings
         </Typography>
 
         <Box
@@ -231,7 +231,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               {organizationalProject.project_title}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#666666" }}>
-              Organizational Framework
+              Organizational framework
             </Typography>
           </Box>
 
@@ -284,14 +284,14 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             color: "#000000",
           }}
         >
-          Framework Management
+          Framework management
         </Typography>
 
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 3,
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "16px",
             alignItems: "stretch",
           }}
         >

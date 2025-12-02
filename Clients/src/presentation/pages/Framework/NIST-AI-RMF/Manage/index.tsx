@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { updateNISTAIRMFSubcategoryStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
@@ -21,17 +21,26 @@ import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
 import { NISTAIRMFFunction } from "../types";
+import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 interface NISTAIRMFManageProps {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  onStatusFilterChange?: (status: string) => void;
+  statusOptions?: { value: string; label: string }[];
+  searchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
 }
 
 const NISTAIRMFManage = ({
   project: _project,
   projectFrameworkId: _projectFrameworkId,
   statusFilter,
+  onStatusFilterChange,
+  statusOptions,
+  searchTerm = "",
+  onSearchTermChange,
 }: NISTAIRMFManageProps) => {
   const { userId: _userId, userRoleName } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -308,8 +317,19 @@ const NISTAIRMFManage = ({
     );
   }
 
+  // Filter categories based on search term
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return categories;
+    }
+    return categories.filter((category: any) =>
+      category.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
+
   return (
-    <Stack className="nist-ai-rmf-manage" spacing={2}>
+    <Stack className="nist-ai-rmf-manage" spacing={0}>
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
@@ -318,16 +338,27 @@ const NISTAIRMFManage = ({
           ...styles.title,
           mt: 4,
           mb: 3,
-          fontSize: 20,
+          fontSize: 15,
           fontWeight: 600,
           color: "#1a1a1a",
         }}
       >
-        NIST AI RMF - Manage Categories
+        NIST AI RMF - Manage categories
       </Typography>
-      {categories &&
-        categories.map((category: any) => (
-          <Stack key={category.id} sx={{ ...styles.container, mb: 2 }}>
+      {onStatusFilterChange && statusOptions && (
+        <TabFilterBar
+          statusFilter={statusFilter || ""}
+          onStatusChange={onStatusFilterChange}
+          showStatusFilter={true}
+          statusOptions={statusOptions}
+          showSearchBar={true}
+          searchTerm={searchTerm}
+          setSearchTerm={onSearchTermChange as any}
+        />
+      )}
+      {filteredCategories &&
+        filteredCategories.map((category: any) => (
+          <Stack key={category.id} sx={{ ...styles.container, marginBottom: "2px" }}>
             <Accordion
               key={category.id}
               expanded={expanded === category.id}
@@ -356,7 +387,7 @@ const NISTAIRMFManage = ({
                 />
                 <Stack sx={{ paddingLeft: "2.5px", flex: 1 }}>
                   <Typography
-                    fontSize={14}
+                    fontSize={13}
                     fontWeight={600}
                     color="#1a1a1a"
                     sx={{ lineHeight: 1.3 }}

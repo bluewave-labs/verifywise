@@ -121,7 +121,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
-            maxWidth="1000px"
+            maxWidth="900px"
             onSubmit={() => { isRequestor ? console.log("Resubmit clicked") : console.log("Submit clicked"); }}
             submitButtonText={isRequestor ? "Resubmit" : "Submit"}
             cancelButtonText="Cancel"
@@ -367,7 +367,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 <Stack spacing={8} direction="column"
                     sx={{
                         paddingLeft: 8,
-                        width: '500px'
+                        width: '548px'
                     }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography fontWeight={600} fontSize={16} mb={2}>

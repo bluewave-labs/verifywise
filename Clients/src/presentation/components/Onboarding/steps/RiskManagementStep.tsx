@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { OnboardingStepProps } from "../../../../domain/interfaces/i.onboarding";
 import { AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
-import Alert from "../../Alert";
 import onboardingBanner from "../../../assets/onboarding-banner.svg";
 
 const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
@@ -48,7 +47,7 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
           sx={{
             width: "100%",
             height: "auto",
-            maxHeight: "200px",
+            maxHeight: "140px",
             borderRadius: "4px",
             objectFit: "cover",
             display: "block",
@@ -131,17 +130,6 @@ const RiskManagementStep: React.FC<OnboardingStepProps> = () => {
           </Box>
         ))}
       </Box>
-
-      <Alert
-        variant="success"
-        title="Risk classification"
-        body="Risks are automatically categorized by severity (Negligible, Minor, Moderate, Major, Catastrophic) and likelihood to help you prioritize mitigation efforts effectively."
-        hasIcon={false}
-        sx={{
-          position: "static",
-          padding: "16px",
-        }}
-      />
     </Stack>
   );
 };

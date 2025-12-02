@@ -29,7 +29,7 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
     minHeight: "34px",
     maxHeight: "34px",
     boxSizing: "border-box",
-    ...(fullWidth && { width: "100%" }),
+    width: fullWidth ? "100%" : 160,
     ...sx,
   };
 

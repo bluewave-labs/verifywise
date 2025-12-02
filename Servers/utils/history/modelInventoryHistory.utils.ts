@@ -3,6 +3,17 @@ import { sequelize } from "../../database/db";
 import { ModelInventoryStatus } from "../../domain.layer/enums/model-inventory-status.enum";
 import { Transaction, QueryTypes } from "sequelize";
 
+// Whitelist of allowed parameter names for aggregation
+const ALLOWED_PARAMETERS = [
+  "name",
+  "version",
+  "owner",
+  // add all other safe column names intended to be exposed
+  "type",
+  "created_at",
+  // DO NOT add user-controlled column names unless they're safe
+];
+
 /**
  * Record a snapshot of parameter counts in history
  */
@@ -40,7 +51,7 @@ export async function recordHistorySnapshot(
 
     return result[0];
   } catch (error) {
-    console.error(`Error recording history snapshot for parameter ${parameter}:`, error);
+    console.error('Error recording history snapshot for parameter %s:', parameter, error);
     throw error;
   }
 }
@@ -101,6 +112,9 @@ export async function getCurrentParameterCounts(
       });
     } else {
       // Generic handling for other parameters
+      if (!ALLOWED_PARAMETERS.includes(parameter)) {
+        throw new Error(`Invalid parameter: ${parameter}`);
+      }
       const paramCounts = await sequelize.query(
         `SELECT ${parameter}, COUNT(*) as count
          FROM "${tenant}".model_inventories
@@ -119,7 +133,7 @@ export async function getCurrentParameterCounts(
 
     return counts;
   } catch (error) {
-    console.error(`Error getting current parameter counts for ${parameter}:`, error);
+    console.error('Error getting current parameter counts for %s:', parameter, error);
     throw error;
   }
 }

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -31,6 +32,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { Subprocessor } from "../../../../domain/interfaces/iAITrustCenter";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
+import { GroupBy } from "../../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../../components/Table/GroupedTableView";
 
 interface FormData {
   info?: {
@@ -142,6 +146,8 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -161,6 +167,9 @@ const AITrustCenterSubprocessors: React.FC = () => {
     useDeleteAITrustCentreSubprocessorMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // State management
   const [formData, setFormData] = useState<FormData | null>(null);
@@ -202,6 +211,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle subprocessorId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const subprocessorId = searchParams.get("subprocessorId");
+    if (subprocessorId && !hasProcessedUrlParam.current && subprocessors && subprocessors.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEdit function which opens the modal
+      handleEdit(parseInt(subprocessorId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, subprocessors, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (
@@ -311,7 +331,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
       // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[^\s?#]*)?(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(newSubprocessor.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -362,7 +382,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
        // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[\w\-]*)*(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(form.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -424,6 +444,26 @@ const AITrustCenterSubprocessors: React.FC = () => {
     }
   };
 
+  // Define how to get the group key for each subprocessor
+  const getSubprocessorGroupKey = useCallback((subprocessor: Subprocessor, field: string): string => {
+    switch (field) {
+      case 'location':
+        return subprocessor.location || 'Unknown';
+      case 'purpose':
+        return subprocessor.purpose || 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, []);
+
+  // Apply grouping to subprocessors
+  const groupedSubprocessors = useTableGrouping({
+    data: subprocessors || [],
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getSubprocessorGroupKey,
+  });
+
   // Show loading state
   if (overviewLoading || subprocessorsLoading) {
     return (
@@ -482,45 +522,63 @@ const AITrustCenterSubprocessors: React.FC = () => {
       <Box sx={styles.container}>
         <Box sx={styles.subprocessorsHeader}>
           <Box sx={styles.headerControls}>
-            <CustomizableButton
-              sx={styles.addButton}
-              variant="contained"
-              onClick={handleOpenAddModal}
-              isDisabled={!formData?.info?.subprocessor_visible}
-              text="Add new subprocessor"
-              icon={<AddCircleOutlineIcon size={16} />}
-            />
-            <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>
-                Enabled and visible
-              </Typography>
-              <Toggle
-                checked={formData?.info?.subprocessor_visible ?? false}
-                onChange={(_, checked) =>
-                  handleFieldChange("info", "subprocessor_visible", checked)
-                }
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <GroupBy
+                options={[
+                  { id: 'location', label: 'Location' },
+                  { id: 'purpose', label: 'Purpose' },
+                ]}
+                onGroupChange={handleGroupChange}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <Box sx={styles.toggleRow}>
+                <Typography sx={styles.toggleLabel}>
+                  Enabled and visible
+                </Typography>
+                <Toggle
+                  checked={formData?.info?.subprocessor_visible ?? false}
+                  onChange={(_, checked) =>
+                    handleFieldChange("info", "subprocessor_visible", checked)
+                  }
+                />
+              </Box>
+              <CustomizableButton
+                sx={styles.addButton}
+                variant="contained"
+                onClick={handleOpenAddModal}
+                isDisabled={!formData?.info?.subprocessor_visible}
+                text="Add new subprocessor"
+                icon={<AddCircleOutlineIcon size={16} />}
               />
             </Box>
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <AITrustCenterTable
-            data={subprocessors || []}
-            columns={TABLE_COLUMNS}
-            isLoading={subprocessorsLoading}
-            paginated={true}
-            disabled={!formData?.info?.subprocessor_visible}
-            emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor, sortConfig) => (
-              <SubprocessorTableRow
-                key={subprocessor.id}
-                subprocessor={subprocessor}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                sortConfig={sortConfig}
+          <GroupedTableView
+            groupedData={groupedSubprocessors}
+            ungroupedData={subprocessors || []}
+            renderTable={(data, options) => (
+              <AITrustCenterTable
+                data={data}
+                columns={TABLE_COLUMNS}
+                isLoading={subprocessorsLoading}
+                paginated={true}
+                disabled={!formData?.info?.subprocessor_visible}
+                emptyStateText="No subprocessors found. Add your first subprocessor to get started."
+                renderRow={(subprocessor, sortConfig) => (
+                  <SubprocessorTableRow
+                    key={subprocessor.id}
+                    subprocessor={subprocessor}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    sortConfig={sortConfig}
+                  />
+                )}
+                tableId="subprocessors-table"
+                hidePagination={options?.hidePagination}
               />
             )}
-            tableId="subprocessors-table"
           />
         </Box>
 

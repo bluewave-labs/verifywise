@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verifywise-config
+data:
+  BACKEND_PORT: "3000"
+  BACKEND_URL: "http://verifywise.ai:3000"
+  FRONTEND_PORT: "8080"
+  FRONTEND_URL: "http://verifywise.ai:8080"
+  HOST: "verifywise.ai"
+  BIAS_AND_FAIRNESS_PORT: "8000"
+  NODE_ENV: "production"
+  DB_SSL: "false"
+  MULTI_TENANCY_ENABLED: "false"
+  RESEND_API_KEY: "your-resend-api-key"
+  DB_HOST: "localhost"
+  DB_PORT: "5432"
+  DB_NAME: "verifywise"
+  DB_USER: "verifyuser"
+  MOCK_DATA_ON: "false"
+  EMAIL_ID: "your-email@gmail.com"

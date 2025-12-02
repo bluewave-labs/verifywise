@@ -16,16 +16,18 @@ import {
     TextField,
     Typography,
     IconButton,
-    Tooltip
+    Tooltip,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ChevronDown, DownloadIcon, UploadIcon } from "lucide-react";
+import { ChevronDown, DownloadIcon, History as HistoryIcon } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
+import HistorySidebar from "../../Common/HistorySidebar";
+import { useModelInventoryChangeHistory } from "../../../../application/hooks/useModelInventoryChangeHistory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
@@ -46,6 +48,8 @@ import EvidenceHubTable from "../../../pages/ModelInventory/evidenceHubTable";
 import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import { addNewModelButtonStyle } from "../../../pages/ModelInventory/style";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import VWLink from "../../Link/VWLink";
+import { useQueryClient } from "@tanstack/react-query";
 
 dayjs.extend(utc);
 
@@ -60,7 +64,7 @@ interface NewModelInventoryProps {
     evidenceData : EvidenceHubModel[];
     handleEditEvidence?: (id: number) => void;
     handleDeleteEvidence?: (id: number) => void;
-    handleAddEvidence?: () => void;
+    handleAddEvidence?: (modelId?: number) => void;
     modelInventoryData: IModelInventory[];
 }
 
@@ -161,6 +165,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     modelInventoryData,
 }) => {
     const theme = useTheme();
+    const queryClient = useQueryClient();
     const [values, setValues] = useState<NewModelInventoryFormValues>(
         initialData || initialState
     );
@@ -171,7 +176,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("details");
     const [isEvidenceLoading, ] = useState(false);
-    
+    const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+    // Prefetch history data when modal opens in edit mode
+    // This ensures data is ready before user opens the sidebar
+    useModelInventoryChangeHistory(
+        isOpen && isEdit ? (selectedModelInventoryId as number) : undefined
+    );
 
     useEffect(() => {
         if (isOpen) {
@@ -268,7 +279,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     // Create a mapping from framework ID to framework name
     const frameworkIdToNameMap = useMemo(() => {
         const map = new Map<number, string>();
-        const targetFrameworks = ["ISO 42001", "ISO 27001"];
+        const targetFrameworks = ["ISO 42001", "ISO 27001", "NIST AI RMF"];
 
         projectList.forEach((project) => {
             project.framework?.forEach((f) => {
@@ -457,6 +468,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
     const handleClose = () => {
         setIsOpen(false);
+        // Invalidate change history cache when modal closes
+        // This ensures fresh data is fetched when reopening the modal
+        queryClient.invalidateQueries({
+            queryKey: ["changeHistory", "model_inventory", selectedModelInventoryId]
+        });
     };
 
     useModalKeyHandling({
@@ -606,7 +622,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     
 
     const modelDetailsSection = (
-        <Stack spacing={6}>
+        <Stack spacing={3}>
         {/* First Row: Provider, Model, Version */}
         <Stack
             direction={"row"}
@@ -789,7 +805,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         {/* Second Row: Approver, Status, Status Date */}
         <Stack
             direction={"row"}
-            justifyContent={"flex-start"}
+            justifyContent={"space-between"}
             spacing={6}
         >
             <SelectComponent
@@ -838,8 +854,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}
@@ -912,8 +929,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}
@@ -994,8 +1012,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <Stack>
             <Typography
                 sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    height: "22px",
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                 }}
@@ -1121,7 +1140,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         </Stack>
 
         {/* Security Assessment Section */}
-        <Stack direction={"row"} spacing={6}>
+        <Stack>
             <FormControlLabel
                 control={
                     <Toggle
@@ -1129,9 +1148,34 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                         onChange={handleSecurityAssessmentChange}
                     />
                 }
-                label="Security assessment is complete for this model"
+                label={
+                    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                        <Typography
+                            sx={{
+                                fontSize: 13,
+                                fontWeight: 400,
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Security assessment is complete for this model
+                        </Typography>
+                        {values.security_assessment && (
+                            <VWLink
+                                onClick={() => setIsUploadModalOpen(true)}
+                                showIcon={false}
+                                sx={{ marginLeft: "8px" }}
+                            >
+                                {values.security_assessment_data &&
+                                values.security_assessment_data.length > 0
+                                    ? "Add more files"
+                                    : "Upload assessment"}
+                            </VWLink>
+                        )}
+                    </Box>
+                }
                 sx={{
-                    width: "50%",
+                    marginLeft: 0,
+                    marginRight: 0,
                     "& .MuiFormControlLabel-label": {
                         fontSize: 13,
                         fontWeight: 400,
@@ -1157,21 +1201,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         {/* ✅ Upload Section (appears only when toggle is ON) */}
         {values.security_assessment && (
             <Stack spacing={4}>
-                {/* Row 1: Upload / Replace button - always visible */}
-                <Stack direction="row" spacing={2}>
-                    <CustomizableButton
-                        variant="contained"
-                        text={
-                            values.security_assessment_data &&
-                            values.security_assessment_data.length > 0
-                                ? "Add more files"
-                                : "Upload assessment"
-                        }
-                        sx={{ gap: 2 }}
-                        icon={<UploadIcon size={16} />}
-                        onClick={() => setIsUploadModalOpen(true)}
-                    />
-                </Stack>
 
                 {values.security_assessment_data &&
                         values.security_assessment_data.length > 0 && (
@@ -1245,42 +1274,50 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
      );
 
     const evidenceSection = (
-        <Stack spacing={3}>
-    
-            {/* ------------ ADD NEW EVIDENCE BUTTON ------------ */}
-            <Box display="flex" justifyContent="flex-end" sx={{gap:4}}>
+        <Box
+            onWheel={(e) => {
+                // Stop scroll events from propagating to background
+                e.stopPropagation();
+            }}
+            sx={{ height: '100%', overflow: 'auto' }}
+        >
+            <Stack spacing={3}>
 
-                <CustomizableButton
-                                      variant="contained"
-                                      sx={addNewModelButtonStyle}
-                                      text="Add new evidence"
-                                      icon={<AddCircleOutlineIcon size={16} />}
-                                      onClick={handleAddEvidence}
-                                  />
+                {/* ------------ ADD NEW EVIDENCE BUTTON ------------ */}
+                <Box display="flex" justifyContent="flex-end" sx={{gap:4}}>
 
-                <CustomizableButton
-                      variant="contained"
-                      text="Download"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                      }}
-                      startIcon={<DownloadIcon size={16} />}
-                      onClick={() => handleDownloadEvidence(evidenceData)}
-                    />
-            </Box>
-    
-            {/* ------------ EVIDENCE TABLE ------------ */}
-            <EvidenceHubTable
-                data={evidenceForThisModel}
-                isLoading={isEvidenceLoading}
-                onEdit={handleEditEvidence}
-                onDelete={handleDeleteEvidence}
-                paginated={true}
-                modelInventoryData={modelInventoryData}
-            />
-    
-        </Stack>
+                    <CustomizableButton
+                                          variant="contained"
+                                          sx={addNewModelButtonStyle}
+                                          text="Add new evidence"
+                                          icon={<AddCircleOutlineIcon size={16} />}
+                                          onClick={() => handleAddEvidence?.(Number(selectedModelInventoryId))}
+                                      />
+
+                    <CustomizableButton
+                          variant="contained"
+                          text="Download"
+                          sx={{
+                            backgroundColor: "#13715B",
+                            border: "1px solid #13715B",
+                          }}
+                          startIcon={<DownloadIcon size={16} />}
+                          onClick={() => handleDownloadEvidence(evidenceData)}
+                        />
+                </Box>
+
+                {/* ------------ EVIDENCE TABLE ------------ */}
+                <EvidenceHubTable
+                    data={evidenceForThisModel}
+                    isLoading={isEvidenceLoading}
+                    onEdit={handleEditEvidence}
+                    onDelete={handleDeleteEvidence}
+                    paginated={true}
+                    modelInventoryData={modelInventoryData}
+                />
+
+            </Stack>
+        </Box>
     );
     
 
@@ -1295,60 +1332,108 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                      ? "Update model details, approval status, and metadata"
                      : "Register a new AI model with comprehensive metadata and approval tracking"
              }
-             onSubmit={handleSubmit}
+             onSubmit={activeTab === "evidence" ? undefined : handleSubmit}
              submitButtonText={isEdit ? "Update model" : "Save"}
              isSubmitting={isButtonDisabled}
-             maxWidth="760px"
-             /* This hides the entire footer */
-             hideFooter={isEdit && activeTab === "evidence"}
+             maxWidth={isHistorySidebarOpen ? "1100px" : "760px"}
+             expandedHeight={values.security_assessment}
+             headerActions={
+                 isEdit && selectedModelInventoryId ? (
+                     <Tooltip title="View activity history" arrow>
+                         <IconButton
+                             onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                             size="small"
+                             sx={{
+                                 color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                                 padding: "4px",
+                                 borderRadius: "4px",
+                                 backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                                 "&:hover": {
+                                     backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                                 },
+                             }}
+                         >
+                             <HistoryIcon size={20} />
+                         </IconButton>
+                     </Tooltip>
+                 ) : undefined
+             }
          >
-             {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
-             {isEdit ? (
-                 <TabContext value={activeTab}>
-                     {/* TAB BAR */}
-                     <Box sx={{ marginBottom: 3 }}>
-                         <TabBar
-                             tabs={[
-                                 {
-                                     label: "Model details",
-                                     value: "details",
-                                     icon: "Box",
-                                 },
-                                 {
-                                     label: "Evidence",
-                                     value: "evidence",
-                                     icon: "Database",
-                                 },
-                             ]}
-                             activeTab={activeTab}
-                             onChange={(_, newValue) => setActiveTab(newValue)}
-                             dataJoyrideId="model-tabs"
-                         />
-                     </Box>
+             <Stack
+                 direction="row"
+                 sx={{
+                     width: "100%",
+                     minHeight: 0,
+                     alignItems: "flex-start",
+                     overflow: "hidden",
+                     position: "relative"
+                 }}
+             >
+                 {/* Main Content */}
+                 <Box sx={{
+                     flex: 1,
+                     minWidth: 0,
+                     minHeight: 0,
+                     display: "flex",
+                     flexDirection: "column",
+                     overflow: "auto"
+                 }}>
+                     {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
+                     {isEdit ? (
+                         <TabContext value={activeTab}>
+                             {/* TAB BAR */}
+                             <Box sx={{ marginBottom: 3 }}>
+                                 <TabBar
+                                     tabs={[
+                                         {
+                                             label: "Model details",
+                                             value: "details",
+                                             icon: "Box",
+                                         },
+                                         {
+                                             label: "Evidence",
+                                             value: "evidence",
+                                             icon: "Database",
+                                         },
+                                     ]}
+                                     activeTab={activeTab}
+                                     onChange={(_, newValue) => setActiveTab(newValue)}
+                                     dataJoyrideId="model-tabs"
+                                 />
+                             </Box>
 
-                     {/* FIXED WIDTH + FIXED HEIGHT */}
-                     <Box
-                         sx={{
-                             minHeight: "520px",
-                             maxHeight: "fit-content",
-                             width: "100%", // always full width inside modal
-                             display: "flex",
-                             flexDirection: "column",
-                         }}
-                     >
-                         {/* TAB CONTENT */}
-                         {activeTab === "details" && modelDetailsSection}
+                             {/* Tab Content Wrapper */}
+                             <Box
+                                 sx={{
+                                     width: "100%", // always full width inside modal
+                                     display: "flex",
+                                     flexDirection: "column",
+                                 }}
+                             >
+                                 {/* TAB CONTENT */}
+                                 {activeTab === "details" && modelDetailsSection}
 
-                         {/* Evidence content*/}
-                         {activeTab === "evidence" && evidenceSection}
-                     </Box>
-                 </TabContext>
-             ) : (
-                 /* NOT EDIT → always show model details */
-                 modelDetailsSection
-             )}
+                                 {/* Evidence content*/}
+                                 {activeTab === "evidence" && evidenceSection}
+                             </Box>
+                         </TabContext>
+                     ) : (
+                         /* NOT EDIT → always show model details */
+                         modelDetailsSection
+                     )}
+                 </Box>
+
+                 {/* History Sidebar - Embedded */}
+                 {isEdit && (
+                     <HistorySidebar
+                         isOpen={isHistorySidebarOpen}
+                         entityType="model_inventory"
+                         entityId={selectedModelInventoryId as number}
+                     />
+                 )}
+             </Stack>
          </StandardModal>
-     );    
+     );
 };
 
 export default NewModelInventory;

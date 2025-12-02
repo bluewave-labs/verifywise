@@ -109,7 +109,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             sx={BasicModalDeleteButtonStyle}
             onClick={(e) => onDelete(e)}
           >
-            {type === "Incident" ? "Archive incident" : `Delete ${type}`}
+            {type === "Incident" || type === "Task" ? `Archive ${type.toLowerCase()}` : `Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

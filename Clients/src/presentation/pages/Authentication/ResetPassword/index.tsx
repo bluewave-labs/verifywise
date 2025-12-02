@@ -12,6 +12,7 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import singleTheme from "../../../themes/v1SingleTheme";
+import Field from "../../../components/Inputs/Field";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -33,7 +34,23 @@ const ResetPassword = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
+  const handleChange =
+    (field: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [field]: event.target.value });
+    };
+
   const resendEmail = async () => {
+    // Validate email before sending
+    if (!values.email || !values.email.trim()) {
+      handleAlert({
+        variant: "error",
+        body: "Please enter an email address",
+        setAlert,
+      });
+      return;
+    }
+
     const formData = {
       to: values.email,
       email: values.email,
@@ -43,10 +60,9 @@ const ResetPassword = () => {
     handleAlert({
       variant: response.status === 200 ? "success" : "error",
       body:
-        response.status === 200 ? "Email sent successfully" : "Email failed",
+        response.status === 200 ? "If an account exists with this email, we'll send a password reset link" : "Request failed",
       setAlert,
     });
-    setValues(initialState);
   };
 
   return (
@@ -109,9 +125,18 @@ const ResetPassword = () => {
             Check your email
           </Typography>
           <Typography fontSize={13} color={"#475467"}>
-            We sent a password reset link to{" "}
-            <span style={{ fontWeight: 500 }}>{values.email}</span>
+            If an account exists with this email, we'll send a password reset link
           </Typography>
+        </Stack>
+        <Stack sx={{ width: "100%", gap: theme.spacing(6) }}>
+          <Field
+            label="Email"
+            isRequired
+            placeholder="Enter your email"
+            type="email"
+            value={values.email}
+            onChange={handleChange("email")}
+          />
         </Stack>
         <Stack sx={{ gap: theme.spacing(12) }} onClick={resendEmail}>
           <Typography sx={{ fontSize: 13, color: "#475467" }}>

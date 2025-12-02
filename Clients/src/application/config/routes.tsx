@@ -27,6 +27,7 @@ import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/Fair
 import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
+import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
@@ -38,7 +39,11 @@ import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
+import StyleGuide from "../../presentation/pages/StyleGuide";
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
+
+// Check if we're in development mode
+const isDev = import.meta.env.DEV;
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -139,5 +144,8 @@ export const createRoutes = (
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
+  // Style Guide - Development only
+  ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

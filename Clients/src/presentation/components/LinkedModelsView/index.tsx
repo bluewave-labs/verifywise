@@ -17,6 +17,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import EmptyState from "../EmptyState";
 import { VWLink } from "../Link";
+import InfoBox from "../InfoBox";
 
 const TABLE_COLUMNS = [
   { id: "provider", label: "PROVIDER" },
@@ -141,6 +142,11 @@ const LinkedModelsView = ({
   return (
     <Stack spacing={3}>
       {headerContent}
+      {/* Info Box */}
+      <InfoBox
+        message="Models added to the Model Inventory that are linked to this use case will appear here."
+        storageKey="linkedModels_explanation"
+      />
       <Stack sx={{ pt: 2 }}>
         <TableContainer sx={{ overflowX: "auto" }}>
           <Table sx={singleTheme.tableStyles.primary.frame}>
@@ -165,7 +171,17 @@ const LinkedModelsView = ({
               {linkedModels.map((model) => (
                 <TableRow
                   key={model.id}
-                  sx={singleTheme.tableStyles.primary.body.row}
+                  onClick={() => model.id && navigate(`/model-inventory?modelId=${model.id}`)}
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.row,
+                    "&:hover": {
+                      cursor: model.id ? "pointer" : "default",
+                      backgroundColor: "#F9FAFB",
+                    },
+                    "&:hover td": {
+                      backgroundColor: "#F9FAFB",
+                    },
+                  }}
                 >
                   <TableCell
                     sx={{

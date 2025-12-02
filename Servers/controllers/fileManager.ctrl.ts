@@ -33,6 +33,7 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import { getUserProjects } from "../utils/user.utils";
+import { getProjectByIdQuery } from "../utils/project.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -355,10 +356,21 @@ export const downloadFile = async (
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      if (!userProjectIds.includes(file.project_id)) {
+      // Get the project to check ownership
+      const project = await getProjectByIdQuery(file.project_id, tenant);
+
+      // Allow access if:
+      // 1. User is a member of the project, OR
+      // 2. User is the owner of the project, OR
+      // 3. User is the one who uploaded/generated the file
+      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id}`,
+          description: `Unauthorized access attempt to file ${fileId} - user doesn't have access to project ${file.project_id}, is not the project owner, and is not the file owner`,
           functionName: "downloadFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),
@@ -367,8 +379,15 @@ export const downloadFile = async (
       }
     }
 
-    // Log file access
-    await logFileAccess(fileId, userId, orgId, "download", tenant);
+    // Log file access (only for file manager files)
+    if (isFileManagerFile) {
+      try {
+        await logFileAccess(fileId, userId, orgId, "download", tenant);
+      } catch (error) {
+        // Don't fail the download if logging fails
+        console.error("Failed to log file access:", error);
+      }
+    }
 
     // Check if file content exists in database
     if (!file.content) {
@@ -383,13 +402,18 @@ export const downloadFile = async (
     }
 
     // Set headers for file download
-    res.setHeader("Content-Type", file.mimetype);
+    // file_manager table uses 'mimetype', files table uses 'type'
+    const contentType = isFileManagerFile ? file.mimetype : file.type;
+    res.setHeader("Content-Type", contentType || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${file.filename}"`
     );
-    res.setHeader("Content-Length", file.size);
+
+    // Set Content-Length - file_manager has size field, files table doesn't
+    const contentLength = file.size || (file.content ? file.content.length : 0);
+    res.setHeader("Content-Length", contentLength);
 
     // Send file content from database
     res.send(file.content);
@@ -497,10 +521,21 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       const userProjects = await getUserProjects(userId, tenant);
       const userProjectIds = userProjects.map((p) => p.id);
 
-      if (!userProjectIds.includes(file.project_id)) {
+      // Get the project to check ownership
+      const project = await getProjectByIdQuery(file.project_id, tenant);
+
+      // Allow access if:
+      // 1. User is a member of the project, OR
+      // 2. User is the owner of the project, OR
+      // 3. User is the one who uploaded/generated the file
+      const isProjectMember = userProjectIds.includes(file.project_id);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
         await logFailure({
           eventType: "Error",
-          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id}`,
+          description: `Unauthorized deletion attempt for file ${fileId} - user doesn't have access to project ${file.project_id}, is not the project owner, and is not the file owner`,
           functionName: "removeFile",
           fileName: "fileManager.ctrl.ts",
           error: new Error("Access denied"),

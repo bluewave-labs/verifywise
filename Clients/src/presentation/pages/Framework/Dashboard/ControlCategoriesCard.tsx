@@ -12,7 +12,8 @@ import {
   Target,
   Cog,
   Activity,
-  Zap
+  Zap,
+  ChevronRight
 } from "lucide-react";
 import {
   GetClausesByProjectFrameworkId,
@@ -35,6 +36,7 @@ import {
 
 interface ControlCategoriesCardProps {
   frameworksData: BaseFrameworkData[];
+  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
 interface CategoryData {
@@ -69,7 +71,7 @@ const ISO27001_CLAUSE_MAPPINGS = {
   10: { number: "A.10", name: "Improvement", icon: Zap },
 };
 
-const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) => {
+const ControlCategoriesCard = ({ frameworksData, onNavigate }: ControlCategoriesCardProps) => {
   const [loading, setLoading] = useState(true);
   const [iso42001CategoriesData, setIso42001CategoriesData] = useState<CategoryData[]>([]);
   const [iso27001CategoriesData, setIso27001CategoriesData] = useState<CategoryData[]>([]);
@@ -269,8 +271,14 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
     ));
   };
 
-  const renderFrameworkSection = (categoriesData: CategoryData[], title: string) => {
+  const renderFrameworkSection = (categoriesData: CategoryData[], title: string, frameworkName: string) => {
     if (categoriesData.length === 0) return null;
+
+    const handleCardClick = () => {
+      if (onNavigate) {
+        onNavigate(frameworkName, "clauses");
+      }
+    };
 
     return (
       <Stack spacing={2}>
@@ -312,6 +320,9 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
                     backgroundColor: "#F1F3F4",
                     p: "10px 16px",
                     borderBottom: "1px solid #d0d5dd",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -328,6 +339,23 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
                       {category.number}. {category.name}
                     </Typography>
                   </Box>
+                  {onNavigate && (
+                    <Box
+                      onClick={handleCardClick}
+                      sx={{
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        p: "4px",
+                        borderRadius: "4px",
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        },
+                      }}
+                    >
+                      <ChevronRight size={16} style={{ color: "#666666" }} />
+                    </Box>
+                  )}
                 </Box>
 
                 {/* Content Section */}
@@ -440,7 +468,7 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
   return (
     <Stack spacing={0}>
       {/* Render ISO 42001 section if data is available */}
-      {renderFrameworkSection(iso42001CategoriesData, "ISO 42001 clauses overview")}
+      {renderFrameworkSection(iso42001CategoriesData, "ISO 42001 clauses overview", "ISO 42001")}
 
       {/* Add 16px spacing between sections when both are present */}
       {iso42001CategoriesData.length > 0 && iso27001CategoriesData.length > 0 && (
@@ -448,7 +476,7 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
       )}
 
       {/* Render ISO 27001 section if data is available */}
-      {renderFrameworkSection(iso27001CategoriesData, "ISO 27001 clauses overview")}
+      {renderFrameworkSection(iso27001CategoriesData, "ISO 27001 clauses overview", "ISO 27001")}
     </Stack>
   );
 };

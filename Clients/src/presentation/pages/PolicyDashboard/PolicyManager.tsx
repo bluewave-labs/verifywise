@@ -1,13 +1,12 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Box, Stack, SelectChangeEvent } from "@mui/material";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Box, Stack } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { deletePolicy } from "../../../application/repository/policy.repository";
 import EmptyState from "../../components/EmptyState";
-import Select from "../../components/Inputs/Select";
 import { SearchBox } from "../../components/Search";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
@@ -15,6 +14,13 @@ import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 import { PolicyManagerProps } from "../../../domain/interfaces/IPolicy";
 import PolicyStatusCard from "./PolicyStatusCard";
+import { ExportMenu } from "../../components/Table/ExportMenu";
+import useUsers from "../../../application/hooks/useUsers";
+import { GroupBy } from "../../components/Table/GroupBy";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -23,6 +29,8 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
 
   useEffect(() => {
@@ -34,9 +42,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [showModal, setShowModal] = useState(false);
 
   // New state for filter + search
-  const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // Auto-open create policy modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -49,7 +59,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
   }, [location.state, navigate, location.pathname]);
 
-  const handleOpen = (id?: number) => {
+  const handleOpen = useCallback((id?: number) => {
     if (!id) {
       setSelectedPolicy(null); // Ensure selectedPolicy is null for new policy
       setShowModal(true); // Open modal
@@ -58,7 +68,18 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       setSelectedPolicy(p);
       setShowModal(true); // Open modal with selected policy
     }
-  };
+  }, [policies]);
+
+  // Handle policyId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const policyId = searchParams.get("policyId");
+    if (policyId && !hasProcessedUrlParam.current && policies.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleOpen function which sets selectedPolicy and opens modal
+      handleOpen(parseInt(policyId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, policies, setSearchParams, handleOpen]);
 
   const handleAddNewPolicy = () => {
     handleOpen();
@@ -108,28 +129,152 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
   };
 
-  // ✅ Status options (same as PolicyStatusCard)
-  const statusOptions = [
-    { _id: "all", name: "All Policies" },
-    { _id: "Draft", name: "Draft" },
-    { _id: "Under Review", name: "Under Review" },
-    { _id: "Approved", name: "Approved" },
-    { _id: "Published", name: "Published" },
-    { _id: "Archived", name: "Archived" },
-    { _id: "Deprecated", name: "Deprecated" },
-  ];
+  const { users } = useUsers();
 
-  // ✅ Filter + search
-  const filteredPolicies = useMemo(() => {
-    return policies.filter((p) => {
-      const matchesStatus =
-        statusFilter === "all" ? true : p.status === statusFilter;
-      const matchesSearch = p.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matchesStatus && matchesSearch;
+  // FilterBy - Dynamic options generators
+  const getUniqueAuthors = useCallback(() => {
+    const authorIds = new Set<string>();
+    policies.forEach((policy) => {
+      if (policy.author_id) {
+        authorIds.add(policy.author_id.toString());
+      }
     });
-  }, [policies, statusFilter, searchTerm]);
+    return Array.from(authorIds)
+      .map((authorId) => {
+        const user = users.find((u) => u.id.toString() === authorId);
+        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${authorId}`;
+        return { value: authorId, label: userName };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [policies, users]);
+
+  // FilterBy - Filter columns configuration
+  const policyFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'title',
+      label: 'Title',
+      type: 'text' as const,
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'Draft', label: 'Draft' },
+        { value: 'Under Review', label: 'Under review' },
+        { value: 'Approved', label: 'Approved' },
+        { value: 'Published', label: 'Published' },
+        { value: 'Archived', label: 'Archived' },
+        { value: 'Deprecated', label: 'Deprecated' },
+      ],
+    },
+    {
+      id: 'author_id',
+      label: 'Author',
+      type: 'select' as const,
+      options: getUniqueAuthors(),
+    },
+    {
+      id: 'next_review_date',
+      label: 'Next review date',
+      type: 'date' as const,
+    },
+  ], [getUniqueAuthors]);
+
+  // FilterBy - Field value getter
+  const getPolicyFieldValue = useCallback(
+    (item: PolicyManagerModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'title':
+          return item.title;
+        case 'status':
+          return item.status;
+        case 'author_id':
+          return item.author_id?.toString();
+        case 'next_review_date':
+          return item.next_review_date;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterPolicyData, handleFilterChange: handlePolicyFilterChange } = useFilterBy<PolicyManagerModel>(getPolicyFieldValue);
+
+  // ✅ Filter + search using FilterBy
+  const filteredPolicies = useMemo(() => {
+    let result = filterPolicyData(policies);
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((p) =>
+        p.title.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [filterPolicyData, policies, searchTerm]);
+
+  // Define how to get the group key for each policy
+  const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
+    switch (field) {
+      case 'status':
+        return policy.status || 'Unknown';
+      case 'author':
+        if (policy.author_id) {
+          const user = users.find((u) => u.id === policy.author_id);
+          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+        }
+        return 'Unknown';
+      default:
+        return 'Other';
+    }
+  }, [users]);
+
+  // Apply grouping to filtered policies
+  const groupedPolicies = useTableGrouping({
+    data: filteredPolicies,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getPolicyGroupKey,
+  });
+
+  // Define export columns for policy table
+  const exportColumns = useMemo(() => {
+    return [
+      { id: 'title', label: 'Title' },
+      { id: 'status', label: 'Status' },
+      { id: 'tags', label: 'Tags' },
+      { id: 'next_review', label: 'Next Review' },
+      { id: 'author', label: 'Author' },
+      { id: 'last_updated', label: 'Last Updated' },
+      { id: 'updated_by', label: 'Updated By' },
+    ];
+  }, []);
+
+  // Prepare export data - format the data for export
+  const exportData = useMemo(() => {
+    return filteredPolicies.map((policy: PolicyManagerModel) => {
+      const authorUser = users.find((user) => user.id === policy.author_id);
+      const authorName = authorUser ? `${authorUser.name} ${authorUser.surname}` : '-';
+
+      const updatedByUser = users.find((user) => user.id === policy.last_updated_by);
+      const updatedByName = updatedByUser ? `${updatedByUser.name} ${updatedByUser.surname}` : '-';
+
+      return {
+        title: policy.title || '-',
+        status: policy.status || '-',
+        tags: policy.tags?.join(', ') || '-',
+        next_review: policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : '-',
+        author: authorName,
+        last_updated: policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : '-',
+        updated_by: updatedByName,
+      };
+    });
+  }, [filteredPolicies, users]);
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -146,50 +291,59 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         spacing={4}
         sx={{ width: "100%" }}
       >
-        {/* Left side: Dropdown + Search together */}
-        <Stack direction="row" spacing={6} alignItems="center">
-          {/* Dropdown Filter */}
+        {/* Left side: Filter + Group + Search together */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          {/* FilterBy */}
           <div data-joyride-id="policy-status-filter">
-            <Select
-              id="policy-status"
-              value={statusFilter}
-              items={statusOptions}
-              onChange={(e: SelectChangeEvent<string | number>) =>
-                setStatusFilter(`${e.target.value}`)
-              }
-              sx={{
-                minWidth: "180px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
+            <FilterBy
+              columns={policyFilterColumns}
+              onFilterChange={handlePolicyFilterChange}
             />
           </div>
 
+          {/* Group By */}
+          <GroupBy
+            options={[
+              { id: 'status', label: 'Status' },
+              { id: 'author', label: 'Author' },
+            ]}
+            onGroupChange={handleGroupChange}
+          />
+
           {/* Search */}
-          <Box sx={{ width: 300 }} data-joyride-id="policy-search">
+          <Box data-joyride-id="policy-search">
             <SearchBox
               placeholder="Search policies..."
               value={searchTerm}
               onChange={setSearchTerm}
               inputProps={{ "aria-label": "Search policies" }}
+              fullWidth={false}
             />
           </Box>
         </Stack>
 
-        {/* Right side: Add New Policy Button */}
-        <Box data-joyride-id="add-policy-button">
-          <CustomizableButton
-            variant="contained"
-            text="Add new policy"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+        {/* Right side: Export and Add Button */}
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="policy-manager"
+            title="Policy Manager"
+          />
+          <Box data-joyride-id="add-policy-button">
+            <CustomizableButton
+              variant="contained"
+              text="Add new policy"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
               gap: 3,
             }}
             icon={<AddCircleOutlineIcon size={16} />}
             onClick={handleAddNewPolicy}
           />
-        </Box>
+          </Box>
+        </Stack>
       </Stack>
 
       {/* Table / Empty state */}
@@ -198,18 +352,23 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           <EmptyState
             message={
               searchTerm
-                ? "No matching policies found." // Search active
-                : statusFilter !== "all"
-                ? "No matching policies found." // Status filter active
-                : "There is currently no data in this table." // Table empty
+                ? "No matching policies found."
+                : "There is currently no data in this table."
             }
             imageAlt="No policies available"
           />
         ) : (
-          <PolicyTable
-            data={filteredPolicies}
-            onOpen={handleOpen}
-            onDelete={handleDelete}
+          <GroupedTableView
+            groupedData={groupedPolicies}
+            ungroupedData={filteredPolicies}
+            renderTable={(data, options) => (
+              <PolicyTable
+                data={data}
+                onOpen={handleOpen}
+                onDelete={handleDelete}
+                hidePagination={options?.hidePagination}
+              />
+            )}
           />
         )}
       </Box>

@@ -734,7 +734,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       />
       
       {/* Vendor Scorecard Section */}
-      <Stack spacing={2}>
+      <Stack spacing={2} sx={{ width: 686 }}>
         <Box
           sx={{
             display: "flex",
@@ -870,57 +870,65 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         
         {isScorecardExpanded && (
           <Stack spacing={6}>
-            <Stack direction="row" justifyContent="space-between">
-              <Select
-                items={DATA_SENSITIVITY_OPTIONS}
-                label="Data sensitivity"
-                placeholder="Select data sensitivity level"
-                isHidden={false}
-                id="dataSensitivity"
-                onChange={(e) => handleOnChange("dataSensitivity", e.target.value)}
-                value={values.dataSensitivity}
-                sx={{ width: 280 }}
-                error={errors.dataSensitivity}
-                disabled={isEditingDisabled}
-              />
-              <Select
-                items={BUSINESS_CRITICALITY_OPTIONS}
-                label="Business criticality"
-                placeholder="Select business criticality"
-                isHidden={false}
-                id="businessCriticality"
-                onChange={(e) => handleOnChange("businessCriticality", e.target.value)}
-                value={values.businessCriticality}
-                sx={{ width: 280 }}
-                error={errors.businessCriticality}
-                disabled={isEditingDisabled}
-              />
+            <Stack direction="row" spacing={6}>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={DATA_SENSITIVITY_OPTIONS}
+                  label="Data sensitivity"
+                  placeholder="Select data sensitivity level"
+                  isHidden={false}
+                  id="dataSensitivity"
+                  onChange={(e) => handleOnChange("dataSensitivity", e.target.value)}
+                  value={values.dataSensitivity}
+                  sx={{ width: "100%" }}
+                  error={errors.dataSensitivity}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={BUSINESS_CRITICALITY_OPTIONS}
+                  label="Business criticality"
+                  placeholder="Select business criticality"
+                  isHidden={false}
+                  id="businessCriticality"
+                  onChange={(e) => handleOnChange("businessCriticality", e.target.value)}
+                  value={values.businessCriticality}
+                  sx={{ width: "100%" }}
+                  error={errors.businessCriticality}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
             </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Select
-                items={PAST_ISSUES_OPTIONS}
-                label="Past issues"
-                placeholder="Select past issues level"
-                isHidden={false}
-                id="pastIssues"
-                onChange={(e) => handleOnChange("pastIssues", e.target.value)}
-                value={values.pastIssues}
-                sx={{ width: 280 }}
-                error={errors.pastIssues}
-                disabled={isEditingDisabled}
-              />
-              <Select
-                items={REGULATORY_EXPOSURE_OPTIONS}
-                label="Regulatory exposure"
-                placeholder="Select regulatory exposure"
-                isHidden={false}
-                id="regulatoryExposure"
-                onChange={(e) => handleOnChange("regulatoryExposure", e.target.value)}
-                value={values.regulatoryExposure}
-                sx={{ width: 280 }}
-                error={errors.regulatoryExposure}
-                disabled={isEditingDisabled}
-              />
+            <Stack direction="row" spacing={6}>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={PAST_ISSUES_OPTIONS}
+                  label="Past issues"
+                  placeholder="Select past issues level"
+                  isHidden={false}
+                  id="pastIssues"
+                  onChange={(e) => handleOnChange("pastIssues", e.target.value)}
+                  value={values.pastIssues}
+                  sx={{ width: "100%" }}
+                  error={errors.pastIssues}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  items={REGULATORY_EXPOSURE_OPTIONS}
+                  label="Regulatory exposure"
+                  placeholder="Select regulatory exposure"
+                  isHidden={false}
+                  id="regulatoryExposure"
+                  onChange={(e) => handleOnChange("regulatoryExposure", e.target.value)}
+                  value={values.regulatoryExposure}
+                  sx={{ width: "100%" }}
+                  error={errors.regulatoryExposure}
+                  disabled={isEditingDisabled}
+                />
+              </Box>
             </Stack>
           </Stack>
         )}

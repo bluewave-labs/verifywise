@@ -60,7 +60,7 @@ def summarize_results(results_path: str = 'artifacts/evaluation_results.json') -
     eo_sex = results['fairness']['equalized_odds_sex']
     eo_race = results['fairness']['equalized_odds_race']
     
-    print(f"   Equalized Odds (Sex): {eo_sex:.3f}")
+    print("   Equalized Odds (Sex): See assessment below")
     if abs(eo_sex) < 0.1:
         print("     ✅ Good: Similar true positive and false positive rates")
     elif abs(eo_sex) < 0.2:

@@ -79,6 +79,7 @@ import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RM
 import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
 import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
+import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
 
 dotenv.config();
 
@@ -167,6 +168,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     NISTAIMRFCategoryModel,
     NISTAIMRFSubcategoryModel,
     LLMKeyModel,
+    ShareLinkModel,
   ],
 }) as Sequelize;
 

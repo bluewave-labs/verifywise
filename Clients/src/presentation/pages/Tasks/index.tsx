@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback, useRef } from "react";
 import {
   Box,
   Stack,
   Typography,
 } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
@@ -21,6 +22,9 @@ import {
   updateTask,
   deleteTask,
   updateTaskStatus,
+  getTaskById,
+  restoreTask,
+  hardDeleteTask,
 } from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
@@ -56,12 +60,13 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.IN_PROGRESS]: "In progress", // Show lowercase in UI
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  [TaskStatus.DELETED]: "Deleted",
+  [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
 // Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +80,9 @@ const Tasks: React.FC = () => {
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
+
+  // Track if we've already processed the URL param to avoid duplicate fetches
+  const hasProcessedUrlParam = useRef(false);
 
   // Group by state management
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -124,6 +132,35 @@ const Tasks: React.FC = () => {
     };
     fetchTasks();
   }, [includeArchived]);
+
+  // Handle taskId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const taskId = searchParams.get("taskId");
+    if (taskId && !hasProcessedUrlParam.current && !isLoading) {
+      hasProcessedUrlParam.current = true;
+
+      // First check if task is already in the loaded list
+      const existingTask = tasks.find((t) => t.id === parseInt(taskId, 10));
+      if (existingTask) {
+        setEditingTask(existingTask);
+        // Clear the URL param after opening modal
+        setSearchParams({}, { replace: true });
+      } else {
+        // Fetch the task if not in list (might be archived)
+        getTaskById({ id: taskId })
+          .then((response) => {
+            if (response?.data) {
+              setEditingTask(response.data);
+              setSearchParams({}, { replace: true });
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching task from URL param:", err);
+            setSearchParams({}, { replace: true });
+          });
+      }
+    }
+  }, [searchParams, tasks, isLoading, setSearchParams]);
 
   // FilterBy - Dynamic options generators
   const getUniqueAssignees = useCallback(() => {
@@ -311,6 +348,35 @@ const Tasks: React.FC = () => {
         return false;
       }
     };
+
+  const handleRestoreTask = async (taskId: number) => {
+    try {
+      const response = await restoreTask({ id: taskId });
+      // Repository returns response.data directly, so check for response.data (the actual task)
+      if (response?.data) {
+        // Update the task in the list with restored status
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
+              ? { ...task, status: TaskStatus.OPEN }
+              : task
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error restoring task:", error);
+    }
+  };
+
+  const handleHardDeleteTask = async (taskId: number) => {
+    try {
+      await hardDeleteTask({ id: taskId });
+      // Remove the task from the list completely
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    } catch (error) {
+      console.error("Error permanently deleting task:", error);
+    }
+  };
 
   // Define how to get the group key for each task
   const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
@@ -560,6 +626,8 @@ const Tasks: React.FC = () => {
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
                 hidePagination={options?.hidePagination}
+                onRestore={handleRestoreTask}
+                onHardDelete={handleHardDeleteTask}
               />
             )}
           />

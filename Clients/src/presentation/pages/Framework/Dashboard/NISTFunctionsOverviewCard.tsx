@@ -5,6 +5,7 @@ import {
   Map,
   Gauge,
   Settings,
+  ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -18,6 +19,7 @@ interface FrameworkData {
 
 interface NISTFunctionsOverviewCardProps {
   frameworksData: FrameworkData[];
+  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
 interface SubcategoryData {
@@ -49,7 +51,7 @@ const NIST_FUNCTION_ICONS: { [key: string]: LucideIcon } = {
   "manage": Settings,
 };
 
-const NISTFunctionsOverviewCard = ({ frameworksData }: NISTFunctionsOverviewCardProps) => {
+const NISTFunctionsOverviewCard = ({ frameworksData, onNavigate }: NISTFunctionsOverviewCardProps) => {
   const [loading, setLoading] = useState(true);
   const [functionsData, setFunctionsData] = useState<FunctionData[]>([]);
 
@@ -183,6 +185,12 @@ const NISTFunctionsOverviewCard = ({ frameworksData }: NISTFunctionsOverviewCard
     const implementedCount = allSubcategories.filter(sub => sub.status === "Implemented").length;
     const assignedCount = allSubcategories.filter(sub => sub.owner !== null && sub.owner !== undefined).length;
 
+    const handleCardClick = () => {
+      if (onNavigate) {
+        onNavigate("NIST AI RMF", func.type.toLowerCase());
+      }
+    };
+
     return (
       <Box
         sx={{
@@ -198,6 +206,9 @@ const NISTFunctionsOverviewCard = ({ frameworksData }: NISTFunctionsOverviewCard
             backgroundColor: "#F1F3F4",
             p: "10px 16px",
             borderBottom: "1px solid #d0d5dd",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -215,6 +226,23 @@ const NISTFunctionsOverviewCard = ({ frameworksData }: NISTFunctionsOverviewCard
               {func.type}
             </Typography>
           </Box>
+          {onNavigate && (
+            <Box
+              onClick={handleCardClick}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                p: "4px",
+                borderRadius: "4px",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                },
+              }}
+            >
+              <ChevronRight size={16} style={{ color: "#666666" }} />
+            </Box>
+          )}
         </Box>
 
         {/* Content Section */}

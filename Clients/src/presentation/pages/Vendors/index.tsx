@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./index.css";
 import { Box, SelectChangeEvent, Stack, useTheme } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
+import { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
@@ -61,6 +61,8 @@ const Vendors = () => {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -430,6 +432,49 @@ const Vendors = () => {
       setRunVendorTour(true);
     }
   }, [allVisible]);
+
+  // Handle vendorId and riskId URL params to open edit modal from Wise Search
+  useEffect(() => {
+    if (hasProcessedUrlParam.current || isVendorsLoading) return;
+
+    const vendorId = searchParams.get("vendorId");
+    const riskId = searchParams.get("riskId");
+
+    if (vendorId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch vendor and open edit modal
+      getVendorById({ id: Number(vendorId) })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedVendor(response.data);
+            setIsOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching vendor from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    } else if (riskId) {
+      hasProcessedUrlParam.current = true;
+      // Switch to risks tab and fetch risk
+      if (!isRisksTab) {
+        navigate("/vendors/risks", { replace: true });
+      }
+      getVendorRiskById({ id: Number(riskId) })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedRisk(response.data);
+            setIsRiskModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching vendor risk from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    }
+  }, [searchParams, isVendorsLoading, isRisksTab, navigate, setSearchParams]);
 
   // Auto-open create vendor modal when navigating from "Add new..." dropdown
   useEffect(() => {

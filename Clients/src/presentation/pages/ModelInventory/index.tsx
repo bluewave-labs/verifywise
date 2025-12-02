@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, Suspense, useMemo, useCallback } from "react";
-import { Box, Stack, Fade, IconButton } from "@mui/material";
+import React, { useState, useEffect, Suspense, useMemo, useCallback, useRef } from "react";
+import {
+  Box,
+  Stack,
+  Fade,
+  Modal,
+  Typography,
+  Button,
+  useTheme,
+  IconButton,
+} from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -55,6 +64,11 @@ import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evid
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import ShareButton from "../../components/ShareViewDropdown/ShareButton";
+import ShareViewDropdown, {
+  ShareViewSettings,
+} from "../../components/ShareViewDropdown";
+import { useCreateShareLink, useUpdateShareLink } from "../../../application/hooks/useShare";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
@@ -70,6 +84,8 @@ const REDIRECT_DELAY_MS = 2000;
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [modelInventoryData, setModelInventoryData] = useState<
     IModelInventory[]
   >([]);
@@ -105,6 +121,11 @@ const ModelInventory: React.FC = () => {
   const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+  const theme = useTheme();
+
+  // Share link mutations
+  const createShareMutation = useCreateShareLink();
+  const updateShareMutation = useUpdateShareLink();
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -127,6 +148,9 @@ const ModelInventory: React.FC = () => {
 
   // GroupBy state - evidence hub tab
   const { groupBy: groupByEvidence, groupSortOrder: groupSortOrderEvidence, handleGroupChange: handleGroupChangeEvidence } = useGroupByState();
+
+  // Preselected model ID for evidence creation (used by change history feature)
+  const [preselectedModelId, setPreselectedModelId] = useState<number | undefined>(undefined);
 
   // FilterBy - Dynamic options generators for Models tab
   const getUniqueProviders = useCallback(() => {
@@ -463,11 +487,25 @@ const ModelInventory: React.FC = () => {
   // FilterBy - Initialize hook for Evidence Hub tab
   const { filterData: filterEvidenceData, handleFilterChange: handleEvidenceFilterChange } = useFilterBy<EvidenceHubModel>(getEvidenceFieldValue);
 
-    const [isEvidenceLoading, setEvidenceLoading] = useState(false);
+  const [isEvidenceLoading, setEvidenceLoading] = useState(false);
 
     const [ deletingEvidenceId, setDeletingEvidenceId] = useState<number | null>(
       null
     );
+
+  // Share view state
+  const [shareAnchorEl, setShareAnchorEl] = useState<HTMLElement | null>(null);
+  const [shareableLink, setShareableLink] = useState<string>("");
+  const [shareLinkId, setShareLinkId] = useState<number | null>(null);
+  const [shareSettings, setShareSettings] = useState<ShareViewSettings>({
+    shareAllFields: true,
+    allowDataExport: true,
+    allowViewersToOpenRecords: false,
+    displayToolbar: true,
+  });
+  const [isShareEnabled, setIsShareEnabled] = useState(false);
+  const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -711,14 +749,23 @@ const ModelInventory: React.FC = () => {
   const fetchMLFlowData = async () => {
     setIsMlflowLoading(true);
     try {
-      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
-      if (response.data && Array.isArray(response.data)) {
-        setMlflowData(response.data);
+      const response = await apiServices.get<{ configured: boolean; models: any[] }>("/integrations/mlflow/models");
+      if (response.data) {
+        // Handle new response format: { configured: boolean, models: [] }
+        if ('models' in response.data && Array.isArray(response.data.models)) {
+          setMlflowData(response.data.models);
+        } else if (Array.isArray(response.data)) {
+          // Backwards compatibility: handle old format where response is directly an array
+          setMlflowData(response.data as unknown as any[]);
+        } else {
+          setMlflowData([]);
+        }
       } else {
         setMlflowData([]);
       }
     } catch (error) {
-      console.error("Error fetching MLFlow data:", error);
+      // Only log unexpected errors, not "not configured" scenarios
+      // The backend now handles "not configured" gracefully with 200 status
       setMlflowData([]);
     } finally {
       setIsMlflowLoading(false);
@@ -748,6 +795,46 @@ const ModelInventory: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Handle modelId and evidenceId URL params to open edit modal from Wise Search
+  useEffect(() => {
+    if (hasProcessedUrlParam.current || isLoading) return;
+
+    const modelId = searchParams.get("modelId");
+    const evidenceId = searchParams.get("evidenceId");
+
+    if (modelId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch model inventory and open edit modal
+      getEntityById({ routeUrl: `/modelInventory/${modelId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedModelInventory(response.data);
+            setIsNewModelInventoryModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching model from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    } else if (evidenceId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch evidence and open edit modal
+      getEntityById({ routeUrl: `/evidenceHub/${evidenceId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedEvidenceHub(response.data);
+            setIsEvidenceHubModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching evidence from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    }
+  }, [searchParams, isLoading, setSearchParams]);
 
   // Auto-open create model modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -798,9 +885,10 @@ const ModelInventory: React.FC = () => {
     setSelectedEvidenceHub(null);
   };
 
-  const handleAddEvidence = () => {
+  const handleAddEvidence = (modelId?: number) => {
     setIsEvidenceHubModalOpen(true);
     setSelectedEvidenceHub(null);
+    setPreselectedModelId(modelId);
   };
 
   const handleEditModelInventory = async (id: string) => {
@@ -874,6 +962,152 @@ const ModelInventory: React.FC = () => {
   const handleClosEvidenceModal = () => {
     setSelectedEvidenceHub(null);
     setIsEvidenceHubModalOpen(false);
+    setPreselectedModelId(undefined);
+  };
+
+  // Share view handlers
+  const handleShareClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setShareAnchorEl(event.currentTarget);
+  };
+
+  const handleShareClose = () => {
+    setShareAnchorEl(null);
+  };
+
+  const generateShareableLink = async (settings: ShareViewSettings): Promise<string> => {
+    // Prevent concurrent link creation
+    if (isCreatingLink) {
+      console.log("Link creation already in progress, skipping...");
+      return shareableLink;
+    }
+
+    try {
+      setIsCreatingLink(true);
+
+      // Create share link via API
+      const result = await createShareMutation.mutateAsync({
+        resource_type: "model",
+        resource_id: 0, // 0 = share entire Model Inventory table view
+        settings,
+      });
+
+      const link = result.data?.shareable_url || "";
+      const id = result.data?.id || null;
+      setShareableLink(link);
+      setShareLinkId(id);
+      return link;
+    } catch (error) {
+      console.error("Error generating share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to generate share link. Please try again.",
+      });
+      return "";
+    } finally {
+      setIsCreatingLink(false);
+    }
+  };
+
+  const handleShareEnabledChange = async (enabled: boolean) => {
+    setIsShareEnabled(enabled);
+    if (enabled && !shareableLink) {
+      await generateShareableLink(shareSettings);
+    }
+  };
+
+  const handleShareSettingsChange = async (settings: ShareViewSettings) => {
+    setShareSettings(settings);
+
+    // If we have an existing share link, update its settings
+    if (shareLinkId) {
+      try {
+        await updateShareMutation.mutateAsync({
+          id: shareLinkId,
+          settings,
+        });
+        setAlert({
+          variant: "success",
+          body: "Share link settings updated!",
+        });
+      } catch (error) {
+        console.error("Error updating share link settings:", error);
+        setAlert({
+          variant: "error",
+          body: "Failed to update settings. Please try again.",
+        });
+      }
+    }
+  };
+
+  const handleCopyLink = (link: string) => {
+    console.log("Link copied:", link);
+    setAlert({
+      variant: "success",
+      body: "Share link copied to clipboard!",
+    });
+  };
+
+  const handleRefreshLink = () => {
+    // Show confirmation dialog
+    setShowReplaceConfirmation(true);
+  };
+
+  const handleConfirmReplace = async () => {
+    setShowReplaceConfirmation(false);
+
+    try {
+      // Fetch ALL existing share links for this resource and disable them
+      console.log("Fetching all share links for model/0...");
+      const existingLinksResponse: any = await apiServices.get("/shares/model/0");
+      const existingLinks = existingLinksResponse?.data?.data || [];
+
+      console.log(`Found ${existingLinks.length} existing share links:`, existingLinks);
+
+      // Disable all existing links
+      let disabledCount = 0;
+      for (const link of existingLinks) {
+        console.log(`Processing link ID ${link.id}: is_enabled=${link.is_enabled}, share_token=${link.share_token}`);
+
+        if (link.is_enabled) {
+          console.log(`Attempting to disable share link ID: ${link.id}`);
+          try {
+            const updateResult = await updateShareMutation.mutateAsync({
+              id: link.id,
+              is_enabled: false,
+            });
+            console.log(`Successfully disabled link ID ${link.id}. Update result:`, updateResult);
+            disabledCount++;
+          } catch (updateError) {
+            console.error(`Failed to disable link ID ${link.id}:`, updateError);
+            throw updateError;
+          }
+        } else {
+          console.log(`Link ID ${link.id} is already disabled, skipping`);
+        }
+      }
+
+      console.log(`All previous links disabled. Total disabled: ${disabledCount}`);
+
+      // Create a new link
+      console.log("Creating new share link...");
+      const newLink = await generateShareableLink(shareSettings);
+      console.log("New share link created:", newLink);
+
+      setAlert({
+        variant: "success",
+        body: `Share link replaced successfully! ${disabledCount} previous link(s) invalidated.`,
+      });
+    } catch (error) {
+      console.error("Error replacing share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to replace share link. Please try again.",
+      });
+    }
+  };
+
+  const handleOpenLink = (link: string) => {
+    console.log("Opening link:", link);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -1488,6 +1722,110 @@ const ModelInventory: React.FC = () => {
               </Suspense>
           )}
 
+          {/* Replace Share Link Confirmation Modal */}
+          <Modal
+              open={showReplaceConfirmation}
+              onClose={(_event, reason) => {
+                  if (reason !== "backdropClick") {
+                      setShowReplaceConfirmation(false);
+                  }
+              }}
+          >
+              <Stack
+                  gap={theme.spacing(2)}
+                  color={theme.palette.text.secondary}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                  }}
+                  sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 450,
+                      bgcolor: theme.palette.background.modal,
+                      border: 1,
+                      borderColor: theme.palette.border.dark,
+                      borderRadius: theme.shape.borderRadius,
+                      boxShadow: 24,
+                      p: theme.spacing(15),
+                      "&:focus": {
+                          outline: "none",
+                      },
+                  }}
+              >
+                  <Typography
+                      fontSize={16}
+                      fontWeight={600}
+                  >
+                      Replace Share Link?
+                  </Typography>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                  >
+                      This will invalidate the current share link and generate a new one.
+                      Anyone with the old link will no longer be able to access the shared view.
+                  </Typography>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                      mt={theme.spacing(4)}
+                  >
+                      Do you want to continue?
+                  </Typography>
+                  <Stack
+                      direction="row"
+                      gap={theme.spacing(4)}
+                      mt={theme.spacing(12)}
+                      justifyContent="flex-end"
+                  >
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="text"
+                          color="inherit"
+                          onClick={() => setShowReplaceConfirmation(false)}
+                          sx={{
+                              width: 100,
+                              textTransform: "capitalize",
+                              fontSize: 13,
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "transparent",
+                              },
+                          }}
+                      >
+                          Cancel
+                      </Button>
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="contained"
+                          onClick={handleConfirmReplace}
+                          sx={{
+                              width: 160,
+                              fontSize: 13,
+                              backgroundColor: "#13715B",
+                              border: "1px solid #13715B",
+                              boxShadow: "none",
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "#0f5a48",
+                              },
+                          }}
+                      >
+                          Replace Link
+                      </Button>
+                  </Stack>
+              </Stack>
+          </Modal>
+
           <Stack sx={mainStackStyle}>
               <PageHeader
                   title="Model Inventory"
@@ -1600,8 +1938,13 @@ const ModelInventory: React.FC = () => {
                               </Box>
                           </Stack>
 
-                          {/* Right side: Export, Analytics & Add Model buttons */}
+                          {/* Right side: Share, Export, Analytics & Add Model buttons */}
                           <Stack direction="row" gap="8px" alignItems="center">
+                              <ShareButton
+                                  onClick={handleShareClick}
+                                  size="medium"
+                                  tooltip="Share view"
+                              />
                               <ExportMenu
                                   data={exportData}
                                   columns={exportColumns}
@@ -1921,12 +2264,28 @@ const ModelInventory: React.FC = () => {
               onError={handleEvidenceUploadModalError}
               isEdit={!!selectedEvidenceHub}
               initialData={selectedEvidenceHub || undefined}
+              preselectedModelId={preselectedModelId}
           />
 
           <PageTour
               steps={ModelInventorySteps}
               run={true}
               tourKey="model-inventory-tour"
+          />
+
+          {/* Share View Dropdown */}
+          <ShareViewDropdown
+              anchorEl={shareAnchorEl}
+              onClose={handleShareClose}
+              enabled={isShareEnabled}
+              shareableLink={shareableLink}
+              initialSettings={shareSettings}
+              onEnabledChange={handleShareEnabledChange}
+              onGenerateLink={generateShareableLink}
+              onSettingsChange={handleShareSettingsChange}
+              onCopyLink={handleCopyLink}
+              onRefreshLink={handleRefreshLink}
+              onOpenLink={handleOpenLink}
           />
       </Stack>
   );

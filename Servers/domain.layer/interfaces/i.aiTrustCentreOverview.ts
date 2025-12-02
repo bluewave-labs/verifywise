@@ -26,7 +26,7 @@ export interface IAITrustCentreOverview {
     soc2_type_i: boolean;
     soc2_type_ii: boolean;
     iso_27001: boolean;
-    isoISO_42001: boolean;
+    iso_42001: boolean;
     ccpa: boolean;
     gdpr: boolean;
     hipaa: boolean;

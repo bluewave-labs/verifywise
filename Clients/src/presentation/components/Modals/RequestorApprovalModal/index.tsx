@@ -9,6 +9,8 @@ import { useTheme } from "@mui/material";
 import type { FC } from "react";
 import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
+import StepDetailsModal from './StepDetailsModal';
+import { getStepDetails, IStepDetails } from './mockData';
 
 import {
     getMenuGroups,
@@ -58,6 +60,11 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         "APPROVED REQUESTS": false
     });
 
+
+    const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
+    const [selectedStepDetails, setSelectedStepDetails] = useState<IStepDetails | null>(null);
+
+
     const [selectedItemId, setSelectedItemId] = useState<MenuItemId | null>(null);
 
     const handleGroupAccordionChange = (groupName: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -65,6 +72,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             ...prev,
             [groupName]: isExpanded
         }));
+    };
+
+    const handleSeeDetailsClick = (stepId: number) => {
+        const stepDetails = getStepDetails(stepId);
+        if (stepDetails) {
+            setSelectedStepDetails(stepDetails);
+            setIsStepDetailsModalOpen(true);
+        }
     };
 
     useEffect(() => {
@@ -240,7 +255,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             setSelectedItemId(item.id);
                                                                         }
                                                                     }}
-                    
+
                                                                     // class={
                                                                     //     // Update this condition to check selectedItemId
                                                                     //     (item.id !== undefined && selectedItemId === item.id)
@@ -408,8 +423,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                     component="button"
                                                     variant="body2"
                                                     onClick={() => {
-                                                        console.log('See details clicked');
-                                                        // TODO: Implement details view
+                                                        handleSeeDetailsClick(step.id);
                                                     }}
                                                     sx={{
                                                         color: "#13715B",
@@ -445,6 +459,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 </Stack>
 
             </Stack>
+            <StepDetailsModal
+                isOpen={isStepDetailsModalOpen}
+                onClose={() => {
+                    setIsStepDetailsModalOpen(false);
+                    setSelectedStepDetails(null);
+                }}
+                stepDetails={selectedStepDetails}
+            />
         </StandardModal>
     )
 }

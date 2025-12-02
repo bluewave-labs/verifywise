@@ -18,6 +18,16 @@ export interface ITimelineStep {
     approvalResult?: "approved" | 'rejected' | 'pending';
 }
 
+export interface IStepDetails {
+    stepId: number;
+    owner: string;
+    teamMembers: string[];
+    location: string;
+    startDate: string;
+    targetIndustry: string;
+    description: string;
+}
+
 export interface IMenuItemExtended extends IMenuItem  {
     id: number;
 }
@@ -76,6 +86,11 @@ export const getMockTimelineData = (itemId?: MenuItemId): ITimelineStep[] => {
         return [];
     }
     return timelineDataMap[itemId] || [];
+};
+
+export const getStepDetails = (stepId: number): IStepDetails | null => {
+    // This will be populated with mock data in the next step
+    return stepDetailsMap[stepId] || null;
 };
 
 
@@ -229,4 +244,16 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             approverRole: 'Legal Counsel',
         },
     ],
+};
+
+export const stepDetailsMap: Record<number, IStepDetails> = {
+    1: {
+        stepId: 1,
+        owner: "John Doe",
+        teamMembers: ["John Doe", "James Smith"],
+        location: "Global",
+        startDate: "2024/01/15",
+        targetIndustry: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    },
 };

@@ -65,7 +65,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         <Box
           component="span"
           sx={{
-            backgroundColor: '#999999',
+            backgroundColor: '#eaecf0',
             color: '#fff',
             px: '6px',
             py: '4px',
@@ -108,7 +108,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         <Box
           component="span"
           sx={{
-            backgroundColor: '#999999',
+            backgroundColor: '#eaecf0',
             color: '#fff',
             px: '6px',
             py: '4px',

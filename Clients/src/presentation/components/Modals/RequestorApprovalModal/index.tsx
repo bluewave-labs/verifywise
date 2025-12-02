@@ -199,14 +199,17 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                             display: "none",
                                                         },
                                                         "& .MuiAccordionSummary-root": {
-                                                            minHeight: "unset",
-                                                            padding: 0,
-                                                            px: theme.spacing(4),
-                                                            pb: theme.spacing(4),
+                                                            minHeight: "unset !important",
+                                                            padding: "0 !important",
+                                                            px: `${theme.spacing(4)} !important`,
+                                                            pb: `${theme.spacing(4)} !important`,
                                                             mt: index === 1 ? theme.spacing(8) : theme.spacing(8),
                                                         },
                                                         "& .MuiAccordionSummary-content": {
-                                                            margin: 0,
+                                                            margin: "0 !important",
+                                                        },
+                                                        "& .MuiAccordionSummary-content.Mui-expanded": {
+                                                            margin: "0 !important",
                                                         },
                                                         "& .MuiAccordionDetails-root": {
                                                             padding: 0,

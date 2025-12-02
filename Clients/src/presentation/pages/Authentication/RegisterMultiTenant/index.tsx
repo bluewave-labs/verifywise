@@ -61,7 +61,7 @@ const RegisterMultiTenant: React.FC = () => {
     useState<OrganizationFormErrors>({});
 
   // State to track which form to show
-  const [showOrganizationForm, setShowOrganizationForm] = useState(true);
+  const [showOrganizationForm, setShowOrganizationForm] = useState(false);
 
   //state for overlay modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -145,7 +145,7 @@ const RegisterMultiTenant: React.FC = () => {
 
     // Include organization data in the request
     const requestBody = {
-      name: organizationValues.organizationName,
+      name: `${values.name}'s Organization`,
       userName: values.name,
       userSurname: values.surname,
       userEmail: values.email,
@@ -169,9 +169,14 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       const token = response.data.data.token;
+      const organizationName = response.data.data.organization?.name || `${values.name}'s Organization`;
       const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
       dispatch(setAuthToken(token));
       dispatch(setExpiration(expirationDate));
+      // Store organization name and clear the flag so the modal shows on first login
+      localStorage.setItem("initial_org_name", organizationName);
+      localStorage.setItem("initial_org_id", response.data.data.organization?.id || -1);
+      localStorage.removeItem("has_seen_org_name_modal");
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { Stack, Box, useTheme, Avatar } from '@mui/material';
 import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
+import Markdown from 'react-markdown';
 
 import { Bot, User } from 'lucide-react';
 import { ChartRenderer } from './ChartRenderer';
@@ -13,7 +14,19 @@ const MessageText: FC = () => {
     return null;
   }
 
-  return <>{data.text}</>;
+  return (
+    <Markdown components={{
+      p: 'div',
+      h1(props) {
+        const {node, ...rest} = props
+        return <h1 style={{marginTop: 0}} {...rest} />
+      },
+      h2(props) {
+        const {node, ...rest} = props
+        return <h2 style={{marginTop: 0}} {...rest} />
+      }
+    }}>{data.text}</Markdown>
+  );
 };
 
 const MessageChart: FC = () => {
@@ -151,7 +164,6 @@ export const CustomMessage: FC = () => {
                   fontSize: '13px',
                   lineHeight: 1.5,
                   wordBreak: 'break-word',
-                  whiteSpace: 'pre-wrap',
                 }}
               >
                 <MessagePrimitive.Content components={{ Text: MessageText }} />

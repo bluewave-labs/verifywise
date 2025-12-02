@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback, useRef } from "react";
 import {
   Box,
   Stack,
   Typography,
 } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
@@ -21,16 +22,17 @@ import {
   updateTask,
   deleteTask,
   updateTaskStatus,
+  getTaskById,
+  restoreTask,
+  hardDeleteTask,
 } from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
-import Select from "../../components/Inputs/Select";
 import useUsers from "../../../application/hooks/useUsers";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
   vwhomeHeaderCards,
   vwhomeBody,
-  vwhomeBodyControls,
 } from "../Home/1.0Home/style";
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
@@ -42,6 +44,8 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import TipBox from "../../components/TipBox";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -56,12 +60,13 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.IN_PROGRESS]: "In progress", // Show lowercase in UI
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  [TaskStatus.DELETED]: "Deleted",
+  [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
 // Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,19 +75,14 @@ const Tasks: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy] = useState("Newest");
-  const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
-  const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
-  const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
-  const [categoryFilters] = useState<string[]>([]);
-  const [dueDateFrom] = useState("");
-  const [dueDateTo] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
+
+  // Track if we've already processed the URL param to avoid duplicate fetches
+  const hasProcessedUrlParam = useRef(false);
 
   // Group by state management
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -90,15 +90,6 @@ const Tasks: React.FC = () => {
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
 
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   // Calculate summary from tasks data
   const summary: TaskSummary = useMemo(
@@ -116,71 +107,21 @@ const Tasks: React.FC = () => {
     [tasks]
   );
 
-  // Fetch tasks when component mounts or any filter changes
+  // Fetch all tasks (no server-side filtering - we use client-side FilterBy)
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
-        setError(null); // Clear previous errors
-        // Filter out "Overdue" from status filters for API call since it's computed
-        const apiStatusFilters = statusFilters
-          .filter((status) => status !== TaskStatus.OVERDUE)
-          .map((status) => {
-            // Convert enum values to API values
-            if (status === TaskStatus.IN_PROGRESS) return "In Progress";
-            return status;
-          }) as string[];
+        setError(null);
 
         const response = await getAllTasks({
-          search: debouncedSearchQuery || undefined,
-          status:
-            apiStatusFilters.length > 0 ? (apiStatusFilters as any) : undefined,
-          priority: priorityFilters.length > 0 ? priorityFilters : undefined,
-          assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
-          category: categoryFilters.length > 0 ? categoryFilters : undefined,
-          due_date_start: dueDateFrom || undefined,
-          due_date_end: dueDateTo || undefined,
           include_archived: includeArchived || undefined,
-          ...(sortBy !== "Priority" && {
-            sort_by:
-              sortBy === "Newest"
-                ? "created_at"
-                : sortBy === "Oldest"
-                ? "created_at"
-                : sortBy === "Due date"
-                ? "due_date"
-                : "created_at",
-            sort_order:
-              sortBy === "Oldest"
-                ? "ASC"
-                : sortBy === "Due date"
-                ? "ASC"
-                : "DESC",
-          }),
+          sort_by: "created_at",
+          sort_order: "DESC",
         });
 
-        let filteredTasks = response?.data?.tasks || [];
-
-        // Apply frontend filtering for "Overdue" status
-        if (statusFilters.includes(TaskStatus.OVERDUE)) {
-          filteredTasks = filteredTasks.filter(
-            (task: ITask) => task.isOverdue === true
-          );
-        }
-
-        // Handle priority sorting on frontend to avoid SQL error
-        if (sortBy === "Priority") {
-          const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-          filteredTasks = filteredTasks.sort((a: ITask, b: ITask) => {
-            const priorityA =
-              priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
-            const priorityB =
-              priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
-            return priorityB - priorityA; // DESC order (High to Low)
-          });
-        }
-
-        setTasks(filteredTasks);
+        const fetchedTasks = response?.data?.tasks || [];
+        setTasks(fetchedTasks);
       } catch (err: any) {
         console.error("Error fetching tasks:", err);
         setError("Failed to load tasks. Please try again later.");
@@ -190,17 +131,133 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [
-    debouncedSearchQuery,
-    statusFilters,
-    priorityFilters,
-    assigneeFilters,
-    categoryFilters,
-    dueDateFrom,
-    dueDateTo,
-    includeArchived,
-    sortBy,
-  ]);
+  }, [includeArchived]);
+
+  // Handle taskId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const taskId = searchParams.get("taskId");
+    if (taskId && !hasProcessedUrlParam.current && !isLoading) {
+      hasProcessedUrlParam.current = true;
+
+      // First check if task is already in the loaded list
+      const existingTask = tasks.find((t) => t.id === parseInt(taskId, 10));
+      if (existingTask) {
+        setEditingTask(existingTask);
+        // Clear the URL param after opening modal
+        setSearchParams({}, { replace: true });
+      } else {
+        // Fetch the task if not in list (might be archived)
+        getTaskById({ id: taskId })
+          .then((response) => {
+            if (response?.data) {
+              setEditingTask(response.data);
+              setSearchParams({}, { replace: true });
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching task from URL param:", err);
+            setSearchParams({}, { replace: true });
+          });
+      }
+    }
+  }, [searchParams, tasks, isLoading, setSearchParams]);
+
+  // FilterBy - Dynamic options generators
+  const getUniqueAssignees = useCallback(() => {
+    const assigneeIds = new Set<number>();
+    tasks.forEach((task) => {
+      if (task.assignees && task.assignees.length > 0) {
+        task.assignees.forEach((id) => assigneeIds.add(Number(id)));
+      }
+    });
+    return Array.from(assigneeIds)
+      .map((id) => {
+        const user = users.find((u) => u.id === id);
+        return {
+          value: id.toString(),
+          label: user ? `${user.name} ${user.surname}`.trim() : `User ${id}`,
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [tasks, users]);
+
+  // FilterBy - Filter columns configuration
+  const taskFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'title',
+      label: 'Title',
+      type: 'text' as const,
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: Object.values(TaskStatus).map((status) => ({
+        value: status,
+        label: STATUS_DISPLAY_MAP[status] || status,
+      })),
+    },
+    {
+      id: 'priority',
+      label: 'Priority',
+      type: 'select' as const,
+      options: Object.values(TaskPriority).map((priority) => ({
+        value: priority,
+        label: priority,
+      })),
+    },
+    {
+      id: 'assignee',
+      label: 'Assignee',
+      type: 'select' as const,
+      options: getUniqueAssignees(),
+    },
+    {
+      id: 'due_date',
+      label: 'Due date',
+      type: 'date' as const,
+    },
+  ], [getUniqueAssignees]);
+
+  // FilterBy - Field value getter
+  const getTaskFieldValue = useCallback(
+    (item: TaskModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'title':
+          return item.title;
+        case 'status':
+          return item.status;
+        case 'priority':
+          return item.priority;
+        case 'assignee':
+          // Return comma-separated assignee IDs for matching
+          return item.assignees?.map(id => id.toString()).join(',');
+        case 'due_date':
+          return item.due_date;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterTaskData, handleFilterChange: handleTaskFilterChange } = useFilterBy<TaskModel>(getTaskFieldValue);
+
+  // Apply FilterBy and search filtering
+  const filteredTasks = useMemo(() => {
+    let result = filterTaskData(tasks);
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((task) =>
+        task.title?.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [filterTaskData, tasks, searchQuery]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -292,6 +349,35 @@ const Tasks: React.FC = () => {
       }
     };
 
+  const handleRestoreTask = async (taskId: number) => {
+    try {
+      const response = await restoreTask({ id: taskId });
+      // Repository returns response.data directly, so check for response.data (the actual task)
+      if (response?.data) {
+        // Update the task in the list with restored status
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
+              ? { ...task, status: TaskStatus.OPEN }
+              : task
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error restoring task:", error);
+    }
+  };
+
+  const handleHardDeleteTask = async (taskId: number) => {
+    try {
+      await hardDeleteTask({ id: taskId });
+      // Remove the task from the list completely
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    } catch (error) {
+      console.error("Error permanently deleting task:", error);
+    }
+  };
+
   // Define how to get the group key for each task
   const getTaskGroupKey = (task: TaskModel, field: string): string | string[] => {
     switch (field) {
@@ -317,7 +403,7 @@ const Tasks: React.FC = () => {
 
   // Use the reusable grouping hook
   const groupedTasks = useTableGrouping({
-    data: tasks,
+    data: filteredTasks,
     groupByField: groupBy,
     sortOrder: groupSortOrder,
     getGroupKey: getTaskGroupKey,
@@ -337,7 +423,7 @@ const Tasks: React.FC = () => {
   }, []);
 
   const exportData = useMemo(() => {
-    return tasks.map((task: TaskModel) => {
+    return filteredTasks.map((task: TaskModel) => {
       // Look up assignee names from user IDs
       const assigneeNames = task.assignees && task.assignees.length > 0
         ? task.assignees
@@ -363,7 +449,7 @@ const Tasks: React.FC = () => {
         categories: task.categories?.join(', ') || '-',
       };
     });
-  }, [tasks, users]);
+  }, [filteredTasks, users]);
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -420,9 +506,71 @@ const Tasks: React.FC = () => {
       {/* Tips */}
       <TipBox entityName="tasks" />
 
-      {/* Controls */}
-      <Stack sx={{ ...vwhomeBodyControls, justifyContent: "flex-end" }} data-joyride-id="add-task-button">
-        <Stack direction="row" gap="8px" alignItems="center">
+      {/* Header Cards */}
+      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
+        <HeaderCard title="Tasks" count={summary.total} />
+        <HeaderCard title="Overdue" count={summary.overdue} />
+        <HeaderCard title="In progress" count={summary.inProgress} />
+        <HeaderCard title="Completed" count={summary.completed} />
+      </Stack>
+
+
+      {/* Filter Controls */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        data-joyride-id="task-filters"
+      >
+        <Stack direction="row" gap={2} alignItems="center">
+          {/* FilterBy */}
+          <FilterBy
+            columns={taskFilterColumns}
+            onFilterChange={handleTaskFilterChange}
+          />
+
+          {/* GroupBy */}
+          <GroupBy
+            options={[
+              { id: 'status', label: 'Status' },
+              { id: 'priority', label: 'Priority' },
+              { id: 'assignees', label: 'Assignees' },
+              { id: 'due_date', label: 'Due date' },
+            ]}
+            onGroupChange={handleGroupChange}
+          />
+
+          {/* SearchBox */}
+          <Box data-joyride-id="task-search">
+            <SearchBox
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={setSearchQuery}
+              inputProps={{ "aria-label": "Search tasks" }}
+              fullWidth={false}
+            />
+          </Box>
+
+          {/* Include archived toggle */}
+          <Stack direction="row" alignItems="center" gap={1} data-joyride-id="include-archived-toggle">
+            <Typography
+              component="span"
+              variant="body2"
+              color="text.secondary"
+              fontWeight={500}
+              fontSize={"13px"}
+            >
+              Include archived
+            </Typography>
+            <Toggle
+              checked={includeArchived}
+              onChange={(_, checked) => setIncludeArchived(checked)}
+            />
+          </Stack>
+        </Stack>
+
+        {/* Right side: Export and Add button */}
+        <Stack direction="row" gap="8px" alignItems="center" data-joyride-id="add-task-button">
           <ExportMenu
             data={exportData}
             columns={exportColumns}
@@ -444,164 +592,6 @@ const Tasks: React.FC = () => {
         </Stack>
       </Stack>
 
-      {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
-        <HeaderCard title="Tasks" count={summary.total} />
-        <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In progress" count={summary.inProgress} />
-        <HeaderCard title="Completed" count={summary.completed} />
-      </Stack>
-
-
-      {/* Filter Dropdowns */}
-      <Stack
-        direction="row"
-        spacing={4}
-        data-joyride-id="task-filters"
-      >
-                <Select
-                  id="status-filter"
-                  label="Status"
-                  value={statusFilters.length > 0 ? statusFilters[0] : "all"}
-                  items={[
-                    { _id: "all", name: "All Statuses" },
-                    ...Object.values(TaskStatus).map((status) => ({
-                      _id: status,
-                      name: STATUS_DISPLAY_MAP[status as TaskStatus] || status,
-                    })),
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setStatusFilters([]);
-                    } else {
-                      setStatusFilters([value as TaskStatus]);
-                    }
-                  }}
-                  sx={{ width: 140 }}
-                  isFilterApplied={statusFilters.length > 0}
-                />
-
-                <Select
-                  id="priority-filter"
-                  label="Priority"
-                  value={
-                    priorityFilters.length > 0 ? priorityFilters[0] : "all"
-                  }
-                  items={[
-                    { _id: "all", name: "All Priorities" },
-                    ...Object.values(TaskPriority).map((priority) => ({
-                      _id: priority,
-                      name: priority,
-                    })),
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setPriorityFilters([]);
-                    } else {
-                      setPriorityFilters([value as TaskPriority]);
-                    }
-                  }}
-                  sx={{ width: 140}}
-                  isFilterApplied={priorityFilters.length > 0 }
-                />
-
-                <Select
-                  id="assignee-filter"
-                  label="Assignee"
-                  value={
-                    assigneeFilters.length > 0
-                      ? assigneeFilters[0].toString()
-                      : "all"
-                  }
-                  items={[
-                    { _id: "all", name: "All Assignees" },
-                    ...users.map((user) => ({
-                      _id: user.id.toString(),
-                      name: `${user.name} ${user.surname ?? ""}`.trim(),
-                    })),
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setAssigneeFilters([]);
-                    } else {
-                      setAssigneeFilters([Number(value)]);
-                    }
-                  }}
-                  sx={{ width: 160 }}
-                  isFilterApplied={assigneeFilters.length > 0}
-                />
-
-                <Stack direction="column" spacing={2} sx={{ width: 160 }} data-joyride-id="task-search">
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color="text.secondary"
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px" }}
-                  >
-                    Search
-                  </Typography>
-                  <SearchBox
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    inputProps={{ "aria-label": "Search tasks" }}
-                    fullWidth={false}
-                  />
-                </Stack>
-
-                <Stack direction="column" spacing={2} sx={{ width: 'auto' }}>
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color="text.secondary"
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px", visibility: 'hidden' }}
-                  >
-                    .
-                  </Typography>
-                  <GroupBy
-                    options={[
-                      { id: 'status', label: 'Status' },
-                      { id: 'priority', label: 'Priority' },
-                      { id: 'assignees', label: 'Assignees' },
-                      { id: 'due_date', label: 'Due date' },
-                    ]}
-                    onGroupChange={handleGroupChange}
-                  />
-                </Stack>
-
-                <Stack direction="column" spacing={1} data-joyride-id="include-archived-toggle">
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color="text.secondary"
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: "22px", mb: 2 }}
-                  >
-                    Include archived
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      minHeight: "34px",
-                    }}
-                  >
-                    <Toggle
-                      checked={includeArchived}
-                      onChange={(_, checked) => setIncludeArchived(checked)}
-                    />
-                  </Box>
-                </Stack>
-              </Stack>
-
       {/* Content Area */}
       <Box>
         {isLoading && (
@@ -619,7 +609,7 @@ const Tasks: React.FC = () => {
         {!isLoading && !error && (
           <GroupedTableView
             groupedData={groupedTasks}
-            ungroupedData={tasks}
+            ungroupedData={filteredTasks}
             renderTable={(data, options) => (
               <TasksTable
                 tasks={data}
@@ -636,6 +626,8 @@ const Tasks: React.FC = () => {
                 isUpdateDisabled={isCreatingDisabled}
                 onRowClick={handleEditTask}
                 hidePagination={options?.hidePagination}
+                onRestore={handleRestoreTask}
+                onHardDelete={handleHardDeleteTask}
               />
             )}
           />

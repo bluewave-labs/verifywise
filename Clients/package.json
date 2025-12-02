@@ -4,7 +4,9 @@
   "version": "v1.6.1",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev:vite": "vite --host",
+    "nginx": "sudo nginx -c ./nginx.conf -g 'daemon off;'",
+    "dev": "concurrently \"npm run dev:vite\" \"npm run nginx\"",
     "build": "tsc -b && node scripts/build.js",
     "build-dev": "vite build",
     "build:original": "tsc -b && vite build",
@@ -116,6 +118,7 @@
     "@types/react-i18next": "^7.8.3",
     "@types/validator": "^13.12.2",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "concurrently": "^9.2.1",
     "dotenv-webpack": "^8.1.0",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",

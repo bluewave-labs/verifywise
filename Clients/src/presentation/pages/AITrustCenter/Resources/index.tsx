@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense, useCallback } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -146,6 +147,8 @@ interface FormData {
 }
 
 const TrustCenterResources: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -213,6 +216,17 @@ const TrustCenterResources: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle resourceId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const resourceId = searchParams.get("resourceId");
+    if (resourceId && !hasProcessedUrlParam.current && resources && resources.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEditResource function which opens the modal
+      handleEditResource(parseInt(resourceId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, resources, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (
@@ -587,14 +601,6 @@ const TrustCenterResources: React.FC = () => {
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
           <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <CustomizableButton
-              sx={styles.addButton}
-              variant="contained"
-              onClick={handleOpenAddModal}
-              isDisabled={!formData?.info?.resources_visible}
-              text="Add new resource"
-              icon={<AddCircleOutlineIcon size={16} />}
-            />
             <GroupBy
               options={[
                 { id: 'description', label: 'Type' },
@@ -603,13 +609,23 @@ const TrustCenterResources: React.FC = () => {
               onGroupChange={handleGroupChange}
             />
           </Box>
-          <Box sx={styles.toggleRow}>
-            <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle
-              checked={formData?.info?.resources_visible ?? false}
-              onChange={(_, checked) =>
-                handleFieldChange("info", "resources_visible", checked)
-              }
+          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Box sx={styles.toggleRow}>
+              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Toggle
+                checked={formData?.info?.resources_visible ?? false}
+                onChange={(_, checked) =>
+                  handleFieldChange("info", "resources_visible", checked)
+                }
+              />
+            </Box>
+            <CustomizableButton
+              sx={styles.addButton}
+              variant="contained"
+              onClick={handleOpenAddModal}
+              isDisabled={!formData?.info?.resources_visible}
+              text="Add new resource"
+              icon={<AddCircleOutlineIcon size={16} />}
             />
           </Box>
         </Box>

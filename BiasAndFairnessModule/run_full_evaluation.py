@@ -252,7 +252,7 @@ def _run_metric(metric_name: str, y_true: np.ndarray, y_pred: np.ndarray,
         race_value = convert_metric_to_float(race_result, metric_name)
         all_results[f"{metric_name}_race"] = race_value
         
-        print(f"      ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
+        print(f"      ✅ {metric_name}: computed for sex and race (values not logged for privacy)")
         
     except Exception as e:
         print(f"      ❌ {metric_name}: Error - {str(e)}")
@@ -388,7 +388,7 @@ def _print_pipeline_summary(comprehensive_results: dict, clean_results: dict):
     if fairness_values:
         max_disparity_sex = max(fairness_values.values())
         max_metric_sex = max(fairness_values, key=fairness_values.get)
-        print(f"   Highest sex-based disparity: {max_metric_sex} = {max_disparity_sex:.4f}")
+        print(f"   Sex-based disparities detected. (Metric name and value omitted for privacy.)")
     
     fairness_values_race = {k: v for k, v in comprehensive_results['fairness_metrics'].items() 
                            if v is not None and 'race' in k}

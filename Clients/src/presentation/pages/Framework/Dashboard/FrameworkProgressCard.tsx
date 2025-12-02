@@ -23,6 +23,12 @@ interface FrameworkData {
     totalSubcategories: number;
     doneSubcategories: number;
   };
+  nistProgressByFunction?: {
+    govern: { total: number; done: number };
+    map: { total: number; done: number };
+    measure: { total: number; done: number };
+    manage: { total: number; done: number };
+  };
 }
 
 interface FrameworkProgressCardProps {
@@ -73,20 +79,38 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
           Track implementation progress across clauses and annexes. Shows completion percentage and progress bars for each framework component.
         </Typography>
 
-      <Stack spacing={5}>
-        {frameworksData.map((framework) => {
+      <Stack spacing={0}>
+        {frameworksData.map((framework, index) => {
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
           const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
 
-          // For NIST AI RMF, show subcategories progress
+          // For NIST AI RMF, show progress by function (Govern, Map, Measure, Manage)
           if (isNISTAIRMF) {
-            const subcategoryDone = framework.nistProgress?.doneSubcategories || 0;
-            const subcategoryTotal = framework.nistProgress?.totalSubcategories || 0;
-            const subcategoryPercent = calculateProgress(subcategoryDone, subcategoryTotal);
+            const progressByFunction = framework.nistProgressByFunction;
+
+            // Function display order and labels
+            const functions = [
+              { key: 'govern' as const, label: 'Govern' },
+              { key: 'map' as const, label: 'Map' },
+              { key: 'measure' as const, label: 'Measure' },
+              { key: 'manage' as const, label: 'Manage' },
+            ];
 
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -98,57 +122,68 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   {framework.frameworkName}
                 </Typography>
 
-                {/* Subcategories Progress */}
-                <Box>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr auto 1fr",
-                      alignItems: "center",
-                      mb: 1,
-                    }}
-                  >
-                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                      Subcategories
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
-                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
-                        {subcategoryDone}
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
-                        /
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
-                        {subcategoryTotal}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "flex-end" }}>
-                      {getProgressIcon(subcategoryPercent)}
-                      <Typography
-                        sx={{
-                          fontSize: 12,
-                          color: subcategoryPercent === 100 ? "#13715B" : "#666666",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {subcategoryPercent}%
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={subcategoryPercent}
-                    sx={{
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: "#F3F4F6",
-                      "& .MuiLinearProgress-bar": {
-                        backgroundColor: getProgressColor(subcategoryPercent),
-                        borderRadius: 3,
-                      },
-                    }}
-                  />
-                </Box>
+                <Stack spacing={2}>
+                  {functions.map((func) => {
+                    const data = progressByFunction?.[func.key] || { total: 0, done: 0 };
+                    const percent = calculateProgress(data.done, data.total);
+
+                    return (
+                      <Box key={func.key}>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr auto 1fr",
+                            alignItems: "center",
+                            mb: 1,
+                          }}
+                        >
+                          <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                            {func.label}
+                          </Typography>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
+                            <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                              {data.done}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                              /
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                              {data.total}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "flex-end" }}>
+                            {getProgressIcon(percent)}
+                            <Typography
+                              sx={{
+                                fontSize: 12,
+                                color: percent === 100 ? "#13715B" : "#666666",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {percent}%
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={percent}
+                          sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            backgroundColor: "#F3F4F6",
+                            "& .MuiLinearProgress-bar": {
+                              backgroundColor: getProgressColor(percent),
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Stack>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
@@ -169,6 +204,19 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
 
           return (
             <Box key={framework.frameworkId}>
+              {/* Divider between framework sections */}
+              {index > 0 && (
+                <Box
+                  sx={{
+                    height: "1px",
+                    backgroundColor: "#E5E7EB",
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
+                  }}
+                />
+              )}
+
               <Typography
                 sx={{
                   fontSize: 13,
@@ -283,6 +331,9 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   }}
                 />
               </Box>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

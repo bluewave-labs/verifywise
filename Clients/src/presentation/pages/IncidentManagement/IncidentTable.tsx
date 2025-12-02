@@ -12,22 +12,17 @@ import {
     Typography,
     Tooltip,
     useTheme,
-    Chip,
     Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
+import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
-import {
-    AIIncidentManagementApprovalStatus,
-    IncidentManagementStatus,
-    Severity,
-} from "../../../domain/enums/aiIncidentManagement.enum";
 import {
     incidentRowHover,
     incidentLoadingContainer,
@@ -41,65 +36,6 @@ import {
 import CustomIconButton from "../../components/IconButton";
 
 dayjs.extend(utc);
-
-//  badge style generator
- const getIncidentChipProps = (value: string) => {
-    const styles: Record<string, { bg: string; color: string }> = {
-        // Severity
-        [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" },
-        [Severity.SERIOUS]: { bg: "#FFF4E5", color: "#EF6C00" },
-        [Severity.VERY_SERIOUS]: { bg: "#FDECEA", color: "#C62828" },
-
-        // Status
-        [IncidentManagementStatus.OPEN]: { bg: "#FFF9E6", color: "#F9A825" },
-        [IncidentManagementStatus.INVESTIGATED]: {
-            bg: "#FFF4E6",
-            color: "#FB8C00",
-        },
-        [IncidentManagementStatus.MITIGATED]: {
-            bg: "#E8F5E9",
-            color: "#2E7D32",
-        },
-        [IncidentManagementStatus.CLOSED]: { bg: "#ECEFF1", color: "#455A64" },
-
-        // Approval
-        [AIIncidentManagementApprovalStatus.APPROVED]: {
-            bg: "#E6F4EA",
-            color: "#2E7D32",
-        },
-        [AIIncidentManagementApprovalStatus.REJECTED]: {
-            bg: "#FDECEA",
-            color: "#C62828",
-        },
-        [AIIncidentManagementApprovalStatus.PENDING]: {
-            bg: "#F5F5F5",
-            color: "#616161",
-        },
-        [AIIncidentManagementApprovalStatus.NOT_REQUIRED]: {
-            bg: "#FAFAFA",
-            color: "#616161",
-        },
-    };
-
-    const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
-
-    return {
-        label: value,
-        size: "small" as const,
-        sx: {
-            backgroundColor: style.bg,
-            color: style.color,
-            fontWeight: 500,
-            fontSize: "11px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            borderRadius: "4px",
-            "& .MuiChip-label": {
-              padding: "4px 8px",
-            },
-          },
-    };
-};
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -438,11 +374,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("severity") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.severity
-                                        )}
-                                    />
+                                    <Chip label={incident.severity} />
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -450,11 +382,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.status
-                                        )}
-                                    />
+                                    <Chip label={incident.status} />
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -482,11 +410,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approval") && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.approval_status
-                                        )}
-                                    />
+                                    <Chip label={incident.approval_status} />
                                 </TableCell>
                                 <TableCell
                                     sx={{

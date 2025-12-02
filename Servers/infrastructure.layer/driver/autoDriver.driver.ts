@@ -266,7 +266,7 @@ export async function insertMockData(
           soc2_type_i: true,
           soc2_type_ii: true,
           iso_27001: true,
-          isoISO_42001: true,
+          iso_42001: true,
           ccpa: true,
           gdpr: true,
           hipaa: true,

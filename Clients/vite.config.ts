@@ -14,6 +14,13 @@ export default defineConfig({
     port: process.env.VITE_APP_PORT
       ? parseInt(process.env.VITE_APP_PORT)
       : 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     // Generate manifest for cache busting

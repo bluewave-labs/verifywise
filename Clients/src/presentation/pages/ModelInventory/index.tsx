@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, Suspense, useMemo } from "react";
-import { Box, Stack, Fade, IconButton } from "@mui/material";
+import React, { useState, useEffect, Suspense, useMemo, useCallback, useRef } from "react";
+import {
+  Box,
+  Stack,
+  Fade,
+  Modal,
+  Typography,
+  Button,
+  useTheme,
+  IconButton,
+} from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -45,7 +52,6 @@ import {
   toastFadeStyle,
   statusFilterSelectStyle,
   addNewModelButtonStyle,
-  evidenceTypeFilterSelectStyle,
 } from "./style";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
@@ -55,15 +61,21 @@ import { SearchBox } from "../../components/Search";
 import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
-import { EvidenceType } from "../../../domain/enums/evidenceHub.enum";
 import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";
+import ShareButton from "../../components/ShareViewDropdown/ShareButton";
+import ShareViewDropdown, {
+  ShareViewSettings,
+} from "../../components/ShareViewDropdown";
+import { useCreateShareLink, useUpdateShareLink } from "../../../application/hooks/useShare";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -73,6 +85,8 @@ const REDIRECT_DELAY_MS = 2000;
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const [modelInventoryData, setModelInventoryData] = useState<
     IModelInventory[]
   >([]);
@@ -93,29 +107,27 @@ const ModelInventory: React.FC = () => {
   const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(
     null
   );
-  const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
-  const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
   const [modelRiskStatusFilter, setModelRiskStatusFilter] = useState<'active' | 'deleted' | 'all'>('active');
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
   const [users, setUsers] = useState<any[]>([]);
   const [showAlert, setShowAlert] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
 
 
   // MLFlow data state
   const [mlflowData, setMlflowData] = useState<any[]>([]);
   const [isMlflowLoading, setIsMlflowLoading] = useState(false);
-  const dispatch = useDispatch();
-  const statusFilter = useSelector(
-    (state: any) => state.ui?.modelInventory?.statusFilter || "all"
-  );
 
   const { userRoleName } = useAuth();
-  const { trackDashboard, trackFilter, trackFeature, trackAIModel } = usePostHog();
+  const { trackDashboard, trackFeature, trackAIModel } = usePostHog();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+  const theme = useTheme();
+
+  // Share link mutations
+  const createShareMutation = useCreateShareLink();
+  const updateShareMutation = useUpdateShareLink();
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -139,23 +151,363 @@ const ModelInventory: React.FC = () => {
   // GroupBy state - evidence hub tab
   const { groupBy: groupByEvidence, groupSortOrder: groupSortOrderEvidence, handleGroupChange: handleGroupChangeEvidence } = useGroupByState();
 
-    const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
+  // Preselected model ID for evidence creation (used by change history feature)
+  const [preselectedModelId, setPreselectedModelId] = useState<number | undefined>(undefined);
 
-    // Selected row for View/Edit modal
-    const [selectedEvidenceHub, setSelectedEvidenceHub] = useState<EvidenceHubModel | null>(null);
+  // FilterBy - Dynamic options generators for Models tab
+  const getUniqueProviders = useCallback(() => {
+    const providers = new Set<string>();
+    modelInventoryData.forEach((item) => {
+      if (item.provider) {
+        providers.add(item.provider);
+      }
+    });
+    return Array.from(providers)
+      .sort()
+      .map((provider) => ({ value: provider, label: provider }));
+  }, [modelInventoryData]);
 
-    // Modal open/close flag
-    const [isEvidenceHubModalOpen, setIsEvidenceHubModalOpen] = useState(false);
+  const getUniqueApprovers = useCallback(() => {
+    const approverIds = new Set<string>();
+    modelInventoryData.forEach((item) => {
+      if (item.approver) {
+        approverIds.add(item.approver.toString());
+      }
+    });
+    return Array.from(approverIds)
+      .sort()
+      .map((approverId) => {
+        const user = users.find((u: any) => u.id.toString() === approverId);
+        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${approverId}`;
+        return { value: approverId, label: userName };
+      });
+  }, [modelInventoryData, users]);
 
-    // Filters
-    const [evidenceTypeFilter, setEvidenceTypeFilter] = useState("all");
-    const [searchTypeTerm, setSearchTypeTerm] = useState("");
+  // FilterBy - Filter columns configuration for Models tab
+  const modelFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: ModelInventoryStatus.APPROVED, label: 'Approved' },
+        { value: ModelInventoryStatus.RESTRICTED, label: 'Restricted' },
+        { value: ModelInventoryStatus.PENDING, label: 'Pending' },
+        { value: ModelInventoryStatus.BLOCKED, label: 'Blocked' },
+      ],
+    },
+    {
+      id: 'provider',
+      label: 'Provider',
+      type: 'select' as const,
+      options: getUniqueProviders(),
+    },
+    {
+      id: 'model',
+      label: 'Model name',
+      type: 'text' as const,
+    },
+    {
+      id: 'approver',
+      label: 'Approver',
+      type: 'select' as const,
+      options: getUniqueApprovers(),
+    },
+    {
+      id: 'security_assessment',
+      label: 'Security assessment',
+      type: 'select' as const,
+      options: [
+        { value: 'true', label: 'Assessed' },
+        { value: 'false', label: 'Not assessed' },
+      ],
+    },
+  ], [getUniqueProviders, getUniqueApprovers]);
 
-    const [isEvidenceLoading, setEvidenceLoading] = useState(false);
+  // FilterBy - Field value getter for Models tab
+  const getModelFieldValue = useCallback(
+    (item: IModelInventory, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'status':
+          return item.status;
+        case 'provider':
+          return item.provider;
+        case 'model':
+          return item.model;
+        case 'approver':
+          return item.approver?.toString();
+        case 'security_assessment':
+          return item.security_assessment ? 'true' : 'false';
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook for Models tab
+  const { filterData: filterModelData, handleFilterChange: handleModelFilterChange } = useFilterBy<IModelInventory>(getModelFieldValue);
+
+  // FilterBy - Dynamic options generators for Model Risks tab
+  const getUniqueRiskOwners = useCallback(() => {
+    const ownerIds = new Set<string>();
+    modelRisksData.forEach((item) => {
+      if (item.owner) {
+        ownerIds.add(item.owner.toString());
+      }
+    });
+    return Array.from(ownerIds)
+      .sort()
+      .map((ownerId) => {
+        const user = users.find((u: any) => u.id.toString() === ownerId);
+        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${ownerId}`;
+        return { value: ownerId, label: userName };
+      });
+  }, [modelRisksData, users]);
+
+  const getUniqueRiskModels = useCallback(() => {
+    const modelIds = new Set<string>();
+    modelRisksData.forEach((item) => {
+      if (item.model_id) {
+        modelIds.add(item.model_id.toString());
+      }
+    });
+    return Array.from(modelIds)
+      .sort()
+      .map((modelId) => {
+        const model = modelInventoryData.find((m: any) => m.id.toString() === modelId);
+        const modelName = model ? model.model : `Model ${modelId}`;
+        return { value: modelId, label: modelName };
+      });
+  }, [modelRisksData, modelInventoryData]);
+
+  // FilterBy - Filter columns configuration for Model Risks tab
+  const modelRiskFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'risk_name',
+      label: 'Risk name',
+      type: 'text' as const,
+    },
+    {
+      id: 'model_id',
+      label: 'Model name',
+      type: 'select' as const,
+      options: getUniqueRiskModels(),
+    },
+    {
+      id: 'risk_category',
+      label: 'Category',
+      type: 'select' as const,
+      options: [
+        { value: 'Performance', label: 'Performance' },
+        { value: 'Bias & Fairness', label: 'Bias & Fairness' },
+        { value: 'Security', label: 'Security' },
+        { value: 'Data Quality', label: 'Data Quality' },
+        { value: 'Compliance', label: 'Compliance' },
+      ],
+    },
+    {
+      id: 'risk_level',
+      label: 'Risk level',
+      type: 'select' as const,
+      options: [
+        { value: 'Low', label: 'Low' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'High', label: 'High' },
+        { value: 'Critical', label: 'Critical' },
+      ],
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'Open', label: 'Open' },
+        { value: 'In Progress', label: 'In Progress' },
+        { value: 'Resolved', label: 'Resolved' },
+        { value: 'Accepted', label: 'Accepted' },
+      ],
+    },
+    {
+      id: 'owner',
+      label: 'Owner',
+      type: 'select' as const,
+      options: getUniqueRiskOwners(),
+    },
+    {
+      id: 'target_date',
+      label: 'Target date',
+      type: 'date' as const,
+    },
+  ], [getUniqueRiskModels, getUniqueRiskOwners]);
+
+  // FilterBy - Field value getter for Model Risks tab
+  const getModelRiskFieldValue = useCallback(
+    (item: IModelRisk, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'risk_name':
+          return item.risk_name;
+        case 'model_id':
+          return item.model_id?.toString();
+        case 'risk_category':
+          return item.risk_category;
+        case 'risk_level':
+          return item.risk_level;
+        case 'status':
+          return item.status;
+        case 'owner':
+          return item.owner?.toString();
+        case 'target_date':
+          return item.target_date;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook for Model Risks tab
+  const { filterData: filterModelRiskData, handleFilterChange: handleModelRiskFilterChange } = useFilterBy<IModelRisk>(getModelRiskFieldValue);
+
+  const [evidenceHubData, setEvidenceHubData] = useState<EvidenceHubModel[]>([]);
+
+  // Selected row for View/Edit modal
+  const [selectedEvidenceHub, setSelectedEvidenceHub] = useState<EvidenceHubModel | null>(null);
+
+  // Modal open/close flag
+  const [isEvidenceHubModalOpen, setIsEvidenceHubModalOpen] = useState(false);
+
+  // Search term for Evidence Hub
+  const [searchTypeTerm, setSearchTypeTerm] = useState("");
+
+  // FilterBy - Dynamic options generators for Evidence Hub tab
+  const getUniqueEvidenceUploaders = useCallback(() => {
+    const uploaderIds = new Set<string>();
+    evidenceHubData.forEach((item) => {
+      const uploadedById = item.evidence_files?.[0]?.uploaded_by;
+      if (uploadedById) {
+        uploaderIds.add(uploadedById.toString());
+      }
+    });
+    return Array.from(uploaderIds)
+      .sort()
+      .map((uploaderId) => {
+        const user = users.find((u: any) => u.id.toString() === uploaderId);
+        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${uploaderId}`;
+        return { value: uploaderId, label: userName };
+      });
+  }, [evidenceHubData, users]);
+
+  const getUniqueEvidenceModels = useCallback(() => {
+    const modelIds = new Set<string>();
+    evidenceHubData.forEach((item) => {
+      if (item.mapped_model_ids) {
+        item.mapped_model_ids.forEach((modelId) => {
+          modelIds.add(modelId.toString());
+        });
+      }
+    });
+    return Array.from(modelIds)
+      .sort()
+      .map((modelId) => {
+        const model = modelInventoryData.find((m: any) => m.id.toString() === modelId);
+        const modelName = model ? `${model.provider} - ${model.model}` : `Model ${modelId}`;
+        return { value: modelId, label: modelName };
+      });
+  }, [evidenceHubData, modelInventoryData]);
+
+  // FilterBy - Filter columns configuration for Evidence Hub tab
+  const evidenceFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'evidence_name',
+      label: 'Evidence name',
+      type: 'text' as const,
+    },
+    {
+      id: 'evidence_type',
+      label: 'Evidence type',
+      type: 'select' as const,
+      options: [
+        { value: 'Model Card', label: 'Model Card' },
+        { value: 'Risk Assessment Report', label: 'Risk Assessment Report' },
+        { value: 'Bias and Fairness Report', label: 'Bias and Fairness Report' },
+        { value: 'Security Assessment Report', label: 'Security Assessment Report' },
+        { value: 'Data Protection Impact Assessment', label: 'Data Protection Impact Assessment' },
+        { value: 'Robustness and Stress Test Report', label: 'Robustness and Stress Test Report' },
+        { value: 'Evaluation Metrics Summary', label: 'Evaluation Metrics Summary' },
+        { value: 'Human Oversight Plan', label: 'Human Oversight Plan' },
+        { value: 'Post-Market Monitoring Plan', label: 'Post-Market Monitoring Plan' },
+        { value: 'Version Change Log', label: 'Version Change Log' },
+        { value: 'Third-Party Audit Report', label: 'Third-Party Audit Report' },
+        { value: 'Conformity Assessment Report', label: 'Conformity Assessment Report' },
+        { value: 'Technical File / CE Documentation', label: 'Technical File / CE Documentation' },
+        { value: 'Vendor Model Documentation', label: 'Vendor Model Documentation' },
+        { value: 'Internal Approval Record', label: 'Internal Approval Record' },
+      ],
+    },
+    {
+      id: 'mapped_model_ids',
+      label: 'Mapped models',
+      type: 'select' as const,
+      options: getUniqueEvidenceModels(),
+    },
+    {
+      id: 'uploaded_by',
+      label: 'Uploaded by',
+      type: 'select' as const,
+      options: getUniqueEvidenceUploaders(),
+    },
+    {
+      id: 'expiry_date',
+      label: 'Expiry date',
+      type: 'date' as const,
+    },
+  ], [getUniqueEvidenceModels, getUniqueEvidenceUploaders]);
+
+  // FilterBy - Field value getter for Evidence Hub tab
+  const getEvidenceFieldValue = useCallback(
+    (item: EvidenceHubModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'evidence_name':
+          return item.evidence_name;
+        case 'evidence_type':
+          return item.evidence_type;
+        case 'mapped_model_ids':
+          // Return first mapped model ID for filtering (supports "is" operator)
+          return item.mapped_model_ids?.[0]?.toString();
+        case 'uploaded_by':
+          return item.evidence_files?.[0]?.uploaded_by?.toString();
+        case 'expiry_date':
+          return item.expiry_date;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook for Evidence Hub tab
+  const { filterData: filterEvidenceData, handleFilterChange: handleEvidenceFilterChange } = useFilterBy<EvidenceHubModel>(getEvidenceFieldValue);
+
+  const [isEvidenceLoading, setEvidenceLoading] = useState(false);
 
     const [ deletingEvidenceId, setDeletingEvidenceId] = useState<number | null>(
       null
     );
+
+  // Share view state
+  const [shareAnchorEl, setShareAnchorEl] = useState<HTMLElement | null>(null);
+  const [shareableLink, setShareableLink] = useState<string>("");
+  const [shareLinkId, setShareLinkId] = useState<number | null>(null);
+  const [shareSettings, setShareSettings] = useState<ShareViewSettings>({
+    shareAllFields: true,
+    allowDataExport: true,
+    allowViewersToOpenRecords: false,
+    displayToolbar: true,
+  });
+  const [isShareEnabled, setIsShareEnabled] = useState(false);
+  const [showReplaceConfirmation, setShowReplaceConfirmation] = useState(false);
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   // Determine the active tab based on the URL
   const getInitialTab = () => {
@@ -193,13 +545,12 @@ const ModelInventory: React.FC = () => {
     total: modelInventoryData.length,
   };
 
-  // Filter data based on status
+  // Filter data using FilterBy and search
   const filteredData = useMemo(() => {
-    let data =
-      statusFilter === "all"
-        ? modelInventoryData
-        : modelInventoryData.filter((item) => item.status === statusFilter);
+    // First apply FilterBy conditions
+    let data = filterModelData(modelInventoryData);
 
+    // Then apply search filter
     if (searchTerm) {
       data = data.filter(
         (item) =>
@@ -210,7 +561,7 @@ const ModelInventory: React.FC = () => {
     }
 
     return data;
-  }, [modelInventoryData, statusFilter, searchTerm]);
+  }, [filterModelData, modelInventoryData, searchTerm]);
 
   // Define how to get the group key for each model
   const getModelInventoryGroupKey = (model: IModelInventory, field: string): string | string[] => {
@@ -400,14 +751,23 @@ const ModelInventory: React.FC = () => {
   const fetchMLFlowData = async () => {
     setIsMlflowLoading(true);
     try {
-      const response = await apiServices.get<any[]>("/integrations/mlflow/models");
-      if (response.data && Array.isArray(response.data)) {
-        setMlflowData(response.data);
+      const response = await apiServices.get<{ configured: boolean; models: any[] }>("/integrations/mlflow/models");
+      if (response.data) {
+        // Handle new response format: { configured: boolean, models: [] }
+        if ('models' in response.data && Array.isArray(response.data.models)) {
+          setMlflowData(response.data.models);
+        } else if (Array.isArray(response.data)) {
+          // Backwards compatibility: handle old format where response is directly an array
+          setMlflowData(response.data as unknown as any[]);
+        } else {
+          setMlflowData([]);
+        }
       } else {
         setMlflowData([]);
       }
     } catch (error) {
-      console.error("Error fetching MLFlow data:", error);
+      // Only log unexpected errors, not "not configured" scenarios
+      // The backend now handles "not configured" gracefully with 200 status
       setMlflowData([]);
     } finally {
       setIsMlflowLoading(false);
@@ -434,22 +794,6 @@ const ModelInventory: React.FC = () => {
     fetchModelRisksData(true, modelRiskStatusFilter);
   }, [modelRiskStatusFilter]);
 
-  // Initialize and sync status filter with URL parameters
-  useEffect(() => {
-    const urlStatusFilter = searchParams.get("statusFilter");
-
-    if (urlStatusFilter) {
-      dispatch(setModelInventoryStatusFilter(urlStatusFilter));
-    } else {
-      dispatch(setModelInventoryStatusFilter("all"));
-    }
-  }, [searchParams, dispatch]);
-
-  // Force table re-render when status filter changes
-  useEffect(() => {
-    setTableKey((prev) => prev + 1);
-  }, [statusFilter]);
-
   useEffect(() => {
     if (alert) {
       setShowAlert(true);
@@ -460,6 +804,46 @@ const ModelInventory: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Handle modelId and evidenceId URL params to open edit modal from Wise Search
+  useEffect(() => {
+    if (hasProcessedUrlParam.current || isLoading) return;
+
+    const modelId = searchParams.get("modelId");
+    const evidenceId = searchParams.get("evidenceId");
+
+    if (modelId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch model inventory and open edit modal
+      getEntityById({ routeUrl: `/modelInventory/${modelId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedModelInventory(response.data);
+            setIsNewModelInventoryModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching model from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    } else if (evidenceId) {
+      hasProcessedUrlParam.current = true;
+      // Fetch evidence and open edit modal
+      getEntityById({ routeUrl: `/evidenceHub/${evidenceId}` })
+        .then((response) => {
+          if (response?.data) {
+            setSelectedEvidenceHub(response.data);
+            setIsEvidenceHubModalOpen(true);
+            setSearchParams({}, { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching evidence from URL param:", err);
+          setSearchParams({}, { replace: true });
+        });
+    }
+  }, [searchParams, isLoading, setSearchParams]);
 
   // Auto-open create model modal when navigating from "Add new..." dropdown
   useEffect(() => {
@@ -522,9 +906,10 @@ const ModelInventory: React.FC = () => {
     setSelectedEvidenceHub(null);
   };
 
-  const handleAddEvidence = () => {
+  const handleAddEvidence = (modelId?: number) => {
     setIsEvidenceHubModalOpen(true);
     setSelectedEvidenceHub(null);
+    setPreselectedModelId(modelId);
   };
 
   const handleEditModelInventory = async (id: string) => {
@@ -598,6 +983,152 @@ const ModelInventory: React.FC = () => {
   const handleClosEvidenceModal = () => {
     setSelectedEvidenceHub(null);
     setIsEvidenceHubModalOpen(false);
+    setPreselectedModelId(undefined);
+  };
+
+  // Share view handlers
+  const handleShareClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setShareAnchorEl(event.currentTarget);
+  };
+
+  const handleShareClose = () => {
+    setShareAnchorEl(null);
+  };
+
+  const generateShareableLink = async (settings: ShareViewSettings): Promise<string> => {
+    // Prevent concurrent link creation
+    if (isCreatingLink) {
+      console.log("Link creation already in progress, skipping...");
+      return shareableLink;
+    }
+
+    try {
+      setIsCreatingLink(true);
+
+      // Create share link via API
+      const result = await createShareMutation.mutateAsync({
+        resource_type: "model",
+        resource_id: 0, // 0 = share entire Model Inventory table view
+        settings,
+      });
+
+      const link = result.data?.shareable_url || "";
+      const id = result.data?.id || null;
+      setShareableLink(link);
+      setShareLinkId(id);
+      return link;
+    } catch (error) {
+      console.error("Error generating share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to generate share link. Please try again.",
+      });
+      return "";
+    } finally {
+      setIsCreatingLink(false);
+    }
+  };
+
+  const handleShareEnabledChange = async (enabled: boolean) => {
+    setIsShareEnabled(enabled);
+    if (enabled && !shareableLink) {
+      await generateShareableLink(shareSettings);
+    }
+  };
+
+  const handleShareSettingsChange = async (settings: ShareViewSettings) => {
+    setShareSettings(settings);
+
+    // If we have an existing share link, update its settings
+    if (shareLinkId) {
+      try {
+        await updateShareMutation.mutateAsync({
+          id: shareLinkId,
+          settings,
+        });
+        setAlert({
+          variant: "success",
+          body: "Share link settings updated!",
+        });
+      } catch (error) {
+        console.error("Error updating share link settings:", error);
+        setAlert({
+          variant: "error",
+          body: "Failed to update settings. Please try again.",
+        });
+      }
+    }
+  };
+
+  const handleCopyLink = (link: string) => {
+    console.log("Link copied:", link);
+    setAlert({
+      variant: "success",
+      body: "Share link copied to clipboard!",
+    });
+  };
+
+  const handleRefreshLink = () => {
+    // Show confirmation dialog
+    setShowReplaceConfirmation(true);
+  };
+
+  const handleConfirmReplace = async () => {
+    setShowReplaceConfirmation(false);
+
+    try {
+      // Fetch ALL existing share links for this resource and disable them
+      console.log("Fetching all share links for model/0...");
+      const existingLinksResponse: any = await apiServices.get("/shares/model/0");
+      const existingLinks = existingLinksResponse?.data?.data || [];
+
+      console.log(`Found ${existingLinks.length} existing share links:`, existingLinks);
+
+      // Disable all existing links
+      let disabledCount = 0;
+      for (const link of existingLinks) {
+        console.log(`Processing link ID ${link.id}: is_enabled=${link.is_enabled}, share_token=${link.share_token}`);
+
+        if (link.is_enabled) {
+          console.log(`Attempting to disable share link ID: ${link.id}`);
+          try {
+            const updateResult = await updateShareMutation.mutateAsync({
+              id: link.id,
+              is_enabled: false,
+            });
+            console.log(`Successfully disabled link ID ${link.id}. Update result:`, updateResult);
+            disabledCount++;
+          } catch (updateError) {
+            console.error(`Failed to disable link ID ${link.id}:`, updateError);
+            throw updateError;
+          }
+        } else {
+          console.log(`Link ID ${link.id} is already disabled, skipping`);
+        }
+      }
+
+      console.log(`All previous links disabled. Total disabled: ${disabledCount}`);
+
+      // Create a new link
+      console.log("Creating new share link...");
+      const newLink = await generateShareableLink(shareSettings);
+      console.log("New share link created:", newLink);
+
+      setAlert({
+        variant: "success",
+        body: `Share link replaced successfully! ${disabledCount} previous link(s) invalidated.`,
+      });
+    } catch (error) {
+      console.error("Error replacing share link:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to replace share link. Please try again.",
+      });
+    }
+  };
+
+  const handleOpenLink = (link: string) => {
+    console.log("Opening link:", link);
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -830,75 +1361,10 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleStatusFilterChange = (event: any) => {
-    const newStatusFilter = event.target.value;
-
-    // Track filter usage
-    trackFilter('model_status', newStatusFilter, {
-      filter_type: 'model_inventory_status',
-      previous_filter: statusFilter,
-      user_role: userRoleName,
-      total_models: modelInventoryData.length,
-    });
-
-    dispatch(setModelInventoryStatusFilter(newStatusFilter));
-
-    // Update URL search params to persist the filter
-    if (newStatusFilter === "all") {
-      searchParams.delete("statusFilter");
-    } else {
-      searchParams.set("statusFilter", newStatusFilter);
-    }
-    setSearchParams(searchParams);
-  };
-
-  const statusFilterOptions = [
-    { _id: "all", name: "All statuses" },
-    { _id: ModelInventoryStatus.APPROVED, name: "Approved" },
-    { _id: ModelInventoryStatus.RESTRICTED, name: "Restricted" },
-    { _id: ModelInventoryStatus.PENDING, name: "Pending" },
-    { _id: ModelInventoryStatus.BLOCKED, name: "Blocked" },
-  ];
-
-  const evidenceTypeOptions = [
-    { _id: "all", name: "All evidence type" },
-    { _id: EvidenceType.MODEL_CARD, name: "Model Card" },
-    { _id: EvidenceType.RISK_ASSESSMENT_REPORT, name: "Risk Assessment Report" },
-    { _id: EvidenceType.BIAS_AND_FAIRNESS_REPORT, name: "Bias and Fairness Report" },
-    { _id: EvidenceType.SECURITY_ASSESSMENT_REPORT, name: "Security Assessment Report" },
-    { _id: EvidenceType.DATA_PROTECTION_IMPACT_ASSESSMENT, name: "Data Protection Impact Assessment" },
-    { _id: EvidenceType.ROBUSTNESS_AND_STRESS_TEST_REPORT, name: "Robustness and Stress Test Report" },
-    { _id: EvidenceType.EVALUATION_METRICS_SUMMARY, name: "Evaluation Metrics Summary" },
-    { _id: EvidenceType.HUMAN_OVERSIGHT_PLAN, name: "Human Oversight Plan" },
-    { _id: EvidenceType.POST_MARKET_MONITORING_PLAN, name: "Post-Market Monitoring Plan" },
-    { _id: EvidenceType.VERSION_CHANGE_LOG, name: "Version Change Log" },
-    { _id: EvidenceType.THIRD_PARTY_AUDIT_REPORT, name: "Third-Party Audit Report" },
-    { _id: EvidenceType.CONFORMITY_ASSESSMENT_REPORT, name: "Conformity Assessment Report" },
-    { _id: EvidenceType.TECHNICAL_FILE, name: "Technical File / CE Documentation" },
-    { _id: EvidenceType.VENDOR_MODEL_DOCUMENTATION, name: "Vendor Model Documentation" },
-    { _id: EvidenceType.INTERNAL_APPROVAL_RECORD, name: "Internal Approval Record" },
-  ];
-  
-
-
-  // Filter model risks based on category and level
+  // Filter model risks using FilterBy
   const filteredModelRisks = useMemo(() => {
-    let filtered = modelRisksData;
-
-    if (modelRiskCategoryFilter !== "all") {
-      filtered = filtered.filter(
-        (risk) => risk.risk_category === modelRiskCategoryFilter
-      );
-    }
-
-    if (modelRiskLevelFilter !== "all") {
-      filtered = filtered.filter(
-        (risk) => risk.risk_level === modelRiskLevelFilter
-      );
-    }
-
-    return filtered;
-  }, [modelRisksData, modelRiskCategoryFilter, modelRiskLevelFilter]);
+    return filterModelRiskData(modelRisksData);
+  }, [filterModelRiskData, modelRisksData]);
 
   // Define how to get the group key for each model risk
   const getModelRiskGroupKey = (risk: any, field: string): string | string[] => {
@@ -934,15 +1400,12 @@ const ModelInventory: React.FC = () => {
     getGroupKey: getModelRiskGroupKey,
   });
 
+  // Filter evidence hub using FilterBy and search
   const filteredEvidenceHub = useMemo(() => {
-    let filtered = evidenceHubData;
+    // First apply FilterBy conditions
+    let filtered = filterEvidenceData(evidenceHubData);
 
-    if (evidenceTypeFilter && evidenceTypeFilter !== "all") {
-      filtered = filtered.filter(
-        (e) => e.evidence_type === evidenceTypeFilter
-      );
-    }
-
+    // Then apply search filter
     if (searchTypeTerm?.trim()) {
       const lower = searchTypeTerm.toLowerCase();
       filtered = filtered.filter((e) =>
@@ -951,7 +1414,7 @@ const ModelInventory: React.FC = () => {
     }
 
     return filtered;
-  }, [evidenceHubData, evidenceTypeFilter, searchTypeTerm]);
+  }, [filterEvidenceData, evidenceHubData, searchTypeTerm]);
 
   // Define how to get the group key for each evidence
   const getEvidenceGroupKey = (evidence: any, field: string): string | string[] => {
@@ -1203,18 +1666,6 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleModelRiskCategoryFilterChange = (event: any) => {
-    setModelRiskCategoryFilter(event.target.value);
-  };
-
-  const handleEvidenceTypeFilterChange = (event: any) => {
-    setEvidenceTypeFilter(event.target.value);
-  };
-
-  const handleModelRiskLevelFilterChange = (event: any) => {
-    setModelRiskLevelFilter(event.target.value);
-  };
-
   const handleModelRiskStatusFilterChange = (event: any) => {
     setModelRiskStatusFilter(event.target.value);
   };
@@ -1292,6 +1743,110 @@ const ModelInventory: React.FC = () => {
               </Suspense>
           )}
 
+          {/* Replace Share Link Confirmation Modal */}
+          <Modal
+              open={showReplaceConfirmation}
+              onClose={(_event, reason) => {
+                  if (reason !== "backdropClick") {
+                      setShowReplaceConfirmation(false);
+                  }
+              }}
+          >
+              <Stack
+                  gap={theme.spacing(2)}
+                  color={theme.palette.text.secondary}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                  }}
+                  sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 450,
+                      bgcolor: theme.palette.background.modal,
+                      border: 1,
+                      borderColor: theme.palette.border.dark,
+                      borderRadius: theme.shape.borderRadius,
+                      boxShadow: 24,
+                      p: theme.spacing(15),
+                      "&:focus": {
+                          outline: "none",
+                      },
+                  }}
+              >
+                  <Typography
+                      fontSize={16}
+                      fontWeight={600}
+                  >
+                      Replace Share Link?
+                  </Typography>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                  >
+                      This will invalidate the current share link and generate a new one.
+                      Anyone with the old link will no longer be able to access the shared view.
+                  </Typography>
+                  <Typography
+                      fontSize={13}
+                      textAlign={"left"}
+                      mt={theme.spacing(4)}
+                  >
+                      Do you want to continue?
+                  </Typography>
+                  <Stack
+                      direction="row"
+                      gap={theme.spacing(4)}
+                      mt={theme.spacing(12)}
+                      justifyContent="flex-end"
+                  >
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="text"
+                          color="inherit"
+                          onClick={() => setShowReplaceConfirmation(false)}
+                          sx={{
+                              width: 100,
+                              textTransform: "capitalize",
+                              fontSize: 13,
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "transparent",
+                              },
+                          }}
+                      >
+                          Cancel
+                      </Button>
+                      <Button
+                          disableRipple
+                          disableFocusRipple
+                          disableTouchRipple
+                          variant="contained"
+                          onClick={handleConfirmReplace}
+                          sx={{
+                              width: 160,
+                              fontSize: 13,
+                              backgroundColor: "#13715B",
+                              border: "1px solid #13715B",
+                              boxShadow: "none",
+                              borderRadius: "4px",
+                              "&:hover": {
+                                  boxShadow: "none",
+                                  backgroundColor: "#0f5a48",
+                              },
+                          }}
+                      >
+                          Replace Link
+                      </Button>
+                  </Stack>
+              </Stack>
+          </Modal>
+
           <Stack sx={mainStackStyle}>
               <PageHeader
                   title="Model Inventory"
@@ -1366,45 +1921,18 @@ const ModelInventory: React.FC = () => {
                           alignItems="center"
                           sx={filterButtonRowStyle}
                       >
-                          {/* Left side: Status dropdown + Search */}
+                          {/* Left side: FilterBy + Search + GroupBy */}
                           <Stack
                               direction="row"
                               spacing={2}
                               alignItems="center"
                           >
                               <div data-joyride-id="model-status-filter">
-                                  <SelectComponent
-                                      id="status-filter"
-                                      value={statusFilter}
-                                      items={statusFilterOptions}
-                                      onChange={handleStatusFilterChange}
-                                      sx={statusFilterSelectStyle}
-                                      customRenderValue={(
-                                          value,
-                                          selectedItem
-                                      ) => {
-                                          if (value === "all") {
-                                              return selectedItem.name;
-                                          }
-                                          return `Status: ${selectedItem.name.toLowerCase()}`;
-                                      }}
+                                  <FilterBy
+                                      columns={modelFilterColumns}
+                                      onFilterChange={handleModelFilterChange}
                                   />
                               </div>
-
-                              {/* Search */}
-                              <Box
-                                  sx={{ width: 200 }}
-                                  data-joyride-id="model-search"
-                              >
-                                  <SearchBox
-                                      placeholder="Search models..."
-                                      value={searchTerm}
-                                      onChange={setSearchTerm}
-                                      inputProps={{
-                                          "aria-label": "Search models",
-                                      }}
-                                  />
-                              </Box>
 
                               <GroupBy
                                   options={[
@@ -1416,10 +1944,28 @@ const ModelInventory: React.FC = () => {
                                   ]}
                                   onGroupChange={handleGroupChange}
                               />
+
+                              {/* Search */}
+                              <Box data-joyride-id="model-search">
+                                  <SearchBox
+                                      placeholder="Search models..."
+                                      value={searchTerm}
+                                      onChange={setSearchTerm}
+                                      inputProps={{
+                                          "aria-label": "Search models",
+                                      }}
+                                      fullWidth={false}
+                                  />
+                              </Box>
                           </Stack>
 
-                          {/* Right side: Export, Analytics & Add Model buttons */}
+                          {/* Right side: Share, Export, Analytics & Add Model buttons */}
                           <Stack direction="row" gap="8px" alignItems="center">
+                              <ShareButton
+                                  onClick={handleShareClick}
+                                  size="medium"
+                                  tooltip="Share view"
+                              />
                               <ExportMenu
                                   data={exportData}
                                   columns={exportColumns}
@@ -1484,68 +2030,13 @@ const ModelInventory: React.FC = () => {
                           alignItems="center"
                           sx={filterButtonRowStyle}
                       >
-                          <Stack direction="row" gap={2}>
+                          <Stack direction="row" gap={2} alignItems="center">
                               <div data-joyride-id="risk-category-filter">
-                                  <SelectComponent
-                                      id="risk-category-filter"
-                                      value={modelRiskCategoryFilter}
-                                      items={[
-                                          {
-                                              _id: "all",
-                                              name: "All categories",
-                                          },
-                                          {
-                                              _id: "Performance",
-                                              name: "Performance",
-                                          },
-                                          {
-                                              _id: "Bias & Fairness",
-                                              name: "Bias & Fairness",
-                                          },
-                                          { _id: "Security", name: "Security" },
-                                          {
-                                              _id: "Data Quality",
-                                              name: "Data Quality",
-                                          },
-                                          {
-                                              _id: "Compliance",
-                                              name: "Compliance",
-                                          },
-                                      ]}
-                                      onChange={
-                                          handleModelRiskCategoryFilterChange
-                                      }
-                                      sx={statusFilterSelectStyle}
-                                      customRenderValue={(
-                                          value,
-                                          selectedItem
-                                      ) => {
-                                          if (value === "all") {
-                                              return selectedItem.name;
-                                          }
-                                          return `Category: ${selectedItem.name.toLowerCase()}`;
-                                      }}
+                                  <FilterBy
+                                      columns={modelRiskFilterColumns}
+                                      onFilterChange={handleModelRiskFilterChange}
                                   />
                               </div>
-                              <SelectComponent
-                                  id="risk-level-filter"
-                                  value={modelRiskLevelFilter}
-                                  items={[
-                                      { _id: "all", name: "All risk levels" },
-                                      { _id: "Low", name: "Low" },
-                                      { _id: "Medium", name: "Medium" },
-                                      { _id: "High", name: "High" },
-                                      { _id: "Critical", name: "Critical" },
-                                  ]}
-                                  onChange={handleModelRiskLevelFilterChange}
-                                  sx={statusFilterSelectStyle}
-                                  customRenderValue={(value, selectedItem) => {
-                                      if (value === "all") {
-                                          return selectedItem.name;
-                                      }
-                                      return `Risk level: ${selectedItem.name.toLowerCase()}`;
-                                  }}
-                              />
                               <SelectComponent
                                   id="risk-status-filter"
                                   value={modelRiskStatusFilter}
@@ -1560,7 +2051,7 @@ const ModelInventory: React.FC = () => {
                                       if (value === "active") {
                                           return selectedItem.name;
                                       }
-                                      return `Status: ${selectedItem.name.toLowerCase()}`;
+                                      return `Show: ${selectedItem.name.toLowerCase()}`;
                                   }}
                               />
                               <GroupBy
@@ -1623,43 +2114,18 @@ const ModelInventory: React.FC = () => {
                           alignItems="center"
                           sx={filterButtonRowStyle}
                       >
-                          {/* Left side: Evidence Type Filter + Search */}
+                          {/* Left side: FilterBy + Search + GroupBy */}
                           <Stack
                               direction="row"
-                              spacing={6}
+                              spacing={2}
                               alignItems="center"
                           >
                               <div data-joyride-id="evidence-type-filter">
-                                  <SelectComponent
-                                      id="type-filter"
-                                      value={evidenceTypeFilter}
-                                      items={evidenceTypeOptions}
-                                      onChange={handleEvidenceTypeFilterChange}
-                                      sx={evidenceTypeFilterSelectStyle}
-                                      customRenderValue={(value, selectedItem) => {
-                                        if (!selectedItem) return "Select Evidence Type";
-                                        return value === "all"
-                                          ? selectedItem.name
-                                          : `evidence: ${selectedItem.name.toLowerCase()}`;
-                                      }}
-
-
+                                  <FilterBy
+                                      columns={evidenceFilterColumns}
+                                      onFilterChange={handleEvidenceFilterChange}
                                   />
                               </div>
-                              {/* Search */}
-                              <Box
-                                  sx={{ width: 200 }}
-                                  data-joyride-id="evidence-search"
-                              >
-                                  <SearchBox
-                                      placeholder="Search evidence..."
-                                      value={searchTypeTerm}
-                                      onChange={setSearchTypeTerm}
-                                      inputProps={{
-                                          "aria-label": "Search evidence",
-                                      }}
-                                  />
-                              </Box>
                               <GroupBy
                                   options={[
                                       { id: 'evidence_type', label: 'Evidence type' },
@@ -1668,6 +2134,18 @@ const ModelInventory: React.FC = () => {
                                   ]}
                                   onGroupChange={handleGroupChangeEvidence}
                               />
+                              {/* Search */}
+                              <Box data-joyride-id="evidence-search">
+                                  <SearchBox
+                                      placeholder="Search evidence..."
+                                      value={searchTypeTerm}
+                                      onChange={setSearchTypeTerm}
+                                      inputProps={{
+                                          "aria-label": "Search evidence",
+                                      }}
+                                      fullWidth={false}
+                                  />
+                              </Box>
                           </Stack>
 
                           {/* Right side: Export and Upload Evidence */}
@@ -1807,12 +2285,28 @@ const ModelInventory: React.FC = () => {
               onError={handleEvidenceUploadModalError}
               isEdit={!!selectedEvidenceHub}
               initialData={selectedEvidenceHub || undefined}
+              preselectedModelId={preselectedModelId}
           />
 
           <PageTour
               steps={ModelInventorySteps}
               run={true}
               tourKey="model-inventory-tour"
+          />
+
+          {/* Share View Dropdown */}
+          <ShareViewDropdown
+              anchorEl={shareAnchorEl}
+              onClose={handleShareClose}
+              enabled={isShareEnabled}
+              shareableLink={shareableLink}
+              initialSettings={shareSettings}
+              onEnabledChange={handleShareEnabledChange}
+              onGenerateLink={generateShareableLink}
+              onSettingsChange={handleShareSettingsChange}
+              onCopyLink={handleCopyLink}
+              onRefreshLink={handleRefreshLink}
+              onOpenLink={handleOpenLink}
           />
       </Stack>
   );

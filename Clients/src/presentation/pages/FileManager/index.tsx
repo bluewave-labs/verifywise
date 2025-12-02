@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Stack, Box, Typography, SelectChangeEvent } from "@mui/material";
+import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
@@ -12,7 +12,6 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { getUserFilesMetaData } from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
@@ -27,6 +26,8 @@ import { SearchBox } from "../../components/Search";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 // Constants (DRY + Maintainability)
 const FILE_MANAGER_CONTEXT = "FileManager";
@@ -70,13 +71,8 @@ const FileManager: React.FC = (): JSX.Element => {
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Fetch projects for the dropdown
+  // Fetch projects for the dropdown options
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
-
-  // State for selected project
-  const [selectedProject, setSelectedProject] = useState<
-    string | number | null
-  >("all");
 
   // Use hook for initial data load (keeps hook unchanged as requested)
   const { filesData: initialFilesData, loading: initialLoading } =
@@ -145,23 +141,104 @@ const FileManager: React.FC = (): JSX.Element => {
     refetch();
   }, [refetch]);
 
+  // FilterBy - Dynamic options generators
+  const getUniqueProjects = useCallback(() => {
+    const projectIds = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.projectId) {
+        projectIds.add(file.projectId.toString());
+      }
+    });
+    return Array.from(projectIds)
+      .map((projectId) => {
+        const project = projects.find((p: Project) => p.id.toString() === projectId);
+        return {
+          value: projectId,
+          label: project?.project_title || `Project ${projectId}`,
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [filesData, projects]);
+
+  const getUniqueUploaders = useCallback(() => {
+    const uploaders = new Set<string>();
+    filesData.forEach((file) => {
+      if (file.uploaderName || file.uploader) {
+        uploaders.add(file.uploaderName || file.uploader || '');
+      }
+    });
+    return Array.from(uploaders)
+      .filter(Boolean)
+      .sort()
+      .map((uploader) => ({
+        value: uploader,
+        label: uploader,
+      }));
+  }, [filesData]);
+
+  // FilterBy - Filter columns configuration
+  const fileFilterColumns: FilterColumn[] = useMemo(() => [
+    {
+      id: 'fileName',
+      label: 'File name',
+      type: 'text' as const,
+    },
+    {
+      id: 'projectId',
+      label: 'Use case',
+      type: 'select' as const,
+      options: getUniqueProjects(),
+    },
+    {
+      id: 'uploader',
+      label: 'Uploader',
+      type: 'select' as const,
+      options: getUniqueUploaders(),
+    },
+    {
+      id: 'uploadDate',
+      label: 'Upload date',
+      type: 'date' as const,
+    },
+  ], [getUniqueProjects, getUniqueUploaders]);
+
+  // FilterBy - Field value getter
+  const getFileFieldValue = useCallback(
+    (item: FileModel, fieldId: string): string | number | Date | null | undefined => {
+      switch (fieldId) {
+        case 'fileName':
+          return item.fileName;
+        case 'projectId':
+          return item.projectId?.toString();
+        case 'uploader':
+          return item.uploaderName || item.uploader;
+        case 'uploadDate':
+          return item.uploadDate;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  // FilterBy - Initialize hook
+  const { filterData: filterFileData, handleFilterChange: handleFileFilterChange } = useFilterBy<FileModel>(getFileFieldValue);
+
+  // Filter files using FilterBy and search
   const filteredFiles = useMemo(() => {
-    let filtered = filesData;
+    // First apply FilterBy conditions
+    let result = filterFileData(filesData);
 
-    if (selectedProject !== "all" && selectedProject !== null) {
-      filtered = filtered.filter((file) => file.projectId === selectedProject);
-    }
-
-    // Filter by search term
+    // Apply search filter last
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
-      filtered = filtered.filter((file) =>
+      result = result.filter((file) =>
         file.fileName?.toLowerCase().includes(query),
       );
     }
 
-    return filtered;
-  }, [filesData, selectedProject, searchTerm]);
+    return result;
+  }, [filterFileData, filesData, searchTerm]);
 
   // Define how to get the group key for each file
   const getFileGroupKey = useCallback((file: FileModel, field: string): string => {
@@ -270,40 +347,23 @@ const FileManager: React.FC = (): JSX.Element => {
             }}
           >
             <Box sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}>
-              <Select
-                id="project-filter"
-                value={selectedProject || "all"}
-                items={[
-                  { _id: "all", name: "All use cases" },
-                  ...projects.map((project: Project) => ({
-                    _id: project.id.toString(),
-                    name: project.project_title,
-                  })),
-                ]}
-                onChange={(e: SelectChangeEvent<string | number>) =>
-                  setSelectedProject(e.target.value)
-                }
-                sx={{
-                  width: "fit-content",
-                  minWidth: "200px",
-                  height: "34px",
-                }}
-                isFilterApplied={!!selectedProject && selectedProject !== "all"}
+              <FilterBy
+                columns={fileFilterColumns}
+                onFilterChange={handleFileFilterChange}
               />
-              <Box sx={{ width: "300px" }}>
-                <SearchBox
-                  placeholder="Search files by name..."
-                  value={searchTerm}
-                  onChange={setSearchTerm}
-                  inputProps={{ "aria-label": "Search files" }}
-                />
-              </Box>
               <GroupBy
                 options={[
                   { id: 'project', label: 'Project' },
                   { id: 'uploader', label: 'Uploader' },
                 ]}
                 onGroupChange={handleGroupChange}
+              />
+              <SearchBox
+                placeholder="Search files by name..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                inputProps={{ "aria-label": "Search files" }}
+                fullWidth={false}
               />
             </Box>
             {/* RBAC: Only show upload button for non-Auditors */}

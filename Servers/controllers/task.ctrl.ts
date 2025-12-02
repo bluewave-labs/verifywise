@@ -6,6 +6,8 @@ import {
   getTaskByIdQuery,
   updateTaskByIdQuery,
   deleteTaskByIdQuery,
+  restoreTaskByIdQuery,
+  hardDeleteTaskByIdQuery,
 } from "../utils/task.utils";
 import { sequelize } from "../database/db";
 import { ITask } from "../domain.layer/interfaces/i.task";
@@ -13,7 +15,7 @@ import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
-import { ValidationException, BusinessLogicException } from "../domain.layer/exceptions/custom.exception";
+import { ValidationException, BusinessLogicException, ForbiddenException } from "../domain.layer/exceptions/custom.exception";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -54,7 +56,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       ...task.toJSON(),
       assignees: (task.dataValues as any)["assignees"] || []
     };
-    
+
     await logSuccess({
       eventType: "Create",
       description: `Created new task: ${title}`,
@@ -457,6 +459,238 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+    });
+
+    const statusCode = (error as Error).message.includes("not found") ? 404 :
+      (error as Error).message.includes("Only") ? 403 : 500;
+
+    return res.status(statusCode).json(STATUS_CODE[statusCode]((error as Error).message));
+  }
+}
+
+export async function restoreTask(req: Request, res: Response): Promise<any> {
+  const taskId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting restoreTask for ID ${taskId}`,
+    functionName: "restoreTask",
+    fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const restoredTask = await restoreTaskByIdQuery(
+      {
+        id: taskId,
+        userId,
+        role,
+        transaction,
+        organizationId: req.organizationId!,
+      },
+      req.tenantId!
+    );
+
+    await transaction.commit();
+
+    if (restoredTask) {
+      await logSuccess({
+        eventType: "Update",
+        description: `Restored task ID ${taskId}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
+      // Add assignees to response
+      const taskResponse = {
+        ...restoredTask,
+        assignees: (restoredTask as any)["assignees"] || []
+      };
+
+      return res.status(200).json(STATUS_CODE[200](taskResponse));
+    }
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Task not found for restoration: ID ${taskId}`,
+      functionName: "restoreTask",
+      fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Business logic error: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    if (error instanceof ForbiddenException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Forbidden: ${error.message}`,
+        functionName: "restoreTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    await logFailure({
+      eventType: "Update",
+      description: "Failed to restore task",
+      functionName: "restoreTask",
+      fileName: "task.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    const statusCode = (error as Error).message.includes("not found") ? 404 :
+      (error as Error).message.includes("Only") ? 403 : 500;
+
+    return res.status(statusCode).json(STATUS_CODE[statusCode]((error as Error).message));
+  }
+}
+
+export async function hardDeleteTask(req: Request, res: Response): Promise<any> {
+  const taskId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting hardDeleteTask for ID ${taskId}`,
+    functionName: "hardDeleteTask",
+    fileName: "task.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const deleted = await hardDeleteTaskByIdQuery(
+      {
+        id: taskId,
+        userId,
+        role,
+        transaction,
+        organizationId: req.organizationId!,
+      },
+      req.tenantId!
+    );
+
+    await transaction.commit();
+
+    if (deleted) {
+      await logSuccess({
+        eventType: "Delete",
+        description: `Permanently deleted task ID ${taskId}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
+      return res.status(200).json(STATUS_CODE[200]({ message: "Task permanently deleted" }));
+    }
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Task not found for permanent deletion: ID ${taskId}`,
+      functionName: "hardDeleteTask",
+      fileName: "task.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Validation failed: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Business logic error: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    if (error instanceof ForbiddenException) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Forbidden: ${error.message}`,
+        functionName: "hardDeleteTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to permanently delete task",
+      functionName: "hardDeleteTask",
+      fileName: "task.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     const statusCode = (error as Error).message.includes("not found") ? 404 :

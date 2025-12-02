@@ -75,7 +75,7 @@
 }
 
 .command-group:not(:last-child) {
-  border-bottom: 1px solid #e5e5e5;
+  /* No border between groups */
 }
 
 .command-group [cmdk-group-heading] {
@@ -85,6 +85,7 @@
   color: #aaa;
   background: #fafafa;
   margin: 0 -8px;
+  margin-top: 4px;
   margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -93,7 +94,7 @@
 .command-item {
   cursor: pointer;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 2px;
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -102,15 +103,10 @@
   color: #666;
   user-select: none;
   transition: all 150ms ease;
-  margin: 0 0 1px 0;
+  margin: 0 0 4px 0;
 }
 
 .command-item:hover {
-  background: #f5f5f5;
-  color: #000;
-}
-
-.command-item[data-selected="true"] {
   background: #f5f5f5;
   color: #000;
 }
@@ -124,22 +120,75 @@
   background: #ebebeb;
 }
 
-/* Override MUI Typography colors for selected state */
-.command-item[data-selected="true"] .MuiTypography-root {
+/* Title styling - normal weight by default, bold on selection/hover */
+.command-item .command-item-title {
+  font-weight: 400;
+}
+
+.command-item:hover .command-item-title {
+  font-weight: 500;
+}
+
+/* Override MUI Typography colors for hover state */
+.command-item:hover .MuiTypography-root {
   color: #000;
 }
 
-.command-item[data-selected="true"] .MuiTypography-caption {
+.command-item:hover .MuiTypography-caption {
   color: #666;
   opacity: 0.8;
 }
 
-/* Icon styling for selected state */
-.command-item[data-selected="true"] svg {
+/* Icon styling for hover state */
+.command-item:hover svg {
   color: #6B8A6A !important;
   opacity: 0.9 !important;
 }
 
+/* Chevron icon - show on hover */
+.command-item .command-item-chevron {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.command-item:hover .command-item-chevron {
+  opacity: 1;
+}
+
+/* What's New Section */
+.whats-new-section {
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 12px;
+}
+
+.whats-new-big-block {
+  background: linear-gradient(135deg, #1e2a1e 0%, #2d4a2d 50%, #0f1a0f 100%);
+  border-radius: 8px;
+  margin: 8px;
+  border: 1px solid rgba(123, 154, 122, 0.2);
+  transition: all 0.2s ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.whats-new-big-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(123, 154, 122, 0.1) 0%, rgba(107, 138, 106, 0.05) 100%);
+  pointer-events: none;
+}
+
+.whats-new-big-block:hover {
+  background: linear-gradient(135deg, #22312a 0%, #2f4f2f 50%, #152115 100%);
+  border-color: rgba(123, 154, 122, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(123, 154, 122, 0.08);
+}
 
 /* Custom scrollbar */
 .command-list::-webkit-scrollbar {
@@ -294,7 +343,7 @@
   }
 
   .command-group:not(:last-child) {
-    border-bottom-color: #333;
+    /* No border between groups */
   }
 
   .command-item {
@@ -306,28 +355,41 @@
     opacity: 0.8 !important;
   }
 
-  .command-item:hover,
-  .command-item[data-selected="true"] {
+  .command-item:hover {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
   }
 
-  .command-item[data-selected="true"] .MuiTypography-root {
+  .command-item:hover .MuiTypography-root {
     color: #fff;
   }
 
-  .command-item[data-selected="true"] .MuiTypography-caption {
+  .command-item:hover .MuiTypography-caption {
     color: #999;
     opacity: 0.8;
   }
 
-  .command-item[data-selected="true"] svg {
+  .command-item:hover svg {
     color: #8AAB89 !important;
     opacity: 0.9 !important;
   }
 
   .command-item:active {
     background: rgba(255, 255, 255, 0.1);
+  }
+
+  .command-item:hover .command-item-title {
+    font-weight: 500;
+  }
+
+  /* Chevron icon - dark mode */
+  .command-item .command-item-chevron {
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+  }
+
+  .command-item:hover .command-item-chevron {
+    opacity: 1;
   }
 
   .command-list::-webkit-scrollbar-thumb {
@@ -338,6 +400,20 @@
     background: #555;
   }
 
+  /* What's New Section - Dark Mode */
+  .whats-new-section {
+    border-bottom-color: #333;
+  }
+
+  .whats-new-big-block {
+    background: linear-gradient(135deg, #1e1e1e 0%, #0e0e0e 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .whats-new-big-block:hover {
+    background: linear-gradient(135deg, #252525 0%, #151515 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 }
 
 /* Navigation hints footer */

@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { BarChart3, ChevronDown } from "lucide-react"
@@ -12,7 +12,7 @@ import AddNewRiskForm from "../../components/AddNewRiskForm";
 import StandardModal from "../../components/Modals/StandardModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { deleteEntityById } from "../../../application/repository/entity.repository";
+import { deleteEntityById, getEntityById } from "../../../application/repository/entity.repository";
 import CustomizableToast from "../../components/Toast";
 import CustomizableSkeleton from "../../components/Skeletons";
 import allowedRoles from "../../../application/constants/permissions";
@@ -54,6 +54,8 @@ const initialLoadingState: LoadingStatus = {
 const RiskManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -347,6 +349,36 @@ const RiskManagement = () => {
     }
   }, [location.state, navigate, location.pathname]);
 
+  // Handle riskId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const riskId = searchParams.get("riskId");
+    if (riskId && !hasProcessedUrlParam.current && !showCustomizableSkeleton) {
+      hasProcessedUrlParam.current = true;
+
+      // First check if risk is already in local state
+      const existingRisk = projectRisks.find((r) => r.id === parseInt(riskId, 10));
+      if (existingRisk) {
+        setSelectedRow([existingRisk]);
+        setIsRiskModalOpen(true);
+        setSearchParams({}, { replace: true });
+      } else {
+        // Fetch from server if not in local state
+        getEntityById({ routeUrl: `/projectRisks/${riskId}` })
+          .then((response) => {
+            if (response?.data) {
+              setSelectedRow([response.data]);
+              setIsRiskModalOpen(true);
+              setSearchParams({}, { replace: true });
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching risk from URL param:", err);
+            setSearchParams({}, { replace: true });
+          });
+      }
+    }
+  }, [searchParams, projectRisks, showCustomizableSkeleton, setSearchParams]);
+
   /**
    * Handle actions for project risk modal
    * Display tostify for create and update project risk
@@ -639,7 +671,7 @@ const RiskManagement = () => {
               value={searchTerm}
               onChange={setSearchTerm}
               inputProps={{ "aria-label": "Search risks"}}
-              sx={{ width: 200 }}
+              fullWidth={false}
             />
           </Box>
           <Stack direction="row" gap="8px" alignItems="center">

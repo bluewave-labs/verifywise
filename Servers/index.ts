@@ -34,6 +34,7 @@ import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
+import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
@@ -42,18 +43,19 @@ import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
 import tokenRoutes from "./routes/tokens.route";
+import shareLinkRoutes from "./routes/shareLink.route";
 import automation from "./routes/automation.route.js";
 import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
-import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
 import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
+import ceMarkingRoutes from "./routes/ceMarking.route";
+import searchRoutes from "./routes/search.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -78,14 +80,30 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl
-  );
-
   app.use(
     cors({
       origin: (origin, callback) => {
-        testOrigin({ origin, allowedOrigins, callback });
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        try {
+          const originUrl = new URL(origin);
+          const requestHost = originUrl.hostname;
+
+          // Allow if origin is from same host (localhost, 127.0.0.1, or actual host)
+          const allowedHosts = [host, 'localhost', '127.0.0.1', '::1'];
+
+          if (allowedHosts.includes(requestHost)) {
+            return callback(null, true);
+          }
+
+          // Reject other origins
+          return callback(new Error("Not allowed by CORS"));
+        } catch (error) {
+          return callback(new Error("Invalid origin"));
+        }
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
@@ -130,6 +148,7 @@ try {
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
+  app.use("/api/model-inventory-change-history", modelInventoryChangeHistoryRoutes);
   app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
@@ -141,6 +160,7 @@ try {
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
   app.use("/api/tokens", tokenRoutes);
+  app.use("/api/shares", shareLinkRoutes);
   app.use("/api/file-manager", fileManagerRoutes);
   app.use("/api/automations", automation);
   app.use("/api/integrations/mlflow", integrationsRoutes);
@@ -153,6 +173,8 @@ try {
     await addAllJobs();
   })();
   app.use("/api/ai-incident-managements", aiIncidentRouter);
+  app.use("/api/ce-marking", ceMarkingRoutes);
+  app.use("/api/search", searchRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

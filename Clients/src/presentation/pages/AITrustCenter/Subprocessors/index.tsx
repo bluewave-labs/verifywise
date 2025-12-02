@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense, useCallback } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -145,6 +146,8 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -208,6 +211,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle subprocessorId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const subprocessorId = searchParams.get("subprocessorId");
+    if (subprocessorId && !hasProcessedUrlParam.current && subprocessors && subprocessors.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEdit function which opens the modal
+      handleEdit(parseInt(subprocessorId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, subprocessors, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (
@@ -317,7 +331,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
       // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[^\s?#]*)?(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(newSubprocessor.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -368,7 +382,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
       }
 
        // Validate URL (accept without http/https)
-      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+(\/[\w\-]*)*(\?.*)?(#.*)?)$/i;
       if (!urlPattern.test(form.url)) {
         setEditSubprocessorError("Subprocessor URL must be a valid URL");
         return;
@@ -509,14 +523,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
         <Box sx={styles.subprocessorsHeader}>
           <Box sx={styles.headerControls}>
             <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <CustomizableButton
-                sx={styles.addButton}
-                variant="contained"
-                onClick={handleOpenAddModal}
-                isDisabled={!formData?.info?.subprocessor_visible}
-                text="Add new subprocessor"
-                icon={<AddCircleOutlineIcon size={16} />}
-              />
               <GroupBy
                 options={[
                   { id: 'location', label: 'Location' },
@@ -525,15 +531,25 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 onGroupChange={handleGroupChange}
               />
             </Box>
-            <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>
-                Enabled and visible
-              </Typography>
-              <Toggle
-                checked={formData?.info?.subprocessor_visible ?? false}
-                onChange={(_, checked) =>
-                  handleFieldChange("info", "subprocessor_visible", checked)
-                }
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <Box sx={styles.toggleRow}>
+                <Typography sx={styles.toggleLabel}>
+                  Enabled and visible
+                </Typography>
+                <Toggle
+                  checked={formData?.info?.subprocessor_visible ?? false}
+                  onChange={(_, checked) =>
+                    handleFieldChange("info", "subprocessor_visible", checked)
+                  }
+                />
+              </Box>
+              <CustomizableButton
+                sx={styles.addButton}
+                variant="contained"
+                onClick={handleOpenAddModal}
+                isDisabled={!formData?.info?.subprocessor_visible}
+                text="Add new subprocessor"
+                icon={<AddCircleOutlineIcon size={16} />}
               />
             </Box>
           </Box>

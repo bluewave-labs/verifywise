@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_SLACK_CLIENT_ID: string;
   readonly VITE_SLACK_URL: string;
   readonly VITE_IS_SLACK_VISIBLE: string;
+  readonly VITE_BRANDFETCH_API_KEY: string;
 }
 
 declare const __APP_VERSION__: string;

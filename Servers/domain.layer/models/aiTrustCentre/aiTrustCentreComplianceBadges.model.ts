@@ -46,7 +46,7 @@ export class AITrustCenterComplianceBadgesModel extends Model<AITrustCenterCompl
     allowNull: false,
     defaultValue: true,
   })
-  isoISO_42001!: boolean;
+  iso_42001!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,

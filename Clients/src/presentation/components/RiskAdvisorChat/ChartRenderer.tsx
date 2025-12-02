@@ -31,7 +31,7 @@ interface ChartRendererProps {
 
 export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
   const theme = useTheme();
-  const size = 150;
+  const size = 200;
 
   if (!chartData || (chartData.type !== 'line' && (!chartData.data || chartData.data.length === 0))) {
     return null;
@@ -79,7 +79,8 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
           <BarChart
             xAxis={[{ scaleType: 'band', data: labels }]}
             series={[{ data: dataValues }]}
-            height={200}
+            height={size}
+            width={300}
             margin={{ left: 0, right: 20, top: 20 }}
           />
         );
@@ -197,6 +198,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
         backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: '8px',
+        width: 'fit-content',
       }}
     >
       {title && (

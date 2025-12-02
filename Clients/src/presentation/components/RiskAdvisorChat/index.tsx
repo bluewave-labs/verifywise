@@ -1,5 +1,6 @@
 import { Stack, Box, useTheme, Typography, IconButton, Tooltip, Paper } from '@mui/material';
-import { MessageSquare, X } from 'lucide-react';
+import { MessageSquare, X, Maximize2, Minimize2 } from 'lucide-react';
+import { useState } from 'react';
 import { AssistantRuntime, AssistantRuntimeProvider } from '@assistant-ui/react';
 import { useRiskAdvisorRuntime } from './useRiskAdvisorRuntime';
 import { CustomThread } from './CustomThread';
@@ -12,6 +13,7 @@ interface RiskAdvisorChatProps {
 
 const RiskAdvisorChat = ({ open, onClose, risks = [] }: RiskAdvisorChatProps) => {
   const theme = useTheme();
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const runtime: AssistantRuntime = useRiskAdvisorRuntime(risks || []);
 
@@ -21,13 +23,13 @@ const RiskAdvisorChat = ({ open, onClose, risks = [] }: RiskAdvisorChatProps) =>
     <Box
       sx={{
         position: 'fixed',
-        bottom: 44,
-        right: 44,
-        width: '420px',
-        height: '600px',
+        bottom: isMaximized ? 0 : 44,
+        right: isMaximized ? 0 : 44,
+        width: isMaximized ? `${420*1.5}px` : '420px',
+        height: isMaximized ? '100vh' : '600px',
         zIndex: 1300,
         boxShadow: '0px 8px 24px rgba(16, 24, 40, 0.15)',
-        borderRadius: '16px',
+        borderRadius: isMaximized ? 0 : '16px',
         overflow: 'hidden',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         [theme.breakpoints.down('sm')]: {
@@ -101,6 +103,20 @@ const RiskAdvisorChat = ({ open, onClose, risks = [] }: RiskAdvisorChatProps) =>
           </Stack>
 
           <Stack direction="row" gap="4px">
+            <Tooltip title={isMaximized ? "Minimize" : "Maximize"}>
+              <IconButton
+                size="small"
+                onClick={() => setIsMaximized(!isMaximized)}
+                sx={{
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Close">
               <IconButton
                 size="small"

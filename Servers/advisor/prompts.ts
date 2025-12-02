@@ -96,6 +96,7 @@ export const getAdvisorPrompt = (type: string | undefined): string => {
             - For timeseries data, use 'line' chart type with series and xAxisLabels
             - If no visualization is needed, set chartData to null
             - Ensure data array and labels array have the same length
+            - Ensure the JSON response is properly formatted within the given structure (e.g. table should have data as array of objects with label and value)
 
             Timeseries Data Format:
             When you receive timeseries data from get_risk_history_timeseries, it returns an array like:

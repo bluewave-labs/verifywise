@@ -164,6 +164,7 @@ export const CustomMessage: FC = () => {
                   fontSize: '13px',
                   lineHeight: 1.5,
                   wordBreak: 'break-word',
+                  width: 'fit-content',
                 }}
               >
                 <MessagePrimitive.Content components={{ Text: MessageText }} />

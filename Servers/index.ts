@@ -132,7 +132,7 @@ try {
       },
     })
   );
-  app.use(csrf());
+  // app.use(csrf());
 
   // Routes
   app.use("/api/users", userRoutes);

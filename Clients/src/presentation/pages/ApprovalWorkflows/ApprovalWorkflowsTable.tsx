@@ -377,7 +377,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 {workflow.date_updated
                                     ? dayjs
                                         .utc(workflow.date_updated)
-                                        .format("YYYY-MM-DD")
+                                        .format("YYYY-MM-DD HH:mm")
                                     : "-"}
                             </TableCell>
                             <TableCell

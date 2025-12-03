@@ -11,7 +11,6 @@ export interface ITimelineStep {
     title: string;
     status: 'completed' | 'pending' | 'rejected';
     approverName?: string;
-    approverRole?: string;
     date?: string;
     comment?: string;
     showDetailsLink?: boolean;
@@ -107,8 +106,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Request submitted",
             status: 'completed',
             approverName: "Mary Johnson",
-            approverRole: 'Requestor',
-            date: "2024/01/15",
+            date: "2024-11-28T09:30:00",
             showDetailsLink: true,
         },
         {
@@ -117,8 +115,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Manager Approval",
             status: 'pending',
             approverName: "John Smith",
-            approverRole: "Manager",
-            date: "2024/01/16",
+            date: "2024-11-29T14:15:00",
             comment: "Please provide additional documentation about the marketing use case.",
             approvalResult: 'pending',
         },
@@ -128,7 +125,6 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Compliance Review",
             status: 'pending',
             approverName: "Sarah Williams",
-            approverRole: 'Compliance Officer',
         },
     ],
     
@@ -139,8 +135,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Request submitted",
             status: 'completed',
             approverName: "David Brown",
-            approverRole: 'Requestor',
-            date: "2024/01/10",
+            date: "2024-11-25T10:00:00",
             showDetailsLink: true,
         },
         {
@@ -149,8 +144,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Manager Approval",
             status: 'completed',
             approverName: "Emily Davis",
-            approverRole: "Manager",
-            date: "2024/01/12",
+            date: "2024-11-26T11:45:00",
             approvalResult: 'approved',
         },
         {
@@ -159,8 +153,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Medical Board Review",
             status: 'rejected',
             approverName: "Dr. Michael Chen",
-            approverRole: 'Medical Board Member',
-            date: "2024/01/14",
+            date: "2024-11-27T16:20:00",
             comment: "This AI system requires additional safety certifications before approval.",
             approvalResult: 'rejected',
         },
@@ -172,8 +165,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Request submitted",
             status: 'completed',
             approverName: "Lisa Anderson",
-            approverRole: 'Requestor',
-            date: "2024/01/05",
+            date: "2024-11-20T08:30:00",
             showDetailsLink: true,
         },
         {
@@ -182,8 +174,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Manager Approval",
             status: 'completed',
             approverName: "Robert Taylor",
-            approverRole: "Manager",
-            date: "2024/01/07",
+            date: "2024-11-21T10:15:00",
             approvalResult: 'approved',
         },
         {
@@ -192,8 +183,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Security Review",
             status: 'completed',
             approverName: "Jennifer Martinez",
-            approverRole: 'Security Officer',
-            date: "2024/01/09",
+            date: "2024-11-22T14:30:00",
             approvalResult: 'approved',
         },
         {
@@ -202,8 +192,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Final Approval",
             status: 'completed',
             approverName: "Thomas Wilson",
-            approverRole: 'Director',
-            date: "2024/01/11",
+            date: "2024-11-23T16:00:00",
             approvalResult: 'approved',
         },
     ],
@@ -215,8 +204,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Request submitted",
             status: 'completed',
             approverName: "Patricia Garcia",
-            approverRole: 'Requestor',
-            date: "2024/01/20",
+            date: "2024-11-24T09:00:00",
             showDetailsLink: true,
         },
         {
@@ -225,8 +213,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "HR Manager Approval",
             status: 'completed',
             approverName: "James Rodriguez",
-            approverRole: "HR Manager",
-            date: "2024/01/22",
+            date: "2024-11-25T13:30:00",
             approvalResult: 'approved',
         },
         {
@@ -235,8 +222,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Data Privacy Review",
             status: 'pending',
             approverName: "Amanda Lee",
-            approverRole: 'Privacy Officer',
-            date: "2024/01/24",
+            date: "2024-11-26T15:45:00",
             comment: "Reviewing data handling procedures for employee analytics.",
             approvalResult: 'pending',
         },
@@ -246,7 +232,6 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             title: "Legal Review",
             status: 'pending',
             approverName: "Christopher White",
-            approverRole: 'Legal Counsel',
         },
     ],
 };
@@ -257,7 +242,7 @@ export const stepDetailsMap: Record<number, IStepDetails> = {
         owner: "John Doe",
         teamMembers: ["John Doe", "James Smith"],
         location: "Global",
-        startDate: "2024/01/15",
+        startDate: "2024-11-28T09:30:00",
         targetIndustry: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     },

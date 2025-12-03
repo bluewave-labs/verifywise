@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 import StepDetailsModal from './StepDetailsModal';
 import { getStepDetails, IMenuItemExtended, IStepDetails } from './mockData';
+import dayjs from "dayjs";
 
 import {
     getMenuGroups,
@@ -122,8 +123,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             maxWidth="900px"
-            onSubmit={() => { isRequestor ? console.log("Resubmit clicked") : console.log("Submit clicked"); }}
-            submitButtonText={isRequestor ? "Resubmit" : "Submit"}
+            onSubmit={() => { isRequestor ? console.log("Resubmit clicked") : console.log("Approve clicked"); }}
+            submitButtonText={isRequestor ? "Resubmit" : "Approve"}
             cancelButtonText="Cancel"
             title={isRequestor ? "Resubmit Approval Request" : "Approval requests"}
             description="Manage and review your requestor approvals."
@@ -416,7 +417,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                 </Typography>
                                                 {step.date && (
                                                     <Typography fontSize={12} fontWeight={400} color="#999999">
-                                                        {step.date}
+                                                        {dayjs(step.date).format("YYYY-MM-DD HH:mm")}
                                                     </Typography>
                                                 )}
                                             </Stack>
@@ -447,17 +448,6 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                     <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
                                                         {step.approverName}
                                                     </Typography>
-                                                    {step.approverRole && (
-                                                        <>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4" fill="none">
-                                                                <circle cx="2" cy="2" r="2" fill="#CCCCCC" />
-                                                            </svg>
-
-                                                            <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
-                                                                {step.approverRole}
-                                                            </Typography>
-                                                        </>
-                                                    )}
                                                 </Stack>
                                             )}
                                             {step.showDetailsLink && (

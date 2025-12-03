@@ -9,14 +9,10 @@ import {
     TableCell,
     Box,
     useTheme,
-    Chip,
     Stack,
     Typography,
 } from "@mui/material";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
-import {
-    ApprovalStatus
-} from "../../../domain/enums/aiApprovalWorkflow.enum";
 import TablePaginationActions from "../../components/TablePagination";
 
 import {
@@ -39,50 +35,12 @@ const entities = [
     { _id: 1, name: "Use case" }
 ];
 
-//  badge style generator
-const getWorkflowChipProps = (value: string) => {
-    const styles: Record<string, { bg: string; color: string }> = {
-        [ApprovalStatus.APPROVED]: {
-            bg: "#E6F4EA",
-            color: "#2E7D32",
-        },
-        [ApprovalStatus.REJECTED]: {
-            bg: "#FDECEA",
-            color: "#C62828",
-        },
-        [ApprovalStatus.PENDING]: {
-            bg: "#F5F5F5",
-            color: "#616161",
-        },
-    };
-
-    const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
-
-    return {
-        label: value,
-        size: "small" as const,
-        sx: {
-            backgroundColor: style.bg,
-            color: style.color,
-            fontWeight: 500,
-            fontSize: "11px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            borderRadius: "4px",
-            "& .MuiChip-label": {
-                padding: "4px 8px",
-            },
-        },
-    };
-};
-
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
 const TABLE_COLUMNS = [
     { id: "workflow_title", label: "TITLE" },
     { id: "entity_name", label: "ENTITY" },
     { id: "steps", label: "STEPS COUNT" },
-    { id: "approval_status", label: "APPROVAL STATUS" },
     { id: "date_updated", label: "DATE UPDATED" },
     { id: "actions", label: "ACTIONS" },
 ];
@@ -93,8 +51,8 @@ const STORAGE_KEY = 'workflow-table-rows-per-page';
 
 type SortDirection = "asc" | "desc" | null;
 type SortConfig = {
-  key: string;
-  direction: SortDirection;
+    key: string;
+    direction: SortDirection;
 };
 
 interface ApprovalWorkflowTableProps {
@@ -145,7 +103,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
         (_: unknown, newPage: number) => setPage(newPage),
         []
     );
-    
+
     const handleChangeRowsPerPage = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const newRowsPerPage = parseInt(event.target.value, 10);
@@ -198,9 +156,6 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
             } else if (sortKey.includes("steps")) {
                 aValue = a.steps?.length || 0;
                 bValue = b.steps?.length || 0;
-            } else if (sortKey.includes("approval") && sortKey.includes("status")) {
-                aValue = a.approval_status?.toLowerCase() || "";
-                bValue = b.approval_status?.toLowerCase() || "";
             } else if (sortKey.includes("date") && sortKey.includes("updated")) {
                 aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
                 bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
@@ -242,10 +197,20 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                     ...singleTheme.tableStyles.primary.header.cell,
                                     ...(column.id === "workflow_id" && {
                                     }),
+                                    ...(column.id === "entity_name" && {
+                                        width: "18%",
+                                    }),
+                                    ...(column.id === "steps" && {
+                                        width: "15%",
+                                    }),
+                                    ...(column.id === "date_updated" && {
+                                        width: "22%",
+                                    }),
                                     ...(column.id === "actions" && {
                                         position: "sticky",
                                         right: 0,
                                         zIndex: 10,
+                                        width: "12%",
                                         backgroundColor:
                                             singleTheme.tableStyles.primary.header
                                                 .backgroundColors,
@@ -343,6 +308,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
+                                    width: "18%",
                                     backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("entity") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
@@ -351,6 +317,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
+                                    width: "15%",
                                     backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("steps") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
@@ -359,18 +326,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
-                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approval") && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "#ffffff",
-                                }}
-                            >
-                                <Chip
-                                    {...getWorkflowChipProps(
-                                        workflow.approval_status
-                                    )}
-                                />
-                            </TableCell>
-                            <TableCell
-                                sx={{
-                                    ...cellStyle,
+                                    width: "22%",
                                     backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("updated") ? "#f5f5f5" : "#ffffff",
                                 }}
                             >
@@ -383,6 +339,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={{
                                     ...cellStyle,
+                                    width: "12%",
                                     backgroundColor: "#ffffff",
                                 }}
                             >

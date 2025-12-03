@@ -3,7 +3,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails } from "@mui/material";
+import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, TextField } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
@@ -12,12 +12,15 @@ import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum
 import StepDetailsModal from './StepDetailsModal';
 import { getStepDetails, IMenuItemExtended, IStepDetails } from './mockData';
 import dayjs from "dayjs";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
     getMenuGroups,
     getMockTimelineData,
     MenuItemId
 } from './mockData';
+import Field from "../../Inputs/Field";
+import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
 
 const getWorkflowChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
@@ -63,7 +66,6 @@ interface IRequestorApprovalProps {
 
 const menuGroups = getMenuGroups();
 
-
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
     onClose,
@@ -78,9 +80,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
 
     const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
     const [selectedStepDetails, setSelectedStepDetails] = useState<IStepDetails | null>(null);
-
-
     const [selectedItem, setSelectedItem] = useState<IMenuItemExtended | null>(null);
+    const [comment, setComment] = useState<string>("");
 
 
     const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
@@ -106,6 +107,92 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
         }
     };
 
+    const handleApprove = () => {
+        // TODO: API call to approve the request
+        console.log("Approve clicked with comment:", comment);
+
+        onClose();
+    };
+
+    const handleReject = () => {
+        // TODO: API call to reject the request
+        console.log("Reject clicked with comment:", comment);
+
+        onClose();
+    };
+
+    const handleWithdraw = () => {
+        // TODO: API call to withdraw the request
+        console.log("Withdraw clicked");
+
+        onClose();
+    };
+
+    const renderCustomFooter = () => {
+        if (isRequestor) {
+            return (
+                <>
+                    <Box />
+                    <CustomizableButton
+                        variant="outlined"
+                        text="Withdraw"
+                        onClick={handleWithdraw}
+                        sx={{
+                            minWidth: "100px",
+                            height: "34px",
+                            border: "1px solid #DC2626",
+                            color: "#DC2626",
+                            "&:hover": {
+                                backgroundColor: "#FEF2F2",
+                                border: "1px solid #DC2626",
+                            },
+                        }}
+                    />
+                </>
+            );
+        } else {
+            return (
+                <Stack
+                    direction="row"
+                    justifyContent="flex-end"
+                    spacing={8}
+                    alignItems="center"
+                    width="100%"
+                >
+                    <CustomizableButton
+                        variant="outlined"
+                        text="Reject"
+                        onClick={handleReject}
+                        sx={{
+                            minWidth: "100px",
+                            height: "34px",
+                            border: "1px solid #DC2626",
+                            color: "#DC2626",
+                            "&:hover": {
+                                backgroundColor: "#FEF2F2",
+                                border: "1px solid #DC2626",
+                            },
+                        }}
+                    />
+                    <CustomizableButton
+                        variant="contained"
+                        text="Approve"
+                        onClick={handleApprove}
+                        sx={{
+                            minWidth: "100px",
+                            height: "34px",
+                            backgroundColor: "#13715B",
+                            color: "#FFFFFF",
+                            "&:hover:not(.Mui-disabled)": {
+                                backgroundColor: "#0F5A47",
+                            },
+                        }}
+                    />
+                </Stack>
+            );
+        }
+    };
+
     useEffect(() => {
         // Set first menu item as selected by default
         const firstGroup = menuGroups[0];
@@ -123,11 +210,9 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             maxWidth="900px"
-            onSubmit={() => { isRequestor ? console.log("Resubmit clicked") : console.log("Approve clicked"); }}
-            submitButtonText={isRequestor ? "Resubmit" : "Approve"}
-            cancelButtonText="Cancel"
-            title={isRequestor ? "Resubmit Approval Request" : "Approval requests"}
+            title={isRequestor ? "Approval Request" : "Approval requests"}
             description="Manage and review your requestor approvals."
+            customFooter={renderCustomFooter()}
         >
             <Stack direction="row" spacing={12} >
                 <Box
@@ -417,7 +502,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                 </Typography>
                                                 {step.date && (
                                                     <Typography fontSize={12} fontWeight={400} color="#999999">
-                                                        {dayjs(step.date).format("YYYY-MM-DD HH:mm")}
+                                                        {dayjs(step.date).format("YYYY-MM-DD, HH:mm")}
                                                     </Typography>
                                                 )}
                                             </Stack>
@@ -488,6 +573,31 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             </React.Fragment>
                         ))}
                     </Stack>
+                    {!isRequestor && (
+                        <Stack spacing={0}>
+                            <Field
+                                label="Comment"
+                                rows={2}
+                                type="description"
+                                placeholder="Add comment"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                              
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        fontSize: '14px',
+                                        backgroundColor: '#FFFFFF',
+                                        '&:hover fieldset': {
+                                            borderColor: '#D0D5DD',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: '#13715B',
+                                        },
+                                    },
+                                }}
+                            />
+                        </Stack>
+                    )}
                 </Stack>
 
             </Stack>

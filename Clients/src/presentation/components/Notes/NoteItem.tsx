@@ -129,7 +129,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: theme.spacing(2.5, 3),
+            padding: theme.spacing(4),
             backgroundColor: theme.palette.background.modal,
           }}
         >
@@ -137,9 +137,14 @@ const NoteItem: React.FC<NoteItemProps> = ({
             direction="row"
             spacing={theme.spacing(1)}
             alignItems="center"
-            sx={{ flex: 1 }}
+            sx={{ flex: 1, gap: 2 }}
           >
-            <Stack direction="row" spacing={theme.spacing(1)} alignItems="center" sx={{ flex: 1 }}>
+            <Stack
+              direction="row"
+              spacing={theme.spacing(1)}
+              alignItems="center"
+              sx={{ flex: 1, gap: 2 }}
+            >
               <Avatar
                 sx={{
                   width: 32,
@@ -166,7 +171,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </Stack>
             </Stack>
 
-            <Stack direction="row" spacing={theme.spacing(0.5)} alignItems="center" sx={{ minWidth: "fit-content", ml: "auto" }}>
+            <Stack
+              direction="row"
+              spacing={theme.spacing(0.5)}
+              alignItems="center"
+              sx={{ minWidth: "fit-content", ml: "auto" }}
+            >
               <Typography
                 sx={{
                   fontSize: 12,
@@ -242,7 +252,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
         <Divider sx={{ margin: 0, borderColor: theme.palette.border.light }} />
 
         {/* Note Content */}
-        <Box sx={{ padding: theme.spacing(3, 3) }}>
+        <Box sx={{ padding: theme.spacing(5) }}>
           <Typography
             sx={{
               fontSize: 13,
@@ -263,8 +273,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
         <DualButtonModal
           title="Confirm delete"
           body={
-            <Typography fontSize={13} sx={{ color: theme.palette.text.secondary }}>
-              Are you sure you want to delete this note? This action cannot be undone.
+            <Typography
+              fontSize={13}
+              sx={{ color: theme.palette.text.secondary }}
+            >
+              Are you sure you want to delete this note? This action cannot be
+              undone.
             </Typography>
           }
           cancelText="Cancel"

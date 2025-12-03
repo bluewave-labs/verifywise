@@ -154,7 +154,11 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
         </Box>
 
         {/* Action Buttons */}
-        <Stack direction="row" spacing={theme.spacing(1)} sx={{ justifyContent: "flex-end", mt: theme.spacing(2) }}>
+        <Stack
+          direction="row"
+          spacing={theme.spacing(1)}
+          sx={{ justifyContent: "flex-end", mt: theme.spacing(2) }}
+        >
           {isEditing && onCancel && (
             <Button
               variant="outlined"

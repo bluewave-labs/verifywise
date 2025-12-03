@@ -212,6 +212,17 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
     setAlert(null);
   };
 
+  // Auto-dismiss alerts after 3 seconds
+  useEffect(() => {
+    if (alert) {
+      const timeoutId = setTimeout(() => {
+        setAlert(null);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [alert]);
+
   return (
     <Stack spacing={2} sx={{ height: "100%" }}>
       {/* Alert */}

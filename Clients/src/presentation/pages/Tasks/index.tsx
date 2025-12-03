@@ -275,9 +275,21 @@ const Tasks: React.FC = () => {
       if (response && response.data) {
         // Add the new task to the list
         setTasks((prev) => [response.data, ...prev]);
+        setAlert({
+          variant: "success",
+          title: "Task created successfully",
+          body: "Your new task has been added.",
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error creating task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error creating task",
+        body: "Failed to create the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 

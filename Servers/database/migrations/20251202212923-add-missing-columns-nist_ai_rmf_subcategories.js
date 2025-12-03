@@ -17,7 +17,7 @@ module.exports = {
           `
             ALTER TABLE "${tenantHash}".nist_ai_rmf_subcategories
             ADD COLUMN IF NOT EXISTS subcategory_meta_id INTEGER,
-            ADD COLUMN IF NOT EXISTS projects_frameworks_id INTEGER REFERENCES "${tenantHash}".projects_frameworks (id);
+            ADD COLUMN IF NOT EXISTS projects_frameworks_id INTEGER NOT NULL;
           `,
           { transaction }
         );

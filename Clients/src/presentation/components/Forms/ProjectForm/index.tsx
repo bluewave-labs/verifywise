@@ -21,7 +21,6 @@ import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
-  datePickerStyle,
   teamMembersRenderInputStyle,
   teamMembersSlotProps,
   teamMembersSxStyle,
@@ -503,11 +502,11 @@ const ProjectForm = ({
         className="vwproject-form-body"
         sx={{ display: "flex", flexDirection: "row", gap: 6 }}
       >
-        <Stack className="vwproject-form-body-start" sx={{ gap: 6 }}>
+        <Stack className="vwproject-form-body-start" sx={{ gap: 6, flex: 1 }}>
           <Field
             id="project-title-input"
             label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
-            width="350px"
+            width="100%"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
             error={errors.projectTitle}
@@ -528,7 +527,7 @@ const ProjectForm = ({
               })) || []
             }
             sx={{
-              width: "350px",
+              width: "100%",
               backgroundColor: theme.palette.background.main,
             }}
             error={errors.owner}
@@ -542,7 +541,7 @@ const ProjectForm = ({
             onChange={handleOnSelectChange("status")}
             items={projectStatusItems}
             sx={{
-              width: "350px",
+              width: "100%",
               backgroundColor: theme.palette.background.main,
             }}
             error={errors.status}
@@ -557,7 +556,7 @@ const ProjectForm = ({
                 onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems}
                 sx={{
-                  width: "350px",
+                  width: "100%",
                   backgroundColor: theme.palette.background.main,
                 }}
                 error={errors.riskClassification}
@@ -571,7 +570,7 @@ const ProjectForm = ({
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems}
                 sx={{
-                  width: "350px",
+                  width: "100%",
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired
@@ -580,7 +579,7 @@ const ProjectForm = ({
             </>
           )}
         </Stack>
-        <Stack className="vwproject-form-body-end" sx={{ gap: 6 }}>
+        <Stack className="vwproject-form-body-end" sx={{ gap: 6, flex: 1 }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Stack gap={theme.spacing(2)}>
               <Typography
@@ -681,42 +680,41 @@ const ProjectForm = ({
                 slotProps={teamMembersSlotProps}
               />
             </Stack>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 6 }}>
-            <DatePicker
-              label="Start date"
-              date={
-                values.start_date ? dayjs(values.start_date) : dayjs(new Date())
-              }
-              handleDateChange={handleDateChange}
-              sx={{
-                ...datePickerStyle,
-                ...(projectToEdit && {
-                  width: "350px",
-                  "& input": { width: "300px" },
-                }),
-                width: "170px",
-              }}
-              isRequired
-              error={errors.startDate}
-            />
-            <Select
-              id="geography-type-input"
-              label="Geography"
-              placeholder="Select an option"
-              value={
-                values.geography === 0
-                  ? ""
-                  : values.geography
-              }
-              onChange={handleOnSelectChange("geography")}
-              items={geographyItems}
-              sx={{
-                width: "170px",
-                backgroundColor: theme.palette.background.main,
-              }}
-              isRequired
-              error={errors.geography}
-            />
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 6, width: "100%" }}>
+              <Box sx={{ flex: 1 }}>
+                <DatePicker
+                  label="Start date"
+                  date={
+                    values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+                  }
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    width: "100%",
+                  }}
+                  isRequired
+                  error={errors.startDate}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Select
+                  id="geography-type-input"
+                  label="Geography"
+                  placeholder="Select an option"
+                  value={
+                    values.geography === 0
+                      ? ""
+                      : values.geography
+                  }
+                  onChange={handleOnSelectChange("geography")}
+                  items={geographyItems}
+                  sx={{
+                    width: "100%",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.geography}
+                />
+              </Box>
             </Stack>
             {!projectToEdit &&
               values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
@@ -939,7 +937,7 @@ const ProjectForm = ({
       {!projectToEdit &&
         values.framework_type === FrameworkTypeEnum.ProjectBased && (
           <Stack>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 8, mb: 4 }}>
+            <Stack sx={{ display: "flex", flexDirection: "row", gap: 6, mb: 4 }}>
             <Field
               id="target-industry-input"
               label="Target industry"

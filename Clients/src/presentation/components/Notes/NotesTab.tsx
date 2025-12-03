@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Stack } from "@mui/material";
+import { Stack, useTheme } from "@mui/material";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import * as notesRepository from "../../../application/repository/notes.repository";
@@ -42,6 +42,7 @@ interface NotesTabProps {
 
 const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
   const { userId, userRoleName } = useAuth();
+  const theme = useTheme();
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -179,10 +180,6 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
 
   const handleDeleteNote = useCallback(
     async (noteId: number) => {
-      if (!window.confirm("Are you sure you want to delete this note?")) {
-        return;
-      }
-
       setIsSaving(true);
       try {
         await notesRepository.deleteNote(noteId);
@@ -224,7 +221,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
   }, [alert]);
 
   return (
-    <Stack spacing={16} sx={{ height: "100%", p: "16px 0" }}>
+    <Stack spacing={theme.spacing(3)} sx={{ height: "100%", p: theme.spacing(3, 0) }}>
       {/* Alert */}
       {alert && (
         <Alert
@@ -236,7 +233,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
       )}
 
       {/* Note Composer - Create/Edit Form */}
-      <Stack spacing={8}>
+      <Stack spacing={0}>
         {editingNoteId ? (
           <NoteComposer
             initialContent={editingContent}
@@ -255,7 +252,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
       </Stack>
 
       {/* Notes List - Display All Notes */}
-      <Stack spacing={0}>
+      <Stack spacing={0} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
         <NotesList
           notes={notes}
           onEdit={handleEditNote}

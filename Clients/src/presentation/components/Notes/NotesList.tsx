@@ -88,7 +88,7 @@ const NotesList: React.FC<NotesListProps> = ({
       <Box
         sx={{
           textAlign: "center",
-          padding: "32px 16px",
+          padding: theme.spacing(4, 2),
           backgroundColor: theme.palette.background.paper,
           borderRadius: "4px",
           border: `1px dashed ${theme.palette.border.light}`,
@@ -96,9 +96,10 @@ const NotesList: React.FC<NotesListProps> = ({
       >
         <Typography
           sx={{
-            fontSize: 14,
+            fontSize: 13,
+            fontWeight: 500,
             color: theme.palette.text.secondary,
-            mb: "8px",
+            mb: theme.spacing(1),
           }}
         >
           No notes yet
@@ -106,7 +107,8 @@ const NotesList: React.FC<NotesListProps> = ({
         <Typography
           sx={{
             fontSize: 12,
-            color: theme.palette.text.tertiary,
+            color: theme.palette.text.secondary,
+            opacity: 0.7,
           }}
         >
           Be the first to add one!
@@ -116,7 +118,7 @@ const NotesList: React.FC<NotesListProps> = ({
   }
 
   return (
-    <Stack spacing={12} sx={{ maxHeight: 500, overflowY: "auto" }}>
+    <Stack spacing={theme.spacing(2.5)} sx={{ maxHeight: 500, overflowY: "auto" }}>
       {sortedNotes.map((note) => {
         // User can edit if they're the author or an admin
         const canEdit = note.author_id === currentUserId || isAdmin;

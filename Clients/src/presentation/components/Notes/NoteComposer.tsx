@@ -81,15 +81,15 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
         backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.border.light}`,
         borderRadius: "4px",
-        padding: "16px",
-        transition: "all 150ms ease",
+        padding: theme.spacing(3),
+        transition: `border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out`,
         "&:focus-within": {
           borderColor: theme.palette.primary.main,
-          boxShadow: `0px 0px 0px 3px ${theme.palette.primary.main}20`,
+          boxShadow: `0 0 0 3px rgba(19, 113, 91, 0.1)`,
         },
       }}
     >
-      <Stack spacing={12}>
+      <Stack spacing={theme.spacing(3)}>
         {/* Text Input */}
         <TextField
           fullWidth
@@ -109,17 +109,19 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
           sx={{
             "& .MuiInput-root": {
               fontFamily: "inherit",
-              fontSize: "14px",
+              fontSize: "13px",
               color: theme.palette.text.primary,
               "&::placeholder": {
                 color: theme.palette.text.secondary,
-                opacity: 0.6,
+                opacity: 0.5,
               },
             },
             "& .MuiInput-input": {
               padding: 0,
+              lineHeight: 1.6,
               "&:disabled": {
                 color: theme.palette.text.secondary,
+                opacity: 0.6,
               },
             },
           }}
@@ -129,18 +131,20 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
             minHeight: 20,
+            mt: theme.spacing(1),
           }}
         >
           <Typography
             sx={{
-              fontSize: 12,
+              fontSize: 11,
               color: isOverLimit
                 ? theme.palette.error.main
                 : theme.palette.text.secondary,
-              fontWeight: isOverLimit ? 600 : 400,
+              fontWeight: isOverLimit ? 600 : 500,
+              letterSpacing: "0.3px",
             }}
           >
             {isOverLimit
@@ -150,7 +154,7 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
         </Box>
 
         {/* Action Buttons */}
-        <Stack direction="row" spacing={8} sx={{ justifyContent: "flex-end" }}>
+        <Stack direction="row" spacing={theme.spacing(1)} sx={{ justifyContent: "flex-end", mt: theme.spacing(2) }}>
           {isEditing && onCancel && (
             <Button
               variant="outlined"
@@ -161,11 +165,12 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
               sx={{
                 textTransform: "none",
                 fontSize: 13,
+                fontWeight: 500,
                 borderColor: theme.palette.border.light,
                 color: theme.palette.text.primary,
-                padding: "8px 12px",
-                transition: "all 150ms ease",
-                "&:hover": {
+                padding: theme.spacing(1, 1.5),
+                transition: `all 0.2s ease-in-out`,
+                "&:hover:not(:disabled)": {
                   borderColor: theme.palette.primary.main,
                   backgroundColor: theme.palette.primary.main,
                   color: theme.palette.primary.contrastText,
@@ -188,13 +193,14 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             sx={{
               textTransform: "none",
               fontSize: 13,
+              fontWeight: 500,
               backgroundColor: theme.palette.primary.main,
               color: theme.palette.primary.contrastText,
-              padding: "8px 12px",
-              transition: "all 150ms ease",
-              "&:hover": {
+              padding: theme.spacing(1, 1.5),
+              transition: `all 0.2s ease-in-out`,
+              "&:hover:not(:disabled)": {
                 backgroundColor: theme.palette.primary.dark,
-                boxShadow: `0px 2px 8px -2px ${theme.palette.primary.main}40`,
+                boxShadow: `0 2px 8px -2px rgba(19, 113, 91, 0.25)`,
               },
               "&:disabled": {
                 backgroundColor: theme.palette.action.disabledBackground,
@@ -203,7 +209,7 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             }}
           >
             {isLoading ? (
-              <CircularProgress size={14} sx={{ mr: 8 }} />
+              <CircularProgress size={14} sx={{ mr: theme.spacing(1) }} />
             ) : isEditing ? (
               <SaveIcon size={16} style={{ marginRight: 6 }} />
             ) : (

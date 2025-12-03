@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import DualButtonModal from "../Dialogs/DualButtonModal";
 
 dayjs.extend(relativeTime);
 
@@ -66,6 +67,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -80,9 +82,14 @@ const NoteItem: React.FC<NoteItemProps> = ({
     handleMenuClose();
   };
 
-  const handleDelete = () => {
-    onDelete(note.id);
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true);
     handleMenuClose();
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(note.id);
+    setIsDeleteModalOpen(false);
   };
 
   const authorName = note.author
@@ -108,10 +115,10 @@ const NoteItem: React.FC<NoteItemProps> = ({
         border: `1px solid ${theme.palette.border.light}`,
         borderRadius: "4px",
         overflow: "hidden",
-        transition: "all 150ms ease",
+        transition: "all 0.2s ease-in-out",
         "&:hover": {
           borderColor: theme.palette.primary.main,
-          boxShadow: "0px 2px 8px -2px rgba(16, 24, 40, 0.04)",
+          boxShadow: theme.boxShadow,
         },
       }}
     >
@@ -122,32 +129,34 @@ const NoteItem: React.FC<NoteItemProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "12px 16px",
+            padding: theme.spacing(2.5, 3),
+            backgroundColor: theme.palette.background.modal,
           }}
         >
           <Stack
             direction="row"
-            spacing={8}
+            spacing={theme.spacing(1)}
             alignItems="center"
             sx={{ flex: 1 }}
           >
-            <Stack direction="row" spacing={8} alignItems="center" sx={{ flex: 1 }}>
+            <Stack direction="row" spacing={theme.spacing(1)} alignItems="center" sx={{ flex: 1 }}>
               <Avatar
                 sx={{
                   width: 32,
                   height: 32,
                   backgroundColor: theme.palette.primary.main,
                   fontSize: "0.75rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
+                  flexShrink: 0,
                 }}
               >
                 {getInitials(authorName)}
               </Avatar>
 
-              <Stack spacing={2} sx={{ flex: 1 }}>
+              <Stack spacing={0} sx={{ flex: 1 }}>
                 <Typography
                   sx={{
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: 600,
                     color: theme.palette.text.primary,
                   }}
@@ -157,11 +166,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </Stack>
             </Stack>
 
-            <Stack direction="row" spacing={4} alignItems="center" sx={{ minWidth: "fit-content" }}>
+            <Stack direction="row" spacing={theme.spacing(0.5)} alignItems="center" sx={{ minWidth: "fit-content", ml: "auto" }}>
               <Typography
                 sx={{
                   fontSize: 12,
                   color: theme.palette.text.secondary,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {createdTime}
@@ -173,9 +183,10 @@ const NoteItem: React.FC<NoteItemProps> = ({
                     fontSize: 12,
                     color: theme.palette.text.secondary,
                     fontStyle: "italic",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  Edited {updatedTime}
+                  • Edited {updatedTime}
                 </Typography>
               )}
             </Stack>
@@ -183,12 +194,14 @@ const NoteItem: React.FC<NoteItemProps> = ({
 
           {/* Action Menu */}
           {(canEdit || canDelete) && (
-            <Box sx={{ ml: "12px" }}>
+            <Box sx={{ ml: theme.spacing(1.5) }}>
               <IconButton
                 size="small"
                 onClick={handleMenuOpen}
                 sx={{
                   color: theme.palette.text.secondary,
+                  padding: theme.spacing(1),
+                  transition: `background-color ${0.2}s ease-in-out`,
                   "&:hover": {
                     backgroundColor: theme.palette.action.hover,
                   },
@@ -214,7 +227,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 )}
                 {canDelete && (
                   <MenuItem
-                    onClick={handleDelete}
+                    onClick={handleDeleteClick}
                     sx={{ color: theme.palette.error.main, fontSize: 13 }}
                   >
                     <DeleteIcon size={16} style={{ marginRight: 8 }} />
@@ -226,23 +239,42 @@ const NoteItem: React.FC<NoteItemProps> = ({
           )}
         </Box>
 
-        <Divider sx={{ margin: 0 }} />
+        <Divider sx={{ margin: 0, borderColor: theme.palette.border.light }} />
 
         {/* Note Content */}
-        <Box sx={{ padding: "16px" }}>
+        <Box sx={{ padding: theme.spacing(3, 3) }}>
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 13,
               color: theme.palette.text.primary,
-              lineHeight: 1.6,
+              lineHeight: 1.7,
               wordWrap: "break-word",
               whiteSpace: "pre-wrap",
+              letterSpacing: "0.2px",
             }}
           >
             {note.content}
           </Typography>
         </Box>
       </Stack>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <DualButtonModal
+          title="Confirm delete"
+          body={
+            <Typography fontSize={13} sx={{ color: theme.palette.text.secondary }}>
+              Are you sure you want to delete this note? This action cannot be undone.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          onCancel={() => setIsDeleteModalOpen(false)}
+          onProceed={handleConfirmDelete}
+        />
+      )}
     </Box>
   );
 };

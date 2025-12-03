@@ -64,7 +64,7 @@ export async function createNistAiRmfTablesForTenant(
       CREATE TABLE IF NOT EXISTS "${tenantHash}".nist_ai_rmf_subcategories (
         id SERIAL PRIMARY KEY,
         subcategory_meta_id INTEGER,                    -- Added: nullable for meta
-        projects_frameworks_id INTEGER NOT NULL REFERENCES "${tenantHash}".projects_frameworks (id) ON DELETE CASCADE,            -- Added: required FK to frameworks
+        projects_frameworks_id INTEGER NOT NULL,            -- Added: required FK to frameworks
         index INTEGER,
         title VARCHAR(255) NOT NULL,
         description TEXT,

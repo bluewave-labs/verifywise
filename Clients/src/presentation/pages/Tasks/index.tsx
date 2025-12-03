@@ -29,7 +29,6 @@ import {
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
   vwhomeHeaderCards,
   vwhomeBody,
@@ -46,6 +45,7 @@ import { ExportMenu } from "../../components/Table/ExportMenu";
 import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import Alert from "../../components/Alert";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -72,11 +72,14 @@ const Tasks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ITask | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "error" | "warning" | "info";
+    title: string;
+    body?: string;
+  } | null>(null);
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
@@ -282,24 +285,28 @@ const Tasks: React.FC = () => {
     setEditingTask(task);
   };
 
-  const handleDeleteTask = (taskId: number) => {
+  // Archive handler - called from IconButton's modal confirmation
+  const handleArchiveTask = async (taskId: number) => {
     const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      setTaskToDelete(task);
-      setDeleteConfirmOpen(true);
-    }
-  };
-
-  const confirmDeleteTask = async () => {
-    if (!taskToDelete) return;
+    if (!task) return;
 
     try {
-      await deleteTask({ id: taskToDelete.id! });
-      setTasks((prev) => prev.filter((task) => task.id !== taskToDelete.id));
-      setDeleteConfirmOpen(false);
-      setTaskToDelete(null);
+      await deleteTask({ id: taskId });
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setAlert({
+        variant: "success",
+        title: "Task archived successfully",
+        body: `"${task.title}" has been archived.`,
+      });
+      setTimeout(() => setAlert(null), 4000);
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error("Error archiving task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error archiving task",
+        body: "Failed to archive the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -318,9 +325,21 @@ const Tasks: React.FC = () => {
           )
         );
         setEditingTask(null);
+        setAlert({
+          variant: "success",
+          title: "Task updated successfully",
+          body: "Your changes have been saved.",
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error updating task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error updating task",
+        body: "Failed to update the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -354,6 +373,7 @@ const Tasks: React.FC = () => {
       const response = await restoreTask({ id: taskId });
       // Repository returns response.data directly, so check for response.data (the actual task)
       if (response?.data) {
+        const restoredTask = response.data;
         // Update the task in the list with restored status
         setTasks((prev) =>
           prev.map((task) =>
@@ -362,19 +382,44 @@ const Tasks: React.FC = () => {
               : task
           )
         );
+        setAlert({
+          variant: "success",
+          title: "Task restored successfully",
+          body: `"${restoredTask.title}" has been restored.`,
+        });
+        setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
       console.error("Error restoring task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error restoring task",
+        body: "Failed to restore the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
   const handleHardDeleteTask = async (taskId: number) => {
+    const taskToHardDelete = tasks.find((t) => t.id === taskId);
     try {
       await hardDeleteTask({ id: taskId });
       // Remove the task from the list completely
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      setAlert({
+        variant: "success",
+        title: "Task deleted permanently",
+        body: `"${taskToHardDelete?.title}" has been permanently deleted.`,
+      });
+      setTimeout(() => setAlert(null), 4000);
     } catch (error) {
       console.error("Error permanently deleting task:", error);
+      setAlert({
+        variant: "error",
+        title: "Error deleting task",
+        body: "Failed to delete the task. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 4000);
     }
   };
 
@@ -614,7 +659,7 @@ const Tasks: React.FC = () => {
               <TasksTable
                 tasks={data}
                 users={users}
-                onArchive={handleDeleteTask}
+                onArchive={handleArchiveTask}
                 onEdit={handleEditTask}
                 onStatusChange={handleTaskStatusChange}
                 statusOptions={TASK_STATUS_OPTIONS.map(
@@ -652,24 +697,20 @@ const Tasks: React.FC = () => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <DualButtonModal
-        title="Archive task"
-        body={
-          <Typography fontSize={13}>
-            Are you sure you want to archive "{taskToDelete?.title}"? You can
-            restore it later by using the "Include archived" toggle.
-          </Typography>
-        }
-        cancelText="Cancel"
-        proceedText="Archive"
-        onCancel={() => setDeleteConfirmOpen(false)}
-        onProceed={confirmDeleteTask}
-        proceedButtonColor="warning"
-        proceedButtonVariant="contained"
-        isOpen={deleteConfirmOpen}
-        TitleFontSize={0}
-      />
+      {/* Hard Delete Confirmation Dialog */}
+      {/* Archive is handled by IconButton component to avoid double modals */}
+      {/* Hard delete needs a second confirmation in Tasks page */}
+
+      {/* Notification Toast */}
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body || ""}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
 
       {/* Page Tour */}
       <PageTour steps={TasksSteps} run={true} tourKey="tasks-tour" />

@@ -248,20 +248,20 @@ const IconButton: React.FC<IconButtonProps> = ({
    */
   const getMenuItemText = (item: string) => {
     if (item === "make visible") {
-      return isVisible ? "Make Hidden" : "Make Visible";
+      return isVisible ? "Make hidden" : "Make visible";
     }
     if (item === "archive" && type === "Incident") {
       return "Archive incident";
     }
     // Task-specific labels
     if ((type === "Task" || type === "task") && item === "archive") {
-      return "Archive";
+      return "Archive task";
     }
     if ((type === "Task" || type === "task") && item === "delete") {
-      return "Delete";
+      return "Delete permanently";
     }
     if ((type === "Task" || type === "task") && item === "restore") {
-      return "Restore";
+      return "Restore task";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -356,11 +356,27 @@ const IconButton: React.FC<IconButtonProps> = ({
               }
             }}
             disabled={isDisabled}
-            sx={
-              item === "remove" || item === "archive" || item === "delete"
-                ? { color: "#d32f2f" }
-                : {}
-            }
+            sx={{
+              ...(() => {
+                // Archive (soft delete) uses warning color
+                if (item === "archive" && (type === "Task" || type === "task")) {
+                  return { color: "#F59E0B" }; // warning color
+                }
+                // Hard delete uses error color
+                if (item === "delete" && (type === "Task" || type === "task")) {
+                  return { color: "#d32f2f" }; // error color
+                }
+                // Other remove/archive uses error color
+                if (item === "remove" || item === "archive") {
+                  return { color: "#d32f2f" };
+                }
+                // Restore uses primary/success color
+                if (item === "restore") {
+                  return { color: "#13715B" }; // primary color
+                }
+                return {};
+              })(),
+            }}
           >
             {getMenuItemText(item)}
           </MenuItem>

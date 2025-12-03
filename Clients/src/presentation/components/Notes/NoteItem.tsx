@@ -17,7 +17,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  Card,
   Stack,
   Typography,
   IconButton,
@@ -25,6 +24,7 @@ import {
   MenuItem,
   useTheme,
   Avatar,
+  Divider,
 } from "@mui/material";
 import {
   MoreVertical as MenuIcon,
@@ -102,85 +102,97 @@ const NoteItem: React.FC<NoteItemProps> = ({
   const updatedTime = note.is_edited ? dayjs(note.updated_at).fromNow() : null;
 
   return (
-    <Card
-      elevation={0}
+    <Box
       sx={{
-        border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#fafafa",
-        padding: 2,
-        marginBottom: 2,
-        borderRadius: 1,
+        backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.border.light}`,
+        borderRadius: "4px",
+        overflow: "hidden",
+        transition: "all 150ms ease",
+        "&:hover": {
+          borderColor: theme.palette.primary.main,
+          boxShadow: "0px 2px 8px -2px rgba(16, 24, 40, 0.04)",
+        },
       }}
     >
-      <Stack spacing={1.5}>
+      <Stack spacing={0}>
         {/* Note Header - Author and Timestamp */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            padding: "12px 16px",
           }}
         >
           <Stack
             direction="row"
-            spacing={1}
+            spacing={8}
             alignItems="center"
             sx={{ flex: 1 }}
           >
-            <Avatar
-              sx={{
-                width: 32,
-                height: 32,
-                backgroundColor: theme.palette.primary.main,
-                fontSize: "0.75rem",
-              }}
-            >
-              {getInitials(authorName)}
-            </Avatar>
+            <Stack direction="row" spacing={8} alignItems="center" sx={{ flex: 1 }}>
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                  backgroundColor: theme.palette.primary.main,
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                }}
+              >
+                {getInitials(authorName)}
+              </Avatar>
 
-            <Stack spacing={0.25} sx={{ flex: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {authorName}
+              <Stack spacing={2} sx={{ flex: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  {authorName}
+                </Typography>
+              </Stack>
+            </Stack>
+
+            <Stack direction="row" spacing={4} alignItems="center" sx={{ minWidth: "fit-content" }}>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                {createdTime}
               </Typography>
 
-              <Stack direction="row" spacing={0.5} alignItems="center">
+              {note.is_edited && updatedTime && (
                 <Typography
-                  variant="caption"
-                  sx={{ color: theme.palette.text.secondary }}
+                  sx={{
+                    fontSize: 12,
+                    color: theme.palette.text.secondary,
+                    fontStyle: "italic",
+                  }}
                 >
-                  {createdTime}
+                  Edited {updatedTime}
                 </Typography>
-
-                {note.is_edited && updatedTime && (
-                  <>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: theme.palette.text.secondary }}
-                    >
-                      •
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        fontStyle: "italic",
-                      }}
-                    >
-                      Edited {updatedTime}
-                    </Typography>
-                  </>
-                )}
-              </Stack>
+              )}
             </Stack>
           </Stack>
 
           {/* Action Menu */}
           {(canEdit || canDelete) && (
-            <Box>
+            <Box sx={{ ml: "12px" }}>
               <IconButton
                 size="small"
                 onClick={handleMenuOpen}
-                sx={{ color: theme.palette.text.secondary }}
+                sx={{
+                  color: theme.palette.text.secondary,
+                  "&:hover": {
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
               >
                 <MenuIcon size={18} />
               </IconButton>
@@ -194,7 +206,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 {canEdit && (
                   <MenuItem
                     onClick={handleEdit}
-                    sx={{ color: theme.palette.text.primary }}
+                    sx={{ color: theme.palette.text.primary, fontSize: 13 }}
                   >
                     <EditIcon size={16} style={{ marginRight: 8 }} />
                     Edit
@@ -203,7 +215,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 {canDelete && (
                   <MenuItem
                     onClick={handleDelete}
-                    sx={{ color: theme.palette.error.main }}
+                    sx={{ color: theme.palette.error.main, fontSize: 13 }}
                   >
                     <DeleteIcon size={16} style={{ marginRight: 8 }} />
                     Delete
@@ -214,19 +226,24 @@ const NoteItem: React.FC<NoteItemProps> = ({
           )}
         </Box>
 
+        <Divider sx={{ margin: 0 }} />
+
         {/* Note Content */}
-        <Typography
-          sx={{
-            color: theme.palette.text.primary,
-            lineHeight: 1.6,
-            wordWrap: "break-word",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {note.content}
-        </Typography>
+        <Box sx={{ padding: "16px" }}>
+          <Typography
+            sx={{
+              fontSize: 14,
+              color: theme.palette.text.primary,
+              lineHeight: 1.6,
+              wordWrap: "break-word",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {note.content}
+          </Typography>
+        </Box>
       </Stack>
-    </Card>
+    </Box>
   );
 };
 

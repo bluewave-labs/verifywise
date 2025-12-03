@@ -23,7 +23,6 @@ import {
   CircularProgress,
   Typography,
   useTheme,
-  Card,
 } from "@mui/material";
 import {
   Plus as PlusIcon,
@@ -75,24 +74,28 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
   const isOverLimit = content.length > MAX_LENGTH;
 
   return (
-    <Card
-      elevation={0}
+    <Box
       component="form"
       onSubmit={handleSubmit}
       sx={{
-        border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#fafafa",
-        padding: 2,
-        borderRadius: 1,
+        backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.border.light}`,
+        borderRadius: "4px",
+        padding: "16px",
+        transition: "all 150ms ease",
+        "&:focus-within": {
+          borderColor: theme.palette.primary.main,
+          boxShadow: `0px 0px 0px 3px ${theme.palette.primary.main}20`,
+        },
       }}
     >
-      <Stack spacing={1.5}>
+      <Stack spacing={12}>
         {/* Text Input */}
         <TextField
           fullWidth
           multiline
-          minRows={3}
-          maxRows={6}
+          minRows={isEditing ? 4 : 3}
+          maxRows={8}
           placeholder={isEditing ? "Edit your note..." : "Add a note..."}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -100,42 +103,40 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
           variant="standard"
           slotProps={{
             input: {
-              disableUnderline: false,
+              disableUnderline: true,
             },
           }}
           sx={{
             "& .MuiInput-root": {
-              backgroundColor: theme.palette.background.paper,
-              borderRadius: "4px",
-              padding: "12px",
-              border: `1px solid ${theme.palette.divider}`,
-              "&:hover": {
-                borderColor: theme.palette.primary.main,
-              },
-              "&.Mui-focused": {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.background.paper,
+              fontFamily: "inherit",
+              fontSize: "14px",
+              color: theme.palette.text.primary,
+              "&::placeholder": {
+                color: theme.palette.text.secondary,
+                opacity: 0.6,
               },
             },
             "& .MuiInput-input": {
-              fontFamily: "inherit",
-              fontSize: "14px",
+              padding: 0,
+              "&:disabled": {
+                color: theme.palette.text.secondary,
+              },
             },
           }}
         />
 
-        {/* Character Count and Error Message */}
+        {/* Character Count */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            minHeight: 24,
+            minHeight: 20,
           }}
         >
           <Typography
-            variant="caption"
             sx={{
+              fontSize: 12,
               color: isOverLimit
                 ? theme.palette.error.main
                 : theme.palette.text.secondary,
@@ -143,13 +144,13 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             }}
           >
             {isOverLimit
-              ? `Exceeded by ${content.length - MAX_LENGTH} characters`
+              ? `⚠️ Exceeded by ${content.length - MAX_LENGTH} characters`
               : `${remainingChars} characters remaining`}
           </Typography>
         </Box>
 
         {/* Action Buttons */}
-        <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+        <Stack direction="row" spacing={8} sx={{ justifyContent: "flex-end" }}>
           {isEditing && onCancel && (
             <Button
               variant="outlined"
@@ -159,11 +160,19 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
               startIcon={<CloseIcon size={16} />}
               sx={{
                 textTransform: "none",
-                borderColor: theme.palette.divider,
+                fontSize: 13,
+                borderColor: theme.palette.border.light,
                 color: theme.palette.text.primary,
+                padding: "8px 12px",
+                transition: "all 150ms ease",
                 "&:hover": {
-                  borderColor: theme.palette.text.primary,
-                  backgroundColor: theme.palette.action.hover,
+                  borderColor: theme.palette.primary.main,
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                },
+                "&:disabled": {
+                  borderColor: theme.palette.border.light,
+                  color: theme.palette.text.secondary,
                 },
               }}
             >
@@ -178,10 +187,14 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             disabled={!isContentValid || isLoading}
             sx={{
               textTransform: "none",
+              fontSize: 13,
               backgroundColor: theme.palette.primary.main,
               color: theme.palette.primary.contrastText,
+              padding: "8px 12px",
+              transition: "all 150ms ease",
               "&:hover": {
                 backgroundColor: theme.palette.primary.dark,
+                boxShadow: `0px 2px 8px -2px ${theme.palette.primary.main}40`,
               },
               "&:disabled": {
                 backgroundColor: theme.palette.action.disabledBackground,
@@ -190,17 +203,17 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             }}
           >
             {isLoading ? (
-              <CircularProgress size={16} sx={{ mr: 1 }} />
+              <CircularProgress size={14} sx={{ mr: 8 }} />
             ) : isEditing ? (
-              <SaveIcon size={16} style={{ marginRight: 4 }} />
+              <SaveIcon size={16} style={{ marginRight: 6 }} />
             ) : (
-              <PlusIcon size={16} style={{ marginRight: 4 }} />
+              <PlusIcon size={16} style={{ marginRight: 6 }} />
             )}
             {isEditing ? "Save" : "Add Note"}
           </Button>
         </Stack>
       </Stack>
-    </Card>
+    </Box>
   );
 };
 

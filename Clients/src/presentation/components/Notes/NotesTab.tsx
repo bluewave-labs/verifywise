@@ -224,7 +224,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
   }, [alert]);
 
   return (
-    <Stack spacing={2} sx={{ height: "100%" }}>
+    <Stack spacing={16} sx={{ height: "100%", p: "16px 0" }}>
       {/* Alert */}
       {alert && (
         <Alert
@@ -235,32 +235,36 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
         />
       )}
 
-      {/* Note Composer */}
-      {editingNoteId ? (
-        <NoteComposer
-          initialContent={editingContent}
-          onSubmit={handleSaveEdit}
-          onCancel={handleCancelEdit}
-          isLoading={isSaving}
-          isEditing={true}
-        />
-      ) : (
-        <NoteComposer
-          onSubmit={handleAddNote}
-          isLoading={isSaving}
-          isEditing={false}
-        />
-      )}
+      {/* Note Composer - Create/Edit Form */}
+      <Stack spacing={8}>
+        {editingNoteId ? (
+          <NoteComposer
+            initialContent={editingContent}
+            onSubmit={handleSaveEdit}
+            onCancel={handleCancelEdit}
+            isLoading={isSaving}
+            isEditing={true}
+          />
+        ) : (
+          <NoteComposer
+            onSubmit={handleAddNote}
+            isLoading={isSaving}
+            isEditing={false}
+          />
+        )}
+      </Stack>
 
-      {/* Notes List */}
-      <NotesList
-        notes={notes}
-        onEdit={handleEditNote}
-        onDelete={handleDeleteNote}
-        currentUserId={userId || 0}
-        currentUserRole={userRoleName || ""}
-        isLoading={isLoading}
-      />
+      {/* Notes List - Display All Notes */}
+      <Stack spacing={0}>
+        <NotesList
+          notes={notes}
+          onEdit={handleEditNote}
+          onDelete={handleDeleteNote}
+          currentUserId={userId || 0}
+          currentUserRole={userRoleName || ""}
+          isLoading={isLoading}
+        />
+      </Stack>
     </Stack>
   );
 };

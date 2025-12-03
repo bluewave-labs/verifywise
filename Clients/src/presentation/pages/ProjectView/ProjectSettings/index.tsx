@@ -1,6 +1,5 @@
 import {
   SelectChangeEvent,
-  Link,
   Stack,
   Typography,
   useTheme,
@@ -8,6 +7,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
+import { VWLink } from "../../../components/Link";
 import { ChevronDown } from "lucide-react";
 import React, {
   useState,
@@ -825,9 +825,9 @@ const ProjectSettings = React.memo(
         ) : (
           <Box sx={styles.root}>
             <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
-              {/* General Information Card */}
+              {/* Use Case Overview Card */}
               <Box sx={styles.card}>
-                <Typography sx={styles.sectionTitle}>General Information</Typography>
+                <Typography sx={styles.sectionTitle}>Use Case Overview</Typography>
                 <Box
                   sx={{
                     display: "grid",
@@ -843,6 +843,11 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Use case title
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      A concise name for your AI use case
+                    </Typography>
                   </Box>
                   <Field
                     id="project-title-input"
@@ -855,10 +860,39 @@ const ProjectSettings = React.memo(
                     isRequired
                   />
 
+                  {/* Description Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Description
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Overview of this use case
+                    </Typography>
+                  </Box>
+                  <Field
+                    id="description-input"
+                    label=""
+                    width={400}
+                    type="description"
+                    value={values.description}
+                    onChange={handleOnTextFieldChange("description")}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.description}
+                  />
+
                   {/* Goal Row */}
                   <Box>
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Goal
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      What you aim to achieve
                     </Typography>
                   </Box>
                   <Field
@@ -880,6 +914,11 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       Target industry
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Industry sector for this use case
+                    </Typography>
                   </Box>
                   <Field
                     id="target-industry-input"
@@ -893,46 +932,22 @@ const ProjectSettings = React.memo(
                     }}
                     error={errors.targetIndustry}
                   />
+                </Box>
+              </Box>
 
-                  {/* Description Row */}
-                  <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                      Description
-                    </Typography>
-                  </Box>
-                  <Field
-                    id="description-input"
-                    label=""
-                    width={400}
-                    type="description"
-                    value={values.description}
-                    onChange={handleOnTextFieldChange("description")}
-                    sx={{
-                      backgroundColor: theme.palette.background.main,
-                    }}
-                    error={errors.description}
-                  />
-
-                  {/* Use case status Row */}
-                  <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                      Use case status
-                    </Typography>
-                  </Box>
-                  <Select
-                    id="project-status"
-                    label=""
-                    value={values.status || 1}
-                    onChange={handleOnSelectChange("status")}
-                    items={projectStatusItems}
-                    sx={{
-                      width: 400,
-                      backgroundColor: theme.palette.background.main,
-                    }}
-                    error={errors.status}
-                    isRequired
-                  />
-
+              {/* Project Details Card */}
+              <Box sx={styles.card}>
+                <Typography sx={styles.sectionTitle}>Project Details</Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 1fr",
+                    rowGap: "25px",
+                    columnGap: "250px",
+                    alignItems: "center",
+                    mt: 2,
+                  }}
+                >
                   {/* Owner Row */}
                   <Box>
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
@@ -1019,6 +1034,31 @@ const ProjectSettings = React.memo(
                     onChange={handleOnSelectChange("geography")}
                     items={geographyItems}
                     sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
+                    isRequired
+                  />
+
+                  {/* Use case status Row */}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      Use case status
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", mt: 0.5 }}
+                    >
+                      Development stage of this use case
+                    </Typography>
+                  </Box>
+                  <Select
+                    id="project-status"
+                    label=""
+                    value={values.status || 1}
+                    onChange={handleOnSelectChange("status")}
+                    items={projectStatusItems}
+                    sx={{
+                      width: 400,
+                      backgroundColor: theme.palette.background.main,
+                    }}
+                    error={errors.status}
                     isRequired
                   />
                 </Box>
@@ -1347,23 +1387,16 @@ const ProjectSettings = React.memo(
                     <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                       AI risk classification
                     </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
+                    >
+                      Not sure about your risk level?&nbsp;
+                      <VWLink onClick={() => setIsRiskModalOpen(true)}>
+                        Calculate your AI risk classification
+                      </VWLink>
+                    </Typography>
                   </Box>
                   <Stack gap={1}>
-                    <CustomizableButton
-                      variant="contained"
-                      text="Calculate your AI risk classification"
-                      onClick={() => setIsRiskModalOpen(true)}
-                      sx={{
-                        width: "255px",
-                        mt: -4,
-                        mb: 4,
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        "&:hover": {
-                          backgroundColor: "#0F5A48",
-                        },
-                      }}
-                    />
                     <Select
                       id="risk-classification-input"
                       label=""
@@ -1388,14 +1421,12 @@ const ProjectSettings = React.memo(
                       sx={{ fontSize: 12, color: "#888", whiteSpace: "nowrap" }}
                     >
                       If you are not sure about the high risk role,&nbsp;
-                      <Link
-                        href="https://artificialintelligenceact.eu/high-level-summary/"
-                        target="_blank"
-                        rel="noopener"
-                        color={theme.palette.text.secondary}
+                      <VWLink
+                        url="https://artificialintelligenceact.eu/high-level-summary/"
+                        openInNewTab={true}
                       >
                         please see this link
-                      </Link>
+                      </VWLink>
                     </Typography>
                   </Box>
                   <Select

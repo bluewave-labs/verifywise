@@ -27,6 +27,13 @@ import {
   Puzzle,
   Zap,
   Activity,
+  FileCode,
+  Link,
+  User,
+  Lock,
+  Users,
+  Building2,
+  Key,
 } from "lucide-react";
 
 /**
@@ -48,6 +55,12 @@ export const routeMapping: Record<string, string> = {
 
   // Settings
   "/settings": "Settings",
+  "/settings/profile": "Profile",
+  "/settings/password": "Password",
+  "/settings/team": "Team",
+  "/settings/organization": "Organization",
+  "/settings/preferences": "Preferences",
+  "/settings/apikeys": "API keys",
   "/organization": "Organization Settings",
 
   // File management
@@ -79,9 +92,18 @@ export const routeMapping: Record<string, string> = {
 
   // Model inventory
   "/model-inventory": "Model Inventory",
+  "/model-inventory/model-risks": "Model risks",
+  "/model-inventory/mlflow": "MLFlow data",
+  "/model-inventory/evidence-hub": "Evidence hub",
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
+
+  // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
+  "/framework/framework-risks": "Framework risks",
+  "/framework/linked-models": "Linked models",
+  "/framework/controls": "Controls and Requirements",
+  "/framework/settings": "Settings",
 
   // Authentication
   "/login": "Sign In",
@@ -122,12 +144,21 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Model inventory
   "/model-inventory": () => React.createElement(ListIcon, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/model-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
+  "/model-inventory/evidence-hub": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
   // Risk management
   "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
 
   // Settings
   "/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings/profile": () => React.createElement(User, { size: 14, strokeWidth: 1.5 }),
+  "/settings/password": () => React.createElement(Lock, { size: 14, strokeWidth: 1.5 }),
+  "/settings/team": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/settings/organization": () => React.createElement(Building2, { size: 14, strokeWidth: 1.5 }),
+  "/settings/preferences": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings/apikeys": () => React.createElement(Key, { size: 14, strokeWidth: 1.5 }),
   "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // File management
@@ -161,6 +192,12 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // MLFlow
   "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),
+
+  // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
+  "/framework/framework-risks": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
+  "/framework/linked-models": () => React.createElement(Link, { size: 14, strokeWidth: 1.5 }),
+  "/framework/controls": () => React.createElement(FileCode, { size: 14, strokeWidth: 1.5 }),
+  "/framework/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

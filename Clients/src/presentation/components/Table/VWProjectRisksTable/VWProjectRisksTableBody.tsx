@@ -1,10 +1,9 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme, Link } from "@mui/material";
+import { TableBody, TableCell, TableRow, Dialog, useTheme } from "@mui/material";
+import { VWLink } from "../../Link";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { getMitigationStatusColor } from "../../../constants/statusColors";
-import RiskChip from "../../RiskLevel/RiskChip";
 import IconButton from "../../IconButton";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -15,6 +14,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { IVWProjectRisksTableRow } from "../../../../domain/interfaces/i.risk";
 import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
 import { User } from "../../../../domain/types/User";
+import Chip from "../../Chip";
 
 function getDummyEvent() {
   const realEvent = new Event("click", { bubbles: true, cancelable: true });
@@ -179,7 +179,11 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <RiskChip label={row.severity} />
+                  {row.severity ? (
+                    <Chip label={row.severity} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -191,7 +195,11 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  {row.likelihood ? row.likelihood : "-"}
+                  {row.likelihood ? (
+                    <Chip label={row.likelihood} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -204,19 +212,7 @@ const VWProjectRisksTableBody = ({
                   }}
                 >
                   {row.mitigation_status ? (
-                    <Chip
-                      label={row.mitigation_status}
-                      size="small"
-                      sx={{
-                        backgroundColor: getMitigationStatusColor(
-                          row.mitigation_status
-                        ),
-                        color: "white",
-                        fontWeight: 500,
-                        borderRadius: "4px",
-                        height: 24,
-                      }}
-                    />
+                    <Chip label={row.mitigation_status} />
                   ) : (
                     "-"
                   )}
@@ -231,7 +227,11 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <RiskChip label={row.risk_level_autocalculated} />
+                  {row.risk_level_autocalculated ? (
+                    <Chip label={row.risk_level_autocalculated} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -255,24 +255,13 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  <Link
-                    component="button"
+                  <VWLink
                     onClick={(e: React.MouseEvent<HTMLElement>) =>
                       toggleMitigations(row, e)
                     }
-                    sx={{
-                      color: "#13715B",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      "&:hover": {
-                        color: "#0F5A47",
-                      },
-                    }}
                   >
                     View controls
-                  </Link>
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{

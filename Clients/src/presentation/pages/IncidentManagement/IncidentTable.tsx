@@ -12,27 +12,20 @@ import {
     Typography,
     Tooltip,
     useTheme,
-    Chip,
     Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import Placeholder from "../../assets/imgs/empty-state.svg";
+import EmptyState from "../../components/EmptyState";
+import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import {
-    AIIncidentManagementApprovalStatus,
-    IncidentManagementStatus,
-    Severity,
-} from "../../../domain/enums/aiIncidentManagement.enum";
-import {
     incidentRowHover,
     incidentLoadingContainer,
-    incidentEmptyContainer,
-    incidentEmptyText,
     incidentFooterRow,
     incidentShowingText,
     incidentPaginationMenu,
@@ -43,65 +36,6 @@ import {
 import CustomIconButton from "../../components/IconButton";
 
 dayjs.extend(utc);
-
-//  badge style generator
- const getIncidentChipProps = (value: string) => {
-    const styles: Record<string, { bg: string; color: string }> = {
-        // Severity
-        [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" },
-        [Severity.SERIOUS]: { bg: "#FFF4E5", color: "#EF6C00" },
-        [Severity.VERY_SERIOUS]: { bg: "#FDECEA", color: "#C62828" },
-
-        // Status
-        [IncidentManagementStatus.OPEN]: { bg: "#FFF9E6", color: "#F9A825" },
-        [IncidentManagementStatus.INVESTIGATED]: {
-            bg: "#FFF4E6",
-            color: "#FB8C00",
-        },
-        [IncidentManagementStatus.MITIGATED]: {
-            bg: "#E8F5E9",
-            color: "#2E7D32",
-        },
-        [IncidentManagementStatus.CLOSED]: { bg: "#ECEFF1", color: "#455A64" },
-
-        // Approval
-        [AIIncidentManagementApprovalStatus.APPROVED]: {
-            bg: "#E6F4EA",
-            color: "#2E7D32",
-        },
-        [AIIncidentManagementApprovalStatus.REJECTED]: {
-            bg: "#FDECEA",
-            color: "#C62828",
-        },
-        [AIIncidentManagementApprovalStatus.PENDING]: {
-            bg: "#F5F5F5",
-            color: "#616161",
-        },
-        [AIIncidentManagementApprovalStatus.NOT_REQUIRED]: {
-            bg: "#FAFAFA",
-            color: "#616161",
-        },
-    };
-
-    const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
-
-    return {
-        label: value,
-        size: "small" as const,
-        sx: {
-            backgroundColor: style.bg,
-            color: style.color,
-            fontWeight: 500,
-            fontSize: "11px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            borderRadius: "4px",
-            "& .MuiChip-label": {
-              padding: "4px 8px",
-            },
-          },
-    };
-};
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -126,6 +60,7 @@ interface IncidentTableProps {
     onArchive?: (id: string, mode: string) => void;
     paginated?: boolean;
     archivedId?: string | null;
+    hidePagination?: boolean;
 }
 
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -162,6 +97,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     onArchive,
     paginated = true,
     archivedId,
+    hidePagination = false,
 }) => {
     const theme = useTheme();
     const [page, setPage] = useState(0);
@@ -388,8 +324,8 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 {sortedData?.length > 0 ? (
                     sortedData
                         .slice(
-                            page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
                         )
                         .map((incident) => (
                             <TableRow
@@ -438,11 +374,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("severity") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.severity
-                                        )}
-                                    />
+                                    <Chip label={incident.severity} />
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -450,11 +382,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.status
-                                        )}
-                                    />
+                                    <Chip label={incident.status} />
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -482,11 +410,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("approval") && sortConfig.key.toLowerCase().includes("status") ? "#f5f5f5" : "inherit",
                                     }}
                                 >
-                                    <Chip
-                                        {...getIncidentChipProps(
-                                            incident.approval_status
-                                        )}
-                                    />
+                                    <Chip label={incident.approval_status} />
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -537,9 +461,9 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                         <TableCell
                             colSpan={TABLE_COLUMNS.length}
                             align="center"
-                            sx={{ py: 4 }}
+                            sx={{ border: "none", p: 0 }}
                         >
-                            No incident data available.
+                            <EmptyState message="No incidents found." />
                         </TableCell>
                     </TableRow>
                 )}
@@ -561,18 +485,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     }
 
     if (!sortedData || sortedData.length === 0) {
-        return (
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={incidentEmptyContainer()}
-            >
-                <img src={Placeholder} alt="Placeholder" />
-                <Typography sx={incidentEmptyText}>
-                    There is currently no data in this table.
-                </Typography>
-            </Stack>
-        );
+        return <EmptyState message="There is currently no data in this table." />;
     }
 
     return (
@@ -580,7 +493,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {tableHeader}
                 {tableBody}
-                {paginated && (
+                {paginated && !hidePagination && (
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
                             <TableCell colSpan={3} sx={incidentShowingText(theme)}>

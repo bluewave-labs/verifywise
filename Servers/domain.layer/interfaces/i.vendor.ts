@@ -16,4 +16,31 @@ export interface IVendor {
   reviewer?: number | null; // optional field, can be filled by user
   review_date?: Date; // optional field, can be filled by user
   created_at?: Date;
+  // Vendor scorecard fields - optional, will be filled by user
+  data_sensitivity?:
+    | "None"
+    | "Internal only"
+    | "Personally identifiable information (PII)"
+    | "Financial data"
+    | "Health data (e.g. HIPAA)"
+    | "Model weights or AI assets"
+    | "Other sensitive data";
+  business_criticality?:
+    | "Low (vendor supports non-core functions)"
+    | "Medium (affects operations but is replaceable)"
+    | "High (critical to core services or products)";
+  past_issues?:
+    | "None"
+    | "Minor incident (e.g. small delay, minor bug)"
+    | "Major incident (e.g. data breach, legal issue)";
+  regulatory_exposure?:
+    | "None"
+    | "GDPR (EU)"
+    | "HIPAA (US)"
+    | "SOC 2"
+    | "ISO 27001"
+    | "EU AI act"
+    | "CCPA (california)"
+    | "Other";
+  risk_score?: number;
 }

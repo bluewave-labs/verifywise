@@ -36,8 +36,10 @@ const useUserPreferences = () => {
   };
 
   useEffect(() => {
-    fetchUserPreferences();
-  }, []);
+    if (userId) {
+      fetchUserPreferences();
+    }
+  }, [userId]);
 
   return {
     userPreferences,

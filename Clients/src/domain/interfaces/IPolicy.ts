@@ -8,6 +8,7 @@ export interface PolicyTableProps {
   onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;
+  hidePagination?: boolean;
 }
 
 export interface PolicyInput {
@@ -32,9 +33,16 @@ export interface PolicyFormData {
   content: string;
 }
 
+export interface PolicyTemplate {
+  title: string;
+  tags: string[];
+  content: string;
+}
+
 export interface PolicyDetailModalProps {
   policy: PolicyManagerModel | null;
   tags: string[];
+  template?: PolicyTemplate;
   onClose: () => void;
   onSaved: (successMessage?: string) => void;
 }
@@ -54,4 +62,15 @@ export interface PolicyFormProps {
   tags: string[];
   errors: PolicyFormErrors;
   setErrors: React.Dispatch<React.SetStateAction<PolicyFormErrors>>;
+}
+
+export interface PolicyManagerProps {
+  policies: PolicyManagerModel[];
+  tags: string[];
+  fetchAll: () => void;
+}
+
+export interface PolicyTemplatesProps {
+  tags: string[];
+  fetchAll: () => void;
 }

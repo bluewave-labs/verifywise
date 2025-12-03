@@ -104,6 +104,12 @@ interface StandardModalProps {
 
   /** When true, hides the footer entirely. Use for read-only modals that don't need action buttons */
   hideFooter?: boolean;
+
+  /** Optional custom actions to display in the header (e.g., history button). Rendered to the left of the close button */
+  headerActions?: React.ReactNode;
+
+  /** When true, expands the modal height for additional content. Default height is 630px, expanded uses min(740px, 90vh - 180px) */
+  expandedHeight?: boolean;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -119,6 +125,8 @@ const StandardModal: React.FC<StandardModalProps> = ({
   maxWidth = "760px",
   customFooter,
   hideFooter = false,
+  headerActions,
+  expandedHeight = false,
 }) => {
   return (
     <Modal
@@ -136,12 +144,13 @@ const StandardModal: React.FC<StandardModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "fit-content",
+          width: maxWidth,
           minWidth: "600px",
-          maxWidth: maxWidth,
+          maxWidth: "calc(100vw - 48px)",
           backgroundColor: "#FFFFFF",
           borderRadius: "8px",
           overflow: "hidden",
+          transition: "max-width 300ms cubic-bezier(0.4, 0, 0.2, 1)",
           "&:focus": {
             outline: "none",
           },
@@ -185,7 +194,9 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 {description}
               </Typography>
             </Stack>
-            <Box
+            <Stack direction="row" spacing={1} alignItems="center">
+              {headerActions}
+              <Box
               component="span"
               role="button"
               tabIndex={0}
@@ -211,23 +222,37 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 },
               }}
             >
-              <CloseIcon size={20} />
-            </Box>
+                <CloseIcon size={20} />
+              </Box>
+            </Stack>
           </Stack>
         </Stack>
 
         {/* Content Section */}
         <Box
           sx={{
-            padding: "24px",
-            flex: 1,
+            padding: "20px",
+            flex: "0 1 auto",
             overflow: "auto",
-            maxHeight: "calc(80vh - 180px)",
+            maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "660px",
             border: "1px solid #E0E4E9",
             borderRadius: "16px",
             backgroundColor: "#FFFFFF",
             zIndex: 1,
             position: "relative",
+          }}
+          onWheelCapture={(e) => {
+            const target = e.currentTarget;
+            const atTop = target.scrollTop === 0;
+            const atBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+
+            // Only prevent propagation if we can actually scroll
+            if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+              e.stopPropagation();
+            } else if (!atTop && !atBottom) {
+              // If we're in the middle, always stop propagation
+              e.stopPropagation();
+            }
           }}
         >
           {children}

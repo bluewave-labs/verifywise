@@ -11,7 +11,6 @@ import {
   Typography,
   useTheme,
   Stack,
-  Paper,
   Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -43,6 +42,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   onRowClick,
   tableId = "ai-trust-center-table",
   disabled = false,
+  hidePagination = false,
 }: IAITrustCenterTableProps<T>) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -180,7 +180,8 @@ const AITrustCenterTable = <T extends { id: number }>({
                   ...singleTheme.tableStyles.primary.header.cell,
                   // Remove width constraints to match original AI Trust Center behavior
                   minWidth: "auto",
-                  width: "auto",
+                  width: (column as any).width || "auto",
+                  maxWidth: (column as any).width || "auto",
                   ...(isLastColumn && {
                     position: "sticky",
                     right: 0,
@@ -258,9 +259,10 @@ const AITrustCenterTable = <T extends { id: number }>({
         }}
       >
         {sortedData &&
-          sortedData
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((item) => (
+          (hidePagination
+            ? sortedData
+            : sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          ).map((item) => (
               <TableRow
                 key={item.id}
                 sx={{
@@ -286,7 +288,7 @@ const AITrustCenterTable = <T extends { id: number }>({
             ))}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled]
+    [sortedData, page, rowsPerPage, renderRow, onRowClick, disabled, hidePagination]
   );
 
   const emptyState = useMemo(
@@ -337,11 +339,11 @@ const AITrustCenterTable = <T extends { id: number }>({
   }
 
   return (
-    <TableContainer component={Paper} id={tableId}>
+    <TableContainer sx={{ overflowX: "auto" }} id={tableId}>
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
-        {paginated && (
+        {paginated && !hidePagination && (
           <TableFooter>
             <TableRow
               sx={{

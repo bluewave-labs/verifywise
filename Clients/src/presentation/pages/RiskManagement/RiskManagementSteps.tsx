@@ -1,4 +1,4 @@
-import { BarChart3, Filter, Database, AlertTriangle } from "lucide-react";
+import { BarChart3, Filter, AlertTriangle } from "lucide-react";
 import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
 const RiskManagementSteps: IPageTourStep[] = [
@@ -21,19 +21,10 @@ const RiskManagementSteps: IPageTourStep[] = [
     placement: "bottom",
   },
   {
-    target: '[data-joyride-id="import-ai-risks-button"]',
-    content: {
-      header: "MIT AI risk database",
-      body: "Import industry-standard risks from the MIT AI Risk Database for comprehensive coverage. Browse curated risks by lifecycle phase and category.",
-      icon: <Database size={20} color="#ffffff" />,
-    },
-    placement: "bottom",
-  },
-  {
     target: '[data-joyride-id="add-risk-button"]',
     content: {
-      header: "Create custom risks",
-      body: "Identify and document new risks specific to your AI projects. Assess severity and likelihood, assign owners, and define mitigation strategies with target dates.",
+      header: "Add new risks",
+      body: "Create custom risks specific to your AI projects, or import industry-standard risks from IBM or MIT AI Risk Databases. Assess severity, assign owners, and define mitigation strategies.",
       icon: <AlertTriangle size={20} color="#ffffff" />,
     },
     placement: "bottom-end",

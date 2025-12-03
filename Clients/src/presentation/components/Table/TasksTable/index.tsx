@@ -11,8 +11,8 @@ import {
   Stack,
   Typography,
   TableFooter,
-  Chip,
   Box,
+  Chip as MuiChip,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -21,35 +21,12 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import CustomSelect from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
+import Chip from "../../Chip";
+import DaysChip from "../../Chip/DaysChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
-
-// Priority badge styles (compact version similar to Model Inventory StatusBadge)
-const priorityBadgeStyle = (priority: string) => {
-  const priorityStyles = {
-    High: { bg: "#FFD6D6", color: "#D32F2F" },
-    Medium: { bg: "#FFE5D0", color: "#E64A19" },
-    Low: { bg: "#FFF8E1", color: "#795548" },
-  };
-
-  const style = priorityStyles[priority as keyof typeof priorityStyles] || {
-    bg: "#E0E0E0",
-    color: "#424242",
-  };
-
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: "4px",
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-  };
-};
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -61,7 +38,7 @@ const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.IN_PROGRESS]: "In progress", // "In Progress" -> "In progress"
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  [TaskStatus.DELETED]: "Deleted",
+  [TaskStatus.DELETED]: "Archived", // Show "Archived" instead of "Deleted" for better UX
 };
 
 // Reverse mapping for API calls
@@ -70,7 +47,7 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
   "In progress": "In Progress",
   Completed: "Completed",
   Overdue: "Overdue",
-  Deleted: "Deleted",
+  Archived: "Deleted", // Map "Archived" display back to "Deleted" status
 };
 
 const titleOfTableColumns = [
@@ -185,6 +162,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   statusOptions,
   isUpdateDisabled = false,
   onRowClick,
+  hidePagination = false,
+  onRestore,
+  onHardDelete,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -324,18 +304,25 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       <TableBody>
         {sortedTasks &&
           sortedTasks
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((task: TaskModel) => (
+            .slice(
+              hidePagination ? 0 : page * rowsPerPage,
+              hidePagination ? Math.min(sortedTasks.length, 100) : page * rowsPerPage + rowsPerPage
+            )
+            .map((task: TaskModel) => {
+              const isArchived = task.status === TaskStatus.DELETED;
+              return (
               <TableRow
                 key={task.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  cursor: "pointer",
+                  cursor: isArchived ? "default" : "pointer",
+                  backgroundColor: isArchived ? "rgba(0, 0, 0, 0.02)" : "transparent",
+                  opacity: isArchived ? 0.7 : 1,
                   "&:hover": {
-                    backgroundColor: "#f5f5f5",
+                    backgroundColor: isArchived ? "rgba(0, 0, 0, 0.04)" : "#f5f5f5",
                   },
                 }}
-                onClick={() => onRowClick?.(task)}
+                onClick={() => !isArchived && onRowClick?.(task)}
               >
                 {/* Task Name */}
                 <TableCell
@@ -348,14 +335,18 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <Box>
                     <Typography
                       variant="body2"
-                      sx={{ textTransform: "capitalize" }}
+                      sx={{
+                        textTransform: "capitalize",
+                        textDecoration: isArchived ? "line-through" : "none",
+                        color: isArchived ? "#9ca3af" : "inherit",
+                      }}
                     >
                       {task.title}
                     </Typography>
                     {task.categories && task.categories.length > 0 && (
                       <Stack direction="row" spacing={0.5} mt={1}>
                         {task.categories.slice(0, 2).map((category) => (
-                          <Chip
+                          <MuiChip
                             key={category}
                             label={category}
                             size="small"
@@ -369,7 +360,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           />
                         ))}
                         {task.categories.length > 2 && (
-                          <Chip
+                          <MuiChip
                             label={`+${task.categories.length - 2}`}
                             size="small"
                             sx={{
@@ -394,9 +385,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                       sortConfig.key === "priority" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <Box component="span" sx={priorityBadgeStyle(task.priority)}>
-                    {task.priority}
-                  </Box>
+                  <Chip label={task.priority} />
                 </TableCell>
 
                 {/* Status */}
@@ -408,19 +397,32 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <CustomSelect
-                    currentValue={
-                      STATUS_DISPLAY_MAP[task.status] || task.status
-                    }
-                    onValueChange={async (displayValue: string) => {
-                      const apiValue =
-                        DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
-                      return await onStatusChange(task.id!)(apiValue);
-                    }}
-                    options={statusOptions}
-                    disabled={isUpdateDisabled}
-                    size="small"
-                  />
+                  {isArchived ? (
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        color: "#6b7280",
+                        fontStyle: "italic",
+                        px: 1,
+                      }}
+                    >
+                      Archived
+                    </Typography>
+                  ) : (
+                    <CustomSelect
+                      currentValue={
+                        STATUS_DISPLAY_MAP[task.status] || task.status
+                      }
+                      onValueChange={async (displayValue: string) => {
+                        const apiValue =
+                          DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
+                        return await onStatusChange(task.id!)(apiValue);
+                      }}
+                      options={statusOptions}
+                      disabled={isUpdateDisabled}
+                      size="small"
+                    />
+                  )}
                 </TableCell>
 
                 {/* Due Date */}
@@ -432,7 +434,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   }}
                 >
                   {task.due_date ? (
-                    <Stack direction="row" spacing={3} alignItems="center">
+                    <Stack direction="row" spacing={1} alignItems="center">
                       <Typography
                         variant="body2"
                         sx={{
@@ -447,10 +449,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           year: "numeric",
                         })}
                       </Typography>
-                      {task.isOverdue && (
-                        <Box component="span" sx={priorityBadgeStyle("High")}>
-                          OVERDUE
-                        </Box>
+                      {task.isOverdue ? (
+                        <Chip label="Overdue" variant="error" />
+                      ) : (
+                        <DaysChip dueDate={task.due_date} />
                       )}
                     </Stack>
                   ) : (
@@ -551,13 +553,19 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
-                    warningTitle="Archive this task?"
-                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'include archived' toggle."
-                    type="task"
+                    warningTitle="Archive task?"
+                    warningMessage={`This task will be hidden from your active task list. You can restore "${task.title}" anytime from the archived view.`}
+                    type="Task"
+                    isArchived={task.status === TaskStatus.DELETED}
+                    onRestore={onRestore ? () => onRestore(task.id!) : undefined}
+                    onHardDelete={onHardDelete ? () => onHardDelete(task.id!) : undefined}
+                    hardDeleteWarningTitle="Permanently delete this task?"
+                    hardDeleteWarningMessage="This action cannot be undone. The task will be permanently removed from the system."
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
       </TableBody>
     ),
     [
@@ -572,6 +580,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       users,
       onArchive,
       onEdit,
+      hidePagination,
+      onRestore,
+      onHardDelete,
+      sortConfig,
     ]
   );
 
@@ -591,8 +603,9 @@ const TasksTable: React.FC<ITasksTableProps> = ({
               onSort={handleSort}
             />
             {tableBody}
-            <TableFooter>
-              <TableRow
+            {!hidePagination && (
+              <TableFooter>
+                <TableRow
                 sx={{
                   "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
@@ -677,6 +690,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 />
               </TableRow>
             </TableFooter>
+            )}
           </Table>
         </TableContainer>
       )}

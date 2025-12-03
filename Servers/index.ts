@@ -119,7 +119,7 @@ try {
     express.json()(req, res, next);
   });
   app.use(cookieParser());
-  app.use(csrf());
+  // app.use(csrf());
 
   // Routes
   app.use("/api/users", userRoutes);

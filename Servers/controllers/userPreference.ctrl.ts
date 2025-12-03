@@ -43,7 +43,7 @@ export async function getPreferencesByUser(req: Request, res: Response) {
       functionName,
       fileName,
     );
-    return res.status(404).json(STATUS_CODE[404](userPreference));
+    return res.status(200).json(STATUS_CODE[200](userPreference));
   } catch (error) {
     logStructured(
       "error",

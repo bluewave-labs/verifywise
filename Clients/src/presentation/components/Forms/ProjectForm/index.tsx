@@ -151,18 +151,20 @@ const ProjectForm = ({
     if (values.framework_type === FrameworkTypeEnum.ProjectBased) {
       // Only show EU AI Act for project-based frameworks
       return allFrameworks
-        .filter((fw) => fw.name.toLowerCase().includes("eu ai act"))
+        .filter((fw) => fw.is_organizational === false)
         .map((fw) => ({
           _id: Number(fw.id),
           name: fw.name,
         }));
     } else if (values.framework_type === FrameworkTypeEnum.OrganizationWide) {
-      // Only show ISO 42001 and ISO 27001 for organization-wide frameworks
+      // Only show ISO 42001, ISO 27001, and NIST AI RMF for organization-wide frameworks
       return allFrameworks
         .filter(
           (fw) =>
-            fw.name.toLowerCase().includes("iso 42001") ||
-            fw.name.toLowerCase().includes("iso 27001")
+            // fw.name.toLowerCase().includes("iso 42001") ||
+            // fw.name.toLowerCase().includes("iso 27001") ||
+            // fw.name.toLowerCase().includes("nist ai rmf")
+            fw.is_organizational === true
         )
         .map((fw) => ({
           _id: Number(fw.id),

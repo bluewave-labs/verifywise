@@ -56,6 +56,7 @@ import nistAiRmfRoutes from "./routes/nist_ai_rmf.route";
 import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
 import searchRoutes from "./routes/search.route";
+import notesRoutes from "./routes/notes.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -175,6 +176,7 @@ try {
   app.use("/api/ai-incident-managements", aiIncidentRouter);
   app.use("/api/ce-marking", ceMarkingRoutes);
   app.use("/api/search", searchRoutes);
+  app.use("/api/notes", notesRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

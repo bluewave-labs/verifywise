@@ -842,7 +842,8 @@ export const createNewTenant = async (
     );
 
     // Create model_inventory_change_history table for tracking changes
-    await sequelize.query(`
+    await sequelize.query(
+      `
       CREATE TABLE IF NOT EXISTS "${tenantHash}".model_inventory_change_history (
         id SERIAL PRIMARY KEY,
         model_inventory_id INTEGER NOT NULL REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
@@ -853,13 +854,17 @@ export const createNewTenant = async (
         changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
         changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      );`, { transaction });
+      );`,
+      { transaction }
+    );
 
     // Create indexes for model_inventory_change_history
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_model_id ON "${tenantHash}".model_inventory_change_history(model_inventory_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_changed_at ON "${tenantHash}".model_inventory_change_history(changed_at DESC);`
-    ].map(query => sequelize.query(query, { transaction })));
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_model_id ON "${tenantHash}".model_inventory_change_history(model_inventory_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_changed_at ON "${tenantHash}".model_inventory_change_history(changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
 
     await sequelize.query(
       `
@@ -1274,6 +1279,38 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX share_links_created_by_idx ON "${tenantHash}".share_links(created_by);`,
+      { transaction }
+    );
+
+    // Create notes table for collaborative annotation system
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".notes (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        author_id INTEGER NOT NULL,
+        attached_to VARCHAR(50) NOT NULL,
+        attached_to_id VARCHAR(255) NOT NULL,
+        organization_id INTEGER NOT NULL,
+        is_edited BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for notes table
+    await sequelize.query(
+      `CREATE INDEX idx_notes_entity ON "${tenantHash}".notes(attached_to, attached_to_id, organization_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX idx_notes_author ON "${tenantHash}".notes(author_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX idx_notes_organization ON "${tenantHash}".notes(organization_id);`,
       { transaction }
     );
 

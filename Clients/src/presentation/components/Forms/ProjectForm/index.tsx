@@ -21,7 +21,6 @@ import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
-  datePickerStyle,
   teamMembersRenderInputStyle,
   teamMembersSlotProps,
   teamMembersSxStyle,

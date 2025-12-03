@@ -387,7 +387,7 @@ export class NotesModel extends Model<NotesModel> {
   /**
    * Convert note to JSON representation for API response
    *
-   * Includes all note data with formatted dates.
+   * Includes all note data with formatted dates and author information.
    *
    * @returns {Object} Note data in JSON format
    *
@@ -400,6 +400,7 @@ export class NotesModel extends Model<NotesModel> {
       id: this.id,
       content: this.content,
       author_id: this.author_id,
+      author: this.author,
       attached_to: this.attached_to,
       attached_to_id: this.attached_to_id,
       organization_id: this.organization_id,

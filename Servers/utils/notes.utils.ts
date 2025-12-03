@@ -114,7 +114,7 @@ export async function createNewNoteQuery(
       `INSERT INTO "${tenantSchema}".notes
         (content, author_id, attached_to, attached_to_id, organization_id, is_edited, created_at, updated_at)
        VALUES (:content, :author_id, :attached_to, :attached_to_id, :organization_id, :is_edited, :created_at, :updated_at)
-       RETURNING *`,
+       RETURNING id`,
       {
         replacements: {
           content: note.content,
@@ -130,15 +130,29 @@ export async function createNewNoteQuery(
       }
     );
 
-    // Update note with the generated ID from database
+    // Extract the generated ID from the result
+    let noteId: number | undefined;
     if (
       result &&
       Array.isArray(result) &&
       result[0] &&
       Array.isArray(result[0]) &&
-      result[0][0]
+      result[0][0] &&
+      result[0][0].id
     ) {
-      note.id = result[0][0].id;
+      noteId = result[0][0].id;
+      note.id = noteId;
+    }
+
+    // If we have the ID, fetch the complete note with author information
+    if (noteId) {
+      return getNoteByIdQuery(noteId, tenantSchema).then((fetchedNote) => {
+        if (fetchedNote) {
+          return fetchedNote;
+        }
+        // Fallback to the note instance if fetch fails
+        return note;
+      });
     }
 
     return note;
@@ -309,6 +323,13 @@ export async function updateNoteContentQuery(
       }
     );
 
+    // Fetch the complete updated note with author information
+    const updatedNote = await getNoteByIdQuery(noteId, tenantSchema);
+    if (updatedNote) {
+      return updatedNote;
+    }
+
+    // Fallback: return note with updated fields if fetch fails
     note.is_edited = true;
     note.updated_at = updatedAt;
     return note;

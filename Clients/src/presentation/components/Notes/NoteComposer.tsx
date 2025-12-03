@@ -20,12 +20,13 @@ import {
   Stack,
   TextField,
   Button,
+  IconButton,
   CircularProgress,
   Typography,
   useTheme,
 } from "@mui/material";
 import {
-  Plus as PlusIcon,
+  Send as SendIcon,
   Save as SaveIcon,
   X as CloseIcon,
 } from "lucide-react";
@@ -156,8 +157,8 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
         {/* Action Buttons */}
         <Stack
           direction="row"
-          spacing={theme.spacing(1)}
-          sx={{ justifyContent: "flex-end", mt: theme.spacing(2) }}
+          spacing={theme.spacing(1.5)}
+          sx={{ justifyContent: "flex-end", alignItems: "center", mt: theme.spacing(2) }}
         >
           {isEditing && onCancel && (
             <Button
@@ -189,38 +190,68 @@ const NoteComposer: React.FC<NoteComposerProps> = ({
             </Button>
           )}
 
-          <Button
-            type="submit"
-            variant="contained"
-            size="small"
-            disabled={!isContentValid || isLoading}
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 500,
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              padding: theme.spacing(1, 1.5),
-              transition: `all 0.2s ease-in-out`,
-              "&:hover:not(:disabled)": {
-                backgroundColor: theme.palette.primary.dark,
-                boxShadow: `0 2px 8px -2px rgba(19, 113, 91, 0.25)`,
-              },
-              "&:disabled": {
-                backgroundColor: theme.palette.action.disabledBackground,
-                color: theme.palette.action.disabled,
-              },
-            }}
-          >
-            {isLoading ? (
-              <CircularProgress size={14} sx={{ mr: theme.spacing(1) }} />
-            ) : isEditing ? (
-              <SaveIcon size={16} style={{ marginRight: 6 }} />
-            ) : (
-              <PlusIcon size={16} style={{ marginRight: 6 }} />
-            )}
-            {isEditing ? "Save" : "Add Note"}
-          </Button>
+          {isEditing ? (
+            <Button
+              type="submit"
+              variant="contained"
+              size="small"
+              disabled={!isContentValid || isLoading}
+              startIcon={
+                isLoading ? (
+                  <CircularProgress size={14} />
+                ) : (
+                  <SaveIcon size={16} />
+                )
+              }
+              sx={{
+                textTransform: "none",
+                fontSize: 13,
+                fontWeight: 500,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                padding: theme.spacing(1, 1.5),
+                transition: `all 0.2s ease-in-out`,
+                "&:hover:not(:disabled)": {
+                  backgroundColor: theme.palette.primary.dark,
+                  boxShadow: `0 2px 8px -2px rgba(19, 113, 91, 0.25)`,
+                },
+                "&:disabled": {
+                  backgroundColor: theme.palette.action.disabledBackground,
+                  color: theme.palette.action.disabled,
+                },
+              }}
+            >
+              Save
+            </Button>
+          ) : (
+            <IconButton
+              type="submit"
+              disabled={!isContentValid || isLoading}
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                transition: `all 0.2s ease-in-out`,
+                "&:hover:not(:disabled)": {
+                  backgroundColor: theme.palette.primary.dark,
+                  boxShadow: `0 2px 8px -2px rgba(19, 113, 91, 0.35)`,
+                  transform: "scale(1.08)",
+                },
+                "&:disabled": {
+                  backgroundColor: theme.palette.action.disabledBackground,
+                  color: theme.palette.action.disabled,
+                },
+              }}
+            >
+              {isLoading ? (
+                <CircularProgress size={18} sx={{ color: "inherit" }} />
+              ) : (
+                <SendIcon size={18} />
+              )}
+            </IconButton>
+          )}
         </Stack>
       </Stack>
     </Box>

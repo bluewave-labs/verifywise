@@ -38,6 +38,42 @@ export const VENDOR_REVIEW_STATUS_ENUM = [
 ] as const;
 
 /**
+ * Vendor scorecard enums
+ */
+export const VENDOR_DATA_SENSITIVITY_ENUM = [
+  'None',
+  'Internal only',
+  'Personally identifiable information (PII)',
+  'Financial data',
+  'Health data (e.g. HIPAA)',
+  'Model weights or AI assets',
+  'Other sensitive data'
+] as const;
+
+export const VENDOR_BUSINESS_CRITICALITY_ENUM = [
+  'Low (vendor supports non-core functions)',
+  'Medium (affects operations but is replaceable)',
+  'High (critical to core services or products)'
+] as const;
+
+export const VENDOR_PAST_ISSUES_ENUM = [
+  'None',
+  'Minor incident (e.g. small delay, minor bug)',
+  'Major incident (e.g. data breach, legal issue)'
+] as const;
+
+export const VENDOR_REGULATORY_EXPOSURE_ENUM = [
+  'None',
+  'GDPR (EU)',
+  'HIPAA (US)',
+  'SOC 2',
+  'ISO 27001',
+  'EU AI act',
+  'CCPA (california)',
+  'Other'
+] as const;
+
+/**
  * Validates vendor name field
  */
 export const validateVendorName = (value: any): ValidationResult => {
@@ -120,6 +156,34 @@ export const validateReviewResult = (value: any): ValidationResult => {
  */
 export const validateReviewStatus = (value: any): ValidationResult => {
   return validateEnum(value, 'Review status', VENDOR_REVIEW_STATUS_ENUM, false);
+};
+
+/**
+ * Validates data sensitivity enum field
+ */
+export const validateDataSensitivity = (value: any): ValidationResult => {
+  return validateEnum(value, 'Data sensitivity', VENDOR_DATA_SENSITIVITY_ENUM, false);
+};
+
+/**
+ * Validates business criticality enum field
+ */
+export const validateBusinessCriticality = (value: any): ValidationResult => {
+  return validateEnum(value, 'Business criticality', VENDOR_BUSINESS_CRITICALITY_ENUM, false);
+};
+
+/**
+ * Validates past issues enum field
+ */
+export const validatePastIssues = (value: any): ValidationResult => {
+  return validateEnum(value, 'Past issues', VENDOR_PAST_ISSUES_ENUM, false);
+};
+
+/**
+ * Validates regulatory exposure enum field
+ */
+export const validateRegulatoryExposure = (value: any): ValidationResult => {
+  return validateEnum(value, 'Regulatory exposure', VENDOR_REGULATORY_EXPOSURE_ENUM, false);
 };
 
 /**
@@ -220,7 +284,11 @@ export const createVendorSchema = {
   review_status: validateReviewStatus,
   reviewer: validateReviewer,
   review_date: validateReviewDate,
-  projects: validateProjects
+  projects: validateProjects,
+  data_sensitivity: validateDataSensitivity,
+  business_criticality: validateBusinessCriticality,
+  past_issues: validatePastIssues,
+  regulatory_exposure: validateRegulatoryExposure
 };
 
 /**
@@ -237,7 +305,11 @@ export const updateVendorSchema = {
   review_status: (value: any) => value !== undefined ? validateReviewStatus(value) : { isValid: true },
   reviewer: (value: any) => value !== undefined ? validateReviewer(value) : { isValid: true },
   review_date: (value: any) => value !== undefined ? validateReviewDate(value) : { isValid: true },
-  projects: (value: any) => value !== undefined ? validateProjects(value) : { isValid: true }
+  projects: (value: any) => value !== undefined ? validateProjects(value) : { isValid: true },
+  data_sensitivity: (value: any) => value !== undefined ? validateDataSensitivity(value) : { isValid: true },
+  business_criticality: (value: any) => value !== undefined ? validateBusinessCriticality(value) : { isValid: true },
+  past_issues: (value: any) => value !== undefined ? validatePastIssues(value) : { isValid: true },
+  regulatory_exposure: (value: any) => value !== undefined ? validateRegulatoryExposure(value) : { isValid: true }
 };
 
 /**
@@ -255,7 +327,8 @@ export const validateUpdateVendor = (data: any): ValidationError[] => {
   const updateFields = [
     'vendor_name', 'vendor_provides', 'assignee', 'website',
     'vendor_contact_person', 'review_result', 'review_status',
-    'reviewer', 'review_date', 'projects'
+    'reviewer', 'review_date', 'projects', 'data_sensitivity',
+    'business_criticality', 'past_issues', 'regulatory_exposure'
   ];
 
   const hasUpdateField = updateFields.some(field => data[field] !== undefined);

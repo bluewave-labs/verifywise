@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Zap,
   FileText,
-  Laptop
+  Laptop,
+  ChevronRight
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
@@ -33,6 +34,7 @@ interface FrameworkData {
 
 interface AnnexOverviewCardProps {
   frameworksData: FrameworkData[];
+  onNavigate?: (frameworkName: string, section: string) => void;
 }
 
 // Sub-structure for annex controls/categories
@@ -121,7 +123,7 @@ const getAnnexIcon = (title: string, frameworkName: string) => {
   return Shield; // Default fallback icon
 };
 
-const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
+const AnnexOverviewCard = ({ frameworksData, onNavigate }: AnnexOverviewCardProps) => {
   const [loading, setLoading] = useState(true);
   const [iso42001AnnexesData, setIso42001AnnexesData] = useState<CategoryData[]>([]);
   const [iso27001AnnexesData, setIso27001AnnexesData] = useState<CategoryData[]>([]);
@@ -257,8 +259,14 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
     ));
   };
 
-  const renderFrameworkSection = (categoriesData: CategoryData[], title: string) => {
+  const renderFrameworkSection = (categoriesData: CategoryData[], title: string, frameworkName: string) => {
     if (categoriesData.length === 0) return null;
+
+    const handleCardClick = () => {
+      if (onNavigate) {
+        onNavigate(frameworkName, "annexes");
+      }
+    };
 
     return (
       <Stack spacing={2}>
@@ -288,7 +296,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
               <Box
                 key={category.id}
                 sx={{
-                  border: "1px solid #EEEEEE",
+                  border: "1px solid #d0d5dd",
                   borderRadius: "4px",
                   overflow: "hidden",
                   backgroundColor: "#FFFFFF",
@@ -299,11 +307,14 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
                   sx={{
                     backgroundColor: "#F1F3F4",
                     p: "10px 16px",
-                    borderBottom: "1px solid #EEEEEE",
+                    borderBottom: "1px solid #d0d5dd",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <IconComponent size={14} className="text-gray-500" />
+                    <IconComponent size={14} style={{ color: "#666666" }} />
                     <Typography
                       sx={{
                         fontSize: 13,
@@ -316,6 +327,23 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
                       {category.number}. {category.name}
                     </Typography>
                   </Box>
+                  {onNavigate && (
+                    <Box
+                      onClick={handleCardClick}
+                      sx={{
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        p: "4px",
+                        borderRadius: "4px",
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        },
+                      }}
+                    >
+                      <ChevronRight size={16} style={{ color: "#666666" }} />
+                    </Box>
+                  )}
                 </Box>
 
                 {/* Content Section */}
@@ -415,7 +443,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
           py: 4,
           backgroundColor: "#F9FAFB",
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
+          border: "1px solid #d0d5dd",
         }}
       >
         <Typography variant="body1" color="text.secondary">
@@ -428,7 +456,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
   return (
     <Stack spacing={0}>
       {/* Render ISO 42001 section if data is available */}
-      {renderFrameworkSection(iso42001AnnexesData, "ISO 42001 annexes overview")}
+      {renderFrameworkSection(iso42001AnnexesData, "ISO 42001 annexes overview", "ISO 42001")}
 
       {/* Add 16px spacing between sections when both are present */}
       {iso42001AnnexesData.length > 0 && iso27001AnnexesData.length > 0 && (
@@ -436,7 +464,7 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
       )}
 
       {/* Render ISO 27001 section if data is available */}
-      {renderFrameworkSection(iso27001AnnexesData, "ISO 27001 annexes overview")}
+      {renderFrameworkSection(iso27001AnnexesData, "ISO 27001 annexes overview", "ISO 27001")}
     </Stack>
   );
 };

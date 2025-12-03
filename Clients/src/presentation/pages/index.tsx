@@ -1,60 +1,23 @@
-import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import { ClipboardCheck as Assessment } from "lucide-react";
-import Breadcrumbs from "../components/Breadcrumbs";
-import { IBreadcrumbItem } from "../../domain/interfaces/i.breadcrumbs";
+import { Stack, Typography, Paper } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import Uploader from "../components/Uploader";
 
 const Playground = () => {
   const theme = useTheme();
 
-  // Example 1: Manual breadcrumbs with custom items
-  const manualBreadcrumbs: IBreadcrumbItem[] = [
-    {
-      label: "Projects",
-      path: "/projects",
-    },
-    {
-      label: "AI Compliance Project",
-      path: "/projects/ai-compliance",
-    },
-    {
-      label: "Settings",
-      path: "/projects/ai-compliance/settings",
-    },
-  ];
+  const handleUploadComplete = (files: any[]) => {
+    console.log("Upload completed:", files);
+    // You can handle the completed upload here
+    // For example, send to backend, update state, etc.
+  };
 
-  // Example 2: Breadcrumbs with disabled items
-  const disabledBreadcrumbs: IBreadcrumbItem[] = [
-    {
-      label: "Dashboard",
-      path: "/dashboard",
-    },
-    {
-      label: "Reports",
-      path: "/reports",
-    },
-    {
-      label: "Compliance Report",
-      disabled: true, // This item will be disabled
-    },
-  ];
+  const handleUploadProgress = (file: any, progress: number) => {
+    console.log(`Upload progress for ${file.name}: ${progress}%`);
+  };
 
-  // Example 4: Long labels that will be truncated
-  const longLabelBreadcrumbs: IBreadcrumbItem[] = [
-    {
-      label: "Home",
-      path: "/",
-    },
-    {
-      label:
-        "Very Long Project Name That Will Be Truncated Because It Exceeds The Maximum Length",
-      path: "/long-project",
-    },
-    {
-      label:
-        "Another Extremely Long Section Name That Should Also Be Truncated",
-      path: "/long-project/long-section",
-    },
-  ];
+  const handleUploadError = (file: any, error: string) => {
+    console.error(`Upload error for ${file.name}:`, error);
+  };
 
   return (
     <Stack
@@ -63,209 +26,42 @@ const Playground = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        alignItems: "flex-start",
+        alignItems: "center",
         minHeight: "100vh",
         padding: "20px",
         gap: 3,
         backgroundColor: theme.palette.background.alt,
       }}
     >
-      <Typography
-        variant="h4"
-        sx={{ color: theme.palette.text.primary, mb: 2 }}
-      >
-        Breadcrumbs Component Examples
+      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
+        File Uploader Demo
       </Typography>
 
-      {/* Example 1: Manual breadcrumbs */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 1: Manual Breadcrumbs
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Custom breadcrumbs with navigation paths
-        </Typography>
-        <Breadcrumbs items={manualBreadcrumbs} />
-      </Paper>
-
-      {/* Example 2: Auto-generated breadcrumbs */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 2: Auto-Generated Breadcrumbs
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Breadcrumbs automatically generated from current route with custom
-          mapping
-        </Typography>
-        <Breadcrumbs autoGenerate={true} />
-      </Paper>
-
-      {/* Example 3: Breadcrumbs with disabled items */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 3: Breadcrumbs with Disabled Items
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Some breadcrumb items can be disabled and won't be clickable
-        </Typography>
-        <Breadcrumbs items={disabledBreadcrumbs} />
-      </Paper>
-
-      {/* Example 4: Custom separator */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 4: Custom Separator
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Using a custom separator icon (Assessment icon)
-        </Typography>
-        <Breadcrumbs
-          items={manualBreadcrumbs}
-          separator={<Assessment size={16} />}
-        />
-      </Paper>
-
-      {/* Example 5: Truncated labels */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 5: Truncated Labels
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Long labels are automatically truncated to maintain clean layout
-        </Typography>
-        <Breadcrumbs
-          items={longLabelBreadcrumbs}
-          maxLabelLength={25}
-          truncateLabels={true}
-        />
-      </Paper>
-
-      {/* Example 6: Custom styling */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 6: Custom Styling
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Breadcrumbs with custom styling and background
-        </Typography>
-        <Breadcrumbs
-          items={manualBreadcrumbs}
-          sx={{
-            backgroundColor: theme.palette.background.fill,
-            borderRadius: 1,
-            px: 2,
-            py: 1,
-            border: `1px solid ${theme.palette.border.light}`,
+      <Paper
+        elevation={2}
+        sx={{
+          width: "100%",
+          maxWidth: 800,
+          p: 4,
+          backgroundColor: theme.palette.background.paper,
+        }}
+      >
+    
+        <Uploader
+          acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.csv']}
+          maxFileSize={5 * 1024 * 1024} // 5MB
+          maxFiles={5}
+          multiple={true}
+          onUploadComplete={handleUploadComplete}
+          onUploadProgress={handleUploadProgress}
+          onUploadError={handleUploadError}
+          showPreview={true}
+          uploadUrl="/api/upload"
+          uploadHeaders={{
+            'Authorization': 'Bearer your-token-here',
+            'X-Custom-Header': 'custom-value'
           }}
         />
-      </Paper>
-
-      {/* Example 7: Maximum items with collapse */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Example 7: Maximum Items with Collapse
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, color: theme.palette.text.secondary }}
-        >
-          Breadcrumbs with many items that will collapse (maxItems: 3)
-        </Typography>
-        <Breadcrumbs
-          items={[
-            { label: "Home", path: "/" },
-            { label: "Projects", path: "/projects" },
-            { label: "AI Project", path: "/projects/ai" },
-            { label: "Compliance", path: "/projects/ai/compliance" },
-            { label: "Settings", path: "/projects/ai/compliance/settings" },
-            {
-              label: "Advanced",
-              path: "/projects/ai/compliance/settings/advanced",
-            },
-          ]}
-          maxItems={3}
-        />
-      </Paper>
-
-      <Divider sx={{ width: "100%", my: 2 }} />
-
-      {/* Usage Instructions */}
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 800 }}>
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, color: theme.palette.text.primary }}
-        >
-          Usage Instructions
-        </Typography>
-        <Stack spacing={2}>
-          <Typography
-            variant="body2"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            <strong>Manual Breadcrumbs:</strong> Pass an array of BreadcrumbItem
-            objects with labels and paths.
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            <strong>Auto-Generated:</strong> Set autoGenerate=true to
-            automatically create breadcrumbs from the current route.
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            <strong>Custom Mapping:</strong> Use routeMapping to provide custom
-            labels for specific routes.
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            <strong>Styling:</strong> Use the sx prop to apply custom styles
-            that match your design system.
-          </Typography>
-        </Stack>
       </Paper>
     </Stack>
   );

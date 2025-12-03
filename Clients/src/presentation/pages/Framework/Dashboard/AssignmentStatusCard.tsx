@@ -3,6 +3,7 @@ import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-re
 import { useEffect, useState } from "react";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import { frameworkDashboardCardStyles } from "./styles";
 import {
   validateDataConsistency,
   createErrorLogData,
@@ -31,9 +32,23 @@ interface AssignmentCounts {
   annexTotal: number;
 }
 
+/** Extended framework data with NIST assignments */
+interface ExtendedFrameworkData extends BaseFrameworkData {
+  nistAssignments?: {
+    totalSubcategories: number;
+    assignedSubcategories: number;
+  };
+  nistAssignmentsByFunction?: {
+    govern: { total: number; assigned: number };
+    map: { total: number; assigned: number };
+    measure: { total: number; assigned: number };
+    manage: { total: number; assigned: number };
+  };
+}
+
 /** Component props */
 interface AssignmentStatusCardProps {
-  frameworksData: BaseFrameworkData[];
+  frameworksData: ExtendedFrameworkData[];
 }
 
 const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => {
@@ -219,30 +234,10 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
     return <CircleCheck size={14} style={{ color: "#13715B" }} />;
   };
   return (
-    <Box
-      sx={{
-        border: "1px solid #EEEEEE",
-        borderRadius: "4px",
-        overflow: "hidden",
-      }}
-    >
+    <Box sx={frameworkDashboardCardStyles.cardContainer}>
       {/* Header Section */}
-      <Box
-        sx={{
-          backgroundColor: "#F1F3F4",
-          p: "10px 16px",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#000000",
-            lineHeight: "16px",
-            m: 0,
-          }}
-        >
+      <Box sx={frameworkDashboardCardStyles.cardHeader}>
+        <Typography sx={frameworkDashboardCardStyles.cardHeaderTitle}>
           Assignment status
         </Typography>
       </Box>
@@ -265,11 +260,91 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
           Monitor task assignment coverage for clauses and annexes. Displays how many items have been assigned to team members.
         </Typography>
 
-      <Stack spacing={5}>
-        {frameworksData.map((framework) => {
+      <Stack spacing={0}>
+        {frameworksData.map((framework, index) => {
           // Detect framework type for appropriate API endpoints and terminology
           const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
           const isISO42001 = framework.frameworkName.toLowerCase().includes("iso 42001");
+          const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
+
+          // Handle NIST AI RMF separately - uses pre-fetched data from Dashboard
+          if (isNISTAIRMF) {
+            const nistAssignmentsByFunction = framework.nistAssignmentsByFunction;
+
+            // Function display order and labels
+            const functions = [
+              { key: 'govern' as const, label: 'Govern' },
+              { key: 'map' as const, label: 'Map' },
+              { key: 'measure' as const, label: 'Measure' },
+              { key: 'manage' as const, label: 'Manage' },
+            ];
+
+            return (
+              <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    mb: 2,
+                    color: "#000000",
+                  }}
+                >
+                  {framework.frameworkName}
+                </Typography>
+
+                <Stack spacing={1.5}>
+                  {functions.map((func) => {
+                    const data = nistAssignmentsByFunction?.[func.key] || { total: 0, assigned: 0 };
+                    return (
+                      <Box
+                        key={func.key}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                          {func.label}
+                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          {getAssignmentIcon(data.assigned, data.total)}
+                          <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            {data.assigned}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            /
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                            {data.total}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: "#666666", fontWeight: 400, ml: 1 }}>
+                            assigned
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
+              </Box>
+            );
+          }
 
           const counts = assignmentCounts.get(framework.frameworkId);
 
@@ -277,6 +352,19 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
           if (loading || !counts) {
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Typography
                   sx={{
                     fontSize: 13,
@@ -290,12 +378,28 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                 <Typography sx={{ fontSize: 12, color: "#666666" }}>
                   Loading assignment data...
                 </Typography>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
 
           return (
             <Box key={framework.frameworkId}>
+              {/* Divider between framework sections */}
+              {index > 0 && (
+                <Box
+                  sx={{
+                    height: "1px",
+                    backgroundColor: "#E5E7EB",
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
+                  }}
+                />
+              )}
+
               <Typography
                 sx={{
                   fontSize: 13,
@@ -347,8 +451,7 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                   }}
                 >
                   <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                    {/* All frameworks use "Annexes" terminology */}
-                    {isISO27001 ? "Annexes" : isISO42001 ? "Annexes" : "Annexes"}
+                    Annexes
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {/* Status icon with color-coded completion indicator */}
@@ -368,6 +471,9 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
                   </Box>
                 </Box>
               </Stack>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

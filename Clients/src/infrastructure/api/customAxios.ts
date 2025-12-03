@@ -39,6 +39,13 @@ export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
   showAlertCallback = callback;
 };
 
+// Function to show an alert using the callback
+export const showAlert = (alert: AlertProps) => {
+  if (showAlertCallback) {
+    showAlertCallback(alert);
+  }
+};
+
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: `${ENV_VARs.URL}/api`,
@@ -100,10 +107,12 @@ CustomAxios.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const responseData = (error.response?.data as { message?: string })
-    if (error.response?.status === 404) {
-      const errorMessage = responseData?.message || 'Not found';
-      return Promise.reject(new Error(errorMessage));
-    }
+    // Don't transform 404 errors - let them through as AxiosErrors so status is preserved
+    // This allows downstream code to handle 404s differently (e.g., as empty state vs error)
+    // if (error.response?.status === 404) {
+    //   const errorMessage = responseData?.message || 'Not found';
+    //   return Promise.reject(new Error(errorMessage));
+    // }
 
     if (
       error.response?.status === 403 &&

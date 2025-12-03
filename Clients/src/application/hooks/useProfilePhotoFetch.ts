@@ -9,7 +9,7 @@ import { getUserProfilePhoto } from "../repository/user.repository";
  */
 export const useProfilePhotoFetch = () => {
   const fetchProfilePhotoAsBlobUrl = useCallback(
-    async (userId: number): Promise<string | null> => {
+    async (userId: number | string): Promise<string | null> => {
       try {
         const response = await getUserProfilePhoto(userId);
 

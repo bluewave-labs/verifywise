@@ -23,7 +23,8 @@ export const getAllVendorsQuery = async (
       model: VendorModel,
     }
   );
-  for (let vendor of vendors as (VendorModel & { projects: number[], reviewer_name: string })[]) {
+  const vendorsWithDetails = [];
+  for (let vendor of vendors as VendorModel[]) {
     const projects = await sequelize.query(
       `SELECT project_id FROM "${tenant}".vendors_projects WHERE vendor_id = :vendor_id`,
       {
@@ -32,7 +33,6 @@ export const getAllVendorsQuery = async (
         model: VendorsProjectsModel,
       }
     );
-    vendor["projects"] = projects.map((p) => p.project_id);
 
     const reviewer_name = await sequelize.query(
       `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reviewer_id`,
@@ -40,10 +40,15 @@ export const getAllVendorsQuery = async (
         replacements: { reviewer_id: vendor.reviewer },
       }
     ) as [{ full_name: string }[], number];
-    vendor["reviewer_name"] =
-      reviewer_name[0].length > 0 ? reviewer_name[0][0].full_name : "";
+
+    // Extract dataValues to include all database columns including scorecard fields
+    vendorsWithDetails.push({
+      ...vendor.dataValues,
+      projects: projects.map((p) => p.project_id),
+      reviewer_name: reviewer_name[0].length > 0 ? reviewer_name[0][0].full_name : "",
+    });
   }
-  return vendors;
+  return vendorsWithDetails;
 };
 
 export const getVendorByIdQuery = async (
@@ -174,6 +179,33 @@ export const createNewVendorQuery = async (
     replacements.review_date = vendor.review_date;
   }
 
+  // Add optional scorecard fields only if provided
+  if (vendor.data_sensitivity !== undefined) {
+    fields.push('data_sensitivity');
+    values.push('data_sensitivity');
+    replacements.data_sensitivity = vendor.data_sensitivity;
+  }
+  if (vendor.business_criticality !== undefined) {
+    fields.push('business_criticality');
+    values.push('business_criticality');
+    replacements.business_criticality = vendor.business_criticality;
+  }
+  if (vendor.past_issues !== undefined) {
+    fields.push('past_issues');
+    values.push('past_issues');
+    replacements.past_issues = vendor.past_issues;
+  }
+  if (vendor.regulatory_exposure !== undefined) {
+    fields.push('regulatory_exposure');
+    values.push('regulatory_exposure');
+    replacements.regulatory_exposure = vendor.regulatory_exposure;
+  }
+  if (vendor.risk_score !== undefined) {
+    fields.push('risk_score');
+    values.push('risk_score');
+    replacements.risk_score = vendor.risk_score;
+  }
+
   const fieldsList = fields.join(', ');
   const valuesList = values.map(v => `:${v}`).join(', ');
 
@@ -261,15 +293,21 @@ export const updateVendorByIdQuery = async (
     "review_status",
     "reviewer",
     "review_date",
+    "data_sensitivity",
+    "business_criticality",
+    "past_issues",
+    "regulatory_exposure",
+    "risk_score",
   ]
     .filter((f) => {
-      // For review fields, allow undefined or null to be updated (to clear the field)
+      // For review and scorecard fields, allow undefined or null to be updated (to clear the field)
       // For other required fields, only update if they have a value
       const isReviewField = ["review_result", "review_status", "reviewer", "review_date"].includes(f);
+      const isScorecardField = ["data_sensitivity", "business_criticality", "past_issues", "regulatory_exposure", "risk_score"].includes(f);
       const value = vendor[f as keyof IVendor];
 
-      if (isReviewField) {
-        // Review fields: include if explicitly provided (even if null/empty)
+      if (isReviewField || isScorecardField) {
+        // Review and scorecard fields: include if explicitly provided (even if null/empty)
         if (value !== undefined) {
           updateVendor[f as keyof IVendor] = value;
           return true;

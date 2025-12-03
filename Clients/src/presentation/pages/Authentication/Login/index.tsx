@@ -202,25 +202,13 @@ const Login: React.FC = () => {
         const status = error.response?.status;
         const responseData = error.response?.data;
 
-        if (status === 403) {
-          // Backend returns: { message: "Forbidden", data: "Password mismatch" }
-          const errorData = responseData?.data || responseData?.message;
-          message =
-            errorData === "Password mismatch"
-              ? "Password mismatch. Please try again."
-              : "Invalid password. Please try again.";
+        if (status === 401) {
+          // Backend returns: { message: "Unauthorized", data: "Invalid email or password" }
+          message = "Invalid email or password";
 
           logEngine({
             type: "event",
-            message: "Password mismatch during login.",
-          });
-        } else if (status === 404) {
-          // Backend returns: { message: "Not Found", data: {} }
-          message = "User not found. Please try again.";
-
-          logEngine({
-            type: "event",
-            message: "User not found during login.",
+            message: "Invalid credentials during login.",
           });
         } else if (status === 500) {
           // Backend returns: { message: "Internal Server Error", error: <error message> }

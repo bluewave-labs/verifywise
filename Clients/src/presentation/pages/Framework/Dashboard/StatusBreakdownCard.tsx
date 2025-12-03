@@ -2,6 +2,7 @@ import { Box, Typography, Stack, IconButton } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { frameworkDashboardCardStyles } from "./styles";
 
 interface FrameworkData {
   frameworkId: number;
@@ -18,6 +19,16 @@ interface FrameworkData {
     // ISO 42001 uses these fields
     totalAnnexcategories?: number;
     doneAnnexcategories?: number;
+  };
+  // NIST AI RMF specific
+  nistStatusBreakdown?: {
+    notStarted: number;
+    draft: number;
+    inProgress: number;
+    awaitingReview: number;
+    awaitingApproval: number;
+    implemented: number;
+    needsRework: number;
   };
 }
 
@@ -141,7 +152,7 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
       <Box
         sx={{
           background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           p: "16px",
           display: "flex",
@@ -156,21 +167,9 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
   }
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #EEEEEE",
-        borderRadius: "4px",
-        overflow: "hidden",
-      }}
-    >
+    <Box sx={frameworkDashboardCardStyles.cardContainer}>
       {/* Header Section */}
-      <Box
-        sx={{
-          backgroundColor: "#F1F3F4",
-          p: "10px 16px",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
+      <Box sx={frameworkDashboardCardStyles.cardHeader}>
         <Typography
           sx={{
             fontSize: 15,
@@ -192,8 +191,196 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
         }}
       >
 
-      <Stack spacing={5}>
+      <Stack spacing={0}>
         {frameworksData.map((framework, index) => {
+          const isNISTAIRMF = framework.frameworkName.toLowerCase().includes("nist ai rmf");
+
+          // Handle NIST AI RMF separately - uses pre-fetched status breakdown
+          if (isNISTAIRMF) {
+            const nistData = framework.nistStatusBreakdown;
+            if (!nistData) return null;
+
+            const nistStatusData: StatusData = {
+              "not started": nistData.notStarted || 0,
+              "draft": nistData.draft || 0,
+              "in progress": nistData.inProgress || 0,
+              "awaiting review": (nistData.awaitingReview || 0) + (nistData.awaitingApproval || 0),
+              "implemented": nistData.implemented || 0,
+              "needs rework": nistData.needsRework || 0,
+            };
+
+            const pieData = createPieData(nistStatusData);
+            const allStatuses = getAllStatuses(nistStatusData);
+            const total =
+              nistStatusData["not started"] +
+              nistStatusData["draft"] +
+              nistStatusData["in progress"] +
+              nistStatusData["awaiting review"] +
+              nistStatusData["implemented"] +
+              nistStatusData["needs rework"];
+
+            if (total === 0) {
+              return (
+                <Box key={framework.frameworkId}>
+                  {/* Divider between framework sections */}
+                  {index > 0 && (
+                    <Box
+                      sx={{
+                        height: "1px",
+                        backgroundColor: "#E5E7EB",
+                        mx: "-16px", // Extend to card edges
+                        mb: 4,
+                        mt: 1,
+                      }}
+                    />
+                  )}
+
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: "#000000",
+                      mb: 2,
+                    }}
+                  >
+                    {framework.frameworkName}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                    No status data available
+                  </Typography>
+
+                  {/* Add bottom margin for spacing before next section */}
+                  {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
+                </Box>
+              );
+            }
+
+            return (
+              <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "#000000",
+                    mb: 1,
+                  }}
+                >
+                  {framework.frameworkName}
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 3,
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Donut Chart Column */}
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <Box sx={{ position: "relative", width: "120px", height: "120px" }}>
+                      <PieChart
+                        series={[
+                          {
+                            data: pieData,
+                            innerRadius: 30,
+                            outerRadius: 48,
+                            paddingAngle: 2,
+                            cornerRadius: 3,
+                            cx: 60,
+                            cy: 60,
+                          },
+                        ]}
+                        width={120}
+                        height={120}
+                        slotProps={{
+                          legend: { hidden: true } as any,
+                        }}
+                        sx={{
+                          "& .MuiChartsLegend-root": {
+                            display: "none !important",
+                          },
+                          "& .MuiChartsTooltip-root": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-root *": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-mark": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-labelCell": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-valueCell": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table td": {
+                            fontSize: "13px !important",
+                          },
+                          "& .MuiChartsTooltip-table th": {
+                            fontSize: "13px !important",
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Status Table Column */}
+                  <Stack spacing={0.5}>
+                    {allStatuses.map((item) => (
+                      <Box
+                        key={item.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              backgroundColor: item.color,
+                            }}
+                          />
+                          <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                            {item.label}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                          {item.value}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
+              </Box>
+            );
+          }
+
+          // For ISO frameworks
           const currentViewMode = viewMode.get(framework.frameworkId) || 'clauses';
           const data = currentViewMode === 'clauses'
             ? clauseStatusData.get(framework.frameworkId)
@@ -213,6 +400,19 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
           if (total === 0) {
             return (
               <Box key={framework.frameworkId}>
+                {/* Divider between framework sections */}
+                {index > 0 && (
+                  <Box
+                    sx={{
+                      height: "1px",
+                      backgroundColor: "#E5E7EB",
+                      mx: "-16px", // Extend to card edges
+                      mb: 4,
+                      mt: 1,
+                    }}
+                  />
+                )}
+
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                   <Typography
                     sx={{
@@ -243,27 +443,26 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                 <Typography sx={{ fontSize: 12, color: "#666666" }}>
                   No status data available
                 </Typography>
+
+                {/* Add bottom margin for spacing before next section */}
+                {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
               </Box>
             );
           }
 
           const allStatuses = getAllStatuses(data);
-          const isISO27001 = framework.frameworkName.toLowerCase().includes("iso 27001");
-
-          // Check if we need to add a divider before ISO 27001
-          const needsDivider = index > 0 && isISO27001 &&
-            frameworksData[index - 1]?.frameworkName.toLowerCase().includes("iso 42001");
 
           return (
             <Box key={framework.frameworkId}>
-              {/* Add divider between ISO 42001 and ISO 27001 */}
-              {needsDivider && (
+              {/* Divider between framework sections */}
+              {index > 0 && (
                 <Box
                   sx={{
                     height: "1px",
                     backgroundColor: "#E5E7EB",
-                    my: 3,
-                    mx: -2, // Extend beyond the content padding
+                    mx: "-16px", // Extend to card edges
+                    mb: 4,
+                    mt: 1,
                   }}
                 />
               )}
@@ -329,28 +528,28 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                           display: "none !important",
                         },
                         "& .MuiChartsTooltip-root": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-root *": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-mark": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-labelCell": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-valueCell": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table td": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                         "& .MuiChartsTooltip-table th": {
-                          fontSize: "12px !important",
+                          fontSize: "13px !important",
                         },
                       }}
                     />
@@ -388,6 +587,9 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                   ))}
                 </Stack>
               </Box>
+
+              {/* Add bottom margin for spacing before next section */}
+              {index < frameworksData.length - 1 && <Box sx={{ mb: 4 }} />}
             </Box>
           );
         })}

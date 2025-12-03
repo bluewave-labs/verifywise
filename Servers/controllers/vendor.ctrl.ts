@@ -195,7 +195,12 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       vendorData.review_date,
       vendorData.order_no,
       vendorData.is_demo || false,
-      vendorData.projects
+      vendorData.projects,
+      vendorData.data_sensitivity,
+      vendorData.business_criticality,
+      vendorData.past_issues,
+      vendorData.regulatory_exposure,
+      vendorData.risk_score
     );
 
     // Validate vendor data before saving
@@ -336,6 +341,11 @@ export async function updateVendorById(
       review_date: updateData.review_date,
       order_no: updateData.order_no,
       projects: updateData.projects,
+      data_sensitivity: updateData.data_sensitivity,
+      business_criticality: updateData.business_criticality,
+      past_issues: updateData.past_issues,
+      regulatory_exposure: updateData.regulatory_exposure,
+      risk_score: updateData.risk_score,
     });
 
     // Validate updated data

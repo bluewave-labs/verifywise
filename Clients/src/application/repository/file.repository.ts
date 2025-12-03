@@ -53,7 +53,7 @@ export async function getFileById({
   id: string;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<Blob> {
+}): Promise<Blob | ArrayBuffer> {
   const response = await apiServices.get<any>(`/files/${id}`, {
     signal,
     responseType,

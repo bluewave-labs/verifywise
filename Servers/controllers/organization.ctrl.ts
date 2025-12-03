@@ -358,7 +358,11 @@ export async function createOrganization(
       );
       return res.status(201).json(STATUS_CODE[201]({
         user: user.toSafeJSON(),
-        token: accessToken
+        organization: {
+          id: createdOrganization.id,
+          name: createdOrganization.name
+        },
+        token: accessToken,
       }));
     }
 

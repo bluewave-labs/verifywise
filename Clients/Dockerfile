@@ -7,13 +7,15 @@ ENV NODE_OPTIONS="--max_old_space_size=4096"
 # Step 2: Set the working directory
 WORKDIR /app
 
-# Step 3: Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Step 3: Copy only package.json (not package-lock.json)
+# This allows npm to generate a fresh lock file for Linux Alpine with correct platform binaries
+COPY package.json ./
 
-# Step 4: Install dependencies with optimizations for cross-platform builds
+# Step 4: Install dependencies fresh for Linux platform
+# This ensures platform-specific binaries (like @rollup/rollup-linux-x64-musl) are correctly installed
 RUN npm config set fetch-timeout 600000 && \
     npm config set fetch-retries 5 && \
-    npm ci --prefer-offline --no-audit --legacy-peer-deps || npm install --legacy-peer-deps
+    npm install --legacy-peer-deps
 
 # Step 5: Copy the rest of the application files
 COPY . .
@@ -27,6 +29,9 @@ ENV VITE_SLACK_CLIENT_ID=$VITE_SLACK_CLIENT_ID
 
 ARG VITE_APP_VERSION
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
+
+ARG VITE_BRANDFETCH_API_KEY
+ENV VITE_BRANDFETCH_API_KEY=$VITE_BRANDFETCH_API_KEY
 
 # Step 7: Build the application
 RUN npm run build

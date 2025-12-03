@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, lazy, Suspense, useEffect } from "react";
 import {
   Box,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -30,6 +29,7 @@ import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
+import ButtonToggle from "../../../components/ButtonToggle";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
@@ -99,7 +99,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   // State management
   const [open, setOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
-  const [filter, setFilter] = useState(0);
+  const [filter, setFilter] = useState("0");
 
   const [page, setPage] = useState(0); // Current page
   const { userId } = useAuth();
@@ -310,9 +310,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
     const members = sortedTeamUsers.length > 0 ? sortedTeamUsers : teamUsers;
-    return filter === 0
+    return filter === "0"
       ? members
-      : members.filter((member) => member.roleId === filter);
+      : members.filter((member) => member.roleId === parseInt(filter));
   }, [filter, teamUsers, sortedTeamUsers]);
 
   const handleDeleteClick = (memberId: number) => {
@@ -396,34 +396,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
               mb: 3,
             }}
           >
-            <Box sx={{ display: "flex", mb: 2, mt: 2 }}>
-              {rolesLoading ? (
-                <Typography>Loading roles...</Typography>
-              ) : (
-                [{ _id: 0, name: "All" }, ...roleItems].map((role) => (
-                  <Button
-                    key={role._id}
-                    disableRipple
-                    variant={filter === role._id ? "contained" : "outlined"}
-                    onClick={() => setFilter(role._id | 0)}
-                    sx={{
-                      borderRadius: 0,
-                      color: "#344054",
-                      borderColor: "#EAECF0",
-                      backgroundColor:
-                        filter === role._id ? "#EAECF0" : "transparent",
-                      "&:hover": {
-                        backgroundColor:
-                          filter === role._id ? "#D0D4DA" : "transparent",
-                      },
-                      fontWeight: filter === role._id ? "medium" : "normal",
-                    }}
-                  >
-                    {role.name}
-                  </Button>
-                ))
-              )}
-            </Box>
+            {rolesLoading ? (
+              <Typography>Loading roles...</Typography>
+            ) : (
+              <ButtonToggle
+                options={[
+                  { value: "0", label: "All", count: teamUsers.length },
+                  ...roleItems.map((role) => ({
+                    value: role._id.toString(),
+                    label: role.name,
+                    count: teamUsers.filter((user) => user.roleId === role._id).length,
+                  })),
+                ]}
+                value={filter}
+                onChange={(value) => setFilter(value)}
+                height={34}
+              />
+            )}
 
             <Box>
               <CustomizableButton
@@ -444,7 +433,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           {/* only render table and pagination if team is loaded  */}
           {rolesLoading || roles.length === 0 ? null : (
             <>
-              <TableContainer sx={{ overflowX: "auto" }}>
+              <TableContainer sx={{ overflowX: "auto", mt: 1 }}>
                 <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
                   <TableHead
                     sx={{

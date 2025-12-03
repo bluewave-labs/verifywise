@@ -9,7 +9,6 @@ import {
   Stack,
   CircularProgress,
   Alert as MuiAlert,
-  Chip,
   useTheme,
   TableFooter,
   TablePagination,
@@ -17,10 +16,7 @@ import {
 import { useState, useEffect } from "react";
 import React from "react";
 import StandardModal from "../Modals/StandardModal";
-import {
-  getSeverityColorByText,
-  getRiskChipStyle,
-} from "../RiskLevel/constants";
+import Chip from "../Chip";
 import { getVendorRisksByVendorId } from "../../../application/repository/vendorRisk.repository";
 import AddNewRisk from "../Modals/NewRisk";
 import { useVendors } from "../../../application/hooks/useVendors";
@@ -194,13 +190,7 @@ const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
                           page * rowsPerPage,
                           page * rowsPerPage + rowsPerPage
                         )
-                        .map((risk) => {
-                          const normalizedRiskLevel =
-                            risk.risk_level?.toLowerCase().trim() ?? "";
-                          const riskLevelColor =
-                            getSeverityColorByText(normalizedRiskLevel);
-
-                          return (
+                        .map((risk) => (
                             <TableRow
                               key={risk.id}
                               sx={{
@@ -266,18 +256,10 @@ const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
                               <TableCell
                                 sx={singleTheme.tableStyles.primary.body.cell}
                               >
-                                <Chip
-                                  label={risk.risk_level}
-                                  size="small"
-                                  sx={{
-                                    ...getRiskChipStyle(),
-                                    backgroundColor: riskLevelColor,
-                                  }}
-                                />
+                                <Chip label={risk.risk_level} />
                               </TableCell>
                             </TableRow>
-                          );
-                        })}
+                          ))}
                     </TableBody>
                     <TableFooter>
                       <TableRow

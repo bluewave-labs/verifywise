@@ -16,6 +16,7 @@ import ApiKeys from "./ApiKeys";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 
 export default function ProfilePage() {
@@ -136,6 +137,7 @@ export default function ProfilePage() {
           />
         }
       />
+      <TipBox entityName="settings" />
 
       <TabContext value={activeTab}>
         <TabBar

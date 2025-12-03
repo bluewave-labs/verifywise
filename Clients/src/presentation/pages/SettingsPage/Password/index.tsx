@@ -119,7 +119,7 @@ const PasswordForm: React.FC = () => {
       setConfirmPassword(value);
 
       if (value !== newPassword) {
-        setConfirmPasswordError("Passwords do not match");
+        setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
       } else {
         setConfirmPasswordError(null);
       }
@@ -149,7 +149,18 @@ const PasswordForm: React.FC = () => {
     }
 
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match");
+      setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
+      return;
+    }
+
+    if (!id) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "User session not found. Please log in again.",
+        isToast: false,
+        visible: true,
+      });
       return;
     }
 

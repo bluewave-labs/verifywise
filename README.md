@@ -50,10 +50,10 @@ Policy manager
 - Source available license (BSL 1.1). Dual licensing is also available for enterprises
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
-- Docker deployment (also deployable on render.com and similar platforms)
+- Docker and Kubernetes deployment (also deployable on render.com and similar platforms)
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
-  - Support for EU AI Act, ISO 42001 and ISO 27001
+  - Support for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - Vendors & vendor risks
   - AI project risks
   - Tasks
@@ -61,20 +61,20 @@ Policy manager
   - Evidence center
   - AI trust center for public view
   - AI literacy training registery
-  - Integration with MIT AI risk repository
+  - Integration with MIT and IBM AI risk repository
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
-  - Risk and control mappings for EU AI Act, ISO 42001 and ISO 27001
+  - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - Detailed reports
   - Event logs (audits) for enterprise organizations
   - AI incident management
-  - Integrations (currently Slack is supported, more on the way)
-  - Automations 
-  - Google OAuth2 support for authentication
+  - Integrations (currently Slack and MLFlow is supported, more on the way)
+  - Automations (when an entity changes, do this, or send period reports, or send webhooks)
+  - Google OAuth2 and Entra ID (enterprise edition) support for authentication
 
 ## Installation
 
-The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
+The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker/Kubernetes (production) to run VerifyWise. A PostgreSQL database is required.
 
 ### Installation using npm (for development)
 
@@ -104,12 +104,13 @@ cd ..
 cp .env.dev Servers/.env
 ```
 
-In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:
+In `.env` file, change FRONTEND_URL:
 
 ```
 FRONTEND_URL=http://localhost:5173
-ALLOWED_ORIGINS=["http://localhost:5173", "http://localhost:8082"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host (localhost, 127.0.0.1) where the backend is running.
 
 Run the PostgreSQL container with the following command:
 
@@ -174,8 +175,9 @@ Make sure to change the JWT_SECRET variable to your liking, and change `localhos
 ```
 BACKEND_URL=http://64.23.242.4:3000
 FRONTEND_URL=http://64.23.242.4:8080
-ALLOWED_ORIGINS=["http://64.23.242.4:5173", "http://64.23.242.4:8080"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host where the backend is running.
 
 Change the permissions of the `install.sh` script to make it executable, and then execute it.
 
@@ -285,8 +287,9 @@ sudo certbot --nginx -d domainname.com
 ```
 BACKEND_URL=https://domainname.com/api
 FRONTEND_URL=https://domainname.com
-ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ```
+
+Note: CORS is automatically configured to allow requests from the same host where the backend is running.
 
 9. Restart the application
 
@@ -294,7 +297,7 @@ ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ./install.sh
 ```
 
-**Note:** The nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
+**Note:** The Nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
 
 ### Email configuration
 
@@ -324,6 +327,5 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 
 - [MaskWise](https://github.com/bluewave-labs/maskwise), which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems.
 - [EvalWise](https://github.com/bluewave-labs/evalwise), a developer-friendly platform for LLM evaluation and red teaming that helps test AI models for safety, compliance, and performance issues
-- [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
 
 

@@ -54,31 +54,37 @@ const handleError = (error: any) => {
       );
     }
   } catch (e) {
-    console.error("Error in handleError:", e);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error in handleError:", e);
+    }
     throw e;
   }
 };
 
-// Logging function
+// Logging function - only logs in development mode
 const logRequest = (
   method: string,
   endpoint: string,
   params?: any,
   data?: any
 ) => {
-  console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
-    params,
-    data,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
+      params,
+      data,
+    });
+  }
 };
 
 const logResponse = (method: string, endpoint: string, response: any) => {
-  console.table(
-    `[API Response] ${method.toUpperCase()} ${endpoint} ${
-      response.data.message
-    }`,
-    response.status
-  );
+  if (process.env.NODE_ENV === 'development') {
+    console.table(
+      `[API Response] ${method.toUpperCase()} ${endpoint} ${
+        response.data.message
+      }`,
+      response.status
+    );
+  }
 };
 
 export const apiServices = {
@@ -94,11 +100,15 @@ export const apiServices = {
     endpoint: string,
     params: RequestParams = {}
   ): Promise<ApiResponse<T>> {
-    logRequest("get", endpoint, params);
+    // Extract special config options that should not be query params
+    const { signal, responseType, ...queryParams } = params;
+
+    logRequest("get", endpoint, queryParams);
     try {
       const response = await CustomAxios.get(endpoint, {
-        params,
-        responseType: params.responseType ?? "json",
+        params: queryParams,
+        responseType: responseType ?? "json",
+        signal,
       });
 
       logResponse("get", endpoint, response);

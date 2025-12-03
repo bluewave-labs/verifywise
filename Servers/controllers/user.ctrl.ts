@@ -502,13 +502,13 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
-        return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
+        logStructured('error', `invalid credentials for ${email}`, 'loginUser', 'user.ctrl.ts');
+        return res.status(401).json(STATUS_CODE[401]('Invalid email or password'));
       }
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
-    return res.status(404).json(STATUS_CODE[404]({}));
+    logStructured('error', `invalid credentials for ${email}`, 'loginUser', 'user.ctrl.ts');
+    return res.status(401).json(STATUS_CODE[401]('Invalid email or password'));
   } catch (error) {
     logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);

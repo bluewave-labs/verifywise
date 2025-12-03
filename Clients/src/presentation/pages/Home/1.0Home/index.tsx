@@ -19,6 +19,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
+import TipBox from "../../../components/TipBox";
 
 const Home = () => {
   const location = useLocation();
@@ -210,6 +211,7 @@ const Home = () => {
           applied within an organization to achieve a defined purpose or
           outcome.
         </Typography>
+        <TipBox entityName="overview" />
       </Stack>
 
       {/* Projects List */}

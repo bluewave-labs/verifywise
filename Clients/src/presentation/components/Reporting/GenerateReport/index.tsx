@@ -38,7 +38,10 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     });
     clearTimerRef.current = setTimeout(() => {
       setAlert(null);
-      onClose();
+      // Only close modal on success, not on errors
+      if (type === "success") {
+        onClose();
+      }
     }, 3000);
   };
 
@@ -63,7 +66,12 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     let reportTypeLabel = input.report_type;
     // Keep arrays as arrays; normalize known string values
     if (Array.isArray(input.report_type)) {
-      reportTypeLabel = input.report_type;
+      // If "All reports combined in one file" is in the array, use only that
+      if (input.report_type.includes("All reports combined in one file")) {
+        reportTypeLabel = "All reports";
+      } else {
+        reportTypeLabel = input.report_type;
+      }
     } else {
       switch (input.report_type) {
         case "Annexes report":
@@ -146,7 +154,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
       <StandardModal
         isOpen={true}
         onClose={handleOnCloseModal}
-        title={`Generate ${reportType === 'organization' ? 'Organization' : 'Project'} Report`}
+        title={`Generate ${reportType === 'organization' ? 'organization' : 'project'} report`}
         description={reportType === 'organization'
           ? 'Generate a comprehensive report for your entire organization.'
           : 'Pick the project you want to generate a report for.'

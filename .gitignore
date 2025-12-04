@@ -7,6 +7,10 @@
 
 venv/
 
+# EvaluationModule runtime data
+EvaluationModule/data/
+EvaluationModule/artifacts/
+
 .vscode/settings.json
 
 .DS_Store

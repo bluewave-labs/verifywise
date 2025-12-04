@@ -17,7 +17,7 @@ export interface CloseIconProps {
 }
 
 export interface IconButtonProps {
-  id: number;
+  id: number | string;
   onDelete: () => void;
   onEdit: () => void;
   warningTitle?: string;

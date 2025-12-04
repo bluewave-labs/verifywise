@@ -123,6 +123,8 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "migrations",
+    "database/migrations"
   ]
 }

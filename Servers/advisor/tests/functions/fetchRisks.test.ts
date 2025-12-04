@@ -18,7 +18,6 @@ import { createMockTenant } from '../../mocks/mockTenant';
 
 // Mock the utility modules
 jest.mock("../../../utils/risk.utils");
-jest.mock("../../../utils/history/riskHistory.utils");
 
 describe("Advisor Functions: fetchRisks", () => {
   const mockTenant = createMockTenant();

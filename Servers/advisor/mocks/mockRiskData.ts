@@ -1,4 +1,5 @@
 import { IRisk } from "../../domain.layer/interfaces/I.risk";
+import { TimeseriesDataPoint } from "../functions";
 
 /**
  * Comprehensive mock risk data for testing
@@ -306,6 +307,34 @@ export const mockProjectRisks: IRisk[] = mockRisks.filter((_, index) => index < 
 
 // Subset of risks for specific framework
 export const mockFrameworkRisks: IRisk[] = mockRisks.filter((_, index) => index >= 5);
+
+// Mock timeseries data
+export const mockTimeseriesData: TimeseriesDataPoint[] = [
+  {
+    timestamp: new Date('2024-11-01'),
+    data: { "Catastrophic": 2, "Major": 3, "Moderate": 4, "Minor": 1, "Negligible": 0 }
+  },
+  {
+    timestamp: new Date('2024-11-08'),
+    data: { "Catastrophic": 2, "Major": 4, "Moderate": 3, "Minor": 1, "Negligible": 1 }
+  },
+  {
+    timestamp: new Date('2024-11-15'),
+    data: { "Catastrophic": 1, "Major": 4, "Moderate": 4, "Minor": 1, "Negligible": 1 }
+  },
+  {
+    timestamp: new Date('2024-11-22'),
+    data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 2, "Negligible": 1 }
+  },
+  {
+    timestamp: new Date('2024-11-29'),
+    data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 1, "Negligible": 1 }
+  },
+  {
+    timestamp: new Date('2024-12-03'),
+    data: { "Catastrophic": 2, "Major": 3, "Moderate": 3, "Minor": 1, "Negligible": 1 }
+  },
+];
 
 /**
  * Helper function to create a custom risk for testing

@@ -1,4 +1,4 @@
-import { QueryInterface } from "sequelize";
+'use strict';
 
 /**
  * Migration to allow NULL for changed_by_user_id in change history tables
@@ -7,10 +7,10 @@ import { QueryInterface } from "sequelize";
  * When a user is deleted, their user_id in history is set to NULL,
  * and the UI shows "Deleted User" instead.
  */
-export default {
-  up: async (queryInterface: QueryInterface) => {
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
     // Get all tenant schemas
-    const tenantSchemas: any[] = await queryInterface.sequelize.query(
+    const tenantSchemas = await queryInterface.sequelize.query(
       `SELECT schema_name
        FROM information_schema.schemata
        WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
@@ -20,7 +20,7 @@ export default {
 
     for (const { schema_name } of tenantSchemas) {
       // Check if table exists in this schema
-      const tableExists: any[] = await queryInterface.sequelize.query(
+      const tableExists = await queryInterface.sequelize.query(
         `SELECT EXISTS (
           SELECT FROM information_schema.tables
           WHERE table_schema = :schema
@@ -57,9 +57,9 @@ export default {
     }
   },
 
-  down: async (queryInterface: QueryInterface) => {
+  down: async (queryInterface, Sequelize) => {
     // Get all tenant schemas
-    const tenantSchemas: any[] = await queryInterface.sequelize.query(
+    const tenantSchemas = await queryInterface.sequelize.query(
       `SELECT schema_name
        FROM information_schema.schemata
        WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')
@@ -69,7 +69,7 @@ export default {
 
     for (const { schema_name } of tenantSchemas) {
       // Check if table exists in this schema
-      const tableExists: any[] = await queryInterface.sequelize.query(
+      const tableExists = await queryInterface.sequelize.query(
         `SELECT EXISTS (
           SELECT FROM information_schema.tables
           WHERE table_schema = :schema

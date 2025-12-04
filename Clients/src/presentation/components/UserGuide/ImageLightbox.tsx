@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
-import { colors, typography, spacing } from './styles/theme';
+import { typography, spacing } from './styles/theme';
 
 interface ImageLightboxProps {
   src: string;

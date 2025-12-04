@@ -24,7 +24,6 @@ interface SidebarWrapperProps {
 }
 
 const STORAGE_KEY = 'verifywise-sidebar-state';
-const TAB_BAR_WIDTH = 40;
 const DEFAULT_CONTENT_WIDTH = 400;
 const MIN_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH;
 const MAX_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH * 2; // 100% wider

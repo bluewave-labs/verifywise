@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReactFlow Demo</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/reactflow@11.11.4/dist/umd/index.js"></script>
+  <link href="https://unpkg.com/reactflow@11.11.4/dist/style.css" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; font-family: sans-serif; }
+    #root { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    const { ReactFlow, Controls, MiniMap, Background, useNodesState, useEdgesState, addEdge } = window.ReactFlow;
+    const { createElement, useCallback } = React;
+
+    const initialNodes = [
+      {
+        id: '1',
+        type: 'input',
+        data: { label: 'AI Model' },
+        position: { x: 250, y: 0 },
+        style: { background: '#13715B', color: 'white', border: 'none', borderRadius: '4px' },
+      },
+      {
+        id: '2',
+        data: { label: 'Risk Assessment' },
+        position: { x: 100, y: 100 },
+        style: { background: '#fff', border: '1px solid #d0d5dd', borderRadius: '4px' },
+      },
+      {
+        id: '3',
+        data: { label: 'Compliance Check' },
+        position: { x: 400, y: 100 },
+        style: { background: '#fff', border: '1px solid #d0d5dd', borderRadius: '4px' },
+      },
+      {
+        id: '4',
+        data: { label: 'Evidence Collection' },
+        position: { x: 100, y: 200 },
+        style: { background: '#fff', border: '1px solid #d0d5dd', borderRadius: '4px' },
+      },
+      {
+        id: '5',
+        data: { label: 'Policy Validation' },
+        position: { x: 400, y: 200 },
+        style: { background: '#fff', border: '1px solid #d0d5dd', borderRadius: '4px' },
+      },
+      {
+        id: '6',
+        type: 'output',
+        data: { label: 'Governance Report' },
+        position: { x: 250, y: 300 },
+        style: { background: '#4CAF93', color: 'white', border: 'none', borderRadius: '4px' },
+      },
+    ];
+
+    const initialEdges = [
+      { id: 'e1-2', source: '1', target: '2', animated: true },
+      { id: 'e1-3', source: '1', target: '3', animated: true },
+      { id: 'e2-4', source: '2', target: '4' },
+      { id: 'e3-5', source: '3', target: '5' },
+      { id: 'e4-6', source: '4', target: '6' },
+      { id: 'e5-6', source: '5', target: '6' },
+    ];
+
+    function App() {
+      const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+      const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+      const onConnect = useCallback(
+        function(params) { setEdges(function(eds) { return addEdge(params, eds); }); },
+        [setEdges]
+      );
+
+      return createElement(ReactFlow, {
+        nodes: nodes,
+        edges: edges,
+        onNodesChange: onNodesChange,
+        onEdgesChange: onEdgesChange,
+        onConnect: onConnect,
+        fitView: true
+      },
+        createElement(Controls),
+        createElement(MiniMap),
+        createElement(Background, { variant: 'dots', gap: 12, size: 1 })
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(createElement(App));
+  </script>
+</body>
+</html>

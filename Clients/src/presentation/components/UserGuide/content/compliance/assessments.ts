@@ -1,4 +1,4 @@
-import type { ArticleContent } from '../../contentTypes';
+import type { ArticleContent } from '@user-guide-content/contentTypes';
 
 export const assessmentsContent: ArticleContent = {
   blocks: [

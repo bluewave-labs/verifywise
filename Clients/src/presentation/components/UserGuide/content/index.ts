@@ -1,4 +1,4 @@
-import type { ArticleContent } from '../contentTypes';
+import type { ArticleContent } from '@user-guide-content/contentTypes';
 import { welcomeContent } from './getting-started/welcome';
 import { installingContent } from './getting-started/installing';
 import { dashboardContent } from './getting-started/dashboard';

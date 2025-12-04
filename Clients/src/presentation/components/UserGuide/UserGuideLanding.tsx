@@ -1,6 +1,19 @@
 import React from 'react';
-import { Search, ArrowRight, ExternalLink } from 'lucide-react';
-import { collections, fastFinds, getCollection } from '@user-guide-content/userGuideConfig';
+import { Search, ArrowRight, ExternalLink, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, FileText, GraduationCap, BarChart3, LucideIcon } from 'lucide-react';
+import { collections, fastFinds, getCollection, IconName } from '@user-guide-content/userGuideConfig';
+
+// Map icon names to actual Lucide components
+const iconMap: Record<IconName, LucideIcon> = {
+  Rocket,
+  Shield,
+  AlertTriangle,
+  Brain,
+  Settings,
+  Plug,
+  FileText,
+  GraduationCap,
+  BarChart3,
+};
 import { colors, typography, spacing, border } from './styles/theme';
 import './UserGuideLanding.css';
 
@@ -146,7 +159,7 @@ const UserGuideLanding: React.FC<UserGuideLandingProps> = ({
           }}
         >
           {collections.map((collection) => {
-            const IconComponent = collection.icon;
+            const IconComponent = iconMap[collection.icon];
             return (
               <div
                 key={collection.id}

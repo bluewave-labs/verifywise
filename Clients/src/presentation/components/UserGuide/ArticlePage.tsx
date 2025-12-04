@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Collection, Article } from '@user-guide-content/userGuideConfig';
+import { ChevronLeft, ChevronRight, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, FileText, GraduationCap, BarChart3, LucideIcon } from 'lucide-react';
+import { Collection, Article, IconName } from '@user-guide-content/userGuideConfig';
+
+// Map icon names to actual Lucide components
+const iconMap: Record<IconName, LucideIcon> = {
+  Rocket,
+  Shield,
+  AlertTriangle,
+  Brain,
+  Settings,
+  Plug,
+  FileText,
+  GraduationCap,
+  BarChart3,
+};
 import type { TocItem } from '@user-guide-content/contentTypes';
 import { colors, typography, spacing, border } from './styles/theme';
 import './ArticlePage.css';
@@ -34,7 +47,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   children,
   mode = 'web',
 }) => {
-  const IconComponent = collection.icon;
+  const IconComponent = iconMap[collection.icon];
   const isInApp = mode === 'in-app';
   const [activeSection, setActiveSection] = useState<string>('');
 

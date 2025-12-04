@@ -1,15 +1,14 @@
-import type { LucideIcon } from 'lucide-react';
-import {
-  Rocket,
-  Shield,
-  AlertTriangle,
-  Brain,
-  Settings,
-  Plug,
-  FileText,
-  GraduationCap,
-  BarChart3,
-} from 'lucide-react';
+// Icon names as strings - resolved to actual components by the consuming application
+export type IconName =
+  | 'Rocket'
+  | 'Shield'
+  | 'AlertTriangle'
+  | 'Brain'
+  | 'Settings'
+  | 'Plug'
+  | 'FileText'
+  | 'GraduationCap'
+  | 'BarChart3';
 
 export interface Article {
   id: string;
@@ -22,7 +21,7 @@ export interface Collection {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: IconName;
   articleCount: number;
   articles: Article[];
 }
@@ -40,7 +39,7 @@ export const collections: Collection[] = [
     id: 'getting-started',
     title: 'Getting started',
     description: 'Learn the basics of VerifyWise and get up and running quickly with your AI governance journey.',
-    icon: Rocket,
+    icon: 'Rocket',
     articleCount: 4,
     articles: [
       {
@@ -73,7 +72,7 @@ export const collections: Collection[] = [
     id: 'ai-governance',
     title: 'AI governance',
     description: 'Manage your AI models, track their lifecycle, and maintain comprehensive documentation.',
-    icon: Brain,
+    icon: 'Brain',
     articleCount: 4,
     articles: [
       {
@@ -106,7 +105,7 @@ export const collections: Collection[] = [
     id: 'risk-management',
     title: 'Risk management',
     description: 'Identify, assess, and mitigate risks across your AI systems and vendors.',
-    icon: AlertTriangle,
+    icon: 'AlertTriangle',
     articleCount: 4,
     articles: [
       {
@@ -139,7 +138,7 @@ export const collections: Collection[] = [
     id: 'compliance',
     title: 'Compliance frameworks',
     description: 'Stay compliant with AI regulations including EU AI Act, ISO 42001, and more.',
-    icon: Shield,
+    icon: 'Shield',
     articleCount: 5,
     articles: [
       {
@@ -178,7 +177,7 @@ export const collections: Collection[] = [
     id: 'policies',
     title: 'Policies',
     description: 'Create, manage, and enforce AI governance policies across your organization.',
-    icon: FileText,
+    icon: 'FileText',
     articleCount: 3,
     articles: [
       {
@@ -205,7 +204,7 @@ export const collections: Collection[] = [
     id: 'training',
     title: 'Training registry',
     description: 'Track team training and ensure accountability across your organization.',
-    icon: GraduationCap,
+    icon: 'GraduationCap',
     articleCount: 1,
     articles: [
       {
@@ -220,7 +219,7 @@ export const collections: Collection[] = [
     id: 'reporting',
     title: 'Reporting',
     description: 'Generate reports and gain insights into your AI governance program.',
-    icon: BarChart3,
+    icon: 'BarChart3',
     articleCount: 2,
     articles: [
       {
@@ -241,7 +240,7 @@ export const collections: Collection[] = [
     id: 'integrations',
     title: 'Integrations',
     description: 'Connect VerifyWise with your existing tools and workflows.',
-    icon: Plug,
+    icon: 'Plug',
     articleCount: 3,
     articles: [
       {
@@ -268,7 +267,7 @@ export const collections: Collection[] = [
     id: 'settings',
     title: 'Settings & configuration',
     description: 'Configure VerifyWise to match your organization\'s needs.',
-    icon: Settings,
+    icon: 'Settings',
     articleCount: 4,
     articles: [
       {

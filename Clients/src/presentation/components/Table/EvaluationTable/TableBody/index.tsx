@@ -1,6 +1,6 @@
 import { TableBody, TableRow, TableCell, Box, Chip } from "@mui/material";
 import singleTheme from "../../../../themes/v1SingleTheme";
-import { Trash2 as TrashIcon } from "lucide-react";
+import { Trash2 as TrashIcon, Play, ExternalLink } from "lucide-react";
 import Button from "../../../../components/Button/index";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
@@ -66,18 +66,34 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rowsPerPage,
   onShowDetails,
   onRemoveModel,
+  actionLabel,
+  onRowClick,
 }) => {
+  // Check if actionLabel indicates a rerun action
+  const isRerunAction = actionLabel?.toLowerCase().includes("rerun") || actionLabel?.toLowerCase().includes("run again");
+
   return (
     <TableBody>
       {rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) => (
-          <TableRow key={row.id} sx={{
-            ...singleTheme.tableStyles.primary.body.row,
-            "&:hover": {
-              cursor: "default",
-            },
-          }}>
+          <TableRow
+            key={row.id}
+            onClick={() => {
+              if (onRowClick) {
+                onRowClick(row);
+              } else if (row.status === "Completed") {
+                onShowDetails(row);
+              }
+            }}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              cursor: row.status === "Completed" || onRowClick ? "pointer" : "default",
+              "&:hover": {
+                backgroundColor: row.status === "Completed" || onRowClick ? "#F9FAFB" : "inherit",
+              },
+            }}
+          >
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -142,21 +158,26 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
             >
               <Box display="flex" justifyContent="left">
                 <Button
-                  onClick={() => onShowDetails(row)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowDetails(row);
+                  }}
                   sx={{
                     ml: -2,
-                    fontSize: "18 !important",
-                    backgroundColor: "#13715B", // keep your styling
+                    fontSize: "12px !important",
+                    backgroundColor: "#13715B",
                     color: "white",
                     textTransform: "none",
                     opacity: row.status !== "Completed" ? 0.5 : 1,
                     pointerEvents: row.status !== "Completed" ? "none" : "auto",
+                    gap: 0.5,
                     "&:hover": {
-                      backgroundColor: "#13715B",
+                      backgroundColor: "#0F5E4B",
                     },
                   }}
+                  startIcon={isRerunAction ? <Play size={14} /> : <ExternalLink size={14} />}
                 >
-                  Show
+                  {actionLabel || "Open"}
                 </Button>
               </Box>
             </TableCell>
@@ -170,7 +191,9 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               <ConfirmableDeleteIconButton
                 disabled={false}
                 id={row.id}
-                onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
+                onConfirm={(id) => {
+                  onRemoveModel.onConfirm(String(id));
+                }}
                 title={`Delete this evaluation?`}
                 message={`Are you sure you want to delete evaluation ID ${row.id} (Status: ${row.status})? This action is non-recoverable.`}
                 customIcon={<TrashIcon size={20} />}

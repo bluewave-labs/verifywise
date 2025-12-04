@@ -39,6 +39,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
   page,
   setCurrentPagingation,
   onShowDetails,
+  actionLabel,
+  onRowClick,
 }) => {
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("evaluation", 10)
@@ -83,6 +85,8 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
                   onShowDetails={onShowDetails}
                   page={page}
                   rowsPerPage={rowsPerPage}
+                  actionLabel={actionLabel}
+                  onRowClick={onRowClick}
                 />
                 <TableFooter>
                   <TableRow

@@ -10,6 +10,8 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
 import Alert from "../../components/Alert";
+import ModalStandard from "../../components/Modals/StandardModal";
+import Field from "../../components/Inputs/Field";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -26,6 +28,19 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertState | null>(null);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [metricKeyTouched, setMetricKeyTouched] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    metricKey: "",
+    description: "",
+    type: "llm" as const,
+    judgeModel: "gpt-4o-mini",
+    defaultThreshold: "0.7",
+    weight: "1.0",
+  });
 
   const loadScorers = useCallback(async () => {
     try {
@@ -121,32 +136,80 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     }
   };
 
+  const handleNameChange = (value: string) => {
+    setForm((prev) => {
+      const next = { ...prev, name: value };
+      if (!metricKeyTouched) {
+        const autoKey = value
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+        next.metricKey = autoKey;
+      }
+      return next;
+    });
+  };
+
+  const handleMetricKeyChange = (value: string) => {
+    setMetricKeyTouched(true);
+    setForm((prev) => ({ ...prev, metricKey: value }));
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: "",
+      metricKey: "",
+      description: "",
+      type: "llm",
+      judgeModel: "gpt-4o-mini",
+      defaultThreshold: "0.7",
+      weight: "1.0",
+    });
+    setMetricKeyTouched(false);
+  };
+
   const handleCreateScorer = async () => {
+    if (!form.name.trim() || !form.metricKey.trim()) {
+      setAlert({
+        variant: "error",
+        body: "Name and metric key are required.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
+
     try {
+      setCreating(true);
       const payload = {
         projectId,
-        name: "Answer correctness (LLM)",
-        description: "Default scorer template measuring answer correctness with an LLM judge.",
-        type: "llm" as const,
-        metricKey: "answer_correctness",
+        name: form.name.trim(),
+        description: form.description.trim() || undefined,
+        type: form.type,
+        metricKey: form.metricKey.trim(),
         config: {
-          judgeModel: "gpt-4o-mini",
+          judgeModel: form.judgeModel.trim() || "gpt-4o-mini",
           scale: "0-1",
           rubric:
             "Score how correct the assistant's answer is relative to the reference answer. Return a number between 0 and 1.",
         },
         enabled: true,
-        defaultThreshold: 0.7,
-        weight: 1.0,
+        defaultThreshold: Number.isNaN(Number(form.defaultThreshold)) ? 0.7 : Number(form.defaultThreshold),
+        weight: Number.isNaN(Number(form.weight)) ? 1.0 : Number(form.weight),
       };
+
       await deepEvalScorersService.create(payload);
       setAlert({ variant: "success", body: "Scorer created" });
       setTimeout(() => setAlert(null), 3000);
+      setCreateOpen(false);
+      resetForm();
       void loadScorers();
     } catch (err) {
       console.error("Failed to create scorer", err);
       setAlert({ variant: "error", body: "Failed to create scorer" });
       setTimeout(() => setAlert(null), 4000);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -184,7 +247,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
             border: "1px solid #13715B",
             gap: 2,
           }}
-          onClick={handleCreateScorer}
+          onClick={() => setCreateOpen(true)}
           isDisabled={loading}
         />
       </Stack>
@@ -202,7 +265,86 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
           onShowDetails={handleViewScorer}
         />
       </Box>
+
+      <ModalStandard
+        isOpen={createOpen}
+        onClose={() => {
+          if (creating) return;
+          setCreateOpen(false);
+          resetForm();
+        }}
+        title="New scorer"
+        description="Create a new scorer for this project. Metric keys are used to join scores back to experiment results."
+        onSubmit={handleCreateScorer}
+        submitButtonText="Create"
+        isSubmitting={creating}
+      >
+        <Stack spacing={6}>
+          <Stack direction="row" spacing={6}>
+            <Field
+              label="Name"
+              value={form.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Scorer name"
+              isRequired
+              width="100%"
+            />
+            <Field
+              label="Metric key"
+              value={form.metricKey}
+              onChange={(e) => handleMetricKeyChange(e.target.value)}
+              placeholder="e.g. answer_correctness"
+              isRequired
+              width="100%"
+            />
+          </Stack>
+
+          <Field
+            type="description"
+            label="Description"
+            value={form.description}
+            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+            placeholder="Optional description"
+            isOptional
+          />
+
+          <Stack direction="row" spacing={6}>
+            <Field
+              label="Type"
+              value={form.type}
+              onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as typeof prev.type }))}
+              placeholder="llm"
+              width="100%"
+            />
+            <Field
+              label="Judge model"
+              value={form.judgeModel}
+              onChange={(e) => setForm((prev) => ({ ...prev, judgeModel: e.target.value }))}
+              placeholder="gpt-4o-mini"
+              width="100%"
+            />
+          </Stack>
+
+          <Stack direction="row" spacing={6}>
+            <Field
+              label="Default threshold"
+              type="number"
+              value={form.defaultThreshold}
+              onChange={(e) => setForm((prev) => ({ ...prev, defaultThreshold: e.target.value }))}
+              placeholder="0.7"
+              width="100%"
+            />
+            <Field
+              label="Weight"
+              type="number"
+              value={form.weight}
+              onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
+              placeholder="1.0"
+              width="100%"
+            />
+          </Stack>
+        </Stack>
+      </ModalStandard>
     </Box>
   );
 }
-

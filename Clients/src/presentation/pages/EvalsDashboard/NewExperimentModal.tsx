@@ -167,7 +167,7 @@ export default function NewExperimentModal({
       limit: 10,
       benchmark: "",
     },
-    // Step 4: Metrics
+    // Step 4: Metrics (default: enable all supported chatbot metrics)
     metrics: {
       answerRelevancy: true,
       bias: true,
@@ -175,6 +175,10 @@ export default function NewExperimentModal({
       faithfulness: true,
       hallucination: true,
       contextualRelevancy: true,
+      knowledgeRetention: true,
+      conversationRelevancy: true,
+      conversationCompleteness: true,
+      roleAdherence: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -183,6 +187,10 @@ export default function NewExperimentModal({
       faithfulness: 0.5,
       hallucination: 0.5,
       contextualRelevancy: 0.5,
+      knowledgeRetention: 0.5,
+      conversationRelevancy: 0.5,
+      conversationCompleteness: 0.5,
+      roleAdherence: 0.5,
     },
   });
 
@@ -371,6 +379,10 @@ export default function NewExperimentModal({
         faithfulness: true,
         hallucination: true,
         contextualRelevancy: true,
+        knowledgeRetention: true,
+        conversationRelevancy: true,
+        conversationCompleteness: true,
+        roleAdherence: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -379,6 +391,10 @@ export default function NewExperimentModal({
         faithfulness: 0.5,
         hallucination: 0.5,
         contextualRelevancy: 0.5,
+        knowledgeRetention: 0.5,
+        conversationRelevancy: 0.5,
+        conversationCompleteness: 0.5,
+        roleAdherence: 0.5,
       },
     });
   };
@@ -835,9 +851,49 @@ export default function NewExperimentModal({
             )}
 
             {/* Benchmark selector */}
+            <FormControlLabel
+              value="benchmark"
+              control={<Radio size="small" />}
+              checked={!!config.dataset.benchmark}
+              onClick={() => {
+                if (!config.dataset.benchmark) {
+                  setConfig((prev) => ({
+                    ...prev,
+                    dataset: { ...prev.dataset, useBuiltin: false, benchmark: "mmlu" },
+                  }));
+                  setDatasetLoaded(true);
+                  setDatasetPrompts([]);
+                }
+              }}
+              label={
+                <Box>
+                  <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
+                    Standard Benchmark
+                  </Typography>
+                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
+                    Run industry-standard LLM benchmarks (MMLU, HellaSwag, etc.)
+                  </Typography>
+                </Box>
+              }
+              sx={{
+                border: "1px solid #E0E0E0",
+                borderRadius: "8px",
+                p: 1.5,
+                m: 0,
+                mb: 1,
+                bgcolor: config.dataset.benchmark ? "#FEF3C7" : "#FFFFFF",
+                borderColor: config.dataset.benchmark ? "#F59E0B" : "#E0E0E0",
+                "&:hover": {
+                  bgcolor: "#FFFBEB",
+                },
+              }}
+            />
+            
             {config.dataset.benchmark && (
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <Typography sx={{ fontSize: "13px", color: "#374151" }}>Benchmark</Typography>
+              <Box sx={{ ml: 4, mt: -0.5 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#424242", mb: 1 }}>
+                  Select Benchmark
+                </Typography>
                 <Select
                   size="small"
                   value={config.dataset.benchmark}
@@ -847,11 +903,66 @@ export default function NewExperimentModal({
                       dataset: { ...prev.dataset, benchmark: String(e.target.value) },
                     }))
                   }
-                  sx={{ minWidth: 200 }}
+                  sx={{ minWidth: 280 }}
                 >
-                  <MenuItem value="mt-bench">MT-Bench</MenuItem>
-                  <MenuItem value="summeval">SummEval</MenuItem>
+                  <MenuItem value="mmlu">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>MMLU</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>57 subjects, 14k samples</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="hellaswag">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>HellaSwag</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Common-sense reasoning, 10k samples</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="big_bench_hard">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Big-Bench Hard</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>23 challenging tasks, 6.5k samples</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="truthfulqa">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>TruthfulQA</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Truthfulness evaluation, 817 samples</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="drop">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>DROP</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Reading + numerical reasoning, 9.5k samples</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="humaneval">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>HumanEval</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Code generation, 164 problems</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="gsm8k">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>GSM8K</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Grade school math, 8.5k problems</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="arc">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>ARC</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Science reasoning, 7.8k questions</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="winogrande">
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>WinoGrande</Typography>
+                      <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>Commonsense reasoning, 44k samples</Typography>
+                    </Box>
+                  </MenuItem>
                 </Select>
+                <Typography sx={{ fontSize: "11px", color: "#6B7280", mt: 1 }}>
+                  Benchmarks use DeepEval's standardized test sets and scoring.
+                </Typography>
               </Box>
             )}
 
@@ -1321,6 +1432,22 @@ export default function NewExperimentModal({
               contextualRelevancy: {
                 label: "Contextual Relevancy",
                 desc: "Measures whether retrieved/used context is relevant.",
+              },
+              knowledgeRetention: {
+                label: "Knowledge Retention",
+                desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+              },
+              conversationRelevancy: {
+                label: "Conversation Relevancy",
+                desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+              },
+              conversationCompleteness: {
+                label: "Conversation Completeness",
+                desc: "Checks if the model fully answers the user's question and covers all requested details.",
+              },
+              roleAdherence: {
+                label: "Code / role adherence",
+                desc: "Evaluates how well the model follows its assigned role, persona, or coding instructions.",
               },
             }).map(([key, meta]) => (
               <Box key={key} sx={{ mb: 1.5 }}>

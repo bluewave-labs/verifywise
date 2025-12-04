@@ -149,6 +149,52 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
     navigate(`/evals/${projectId}/experiment/${row.id}`);
   };
 
+  const handleRerunExperiment = async (row: IEvaluationRow) => {
+    // Find the original experiment to get its config
+    const originalExp = experiments.find((e) => e.id === row.id);
+    if (!originalExp) {
+      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
+      setTimeout(() => setAlert(null), 4000);
+      return;
+    }
+
+    try {
+      const baseConfig = originalExp.config || {};
+      const nextName = `${originalExp.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
+
+      const payload = {
+        project_id: projectId,
+        name: nextName,
+        description: originalExp.description || "",
+        config: {
+          ...baseConfig,
+          project_id: projectId,
+        },
+      };
+
+      setAlert({ variant: "success", body: "Starting new evaluation run..." });
+      
+      const response = await experimentsService.createExperiment(payload);
+
+      if (response?.experiment?.id) {
+        // Add the new experiment to the list optimistically
+        handleStarted({
+          id: response.experiment.id,
+          config: payload.config as Record<string, unknown>,
+          status: "running",
+          created_at: new Date().toISOString(),
+        });
+        
+        setAlert({ variant: "success", body: `Rerun started: ${nextName}` });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to rerun experiment:", err);
+      setAlert({ variant: "error", body: "Failed to start rerun" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
   const handleDeleteExperiment = async (experimentId: string) => {
     // Confirmation is handled by ConfirmableDeleteIconButton
     try {
@@ -378,7 +424,9 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
           }}
           page={currentPage}
           setCurrentPagingation={setCurrentPage}
-          onShowDetails={handleViewExperiment}
+          onShowDetails={handleRerunExperiment}
+          onRowClick={handleViewExperiment}
+          actionLabel="Rerun"
         />
       </Box>
 

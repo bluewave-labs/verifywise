@@ -18,11 +18,11 @@ import {
   Divider,
   IconButton,
   TextField,
+  Button,
 } from "@mui/material";
-import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap, Target, MessageSquare, Lightbulb, Shield } from "lucide-react";
+import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
-import MetricCard from "../../components/Cards/MetricCard";
 import EvalsSidebar from "./EvalsSidebar";
 
 export default function ExperimentDetail() {
@@ -37,6 +37,7 @@ export default function ExperimentDetail() {
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [rerunLoading, setRerunLoading] = useState(false);
 
   useEffect(() => {
     loadExperimentData();
@@ -121,6 +122,37 @@ export default function ExperimentDetail() {
     setEditedDescription("");
   };
 
+  const handleRerunExperiment = async () => {
+    if (!experiment || !projectId) return;
+    if (rerunLoading) return;
+
+    try {
+      setRerunLoading(true);
+      const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+      const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
+
+      const payload = {
+        project_id: projectId,
+        name: nextName,
+        description: experiment.description || "",
+        config: {
+          ...baseConfig,
+          project_id: projectId,
+        },
+      };
+
+      const response = await experimentsService.createExperiment(payload);
+
+      if (response?.experiment?.id) {
+        navigate(`/evals/${projectId}/experiment/${response.experiment.id}`);
+      }
+    } catch (err) {
+      console.error("Failed to rerun experiment:", err);
+    } finally {
+      setRerunLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -202,7 +234,7 @@ export default function ExperimentDetail() {
         <Box sx={{ flex: 1 }}>
 
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
         {/* Experiment Name with inline editing */}
         <Box
           sx={{
@@ -366,6 +398,23 @@ export default function ExperimentDetail() {
             </>
           )}
           </Box>
+
+        {/* Rerun button */}
+        <Button
+          variant="contained"
+          size="small"
+          onClick={handleRerunExperiment}
+          disabled={rerunLoading || experiment.status === "running"}
+          sx={{
+            textTransform: "none",
+            backgroundColor: "#13715B",
+            "&:hover": { backgroundColor: "#0F5A47" },
+            fontSize: "12px",
+            height: 32,
+          }}
+        >
+          {rerunLoading ? "Starting…" : "Run again"}
+        </Button>
         </Box>
 
         {/* Status and metadata */}
@@ -436,112 +485,31 @@ export default function ExperimentDetail() {
           faithfulness: "Faithfulness",
           hallucination: "Hallucination",
           contextualRelevancy: "Contextual Relevancy",
+          knowledgeRetention: "Knowledge Retention",
+          conversationRelevancy: "Conversation Relevancy",
+          conversationCompleteness: "Conversation Completeness",
+          roleAdherence: "Role Adherence",
         };
 
-        // Use the config to drive which metrics we show cards for; if nothing is
-        // configured we fall back to whatever we discover in metric_scores.
-        const orderedLabels = Object.keys(displayMap)
+        // Use the config to drive which metrics we show cards for. We start with
+        // the ordered standard set, then append any additional metrics discovered
+        // in metric_scores so we never hide evaluated metrics.
+        const primaryLabels = Object.keys(displayMap)
           .filter((k) => !!enabled?.[k])
           .map((k) => displayMap[k]);
 
+        const extraLabels = Object.keys(metricsSum).reduce<string[]>((acc, raw) => {
+          const friendly = raw.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
+          if (!primaryLabels.includes(friendly)) {
+            acc.push(friendly);
+          }
+          return acc;
+        }, []);
+
+        const orderedLabels = primaryLabels.length ? [...primaryLabels, ...extraLabels] : Object.keys(metricsSum);
+
         // Always show all metrics found in the data
         if (Object.keys(metricsSum).length === 0) return null;
-
-        // Map metric keys to appropriate icons
-        const metricIcons: Record<string, React.ComponentType<any>> = {
-          answerCorrectness: Target,
-          coherence: MessageSquare,
-          tonality: Lightbulb,
-          safety: Shield,
-          bias: Shield,
-          toxicity: Shield,
-          Bias: Shield,
-          Toxicity: Shield,
-          "Contextual Relevancy": Target,
-          "Answer Relevancy": Target,
-          "Faithfulness": Shield,
-          "Hallucination": Shield,
-          "Knowledge Retention": Lightbulb,
-          "contextual_relevancy": Target,
-          "knowledge_retention": Lightbulb,
-          "answer_relevancy": Target,
-          "faithfulness": Shield,
-          "hallucination": Shield,
-          "G-Eval (Coherence)": MessageSquare,
-          "G-Eval (Fluency)": Lightbulb,
-          "G-Eval (Consistency)": Target,
-          "G-Eval (Relevance)": Target,
-          "G-Eval (Correctness)": Target,
-        };
-
-        // Map metric keys to their explanations
-        const metricExplanations: Record<string, string> = {
-          answerCorrectness: "Measures how factually accurate and correct the AI's response is compared to the expected answer. Higher scores indicate the model provides accurate information without hallucinations or errors.",
-          coherence: "Evaluates how logically structured and well-organized the response is. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
-          tonality: "Assesses whether the AI's tone and style match the desired communication style. This includes checking for appropriate formality, empathy, and alignment with brand voice.",
-          safety: "Detects harmful, toxic, biased, or inappropriate content in the AI's responses. Higher scores indicate the model avoids generating unsafe or problematic outputs.",
-          bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
-          toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
-          Bias: "Measures unfair prejudice or discrimination in AI responses based on protected characteristics like race, gender, age, or religion. Lower bias scores indicate more equitable treatment across different groups.",
-          Toxicity: "Detects offensive, insulting, threatening, or profane language in AI responses. Lower toxicity scores indicate more respectful and professional communication.",
-          "Contextual Relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
-          "Answer Relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
-          "Faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
-          "Hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
-          "Knowledge Retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
-          "Role Adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
-          "Conversation Relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
-          "Conversation Completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
-          "contextual_relevancy": "Evaluates whether the retrieved context or information is relevant to answering the user's question. Higher scores indicate better retrieval quality and more pertinent supporting information.",
-          "knowledge_retention": "Measures the AI's ability to accurately remember and recall information from previous conversations or provided context. Higher scores indicate better long-term information retention and consistency across interactions.",
-          "role_adherence": "Evaluates how well the AI stays within its designated role, persona, or system instructions. Higher scores indicate the model consistently follows its intended behavior and doesn't deviate from assigned responsibilities.",
-          "conversation_relevancy": "Assesses whether the AI's responses stay relevant to the ongoing conversation topic and context. Higher scores mean the model maintains focus on the discussion without introducing unrelated information.",
-          "conversation_completeness": "Measures how thoroughly the AI addresses all aspects of the user's query or conversation thread. Higher scores indicate the model provides comprehensive answers without leaving important points unaddressed.",
-          "answer_relevancy": "Measures how well the AI's answer directly addresses the user's question without including irrelevant information. Higher scores mean the response stays focused and on-topic.",
-          "faithfulness": "Assesses whether the AI's response is grounded in and faithful to the provided context or source material. Higher scores indicate the model doesn't fabricate information beyond what's given.",
-          "hallucination": "Detects when the AI generates information that contradicts or isn't supported by the provided context. Lower hallucination scores indicate more trustworthy, fact-based responses.",
-          "G-Eval (Coherence)": "Evaluates how logically structured and well-organized the response is using G-Eval framework. Higher scores mean the response flows naturally, maintains consistency, and stays on topic throughout.",
-          "G-Eval (Fluency)": "Assesses how natural and smooth the language flows in the AI's response. Higher scores indicate more human-like, grammatically correct, and easy-to-read text.",
-          "G-Eval (Consistency)": "Measures whether the response maintains logical consistency throughout, without contradicting itself or previous statements. Higher scores indicate better internal coherence.",
-          "G-Eval (Relevance)": "Evaluates how well the response addresses the user's question or prompt. Higher scores mean the response stays on-topic and provides pertinent information.",
-          "G-Eval (Correctness)": "Assesses the factual accuracy and correctness of the information provided in the response. Higher scores indicate more accurate and reliable answers.",
-        };
-
-        // Map metric keys to their evaluation direction (lower-is-better vs higher-is-better)
-        const metricTypeMap: Record<string, "lower-is-better" | "higher-is-better" | "neutral"> = {
-          // Lower is better (negative metrics)
-          bias: "lower-is-better",
-          toxicity: "lower-is-better",
-          Bias: "lower-is-better",
-          Toxicity: "lower-is-better",
-          "Hallucination": "lower-is-better",
-          "hallucination": "lower-is-better",
-
-          // Higher is better (positive metrics)
-          answerCorrectness: "higher-is-better",
-          coherence: "higher-is-better",
-          tonality: "higher-is-better",
-          safety: "higher-is-better",
-          "Contextual Relevancy": "higher-is-better",
-          "Answer Relevancy": "higher-is-better",
-          "Faithfulness": "higher-is-better",
-          "Knowledge Retention": "higher-is-better",
-          "Role Adherence": "higher-is-better",
-          "Conversation Relevancy": "higher-is-better",
-          "Conversation Completeness": "higher-is-better",
-          "contextual_relevancy": "higher-is-better",
-          "answer_relevancy": "higher-is-better",
-          "faithfulness": "higher-is-better",
-          "knowledge_retention": "higher-is-better",
-          "role_adherence": "higher-is-better",
-          "conversation_relevancy": "higher-is-better",
-          "conversation_completeness": "higher-is-better",
-          "G-Eval (Coherence)": "higher-is-better",
-          "G-Eval (Fluency)": "higher-is-better",
-          "G-Eval (Consistency)": "higher-is-better",
-          "G-Eval (Relevance)": "higher-is-better",
-          "G-Eval (Correctness)": "higher-is-better",
-        };
 
         return (
           <Box sx={{ mb: 3 }}>
@@ -549,9 +517,9 @@ export default function ExperimentDetail() {
               Overall statistics
             </Typography>
               <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-                {(orderedLabels.length ? orderedLabels : Object.keys(metricsSum)).map((label) => {
-                  const rawLabel = label;
-                  const entry = metricsSum[rawLabel] || metricsSum[`G-Eval (${rawLabel})`];
+                {orderedLabels.map((label) => {
+                  const rawLabel = metricsSum[label] ? label : `G-Eval (${label})`;
+                  const entry = metricsSum[rawLabel];
                   const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
                   const count = entry ? entry.count : 0;
                   // Strip any "G-Eval (...)" prefix for display; we don't surface

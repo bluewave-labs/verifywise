@@ -65,6 +65,8 @@ export interface IEvaluationTableBodyProps {
   onRemoveModel: {
     onConfirm: (id: string) => void;
   };
+  actionLabel?: string;
+  onRowClick?: (model: IEvaluationRow) => void;
 }
 
 export interface IEvaluationTableProps {
@@ -76,6 +78,8 @@ export interface IEvaluationTableProps {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
+  actionLabel?: string;
+  onRowClick?: (model: IEvaluationRow) => void;
 }
 
 export interface IEventsTableProps {

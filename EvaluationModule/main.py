@@ -45,8 +45,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=None, help="Limit number of prompts")
     parser.add_argument("--config", type=str, default=str(Path("configs/deepeval_config.yaml")), help="Path to YAML config (overridden by CLI flags)")
 
-    parser.add_argument("--model", type=str, default=os.getenv("EVAL_MODEL", "gpt-4o-mini"), help="Model name/id for inference")
-    parser.add_argument("--provider", type=str, default=os.getenv("EVAL_PROVIDER", "openai"), help="Provider: openai|huggingface|anthropic|gemini|xai|mistral|ollama")
+    parser.add_argument("--model", type=str, default=os.getenv("EVAL_MODEL"), help="Model name/id for inference")
+    parser.add_argument("--provider", type=str, default=os.getenv("EVAL_PROVIDER"), help="Provider: openai|huggingface|anthropic|gemini|xai|mistral|ollama")
 
     # Metric toggles
     parser.add_argument("--use-g-eval", action="store_true", help="Enable the 4 G‑Eval metrics (Correctness, Coherence, Tonality, Safety)")

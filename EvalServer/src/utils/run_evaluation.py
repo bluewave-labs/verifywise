@@ -18,6 +18,7 @@ evaluation_module_path = Path(__file__).parent.parent.parent.parent / "Evaluatio
 sys.path.insert(0, str((evaluation_module_path / "src").resolve()))
 
 from crud import evaluation_logs as crud
+from deepeval_engine.gatekeeper import evaluate_gate
 
 
 async def run_evaluation(
@@ -447,9 +448,10 @@ async def run_evaluation(
         simple_config = SimpleConfig()
         config_manager = type('obj', (object,), {'config': simple_config})()
         
+        output_dir = evaluation_module_path / "artifacts" / "deepeval_results"
         evaluator = DeepEvalEvaluator(
             config_manager=config_manager,
-            output_dir=str(evaluation_module_path / "artifacts" / "deepeval_results"),
+            output_dir=str(output_dir),
             metric_thresholds=thresholds_config,
         )
         
@@ -504,6 +506,40 @@ async def run_evaluation(
             test_cases_data=test_cases_data,
             metrics_config=deepeval_metrics_config,
         )
+
+        # 4.25 Run gatekeeper quality gate on the latest summary (if suite is available)
+        gatekeeper_result: dict[str, Any] | None = None
+        try:
+            suite_path = evaluation_module_path / "suits" / "suite_core.yaml"
+            latest_summary: Path | None = None
+
+            try:
+                summaries = list(Path(output_dir).glob("deepeval_summary_*.json"))
+                if summaries:
+                    latest_summary = max(summaries, key=lambda p: p.stat().st_mtime)
+            except Exception:
+                latest_summary = None
+
+            if latest_summary and suite_path.is_file():
+                print("\n🔒 Running gatekeeper quality gate...")
+                gate_result = evaluate_gate(
+                    summary_path=str(latest_summary),
+                    suite_path=str(suite_path.resolve()),
+                )
+                gatekeeper_result = gate_result.to_dict()
+                status = "PASSED" if gate_result.passed else "FAILED"
+                print(f"[Gatekeeper] {status} — checked_metrics={gate_result.checked_metrics}")
+                if gate_result.fail_reasons:
+                    print("Fail reasons:")
+                    for r in gate_result.fail_reasons:
+                        print(f"  - {r}")
+            else:
+                if not latest_summary:
+                    print("Gatekeeper skipped: no deepeval_summary_*.json found.")
+                if not suite_path.is_file():
+                    print(f"Gatekeeper skipped: suite file not found at {suite_path}")
+        except Exception as ge:
+            print(f"Gatekeeper error: {ge}")
 
         # 4.5 Persist per-log metric scores to log metadata
         try:
@@ -574,12 +610,14 @@ async def run_evaluation(
                     )
         
         # Update experiment with results
-        experiment_results = {
+        experiment_results: Dict[str, Any] = {
             "total_prompts": total_prompts,
             "avg_scores": avg_scores,
             "detailed_results": results[:10],  # Store first 10 for preview
             "completed_at": datetime.now().isoformat(),
         }
+        if gatekeeper_result is not None:
+            experiment_results["gatekeeper"] = gatekeeper_result
         
         await crud.update_experiment_status(
             db=db,

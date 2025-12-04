@@ -16,7 +16,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Box, Typography, CircularProgress, Chip, Stack, ToggleButton, ToggleButtonGroup, TextField, InputAdornment, FormControlLabel, Switch } from '@mui/material';
+import { Box, Typography, CircularProgress, Chip, Stack, ToggleButton, ToggleButtonGroup, TextField, InputAdornment, Switch } from '@mui/material';
 import { Search, AlertTriangle } from 'lucide-react';
 import { fetchEntityGraphData, EntityGraphData } from '../../../application/repository/entityGraph.repository';
 import EntityNode from './EntityNode';
@@ -61,6 +61,7 @@ interface ExtendedNodeData {
   rawData?: Record<string, unknown>;
   hasHighRisk?: boolean;
   connectedRiskCount?: number;
+  [key: string]: unknown;
 }
 
 // Generate nodes and edges from entity data
@@ -573,7 +574,7 @@ const EntityGraphInner: React.FC = () => {
   }, []);
 
   const handleNavigateToEntity = useCallback(
-    (entityType: string, id: string) => {
+    (_entityType: string, id: string) => {
       const node = nodes.find(n => n.id === id);
       if (node) {
         handleNodeClick({} as React.MouseEvent, node);

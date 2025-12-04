@@ -216,7 +216,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
         </Typography>
 
         <Stack spacing={1.5}>
-          {rawData.owner && (
+          {Boolean(rawData.owner) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <User size={14} color="#667085" />
               <Typography sx={{ fontSize: 13, color: '#667085' }}>Owner:</Typography>
@@ -226,7 +226,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
             </Box>
           )}
 
-          {rawData.target_date && (
+          {Boolean(rawData.target_date) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Calendar size={14} color="#667085" />
               <Typography sx={{ fontSize: 13, color: '#667085' }}>Target date:</Typography>
@@ -236,7 +236,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
             </Box>
           )}
 
-          {rawData.review_date && (
+          {Boolean(rawData.review_date) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Calendar size={14} color="#667085" />
               <Typography sx={{ fontSize: 13, color: '#667085' }}>Review date:</Typography>
@@ -246,7 +246,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
             </Box>
           )}
 
-          {rawData.provider && (
+          {Boolean(rawData.provider) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <LinkIcon size={14} color="#667085" />
               <Typography sx={{ fontSize: 13, color: '#667085' }}>Provider:</Typography>
@@ -256,7 +256,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
             </Box>
           )}
 
-          {rawData.description && (
+          {Boolean(rawData.description) && (
             <Box>
               <Typography sx={{ fontSize: 13, color: '#667085', mb: 0.5 }}>
                 Description:

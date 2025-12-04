@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import { csrf } from "lusca";
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
@@ -49,8 +50,6 @@ import integrationsRoutes from "./routes/integrations.route.js";
 import fileManagerRoutes from "./routes/fileManager.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
-import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
 import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 import userPreferenceRouter from "./routes/userPreference.route";
@@ -60,6 +59,7 @@ import ceMarkingRoutes from "./routes/ceMarking.route";
 import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
+import notesRoutes from "./routes/notes.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -84,14 +84,30 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl
-  );
-
   app.use(
     cors({
       origin: (origin, callback) => {
-        testOrigin({ origin, allowedOrigins, callback });
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        try {
+          const originUrl = new URL(origin);
+          const requestHost = originUrl.hostname;
+
+          // Allow if origin is from same host (localhost, 127.0.0.1, or actual host)
+          const allowedHosts = [host, 'localhost', '127.0.0.1', '::1'];
+
+          if (allowedHosts.includes(requestHost)) {
+            return callback(null, true);
+          }
+
+          // Reject other origins
+          return callback(new Error("Not allowed by CORS"));
+        } catch (error) {
+          return callback(new Error("Invalid origin"));
+        }
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
@@ -106,6 +122,7 @@ try {
     express.json()(req, res, next);
   });
   app.use(cookieParser());
+  // app.use(csrf());
 
   // Routes
   app.use("/api/users", userRoutes);
@@ -165,6 +182,7 @@ try {
   app.use("/api/search", searchRoutes);
   app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
+  app.use("/api/notes", notesRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

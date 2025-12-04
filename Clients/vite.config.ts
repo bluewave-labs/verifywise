@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import svgr from "@svgr/rollup";
 import { version } from "./package.json"
+import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,6 +10,11 @@ export default defineConfig({
     react(),
     svgr(),
   ],
+  resolve: {
+    alias: {
+      "@user-guide-content": path.resolve(__dirname, "../shared/user-guide-content"),
+    },
+  },
   server: {
     host: "0.0.0.0",
     port: process.env.VITE_APP_PORT

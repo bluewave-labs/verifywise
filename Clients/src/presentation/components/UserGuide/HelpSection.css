@@ -1,0 +1,10 @@
+/* HelpSection styles */
+
+.help-card {
+  transition: all 150ms ease;
+}
+
+.help-card:hover {
+  border-color: #13715B;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+}

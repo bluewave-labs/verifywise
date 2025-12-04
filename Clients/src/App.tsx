@@ -27,6 +27,8 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SidebarWrapper } from "./presentation/components/UserGuide";
+import { useUserGuideSidebar } from "./presentation/components/UserGuide/useUserGuideSidebar";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -60,6 +62,7 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+  const userGuideSidebar = useUserGuideSidebar();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
@@ -232,6 +235,14 @@ function App() {
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>
+
+              {/* User Guide Sidebar */}
+              <SidebarWrapper
+                isOpen={userGuideSidebar.isOpen}
+                onClose={userGuideSidebar.close}
+                onOpen={userGuideSidebar.open}
+                initialPath={userGuideSidebar.currentPath}
+              />
             </ConditionalThemeWrapper>
           </VerifyWiseContext.Provider>
         </PersistGate>

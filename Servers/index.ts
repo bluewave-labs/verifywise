@@ -59,6 +59,9 @@ import evidenceHubRouter from "./routes/evidenceHub.route";
 import ceMarkingRoutes from "./routes/ceMarking.route";
 import advisorRouter from "./routes/advisor.route";
 import searchRoutes from "./routes/search.route";
+import deepEvalRoutes from "./routes/deepEvalRoutes.route";
+import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
+import notesRoutes from "./routes/notes.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -114,7 +117,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/api/bias_and_fairness/")) {
+    if (req.url.includes("/api/bias_and_fairness/") || req.url.includes("/api/deepeval/")) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -181,6 +184,9 @@ try {
   app.use("/api/ai-incident-managements", aiIncidentRouter);
   app.use("/api/ce-marking", ceMarkingRoutes);
   app.use("/api/search", searchRoutes);
+  app.use("/api/deepeval", deepEvalRoutes());
+  app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
+  app.use("/api/notes", notesRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

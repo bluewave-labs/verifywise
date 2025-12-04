@@ -1,0 +1,37 @@
+/* UserGuideLanding styles - hover states */
+
+/* Collection card hover */
+.collection-card {
+  transition: all 150ms ease;
+}
+
+.collection-card:hover {
+  border-color: #13715B;
+  box-shadow: 0px 4px 24px -4px rgba(16, 24, 40, 0.08);
+}
+
+/* Fast find item hover */
+.fast-find-item {
+  transition: all 150ms ease;
+}
+
+.fast-find-item:hover {
+  background-color: #f9fafb;
+}
+
+.fast-find-item .arrow-icon {
+  transition: all 150ms ease;
+}
+
+.fast-find-item:hover .arrow-icon {
+  color: #13715B;
+}
+
+/* Search input focus */
+.search-input:focus {
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #667085;
+}

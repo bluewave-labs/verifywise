@@ -21,6 +21,7 @@ export default defineConfig({
       ? parseInt(process.env.VITE_APP_PORT)
       : 5173,
     proxy: {
+      // Forward all API requests to Node.js server which handles auth and proxies to FastAPI
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,

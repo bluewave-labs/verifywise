@@ -842,7 +842,8 @@ export const createNewTenant = async (
     );
 
     // Create model_inventory_change_history table for tracking changes
-    await sequelize.query(`
+    await sequelize.query(
+      `
       CREATE TABLE IF NOT EXISTS "${tenantHash}".model_inventory_change_history (
         id SERIAL PRIMARY KEY,
         model_inventory_id INTEGER NOT NULL REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
@@ -853,13 +854,17 @@ export const createNewTenant = async (
         changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
         changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      );`, { transaction });
+      );`,
+      { transaction }
+    );
 
     // Create indexes for model_inventory_change_history
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_model_id ON "${tenantHash}".model_inventory_change_history(model_inventory_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_changed_at ON "${tenantHash}".model_inventory_change_history(changed_at DESC);`
-    ].map(query => sequelize.query(query, { transaction })));
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_model_id ON "${tenantHash}".model_inventory_change_history(model_inventory_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_${tenantHash}_model_inventory_change_history_changed_at ON "${tenantHash}".model_inventory_change_history(changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
 
     await sequelize.query(
       `
@@ -1274,6 +1279,176 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX share_links_created_by_idx ON "${tenantHash}".share_links(created_by);`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_markings (
+      id SERIAL PRIMARY KEY,
+      project_id INTEGER NOT NULL REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE,
+
+      -- Classification and scope
+      is_high_risk_ai_system BOOLEAN DEFAULT false,
+      role_in_product VARCHAR(50) DEFAULT 'standalone',
+      annex_iii_category VARCHAR(50) DEFAULT 'annex_iii_5',
+
+      -- EU AI Act completion (calculated fields, stored for performance)
+      controls_completed INTEGER DEFAULT 0,
+      controls_total INTEGER DEFAULT 0,
+      assessments_completed INTEGER DEFAULT 0,
+      assessments_total INTEGER DEFAULT 0,
+
+      -- Declaration of conformity
+      declaration_status VARCHAR(50) DEFAULT 'draft',
+      signed_on DATE,
+      signatory VARCHAR(255),
+      declaration_document TEXT,
+
+      -- EU registration
+      registration_status VARCHAR(50) DEFAULT 'not_registered',
+      eu_registration_id VARCHAR(255),
+      registration_date DATE,
+      eu_record_url TEXT,
+
+      -- Policies and evidence (counts for now, relations later)
+      policies_linked INTEGER DEFAULT 0,
+      evidence_linked INTEGER DEFAULT 0,
+
+      -- Incidents (counts for now, relations later)
+      total_incidents INTEGER DEFAULT 0,
+      ai_act_reportable_incidents INTEGER DEFAULT 0,
+      last_incident TEXT,
+
+      -- Metadata
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by INTEGER REFERENCES public.users(id),
+      updated_by INTEGER REFERENCES public.users(id),
+
+      CONSTRAINT unique_project_ce_marking UNIQUE(project_id)
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_conformity_steps (
+      id SERIAL PRIMARY KEY,
+      ce_marking_id INTEGER NOT NULL REFERENCES "${tenantHash}".ce_markings(id) ON DELETE CASCADE,
+      step_number INTEGER NOT NULL,
+      step_name VARCHAR(255) NOT NULL,
+      description TEXT,
+      status VARCHAR(50) DEFAULT 'Not started',
+      owner VARCHAR(255),
+      due_date DATE,
+      completed_date DATE,
+
+      -- Metadata
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+
+      CONSTRAINT unique_ce_marking_step UNIQUE(ce_marking_id, step_number)
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_audit_trail (
+      id SERIAL PRIMARY KEY,
+      ce_marking_id INTEGER NOT NULL REFERENCES "${tenantHash}".ce_markings(id) ON DELETE CASCADE,
+      field_name VARCHAR(255) NOT NULL,
+      old_value TEXT,
+      new_value TEXT,
+      changed_by INTEGER REFERENCES public.users(id),
+      changed_at TIMESTAMP DEFAULT NOW(),
+      change_type VARCHAR(50) -- 'create', 'update', 'delete'
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_policies (
+      id SERIAL PRIMARY KEY,
+      ce_marking_id INTEGER NOT NULL,
+      policy_id INTEGER NOT NULL,
+      linked_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      linked_by INTEGER NOT NULL,
+      CONSTRAINT fk_ce_marking_policies_ce_marking
+        FOREIGN KEY (ce_marking_id)
+        REFERENCES "${tenantHash}".ce_markings (id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+      );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_evidences (
+      id SERIAL PRIMARY KEY,
+      ce_marking_id INTEGER NOT NULL,
+      file_id INTEGER NOT NULL,
+      linked_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      linked_by INTEGER NOT NULL,
+      CONSTRAINT fk_ce_marking_evidences_ce_marking
+        FOREIGN KEY (ce_marking_id)
+        REFERENCES "${tenantHash}".ce_markings (id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ce_marking_incidents (
+      id SERIAL PRIMARY KEY,
+      ce_marking_id INTEGER NOT NULL,
+      incident_id INTEGER NOT NULL,
+      linked_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      linked_by INTEGER NOT NULL,
+
+      CONSTRAINT fk_ce_marking_incidents_ce_marking
+        FOREIGN KEY (ce_marking_id)
+        REFERENCES "${tenantHash}".ce_markings (id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
+      CONSTRAINT fk_ce_marking_incidents_incident
+        FOREIGN KEY (incident_id)
+        REFERENCES "${tenantHash}".ai_incident_managements (id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+    );`,
+      { transaction }
+    );
+
+    // Create notes table for collaborative annotation system
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".notes (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        author_id INTEGER NOT NULL,
+        attached_to VARCHAR(50) NOT NULL,
+        attached_to_id VARCHAR(255) NOT NULL,
+        organization_id INTEGER NOT NULL,
+        is_edited BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for notes table
+    await sequelize.query(
+      `CREATE INDEX idx_notes_entity ON "${tenantHash}".notes(attached_to, attached_to_id, organization_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX idx_notes_author ON "${tenantHash}".notes(author_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX idx_notes_organization ON "${tenantHash}".notes(organization_id);`,
       { transaction }
     );
 

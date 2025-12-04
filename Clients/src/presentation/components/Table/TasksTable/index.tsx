@@ -316,8 +316,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   cursor: isArchived ? "default" : "pointer",
+                  backgroundColor: isArchived ? "rgba(0, 0, 0, 0.02)" : "transparent",
+                  opacity: isArchived ? 0.7 : 1,
                   "&:hover": {
-                    backgroundColor: "#f5f5f5",
+                    backgroundColor: isArchived ? "rgba(0, 0, 0, 0.04)" : "#f5f5f5",
                   },
                 }}
                 onClick={() => !isArchived && onRowClick?.(task)}
@@ -333,7 +335,11 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   <Box>
                     <Typography
                       variant="body2"
-                      sx={{ textTransform: "capitalize" }}
+                      sx={{
+                        textTransform: "capitalize",
+                        textDecoration: isArchived ? "line-through" : "none",
+                        color: isArchived ? "#9ca3af" : "inherit",
+                      }}
                     >
                       {task.title}
                     </Typography>
@@ -547,8 +553,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
-                    warningTitle="Archive this task?"
-                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'include archived' toggle."
+                    warningTitle="Archive task?"
+                    warningMessage={`This task will be hidden from your active task list. You can restore "${task.title}" anytime from the archived view.`}
                     type="Task"
                     isArchived={task.status === TaskStatus.DELETED}
                     onRestore={onRestore ? () => onRestore(task.id!) : undefined}

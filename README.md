@@ -20,26 +20,26 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 ## Screenshots
 
 Main dashboard
-<img width="1524" height="869" alt="image" src="https://github.com/user-attachments/assets/6fd97359-81f2-482e-a339-8ab9f4eaa8b1" />
+<img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" />
 
-Bias & fairness module 
-<img width="1527" height="874" alt="image" src="https://github.com/user-attachments/assets/dd4e0ffc-198d-450e-a8a8-21a3cf0ea456" />
+LLM Evals 
+<img width="1598" height="859" alt="image" src="https://github.com/user-attachments/assets/4e6aff6c-0254-4a28-a09f-6fc804a57f23" />
 
 EU AI Act project view 
-
-<img width="1522" height="865" alt="image" src="https://github.com/user-attachments/assets/09ad8c69-8cc0-4304-b579-be77806505a9" />
+<img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/07b8f0e8-6358-4094-b17e-69cb347d622f" />
 
 Risk management
+<img width="1637" height="864" alt="image" src="https://github.com/user-attachments/assets/45c16d83-0e3b-4a71-814e-d7bdeaa492fd" />
 
-<img width="1532" height="869" alt="image" src="https://github.com/user-attachments/assets/0b2f0ed4-e82d-44d3-b032-a04451593f28" />
+Model inventory 
+<img width="1637" height="861" alt="image" src="https://github.com/user-attachments/assets/225e10d1-845a-4437-b90f-ce97106c3688" />
 
-AI trust center
-
-<img width="1528" height="870" alt="image" src="https://github.com/user-attachments/assets/19c633cd-02ae-47ad-b920-ef53979d6f2f" />
+Model risks
+<img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/cf67a9ae-c9f6-4eff-a0c3-5fc1dbe4b994" />
 
 Policy manager
+<img width="1633" height="861" alt="image" src="https://github.com/user-attachments/assets/2ef1bcc8-e6e6-47de-9291-2157ff1ed35c" />
 
-<img width="1634" height="901" alt="image" src="https://github.com/user-attachments/assets/d2260c04-9ab9-4d5b-b0f7-e9a68487e9c0" />
 
 
 ## Features

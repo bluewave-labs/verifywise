@@ -9,7 +9,7 @@ const EntityGraphSteps: IPageTourStep[] = [
       body: "This interactive graph shows how your use cases, models, vendors, risks, controls, and evidence are connected. Click and drag to explore.",
       icon: <Sparkles size={20} color="#ffffff" />,
     },
-    placement: "center",
+    placement: "center" as const,
   },
   {
     target: '[data-joyride-id="entity-search"]',

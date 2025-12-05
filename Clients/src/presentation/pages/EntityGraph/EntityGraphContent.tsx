@@ -17,7 +17,6 @@ import {
   type Node,
   type Edge,
   BackgroundVariant,
-  Position,
   MarkerType,
   Panel,
   useReactFlow,
@@ -28,18 +27,10 @@ import '@xyflow/react/dist/style.css';
 import {
   Box,
   Typography,
-  Chip,
-  Stack,
   ToggleButton,
   ToggleButtonGroup,
   LinearProgress,
-  IconButton,
 } from '@mui/material';
-import {
-  AlertTriangle,
-  X,
-} from 'lucide-react';
-import Toggle from '../../components/Inputs/Toggle';
 import SearchBox from '../../components/Search/SearchBox';
 import { fetchEntityGraphData, EntityGraphData } from '../../../application/repository/entityGraph.repository';
 import EntityNode, { EntityType } from './EntityNode';
@@ -279,9 +270,10 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
 
     setSelectedEntity({
       id: node.id,
-      type: data.entityType,
+      entityType: data.entityType,
       label: data.label,
       sublabel: data.sublabel,
+      color: data.color,
       status: data.status,
       riskLevel: data.riskLevel,
       rawData,
@@ -421,6 +413,7 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
         <DetailSidebar
           entity={selectedEntity}
           onClose={() => setSelectedEntity(null)}
+          onNavigateToEntity={() => {}}
         />
       )}
     </Box>

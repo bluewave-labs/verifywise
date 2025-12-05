@@ -11,7 +11,6 @@ import {
   Typography,
   useTheme,
   Box,
-  Stack,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";

@@ -28,8 +28,6 @@ import {
   Button,
   Menu,
   MenuItem,
-  Divider as MuiDivider,
-  Checkbox,
   IconButton,
   List,
   ListItem,
@@ -51,7 +49,6 @@ import {
   FolderOpen,
   Trash2,
   ChevronDown,
-  ChevronUp,
   Sparkles,
   AlertCircle,
   Zap,
@@ -227,15 +224,17 @@ const gapTemplates = {
   },
 };
 
-// Gap severity colors and labels
-const gapSeverityConfig: Record<GapSeverity, { color: string; bgColor: string; label: string }> = {
+// Gap severity colors and labels (for future gap visualization UI)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gapSeverityConfig: Record<GapSeverity, { color: string; bgColor: string; label: string }> = {
   critical: { color: '#dc2626', bgColor: '#fef2f2', label: 'Critical' },
   warning: { color: '#f59e0b', bgColor: '#fffbeb', label: 'Warning' },
   info: { color: '#3b82f6', bgColor: '#eff6ff', label: 'Info' },
 };
 
-// Gap requirement labels
-const gapRequirementLabels: Record<string, string> = {
+// Gap requirement labels (for future gap visualization UI)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gapRequirementLabels: Record<string, string> = {
   has_risk: 'Missing risk assessment',
   has_control: 'Missing control',
   has_owner: 'Missing owner',
@@ -3405,7 +3404,7 @@ const EntityGraphInner: React.FC = () => {
           }
         }}
         submitButtonText="Load"
-        submitButtonDisabled={!selectedViewToLoad}
+        isSubmitting={!selectedViewToLoad}
       >
         {savedViews.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>

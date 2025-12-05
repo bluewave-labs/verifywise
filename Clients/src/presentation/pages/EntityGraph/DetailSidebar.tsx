@@ -7,6 +7,7 @@ import {
   Stack,
 } from '@mui/material';
 import Chip from '../../components/Chip';
+import { Chip as MuiChip } from '@mui/material';
 import {
   X,
   ExternalLink,
@@ -30,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { EntityType, riskLevelColors } from './EntityNode';
+import { EntityType } from './EntityNode';
 import { VWLink } from '../../components/Link';
 
 export interface EntityDetails {
@@ -77,21 +78,6 @@ const entityRoutes: Record<EntityType, string> = {
   evidence: '/file-manager',
   framework: '/framework',
   user: '/settings',
-};
-
-const statusColors: Record<string, string> = {
-  'Approved': '#4caf50',
-  'Pending': '#ff9800',
-  'Restricted': '#f44336',
-  'Blocked': '#9c27b0',
-  'Open': '#2196f3',
-  'In Progress': '#ff9800',
-  'Resolved': '#4caf50',
-  'Accepted': '#8bc34a',
-  'Not started': '#9e9e9e',
-  'In review': '#ff9800',
-  'Reviewed': '#4caf50',
-  'Requires follow-up': '#f44336',
 };
 
 // Helper function to format dates
@@ -495,7 +481,7 @@ const DetailSidebar: React.FC<DetailSidebarProps> = ({
                     <Typography sx={{ fontSize: 12, color: '#667085', textTransform: 'capitalize' }}>
                       {connection.type.replace(/([A-Z])/g, ' $1').trim()}s
                     </Typography>
-                    <Chip
+                    <MuiChip
                       size="small"
                       label={String(connection.count)}
                       sx={{ height: 20, fontSize: 11, backgroundColor: '#e5e7eb' }}

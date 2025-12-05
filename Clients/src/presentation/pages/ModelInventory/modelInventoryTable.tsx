@@ -18,6 +18,7 @@ import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
+import ViewRelationshipsButton from "../../components/ViewRelationshipsButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown } from "lucide-react";
@@ -314,44 +315,51 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     position: "sticky",
                     right: 0,
                     zIndex: 10,
-                    minWidth: "50px",
+                    minWidth: "80px",
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <CustomIconButton
-                      id={modelInventory.id || 0}
-                      onDelete={() =>
-                        onDelete?.(modelInventory.id?.toString() || "")
-                      }
-                      onEdit={() => {
-                        onEdit?.(modelInventory.id?.toString() || "");
-                      }}
-                      onMouseEvent={() => {}}
-                      warningTitle="Delete this model?"
-                      warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
-                      type=""
-                      checkForRisks={
-                        onCheckModelHasRisks
-                          ? () =>
-                              onCheckModelHasRisks(
-                                modelInventory.id?.toString() || "0"
-                              )
-                          : undefined
-                      }
-                      onDeleteWithRisks={
-                        onDelete
-                          ? (deleteRisks: boolean) =>
-                              onDelete(
-                                modelInventory.id?.toString() || "",
-                                deleteRisks
-                              )
-                          : undefined
-                      }
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={modelInventory.id || 0}
+                      entityType="model"
+                      entityLabel={modelInventory.model || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <CustomIconButton
+                        id={modelInventory.id || 0}
+                        onDelete={() =>
+                          onDelete?.(modelInventory.id?.toString() || "")
+                        }
+                        onEdit={() => {
+                          onEdit?.(modelInventory.id?.toString() || "");
+                        }}
+                        onMouseEvent={() => {}}
+                        warningTitle="Delete this model?"
+                        warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
+                        type=""
+                        checkForRisks={
+                          onCheckModelHasRisks
+                            ? () =>
+                                onCheckModelHasRisks(
+                                  modelInventory.id?.toString() || "0"
+                                )
+                            : undefined
+                        }
+                        onDeleteWithRisks={
+                          onDelete
+                            ? (deleteRisks: boolean) =>
+                                onDelete(
+                                  modelInventory.id?.toString() || "",
+                                  deleteRisks
+                                )
+                            : undefined
+                        }
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))

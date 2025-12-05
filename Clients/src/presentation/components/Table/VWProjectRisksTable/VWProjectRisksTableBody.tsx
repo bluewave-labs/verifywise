@@ -1,10 +1,11 @@
-import { TableBody, TableCell, TableRow, Dialog, useTheme } from "@mui/material";
+import { TableBody, TableCell, TableRow, Dialog, useTheme, Stack } from "@mui/material";
 import { VWLink } from "../../Link";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import IconButton from "../../IconButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
@@ -276,17 +277,24 @@ const VWProjectRisksTableBody = ({
                       : "",
                   }}
                 >
-                  {isDeletingAllowed && (
-                    <IconButton
-                      id={row.id!}
-                      type="risk"
-                      onMouseEvent={(e) => handleEditRisk(row, e)}
-                      onDelete={() => handleDeleteRisk(row.id!)}
-                      onEdit={() => handleEditRisk(row)}
-                      warningTitle="Delete this project risk?"
-                      warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={(row.id || 0) + 100000}
+                      entityType="risk"
+                      entityLabel={row.risk_name?.substring(0, 30) || undefined}
                     />
-                  )}
+                    {isDeletingAllowed && (
+                      <IconButton
+                        id={row.id!}
+                        type="risk"
+                        onMouseEvent={(e) => handleEditRisk(row, e)}
+                        onDelete={() => handleDeleteRisk(row.id!)}
+                        onEdit={() => handleEditRisk(row)}
+                        warningTitle="Delete this project risk?"
+                        warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
+                      />
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

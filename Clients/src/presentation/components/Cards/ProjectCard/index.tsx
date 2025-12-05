@@ -1,5 +1,6 @@
 import { Stack, Typography, Tooltip, Link } from "@mui/material";
 import CustomizableButton from "../../Button/CustomizableButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon, ExternalLink } from "lucide-react";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import {
@@ -474,7 +475,12 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
           </Stack>
         )}
         {/* View Project Details Button */}
-        <Stack sx={{ mt: 0, mb: 0, alignItems: "flex-end" }}>
+        <Stack direction="row" sx={{ mt: 0, mb: 0, justifyContent: "flex-end", gap: 1 }}>
+          <ViewRelationshipsButton
+            entityId={project.id}
+            entityType="useCase"
+            entityLabel={project.project_title}
+          />
           <Tooltip title="View project details" sx={{ fontSize: 13 }}>
             <CustomizableButton
               variant="contained"

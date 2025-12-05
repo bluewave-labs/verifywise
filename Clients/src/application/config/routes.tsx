@@ -22,6 +22,9 @@ import VWHome from "../../presentation/pages/Home/1.0Home";
 import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
 import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
+import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
+import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
+import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
 import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
@@ -41,6 +44,8 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import EntityGraph from "../../presentation/pages/EntityGraph";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -49,6 +54,8 @@ export const createRoutes = (
   triggerSidebar: boolean,
   triggerSidebarReload: () => void
 ) => [
+  // ReactFlow Demo - Development only (must be before dashboard route)
+  ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
   <Route
     key="dashboard"
     path="/"
@@ -78,6 +85,10 @@ export const createRoutes = (
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
+    <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
+    <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
+    <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
+    <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
@@ -100,6 +111,7 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/entity-graph" element={<EntityGraph />} />
   </Route>,
   <Route
     key="admin-reg"

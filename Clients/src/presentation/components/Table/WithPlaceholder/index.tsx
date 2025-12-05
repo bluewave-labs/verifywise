@@ -10,9 +10,11 @@ import {
   Typography,
   TableFooter,
   Box,
+  Stack,
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
+import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import EmptyState from "../../EmptyState";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
@@ -452,17 +454,25 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     right: 0,
                     zIndex: 10,
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <IconButton
-                    id={row.id!}
-                    onDelete={() => onDelete(row.id)}
-                    onEdit={() => onEdit(row.id)}
-                    onMouseEvent={() => {}}
-                    warningTitle="Delete this vendor?"
-                    warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
-                    type="Vendor"
-                    canDelete={isDeletingAllowed} // pass down as a prop
-                  />
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={row.id || 0}
+                      entityType="vendor"
+                      entityLabel={row.vendor_name || undefined}
+                    />
+                    <IconButton
+                      id={row.id!}
+                      onDelete={() => onDelete(row.id)}
+                      onEdit={() => onEdit(row.id)}
+                      onMouseEvent={() => {}}
+                      warningTitle="Delete this vendor?"
+                      warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
+                      type="Vendor"
+                      canDelete={isDeletingAllowed} // pass down as a prop
+                    />
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

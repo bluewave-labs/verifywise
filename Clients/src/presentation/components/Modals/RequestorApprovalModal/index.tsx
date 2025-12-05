@@ -13,6 +13,7 @@ import StepDetailsModal from './StepDetailsModal';
 import { getStepDetails, IMenuItemExtended, IStepDetails } from './mockData';
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
+import DualButtonModal from "../../Dialogs/DualButtonModal";
 
 import {
     getMenuGroups,
@@ -82,6 +83,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     const [selectedStepDetails, setSelectedStepDetails] = useState<IStepDetails | null>(null);
     const [selectedItem, setSelectedItem] = useState<IMenuItemExtended | null>(null);
     const [comment, setComment] = useState<string>("");
+    const [isWithdrawConfirmationOpen, setIsWithdrawConfirmationOpen] = useState(false);
 
 
     const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
@@ -123,10 +125,19 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
 
     const handleWithdraw = () => {
         // TODO: API call to withdraw the request
-        console.log("Withdraw clicked");
+        setIsWithdrawConfirmationOpen(false);
+        console.log("Withdraw confirmed - API call will be made here");
 
         onClose();
     };
+
+    const handleWithdrawClick = () => {
+        setIsWithdrawConfirmationOpen(true);
+    };
+
+    const handleWithdrawCancel = () => {
+        setIsWithdrawConfirmationOpen(false);
+    }
 
     const renderCustomFooter = () => {
         if (isRequestor) {
@@ -136,7 +147,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     <CustomizableButton
                         variant="outlined"
                         text="Withdraw"
-                        onClick={handleWithdraw}
+                        onClick={handleWithdrawClick}
                         sx={{
                             minWidth: "100px",
                             height: "34px",
@@ -210,7 +221,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             maxWidth="900px"
-            title={isRequestor ? "Approval Request" : "Approval requests"}
+            title={isRequestor ? "Approval requests" : "Approval requests"}
             description="Manage and review your requestor approvals."
             customFooter={renderCustomFooter()}
         >
@@ -582,7 +593,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 placeholder="Add comment"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
-                              
+
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         fontSize: '14px',
@@ -608,6 +619,22 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     setSelectedStepDetails(null);
                 }}
                 stepDetails={selectedStepDetails}
+            />
+            <DualButtonModal
+                isOpen={isWithdrawConfirmationOpen}
+                title="Confirm Withdrawal"
+                body={
+                    <Typography fontSize={13}>
+                        Are you sure you want to withdraw this approval request? This action cannot be undone.
+                    </Typography>
+                }
+                cancelText="Cancel"
+                proceedText="Withdraw"
+                onCancel={handleWithdrawCancel}
+                onProceed={handleWithdraw}
+                proceedButtonColor="error"
+                proceedButtonVariant="contained"
+                TitleFontSize={16}
             />
         </StandardModal>
     )

@@ -153,8 +153,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   // Prefetch history data when modal opens in edit mode
   useEntityChangeHistory(
     "vendor",
-    existingVendor?.id || 0,
-    { enabled: !!existingVendor?.id && isOpen }
+    existingVendor?.id
   );
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);

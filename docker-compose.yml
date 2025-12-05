@@ -3,9 +3,6 @@ version: "3.9"
 services:
   backend:
     container_name: verifywise-backend
-    depends_on:
-      - postgresdb
-      - redis
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
     ports:
@@ -48,9 +45,6 @@ services:
 
   worker:
     container_name: verifywise-worker
-    depends_on:
-      - postgresdb
-      - redis
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
     command: ["node", "dist/jobs/worker.js"]
@@ -70,7 +64,6 @@ services:
     container_name: verifywise-bias-and-fairness-backend
     depends_on:
       - backend
-      - redis
     image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
     # pull_policy: always
     # ports:

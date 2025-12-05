@@ -24,7 +24,7 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
 
 const ISO42001Clauses = ({
-  project,
+  project: _project,
   projectFrameworkId,
   statusFilter,
 }: {
@@ -47,7 +47,7 @@ const ISO42001Clauses = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [_selectedIndex, setSelectedIndex] = useState<number>(0);
   const [clauseProgress, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
@@ -290,14 +290,12 @@ const ISO42001Clauses = ({
             }
             handleDrawerClose();
           }}
-          subClause={selectedSubClause}
+          subclause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={projectFrameworkId}
-          project_id={project.id}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
-          index={selectedIndex}
         />
       )}
     </Stack>

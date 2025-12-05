@@ -224,24 +224,6 @@ const gapTemplates = {
   },
 };
 
-// Gap severity colors and labels (for future gap visualization UI)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _gapSeverityConfig: Record<GapSeverity, { color: string; bgColor: string; label: string }> = {
-  critical: { color: '#dc2626', bgColor: '#fef2f2', label: 'Critical' },
-  warning: { color: '#f59e0b', bgColor: '#fffbeb', label: 'Warning' },
-  info: { color: '#3b82f6', bgColor: '#eff6ff', label: 'Info' },
-};
-
-// Gap requirement labels (for future gap visualization UI)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _gapRequirementLabels: Record<string, string> = {
-  has_risk: 'Missing risk assessment',
-  has_control: 'Missing control',
-  has_owner: 'Missing owner',
-  has_evidence: 'Missing evidence',
-  has_risk_assessment: 'Missing risk assessment',
-  has_severity: 'Missing severity rating',
-};
 
 // TODO: Enable gap age visualization when PR #2784 (timestamps) is merged
 // function getGapAgeColor(daysSinceCreation: number): string {
@@ -1364,7 +1346,7 @@ const EntityGraphInner: React.FC = () => {
   const [exporting, setExporting] = useState(false);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { fitView, setCenter, getNodes } = useReactFlow();
+  const { fitView, setCenter } = useReactFlow();
   const { focusEntity } = useEntityGraphFocus();
   const hasFocusedOnEntity = useRef(false);
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
@@ -1999,12 +1981,6 @@ const EntityGraphInner: React.FC = () => {
   }, [savedViews]);
 
   // Phase 4: Gap detection handlers
-  const handleGapRuleToggle = useCallback((index: number) => {
-    setGapRules(prev => prev.map((rule, i) =>
-      i === index ? { ...rule, enabled: !rule.enabled } : rule
-    ));
-  }, []);
-
   const handleApplyGapTemplate = useCallback((templateKey: string) => {
     const template = gapTemplates[templateKey as keyof typeof gapTemplates];
     if (template) {

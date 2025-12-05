@@ -17,7 +17,6 @@ import {
   type Node,
   type Edge,
   BackgroundVariant,
-  MarkerType,
   Panel,
   useReactFlow,
   ReactFlowProvider,
@@ -48,30 +47,8 @@ const entityColors: Record<EntityType, string> = {
   user: '#795548',
 };
 
-// Risk level priority for coloring
-const riskPriority: Record<string, number> = {
-  'Critical': 4,
-  'Very high risk': 4,
-  'High': 3,
-  'High risk': 3,
-  'Medium': 2,
-  'Medium risk': 2,
-  'Low': 1,
-  'Low risk': 1,
-  'Very low risk': 0,
-};
-
 const nodeTypes = {
   entity: EntityNode,
-};
-
-const relationshipTypes = {
-  'used by': { color: '#2196F3', description: 'Model is used by a use case' },
-  'supplies': { color: '#9c27b0', description: 'Vendor supplies to a use case' },
-  'affects': { color: '#f44336', description: 'Risk affects an entity' },
-  'protects': { color: '#00bcd4', description: 'Control protects a use case' },
-  'supports': { color: '#ff9800', description: 'Evidence supports a control' },
-  'complies with': { color: '#607d8b', description: 'Model complies with framework' },
 };
 
 interface ExtendedNodeData {
@@ -95,12 +72,10 @@ export interface EntityGraphContentProps {
 }
 
 const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
-  isModal = false,
   focusEntityId,
-  focusEntityType,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [edges, , onEdgesChange] = useEdgesState<Edge>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [entityData, setEntityData] = useState<EntityGraphData | null>(null);
@@ -109,15 +84,11 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
   ]);
   const [selectedEntity, setSelectedEntity] = useState<EntityDetails | null>(null);
   const [entityLookup, setEntityLookup] = useState<Map<string, Record<string, unknown>>>(new Map());
-  const [showProblemsOnly, setShowProblemsOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [visibleRelationships, setVisibleRelationships] = useState<string[]>(
-    Object.keys(relationshipTypes)
-  );
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { fitView, setCenter, getNode } = useReactFlow();
+  const { fitView, setCenter } = useReactFlow();
   const hasFocused = useRef(false);
 
   // Debounce search query
@@ -163,20 +134,19 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
     if (!entityData) return;
 
     const newNodes: Node[] = [];
-    const newEdges: Edge[] = [];
     const nodePositions = new Map<string, { x: number; y: number }>();
 
     // Calculate layout positions (simple grid for now)
     let xOffset = 0;
-    let yOffset = 0;
     const SPACING_X = 250;
     const SPACING_Y = 150;
     const NODES_PER_ROW = 6;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addNodes = (items: any[], type: EntityType, typeKey: string) => {
       if (!visibleEntities.includes(typeKey)) return;
 
-      items?.forEach((item, index) => {
+      items?.forEach((item) => {
         const nodeId = `${type}-${item.id}`;
         const isFocusedNode = focusEntityId === nodeId;
 
@@ -217,36 +187,13 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
     addNodes(entityData.controls, 'control', 'controls');
     addNodes(entityData.evidence, 'evidence', 'evidence');
 
-    // Add edges from relationships
-    entityData.relationships?.forEach((rel, index) => {
-      const sourceId = `${rel.sourceType}-${rel.sourceId}`;
-      const targetId = `${rel.targetType}-${rel.targetId}`;
-
-      if (nodePositions.has(sourceId) && nodePositions.has(targetId)) {
-        const relType = rel.relationshipType || 'relates to';
-        if (!visibleRelationships.includes(relType)) return;
-
-        newEdges.push({
-          id: `edge-${index}`,
-          source: sourceId,
-          target: targetId,
-          label: relType,
-          style: { stroke: '#94a3b8', strokeWidth: 1.5 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8' },
-          labelStyle: { fontSize: 10, fill: '#64748b' },
-          labelBgStyle: { fill: '#fff', fillOpacity: 0.8 },
-        });
-      }
-    });
-
     setNodes(newNodes);
-    setEdges(newEdges);
 
     // Fit view after layout
     setTimeout(() => {
       fitView({ padding: 0.2, duration: 300 });
     }, 100);
-  }, [entityData, visibleEntities, debouncedSearchQuery, visibleRelationships, focusEntityId, setNodes, setEdges, fitView]);
+  }, [entityData, visibleEntities, debouncedSearchQuery, focusEntityId, setNodes, fitView]);
 
   // Focus on specific entity when provided
   useEffect(() => {
@@ -364,7 +311,7 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
             <Box sx={{ mb: 2 }}>
               <SearchBox
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 placeholder="Search entities..."
                 sx={{ width: '100%' }}
               />

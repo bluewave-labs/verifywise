@@ -82,10 +82,6 @@ export const createRoutes = (
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
-    <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
-    <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
-    <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
-    <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />

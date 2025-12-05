@@ -65,6 +65,7 @@ Policy manager
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
+  - CE Marking registry
   - Detailed reports
   - Event logs (audits) for enterprise organizations
   - AI incident management

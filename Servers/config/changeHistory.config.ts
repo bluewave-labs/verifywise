@@ -20,7 +20,8 @@ export type EntityType =
   | "framework"
   | "evidence_hub"
   | "risk"
-  | "vendor_risk";
+  | "vendor_risk"
+  | "policy";
 
 /**
  * Field formatter function type
@@ -141,6 +142,51 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
       return "-";
     }
     return String(value);
+  },
+
+  // User array formatter (resolves array of user IDs to names)
+  userArray: async (value: any): Promise<string> => {
+    if (!value) return "-";
+
+    let userIds: number[] = [];
+    if (Array.isArray(value)) {
+      userIds = value.filter((id) => typeof id === "number");
+    } else if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          userIds = parsed.filter((id) => typeof id === "number");
+        }
+      } catch {
+        return value;
+      }
+    }
+
+    if (userIds.length === 0) return "-";
+
+    try {
+      const users: any[] = await sequelize.query(
+        `SELECT id, name, surname, email FROM public.users WHERE id IN (:userIds)`,
+        {
+          replacements: { userIds },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      if (users && users.length > 0) {
+        // Map user IDs to names in the original order
+        const userMap = new Map(
+          users.map((u) => [u.id, u.name && u.surname ? `${u.name} ${u.surname}` : u.email || `User #${u.id}`])
+        );
+        return userIds
+          .map((id) => userMap.get(id) || `User #${id}`)
+          .join(", ");
+      }
+      return userIds.map((id) => `User #${id}`).join(", ");
+    } catch (error) {
+      console.error("Error fetching users for IDs", userIds, ":", error);
+      return userIds.map((id) => `User #${id}`).join(", ");
+    }
   },
 };
 
@@ -339,6 +385,30 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     },
     fieldFormatters: {
       action_owner: GENERIC_FORMATTERS.user,
+    },
+  },
+
+  policy: {
+    tableName: "policy_change_history",
+    foreignKeyField: "policy_id",
+    fieldsToTrack: [
+      "title",
+      "status",
+      "tags",
+      "next_review_date",
+      "assigned_reviewer_ids",
+    ],
+    fieldLabels: {
+      title: "Title",
+      status: "Status",
+      tags: "Tags",
+      next_review_date: "Next review date",
+      assigned_reviewer_ids: "Assigned reviewers",
+    },
+    fieldFormatters: {
+      tags: GENERIC_FORMATTERS.array,
+      next_review_date: GENERIC_FORMATTERS.date,
+      assigned_reviewer_ids: GENERIC_FORMATTERS.userArray,
     },
   },
 };

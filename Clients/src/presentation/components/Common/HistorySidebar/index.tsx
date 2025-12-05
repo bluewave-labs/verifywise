@@ -30,6 +30,7 @@ interface HistorySidebarProps {
   isOpen: boolean;
   entityType: EntityType;
   entityId?: number;
+  height?: string | number;
 }
 
 /**
@@ -80,6 +81,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   entityType,
   entityId,
+  height = "560px",
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
@@ -457,7 +459,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        alignSelf: "flex-start",
+        height: "100%",
       }}
     >
       <Box
@@ -466,12 +468,12 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
-          alignSelf: "flex-start",
+          height: "100%",
         }}
       >
         <Box
           sx={{
-            height: "560px",
+            height: height,
             border: `1px solid #E0E4E9`,
             borderRadius: "8px",
             display: "flex",

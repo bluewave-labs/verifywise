@@ -15,6 +15,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
+import EnhancedTooltip from "../EnhancedTooltip";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
@@ -72,6 +73,35 @@ import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
+
+// Tooltip descriptions for sidebar menu items (used when sidebar is collapsed)
+const menuTooltipDescriptions: Record<string, string> = {
+  // Top items
+  Dashboard:
+    "View your compliance dashboard with key metrics and status overview.",
+  Tasks: "Manage and track your pending tasks and action items.",
+  // Discovery group
+  "Use Cases": "Browse and manage AI use cases and projects.",
+  "Organizational View":
+    "See the organizational hierarchy and compliance framework.",
+  Vendors: "Manage third-party vendors and their compliance status.",
+  "Model Inventory": "Catalog and track AI models in your organization.",
+  // Assurance group
+  "Risk Management": "Identify, assess, and manage AI-related risks.",
+  "Bias & Fairness": "Monitor and evaluate model fairness metrics.",
+  "LLM Evals": "Run and review evaluations for large language models.",
+  "Training Registry": "Track AI training programs and certifications.",
+  Evidence: "Store and organize compliance evidence and documents.",
+  Reporting: "Generate and view compliance reports.",
+  "AI Trust Center": "Centralized hub for AI governance and trust.",
+  // Governance group
+  "Policy Manager": "Create and manage AI policies and guidelines.",
+  "Incident Management": "Report and track AI-related incidents.",
+  // Management
+  Management: "Access settings, event tracker, and demo data options.",
+  // User options
+  Options: "View profile and account settings.",
+};
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -226,6 +256,23 @@ interface SidebarProps {
   onOpenDeleteDemoData?: () => void;
   hasDemoData?: boolean;
 }
+
+// Helper component for sidebar tooltips
+interface SidebarTooltipProps {
+  name: string;
+  children: React.ReactElement;
+}
+
+const SidebarTooltip: React.FC<SidebarTooltipProps> = ({ name, children }) => {
+  const description =
+    menuTooltipDescriptions[name] || "Navigate to this section.";
+
+  return (
+    <EnhancedTooltip title={name} content={description}>
+      {children}
+    </EnhancedTooltip>
+  );
+};
 
 const Sidebar: React.FC<SidebarProps> = ({
   onOpenCreateDemoData,
@@ -595,25 +642,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Top level items (Dashboard and Tasks) */}
         {topItems(openTasksCount).map((item) => (
-          <Tooltip
-            sx={{ fontSize: 13 }}
-            key={item.path}
-            placement="right"
-            title={collapsed ? item.name : ""}
-            slotProps={{
-              popper: {
-                modifiers: [
-                  {
-                    name: "offset",
-                    options: {
-                      offset: [0, -16],
-                    },
-                  },
-                ],
-              },
-            }}
-            disableInteractive
-          >
+          <SidebarTooltip key={item.path} name={item.name}>
             <ListItemButton
               disableRipple={
                 theme.components?.MuiListItemButton?.defaultProps?.disableRipple
@@ -773,7 +802,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 />
               )}
             </ListItemButton>
-          </Tooltip>
+          </SidebarTooltip>
         ))}
 
         {/* Items of the menu */}
@@ -801,25 +830,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
             {/* Group items */}
             {group.items.map((item) => (
-              <Tooltip
-                sx={{ fontSize: 13 }}
-                key={item.path}
-                placement="right"
-                title={collapsed ? item.name : ""}
-                slotProps={{
-                  popper: {
-                    modifiers: [
-                      {
-                        name: "offset",
-                        options: {
-                          offset: [0, -16],
-                        },
-                      },
-                    ],
-                  },
-                }}
-                disableInteractive
-              >
+              <SidebarTooltip key={item.path} name={item.name}>
                 <ListItemButton
                   disableRipple={
                     theme.components?.MuiListItemButton?.defaultProps
@@ -949,7 +960,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {item.name}
                   </ListItemText>
                 </ListItemButton>
-              </Tooltip>
+              </SidebarTooltip>
             ))}
           </React.Fragment>
         ))}
@@ -965,24 +976,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         {/* Management Dropdown Button */}
-        <Tooltip
-          sx={{ fontSize: 13 }}
-          placement="right"
-          title={collapsed ? "Management" : ""}
-          slotProps={{
-            popper: {
-              modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: [0, -16],
-                  },
-                },
-              ],
-            },
-          }}
-          disableInteractive
-        >
+        <SidebarTooltip name="Management">
           <ListItemButton
             disableRipple={
               theme.components?.MuiListItemButton?.defaultProps?.disableRipple
@@ -1119,7 +1113,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               }}
             />
           </ListItemButton>
-        </Tooltip>
+        </SidebarTooltip>
 
         {/* Management Dropdown Menu */}
         <Menu
@@ -1260,22 +1254,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       >
         {collapsed ? (
           <>
-            <Tooltip
-              sx={{ fontSize: 13 }}
+            <EnhancedTooltip
               title="Options"
-              slotProps={{
-                popper: {
-                  modifiers: [
-                    {
-                      name: "offset",
-                      options: {
-                        offset: [0, -10],
-                      },
-                    },
-                  ],
-                },
-              }}
-              disableInteractive
+              content="View profile and account settings."
             >
               <IconButton
                 onClick={openPopup}
@@ -1293,7 +1274,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   sx={{ margin: "auto" }}
                 />
               </IconButton>
-            </Tooltip>
+            </EnhancedTooltip>
           </>
         ) : (
           <>

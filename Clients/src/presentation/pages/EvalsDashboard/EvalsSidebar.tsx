@@ -1,5 +1,16 @@
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Typography } from "@mui/material";
 import { LayoutDashboard, FlaskConical, Database, Award, Settings, Building2 } from "lucide-react";
+import EnhancedTooltip from "../../components/EnhancedTooltip";
+
+// Tooltip descriptions for Evals sidebar items
+const evalsTooltipDescriptions: Record<string, string> = {
+  Overview: "View a summary of your evaluation projects, experiments, and key metrics.",
+  Experiments: "Create, run, and manage LLM evaluation experiments.",
+  Datasets: "Upload and manage test datasets for your evaluations.",
+  Scorers: "Configure scoring criteria and metrics for evaluating model outputs.",
+  Configuration: "Manage project settings, API keys, and evaluation parameters.",
+  Organizations: "Manage organization settings and team access for evaluations.",
+};
 
 interface RecentExperiment {
   id: string;
@@ -75,14 +86,19 @@ export default function EvalsSidebar({
         {sidebarItems.map((item) => {
           const isActive = activeTab === item.value;
           const isItemDisabled = disabled && item.disabledWhenNoProject;
+          const tooltipDescription = evalsTooltipDescriptions[item.label] || "Navigate to this section.";
 
           return (
-            <ListItemButton
+            <EnhancedTooltip
               key={item.value}
-              onClick={() => !isItemDisabled && onTabChange(item.value)}
-              disableRipple
-              disabled={isItemDisabled}
-              sx={{
+              title={item.label}
+              content={tooltipDescription}
+            >
+              <ListItemButton
+                onClick={() => !isItemDisabled && onTabChange(item.value)}
+                disableRipple
+                disabled={isItemDisabled}
+                sx={{
                 height: "34px",
                 gap: theme.spacing(3),
                 borderRadius: "4px",
@@ -190,7 +206,8 @@ export default function EvalsSidebar({
                   }}
                 />
               )}
-            </ListItemButton>
+              </ListItemButton>
+            </EnhancedTooltip>
           );
         })}
       </List>

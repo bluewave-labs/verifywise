@@ -18,6 +18,11 @@ import {
     validateCompleteIncidentUpdate,
     validateIncidentIdParam,
 } from "../utils/validations/incidentManagementValidation.utils";
+import {
+    recordIncidentCreation,
+    trackIncidentChanges,
+    recordMultipleFieldChanges,
+} from "../utils/incidentChangeHistory.utils";
 
 /**
  * Get all incidents
@@ -201,6 +206,18 @@ export async function createNewIncident(req: Request, res: Response) {
             req.tenantId!,
             transaction
         );
+
+        // Record creation in change history
+        if (savedIncident.id && req.userId) {
+            await recordIncidentCreation(
+                savedIncident.id,
+                req.userId,
+                req.tenantId!,
+                req.body,
+                transaction
+            );
+        }
+
         await transaction.commit();
 
         logStructured(
@@ -292,6 +309,9 @@ export async function updateIncidentById(req: Request, res: Response) {
             return res.status(404).json(STATUS_CODE[404]("Incident not found"));
         }
 
+        // Get the plain object for change tracking before updating
+        const existingData = currentIncident.toSafeJSON();
+
         Object.assign(currentIncident, { ...req.body, updated_at: new Date() });
 
         const savedIncident = await updateIncidentByIdQuery(
@@ -300,6 +320,21 @@ export async function updateIncidentById(req: Request, res: Response) {
             req.tenantId!,
             transaction
         );
+
+        // Track and record changes
+        if (req.userId) {
+            const changes = await trackIncidentChanges(existingData, req.body);
+            if (changes.length > 0) {
+                await recordMultipleFieldChanges(
+                    incidentId,
+                    req.userId,
+                    req.tenantId!,
+                    changes,
+                    transaction
+                );
+            }
+        }
+
         await transaction.commit();
 
         logStructured(

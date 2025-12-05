@@ -21,7 +21,8 @@ export type EntityType =
   | "evidence_hub"
   | "risk"
   | "vendor_risk"
-  | "policy";
+  | "policy"
+  | "incident";
 
 /**
  * Field formatter function type
@@ -409,6 +410,63 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
       tags: GENERIC_FORMATTERS.array,
       next_review_date: GENERIC_FORMATTERS.date,
       assigned_reviewer_ids: GENERIC_FORMATTERS.userArray,
+    },
+  },
+
+  incident: {
+    tableName: "incident_change_history",
+    foreignKeyField: "incident_id",
+    fieldsToTrack: [
+      "ai_project",
+      "type",
+      "severity",
+      "status",
+      "occurred_date",
+      "date_detected",
+      "reporter",
+      "categories_of_harm",
+      "affected_persons_groups",
+      "description",
+      "relationship_causality",
+      "immediate_mitigations",
+      "planned_corrective_actions",
+      "model_system_version",
+      "interim_report",
+      "archived",
+      "approval_status",
+      "approved_by",
+      "approval_date",
+      "approval_notes",
+    ],
+    fieldLabels: {
+      ai_project: "AI use case or framework",
+      type: "Incident type",
+      severity: "Severity",
+      status: "Status",
+      occurred_date: "Occurred date",
+      date_detected: "Detected date",
+      reporter: "Reporter",
+      categories_of_harm: "Categories of harm",
+      affected_persons_groups: "Affected persons / groups",
+      description: "Description",
+      relationship_causality: "Relationship / causality",
+      immediate_mitigations: "Immediate mitigations",
+      planned_corrective_actions: "Planned corrective actions",
+      model_system_version: "Model / system version",
+      interim_report: "Interim report",
+      archived: "Archived",
+      approval_status: "Approval status",
+      approved_by: "Approved by",
+      approval_date: "Approval date",
+      approval_notes: "Approval notes",
+    },
+    fieldFormatters: {
+      occurred_date: GENERIC_FORMATTERS.date,
+      date_detected: GENERIC_FORMATTERS.date,
+      approval_date: GENERIC_FORMATTERS.date,
+      interim_report: GENERIC_FORMATTERS.boolean,
+      archived: GENERIC_FORMATTERS.boolean,
+      categories_of_harm: GENERIC_FORMATTERS.array,
     },
   },
 };

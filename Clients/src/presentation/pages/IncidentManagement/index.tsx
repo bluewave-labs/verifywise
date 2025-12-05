@@ -741,6 +741,7 @@ const IncidentManagement: React.FC = () => {
                 }
                 isEdit={!!selectedIncident}
                 mode={mode}
+                incidentId={selectedIncident?.id}
             />
 
             <PageTour steps={IncidentManagementSteps} run={!isLoading} tourKey="incident-management-tour" />

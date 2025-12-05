@@ -135,15 +135,12 @@ export interface MetricsWidgetProps {
 
 // Import MetricCard component from WorkingDashboard
 export interface MetricCardProps {
-  title: string | React.ReactNode;
+  title: string;
   value: number | string;
-  subtitle?: string;
-  tooltipText?: string;
   onClick?: () => void;
   navigable?: boolean;
   statusData?: IStatusData[];
   entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks" | "incidents";
   compact?: boolean;
   backgroundIcon?: React.ComponentType<any>;
-  metricType?: "lower-is-better" | "higher-is-better" | "neutral";
 }

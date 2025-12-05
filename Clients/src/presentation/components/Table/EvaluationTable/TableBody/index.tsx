@@ -43,22 +43,18 @@ const StatusChip: React.FC<{
     }
   };
 
-  const styles = getStatusStyles();
+  const style = getStatusStyles();
 
   return (
     <Chip
       label={status}
       size="small"
       sx={{
-        ...styles,
+        ...style,
         fontWeight: 500,
         fontSize: "11px",
-        textTransform: "uppercase",
-        letterSpacing: "0.5px",
+        height: "22px",
         borderRadius: "4px",
-        "& .MuiChip-label": {
-          padding: "4px 8px",
-        },
       }}
     />
   );

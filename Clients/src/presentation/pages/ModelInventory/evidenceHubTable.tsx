@@ -489,7 +489,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                   theme={theme}
                 />
                 {tableBody}
-                {paginated && data && data.length > 0 && (
+                {paginated && !hidePagination && data && data.length > 0 && (
                     <TableFooter>
                         <TableRow sx={tableFooterRowStyle(theme)}>
                             <TableCell sx={showingTextCellStyle(theme)}>

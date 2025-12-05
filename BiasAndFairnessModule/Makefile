@@ -35,23 +35,6 @@ else
 	pylint $(shell find . -type f -name "*.py" ! -path "./.venv/*")
 endif
 
-eval-setup:
-	uv pip install -e ".[eval]"
-
-evaluate:
-	uv run python -m ce_eval.runner --suite src/ce_eval/suites/suite_core.yaml
-
-evaluate-bias-smoke:
-	uv run python -m ce_eval.runner --suite src/ce_eval/suites/suite_bias_smoke.yaml
-
-approve-core:
-	@test -n "$(RUN_ID)" || (echo "Usage: make approve-core RUN_ID=reports/<run_id>" && exit 1)
-	cp -f $(RUN_ID)/results.json src/ce_eval/baselines/suite_core.json
-
-approve-bias:
-	@test -n "$(RUN_ID)" || (echo "Usage: make approve-bias RUN_ID=reports/<run_id>" && exit 1)
-	cp -f $(RUN_ID)/results.json src/ce_eval/baselines/suite_bias_smoke.json
-
 # Testing
 test:
 	. venv/bin/activate && python run_tests.py
@@ -107,4 +90,3 @@ clean:
 	rm -rf .pytest_cache
 	rm -rf htmlcov
 	rm -rf .coverage
-

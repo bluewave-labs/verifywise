@@ -29,7 +29,7 @@ services:
 
   bias_and_fairness_backend:
     build:
-      context: ./EvalServer
+      context: ./BiasAndFairnessServers
       dockerfile: Dockerfile.dev
     volumes:
-      - ./EvalServer/src:/app
+      - ./BiasAndFairnessServers/src:/app

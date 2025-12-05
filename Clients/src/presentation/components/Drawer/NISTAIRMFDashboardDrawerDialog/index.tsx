@@ -19,6 +19,7 @@ import LinkedRisksPopup from "../../LinkedRisks";
 import StandardModal from "../../Modals/StandardModal";
 
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
+const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 import {
   NISTAIRMFDrawerProps,
   NISTAIRMFStatus,
@@ -176,6 +177,11 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
       label: "Cross mappings",
       value: "cross-mappings",
       icon: "Link" as const,
+    },
+    {
+      label: "Notes",
+      value: "notes",
+      icon: "MessageSquare" as const,
     },
   ];
 
@@ -1240,6 +1246,16 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                         </Box>
                       )}
                   </Stack>
+                </TabPanel>
+
+                {/* Notes Tab */}
+                <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
+                  <Suspense fallback={<CircularProgress />}>
+                    <NotesTab
+                      attachedTo="NIST_SUBCATEGORY"
+                      attachedToId={subcategory?.id?.toString() || ""}
+                    />
+                  </Suspense>
                 </TabPanel>
 
               </TabContext>

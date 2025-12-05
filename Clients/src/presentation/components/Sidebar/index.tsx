@@ -391,9 +391,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       gap={theme.spacing(2)}
       sx={{
         height: "100vh",
-        border: 1,
-        borderColor: theme.palette.border.dark,
-        borderRadius: theme.shape.borderRadius,
+        border: "none",
+        borderRight: `1px solid ${theme.palette.border.dark}`,
+        borderRadius: 0,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
           backgroundColor: theme.palette.background.main,

@@ -27,16 +27,6 @@ dependencies = [
     "types-pyyaml>=6.0.12.20250516",
 ]
 
-[project.optional-dependencies]
-eval = [
-  "deepeval>=1.0.0",
-  "jinja2>=3.1.4",
-  "python-dotenv>=1.0.1",
-  "pydantic>=2.7.0",
-  "httpx>=0.27.0",
-  "requests>=2.32.3"
-]
-
 [build-system]
 requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"

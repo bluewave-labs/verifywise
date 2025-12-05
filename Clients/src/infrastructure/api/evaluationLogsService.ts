@@ -240,4 +240,3 @@ export const monitoringService = {
     return response.data;
   },
 };
-

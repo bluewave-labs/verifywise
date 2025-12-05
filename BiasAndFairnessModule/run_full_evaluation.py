@@ -55,10 +55,10 @@ def run_complete_pipeline():
     # Step 1: Run Model Inference
     print("\n📊 Step 1: Running Model Inference...")
     try:
-        inference_pipeline = InferencePipeline(config_manager)
+        inference_pipeline = InferencePipeline()
         
         # Run inference with config settings
-        inference_results = inference_pipeline.run(
+        inference_results = inference_pipeline.run_batch_inference(
             batch_size=None,  # No batching for now
             limit_samples=None,  # Use all samples
             auto_save=True
@@ -163,16 +163,11 @@ def run_complete_pipeline():
             print(f"      {metric.capitalize()}: {value:.4f}")
         
         # Compile comprehensive results
-        # Get model_id safely (handle different config structures)
-        model_id = getattr(config.model, 'model_id', None)
-        if model_id is None and hasattr(config.model, 'huggingface'):
-            model_id = getattr(config.model.huggingface, 'model_id', 'unknown')
-        
         comprehensive_results = {
             'metadata': {
                 'evaluation_type': 'complete_pipeline_evaluation',
                 'dataset': config.dataset.name,
-                'model': model_id or 'unknown',
+                'model': config.model.huggingface.model_id,
                 'model_task': config.model.model_task,
                 'label_behavior': config.model.label_behavior,
                 'evaluation_timestamp': pd.Timestamp.now().isoformat(),
@@ -257,7 +252,7 @@ def _run_metric(metric_name: str, y_true: np.ndarray, y_pred: np.ndarray,
         race_value = convert_metric_to_float(race_result, metric_name)
         all_results[f"{metric_name}_race"] = race_value
         
-        print(f"      ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
+        print(f"      ✅ {metric_name}: computed for sex and race (values not logged for privacy)")
         
     except Exception as e:
         print(f"      ❌ {metric_name}: Error - {str(e)}")
@@ -393,7 +388,7 @@ def _print_pipeline_summary(comprehensive_results: dict, clean_results: dict):
     if fairness_values:
         max_disparity_sex = max(fairness_values.values())
         max_metric_sex = max(fairness_values, key=fairness_values.get)
-        print(f"   Highest sex-based disparity: {max_metric_sex} = {max_disparity_sex:.4f}")
+        print(f"   Sex-based disparities detected. (Metric name and value omitted for privacy.)")
     
     fairness_values_race = {k: v for k, v in comprehensive_results['fairness_metrics'].items() 
                            if v is not None and 'race' in k}

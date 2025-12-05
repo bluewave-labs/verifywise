@@ -74,12 +74,13 @@ import { AutomationExecutionLogModel } from "../domain.layer/models/automationEx
 import { ModelInventoryHistoryModel } from "../domain.layer/models/modelInventoryHistory/modelInventoryHistory.model";
 import { RiskHistoryModel } from "../domain.layer/models/riskHistory/riskHistory.model";
 import { UserPreferencesModel } from "../domain.layer/models/userPreferences/userPreferences.model";
-import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
 import { NISTAIMRFFunctionModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_function.model";
 import { NISTAIMRFSubcategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_subcategory.model";
 import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/nist_ai_rmf_category.model";
 import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
+import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
+import { NotesModel } from "../domain.layer/models/notes/notes.model";
 
 dotenv.config();
 
@@ -164,11 +165,12 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ModelInventoryHistoryModel,
     RiskHistoryModel,
     UserPreferencesModel,
-    EvaluationLlmApiKeyModel,
     NISTAIMRFFunctionModel,
     NISTAIMRFCategoryModel,
     NISTAIMRFSubcategoryModel,
     ShareLinkModel,
+    EvaluationLlmApiKeyModel,
+    NotesModel,
   ],
 }) as Sequelize;
 

@@ -1,6 +1,6 @@
 /**
  * DeepEval Projects API Service
- * 
+ *
  * Manages DeepEval projects (CRUD operations).
  */
 
@@ -79,4 +79,3 @@ class DeepEvalProjectsService {
 }
 
 export const deepEvalProjectsService = new DeepEvalProjectsService();
-

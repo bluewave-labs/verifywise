@@ -811,6 +811,8 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
                 statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
               />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
@@ -820,6 +822,8 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
                 statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
               />
             </TabPanel>
             <TabPanel value="measure" sx={tabPanelStyle}>
@@ -829,6 +833,8 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
                 statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
               />
             </TabPanel>
             <TabPanel value="manage" sx={tabPanelStyle}>
@@ -838,6 +844,8 @@ const Framework = () => {
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
                 statusOptions={nistAiRmfStatusOptions}
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
               />
             </TabPanel>
           </TabContext>

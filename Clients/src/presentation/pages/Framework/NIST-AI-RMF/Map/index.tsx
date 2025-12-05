@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { updateNISTAIRMFSubcategoryStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
@@ -29,6 +29,8 @@ interface NISTAIRMFMapProps {
   statusFilter?: string;
   onStatusFilterChange?: (status: string) => void;
   statusOptions?: { value: string; label: string }[];
+  searchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
 }
 
 const NISTAIRMFMap = ({
@@ -37,6 +39,8 @@ const NISTAIRMFMap = ({
   statusFilter,
   onStatusFilterChange,
   statusOptions,
+  searchTerm = "",
+  onSearchTermChange,
 }: NISTAIRMFMapProps) => {
   const { userId: _userId, userRoleName } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -313,6 +317,17 @@ const NISTAIRMFMap = ({
     );
   }
 
+  // Filter categories based on search term
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return categories;
+    }
+    return categories.filter((category: any) =>
+      category.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
+
   return (
     <Stack className="nist-ai-rmf-map" spacing={0}>
       {alert && (
@@ -336,10 +351,13 @@ const NISTAIRMFMap = ({
           onStatusChange={onStatusFilterChange}
           showStatusFilter={true}
           statusOptions={statusOptions}
+          showSearchBar={true}
+          searchTerm={searchTerm}
+          setSearchTerm={onSearchTermChange as any}
         />
       )}
-      {categories &&
-        categories.map((category: any) => (
+      {filteredCategories &&
+        filteredCategories.map((category: any) => (
           <Stack key={category.id} sx={{ ...styles.container, marginBottom: "2px" }}>
             <Accordion
               key={category.id}

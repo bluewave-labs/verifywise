@@ -151,6 +151,7 @@ export const createRoutes = (
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
+  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   // Style Guide - Development only
   ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
   <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,

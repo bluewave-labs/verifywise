@@ -311,7 +311,7 @@ const EntityGraphContentInner: React.FC<EntityGraphContentProps> = ({
             <Box sx={{ mb: 2 }}>
               <SearchBox
                 value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                onChange={(value: string) => setSearchQuery(value)}
                 placeholder="Search entities..."
                 sx={{ width: '100%' }}
               />

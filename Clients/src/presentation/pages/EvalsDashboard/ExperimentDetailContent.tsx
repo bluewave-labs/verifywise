@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -20,13 +20,16 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import { TrendingUp, X, Home, FlaskConical, Pencil, Check, List, Zap } from "lucide-react";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
-import EvalsSidebar from "./EvalsSidebar";
 
-export default function ExperimentDetail() {
-  const { projectId, experimentId } = useParams<{ projectId: string; experimentId: string }>();
+interface ExperimentDetailContentProps {
+  experimentId: string;
+  projectId: string;
+  onBack: () => void;
+}
+
+export default function ExperimentDetailContent({ experimentId, projectId, onBack }: ExperimentDetailContentProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
@@ -57,8 +60,6 @@ export default function ExperimentDetail() {
       setExperiment(expData.experiment);
       const loadedLogs = logsData.logs || [];
       setLogs(loadedLogs);
-
-      // Don't auto-select - let user choose
     } catch (err) {
       console.error("Failed to load experiment data:", err);
     } finally {
@@ -164,17 +165,10 @@ export default function ExperimentDetail() {
   if (!experiment) {
     return (
       <Box p={4}>
-        <Typography>Eval not found</Typography>
+        <Typography>Experiment not found</Typography>
       </Box>
     );
   }
-
-  const breadcrumbItems = [
-    { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-    { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-    { label: "Experiments", icon: <List size={14} strokeWidth={1.5} />, onClick: () => navigate(`/evals/${projectId}#experiments`) },
-    { label: experiment.name || "Eval", icon: <Zap size={14} strokeWidth={1.5} /> },
-  ];
 
   // Lightweight Markdown -> HTML converter for common syntax
   const markdownToHtml = (md: string): string => {
@@ -205,118 +199,33 @@ export default function ExperimentDetail() {
     return html;
   };
 
-  // Handler for sidebar tab changes - navigate to the appropriate route
-  const handleTabChange = (newTab: string) => {
-    if (newTab === "experiments") {
-      navigate(`/evals/${projectId}#experiments`);
-    } else if (newTab === "organizations") {
-      navigate(`/evals#organizations`);
-    } else {
-      navigate(`/evals/${projectId}#${newTab}`);
-    }
-  };
-
   return (
     <Box>
+      {/* Back button */}
       <Box sx={{ mb: 2 }}>
-        <PageBreadcrumbs items={breadcrumbItems} />
-      </Box>
-
-      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
-        {/* Sidebar - always visible */}
-        <EvalsSidebar
-          activeTab="experiments"
-          onTabChange={handleTabChange}
-          disabled={false}
-        />
-
-        {/* Main content */}
-        <Box sx={{ flex: 1 }}>
-
-      {/* Header */}
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
-        {/* Experiment Name with inline editing */}
-        <Box
+        <Typography
+          component="span"
+          onClick={onBack}
           sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 0.5,
-            mb: 1,
-            "&:hover .edit-icon": {
-              opacity: 1,
+            fontSize: "13px",
+            color: "#13715B",
+            cursor: "pointer",
+            textDecoration: "underline",
+            textDecorationStyle: "dashed",
+            textUnderlineOffset: "3px",
+            "&:hover": {
+              color: "#0f5a47",
             },
           }}
         >
-          {isEditingName ? (
-            <>
-              <TextField
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSaveName();
-                  if (e.key === "Escape") handleCancelEditName();
-                }}
-                variant="outlined"
-                size="small"
-                autoFocus
-                disabled={saving}
-                sx={{
-                  minWidth: "400px",
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "18px",
-                    fontWeight: 600,
-                  },
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={handleSaveName}
-                disabled={saving || !editedName.trim()}
-                sx={{ color: "#13715B" }}
-              >
-                <Check size={18} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleCancelEditName}
-                disabled={saving}
-                sx={{ color: "#6B7280" }}
-              >
-                <X size={18} />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
-                {experiment.name}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={handleStartEditName}
-                className="edit-icon"
-                sx={{
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                  color: "#6B7280",
-                  "&:hover": {
-                    color: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  },
-                }}
-              >
-                <Pencil size={14} />
-              </IconButton>
-            </>
-          )}
-        </Box>
+          ← Back to experiments
+        </Typography>
+      </Box>
 
-        {/* Experiment Description with inline editing */}
-        <Box
-          sx={{
-            display: "block",
-            mb: 2,
-          }}
-        >
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        {/* Row 1: Experiment Name + Rerun button */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
           <Box
             sx={{
               display: "inline-flex",
@@ -327,98 +236,91 @@ export default function ExperimentDetail() {
               },
             }}
           >
-          {isEditingDescription ? (
-            <>
-              <TextField
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSaveDescription();
-                  if (e.key === "Escape") handleCancelEditDescription();
-                }}
-                variant="outlined"
-                size="small"
-                autoFocus
-                disabled={saving}
-                placeholder="Add a description..."
-                sx={{
-                  minWidth: "400px",
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    color: "text.secondary",
-                  },
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={handleSaveDescription}
-                disabled={saving}
-                sx={{ color: "#13715B" }}
-              >
-                <Check size={18} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleCancelEditDescription}
-                disabled={saving}
-                sx={{ color: "#6B7280" }}
-              >
-                <X size={18} />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  fontSize: "13px",
-                  fontStyle: experiment.description ? "normal" : "italic",
-                  color: experiment.description ? "text.secondary" : "#9CA3AF",
-                }}
-              >
-                {experiment.description || "No description"}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={handleStartEditDescription}
-                className="edit-icon"
-                sx={{
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                  color: "#6B7280",
-                  "&:hover": {
-                    color: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  },
-                }}
-              >
-                <Pencil size={14} />
-              </IconButton>
-            </>
-          )}
+            {isEditingName ? (
+              <>
+                <TextField
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") handleCancelEditName();
+                  }}
+                  variant="outlined"
+                  size="small"
+                  autoFocus
+                  disabled={saving}
+                  sx={{
+                    minWidth: "400px",
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "18px",
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={handleSaveName}
+                  disabled={saving || !editedName.trim()}
+                  sx={{ color: "#13715B" }}
+                >
+                  <Check size={18} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleCancelEditName}
+                  disabled={saving}
+                  sx={{ color: "#6B7280" }}
+                >
+                  <X size={18} />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
+                  {experiment.name}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleStartEditName}
+                  className="edit-icon"
+                  sx={{
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                    color: "#6B7280",
+                    "&:hover": {
+                      color: "#13715B",
+                      backgroundColor: "rgba(19, 113, 91, 0.1)",
+                    },
+                  }}
+                >
+                  <Pencil size={14} />
+                </IconButton>
+              </>
+            )}
           </Box>
 
-        {/* Rerun button */}
-        <Button
-          variant="contained"
-          size="small"
-          onClick={handleRerunExperiment}
-          disabled={rerunLoading || experiment.status === "running"}
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#13715B",
-            "&:hover": { backgroundColor: "#0F5A47" },
-            fontSize: "12px",
-            height: 32,
-          }}
-        >
-          {rerunLoading ? "Starting…" : "Run again"}
-        </Button>
+          {/* Rerun button */}
+          <Button
+            variant="contained"
+            onClick={handleRerunExperiment}
+            disabled={rerunLoading || experiment.status === "running"}
+            startIcon={<RotateCcw size={16} />}
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "#0F5A47" },
+              fontSize: "14px",
+              fontWeight: 500,
+              height: 40,
+              px: 3,
+            }}
+          >
+            {rerunLoading ? "Starting…" : "Rerun"}
+          </Button>
         </Box>
 
-        {/* Status and metadata */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+        {/* Row 2: Status, Description, Created date */}
+        <Stack direction="row" spacing={2} alignItems="center">
           <Chip
             label={experiment.status}
             size="small"
@@ -449,6 +351,91 @@ export default function ExperimentDetail() {
               },
             }}
           />
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              "&:hover .edit-icon": {
+                opacity: 1,
+              },
+            }}
+          >
+            {isEditingDescription ? (
+              <>
+                <TextField
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveDescription();
+                    if (e.key === "Escape") handleCancelEditDescription();
+                  }}
+                  variant="outlined"
+                  size="small"
+                  autoFocus
+                  disabled={saving}
+                  placeholder="Add a description..."
+                  sx={{
+                    minWidth: "300px",
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "13px",
+                      color: "text.secondary",
+                    },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={handleSaveDescription}
+                  disabled={saving}
+                  sx={{ color: "#13715B" }}
+                >
+                  <Check size={16} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleCancelEditDescription}
+                  disabled={saving}
+                  sx={{ color: "#6B7280" }}
+                >
+                  <X size={16} />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: "13px",
+                    fontStyle: experiment.description ? "normal" : "italic",
+                    color: experiment.description ? "text.secondary" : "#9CA3AF",
+                  }}
+                >
+                  {experiment.description || "No description"}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleStartEditDescription}
+                  className="edit-icon"
+                  sx={{
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                    color: "#6B7280",
+                    padding: "2px",
+                    "&:hover": {
+                      color: "#13715B",
+                      backgroundColor: "rgba(19, 113, 91, 0.1)",
+                    },
+                  }}
+                >
+                  <Pencil size={12} />
+                </IconButton>
+              </>
+            )}
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+            •
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
             Created {new Date(experiment.created_at).toLocaleString()}
           </Typography>
@@ -457,16 +444,17 @@ export default function ExperimentDetail() {
 
       {/* Overall Stats Header */}
       {logs.length > 0 && (() => {
-        // Calculate overall averages found in logs
-        const metricsSum: Record<string, { sum: number; count: number }> = {};
+        // Calculate overall averages and per-sample scores for sparklines
+        const metricsSum: Record<string, { sum: number; count: number; scores: number[] }> = {};
         logs.forEach((log) => {
           if (log.metadata?.metric_scores) {
             Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
               const score = typeof value === "number" ? value : (value as { score?: number })?.score;
               if (typeof score === "number") {
-                if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0 };
+                if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0, scores: [] };
                 metricsSum[key].sum += score;
                 metricsSum[key].count += 1;
+                metricsSum[key].scores.push(score);
               }
             });
           }
@@ -476,98 +464,242 @@ export default function ExperimentDetail() {
         const enabled: Record<string, unknown> =
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
-        // Standard metric set we expose in the UI; these are independent of the
-        // underlying implementation (G‑Eval vs classic), so we keep names clean.
-        const displayMap: Record<string, string> = {
-          answerRelevancy: "Answer Relevancy",
-          bias: "Bias",
-          toxicity: "Toxicity",
-          faithfulness: "Faithfulness",
-          hallucination: "Hallucination",
-          contextualRelevancy: "Contextual Relevancy",
-          knowledgeRetention: "Knowledge Retention",
-          conversationRelevancy: "Conversation Relevancy",
-          conversationCompleteness: "Conversation Completeness",
-          roleAdherence: "Role Adherence",
+        // Metric definitions with categories
+        const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" }> = {
+          answerRelevancy: { label: "Answer Relevancy", category: "quality" },
+          faithfulness: { label: "Faithfulness", category: "quality" },
+          contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
+          bias: { label: "Bias", category: "safety" },
+          toxicity: { label: "Toxicity", category: "safety" },
+          hallucination: { label: "Hallucination", category: "safety" },
         };
 
-        // Use the config to drive which metrics we show cards for. We start with
-        // the ordered standard set, then append any additional metrics discovered
-        // in metric_scores so we never hide evaluated metrics.
-        const primaryLabels = Object.keys(displayMap)
+        // Get score color based on value thresholds
+        const getScoreColor = (score: number | undefined) => {
+          if (score === undefined) return { bg: "#F3F4F6", text: "#6B7280", icon: "#6B7280" };
+          if (score >= 0.7) return { bg: "#D1FAE5", text: "#065F46", icon: "#10B981" };
+          if (score >= 0.4) return { bg: "#FEF3C7", text: "#92400E", icon: "#F59E0B" };
+          return { bg: "#FEE2E2", text: "#991B1B", icon: "#EF4444" };
+        };
+
+        // Get delta indicator (simulated - in real app would compare to previous experiment)
+        const getDeltaIndicator = (scores: number[]) => {
+          if (scores.length < 2) return null;
+          const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
+          const secondHalf = scores.slice(Math.floor(scores.length / 2));
+          const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+          const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+          const delta = secondAvg - firstAvg;
+          if (Math.abs(delta) < 0.02) return { type: "neutral" as const, value: 0 };
+          return { type: delta > 0 ? "up" as const : "down" as const, value: Math.abs(delta * 100) };
+        };
+
+        // Simple SVG sparkline component
+        const Sparkline = ({ scores, color }: { scores: number[]; color: string }) => {
+          if (scores.length < 2) return null;
+          const width = 60;
+          const height = 20;
+          const padding = 2;
+          const maxScore = Math.max(...scores);
+          const minScore = Math.min(...scores);
+          const range = maxScore - minScore || 1;
+
+          const points = scores.map((score, i) => {
+            const x = padding + (i / (scores.length - 1)) * (width - 2 * padding);
+            const y = height - padding - ((score - minScore) / range) * (height - 2 * padding);
+            return `${x},${y}`;
+          }).join(" ");
+
+          return (
+            <svg width={width} height={height} style={{ marginLeft: "auto" }}>
+              <polyline
+                points={points}
+                fill="none"
+                stroke={color}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          );
+        };
+
+        const orderedMetrics = Object.keys(metricDefinitions)
           .filter((k) => !!enabled?.[k])
-          .map((k) => displayMap[k]);
+          .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
-        const extraLabels = Object.keys(metricsSum).reduce<string[]>((acc, raw) => {
-          const friendly = raw.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
-          if (!primaryLabels.includes(friendly)) {
-            acc.push(friendly);
-          }
-          return acc;
-        }, []);
-
-        const orderedLabels = primaryLabels.length ? [...primaryLabels, ...extraLabels] : Object.keys(metricsSum);
-
-        // Always show all metrics found in the data
         if (Object.keys(metricsSum).length === 0) return null;
 
-        return (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, fontSize: "14px" }}>
-              Overall statistics
-            </Typography>
-              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-                {orderedLabels.map((label) => {
-                  const rawLabel = metricsSum[label] ? label : `G-Eval (${label})`;
-                  const entry = metricsSum[rawLabel];
-                  const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
-                  const count = entry ? entry.count : 0;
-                  // Strip any "G-Eval (...)" prefix for display; we don't surface
-                  // the implementation detail in the UI.
-                  const friendlyLabel = rawLabel.replace(/^G-Eval\s*\((.*)\)$/i, "$1");
+        // Group metrics by category
+        const qualityMetrics = orderedMetrics.filter((m) => m.category === "quality");
+        const safetyMetrics = orderedMetrics.filter((m) => m.category === "safety");
 
-                  return (
-                  <Card key={rawLabel} variant="outlined">
-                    <CardContent sx={{ p: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                        <TrendingUp size={14} color="#13715B" />
-                        <Typography variant="body2" sx={{ fontSize: "11px", fontWeight: 600, color: "#6B7280" }}>
-                          {friendlyLabel}
-                        </Typography>
-                      </Box>
-                      <Typography variant="h6" sx={{ fontSize: "18px", fontWeight: 700 }}>
-                        {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+        // Get icon for metric type (for background watermark)
+        const getMetricIcon = (metricKey: string) => {
+          switch (metricKey) {
+            case "answerRelevancy": return Sparkles;
+            case "faithfulness": return Check;
+            case "contextualRelevancy": return Sparkles;
+            case "bias": return Shield;
+            case "toxicity": return Shield;
+            case "hallucination": return Shield;
+            default: return Sparkles;
+          }
+        };
+
+        const renderMetricCard = (metric: { key: string; label: string; category: string }) => {
+          const entry = metricsSum[metric.label] || metricsSum[`G-Eval (${metric.label})`] || metricsSum[metric.key];
+          const avgValue = entry ? entry.sum / Math.max(1, entry.count) : undefined;
+          const count = entry ? entry.count : 0;
+          const scores = entry?.scores || [];
+          const colors = getScoreColor(avgValue);
+          const delta = getDeltaIndicator(scores);
+          const BackgroundIcon = getMetricIcon(metric.key);
+
+          return (
+            <Card
+              key={metric.key}
+              elevation={0}
+              sx={{
+                position: "relative",
+                overflow: "hidden",
+                background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+                border: "1px solid #d0d5dd",
+                borderRadius: "4px",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+                  "& .background-icon": {
+                    opacity: 0.04,
+                    transform: "translateY(-10px)",
+                  },
+                },
+              }}
+            >
+              {/* Background watermark icon */}
+              <Box
+                className="background-icon"
+                sx={{
+                  position: "absolute",
+                  bottom: "-32px",
+                  right: "-32px",
+                  opacity: 0.015,
+                  transform: "translateY(0px)",
+                  zIndex: 0,
+                  pointerEvents: "none",
+                  transition: "opacity 0.2s ease, transform 0.3s ease",
+                }}
+              >
+                <BackgroundIcon size={96} color="#374151" />
+              </Box>
+
+              <CardContent sx={{ p: 2, position: "relative", zIndex: 1, "&:last-child": { pb: 2 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontSize: "13px", fontWeight: 400, color: "#6B7280" }}>
+                    {metric.label}
+                  </Typography>
+                  {delta && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: "4px",
+                        backgroundColor: delta.type === "up" ? "#D1FAE5" : delta.type === "down" ? "#FEE2E2" : "#F3F4F6",
+                      }}
+                    >
+                      {delta.type === "up" ? (
+                        <TrendingUp size={10} color="#10B981" />
+                      ) : delta.type === "down" ? (
+                        <TrendingDown size={10} color="#EF4444" />
+                      ) : (
+                        <Minus size={10} color="#6B7280" />
+                      )}
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          fontWeight: 600,
+                          color: delta.type === "up" ? "#065F46" : delta.type === "down" ? "#991B1B" : "#6B7280",
+                        }}
+                      >
+                        {delta.value.toFixed(1)}%
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px" }}>
-                        {avgValue === undefined ? "No data yet" : `Average across ${count} samples`}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Box>
+                    </Box>
+                  )}
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        color: colors.text,
+                        lineHeight: 1.2,
+                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                      }}
+                    >
+                      {avgValue === undefined ? "N/A" : `${(avgValue * 100).toFixed(1)}%`}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", mt: 0.5, display: "block" }}>
+                      {avgValue === undefined ? "No data yet" : `${count} samples`}
+                    </Typography>
+                  </Box>
+                  {scores.length >= 2 && <Sparkline scores={scores} color={colors.icon} />}
+                </Box>
+              </CardContent>
+            </Card>
+          );
+        };
+
+        return (
+          <Box>
+            {/* Quality Metrics Section */}
+            {qualityMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Quality metrics
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {qualityMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
+
+            {/* Safety Metrics Section */}
+            {safetyMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Safety metrics
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {safetyMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
           </Box>
         );
       })()}
 
-      {/* Split Panel Layout (Braintrust style) */}
-      <Card sx={{ overflow: "hidden" }}>
+      {/* Split Panel Layout */}
+      <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+        All samples
+      </Typography>
+      <Card sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }} elevation={0}>
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-          <Box sx={{ 
-            display: "grid", 
-            gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr", 
-            height: "calc(100vh - 260px)",
-            minHeight: "520px",
+          <Box sx={{
+            display: "grid",
+            gridTemplateColumns: selectedLog ? "1fr 1fr" : "1fr",
+            maxHeight: "calc(100vh - 360px)",
+            minHeight: logs.length > 0 ? "auto" : "200px",
             transition: "grid-template-columns 0.2s ease",
           }}>
             {/* Left: Samples List */}
-            <Box sx={{ display: "flex", flexDirection: "column", height: "100%", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
-              <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, pl: 2, pr: 2, pt: 2, pb: 1 }}>
-                All samples
-              </Typography>
-
-              <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-                <TableContainer sx={{ maxHeight: "100%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", borderRight: selectedLog ? "1px solid #E5E7EB" : "none", overflow: "hidden" }}>
+              <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "calc(100vh - 360px)" }}>
+                <TableContainer>
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
@@ -669,7 +801,7 @@ export default function ExperimentDetail() {
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
-                height: "100%",
+                maxHeight: "calc(100vh - 360px)",
                 animation: "slideInRight 0.3s ease-out",
                 "@keyframes slideInRight": {
                   from: {
@@ -694,7 +826,7 @@ export default function ExperimentDetail() {
                   flexShrink: 0
                 }}>
                   <Typography variant="subtitle2" sx={{ fontSize: "14px", fontWeight: 600 }}>
-                    Evaluation Metrics
+                    Evaluation metrics
                   </Typography>
                   <Box
                     component="button"
@@ -720,7 +852,7 @@ export default function ExperimentDetail() {
 
                 {/* Scrollable content */}
                 <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", p: 3 }}>
-                {/* Metric Scores (Judge's Opinion) */}
+                {/* Metric Scores */}
                 {selectedLog.metadata?.metric_scores && Object.keys(selectedLog.metadata.metric_scores).length > 0 && (
                   <Box sx={{ mb: 3 }}>
                     <Stack spacing={1.5}>
@@ -729,7 +861,7 @@ export default function ExperimentDetail() {
                         const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
                         const reason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
                         const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
-                        
+
                          return (
                            <Box key={metricName} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -812,7 +944,7 @@ export default function ExperimentDetail() {
                       {selectedLog.token_count && (
                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "12px" }}>
-                            Token Count
+                            Token count
                           </Typography>
                           <Typography variant="body2" sx={{ fontSize: "12px", fontFamily: "monospace" }}>
                             {selectedLog.token_count}
@@ -877,8 +1009,6 @@ export default function ExperimentDetail() {
           </Box>
         </CardContent>
       </Card>
-        </Box>
-      </Box>
     </Box>
   );
 }

@@ -26,7 +26,6 @@ import FairnessDashboard from "../../presentation/pages/FairnessDashboard/Fairne
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 import BiasAndFairnessResultsPage from "../../presentation/pages/FairnessDashboard/BiasAndFairnessResultsPage";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
-import ExperimentDetail from "../../presentation/pages/EvalsDashboard/ExperimentDetail";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
 import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
 import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
@@ -91,7 +90,6 @@ export const createRoutes = (
     <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
     <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
     <Route path="/evals/settings" element={<OrgSettings />} />
-    <Route path="/evals/:projectId/experiment/:experimentId" element={<ExperimentDetail />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />

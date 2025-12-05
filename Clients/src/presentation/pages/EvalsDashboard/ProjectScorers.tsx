@@ -1,17 +1,43 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Box, Stack } from "@mui/material";
+import {
+  Box,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  TableFooter,
+  TablePagination,
+  Chip,
+  IconButton,
+  Popover,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+} from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { Play } from "lucide-react";
-import EvaluationTable from "../../components/Table/EvaluationTable";
-import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
+import { Plus, Settings, Pencil, Trash2, ChevronsUpDown } from "lucide-react";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
-import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
+import {
+  deepEvalScorersService,
+  type DeepEvalScorer,
+} from "../../../infrastructure/api/deepEvalScorersService";
 import Alert from "../../components/Alert";
-import ModalStandard from "../../components/Modals/StandardModal";
+import TableHeader from "../../components/Table/TableHead";
+import TablePaginationActions from "../../components/TablePagination";
+import singleTheme from "../../themes/v1SingleTheme";
+import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../application/utils/paginationStorage";
+import EmptyState from "../../components/EmptyState";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -22,25 +48,64 @@ interface AlertState {
   body: string;
 }
 
+const StatusChip: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+  const styles = enabled
+    ? { backgroundColor: "#c8e6c9", color: "#388e3c" }
+    : { backgroundColor: "#e0e0e0", color: "#616161" };
+
+  return (
+    <Chip
+      label={enabled ? "Enabled" : "Disabled"}
+      size="small"
+      sx={{
+        ...styles,
+        fontWeight: 500,
+        fontSize: "11px",
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+        borderRadius: "4px",
+        "& .MuiChip-label": {
+          padding: "4px 8px",
+        },
+      }}
+    />
+  );
+};
+
 export default function ProjectScorers({ projectId }: ProjectScorersProps) {
+  const theme = useTheme();
   const [scorers, setScorers] = useState<DeepEvalScorer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("scorers", 10)
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertState | null>(null);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [metricKeyTouched, setMetricKeyTouched] = useState(false);
-  const [form, setForm] = useState({
+  // Gear menu state
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [menuScorer, setMenuScorer] = useState<DeepEvalScorer | null>(null);
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingScorer, setEditingScorer] = useState<DeepEvalScorer | null>(null);
+  const [editForm, setEditForm] = useState({
     name: "",
-    metricKey: "",
     description: "",
-    type: "llm" as const,
-    judgeModel: "gpt-4o-mini",
-    defaultThreshold: "0.7",
-    weight: "1.0",
+    metricKey: "",
+    type: "llm" as "llm" | "builtin" | "custom",
+    enabled: true,
+    defaultThreshold: "",
+    weight: "",
+    judgeModel: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete confirmation modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [scorerToDelete, setScorerToDelete] = useState<DeepEvalScorer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadScorers = useCallback(async () => {
     try {
@@ -80,7 +145,10 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   );
 
   const getFieldValue = useCallback(
-    (s: DeepEvalScorer, fieldId: string): string | number | Date | null | undefined => {
+    (
+      s: DeepEvalScorer,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
       switch (fieldId) {
         case "name":
           return s.name;
@@ -95,130 +163,202 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     []
   );
 
-  const { filterData, handleFilterChange } = useFilterBy<DeepEvalScorer>(getFieldValue);
+  const { filterData, handleFilterChange } =
+    useFilterBy<DeepEvalScorer>(getFieldValue);
 
   const filteredScorers = useMemo(() => {
     const afterFilter = filterData(scorers);
     if (!searchTerm.trim()) return afterFilter;
     const q = searchTerm.toLowerCase();
     return afterFilter.filter((s) =>
-      [s.name, s.metricKey, s.type].filter(Boolean).join(" ").toLowerCase().includes(q)
+      [s.name, s.metricKey, s.type]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
     );
   }, [scorers, filterData, searchTerm]);
 
-  const tableColumns = ["SCORER", "MODEL / JUDGE", "TYPE", "METRIC", "STATUS", "REPORT", "ACTION"];
+  const tableColumns = ["SCORER", "MODEL / JUDGE", "TYPE", "METRIC", "STATUS", "ACTION"];
 
-  const tableRows: IEvaluationRow[] = filteredScorers.map((s) => ({
-    id: s.id,
-    name: s.name,
-    model: s.config?.judgeModel || s.config?.model || s.metricKey || "Scorer",
-    judge: s.type.toUpperCase(),
-    dataset: s.metricKey,
-    // Use Completed/Pending so we reuse existing status chip styling
-    status: s.enabled ? "Completed" : "Pending",
-  }));
-
-  const handleViewScorer = (row: IEvaluationRow) => {
-    // For first iteration, just log; future work can open detailed config drawer
-    console.debug("View scorer", row.id);
+  // Gear menu handlers
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    scorer: DeepEvalScorer
+  ) => {
+    setMenuAnchor(event.currentTarget);
+    setMenuScorer(scorer);
   };
 
-  const handleDeleteScorer = async (scorerId: string) => {
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+    setMenuScorer(null);
+  };
+
+  const handleEditClick = () => {
+    if (menuScorer) {
+      setEditingScorer(menuScorer);
+      setEditForm({
+        name: menuScorer.name,
+        description: menuScorer.description || "",
+        metricKey: menuScorer.metricKey,
+        type: menuScorer.type,
+        enabled: menuScorer.enabled,
+        defaultThreshold:
+          menuScorer.defaultThreshold != null
+            ? String(menuScorer.defaultThreshold)
+            : "",
+        weight: menuScorer.weight != null ? String(menuScorer.weight) : "",
+        judgeModel: menuScorer.config?.judgeModel || "",
+      });
+      setEditModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteClick = () => {
+    if (!menuScorer) return;
+    setScorerToDelete(menuScorer);
+    setDeleteModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!scorerToDelete) return;
+    setIsDeleting(true);
     try {
-      await deepEvalScorersService.delete(scorerId);
+      await deepEvalScorersService.delete(scorerToDelete.id);
       setAlert({ variant: "success", body: "Scorer deleted" });
       setTimeout(() => setAlert(null), 3000);
+      setDeleteModalOpen(false);
+      setScorerToDelete(null);
       void loadScorers();
     } catch (err) {
       console.error("Failed to delete scorer", err);
       setAlert({ variant: "error", body: "Failed to delete scorer" });
       setTimeout(() => setAlert(null), 4000);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleNameChange = (value: string) => {
-    setForm((prev) => {
-      const next = { ...prev, name: value };
-      if (!metricKeyTouched) {
-        const autoKey = value
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "_")
-          .replace(/^_+|_+$/g, "");
-        next.metricKey = autoKey;
-      }
-      return next;
-    });
+  // Edit modal submit
+  const handleEditSubmit = async () => {
+    if (!editingScorer) return;
+    setIsSubmitting(true);
+    try {
+      await deepEvalScorersService.update(editingScorer.id, {
+        name: editForm.name,
+        description: editForm.description || undefined,
+        metricKey: editForm.metricKey,
+        type: editForm.type,
+        enabled: editForm.enabled,
+        defaultThreshold: editForm.defaultThreshold
+          ? parseFloat(editForm.defaultThreshold)
+          : undefined,
+        weight: editForm.weight ? parseFloat(editForm.weight) : undefined,
+        config: {
+          ...editingScorer.config,
+          judgeModel: editForm.judgeModel || undefined,
+        },
+      });
+      setAlert({ variant: "success", body: "Scorer updated" });
+      setTimeout(() => setAlert(null), 3000);
+      setEditModalOpen(false);
+      setEditingScorer(null);
+      void loadScorers();
+    } catch (err) {
+      console.error("Failed to update scorer", err);
+      setAlert({ variant: "error", body: "Failed to update scorer" });
+      setTimeout(() => setAlert(null), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleMetricKeyChange = (value: string) => {
-    setMetricKeyTouched(true);
-    setForm((prev) => ({ ...prev, metricKey: value }));
-  };
-
-  const resetForm = () => {
-    setForm({
+  // Create scorer (placeholder - opens modal with empty form)
+  const handleCreateScorer = () => {
+    setEditingScorer(null);
+    setEditForm({
       name: "",
-      metricKey: "",
       description: "",
+      metricKey: "",
       type: "llm",
-      judgeModel: "gpt-4o-mini",
+      enabled: true,
       defaultThreshold: "0.7",
       weight: "1.0",
+      judgeModel: "gpt-4o-mini",
     });
-    setMetricKeyTouched(false);
+    setEditModalOpen(true);
   };
 
-  const handleCreateScorer = async () => {
-    if (!form.name.trim() || !form.metricKey.trim()) {
-      setAlert({
-        variant: "error",
-        body: "Name and metric key are required.",
-      });
-      setTimeout(() => setAlert(null), 3000);
-      return;
-    }
-
+  const handleCreateSubmit = async () => {
+    setIsSubmitting(true);
     try {
-      setCreating(true);
-      const payload = {
+      await deepEvalScorersService.create({
         projectId,
-        name: form.name.trim(),
-        description: form.description.trim() || undefined,
-        type: form.type,
-        metricKey: form.metricKey.trim(),
+        name: editForm.name,
+        description: editForm.description || undefined,
+        metricKey: editForm.metricKey,
+        type: editForm.type,
+        enabled: editForm.enabled,
+        defaultThreshold: editForm.defaultThreshold
+          ? parseFloat(editForm.defaultThreshold)
+          : undefined,
+        weight: editForm.weight ? parseFloat(editForm.weight) : undefined,
         config: {
-          judgeModel: form.judgeModel.trim() || "gpt-4o-mini",
-          scale: "0-1",
-          rubric:
-            "Score how correct the assistant's answer is relative to the reference answer. Return a number between 0 and 1.",
+          judgeModel: editForm.judgeModel || undefined,
         },
-        enabled: true,
-        defaultThreshold: Number.isNaN(Number(form.defaultThreshold)) ? 0.7 : Number(form.defaultThreshold),
-        weight: Number.isNaN(Number(form.weight)) ? 1.0 : Number(form.weight),
-      };
-
-      await deepEvalScorersService.create(payload);
+      });
       setAlert({ variant: "success", body: "Scorer created" });
       setTimeout(() => setAlert(null), 3000);
-      setCreateOpen(false);
-      resetForm();
+      setEditModalOpen(false);
       void loadScorers();
     } catch (err) {
       console.error("Failed to create scorer", err);
       setAlert({ variant: "error", body: "Failed to create scorer" });
       setTimeout(() => setAlert(null), 4000);
     } finally {
-      setCreating(false);
+      setIsSubmitting(false);
     }
   };
+
+  // Pagination
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount("scorers", newRowsPerPage);
+      setPage(0);
+    },
+    []
+  );
+
+  const getRange = useMemo(() => {
+    const start = page * rowsPerPage + 1;
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      filteredScorers.length
+    );
+    return `${start} - ${end}`;
+  }, [page, rowsPerPage, filteredScorers.length]);
 
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Controls row */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} gap={2}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ marginBottom: "18px" }}
+        gap={2}
+      >
         <Stack direction="row" alignItems="center" gap={2}>
           <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
           <GroupBy
@@ -226,9 +366,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
               { id: "type", label: "Type" },
               { id: "metricKey", label: "Metric key" },
             ]}
-            onGroupChange={() => {
-              /* Grouped view can be added later; UI is consistent already */
-            }}
+            onGroupChange={() => {}}
           />
           <SearchBox
             placeholder="Search scorers..."
@@ -241,110 +379,393 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
         <CustomizableButton
           variant="contained"
           text="New scorer"
-          icon={<Play size={16} />}
+          icon={<Plus size={16} />}
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
             gap: 2,
           }}
-          onClick={() => setCreateOpen(true)}
+          onClick={handleCreateScorer}
           isDisabled={loading}
         />
       </Stack>
 
       {/* Scorers table */}
       <Box mb={4}>
-        <EvaluationTable
-          columns={tableColumns}
-          rows={tableRows}
-          removeModel={{
-            onConfirm: handleDeleteScorer,
-          }}
-          page={page}
-          setCurrentPagingation={setPage}
-          onShowDetails={handleViewScorer}
-        />
+        <TableContainer sx={{ mt: 10 }}>
+          <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
+            <TableHeader columns={tableColumns} />
+            {filteredScorers.length !== 0 ? (
+              <>
+                <TableBody>
+                  {filteredScorers
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((scorer) => (
+                      <TableRow
+                        key={scorer.id}
+                        onClick={() => {
+                          setEditingScorer(scorer);
+                          setEditForm({
+                            name: scorer.name,
+                            description: scorer.description || "",
+                            metricKey: scorer.metricKey,
+                            type: scorer.type,
+                            enabled: scorer.enabled,
+                            defaultThreshold:
+                              scorer.defaultThreshold != null
+                                ? String(scorer.defaultThreshold)
+                                : "",
+                            weight: scorer.weight != null ? String(scorer.weight) : "",
+                            judgeModel: scorer.config?.judgeModel || "",
+                          });
+                          setEditModalOpen(true);
+                        }}
+                        sx={{
+                          ...singleTheme.tableStyles.primary.body.row,
+                          "&:hover": { cursor: "pointer", backgroundColor: "#f9fafb" },
+                        }}
+                      >
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            textTransform: "none",
+                            width: "20%",
+                          }}
+                        >
+                          {scorer.name}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            textTransform: "none",
+                          }}
+                        >
+                          {scorer.config?.judgeModel ||
+                            scorer.config?.model ||
+                            scorer.metricKey ||
+                            "Scorer"}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            textTransform: "none",
+                          }}
+                        >
+                          {scorer.type.toUpperCase()}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            textTransform: "none",
+                          }}
+                        >
+                          {scorer.metricKey}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                            textTransform: "none",
+                          }}
+                        >
+                          <StatusChip enabled={scorer.enabled} />
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            paddingLeft: "12px",
+                            paddingRight: "12px",
+                          }}
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMenuOpen(e, scorer);
+                            }}
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              "&:hover": {
+                                backgroundColor: theme.palette.action.hover,
+                              },
+                            }}
+                          >
+                            <Settings size={18} />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root.MuiTableCell-footer": {
+                        paddingX: theme.spacing(8),
+                        paddingY: theme.spacing(4),
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        fontSize: "12px",
+                        color: theme.palette.text.secondary,
+                        borderBottom: "none",
+                      }}
+                    >
+                      Showing {getRange} of {filteredScorers.length} scorer
+                      {filteredScorers.length !== 1 ? "s" : ""}
+                    </TableCell>
+                    <TablePagination
+                      count={filteredScorers.length}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      rowsPerPage={rowsPerPage}
+                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      ActionsComponent={(props) => (
+                        <TablePaginationActions {...props} />
+                      )}
+                      labelRowsPerPage="Scorers per page"
+                      labelDisplayedRows={({ page: p, count }) =>
+                        `Page ${p + 1} of ${Math.max(
+                          0,
+                          Math.ceil(count / rowsPerPage)
+                        )}`
+                      }
+                      sx={{
+                        borderBottom: "none",
+                        "& .MuiTablePagination-toolbar": {
+                          minHeight: "40px",
+                        },
+                        "& .MuiTablePagination-selectLabel": {
+                          fontSize: "12px",
+                          color: theme.palette.text.secondary,
+                        },
+                        "& .MuiTablePagination-displayedRows": {
+                          fontSize: "12px",
+                          color: theme.palette.text.secondary,
+                        },
+                      }}
+                      slotProps={{
+                        select: {
+                          MenuProps: {
+                            keepMounted: true,
+                            PaperProps: {
+                              sx: {
+                                borderRadius: "4px",
+                                boxShadow: theme.shadows[3],
+                                mt: 1,
+                              },
+                            },
+                            transformOrigin: {
+                              vertical: "bottom",
+                              horizontal: "left",
+                            },
+                            anchorOrigin: {
+                              vertical: "top",
+                              horizontal: "left",
+                            },
+                            sx: { mt: theme.spacing(-2) },
+                          },
+                          inputProps: { id: "pagination-dropdown" },
+                          IconComponent: () => <ChevronsUpDown size={16} />,
+                          sx: {
+                            fontSize: "12px",
+                            "& .MuiSelect-select": {
+                              paddingY: "4px",
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </TableRow>
+                </TableFooter>
+              </>
+            ) : (
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    colSpan={tableColumns.length}
+                    sx={{ border: "none", p: 0 }}
+                  >
+                    <EmptyState message="There is currently no data in this table." />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            )}
+          </Table>
+        </TableContainer>
       </Box>
 
-      <ModalStandard
-        isOpen={createOpen}
-        onClose={() => {
-          if (creating) return;
-          setCreateOpen(false);
-          resetForm();
+      {/* Gear menu popover */}
+      <Popover
+        open={Boolean(menuAnchor)}
+        anchorEl={menuAnchor}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
         }}
-        title="New scorer"
-        description="Create a new scorer for this project. Metric keys are used to join scores back to experiment results."
-        onSubmit={handleCreateScorer}
-        submitButtonText="Create"
-        isSubmitting={creating}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "4px",
+              boxShadow: theme.shadows[3],
+              minWidth: "120px",
+            },
+          },
+        }}
+      >
+        <MenuItem onClick={handleEditClick} sx={{ fontSize: "13px", py: 1 }}>
+          <ListItemIcon sx={{ minWidth: "28px !important" }}>
+            <Pencil size={16} />
+          </ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+            Edit
+          </ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleDeleteClick}
+          sx={{ fontSize: "13px", py: 1, color: "#c62828" }}
+        >
+          <ListItemIcon sx={{ minWidth: "28px !important", color: "#c62828" }}>
+            <Trash2 size={16} />
+          </ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+            Delete
+          </ListItemText>
+        </MenuItem>
+      </Popover>
+
+      {/* Edit/Create Modal */}
+      <StandardModal
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingScorer(null);
+        }}
+        title={editingScorer ? "Edit scorer" : "New scorer"}
+        description={
+          editingScorer
+            ? "Update the scorer configuration"
+            : "Create a new scorer for this project"
+        }
+        onSubmit={editingScorer ? handleEditSubmit : handleCreateSubmit}
+        submitButtonText={editingScorer ? "Save" : "Create"}
+        isSubmitting={isSubmitting}
+        maxWidth="600px"
       >
         <Stack spacing={6}>
-          <Stack direction="row" spacing={6}>
-            <Field
-              label="Name"
-              value={form.name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Scorer name"
-              isRequired
-              width="100%"
-            />
-            <Field
-              label="Metric key"
-              value={form.metricKey}
-              onChange={(e) => handleMetricKeyChange(e.target.value)}
-              placeholder="e.g. answer_correctness"
-              isRequired
-              width="100%"
-            />
+          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Name"
+                placeholder="Scorer name"
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Metric key"
+                placeholder="e.g. answer_correctness"
+                value={editForm.metricKey}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, metricKey: e.target.value }))
+                }
+              />
+            </Box>
           </Stack>
-
           <Field
-            type="description"
             label="Description"
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
             placeholder="Optional description"
-            isOptional
+            value={editForm.description}
+            onChange={(e) =>
+              setEditForm((prev) => ({ ...prev, description: e.target.value }))
+            }
           />
-
-          <Stack direction="row" spacing={6}>
-            <Field
-              label="Type"
-              value={form.type}
-              onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as typeof prev.type }))}
-              placeholder="llm"
-              width="100%"
-            />
-            <Field
-              label="Judge model"
-              value={form.judgeModel}
-              onChange={(e) => setForm((prev) => ({ ...prev, judgeModel: e.target.value }))}
-              placeholder="gpt-4o-mini"
-              width="100%"
-            />
+          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Type"
+                placeholder="llm, builtin, custom"
+                value={editForm.type}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    type: e.target.value as "llm" | "builtin" | "custom",
+                  }))
+                }
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Judge model"
+                placeholder="e.g. gpt-4o-mini"
+                value={editForm.judgeModel}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, judgeModel: e.target.value }))
+                }
+              />
+            </Box>
           </Stack>
-
-          <Stack direction="row" spacing={6}>
-            <Field
-              label="Default threshold"
-              type="number"
-              value={form.defaultThreshold}
-              onChange={(e) => setForm((prev) => ({ ...prev, defaultThreshold: e.target.value }))}
-              placeholder="0.7"
-              width="100%"
-            />
-            <Field
-              label="Weight"
-              type="number"
-              value={form.weight}
-              onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
-              placeholder="1.0"
-              width="100%"
-            />
+          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Default threshold"
+                placeholder="0.7"
+                value={editForm.defaultThreshold}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    defaultThreshold: e.target.value,
+                  }))
+                }
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="Weight"
+                placeholder="1.0"
+                value={editForm.weight}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, weight: e.target.value }))
+                }
+              />
+            </Box>
           </Stack>
         </Stack>
-      </ModalStandard>
+      </StandardModal>
+
+      {/* Delete Confirmation Modal */}
+      <StandardModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setScorerToDelete(null);
+        }}
+        title="Delete scorer"
+        description={`Are you sure you want to delete "${scorerToDelete?.name || "this scorer"}"? This action cannot be undone.`}
+        onSubmit={handleConfirmDelete}
+        submitButtonText="Delete"
+        isSubmitting={isDeleting}
+        submitButtonColor="#c62828"
+      />
     </Box>
   );
 }

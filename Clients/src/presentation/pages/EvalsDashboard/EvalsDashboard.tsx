@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography } from "@mui/material";
-import { Workflow, Home, FlaskConical, FileSearch, Bot } from "lucide-react";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, TextField, Button, List, ListItemButton, ListItemText, useTheme } from "@mui/material";
+import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { getSelectStyles } from "../../utils/inputStyles";
+import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
+import Alert from "../../components/Alert";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import CustomAxios from "../../../infrastructure/api/customAxios";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalScorersService } from "../../../infrastructure/api/deepEvalScorersService";
+import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
+import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
+import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -17,19 +28,48 @@ import ProjectOverview from "./ProjectOverview";
 import ProjectExperiments from "./ProjectExperiments";
 import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
+import ExperimentDetailContent from "./ExperimentDetailContent";
 import type { DeepEvalProject } from "./types";
 import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
+
+const LLM_PROVIDERS = [
+  { _id: "openai", name: "OpenAI" },
+  { _id: "anthropic", name: "Anthropic" },
+  { _id: "google", name: "Google (Gemini)" },
+  { _id: "xai", name: "xAI" },
+  { _id: "mistral", name: "Mistral" },
+  { _id: "huggingface", name: "Hugging Face" },
+];
+
+const LAST_PROJECT_KEY = "evals_last_project_id";
+const RECENT_EXPERIMENTS_KEY = "evals_recent_experiments";
+const RECENT_PROJECTS_KEY = "evals_recent_projects";
+
+interface RecentExperiment {
+  id: string;
+  name: string;
+  projectId: string;
+}
+
+interface RecentProject {
+  id: string;
+  name: string;
+}
 
 export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
-  // Determine tab from URL hash or default (only when viewing a project)
+  // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
-    if (!projectId) return "overview"; // Default, but won't be used
     const hash = location.hash.replace("#", "");
+    // When no projectId, default to "overview" to show projects list (unless explicitly on organizations)
+    if (!projectId) {
+      return hash === "organizations" ? "organizations" : "overview";
+    }
     return hash || "overview";
   });
 
@@ -39,6 +79,13 @@ export default function EvalsDashboard() {
     const hash = location.hash.replace("#", "");
     setTab(hash || "overview");
   }, [location.hash, projectId]);
+
+  // Persist projectId to localStorage when it changes
+  useEffect(() => {
+    if (projectId) {
+      localStorage.setItem(LAST_PROJECT_KEY, projectId);
+    }
+  }, [projectId]);
 
   const [currentProject, setCurrentProject] = useState<DeepEvalProject | null>(null);
   const [allProjects, setAllProjects] = useState<DeepEvalProject[]>([]);
@@ -51,7 +98,40 @@ export default function EvalsDashboard() {
   const [newOrgName, setNewOrgName] = useState("");
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
+  const [scorersCount, setScorersCount] = useState<number>(0);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
+  const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_EXPERIMENTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_PROJECTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // API key modal state
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [newApiKey, setNewApiKey] = useState("");
+  const [apiKeySaving, setApiKeySaving] = useState(false);
+  const [apiKeyAlert, setApiKeyAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+
+  // LLM API keys list state (for Settings-style display)
+  const [llmApiKeys, setLlmApiKeys] = useState<LLMApiKey[]>([]);
+  const [llmApiKeysLoading, setLlmApiKeysLoading] = useState(false);
+  const [hoveredKeyProvider, setHoveredKeyProvider] = useState<string | null>(null);
+  const [deletingKeyProvider, setDeletingKeyProvider] = useState<string | null>(null);
+  const [deleteKeyModalOpen, setDeleteKeyModalOpen] = useState(false);
+  const [keyToDelete, setKeyToDelete] = useState<LLMApiKey | null>(null);
 
   // Onboarding state: "org" | "project" | null (null = completed)
   const [onboardingStep, setOnboardingStep] = useState<"org" | "project" | null>(null);
@@ -60,6 +140,138 @@ export default function EvalsDashboard() {
   const [onboardingProjectDesc, setOnboardingProjectDesc] = useState("");
   const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
+
+  // Project actions state (rename, delete)
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameProjectId, setRenameProjectId] = useState<string | null>(null);
+  const [renameProjectName, setRenameProjectName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [projectActionAlert, setProjectActionAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+
+  // Project selector state (for dropdown above sidebar)
+  const [selectOpen, setSelectOpen] = useState(false);
+  const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
+  const [createProjectAnchor, setCreateProjectAnchor] = useState<HTMLElement | null>(null);
+  const [newProjectName, setNewProjectName] = useState("");
+  const preventCloseRef = useRef(false);
+
+  // Helper function to add a recent experiment
+  const addRecentExperiment = useCallback((experiment: RecentExperiment) => {
+    setRecentExperiments((prev) => {
+      const filtered = prev.filter((e) => e.id !== experiment.id);
+      const updated = [experiment, ...filtered].slice(0, 10); // Keep max 10
+      localStorage.setItem(RECENT_EXPERIMENTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  // Helper function to add a recent project
+  const addRecentProject = (project: RecentProject) => {
+    setRecentProjects((prev) => {
+      const filtered = prev.filter((p) => p.id !== project.id);
+      const updated = [project, ...filtered].slice(0, 10); // Keep max 10
+      localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Track current project as recent when viewed
+  useEffect(() => {
+    if (projectId && currentProject) {
+      addRecentProject({ id: currentProject.id, name: currentProject.name });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, currentProject?.id]);
+
+  // Track experiment as recent when viewed
+  useEffect(() => {
+    if (selectedExperimentId && projectId) {
+      // We'll need to fetch the experiment name - for now use the ID
+      // The name will be updated when ExperimentDetailContent loads
+      experimentsService.getExperiment(selectedExperimentId).then((data) => {
+        if (data.experiment) {
+          addRecentExperiment({
+            id: selectedExperimentId,
+            name: data.experiment.name || selectedExperimentId,
+            projectId: projectId,
+          });
+        }
+      }).catch(() => {
+        // If fetch fails, still add with ID as name
+        addRecentExperiment({
+          id: selectedExperimentId,
+          name: selectedExperimentId,
+          projectId: projectId,
+        });
+      });
+    }
+  }, [selectedExperimentId, projectId, addRecentExperiment]);
+
+  // Load LLM API keys when configuration tab is active
+  const fetchLlmApiKeys = async () => {
+    setLlmApiKeysLoading(true);
+    try {
+      const keys = await evaluationLlmApiKeysService.getAllKeys();
+      setLlmApiKeys(keys);
+    } catch (err) {
+      console.error("Failed to fetch LLM API keys:", err);
+    } finally {
+      setLlmApiKeysLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tab === "configuration") {
+      fetchLlmApiKeys();
+    }
+  }, [tab]);
+
+  // Delete LLM API key handler
+  const handleDeleteLlmKey = async () => {
+    if (!keyToDelete) return;
+
+    setDeletingKeyProvider(keyToDelete.provider);
+    setDeleteKeyModalOpen(false);
+
+    try {
+      await evaluationLlmApiKeysService.deleteKey(keyToDelete.provider);
+
+      // Wait for animation then refresh
+      setTimeout(async () => {
+        setApiKeyAlert({ variant: "success", body: "API key deleted successfully" });
+        setTimeout(() => setApiKeyAlert(null), 3000);
+        await fetchLlmApiKeys();
+        setDeletingKeyProvider(null);
+        setKeyToDelete(null);
+      }, 300);
+    } catch {
+      setDeletingKeyProvider(null);
+      setApiKeyAlert({ variant: "error", body: "Failed to delete API key" });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+    }
+  };
+
+  // Get provider display name
+  const getProviderDisplayName = (provider: string): string => {
+    const providerObj = LLM_PROVIDERS.find(p => p._id === provider);
+    return providerObj?.name || provider.charAt(0).toUpperCase() + provider.slice(1);
+  };
+
+  // Format date for display
+  const formatKeyDate = (dateStr: string): string => {
+    try {
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
 
   // Load current org on mount and check if onboarding is needed
   useEffect(() => {
@@ -77,21 +289,38 @@ export default function EvalsDashboard() {
           const { org } = await deepEvalOrgsService.getCurrentOrg();
           if (org) {
             setOrgId(org.id);
-            // Check if this org has any projects
-            const projectIds = await deepEvalOrgsService.getProjectsForOrg(org.id);
-            if (!projectIds || projectIds.length === 0) {
-              // Org exists but no projects - go to project step
-              setOnboardingStep("project");
-            }
           } else {
             // Has orgs but none selected - select first one
             await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
             setOrgId(orgs[0].id);
-            // Check if this org has any projects
-            const projectIds = await deepEvalOrgsService.getProjectsForOrg(orgs[0].id);
-            if (!projectIds || projectIds.length === 0) {
-              setOnboardingStep("project");
+          }
+
+          // Check for last project - try to redirect regardless of org association
+          const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+          if (lastProjectId) {
+            // Verify the project still exists
+            try {
+              const projectData = await deepEvalProjectsService.getProject(lastProjectId);
+              if (projectData?.project) {
+                navigate(`/evals/${lastProjectId}#overview`, { replace: true });
+                return;
+              }
+            } catch {
+              // Project doesn't exist anymore, clear from localStorage
+              localStorage.removeItem(LAST_PROJECT_KEY);
             }
+          }
+
+          // No last project - check current org's projects for onboarding
+          const currentOrgId = org?.id || orgs[0].id;
+          const projectIds = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
+          if (!projectIds || projectIds.length === 0) {
+            // Org exists but no projects - go to project step
+            setOnboardingStep("project");
+          } else if (projectIds.length > 0) {
+            // Redirect to first project in org
+            navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+            return;
           }
         }
       } catch (err) {
@@ -104,12 +333,15 @@ export default function EvalsDashboard() {
     };
 
     // Only run onboarding check when not viewing a specific project
-    if (!projectId) {
+    // Skip redirect if explicitly on organizations tab (check both hash and tab state)
+    const hash = location.hash.replace("#", "");
+    if (!projectId && hash !== "organizations" && tab !== "organizations") {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
     }
-  }, [projectId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, navigate]);
 
   // Load all projects for the dropdown and current project
   useEffect(() => {
@@ -147,15 +379,20 @@ export default function EvalsDashboard() {
         });
         setExperimentsCount(experimentsData.experiments?.length || 0);
 
-        // Load datasets count - count all datasets across all categories
+        // Load datasets count - count built-in datasets (same as what's shown in the Datasets tab)
         const datasetsData = await deepEvalDatasetsService.list();
         const totalCount = Object.values(datasetsData).reduce((sum, datasets) => {
           return sum + (Array.isArray(datasets) ? datasets.length : 0);
         }, 0);
         setDatasetsCount(totalCount);
+
+        // Load scorers count
+        const scorersData = await deepEvalScorersService.list({ project_id: projectId });
+        setScorersCount(scorersData.scorers?.length || 0);
       } catch (err) {
         console.error("Failed to load counts:", err);
         setDatasetsCount(0);
+        setScorersCount(0);
       }
     };
 
@@ -164,6 +401,8 @@ export default function EvalsDashboard() {
 
   const handleTabChange = (newValue: string) => {
     setTab(newValue);
+    // Clear selected experiment when switching tabs
+    setSelectedExperimentId(null);
     // Update URL hash
     navigate(`${location.pathname}#${newValue}`, { replace: true });
   };
@@ -173,6 +412,89 @@ export default function EvalsDashboard() {
       setCreateProjectModalOpen(true);
     } else {
       navigate(`/evals/${newProjectId}#${tab}`);
+    }
+  };
+
+  // Project action handlers
+  const handleRenameProject = (projectIdToRename: string) => {
+    const proj = allProjects.find((p) => p.id === projectIdToRename);
+    if (proj) {
+      setRenameProjectId(projectIdToRename);
+      setRenameProjectName(proj.name);
+      setRenameModalOpen(true);
+    }
+  };
+
+  const handleCopyProjectId = (projectIdToCopy: string) => {
+    navigator.clipboard.writeText(projectIdToCopy);
+    setProjectActionAlert({ variant: "success", body: "Project ID copied to clipboard" });
+    setTimeout(() => setProjectActionAlert(null), 3000);
+  };
+
+  const handleDeleteProject = (projectIdToDelete: string) => {
+    setDeleteProjectId(projectIdToDelete);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmRename = async () => {
+    if (!renameProjectId || !renameProjectName.trim()) return;
+    setRenaming(true);
+    try {
+      await deepEvalProjectsService.updateProject(renameProjectId, { name: renameProjectName.trim() });
+      // Reload projects list
+      const data = await deepEvalProjectsService.getAllProjects();
+      setAllProjects(data.projects);
+      // Update current project if it was renamed
+      if (projectId === renameProjectId) {
+        const updated = data.projects.find((p) => p.id === renameProjectId);
+        if (updated) setCurrentProject(updated);
+      }
+      setProjectActionAlert({ variant: "success", body: "Project renamed successfully" });
+      setTimeout(() => setProjectActionAlert(null), 3000);
+      setRenameModalOpen(false);
+      setRenameProjectId(null);
+      setRenameProjectName("");
+    } catch (err) {
+      setProjectActionAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to rename project" });
+      setTimeout(() => setProjectActionAlert(null), 5000);
+    } finally {
+      setRenaming(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteProjectId) return;
+    setDeleting(true);
+    try {
+      await deepEvalProjectsService.deleteProject(deleteProjectId);
+      // Reload projects list
+      const data = await deepEvalProjectsService.getAllProjects();
+      setAllProjects(data.projects);
+
+      // Remove deleted project from recent projects
+      setRecentProjects((prev) => {
+        const filtered = prev.filter((p) => p.id !== deleteProjectId);
+        localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(filtered));
+        return filtered;
+      });
+
+      // If we deleted the current project, navigate away
+      if (projectId === deleteProjectId) {
+        if (data.projects.length > 0) {
+          navigate(`/evals/${data.projects[0].id}#overview`);
+        } else {
+          navigate("/evals#overview");
+        }
+      }
+      setProjectActionAlert({ variant: "success", body: "Project deleted successfully" });
+      setTimeout(() => setProjectActionAlert(null), 3000);
+      setDeleteModalOpen(false);
+      setDeleteProjectId(null);
+    } catch (err) {
+      setProjectActionAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to delete project" });
+      setTimeout(() => setProjectActionAlert(null), 5000);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -275,13 +597,72 @@ export default function EvalsDashboard() {
     }
   };
 
+  // Tab label and icon mapping for breadcrumbs
+  const getTabInfo = (tabValue: string): { label: string; icon: React.ReactNode } => {
+    const tabMap: Record<string, { label: string; icon: React.ReactNode }> = {
+      overview: { label: "Overview", icon: <LayoutDashboard size={14} strokeWidth={1.5} /> },
+      experiments: { label: "Experiments", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+      datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
+      scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
+      configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
+      organizations: { label: "Organizations", icon: <Building2 size={14} strokeWidth={1.5} /> },
+    };
+    return tabMap[tabValue] || { label: tabValue, icon: <Workflow size={14} strokeWidth={1.5} /> };
+  };
+
+  // Handle API key modal submission
+  const handleAddApiKey = async () => {
+    if (!selectedProvider || !newApiKey.trim()) {
+      setApiKeyAlert({
+        variant: "error",
+        body: "Please select a provider and enter an API key",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+      return;
+    }
+
+    setApiKeySaving(true);
+    try {
+      const response = await CustomAxios.post('/evaluation-llm-keys', {
+        provider: selectedProvider,
+        apiKey: newApiKey,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to add API key');
+      }
+
+      setApiKeyAlert({
+        variant: "success",
+        body: "API key added successfully",
+      });
+      // Refresh the keys list
+      await fetchLlmApiKeys();
+      setTimeout(() => {
+        setApiKeyAlert(null);
+        setApiKeyModalOpen(false);
+        setSelectedProvider("");
+        setNewApiKey("");
+      }, 1500);
+    } catch (err) {
+      setApiKeyAlert({
+        variant: "error",
+        body: err instanceof Error ? err.message : "Failed to add API key",
+      });
+      setTimeout(() => setApiKeyAlert(null), 5000);
+    } finally {
+      setApiKeySaving(false);
+    }
+  };
+
   // Build breadcrumbs based on current view
+  const tabInfo = getTabInfo(tab);
   const breadcrumbItems =
     !orgId
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           {
-            label: "LLM Evals",
+            label: "LLM evals",
             path: "/evals",
             icon: <FlaskConical size={14} strokeWidth={1.5} />,
             onClick: async () => {
@@ -301,22 +682,23 @@ export default function EvalsDashboard() {
               navigate("/evals");
             },
           },
-          { label: "Organizations" },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : projectId && currentProject
       ? [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
           { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
-          { label: currentProject.name, icon: <Workflow size={14} strokeWidth={1.5} /> },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ]
       : [
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} />, onClick: () => navigate("/") },
-          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
+          { label: "LLM evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
+          { label: tabInfo.label, icon: tabInfo.icon },
         ];
 
   return (
     <Box>
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: "8px" }}>
         <Box>
           <PageBreadcrumbs items={breadcrumbItems} />
         </Box>
@@ -330,21 +712,370 @@ export default function EvalsDashboard() {
 
       </Box>
 
-      <Box sx={{ px: 3, py: 2, display: "flex", gap: 3 }}>
-        {/* Sidebar - always visible, disabled items when no project selected */}
-        <EvalsSidebar
-          activeTab={tab}
-          onTabChange={handleTabChange}
-          experimentsCount={experimentsCount}
-          datasetsCount={datasetsCount}
-          disabled={!projectId}
-          allProjects={allProjects}
-          selectedProjectId={projectId}
-          onProjectChange={handleProjectChange}
-        />
+      <Box sx={{ display: "flex", gap: "16px" }}>
+        {/* Left column: Project selector + Sidebar */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px", width: "200px", minWidth: "200px" }}>
+          {/* Project selector above sidebar */}
+          {allProjects.length > 0 && (
+            <Box>
+              <MuiSelect
+                value={projectId || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val && val !== "create_new") {
+                    handleProjectChange(val);
+                  }
+                }}
+                displayEmpty
+                open={selectOpen}
+                onOpen={() => setSelectOpen(true)}
+                onClose={() => {
+                  if (!actionsAnchor && !createProjectAnchor && !preventCloseRef.current) {
+                    setSelectOpen(false);
+                  }
+                  preventCloseRef.current = false;
+                }}
+                renderValue={(value) => {
+                  const project = allProjects.find((p) => p.id === value);
+                  return project?.name || "Select project";
+                }}
+                IconComponent={() => (
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      pointerEvents: "none",
+                      color: theme.palette.text.tertiary,
+                    }}
+                  />
+                )}
+                MenuProps={{
+                  disableScrollLock: true,
+                  PaperProps: {
+                    sx: {
+                      borderRadius: "4px",
+                      boxShadow: theme.shadows[3],
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        fontSize: 13,
+                        color: theme.palette.text.primary,
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.accent,
+                        },
+                        "&.Mui-selected": {
+                          backgroundColor: theme.palette.background.accent,
+                          "&:hover": {
+                            backgroundColor: theme.palette.background.accent,
+                          },
+                        },
+                        "& .MuiTouchRipple-root": {
+                          display: "none",
+                        },
+                      },
+                    },
+                  },
+                }}
+                sx={{
+                  fontSize: 13,
+                  width: "100%",
+                  height: "34px",
+                  backgroundColor: theme.palette.background.main,
+                  position: "relative",
+                  cursor: "pointer",
+                  "& .MuiOutlinedInput-root": {
+                    height: "34px",
+                  },
+                  "& .MuiSelect-select": {
+                    padding: "0 32px 0 10px !important",
+                    height: "34px !important",
+                    minHeight: "34px !important",
+                    display: "flex",
+                    alignItems: "center",
+                    lineHeight: 1,
+                    boxSizing: "border-box",
+                  },
+                  ...getSelectStyles(theme),
+                }}
+              >
+                {allProjects.map((proj) => {
+                  const isSelected = proj.id === projectId;
+                  const hasActions = true; // We have rename, copy, delete actions
+                  return (
+                    <MenuItem
+                      key={proj.id}
+                      value={proj.id}
+                      onClick={(e) => {
+                        if (isSelected && hasActions) {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          preventCloseRef.current = true;
+                          setActionsAnchor(e.currentTarget as HTMLElement);
+                        }
+                      }}
+                      sx={{
+                        fontSize: 13,
+                        color: theme.palette.text.tertiary,
+                        borderRadius: "4px",
+                        margin: theme.spacing(2),
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                        {proj.name}
+                      </span>
+                      {isSelected && hasActions && (
+                        <ChevronRight
+                          size={14}
+                          style={{ marginLeft: 8, flexShrink: 0, color: theme.palette.text.tertiary }}
+                        />
+                      )}
+                    </MenuItem>
+                  );
+                })}
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem
+                  value="create_new"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    preventCloseRef.current = true;
+                    setCreateProjectAnchor(e.currentTarget as HTMLElement);
+                  }}
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "#13715B",
+                    borderRadius: "4px",
+                    margin: theme.spacing(2),
+                  }}
+                >
+                  <Plus size={14} style={{ marginRight: 8 }} />
+                  Create project
+                </MenuItem>
+              </MuiSelect>
+
+              {/* Project actions popover */}
+              <Popover
+                open={Boolean(actionsAnchor)}
+                anchorEl={actionsAnchor}
+                onClose={() => {
+                  setActionsAnchor(null);
+                  setSelectOpen(false);
+                }}
+                anchorOrigin={{
+                  vertical: "center",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "center",
+                  horizontal: "left",
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      borderRadius: "4px",
+                      boxShadow: theme.shadows[3],
+                      ml: 0.5,
+                      minWidth: 140,
+                    },
+                  },
+                }}
+              >
+                <List disablePadding sx={{ py: 0.5 }}>
+                  <ListItemButton
+                    onClick={() => {
+                      if (projectId) handleRenameProject(projectId);
+                      setActionsAnchor(null);
+                      setSelectOpen(false);
+                    }}
+                    sx={{
+                      height: 32,
+                      px: 1.5,
+                      "&:hover": { backgroundColor: theme.palette.background.accent },
+                    }}
+                  >
+                    <ListItemText
+                      primary="Rename project"
+                      primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
+                    />
+                  </ListItemButton>
+                  <ListItemButton
+                    onClick={() => {
+                      if (projectId) handleCopyProjectId(projectId);
+                      setActionsAnchor(null);
+                      setSelectOpen(false);
+                    }}
+                    sx={{
+                      height: 32,
+                      px: 1.5,
+                      "&:hover": { backgroundColor: theme.palette.background.accent },
+                    }}
+                  >
+                    <ListItemText
+                      primary="Copy project ID"
+                      primaryTypographyProps={{ fontSize: 13, color: theme.palette.text.primary }}
+                    />
+                  </ListItemButton>
+                  <ListItemButton
+                    onClick={() => {
+                      if (projectId) handleDeleteProject(projectId);
+                      setActionsAnchor(null);
+                      setSelectOpen(false);
+                    }}
+                    sx={{
+                      height: 32,
+                      px: 1.5,
+                      "&:hover": { backgroundColor: theme.palette.background.accent },
+                    }}
+                  >
+                    <ListItemText
+                      primary="Delete project"
+                      primaryTypographyProps={{ fontSize: 13, color: "#DC2626" }}
+                    />
+                  </ListItemButton>
+                </List>
+              </Popover>
+
+              {/* Create project popover */}
+              <Popover
+                open={Boolean(createProjectAnchor)}
+                anchorEl={createProjectAnchor}
+                onClose={() => {
+                  setCreateProjectAnchor(null);
+                  setSelectOpen(false);
+                  setNewProjectName("");
+                }}
+                anchorOrigin={{
+                  vertical: "center",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "center",
+                  horizontal: "left",
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      borderRadius: "4px",
+                      boxShadow: theme.shadows[3],
+                      ml: 0.5,
+                      minWidth: 240,
+                      p: 2,
+                    },
+                  },
+                }}
+              >
+                <Stack spacing={2}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary }}>
+                    Create new project
+                  </Typography>
+                  <TextField
+                    size="small"
+                    placeholder="Project name"
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newProjectName.trim()) {
+                        handleProjectChange("create_new:" + newProjectName.trim());
+                        setCreateProjectAnchor(null);
+                        setSelectOpen(false);
+                        setNewProjectName("");
+                      }
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        fontSize: 13,
+                        height: 34,
+                        borderRadius: "4px",
+                      },
+                    }}
+                  />
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setCreateProjectAnchor(null);
+                        setSelectOpen(false);
+                        setNewProjectName("");
+                      }}
+                      sx={{
+                        fontSize: 12,
+                        textTransform: "none",
+                        color: theme.palette.text.secondary,
+                        height: 28,
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={!newProjectName.trim()}
+                      onClick={() => {
+                        if (newProjectName.trim()) {
+                          handleProjectChange("create_new:" + newProjectName.trim());
+                          setCreateProjectAnchor(null);
+                          setSelectOpen(false);
+                          setNewProjectName("");
+                        }
+                      }}
+                      sx={{
+                        fontSize: 12,
+                        textTransform: "none",
+                        backgroundColor: "#13715B",
+                        height: 28,
+                        "&:hover": { backgroundColor: "#0f5a47" },
+                        "&.Mui-disabled": {
+                          backgroundColor: "#e0e0e0",
+                          color: "#9e9e9e",
+                        },
+                      }}
+                    >
+                      Create
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Popover>
+            </Box>
+          )}
+
+          {/* Sidebar */}
+          <EvalsSidebar
+            activeTab={tab}
+            onTabChange={handleTabChange}
+            experimentsCount={experimentsCount}
+            datasetsCount={datasetsCount}
+            scorersCount={scorersCount}
+            disabled={!projectId}
+            recentExperiments={recentExperiments}
+            recentProjects={recentProjects}
+            onExperimentClick={(experimentId, expProjectId) => {
+              if (expProjectId !== projectId) {
+                navigate(`/evals/${expProjectId}#experiments`);
+                setTimeout(() => {
+                  setSelectedExperimentId(experimentId);
+                  setTab("experiments");
+                }, 100);
+              } else {
+                setSelectedExperimentId(experimentId);
+                setTab("experiments");
+                navigate(`${location.pathname}#experiments`, { replace: true });
+              }
+            }}
+            onProjectClick={(clickedProjectId) => {
+              navigate(`/evals/${clickedProjectId}#overview`);
+            }}
+          />
+        </Box>
 
         {/* Main content */}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
           /* Organizations tab - always accessible, shows org management */
@@ -376,11 +1107,27 @@ export default function EvalsDashboard() {
                   projectId={projectId}
                   project={currentProject}
                   onProjectUpdate={setCurrentProject}
+                  onViewExperiment={(experimentId) => {
+                    setSelectedExperimentId(experimentId);
+                    setTab("experiments");
+                    navigate(`${location.pathname}#experiments`, { replace: true });
+                  }}
                 />
               )}
 
               {tab === "experiments" && (
-                <ProjectExperiments projectId={projectId} />
+                selectedExperimentId ? (
+                  <ExperimentDetailContent
+                    experimentId={selectedExperimentId}
+                    projectId={projectId || ""}
+                    onBack={() => setSelectedExperimentId(null)}
+                  />
+                ) : (
+                  <ProjectExperiments
+                    projectId={projectId}
+                    onViewExperiment={(experimentId) => setSelectedExperimentId(experimentId)}
+                  />
+                )
               )}
 
               {tab === "datasets" && (
@@ -392,128 +1139,287 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "configuration" && (
-                <Box sx={{ p: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 1, fontSize: "18px", fontWeight: 600 }}>
-                    Project configuration
-                  </Typography>
-
-                  {/* LLM Use Case */}
-                  <Box sx={{ mt: 4, mb: 4 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 2 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+                  {/* LLM Use Case Card */}
+                  <Box
+                    sx={{
+                      background: "#fff",
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      p: "20px 24px",
+                      boxShadow: "none",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 3, color: "#344054" }}>
                       LLM use case
                     </Typography>
-                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-                      <Box
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          cursor: "not-allowed",
-                          backgroundColor: "#FFFFFF",
-                          opacity: 0.6,
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "220px 1fr",
+                        rowGap: "20px",
+                        columnGap: "80px",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {/* Use Case Row */}
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Use case type</Typography>
+                        <Typography sx={{ fontSize: 12, color: "#888" }}>
+                          Select the type of LLM application you want to evaluate
+                        </Typography>
+                      </Box>
+                      <RadioGroup
+                        value={currentProject?.useCase || "chatbot"}
+                        onChange={(e) => {
+                          if (currentProject) {
+                            setCurrentProject({ ...currentProject, useCase: e.target.value as "rag" | "chatbot" | "agent" });
+                          }
                         }}
                       >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <Workflow size={20} color="#13715B" />
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents (coming soon)</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                              Agentic workflows and end-to-end task completion will be available shortly.
+                        <FormControlLabel
+                          value="rag"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
+                              </Typography>
                             </Box>
-                          </Box>
-                        </Box>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          border: currentProject?.useCase === "rag" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          backgroundColor: "#FFFFFF",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <FileSearch size={20} color="#13715B" />
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>RAG</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                              Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
+                          }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="chatbot"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbots</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                              </Typography>
                             </Box>
-                          </Box>
-                        </Box>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          border: currentProject?.useCase === "chatbot" ? "2px solid #13715B" : "1px solid #E5E7EB",
-                          borderRadius: 2,
-                          p: 2,
-                          backgroundColor: "#FFFFFF",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                          <Box sx={{ mt: 0.25 }}>
-                            <Bot size={20} color="#13715B" />
-                          </Box>
-                          <Box>
-                            <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
-                            <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                              Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Box>
+                          }
+                          sx={{ alignItems: "flex-start" }}
+                        />
+                      </RadioGroup>
                     </Box>
                   </Box>
 
-                  {/* LLM API Keys */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, mb: 1 }}>
-                      LLM API keys
-                    </Typography>
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280", mb: 2 }}>
-                      These keys are encrypted and stored securely in the database. They will be used for running evaluations.{" "}
-                      <Typography
-                        component="span"
-                        onClick={() => navigate("/evals/settings")}
+                  {/* LLM API Keys Card */}
+                  <Box
+                    sx={{
+                      background: "#fff",
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      p: "20px 24px",
+                      boxShadow: "none",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                      <Box>
+                        <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                          LLM API keys
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
+                          Encrypted keys for running evaluations
+                        </Typography>
+                      </Box>
+                      {llmApiKeys.length > 0 && (
+                        <CustomizableButton
+                          variant="contained"
+                          text="Add API key"
+                          icon={<PlusIcon size={16} />}
+                          onClick={() => setApiKeyModalOpen(true)}
+                          sx={{
+                            backgroundColor: "#13715B",
+                            color: "#fff",
+                            "&:hover": { backgroundColor: "#0e5c47" },
+                          }}
+                        />
+                      )}
+                    </Box>
+
+                    {llmApiKeysLoading && llmApiKeys.length === 0 ? (
+                      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : llmApiKeys.length === 0 ? (
+                      <Box
                         sx={{
-                          color: "#13715B",
-                          cursor: "pointer",
-                          textDecoration: "none",
-                          fontWeight: 500,
-                          "&:hover": { textDecoration: "underline" },
+                          border: "2px dashed #e5e7eb",
+                          borderRadius: "12px",
+                          p: 6,
+                          textAlign: "center",
+                          backgroundColor: "#fafbfc",
                         }}
                       >
-                        Add API key
-                      </Typography>
-                    </Typography>
-                    <Typography sx={{ fontSize: "13px", color: "#9CA3AF", fontStyle: "italic" }}>
-                      No API keys configured yet.
-                    </Typography>
+                        <Box
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: "50%",
+                            backgroundColor: "#f0fdf4",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            margin: "0 auto",
+                            mb: 2,
+                          }}
+                        >
+                          <PlusIcon size={24} color="#13715B" />
+                        </Box>
+                        <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}>
+                          No API keys yet
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
+                          Add your first API key to enable LLM evaluations
+                        </Typography>
+                        <CustomizableButton
+                          variant="contained"
+                          text="Add API key"
+                          icon={<PlusIcon size={16} />}
+                          onClick={() => setApiKeyModalOpen(true)}
+                          sx={{
+                            backgroundColor: "#13715B",
+                            color: "#fff",
+                            "&:hover": { backgroundColor: "#0e5c47" },
+                          }}
+                        />
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        {llmApiKeys.map((key) => (
+                          <Collapse
+                            key={key.provider}
+                            in={deletingKeyProvider !== key.provider}
+                            timeout={300}
+                          >
+                            <Box
+                              onMouseEnter={() => setHoveredKeyProvider(key.provider)}
+                              onMouseLeave={() => setHoveredKeyProvider(null)}
+                              sx={{
+                                border: "1.5px solid #eaecf0",
+                                borderRadius: "4px",
+                                p: 3,
+                                backgroundColor: hoveredKeyProvider === key.provider ? "#f8fffe" : "#ffffff",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                transition: "all 0.3s ease-in-out",
+                                cursor: "default",
+                                boxShadow: hoveredKeyProvider === key.provider ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
+                                opacity: deletingKeyProvider === key.provider ? 0 : 1,
+                                transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
+                              }}
+                            >
+                              <Box sx={{ flex: 1 }}>
+                                <Typography sx={{
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: "#000000",
+                                  mb: 1.5,
+                                  letterSpacing: "0.01em",
+                                }}>
+                                  {getProviderDisplayName(key.provider)}
+                                </Typography>
+                                <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                                  <Chip
+                                    label="ACTIVE"
+                                    sx={{
+                                      backgroundColor: "#dcfce7",
+                                      color: "#166534",
+                                      fontWeight: 500,
+                                      fontSize: "11px",
+                                      height: "20px",
+                                      borderRadius: "4px",
+                                      "& .MuiChip-label": {
+                                        padding: "0 8px",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.5px",
+                                      },
+                                    }}
+                                  />
+                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                                    •
+                                  </Typography>
+                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                                    Key{" "}
+                                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, color: "#000000", fontFamily: "monospace" }}>
+                                      {key.maskedKey}
+                                    </Typography>
+                                  </Typography>
+                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                                    •
+                                  </Typography>
+                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                                    Added{" "}
+                                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
+                                      {formatKeyDate(key.createdAt)}
+                                    </Typography>
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Box sx={{ display: "flex", gap: 1 }}>
+                                <IconButton
+                                  onClick={() => {
+                                    setKeyToDelete(key);
+                                    setDeleteKeyModalOpen(true);
+                                  }}
+                                  disableRipple
+                                  sx={{
+                                    color: "#DC2626",
+                                    opacity: hoveredKeyProvider === key.provider ? 1 : 0.6,
+                                    transition: "opacity 0.2s ease-in-out",
+                                    "&:hover": {
+                                      backgroundColor: "#FEF2F2",
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon size={18} />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          </Collapse>
+                        ))}
+                      </Box>
+                    )}
                   </Box>
 
-                  {/* Save Changes Button */}
-                  <Box sx={{ mt: 4 }}>
-                    <button
-                      disabled
-                      style={{
-                        backgroundColor: "#E5E7EB",
-                        color: "#9CA3AF",
-                        border: "none",
-                        borderRadius: "6px",
-                        padding: "8px 16px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "not-allowed",
+                  {/* Save Button */}
+                  <Stack>
+                    <CustomizableButton
+                      sx={{
+                        alignSelf: "flex-end",
+                        width: "fit-content",
+                        gap: 2,
+                        backgroundColor: "#ccc",
+                        border: "1px solid #ccc",
                       }}
-                    >
-                      Save changes
-                    </button>
-                  </Box>
+                      icon={<Save size={16} />}
+                      variant="contained"
+                      onClick={() => {}}
+                      isDisabled={true}
+                      text="Save changes"
+                    />
+                  </Stack>
                 </Box>
               )}
             </>
@@ -555,29 +1461,7 @@ export default function EvalsDashboard() {
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM use case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-              <Box
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "not-allowed",
-                  backgroundColor: "#FFFFFF",
-                  opacity: 0.6,
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Workflow size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI agents (coming soon)</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Agentic workflows and end-to-end task completion will be available shortly.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
                 sx={{
@@ -788,6 +1672,120 @@ export default function EvalsDashboard() {
             </Box>
           </Box>
         </Stack>
+      </ModalStandard>
+
+      {/* Add API Key Modal */}
+      <ModalStandard
+        isOpen={apiKeyModalOpen}
+        onClose={() => {
+          setApiKeyModalOpen(false);
+          setSelectedProvider("");
+          setNewApiKey("");
+          setApiKeyAlert(null);
+        }}
+        title="Add API key"
+        description="Add an LLM provider API key to use for running evaluations."
+        onSubmit={handleAddApiKey}
+        submitButtonText="Add API key"
+        isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim()}
+      >
+        <Stack spacing={3}>
+          <Select
+            id="provider-select"
+            label="Select provider"
+            placeholder="Select a provider from the list"
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value as string)}
+            items={LLM_PROVIDERS}
+          />
+          <Field
+            label="API key"
+            value={newApiKey}
+            onChange={(e) => setNewApiKey(e.target.value)}
+            placeholder="Enter your API key..."
+            type="text"
+            autoComplete="one-time-code"
+            disabled={!selectedProvider}
+          />
+        </Stack>
+      </ModalStandard>
+
+      {/* Delete LLM API Key Modal */}
+      {deleteKeyModalOpen && keyToDelete && (
+        <DualButtonModal
+          title="Delete API key"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to delete the {getProviderDisplayName(keyToDelete.provider)} API key? Any evaluations using this key will no longer be able to run.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={() => {
+            setDeleteKeyModalOpen(false);
+            setKeyToDelete(null);
+          }}
+          onProceed={handleDeleteLlmKey}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
+      )}
+
+      {/* Project action alert */}
+      {projectActionAlert && (
+        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+          <Alert variant={projectActionAlert.variant} body={projectActionAlert.body} />
+        </Box>
+      )}
+
+      {/* API key alert */}
+      {apiKeyAlert && (
+        <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+          <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />
+        </Box>
+      )}
+
+      {/* Rename Project Modal */}
+      <ModalStandard
+        isOpen={renameModalOpen}
+        onClose={() => {
+          setRenameModalOpen(false);
+          setRenameProjectId(null);
+          setRenameProjectName("");
+        }}
+        title="Rename project"
+        description="Enter a new name for this project."
+        onSubmit={handleConfirmRename}
+        submitButtonText="Rename"
+        isSubmitting={renaming || !renameProjectName.trim()}
+      >
+        <Field
+          label="Project name"
+          value={renameProjectName}
+          onChange={(e) => setRenameProjectName(e.target.value)}
+          placeholder="Enter project name..."
+          isRequired
+        />
+      </ModalStandard>
+
+      {/* Delete Project Modal */}
+      <ModalStandard
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeleteProjectId(null);
+        }}
+        title="Delete project"
+        description="Are you sure you want to delete this project? This will permanently remove all experiments, datasets, and scorers associated with this project. This action cannot be undone."
+        onSubmit={handleConfirmDelete}
+        submitButtonText="Delete project"
+        isSubmitting={deleting}
+      >
+        <Typography variant="body2" color="text.secondary">
+          To confirm, you are about to delete the project:{" "}
+          <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
+        </Typography>
       </ModalStandard>
     </Box>
   );

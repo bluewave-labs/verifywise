@@ -54,7 +54,9 @@ export interface IEvaluationRow {
   model: string;
   judge?: string;
   dataset: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+  prompts?: number;
+  date?: string;
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
 }
 
 export interface IEvaluationTableBodyProps {
@@ -62,24 +64,22 @@ export interface IEvaluationTableBodyProps {
   page: number;
   rowsPerPage: number;
   onShowDetails: (model: IEvaluationRow) => void;
-  onRemoveModel: {
+  onRemoveModel?: {
     onConfirm: (id: string) => void;
   };
-  actionLabel?: string;
-  onRowClick?: (model: IEvaluationRow) => void;
+  onRerun?: (model: IEvaluationRow) => void;
 }
 
 export interface IEvaluationTableProps {
   columns: string[];
   rows: IEvaluationRow[];
-  removeModel: {
+  removeModel?: {
     onConfirm: (id: string) => void; // actually deletes
   };
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
-  actionLabel?: string;
-  onRowClick?: (model: IEvaluationRow) => void;
+  onRerun?: (model: IEvaluationRow) => void;
 }
 
 export interface IEventsTableProps {

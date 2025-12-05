@@ -14,7 +14,7 @@ import TableHeader from "../TableHead";
 import EmptyState from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => (
+const SelectorVertical = (props: React.SVGProps<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import {
@@ -39,8 +39,7 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
   page,
   setCurrentPagingation,
   onShowDetails,
-  actionLabel,
-  onRowClick,
+  onRerun,
 }) => {
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("evaluation", 10)
@@ -83,10 +82,9 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
                   rows={rows}
                   onRemoveModel={removeModel}
                   onShowDetails={onShowDetails}
+                  onRerun={onRerun}
                   page={page}
                   rowsPerPage={rowsPerPage}
-                  actionLabel={actionLabel}
-                  onRowClick={onRowClick}
                 />
                 <TableFooter>
                   <TableRow

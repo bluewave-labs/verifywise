@@ -16,6 +16,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
 interface ProjectExperimentsProps {
   projectId: string;
+  onViewExperiment?: (experimentId: string) => void;
 }
 
 interface ExperimentWithMetrics extends Experiment {
@@ -28,7 +29,7 @@ interface AlertState {
   body: string;
 }
 
-export default function ProjectExperiments({ projectId }: ProjectExperimentsProps) {
+export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
   const [, setLoading] = useState(true);
@@ -146,7 +147,11 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   };
 
   const handleViewExperiment = (row: IEvaluationRow) => {
-    navigate(`/evals/${projectId}/experiment/${row.id}`);
+    if (onViewExperiment) {
+      onViewExperiment(row.id);
+    } else {
+      navigate(`/evals/${projectId}/experiment/${row.id}`);
+    }
   };
 
   const handleRerunExperiment = async (row: IEvaluationRow) => {
@@ -196,7 +201,6 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
   };
 
   const handleDeleteExperiment = async (experimentId: string) => {
-    // Confirmation is handled by ConfirmableDeleteIconButton
     try {
       await experimentsService.deleteExperiment(experimentId);
       setAlert({ variant: "success", body: "Eval deleted" });
@@ -310,28 +314,47 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
     });
   }, [experiments, filterData, searchTerm]);
 
-  // Transform to table format (exact match to Bias & Fairness structure)
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "REPORT", "ACTION"];
+  // Transform to table format
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
-  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => ({
-    id: exp.id,
-    name: exp.name,
-    model: exp.config?.model?.name || exp.name || "Unknown",
-    judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
-    dataset: `${exp.sampleCount || 0} samples`,
-    status:
-      exp.status === "completed" ? "Completed" :
-      exp.status === "failed" ? "Failed" :
-      exp.status === "running" ? "Running" :
-      "Pending",
-  }));
+  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
+    // Get dataset name from config
+    const datasetName = exp.config?.dataset?.name || 
+                        exp.config?.dataset?.datasetId || 
+                        exp.config?.dataset?.categories?.[0] || 
+                        "Built-in";
+    
+    // Format the date
+    const createdDate = exp.created_at 
+      ? new Date(exp.created_at).toLocaleDateString("en-US", { 
+          month: "short", 
+          day: "numeric", 
+          year: "numeric" 
+        })
+      : "-";
+
+    return {
+      id: exp.id,
+      name: exp.name,
+      model: exp.config?.model?.name || "Unknown",
+      judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
+      dataset: datasetName,
+      prompts: exp.sampleCount || 0,
+      date: createdDate,
+      status:
+        exp.status === "completed" ? "Completed" :
+        exp.status === "failed" ? "Failed" :
+        exp.status === "running" ? "Running" :
+        "Pending",
+    };
+  });
 
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Performance Chart */}
-      <Card sx={{ mb: 4 }}>
+      <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
         <CardContent>
           <Box mb={2}>
             <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
@@ -380,7 +403,7 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
       </Card>
 
       {/* Filters + Search + Group directly above the table */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} gap={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ marginBottom: "18px" }} gap={2}>
         <Stack direction="row" alignItems="center" gap={2}>
           <FilterBy columns={experimentFilterColumns} onFilterChange={handleFilterChange} />
           <GroupBy
@@ -424,9 +447,8 @@ export default function ProjectExperiments({ projectId }: ProjectExperimentsProp
           }}
           page={currentPage}
           setCurrentPagingation={setCurrentPage}
-          onShowDetails={handleRerunExperiment}
-          onRowClick={handleViewExperiment}
-          actionLabel="Rerun"
+          onShowDetails={handleViewExperiment}
+          onRerun={handleRerunExperiment}
         />
       </Box>
 

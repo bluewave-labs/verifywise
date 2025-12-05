@@ -3,7 +3,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, TextField } from "@mui/material";
+import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, TextField, Button } from "@mui/material";
 import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
@@ -144,21 +144,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             return (
                 <>
                     <Box />
-                    <CustomizableButton
-                        variant="outlined"
-                        text="Withdraw"
-                        onClick={handleWithdrawClick}
-                        sx={{
-                            minWidth: "100px",
-                            height: "34px",
-                            border: "1px solid #DC2626",
-                            color: "#DC2626",
-                            "&:hover": {
-                                backgroundColor: "#FEF2F2",
-                                border: "1px solid #DC2626",
-                            },
-                        }}
-                    />
+                    <Button onClick={handleWithdrawClick} color="error" variant="contained">Withdraw</Button>
                 </>
             );
         } else {
@@ -170,35 +156,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     alignItems="center"
                     width="100%"
                 >
-                    <CustomizableButton
-                        variant="outlined"
-                        text="Reject"
-                        onClick={handleReject}
-                        sx={{
-                            minWidth: "100px",
-                            height: "34px",
-                            border: "1px solid #DC2626",
-                            color: "#DC2626",
-                            "&:hover": {
-                                backgroundColor: "#FEF2F2",
-                                border: "1px solid #DC2626",
-                            },
-                        }}
-                    />
-                    <CustomizableButton
-                        variant="contained"
-                        text="Approve"
-                        onClick={handleApprove}
-                        sx={{
-                            minWidth: "100px",
-                            height: "34px",
-                            backgroundColor: "#13715B",
-                            color: "#FFFFFF",
-                            "&:hover:not(.Mui-disabled)": {
-                                backgroundColor: "#0F5A47",
-                            },
-                        }}
-                    />
+                    <Button onClick={handleReject} color="error" variant="contained">Reject</Button>
+                    <Button onClick={handleApprove} color="primary" variant="contained">Approve</Button>
                 </Stack>
             );
         }

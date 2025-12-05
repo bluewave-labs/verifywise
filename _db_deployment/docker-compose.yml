@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  postgresdb:
+    image: postgres:16.8
+    container_name: verifywise_postgresdb
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - verifywise_network
+
+  redis:
+    image: redis:7
+    container_name: verifywise_redis
+    expose:
+      - "6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - verifywise_network
+
+volumes:
+  db:
+
+networks:
+  verifywise_network:
+    name: verifywise_network
+    driver: bridge

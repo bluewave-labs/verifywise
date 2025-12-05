@@ -1,43 +1,5 @@
-import {
-    Layers
-} from "lucide-react";
 
-import { IMenuGroup, IMenuItem } from "../../../../domain/interfaces/i.menu";
-
-
-export interface ITimelineStep {
-    id: number;
-    stepNumber: number;
-    title: string;
-    status: 'completed' | 'pending' | 'rejected';
-    approverName?: string;
-    date?: string;
-    comment?: string;
-    showDetailsLink?: boolean;
-    approvalResult?: "approved" | 'rejected' | 'pending';
-}
-
-export interface IStepDetails {
-    stepId: number;
-    owner: string;
-    teamMembers: string[];
-    location: string;
-    startDate: string;
-    targetIndustry: string;
-    description: string;
-}
-
-export interface IMenuItemExtended extends IMenuItem  {
-    id: number;
-    status: 'approved' | 'rejected' | 'pending';
-}
-
-export interface IMenuGroupExtended {
-    name: string;
-    items: IMenuItemExtended[];
-}
-
-export type MenuItemId = number;
+import { IMenuGroupExtended, IStepDetails, ITimelineStep } from ".";
 
 export const getMenuGroups = (): IMenuGroupExtended[] => [
     {
@@ -84,21 +46,7 @@ export const getMenuGroups = (): IMenuGroupExtended[] => [
     },
 ];
 
-
-export const getMockTimelineData = (itemId?: MenuItemId): ITimelineStep[] => {
-    if (itemId === undefined || itemId === null) {
-        return [];  
-    }
-    return timelineDataMap[itemId] || [];
-};
-
-export const getStepDetails = (stepId: number): IStepDetails | null => {
-    // This will be populated with mock data in the next step
-    return stepDetailsMap[stepId] || null;
-};
-
-
-export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
+export const timelineDataMap: Record<number, ITimelineStep[]> = {
     1: [
         {
             id: 1,
@@ -127,7 +75,7 @@ export const timelineDataMap: Record<MenuItemId, ITimelineStep[]> = {
             approverName: "Sarah Williams",
         },
     ],
-    
+
     2: [
         {
             id: 1,

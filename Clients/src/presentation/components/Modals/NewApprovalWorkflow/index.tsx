@@ -6,13 +6,8 @@ import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/st
 import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
-import {
-    addNewStep,
-    stepNumberStyle,
-} from "./style";
+import { addNewStep, stepNumberStyle } from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
-import { logEngine } from "../../../../application/tools/log.engine";
-
 
 const APPROVERS = [
     { _id: 1, name: "James Smith" },
@@ -63,7 +58,6 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
     setIsOpen,
     initialData,
     isEdit = false,
-    mode,
     onSuccess
 }) => {
 
@@ -100,7 +94,6 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         setWorkflowSteps([new ApprovalWorkflowStepModel()]);
         setStepsCount(1)
     }
-
 
     const validateForm = (): boolean => {
         const newErrors: NewApprovalWorkflowFormErrors = {

@@ -10,10 +10,7 @@ import {
     Box,
     useTheme,
     Stack,
-    Typography,
 } from "@mui/material";
-import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
-import TablePaginationActions from "../../components/TablePagination";
 
 import {
     workflowRowHover,
@@ -24,16 +21,16 @@ import {
     workflowPaginationSelect,
     workflowPagination,
 } from "./style";
-import CustomIconButton from "../../components/IconButton";
 
+import CustomIconButton from "../../components/IconButton";
 import { singleTheme } from "../../themes";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
+import TablePaginationActions from "../../components/TablePagination";
 
-const entities = [
-    { _id: 1, name: "Use case" }
-];
+const entities = [{ _id: 1, name: "Use case" }];
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -62,7 +59,6 @@ interface ApprovalWorkflowTableProps {
     onArchive?: (id: string, mode: string) => void;
     archivedId?: string | null;
 }
-
 
 const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
     data,

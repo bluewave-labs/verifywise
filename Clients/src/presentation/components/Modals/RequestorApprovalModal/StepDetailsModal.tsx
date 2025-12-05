@@ -1,7 +1,7 @@
 import React from 'react';
-import { Stack, Typography, Box, Divider } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import StandardModal from '../StandardModal';
-import { IStepDetails } from '../RequestorApprovalModal/mockData';
+import { IStepDetails } from '.';
 
 interface IStepDetailsModalProps {
     isOpen: boolean;

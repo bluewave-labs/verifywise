@@ -5,10 +5,7 @@ import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import { logEngine } from "../../../application/tools/log.engine";
-import {
-    addNewWorkflowButton,
-    workflowMainStack
-} from "./style";
+import { addNewWorkflowButton, workflowMainStack} from "./style";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
@@ -17,57 +14,18 @@ import { ApprovalStatus } from "../../../domain/enums/aiApprovalWorkflow.enum";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { SearchBox } from "../../components/Search";
+import { MOCK_WORKFLOWS } from "./mockData";
 
 const ApprovalWorkflows: React.FC = () => {
+
     const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
     const [selectWorkflowId, setSelectWorkflowId] = useState<string | null>(null);
     const [modalMode, setModalMode] = useState("")
     const [searchTerm, setSearchTerm] = useState("");
-
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
 
-    const MOCK_WORKFLOWS: ApprovalWorkflowModel[] = [
-        new ApprovalWorkflowModel({
-            id: 1,
-            type: "approval",
-            workflow_title: "Model Deployment Approval",
-            entity: 1,
-            steps: [
-                {
-                    step_name: "Initial Review",
-                    approver: 1,
-                    conditions: 1,
-                    description: "Review the model deployment request and initial documentation"
-                },
-                {
-                    step_name: "Technical Validation",
-                    approver: 2,
-                    conditions: 2,
-                    description: "Validate technical requirements and compliance"
-                }
-            ],
-            approval_status: "Pending" as any,
-            date_updated: new Date(),
-        }),
-        new ApprovalWorkflowModel({
-            id: 2,
-            type: "approval",
-            workflow_title: "Risk Assessment Approval",
-            entity: 1,
-            steps: [
-                {
-                    step_name: "Risk Analysis",
-                    approver: 2,
-                    conditions: 1,
-                    description: "Analyze potential risks and impacts"
-                }
-            ],
-            approval_status: "Approved" as any,
-            date_updated: new Date(),
-        }),
-    ];
 
     // FilterBy - Filter columns configuration
     const workflowFilterColumns: FilterColumn[] = useMemo(() => [

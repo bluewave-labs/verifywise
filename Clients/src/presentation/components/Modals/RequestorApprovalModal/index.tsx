@@ -10,18 +10,51 @@ import type { FC } from "react";
 import React, { useEffect, useState } from "react";
 import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 import StepDetailsModal from './StepDetailsModal';
-import { getStepDetails, IMenuItemExtended, IStepDetails } from './mockData';
+import { stepDetailsMap, timelineDataMap } from './mockData';
 import dayjs from "dayjs";
-import CustomizableButton from "../../Button/CustomizableButton";
 import DualButtonModal from "../../Dialogs/DualButtonModal";
-
-import {
-    getMenuGroups,
-    getMockTimelineData,
-    MenuItemId
-} from './mockData';
+import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
-import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/styles";
+import { IMenuItem } from "../../../../domain/interfaces/i.menu";
+
+export interface IRequestorApprovalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    isRequestor: boolean;
+}
+
+export interface ITimelineStep {
+    id: number;
+    stepNumber: number;
+    title: string;
+    status: 'completed' | 'pending' | 'rejected';
+    approverName?: string;
+    date?: string;
+    comment?: string;
+    showDetailsLink?: boolean;
+    approvalResult?: "approved" | 'rejected' | 'pending';
+}
+
+export interface IStepDetails {
+    stepId: number;
+    owner: string;
+    teamMembers: string[];
+    location: string;
+    startDate: string;
+    targetIndustry: string;
+    description: string;
+}
+
+export interface IMenuGroupExtended {
+    name: string;
+    items: IMenuItemExtended[];
+}
+
+interface IMenuItemExtended extends IMenuItem {
+    id: number;
+    status: 'approved' | 'rejected' | 'pending';
+}
+
 
 const getWorkflowChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
@@ -59,39 +92,44 @@ const getWorkflowChipProps = (value: string) => {
     };
 };
 
-interface IRequestorApprovalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    isRequestor: boolean;
-}
+const getTimelineData = (itemId?: number): ITimelineStep[] => {
+    if (itemId === undefined || itemId === null) {
+        return [];
+    }
+    return timelineDataMap[itemId] || [];
+};
 
-const menuGroups = getMenuGroups();
+const getStepDetails = (stepId: number): IStepDetails | null => {
+    // This will be populated with mock data in the next step
+    return stepDetailsMap[stepId] || null;
+};
+
+
 
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
     onClose,
     isRequestor
 }) => {
-    const theme = useTheme();
-    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-        "WAITING FOR APPROVAL": true,
-        "APPROVED REQUESTS": false
-    });
-
 
     const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
     const [selectedStepDetails, setSelectedStepDetails] = useState<IStepDetails | null>(null);
     const [selectedItem, setSelectedItem] = useState<IMenuItemExtended | null>(null);
     const [comment, setComment] = useState<string>("");
     const [isWithdrawConfirmationOpen, setIsWithdrawConfirmationOpen] = useState(false);
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+        "WAITING FOR APPROVAL": true,
+        "APPROVED REQUESTS": false
+    });
 
+    const theme = useTheme();
+    const menuGroups = getMenuGroups();
 
     const getOverallStatus = (): 'approved' | 'rejected' | 'pending' => {
         if (selectedItem === undefined || selectedItem === null) {
             return 'pending';
         }
         return selectedItem.status || 'pending';
-        return "pending";
     };
 
     const handleGroupAccordionChange = (groupName: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -164,11 +202,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     };
 
     useEffect(() => {
-        // Set first menu item as selected by default
         const firstGroup = menuGroups[0];
         if (firstGroup && firstGroup.items.length > 0) {
             const firstItem = firstGroup.items[0];
-            // Set the integer ID of the first item
+
             if (firstItem.id !== undefined) {
                 setSelectedItem(firstItem);
             }
@@ -436,7 +473,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
 
                     {/* STEPS */}
                     <Stack>
-                        {getMockTimelineData(selectedItem?.id || undefined).map((step, stepIndex, steps) => (
+                        {getTimelineData(selectedItem?.id || undefined).map((step, stepIndex, steps) => (
                             <React.Fragment key={step.id}>
                                 <Box key={step.id} mb={12}>
                                     <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">

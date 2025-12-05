@@ -36,7 +36,6 @@ import {
   Building,
   Settings,
   FileText,
-  Scale,
   MessageCircle,
   Brain,
   Shield,
@@ -48,6 +47,7 @@ import {
   AlertCircle,
   FolderCog,
   Database,
+  Beaker,
   Heart,
   HelpCircle,
   Newspaper,
@@ -108,9 +108,9 @@ const getMenuGroups = (): IMenuGroup[] => [
         path: "/risk-management",
       },
       {
-        name: "Bias & Fairness",
-        icon: <Scale size={16} strokeWidth={1.5} />,
-        path: "/fairness-dashboard",
+        name: "LLM Evals",
+        icon: <Beaker size={16} strokeWidth={1.5} />,
+        path: "/evals",
       },
       {
         name: "Training Registry",
@@ -385,9 +385,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       gap={theme.spacing(2)}
       sx={{
         height: "100vh",
-        border: 1,
-        borderColor: theme.palette.border.dark,
-        borderRadius: theme.shape.borderRadius,
+        border: "none",
+        borderRight: `1px solid ${theme.palette.border.dark}`,
+        borderRadius: 0,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
           backgroundColor: theme.palette.background.main,

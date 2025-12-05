@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo, Suspense, useCallback } from "react";
+import React, { useState, useEffect, useMemo, Suspense, useCallback, useRef } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { SearchBox } from "../../components/Search";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -49,6 +49,8 @@ const Alert = React.lazy(() => import("../../components/Alert"));
 const IncidentManagement: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const hasProcessedUrlParam = useRef(false);
     const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
     const [incidentsData, setIncidentsData] = useState<AIIncidentManagementModel[]>([]);
     const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
@@ -332,6 +334,17 @@ const IncidentManagement: React.FC = () => {
         }
         // Dependencies: location contains state from mega dropdown navigation, navigate used for state clearing
     }, [location, navigate]);
+
+    // Handle incidentId URL param to open view modal from Wise Search
+    useEffect(() => {
+        const incidentId = searchParams.get("incidentId");
+        if (incidentId && !hasProcessedUrlParam.current && !isLoading) {
+            hasProcessedUrlParam.current = true;
+            // Use existing handleViewIncident pattern which fetches and opens modal
+            handleViewIncident(incidentId, "view");
+            setSearchParams({}, { replace: true });
+        }
+    }, [searchParams, isLoading, setSearchParams]);
 
     /** -------------------- INITIAL LOAD -------------------- */
     useEffect(() => {

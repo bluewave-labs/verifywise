@@ -123,6 +123,7 @@ const VWTooltip: React.FC<VWTooltipProps> = ({
             backgroundColor: backgroundColor,
             padding: "12px 16px",
             borderRadius: "4px",
+            marginRight: "8px",
           },
         },
         arrow: {

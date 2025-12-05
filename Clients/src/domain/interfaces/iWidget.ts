@@ -17,7 +17,7 @@ export interface CloseIconProps {
 }
 
 export interface IconButtonProps {
-  id: number;
+  id: number | string;
   onDelete: () => void;
   onEdit: () => void;
   warningTitle?: string;
@@ -33,6 +33,12 @@ export interface IconButtonProps {
   onView?: () => void;
   onSendTest?: () => void;
   onToggleEnable?: () => void;
+  // Task-specific props
+  isArchived?: boolean;
+  onRestore?: () => void;
+  onHardDelete?: () => void;
+  hardDeleteWarningTitle?: string;
+  hardDeleteWarningMessage?: string;
 }
 
 export interface AutoCompleteOption {

@@ -27,6 +27,8 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
+import { SidebarWrapper } from "./presentation/components/UserGuide";
+import { useUserGuideSidebar } from "./presentation/components/UserGuide/useUserGuideSidebar";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -59,7 +61,8 @@ function App() {
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { completeOnboarding, state } = useOnboarding();
+  const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+  const userGuideSidebar = useUserGuideSidebar();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
@@ -69,14 +72,15 @@ function App() {
   useEffect(() => {
     // Only show modal if:
     // 1. User is authenticated (has token and userId)
-    // 2. Onboarding is not complete (first login)
-    // 3. Currently on dashboard route (/)
-    if (token && userId && !state.isComplete && isDashboardRoute) {
+    // 2. Onboarding state is loaded (not loading)
+    // 3. Onboarding is not complete (first login)
+    // 4. Currently on dashboard route (/)
+    if (token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute) {
       setShowModal(true);
     } else {
       setShowModal(false);
     }
-  }, [token, userId, state.isComplete, isDashboardRoute]);
+  }, [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]);
 
   const handleOnboardingComplete = useCallback(() => {
     completeOnboarding();
@@ -231,6 +235,14 @@ function App() {
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>
+
+              {/* User Guide Sidebar */}
+              <SidebarWrapper
+                isOpen={userGuideSidebar.isOpen}
+                onClose={userGuideSidebar.close}
+                onOpen={userGuideSidebar.open}
+                initialPath={userGuideSidebar.currentPath}
+              />
             </ConditionalThemeWrapper>
           </VerifyWiseContext.Provider>
         </PersistGate>

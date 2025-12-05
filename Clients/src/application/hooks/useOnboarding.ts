@@ -19,10 +19,14 @@ export const useOnboarding = () => {
   const { userId } = useAuth();
   const { users, organizationId } = useContext(VerifyWiseContext);
   const [state, setState] = useState<OnboardingState>(initialState);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load state from localStorage on mount
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
 
     const storageKey = getStorageKey(userId);
     const savedState = localStorage.getItem(storageKey);
@@ -40,6 +44,7 @@ export const useOnboarding = () => {
       // First time for this user - initialize with default state
       setState(initialState);
     }
+    setIsLoading(false);
   }, [userId]);
 
   // Save state to localStorage whenever it changes
@@ -176,15 +181,16 @@ export const useOnboarding = () => {
 
   // Check if onboarding should be shown
   const shouldShowOnboarding = useCallback(() => {
-    if (!userId) return false;
+    if (!userId || isLoading) return false;
 
     // Simply check if onboarding is complete in state
     // No session storage needed - localStorage persistence handles everything
     return !state.isComplete;
-  }, [state.isComplete, userId]);
+  }, [state.isComplete, userId, isLoading]);
 
   return {
     state,
+    isLoading,
     isFirstUserInOrg: isFirstUserInOrg(),
     isAdmin: isAdmin(),
     isInvitedUser: isInvitedUser(),

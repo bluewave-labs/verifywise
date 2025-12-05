@@ -59,6 +59,7 @@ import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
 import { MetricCardProps } from "../../../domain/interfaces/iDashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
+import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -771,6 +772,11 @@ const IntegratedDashboard: React.FC = () => {
   // Show/Hide selector state
   const [showHideSelector, setShowHideSelector] = useState(false);
 
+  // Organization name modal state
+  const [showOrgNameModal, setShowOrgNameModal] = useState(false);
+  const [currentOrgName, setCurrentOrgName] = useState("");
+  const [organizationId, setOrganizationId] = useState<number>(-1);
+
   // Load visible cards from localStorage on initial render
   const getInitialVisibleCards = (): Set<string> => {
     if (typeof window !== 'undefined') {
@@ -1306,6 +1312,37 @@ const IntegratedDashboard: React.FC = () => {
     fetchUserName();
   }, [userId, userToken?.name]);
 
+  // Check for first login and show organization name modal
+  useEffect(() => {
+    const checkFirstLogin = () => {
+      // Check if user has seen the organization name modal
+      const hasSeenOrgModal = localStorage.getItem("has_seen_org_name_modal");
+      const initialOrgName = localStorage.getItem("initial_org_name");
+      const organizationId = localStorage.getItem("initial_org_id");
+
+      if (!hasSeenOrgModal && initialOrgName && userId) {
+        setCurrentOrgName(initialOrgName);
+        setShowOrgNameModal(true);
+        setOrganizationId(Number(organizationId));
+      }
+    };
+
+    checkFirstLogin();
+  }, [userId]);
+
+  const handleOrgNameSuccess = () => {
+    // Mark as seen and clean up initial org name
+    localStorage.setItem("has_seen_org_name_modal", "true");
+    localStorage.removeItem("initial_org_name");
+    localStorage.removeItem("initial_org_id");
+  };
+  
+  // Handle organization name modal close
+  const handleOrgModalClose = () => {
+    setShowOrgNameModal(false);
+    handleOrgNameSuccess();
+  };
+
   useEffect(() => {
     const storedLayouts = localStorage.getItem(
       "verifywise_integrated_dashboard_layouts"
@@ -1650,6 +1687,17 @@ const IntegratedDashboard: React.FC = () => {
   return (
     <Box sx={{ pb: 3 }}>
       <PageBreadcrumbs />
+
+      {/* Organization Name Modal */}
+      {showOrgNameModal && (
+        <ChangeOrganizationNameModal
+          isOpen={showOrgNameModal}
+          onClose={handleOrgModalClose}
+          currentOrgName={currentOrgName}
+          organizationId={organizationId}
+          onSuccess={handleOrgNameSuccess}
+        />
+      )}
 
       {/* Password notification */}
       {showPasswordNotification && (

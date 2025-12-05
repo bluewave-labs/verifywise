@@ -1,0 +1,156 @@
+/* ArticlePage styles - hover states and nested selectors */
+
+/* Breadcrumb hover */
+.breadcrumb-link {
+  transition: color 150ms ease;
+}
+
+.breadcrumb-link:hover {
+  color: #13715B;
+}
+
+/* ToC link hover */
+.toc-link {
+  transition: all 150ms ease;
+}
+
+.toc-link:hover {
+  color: #13715B;
+}
+
+/* Navigation button hover */
+.nav-button .nav-text {
+  transition: color 150ms ease;
+}
+
+.nav-button:hover .nav-text {
+  color: #13715B;
+}
+
+/* Article body typography */
+.article-body h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.article-body h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.article-body p {
+  font-size: 13px;
+  color: #1a1a1a;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+.article-body ul,
+.article-body ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+.article-body li {
+  font-size: 13px;
+  color: #1a1a1a;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.article-body a {
+  color: #13715B;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.article-body a:hover {
+  text-decoration: underline;
+}
+
+.article-body code {
+  background-color: #f1f3f4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: 'Geist Mono', 'Fira Code', 'Consolas', monospace;
+  color: #1a1a1a;
+}
+
+.article-body pre {
+  background-color: #1C2130;
+  border-radius: 4px;
+  padding: 16px;
+  overflow: auto;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+.article-body pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #E5E7EB;
+}
+
+.article-body blockquote {
+  border-left: 3px solid #13715B;
+  background-color: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 16px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.article-body blockquote p {
+  margin-bottom: 0;
+  color: #1a1a1a;
+}
+
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.article-body th,
+.article-body td {
+  border: 1px solid #d0d5dd;
+  padding: 12px;
+  text-align: left;
+  font-size: 10px;
+}
+
+.article-body th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.article-body td {
+  color: #1a1a1a;
+}
+
+.article-body img {
+  max-width: 100%;
+  border-radius: 4px;
+  border: 1px solid #d0d5dd;
+  margin-bottom: 16px;
+}
+
+.article-body hr {
+  border: none;
+  border-top: 1px solid #d0d5dd;
+  margin: 32px 0;
+}

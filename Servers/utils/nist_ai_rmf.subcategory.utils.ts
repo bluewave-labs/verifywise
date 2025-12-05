@@ -33,9 +33,47 @@ export const getNISTAIRMFSubcategoryByIdQuery = async (
   return subcategory[0];
 };
 
+/**
+ * Get all risks linked to a NIST AI RMF subcategory
+ */
+export const getNISTAIRMFSubcategoryRisksQuery = async (
+  subcategoryId: number,
+  tenant: string
+): Promise<any[]> => {
+  const risks = await sequelize.query(
+    `SELECT pr.*
+     FROM "${tenant}".risks pr
+     INNER JOIN "${tenant}".nist_ai_rmf_subcategories__risks nsr
+       ON pr.id = nsr.projects_risks_id
+     WHERE nsr.nist_ai_rmf_subcategory_id = :subcategoryId
+     ORDER BY pr.id ASC`,
+    {
+      replacements: { subcategoryId },
+    }
+  );
+  return risks[0] as any[];
+};
+
+// Helper function to validate risk array (copied from ISO 27001 pattern)
+const validateRiskArray = (arr: any[], fieldName: string): number[] => {
+  if (!Array.isArray(arr)) {
+    throw new Error(`${fieldName} must be an array`);
+  }
+  return arr.map((item, index) => {
+    const num = typeof item === "string" ? parseInt(item, 10) : item;
+    if (typeof num !== "number" || isNaN(num) || !Number.isInteger(num)) {
+      throw new Error(`${fieldName}[${index}] must be a valid integer`);
+    }
+    return num;
+  });
+};
+
 export const updateNISTAIRMFSubcategoryByIdQuery = async (
   id: number,
-  subcategory: Partial<NISTAIMRFSubcategoryModel>,
+  subcategory: Partial<NISTAIMRFSubcategoryModel> & {
+    risksDelete?: string;
+    risksMitigated?: string;
+  },
   uploadedFiles: {
     id: string;
     fileName: string;
@@ -172,7 +210,94 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     replacements: updateFields,
     transaction,
   })) as [NISTAIMRFSubcategoryModel[], number];
-  return result[0][0] as NISTAIMRFSubcategoryModel;
+
+  const subcategoryResult = result[0][0] as NISTAIMRFSubcategoryModel & { risks: number[] };
+  (subcategoryResult as any).risks = [];
+
+  // Handle risk linking (following ISO 27001 pattern)
+  const risksDeletedRaw = JSON.parse(subcategory.risksDelete || "[]");
+  const risksMitigatedRaw = JSON.parse(subcategory.risksMitigated || "[]");
+
+  // Validate that both arrays contain only valid integers
+  const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
+  const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
+
+  // Get current risks for this subcategory
+  const risks = (await sequelize.query(
+    `SELECT projects_risks_id FROM "${tenant}".nist_ai_rmf_subcategories__risks WHERE nist_ai_rmf_subcategory_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  )) as [{ projects_risks_id: number }[], number];
+
+  let currentRisks = risks[0].map((r) => r.projects_risks_id);
+  currentRisks = currentRisks.filter((r) => !risksDeleted.includes(r));
+  currentRisks = currentRisks.concat(risksMitigated);
+
+  // Remove duplicates
+  currentRisks = [...new Set(currentRisks)];
+
+  // Delete old associations
+  await sequelize.query(
+    `DELETE FROM "${tenant}".nist_ai_rmf_subcategories__risks WHERE nist_ai_rmf_subcategory_id = :id;`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+
+  // Insert new associations
+  if (currentRisks.length > 0) {
+    const placeholders = currentRisks
+      .map((_, i) => `(:subcategory_id${i}, :projects_risks_id${i})`)
+      .join(", ");
+    const replacements: { [key: string]: any } = {};
+
+    currentRisks.forEach((risk, i) => {
+      replacements[`subcategory_id${i}`] = id;
+      replacements[`projects_risks_id${i}`] = risk;
+    });
+
+    const subCategoryRisksInsertResult = (await sequelize.query(
+      `INSERT INTO "${tenant}".nist_ai_rmf_subcategories__risks (nist_ai_rmf_subcategory_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
+      {
+        replacements,
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+
+    for (const risk of subCategoryRisksInsertResult[0]) {
+      (subcategoryResult as any).risks.push(risk.projects_risks_id);
+    }
+
+    // Add NIST AI RMF framework (id=4) to applicable_frameworks for all linked risks
+    // This runs within the same transaction, so it will roll back if the save fails
+    const NIST_AI_RMF_FRAMEWORK_ID = 4;
+    for (const riskId of currentRisks) {
+      // Check if the framework association already exists
+      const existingAssoc = await sequelize.query(
+        `SELECT 1 FROM "${tenant}".frameworks_risks WHERE risk_id = :riskId AND framework_id = :frameworkId`,
+        {
+          replacements: { riskId, frameworkId: NIST_AI_RMF_FRAMEWORK_ID },
+          transaction,
+        }
+      );
+
+      // Only insert if association doesn't exist
+      if ((existingAssoc[0] as any[]).length === 0) {
+        await sequelize.query(
+          `INSERT INTO "${tenant}".frameworks_risks (risk_id, framework_id) VALUES (:riskId, :frameworkId)`,
+          {
+            replacements: { riskId, frameworkId: NIST_AI_RMF_FRAMEWORK_ID },
+            transaction,
+          }
+        );
+      }
+    }
+  }
+
+  return subcategoryResult;
 };
 
 /**
@@ -220,6 +345,110 @@ export const countNISTAIRMFSubcategoriesAssignments = async (
   return {
     totalSubcategories: parseInt(result[0][0].totalSubcategories) || 0,
     assignedSubcategories: parseInt(result[0][0].assignedSubcategories) || 0,
+  };
+};
+
+/**
+ * Count total and assigned subcategories for NIST AI RMF framework grouped by function
+ * A subcategory is considered "assigned" when it has an owner
+ * Returns counts for Govern, Map, Measure, Manage functions
+ */
+export const countNISTAIRMFSubcategoriesAssignmentsByFunction = async (
+  tenant: string
+): Promise<{
+  govern: { total: number; assigned: number };
+  map: { total: number; assigned: number };
+  measure: { total: number; assigned: number };
+  manage: { total: number; assigned: number };
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      f.type AS function_type,
+      COUNT(s.id) AS total,
+      SUM(CASE WHEN s.owner IS NOT NULL THEN 1 ELSE 0 END) AS assigned
+    FROM "${tenant}".nist_ai_rmf_subcategories s
+    JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+    JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+    GROUP BY f.type, f.index
+    ORDER BY f.index ASC`,
+    {}
+  )) as [{ function_type: string; total: string; assigned: string }[], number];
+
+  const defaultValue = { total: 0, assigned: 0 };
+  const functionMap: Record<string, { total: number; assigned: number }> = {
+    GOVERN: { ...defaultValue },
+    MAP: { ...defaultValue },
+    MEASURE: { ...defaultValue },
+    MANAGE: { ...defaultValue },
+  };
+
+  for (const row of result[0]) {
+    const key = row.function_type.toUpperCase();
+    if (key in functionMap) {
+      functionMap[key] = {
+        total: parseInt(row.total) || 0,
+        assigned: parseInt(row.assigned) || 0,
+      };
+    }
+  }
+
+  return {
+    govern: functionMap.GOVERN,
+    map: functionMap.MAP,
+    measure: functionMap.MEASURE,
+    manage: functionMap.MANAGE,
+  };
+};
+
+/**
+ * Count total and done subcategories for NIST AI RMF framework grouped by function
+ * A subcategory is considered "done" when its status is "Implemented"
+ * Returns counts for Govern, Map, Measure, Manage functions
+ */
+export const countNISTAIRMFSubcategoriesProgressByFunction = async (
+  tenant: string
+): Promise<{
+  govern: { total: number; done: number };
+  map: { total: number; done: number };
+  measure: { total: number; done: number };
+  manage: { total: number; done: number };
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+      f.type AS function_type,
+      COUNT(s.id) AS total,
+      SUM(CASE WHEN s.status = 'Implemented' THEN 1 ELSE 0 END) AS done
+    FROM "${tenant}".nist_ai_rmf_subcategories s
+    JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+    JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+    GROUP BY f.type, f.index
+    ORDER BY f.index ASC`,
+    {}
+  )) as [{ function_type: string; total: string; done: string }[], number];
+
+  const defaultValue = { total: 0, done: 0 };
+  const functionMap: Record<string, { total: number; done: number }> = {
+    GOVERN: { ...defaultValue },
+    MAP: { ...defaultValue },
+    MEASURE: { ...defaultValue },
+    MANAGE: { ...defaultValue },
+  };
+
+  for (const row of result[0]) {
+    const key = row.function_type.toUpperCase();
+    if (key in functionMap) {
+      functionMap[key] = {
+        total: parseInt(row.total) || 0,
+        done: parseInt(row.done) || 0,
+      };
+    }
+  }
+
+  return {
+    govern: functionMap.GOVERN,
+    map: functionMap.MAP,
+    measure: functionMap.MEASURE,
+    manage: functionMap.MANAGE,
   };
 };
 

@@ -81,8 +81,8 @@ interface StandardModalProps {
   /** Descriptive text displayed below the title (12px, gray) */
   description: string;
 
-  /** Form content to be rendered inside the modal. Wrap in <Stack spacing={6}> for consistent spacing */
-  children: React.ReactNode;
+  /** Form content to be rendered inside the modal. Wrap in <Stack spacing={6}> for consistent spacing. Optional for confirmation dialogs. */
+  children?: React.ReactNode;
 
   /** Optional callback called when Save/Submit button is clicked. If not provided, no submit button is shown */
   onSubmit?: () => void;
@@ -104,6 +104,15 @@ interface StandardModalProps {
 
   /** When true, hides the footer entirely. Use for read-only modals that don't need action buttons */
   hideFooter?: boolean;
+
+  /** Optional custom actions to display in the header (e.g., history button). Rendered to the left of the close button */
+  headerActions?: React.ReactNode;
+
+  /** When true, expands the modal height for additional content. Default height is 630px, expanded uses min(740px, 90vh - 180px) */
+  expandedHeight?: boolean;
+
+  /** Custom color for the submit button (default: "#13715B"). Use "#c62828" for destructive actions like delete */
+  submitButtonColor?: string;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -119,6 +128,9 @@ const StandardModal: React.FC<StandardModalProps> = ({
   maxWidth = "760px",
   customFooter,
   hideFooter = false,
+  headerActions,
+  expandedHeight = false,
+  submitButtonColor = "#13715B",
 }) => {
   return (
     <Modal
@@ -142,6 +154,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
           backgroundColor: "#FFFFFF",
           borderRadius: "8px",
           overflow: "hidden",
+          transition: "max-width 300ms cubic-bezier(0.4, 0, 0.2, 1)",
           "&:focus": {
             outline: "none",
           },
@@ -185,7 +198,9 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 {description}
               </Typography>
             </Stack>
-            <Box
+            <Stack direction="row" spacing={1} alignItems="center">
+              {headerActions}
+              <Box
               component="span"
               role="button"
               tabIndex={0}
@@ -211,27 +226,43 @@ const StandardModal: React.FC<StandardModalProps> = ({
                 },
               }}
             >
-              <CloseIcon size={20} />
-            </Box>
+                <CloseIcon size={20} />
+              </Box>
+            </Stack>
           </Stack>
         </Stack>
 
-        {/* Content Section */}
-        <Box
-          sx={{
-            padding: "24px",
-            flex: 1,
-            overflow: "auto",
-            maxHeight: "calc(80vh - 180px)",
-            border: "1px solid #E0E4E9",
-            borderRadius: "16px",
-            backgroundColor: "#FFFFFF",
-            zIndex: 1,
-            position: "relative",
-          }}
-        >
-          {children}
-        </Box>
+        {/* Content Section - only render if children exist */}
+        {children && (
+          <Box
+            sx={{
+              padding: "20px",
+              flex: "0 1 auto",
+              overflow: "auto",
+              maxHeight: expandedHeight ? "min(740px, calc(90vh - 180px))" : "660px",
+              border: "1px solid #E0E4E9",
+              borderRadius: "16px",
+              backgroundColor: "#FFFFFF",
+              zIndex: 1,
+              position: "relative",
+            }}
+            onWheelCapture={(e) => {
+              const target = e.currentTarget;
+              const atTop = target.scrollTop === 0;
+              const atBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+
+              // Only prevent propagation if we can actually scroll
+              if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+                e.stopPropagation();
+              } else if (!atTop && !atBottom) {
+                // If we're in the middle, always stop propagation
+                e.stopPropagation();
+              }
+            }}
+          >
+            {children}
+          </Box>
+        )}
 
         {/* Footer Section with Background */}
         {!hideFooter && (
@@ -276,9 +307,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
                     sx={{
                       minWidth: "80px",
                       height: "34px",
-                      backgroundColor: "#13715B",
+                      backgroundColor: submitButtonColor,
                       "&:hover:not(.Mui-disabled)": {
-                        backgroundColor: "#0F5A47",
+                        backgroundColor: submitButtonColor === "#13715B" ? "#0F5A47" : submitButtonColor,
+                        filter: submitButtonColor !== "#13715B" ? "brightness(0.9)" : undefined,
                       },
                       "&.Mui-disabled": {
                         backgroundColor: "#E5E7EB",

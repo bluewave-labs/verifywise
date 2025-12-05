@@ -4,18 +4,14 @@ import {
   Home,
   Building2,
   GitBranch,
-  Folder,
-  Activity,
   Users,
   AlertTriangle,
-  Building,
   GraduationCap,
   FileText,
   BarChart3,
   Brain,
   Shield,
   Telescope,
-  Scale,
   Settings,
   FolderTree,
   Layers,
@@ -63,15 +59,6 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/overview' }
   },
   {
-    id: 'nav-tasks',
-    label: 'Tasks',
-    description: 'Task management',
-    keywords: ['tasks', 'todo', 'assignments'],
-    group: COMMAND_GROUPS[0],
-    icon: AlertTriangle,
-    action: { type: 'navigate', payload: '/risk-management' }
-  },
-  {
     id: 'nav-framework',
     label: 'Organizational view',
     description: 'Organizational framework view',
@@ -103,54 +90,9 @@ const NAVIGATION_COMMANDS: Command[] = [
     label: 'Risk Management',
     description: 'Manage and monitor risks',
     keywords: ['risks', 'threats', 'vulnerabilities'],
-    group: COMMAND_GROUPS[0],
-    icon: GraduationCap,
-    action: { type: 'navigate', payload: '/training' }
-  },
-  {
-    id: 'nav-file-manager',
-    label: 'File Manager',
-    description: 'Evidence and documents',
-    keywords: ['files', 'documents', 'evidence'],
-    group: COMMAND_GROUPS[0],
-    icon: Folder,
-    action: { type: 'navigate', payload: '/file-manager' }
-  },
-  {
-    id: 'nav-event-tracker',
-    label: 'Event Tracker',
-    description: 'Event tracking and audit logs',
-    keywords: ['logs', 'events', 'audit', 'monitoring', 'watch', 'tower'],
-    group: COMMAND_GROUPS[0],
-    icon: Activity,
-    action: { type: 'navigate', payload: '/event-tracker' }
-  },
-  {
-    id: 'nav-framework',
-    label: 'Framework',
-    description: 'Organizational framework view',
-    keywords: ['compliance', 'frameworks', 'iso', 'eu ai act', 'organizational'],
-    group: COMMAND_GROUPS[0],
-    icon: Building,
-    action: { type: 'navigate', payload: '/framework' }
-  },
-{
-    id: 'nav-risk-management',
-    label: 'Risk Management',
-    description: 'Manage and monitor risks',
-    keywords: ['risks', 'threats', 'vulnerabilities'],
     group: COMMAND_GROUPS[0],    
 icon: AlertTriangle,
     action: { type: 'navigate', payload: '/risk-management' }
-  },
-  {
-    id: 'nav-fairness',
-    label: 'Bias & Fairness',
-    description: 'AI bias and fairness dashboard',
-    keywords: ['bias', 'fairness', 'ml', 'evaluation', 'ethics'],
-    group: COMMAND_GROUPS[0],
-    icon: Scale,
-    action: { type: 'navigate', payload: '/fairness-dashboard' }
   },
   {
     id: 'nav-training',

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, Suspense, useCallback } from "react";
+import React, { useState, Suspense, useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -146,6 +147,8 @@ interface FormData {
 }
 
 const TrustCenterResources: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedUrlParam = useRef(false);
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -213,6 +216,17 @@ const TrustCenterResources: React.FC = () => {
       setFormData(overviewData);
     }
   }, [overviewData]);
+
+  // Handle resourceId URL param to open edit modal from Wise Search
+  useEffect(() => {
+    const resourceId = searchParams.get("resourceId");
+    if (resourceId && !hasProcessedUrlParam.current && resources && resources.length > 0) {
+      hasProcessedUrlParam.current = true;
+      // Use existing handleEditResource function which opens the modal
+      handleEditResource(parseInt(resourceId, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, resources, setSearchParams]);
 
   // Handle field change and auto-save
   const handleFieldChange = (

@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verifywise
+spec:
+  template:
+    spec:
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: frontend-nginx-config
+      containers:
+        - name: verifywise-frontend
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true

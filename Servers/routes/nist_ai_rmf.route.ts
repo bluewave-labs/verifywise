@@ -10,10 +10,13 @@ import { getAllNISTAIRMFCategoriesByfunctionId } from "../controllers/nist_ai_rm
 import {
   getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle,
   getNISTAIRMFSubcategoryById,
+  getNISTAIRMFSubcategoryRisks,
   updateNISTAIRMFSubcategoryById,
   updateNISTAIRMFSubcategoryStatus,
   getNISTAIRMFProgress,
+  getNISTAIRMFProgressByFunction,
   getNISTAIRMFAssignments,
+  getNISTAIRMFAssignmentsByFunction,
   getNISTAIRMFStatusBreakdown,
   getNISTAIRMFOverview,
 } from "../controllers/nist_ai_rmf.subcategory.ctrl";
@@ -38,17 +41,23 @@ router.get(
 
 // CRUD requests for NIST AI RMF subcategories
 router.get(
-  "/subcategories/:categoryId/:title",
-  authenticateJWT,
-  validateId("categoryId"),
-  getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle
-); // getting all NIST AI RMF subcategories of the organization by category id and title
-router.get(
   "/subcategories/byId/:id",
   authenticateJWT,
   validateId("id"),
   getNISTAIRMFSubcategoryById
 ); // getting a specific NIST AI RMF subcategory by id
+router.get(
+  "/subcategories/:id/risks",
+  authenticateJWT,
+  validateId("id"),
+  getNISTAIRMFSubcategoryRisks
+); // getting all risks linked to a specific NIST AI RMF subcategory
+router.get(
+  "/subcategories/:categoryId/:title",
+  authenticateJWT,
+  validateId("categoryId"),
+  getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle
+); // getting all NIST AI RMF subcategories of the organization by category id and title
 router.patch(
   "/subcategories/:id",
   authenticateJWT,
@@ -65,7 +74,9 @@ router.patch(
 
 // Dashboard calculation endpoints
 router.get("/progress", authenticateJWT, getNISTAIRMFProgress); // get total and completed subcategories
+router.get("/progress-by-function", authenticateJWT, getNISTAIRMFProgressByFunction); // get progress grouped by function (Govern, Map, Measure, Manage)
 router.get("/assignments", authenticateJWT, getNISTAIRMFAssignments); // get total and assigned subcategories
+router.get("/assignments-by-function", authenticateJWT, getNISTAIRMFAssignmentsByFunction); // get assignments grouped by function (Govern, Map, Measure, Manage)
 router.get("/status-breakdown", authenticateJWT, getNISTAIRMFStatusBreakdown); // get status breakdown
 router.get("/overview", authenticateJWT, getNISTAIRMFOverview); // get all functions with categories and subcategories
 

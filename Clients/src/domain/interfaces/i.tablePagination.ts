@@ -3,7 +3,7 @@ export interface ITablePaginationActionsProps {
   page: number;
   rowsPerPage: number;
   onPageChange: (
-    event: React.MouseEvent<HTMLButtonElement>,
+    event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => void;
 }

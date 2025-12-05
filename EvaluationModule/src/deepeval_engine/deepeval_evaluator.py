@@ -268,10 +268,12 @@ class DeepEvalEvaluator:
             for metric_name, metric in metrics_to_use:
                 try:
                     # Some metrics require retrieval/context. If missing, skip gracefully.
-                    requires_context = metric_name in {"Faithfulness", "Contextual Relevancy", "Hallucination"}
+                    requires_context = metric_name in {"Faithfulness", "Contextual Relevancy", "Hallucination", "Contextual Recall", "Contextual Precision"}
                     retrieval_context = getattr(test_case, "retrieval_context", None)
                     context = getattr(test_case, "context", None)
-                    if requires_context and not (retrieval_context or context):
+                    has_context = bool(retrieval_context) or bool(context)
+                    
+                    if requires_context and not has_context:
                         print(f"  Evaluating {metric_name}... ⏭ Skipped (no context)")
                         metric_scores[metric_name] = {
                             "score": None,
@@ -344,11 +346,15 @@ class DeepEvalEvaluator:
         """Initialize DeepEval metrics based on configuration."""
         metrics_to_use = []
         
+        # Get model configuration from environment or use defaults
+        judge_model = os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini"))
+        
         if metrics_config.get("answer_relevancy", False):
             metrics_to_use.append((
                 "Answer Relevancy",
                 AnswerRelevancyMetric(
-                    threshold=self.metric_thresholds.get("answer_relevancy", 0.5)
+                    threshold=self.metric_thresholds.get("answer_relevancy", 0.5),
+                    model=judge_model
                 )
             ))
         
@@ -356,7 +362,8 @@ class DeepEvalEvaluator:
             metrics_to_use.append((
                 "Faithfulness",
                 FaithfulnessMetric(
-                    threshold=self.metric_thresholds.get("faithfulness", 0.5)
+                    threshold=self.metric_thresholds.get("faithfulness", 0.5),
+                    model=judge_model
                 )
             ))
         
@@ -364,7 +371,17 @@ class DeepEvalEvaluator:
             metrics_to_use.append((
                 "Contextual Relevancy",
                 ContextualRelevancyMetric(
-                    threshold=self.metric_thresholds.get("contextual_relevancy", 0.5)
+                    threshold=self.metric_thresholds.get("contextual_relevancy", 0.5),
+                    model=judge_model
+                )
+            ))
+        
+        if metrics_config.get("hallucination", False):
+            metrics_to_use.append((
+                "Hallucination",
+                HallucinationMetric(
+                    threshold=self.metric_thresholds.get("hallucination", 0.5),
+                    model=judge_model
                 )
             ))
 

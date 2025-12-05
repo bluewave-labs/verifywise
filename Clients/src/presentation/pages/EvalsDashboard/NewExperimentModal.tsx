@@ -167,14 +167,17 @@ export default function NewExperimentModal({
       limit: 10,
       benchmark: "",
     },
-    // Step 4: Metrics (default: enable all supported chatbot metrics)
+    // Step 4: Metrics - defaults for chatbot (no RAG context metrics)
     metrics: {
+      // General metrics (all use cases)
       answerRelevancy: true,
       bias: true,
       toxicity: true,
-      faithfulness: true,
-      hallucination: true,
-      contextualRelevancy: true,
+      // RAG-specific (require retrieval_context) - disabled for chatbot
+      faithfulness: false,
+      hallucination: false,
+      contextualRelevancy: false,
+      // Chatbot-specific
       knowledgeRetention: true,
       conversationRelevancy: true,
       conversationCompleteness: true,
@@ -376,9 +379,9 @@ export default function NewExperimentModal({
         answerRelevancy: true,
         bias: true,
         toxicity: true,
-        faithfulness: true,
-        hallucination: true,
-        contextualRelevancy: true,
+        faithfulness: false,
+        hallucination: false,
+        contextualRelevancy: false,
         knowledgeRetention: true,
         conversationRelevancy: true,
         conversationCompleteness: true,
@@ -1399,85 +1402,178 @@ export default function NewExperimentModal({
         );
 
       case 3:
-        // Step 4: Metrics (all enabled by default, no thresholds UI)
+        // Step 4: Metrics - organized by use case
         return (
           <Stack spacing={3}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Choose which metrics to include. All are enabled by default.
+                Select metrics for your evaluation. Metrics are organized by use case.
               </Typography>
             </Box>
 
-            {Object.entries({
-              answerRelevancy: {
-                label: "Answer Relevancy",
-                desc: "Measures how relevant the model's answer is to the input.",
-              },
-              bias: {
-                label: "Bias Detection",
-                desc: "Detects biased or discriminatory content in responses.",
-              },
-              toxicity: {
-                label: "Toxicity Detection",
-                desc: "Flags toxic or harmful language in outputs.",
-              },
-              faithfulness: {
-                label: "Faithfulness",
-                desc: "Checks if the answer aligns with provided context.",
-              },
-              hallucination: {
-                label: "Hallucination Detection",
-                desc: "Identifies unsupported or fabricated statements.",
-              },
-              contextualRelevancy: {
-                label: "Contextual Relevancy",
-                desc: "Measures whether retrieved/used context is relevant.",
-              },
-              knowledgeRetention: {
-                label: "Knowledge Retention",
-                desc: "Evaluates how well the model remembers and reuses information across the conversation.",
-              },
-              conversationRelevancy: {
-                label: "Conversation Relevancy",
-                desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
-              },
-              conversationCompleteness: {
-                label: "Conversation Completeness",
-                desc: "Checks if the model fully answers the user's question and covers all requested details.",
-              },
-              roleAdherence: {
-                label: "Code / role adherence",
-                desc: "Evaluates how well the model follows its assigned role, persona, or coding instructions.",
-              },
-            }).map(([key, meta]) => (
-              <Box key={key} sx={{ mb: 1.5 }}>
-                <Stack spacing={0.5}>
-                  <Checkbox
-                    id={`metric-${key}`}
-                    label={(meta as { label: string }).label}
-                    size="small"
-                    value={key}
-                    isChecked={config.metrics[key as keyof typeof config.metrics]}
-                    onChange={() =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        metrics: {
-                          ...prev.metrics,
-                          [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                        },
-                      }))
-                    }
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                  >
-                    {(meta as { desc: string }).desc}
-                  </Typography>
-                </Stack>
+            {/* General Metrics - All Use Cases */}
+            <Box>
+              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                General Metrics
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                Available for all evaluation types
+              </Typography>
+              {Object.entries({
+                answerRelevancy: {
+                  label: "Answer Relevancy",
+                  desc: "Measures how relevant the model's answer is to the input.",
+                },
+                bias: {
+                  label: "Bias Detection",
+                  desc: "Detects biased or discriminatory content in responses.",
+                },
+                toxicity: {
+                  label: "Toxicity Detection",
+                  desc: "Flags toxic or harmful language in outputs.",
+                },
+              }).map(([key, meta]) => (
+                <Box key={key} sx={{ mb: 1.5 }}>
+                  <Stack spacing={0.5}>
+                    <Checkbox
+                      id={`metric-${key}`}
+                      label={(meta as { label: string }).label}
+                      size="small"
+                      value={key}
+                      isChecked={config.metrics[key as keyof typeof config.metrics]}
+                      onChange={() =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          metrics: {
+                            ...prev.metrics,
+                            [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                          },
+                        }))
+                      }
+                    />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                    >
+                      {(meta as { desc: string }).desc}
+                    </Typography>
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Chatbot-Specific Metrics */}
+            {config.taskType === "chatbot" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                  Chatbot Metrics
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                  Specifically designed for conversational AI evaluation
+                </Typography>
+                {Object.entries({
+                  knowledgeRetention: {
+                    label: "Knowledge Retention",
+                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                  },
+                  conversationRelevancy: {
+                    label: "Conversation Relevancy",
+                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                  },
+                  conversationCompleteness: {
+                    label: "Conversation Completeness",
+                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
+                  },
+                  roleAdherence: {
+                    label: "Role Adherence",
+                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
               </Box>
-            ))}
+            )}
+
+            {/* RAG-Specific Metrics */}
+            {config.taskType === "rag" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                  RAG Metrics
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                  Requires retrieval_context in your dataset
+                </Typography>
+                {Object.entries({
+                  faithfulness: {
+                    label: "Faithfulness",
+                    desc: "Checks if the answer aligns with provided retrieval context.",
+                  },
+                  hallucination: {
+                    label: "Hallucination Detection",
+                    desc: "Identifies unsupported or fabricated statements not in context.",
+                  },
+                  contextualRelevancy: {
+                    label: "Contextual Relevancy",
+                    desc: "Measures whether retrieved context is relevant to the query.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Stack>
         );
 

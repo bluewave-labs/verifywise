@@ -455,52 +455,77 @@ async def run_evaluation(
             metric_thresholds=thresholds_config,
         )
         
-        # Determine metrics based on task type & bundles, ignoring UI toggles (presets)
+        # Read UI-selected metrics from config
+        ui_metrics = config.get("metrics") or {}
         task_type = (config.get("taskType") or config.get("task_type") or "").strip().lower()
         bundles = config.get("bundles") or {}
-        # Core judge can be toggled via config flag; default on for chatbot
-        enable_core_judge = config.get("useGEval", None)
-        if enable_core_judge is None:
-            enable_core_judge = (task_type == "chatbot")
-
-        deepeval_metrics_config = {
-            # Core G‑Eval
-            "g_eval_correctness": bool(enable_core_judge),
-            "g_eval_coherence": bool(enable_core_judge),
-            "g_eval_tonality": bool(enable_core_judge),
-            "g_eval_safety": bool(enable_core_judge),
-            # Classic (generally useful)
-            "bias": True,
-            "toxicity": True,
-            "answer_relevancy": False,
-            "faithfulness": False,
-            "contextual_relevancy": False,
-            "hallucination": False,
+        
+        # Map frontend metric names (camelCase) to backend metric names (snake_case)
+        metric_name_map = {
+            "answerRelevancy": "answer_relevancy",
+            "bias": "bias",
+            "toxicity": "toxicity",
+            "faithfulness": "faithfulness",
+            "hallucination": "hallucination",
+            "contextualRelevancy": "contextual_relevancy",
+            "knowledgeRetention": "knowledge_retention",
+            "conversationRelevancy": "conversation_relevancy",
+            "conversationCompleteness": "conversation_completeness",
+            "roleAdherence": "role_adherence",
         }
-        if task_type == "rag":
-            deepeval_metrics_config.update({
-                "answer_relevancy": True,
-                "faithfulness": True,
-                "contextual_relevancy": True,
-                "hallucination": bool(bundles.get("hallucination", True)),
-                "contextual_recall": bool(bundles.get("contextual_recall", True)),
-                "contextual_precision": bool(bundles.get("contextual_precision", True)),
-                "ragas": bool(bundles.get("ragas", False)),
-            })
-        elif task_type in ("agent", "agents"):
-            deepeval_metrics_config.update({
-                "task_completion": True,
-                "tool_correctness": True,
-            })
-        elif task_type in ("chatbot", ""):
-            deepeval_metrics_config.update({
-                "knowledge_retention": True,
-                "conversation_completeness": True,
-                "conversation_relevancy": True,
-                "role_adherence": True,
-            })
-            if bundles.get("summarization", False):
-                deepeval_metrics_config["summarization"] = True
+
+        # Start with all metrics disabled
+        deepeval_metrics_config = {
+            # Standard G-Eval metrics (always available)
+            "answer_relevancy": False,
+            "bias": False,
+            "toxicity": False,
+            "faithfulness": False,
+            "hallucination": False,
+            "contextual_relevancy": False,
+            # Chatbot-specific metrics
+            "knowledge_retention": False,
+            "conversation_relevancy": False,
+            "conversation_completeness": False,
+            "role_adherence": False,
+        }
+        
+        # Enable metrics based on UI selection
+        for ui_key, backend_key in metric_name_map.items():
+            if ui_metrics.get(ui_key, False):
+                deepeval_metrics_config[backend_key] = True
+        
+        # If no UI metrics provided (legacy/rerun), use defaults based on task type
+        if not ui_metrics:
+            # Default: enable general metrics for all
+            deepeval_metrics_config["answer_relevancy"] = True
+            deepeval_metrics_config["bias"] = True
+            deepeval_metrics_config["toxicity"] = True
+            
+            if task_type == "rag":
+                # RAG: enable context-dependent metrics
+                deepeval_metrics_config.update({
+                    "faithfulness": True,
+                    "contextual_relevancy": True,
+                    "hallucination": True,
+                })
+            elif task_type in ("agent", "agents"):
+                deepeval_metrics_config.update({
+                    "task_completion": True,
+                    "tool_correctness": True,
+                })
+            elif task_type in ("chatbot", ""):
+                # Chatbot: enable chatbot-specific metrics (NOT RAG metrics!)
+                deepeval_metrics_config.update({
+                    "knowledge_retention": True,
+                    "conversation_completeness": True,
+                    "conversation_relevancy": True,
+                    "role_adherence": True,
+                })
+        
+        # Log which metrics are enabled
+        enabled_metrics = [k for k, v in deepeval_metrics_config.items() if v]
+        print(f"📊 Enabled metrics: {enabled_metrics}")
         
         results = evaluator.run_evaluation(
             test_cases_data=test_cases_data,

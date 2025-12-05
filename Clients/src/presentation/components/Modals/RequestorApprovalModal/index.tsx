@@ -368,7 +368,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             ?.disableRipple
                                                                     }
                                                                     className={
-                                                                        location.pathname === item.path
+                                                                         (item.id !== undefined && selectedItem?.id=== item.id)
                                                                             ? "selected-path"
                                                                             : "unselected"
                                                                     }
@@ -379,32 +379,27 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                         }
                                                                     }}
 
-                                                                    // class={
-                                                                    //     // Update this condition to check selectedItemId
-                                                                    //     (item.id !== undefined && selectedItemId === item.id)
-                                                                    //         ? "selected-path"
-                                                                    //         : "unselected"
-                                                                    // }
                                                                     sx={{
                                                                         height: "32px",
                                                                         gap: theme.spacing(4),
                                                                         borderRadius: theme.shape.borderRadius,
                                                                         px: theme.spacing(4),
                                                                         background:
-                                                                            location.pathname === item.path
+                                                                            (item.id !== undefined && selectedItem?.id === item.id)
                                                                                 ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                                                                                 : "transparent",
                                                                         border:
-                                                                            location.pathname === item.path
+                                                                            (item.id !== undefined && selectedItem?.id === item.id)
                                                                                 ? "1px solid #D8D8D8"
                                                                                 : "1px solid transparent",
 
                                                                         "&:hover": {
                                                                             background:
-                                                                                location.pathname === item.path ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                                                                                (item.id !== undefined && selectedItem?.id === item.id) 
+                                                                                    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                                                                                     : "#F9F9F9",
                                                                             border:
-                                                                                location.pathname === item.path
+                                                                                (item.id !== undefined && selectedItem?.id === item.id)
                                                                                     ? "1px solid #D8D8D8"
                                                                                     : "1px solid transparent",
                                                                         },

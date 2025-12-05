@@ -17,6 +17,7 @@ import topicRoutes from "./routes/topic.route";
 import userRoutes from "./routes/user.route";
 import vendorRoutes from "./routes/vendor.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
+import vendorChangeHistoryRoutes from "./routes/vendorChangeHistory.route";
 import roleRoutes from "./routes/role.route";
 import fileRoutes from "./routes/file.route";
 import mailRoutes from "./routes/vwmailer.route";
@@ -128,6 +129,7 @@ try {
   app.use("/api/users", userRoutes);
   app.use("/api/vendorRisks", vendorRiskRoutes);
   app.use("/api/vendors", vendorRoutes);
+  app.use("/api/vendor-change-history", vendorChangeHistoryRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);

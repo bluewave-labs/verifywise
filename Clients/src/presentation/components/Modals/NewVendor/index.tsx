@@ -18,15 +18,20 @@ import {
   Autocomplete,
   AutocompleteRenderInputParams,
   Box,
+  IconButton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, History as HistoryIcon } from "lucide-react";
+import HistorySidebar from "../../Common/HistorySidebar";
+import { useEntityChangeHistory } from "../../../../application/hooks/useEntityChangeHistory";
+import { useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -135,13 +140,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     { _id: number; name: string }[]
   >([]);
   const [isScorecardExpanded, setIsScorecardExpanded] = useState(false);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
   const { data: projects } = useProjects();
+  const queryClient = useQueryClient();
 
   // TanStack Query hooks
   const createVendorMutation = useCreateVendor();
   const updateVendorMutation = useUpdateVendor();
+
+  // Prefetch history data when modal opens in edit mode
+  useEntityChangeHistory(
+    "vendor",
+    existingVendor?.id || 0,
+    { enabled: !!existingVendor?.id && isOpen }
+  );
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
@@ -957,6 +971,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         isOpen={isOpen}
         onClose={() => {
           setValues(initialState);
+          setIsHistorySidebarOpen(false);
+          // Invalidate history cache to get fresh data on next open
+          if (existingVendor?.id) {
+            queryClient.invalidateQueries({ queryKey: ["changeHistory", "vendor", existingVendor.id] });
+          }
           setIsOpen(false);
         }}
         title={existingVendor ? "Edit vendor" : "Add new vendor"}
@@ -968,9 +987,60 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onSubmit={handleSave}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth="734px"
+        maxWidth={isHistorySidebarOpen ? "1074px" : "734px"}
+        headerActions={
+          existingVendor ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined
+        }
       >
-        <TabContext value={value}>{vendorDetailsPanel}</TabContext>
+        <Stack
+          direction="row"
+          sx={{
+            width: "100%",
+            minHeight: 0,
+            alignItems: "flex-start",
+            overflow: "hidden",
+            position: "relative"
+          }}
+        >
+          {/* Main Content */}
+          <Box sx={{
+            flex: 1,
+            minWidth: 0,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "auto"
+          }}>
+            <TabContext value={value}>{vendorDetailsPanel}</TabContext>
+          </Box>
+
+          {/* History Sidebar - Embedded */}
+          {existingVendor && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="vendor"
+              entityId={existingVendor.id!}
+            />
+          )}
+        </Stack>
       </StandardModal>
     </Stack>
   );

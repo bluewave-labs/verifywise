@@ -368,7 +368,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             ?.disableRipple
                                                                     }
                                                                     className={
-                                                                         (item.id !== undefined && selectedItem?.id=== item.id)
+                                                                        (item.id !== undefined && selectedItem?.id === item.id)
                                                                             ? "selected-path"
                                                                             : "unselected"
                                                                     }
@@ -395,7 +395,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
 
                                                                         "&:hover": {
                                                                             background:
-                                                                                (item.id !== undefined && selectedItem?.id === item.id) 
+                                                                                (item.id !== undefined && selectedItem?.id === item.id)
                                                                                     ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                                                                                     : "#F9F9F9",
                                                                             border:
@@ -435,7 +435,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                             borderColor: theme.palette.border.light,
                                                             mx: 4,
                                                             mr: 16,
-                                                            width: '248px'
+                                                            width: '248px',
+                                                            mb: theme.spacing(12)
                                                         }}
                                                     />
                                                 )}
@@ -453,7 +454,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     sx={{
                         borderColor: theme.palette.border.light,
                         mx: 4,
-                        mr: 16
+                        mr: 16,
+                        my: theme.spacing(16)
                     }}
                 />
                 <Stack spacing={8} direction="column"

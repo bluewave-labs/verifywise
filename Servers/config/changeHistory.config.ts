@@ -189,6 +189,39 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
       return userIds.map((id) => `User #${id}`).join(", ");
     }
   },
+
+  // Framework array formatter (formats project frameworks)
+  frameworkArray: async (value: any): Promise<string> => {
+    if (!value) return "-";
+
+    let frameworks: any[] = [];
+    if (Array.isArray(value)) {
+      frameworks = value;
+    } else if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          frameworks = parsed;
+        }
+      } catch {
+        return value;
+      }
+    }
+
+    if (frameworks.length === 0) return "-";
+
+    // Extract framework names from the array of framework objects
+    const frameworkNames = frameworks
+      .map((f) => {
+        if (typeof f === "object" && f !== null) {
+          return f.name || `Framework #${f.framework_id || f.id || "unknown"}`;
+        }
+        return String(f);
+      })
+      .filter(Boolean);
+
+    return frameworkNames.length > 0 ? frameworkNames.join(", ") : "-";
+  },
 };
 
 /**
@@ -298,12 +331,41 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     tableName: "use_case_change_history",
     foreignKeyField: "use_case_id",
     fieldsToTrack: [
-      "name",
+      "project_title",
+      "owner",
+      "members",
+      "start_date",
+      "geography",
+      "ai_risk_classification",
+      "type_of_high_risk_role",
+      "goal",
+      "target_industry",
       "description",
+      "status",
+      "framework",
+      "monitored_regulations_and_standards",
     ],
     fieldLabels: {
-      name: "Name",
+      project_title: "Name",
+      owner: "Owner",
+      members: "Team members",
+      start_date: "Start date",
+      geography: "Geography",
+      ai_risk_classification: "AI risk classification",
+      type_of_high_risk_role: "Type of high-risk role",
+      goal: "Goal",
+      target_industry: "Target industry",
       description: "Description",
+      status: "Status",
+      framework: "Frameworks",
+      monitored_regulations_and_standards: "Monitored regulations and standards",
+    },
+    fieldFormatters: {
+      owner: GENERIC_FORMATTERS.user,
+      members: GENERIC_FORMATTERS.userArray,
+      start_date: GENERIC_FORMATTERS.date,
+      framework: GENERIC_FORMATTERS.frameworkArray,
+      monitored_regulations_and_standards: GENERIC_FORMATTERS.array,
     },
   },
 

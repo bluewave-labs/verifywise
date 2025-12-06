@@ -37,6 +37,12 @@ import {
 import { sendProjectCreatedNotification, sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/projectNotifications";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
+import {
+  recordUseCaseCreation,
+  trackUseCaseChanges,
+  recordMultipleFieldChanges,
+  recordUseCaseDeletion,
+} from "../utils/useCaseChangeHistory.utils";
 
 export async function getAllProjects(
   req: Request,
@@ -185,6 +191,28 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (createdProject) {
+      // Record use case creation in change history
+      if (createdProject.id && req.userId) {
+        await recordUseCaseCreation(
+          createdProject.id,
+          req.userId,
+          req.tenantId!,
+          {
+            project_title: createdProject.project_title,
+            owner: createdProject.owner,
+            start_date: createdProject.start_date,
+            geography: createdProject.geography,
+            ai_risk_classification: createdProject.ai_risk_classification,
+            type_of_high_risk_role: createdProject.type_of_high_risk_role,
+            goal: createdProject.goal,
+            target_industry: createdProject.target_industry,
+            description: createdProject.description,
+            status: createdProject.status,
+          },
+          transaction
+        );
+      }
+
       await transaction.commit();
 
       await logSuccess({
@@ -357,6 +385,20 @@ export async function updateProjectById(
     );
 
     if (project) {
+      // Track and record changes for use case history
+      if (req.userId && existingProject) {
+        const changes = await trackUseCaseChanges(existingProject, updatedProject);
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            projectId,
+            req.userId,
+            req.tenantId!,
+            changes,
+            transaction
+          );
+        }
+      }
+
       await transaction.commit();
 
       await logSuccess({
@@ -513,6 +555,16 @@ export async function deleteProjectById(
     );
 
     if (deletedProject) {
+      // Record deletion in change history
+      if (req.userId) {
+        await recordUseCaseDeletion(
+          projectId,
+          req.userId,
+          req.tenantId!,
+          transaction
+        );
+      }
+
       await transaction.commit();
 
       await logSuccess({
@@ -1029,6 +1081,21 @@ export async function updateProjectStatus(
     );
 
     if (updatedProject) {
+      // Track and record status change
+      if (req.userId && existingProject && existingProject.status !== status) {
+        await recordMultipleFieldChanges(
+          projectId,
+          req.userId,
+          req.tenantId!,
+          [{
+            fieldName: "status",
+            oldValue: String(existingProject.status || "-"),
+            newValue: String(status || "-"),
+          }],
+          transaction
+        );
+      }
+
       await transaction.commit();
 
       await logSuccess({

@@ -468,7 +468,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
           marginLeft: "16px", // 16px padding from main content
           display: "flex",
           flexDirection: "column",
-          height: "100%",
+          height: "auto",
         }}
       >
         <Box

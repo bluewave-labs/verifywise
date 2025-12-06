@@ -63,6 +63,7 @@ export interface ISO42001SubClause {
   risks?: number[];
   created_at?: string;
   updated_at?: string;
+  order_no?: number;
 }
 
 /**
@@ -154,7 +155,11 @@ export interface AlertProps {
 export interface ISO42001ClauseDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSaveSuccess?: (success: boolean, message?: string, savedSubclauseId?: number) => void;
+  onSaveSuccess?: (
+    success: boolean,
+    message?: string,
+    savedSubclauseId?: number
+  ) => void;
   clause?: ISO42001Clause;
   subclause?: ISO42001SubClause;
   projectFrameworkId: number;
@@ -167,7 +172,11 @@ export interface ISO42001ClauseDrawerProps {
 export interface ISO42001AnnexDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSaveSuccess?: (success: boolean, message?: string, savedCategoryId?: number) => void;
+  onSaveSuccess?: (
+    success: boolean,
+    message?: string,
+    savedCategoryId?: number
+  ) => void;
   annex?: ISO42001Annex;
   category?: ISO42001AnnexCategory;
   projectFrameworkId: number;

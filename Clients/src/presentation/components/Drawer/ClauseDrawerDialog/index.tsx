@@ -596,6 +596,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
           },
         }}
         anchor="right"
+        id={`iso42001-clause-drawer-dialog-${subclause?.order_no}`}
       >
         <Stack
           className="iso42001-clause-drawer-dialog-content"
@@ -610,7 +611,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
           >
             <Typography fontSize={15} fontWeight={700}>
               {clause?.clause_no
-                ? `${clause.clause_no}.${subclause?.index || 1}`
+                ? `${clause.clause_no}.${subclause?.order_no || 1}`
                 : "Clause"}{" "}
               {subclause?.title}
             </Typography>

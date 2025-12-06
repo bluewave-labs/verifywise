@@ -271,7 +271,11 @@ const ISO42001Clauses = ({
               <AccordionSummary sx={styles.accordionSummary}>
                 <ChevronRight
                   size={16}
-                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
+                  style={
+                    styles.expandIcon(
+                      expanded === clause.id
+                    ) as React.CSSProperties
+                  }
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}

@@ -848,7 +848,7 @@ export const updateSubClauseQuery = async (
       } else if (subClause[field as keyof SubClauseISO] != undefined) {
         let value = subClause[field as keyof SubClauseISO];
 
-        // Handle empty strings for integer fields
+        // Handle empty strings for integer fields - skip if empty
         if (["owner", "reviewer", "approver"].includes(field)) {
           if (value === "" || value === null || value === undefined) {
             return acc; // Skip this field if it's empty
@@ -858,6 +858,11 @@ export const updateSubClauseQuery = async (
             return acc; // Skip this field if it's not a valid number
           }
           value = numValue;
+        }
+
+        // Skip empty strings for other fields too
+        if (value === "") {
+          return acc;
         }
 
         updateSubClause[field as keyof SubClauseISO] = value;
@@ -992,13 +997,10 @@ export const updateAnnexCategoryQuery = async (
       if (field === "evidence_links") {
         updateAnnexCategory["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
-      } else if (
-        annexCategory[field as keyof AnnexCategoryISO] != undefined &&
-        annexCategory[field as keyof AnnexCategoryISO]
-      ) {
+      } else if (annexCategory[field as keyof AnnexCategoryISO] != undefined) {
         let value = annexCategory[field as keyof AnnexCategoryISO];
 
-        // Handle empty strings for integer fields
+        // Handle empty strings for integer fields - skip if empty
         if (["owner", "reviewer", "approver"].includes(field)) {
           if (value === "" || value === null || value === undefined) {
             return acc; // Skip this field if it's empty
@@ -1008,6 +1010,11 @@ export const updateAnnexCategoryQuery = async (
             return acc; // Skip this field if it's not a valid number
           }
           value = numValue;
+        }
+
+        // Skip empty strings for other fields too
+        if (value === "") {
+          return acc;
         }
 
         updateAnnexCategory[field as keyof AnnexCategoryISO] = value;
@@ -1162,4 +1169,29 @@ export const deleteProjectFrameworkISOQuery = async (
     }
   );
   return result.length > 0 && subClausesDeleted && annexeCategoriesDeleted;
+};
+
+/**
+ * Get all risks linked to a specific ISO 42001 subclause
+ * @param subclauseId - The subclause ID
+ * @param tenant - The tenant schema name
+ * @returns Array of risk objects
+ */
+export const getSubClauseRisksQuery = async (
+  subclauseId: number,
+  tenant: string
+): Promise<any[]> => {
+  const risks = await sequelize.query(
+    `SELECT pr.*
+     FROM "${tenant}".risks pr
+     INNER JOIN "${tenant}".subclauses_iso__risks sir
+       ON pr.id = sir.projects_risks_id
+     WHERE sir.subclause_id = :subclauseId
+     ORDER BY pr.id ASC`,
+    {
+      replacements: { subclauseId },
+      type: QueryTypes.SELECT,
+    }
+  );
+  return risks as any[];
 };

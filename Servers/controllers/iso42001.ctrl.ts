@@ -22,6 +22,7 @@ import {
   getSubClauseByIdForProjectQuery,
   getSubClausesByClauseIdQuery,
   getSubClauseRisksQuery,
+  getAnnexCategoryRisksQuery,
   updateAnnexCategoryQuery,
   updateSubClauseQuery,
 } from "../utils/iso42001.utils";
@@ -568,6 +569,52 @@ export async function getSubClauseRisks(
     });
 
     logger.error(`❌ Error fetching ISO 42001 subclause risks:`, error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get all risks linked to a specific ISO 42001 annex category
+ * @route GET /api/iso-42001/annexCategories/:id/risks
+ */
+export async function getAnnexCategoryRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const annexCategoryId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getAnnexCategoryRisks for annex category ID ${annexCategoryId}`,
+    functionName: "getAnnexCategoryRisks",
+    fileName: "iso42001.ctrl.ts",
+  });
+
+  logger.debug(`🔍 Fetching risks for ISO 42001 annex category ${annexCategoryId}`);
+
+  try {
+    const risks = await getAnnexCategoryRisksQuery(annexCategoryId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Successfully retrieved ${risks.length} risks for ISO 42001 annex category ${annexCategoryId}`,
+      functionName: "getAnnexCategoryRisks",
+      fileName: "iso42001.ctrl.ts",
+    });
+
+    return res.status(200).json({
+      message: "Risks retrieved successfully",
+      data: risks,
+    });
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get ISO 42001 annex category risks: ${(error as Error).message}`,
+      functionName: "getAnnexCategoryRisks",
+      fileName: "iso42001.ctrl.ts",
+      error: error as Error,
+    });
+
+    logger.error(`❌ Error fetching ISO 42001 annex category risks:`, error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

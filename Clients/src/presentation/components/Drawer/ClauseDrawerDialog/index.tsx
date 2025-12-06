@@ -11,7 +11,7 @@
  * - Notes: Collaboration notes (lazy-loaded)
  */
 
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy, useRef } from "react";
 import {
   Box,
   Button,
@@ -41,10 +41,12 @@ import DatePicker from "../../Inputs/Datepicker";
 import TabBar from "../../TabBar";
 import CustomizableButton from "../../Button/CustomizableButton";
 import Alert from "../../Alert";
+import StandardModal from "../../Modals/StandardModal";
 
 // Lazy-loaded components
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
+const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 
 // Types & Constants
 import {
@@ -133,6 +135,13 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState(false);
+
+  // Risk detail modal state
+  const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
+  const [selectedRiskForView, setSelectedRiskForView] =
+    useState<LinkedRisk | null>(null);
+  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
   // PERMISSIONS
@@ -374,12 +383,53 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
   // ========================================================================
 
   const handleViewRiskDetails = async (risk: LinkedRisk) => {
-    // This would open a detailed risk view modal
-    // For now, just show info
-    handleAlert({
-      variant: "info",
-      body: `Risk: ${risk.risk_name} (${risk.risk_level || "N/A"})`,
-    });
+    setSelectedRiskForView(risk);
+    try {
+      // Fetch full risk data
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/${risk.id}`,
+      });
+      if (response.data) {
+        const riskData = response.data;
+        setRiskFormData({
+          riskName: riskData.risk_name || "",
+          actionOwner: riskData.risk_owner || 0,
+          aiLifecyclePhase: riskData.ai_lifecycle_phase || 0,
+          riskDescription: riskData.risk_description || "",
+          riskCategory: riskData.risk_category || [1],
+          potentialImpact: riskData.impact || "",
+          assessmentMapping: riskData.assessment_mapping || 0,
+          controlsMapping: riskData.controls_mapping || 0,
+          likelihood: riskData.likelihood_score || 1,
+          riskSeverity: riskData.severity_score || 1,
+          riskLevel: riskData.risk_level || 0,
+          reviewNotes: riskData.review_notes || "",
+          applicableProjects: riskData.applicable_projects || [],
+          applicableFrameworks: riskData.applicable_frameworks || [],
+        });
+        setIsRiskDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching risk details:", error);
+      handleAlert({
+        variant: "error",
+        body: "Failed to load risk details",
+      });
+    }
+  };
+
+  const handleRiskDetailModalClose = () => {
+    setIsRiskDetailModalOpen(false);
+    setSelectedRiskForView(null);
+    setRiskFormData(null);
+  };
+
+  const handleRiskUpdateSuccess = () => {
+    handleRiskDetailModalClose();
+    // Refresh linked risks
+    if (subclause?.id) {
+      fetchLinkedRisks();
+    }
   };
 
   // ========================================================================
@@ -1283,6 +1333,34 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
           </Stack>
         </Stack>
       </Drawer>
+
+      {/* Risk Detail Modal */}
+      <StandardModal
+        isOpen={isRiskDetailModalOpen && !!riskFormData}
+        onClose={handleRiskDetailModalClose}
+        title={`Risk: ${selectedRiskForView?.risk_name || "Risk Details"}`}
+        description="View and edit risk details"
+        onSubmit={() => onRiskSubmitRef.current?.()}
+        submitButtonText="Update"
+        maxWidth="1039px"
+      >
+        <Suspense fallback={<CircularProgress />}>
+          <AddNewRiskForm
+            closePopup={handleRiskDetailModalClose}
+            popupStatus="edit"
+            initialRiskValues={riskFormData}
+            onSuccess={handleRiskUpdateSuccess}
+            onError={(error) => {
+              handleAlert({
+                variant: "error",
+                body: error?.message || "Failed to update risk",
+              });
+            }}
+            users={users}
+            onSubmitRef={onRiskSubmitRef}
+          />
+        </Suspense>
+      </StandardModal>
 
       {/* ALERT */}
       {alert && (

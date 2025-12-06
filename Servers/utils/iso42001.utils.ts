@@ -79,9 +79,9 @@ export const countAnnexCategoriesISOByProjectId = async (
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [
-      { totalAnnexcategories: string; doneAnnexcategories: string }[],
-      number,
-    ];
+    { totalAnnexcategories: string; doneAnnexcategories: string }[],
+    number,
+  ];
   return result[0][0];
 };
 
@@ -146,7 +146,10 @@ export const countAnnexCategoryAssignmentsISOByProjectId = async (
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
-  )) as [{ totalAnnexcategories: string; assignedAnnexcategories: string }[], number];
+  )) as [
+    { totalAnnexcategories: string; assignedAnnexcategories: string }[],
+    number,
+  ];
 
   return result[0][0];
 };
@@ -424,9 +427,9 @@ export const getAllAnnexesWithCategoriesQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-        Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-        number,
-      ];
+      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+      number,
+    ];
 
     (
       annex as AnnexStructISOModel & {
@@ -523,9 +526,9 @@ export const getAnnexCategoriesByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-      number,
-    ];
+    Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+    number,
+  ];
   const annexCategory = annexCategories[0][0];
   (annexCategory as any).risks = [];
   const risks = (await sequelize.query(
@@ -917,7 +920,9 @@ export const updateSubClauseQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely
@@ -1067,7 +1072,9 @@ export const updateAnnexCategoryQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:annexcategory_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:annexcategory_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely
@@ -1190,6 +1197,31 @@ export const getSubClauseRisksQuery = async (
      ORDER BY pr.id ASC`,
     {
       replacements: { subclauseId },
+      type: QueryTypes.SELECT,
+    }
+  );
+  return risks as any[];
+};
+
+/**
+ * Get all risks linked to a specific ISO 42001 annex category
+ * @param annexCategoryId - The annex category ID
+ * @param tenant - The tenant schema name
+ * @returns Array of risk objects
+ */
+export const getAnnexCategoryRisksQuery = async (
+  annexCategoryId: number,
+  tenant: string
+): Promise<any[]> => {
+  const risks = await sequelize.query(
+    `SELECT pr.*
+     FROM "${tenant}".risks pr
+     INNER JOIN "${tenant}".annexcategories_iso__risks acr
+       ON pr.id = acr.projects_risks_id
+     WHERE acr.annexcategory_id = :annexCategoryId
+     ORDER BY pr.id ASC`,
+    {
+      replacements: { annexCategoryId },
       type: QueryTypes.SELECT,
     }
   );

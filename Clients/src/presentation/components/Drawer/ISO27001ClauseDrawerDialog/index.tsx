@@ -264,12 +264,15 @@ const VWISO27001ClauseDrawerDialog = ({
     }
   };
 
-  const fetchLinkedRisks = async () => {
+  const fetchLinkedRisks = async (riskIds?: number[]) => {
     if (!fetchedSubClause?.id) return;
 
-    const allRiskIds = [...(formData.risks || []), ...selectedRisks].filter(
-      (id) => !deletedRisks.includes(id)
-    );
+    // Use provided riskIds or fall back to formData.risks + selectedRisks
+    const allRiskIds = riskIds
+      ? riskIds
+      : [...(formData.risks || []), ...selectedRisks].filter(
+          (id) => !deletedRisks.includes(id)
+        );
 
     if (allRiskIds.length === 0) {
       setLinkedRiskObjects([]);
@@ -475,20 +478,43 @@ const VWISO27001ClauseDrawerDialog = ({
 
   const refreshData = async () => {
     if (!fetchedSubClause?.id) return;
-    // Refresh evidence files
     try {
+      // Refresh full subclause data (including updated risks)
       const response = await ISO27001GetSubClauseById({
         routeUrl: `/iso-27001/subClause/byId/${fetchedSubClause.id}?projectFrameworkId=${projectFrameworkId}`,
       });
-      if (response.data?.evidence_links) {
-        setEvidenceFiles(response.data.evidence_links);
+
+      if (response.data) {
+        const subClauseData = response.data;
+        const updatedRiskIds = subClauseData.risks || [];
+
+        // Update evidence files
+        if (subClauseData.evidence_links) {
+          setEvidenceFiles(subClauseData.evidence_links);
+        }
+
+        // Update formData with the latest risks from backend
+        setFormData((prev) => ({
+          ...prev,
+          risks: updatedRiskIds,
+        }));
+
+        // Update fetchedSubClause with latest data
+        setFetchedSubClause(subClauseData);
+
+        // Update currentRisks to reflect the saved risks
+        setCurrentRisks(updatedRiskIds);
+
+        // Clear pending risk selections since they're now saved in formData.risks
+        setSelectedRisks([]);
+        setDeletedRisks([]);
+
+        // Refresh linked risks using the updated risk IDs directly (avoid state timing issues)
+        await fetchLinkedRisks(updatedRiskIds);
       }
     } catch (error) {
-      console.error("Error refreshing evidence files:", error);
+      console.error("Error refreshing data:", error);
     }
-
-    // Refresh linked risks
-    await fetchLinkedRisks();
   };
 
   const resetPendingState = () => {
@@ -669,7 +695,10 @@ const VWISO27001ClauseDrawerDialog = ({
               />
             </Box>
 
-            <TabPanel value="details" sx={{ padding: "15px 20px", gap: "15px" }}>
+            <TabPanel
+              value="details"
+              sx={{ padding: "15px 20px", gap: "15px" }}
+            >
               <Stack gap="15px">
                 {/* Requirement Summary Panel */}
                 {displayData?.requirement_summary && (
@@ -691,35 +720,38 @@ const VWISO27001ClauseDrawerDialog = ({
                 )}
 
                 {/* Key Questions Panel */}
-                {displayData?.key_questions && displayData.key_questions.length > 0 && (
-                  <Stack
-                    sx={{
-                      border: "1px solid #e8d5d5",
-                      padding: "12px",
-                      backgroundColor: "#fef5f5",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    <Typography
-                      fontSize={13}
-                      sx={{ marginBottom: "8px", fontWeight: 600 }}
+                {displayData?.key_questions &&
+                  displayData.key_questions.length > 0 && (
+                    <Stack
+                      sx={{
+                        border: "1px solid #e8d5d5",
+                        padding: "12px",
+                        backgroundColor: "#fef5f5",
+                        borderRadius: "4px",
+                      }}
                     >
-                      Key Questions:
-                    </Typography>
-                    <Stack spacing={1}>
-                      {displayData.key_questions.map((question: any, idx: any) => (
-                        <Typography
-                          key={idx}
-                          fontSize={12}
-                          color="#666"
-                          sx={{ pl: 1, position: "relative" }}
-                        >
-                          • {question}
-                        </Typography>
-                      ))}
+                      <Typography
+                        fontSize={13}
+                        sx={{ marginBottom: "8px", fontWeight: 600 }}
+                      >
+                        Key Questions:
+                      </Typography>
+                      <Stack spacing={1}>
+                        {displayData.key_questions.map(
+                          (question: any, idx: any) => (
+                            <Typography
+                              key={idx}
+                              fontSize={12}
+                              color="#666"
+                              sx={{ pl: 1, position: "relative" }}
+                            >
+                              • {question}
+                            </Typography>
+                          )
+                        )}
+                      </Stack>
                     </Stack>
-                  </Stack>
-                )}
+                  )}
 
                 {/* Evidence Examples Panel */}
                 {displayData?.evidence_examples &&
@@ -785,7 +817,6 @@ const VWISO27001ClauseDrawerDialog = ({
               <Divider sx={{ my: 2 }} />
 
               <Stack gap={"24px"}>
-
                 <Select
                   id="status"
                   label="Status:"

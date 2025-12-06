@@ -128,6 +128,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   users: usersProp,
   usersLoading: usersLoadingProp,
   onSubmitRef,
+  compactMode = false,
 }) => {
   const theme = useTheme();
   const disableRipple =
@@ -799,6 +800,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               riskErrors={riskErrors}
               userRoleName={userRoleName}
               disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
           <TabPanel
@@ -815,6 +817,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               mitigationErrors={mitigationErrors}
               userRoleName={userRoleName}
               disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
         </Suspense>

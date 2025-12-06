@@ -19,7 +19,7 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 
 ## Screenshots
 
-Main dashboard
+The main dashboard
 <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" />
 
 LLM Evals 
@@ -28,17 +28,24 @@ LLM Evals
 EU AI Act project view 
 <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/07b8f0e8-6358-4094-b17e-69cb347d622f" />
 
-Risk management
+AI Use case risks 
+<img width="1653" height="914" alt="image" src="https://github.com/user-attachments/assets/f399b206-f928-454a-a432-e7e5e343d7ce" />
+
+
+AI Risk management
 <img width="1637" height="864" alt="image" src="https://github.com/user-attachments/assets/45c16d83-0e3b-4a71-814e-d7bdeaa492fd" />
 
-Model inventory 
+AI Model inventory 
 <img width="1637" height="861" alt="image" src="https://github.com/user-attachments/assets/225e10d1-845a-4437-b90f-ce97106c3688" />
 
-Model risks
+AI Model risks
 <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/cf67a9ae-c9f6-4eff-a0c3-5fc1dbe4b994" />
 
-Policy manager
+AI Policy manager and policy templates
 <img width="1633" height="861" alt="image" src="https://github.com/user-attachments/assets/2ef1bcc8-e6e6-47de-9291-2157ff1ed35c" />
+
+AI vendors and vendor risks
+<img width="1662" height="914" alt="image" src="https://github.com/user-attachments/assets/26e8d3d3-6e79-4c5a-8058-f63e49a9e239" />
 
 
 

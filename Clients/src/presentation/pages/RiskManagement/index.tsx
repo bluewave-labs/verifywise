@@ -1,9 +1,9 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { BarChart3, ChevronDown } from "lucide-react"
+import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
@@ -36,6 +36,8 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import HistorySidebar from "../../components/Common/HistorySidebar";
+import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 
 /**
  * Set initial loading status for all CRUD process
@@ -101,6 +103,7 @@ const RiskManagement = () => {
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
 
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
@@ -108,6 +111,12 @@ const RiskManagement = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Prefetch history data when modal opens in edit mode
+  useEntityChangeHistory(
+    "risk",
+    isRiskModalOpen && selectedRow.length > 0 && selectedRow[0]?.id ? selectedRow[0].id : 0
+  );
 
   // FilterBy configuration
   const getUniqueOwners = useCallback(() => {
@@ -386,6 +395,7 @@ const RiskManagement = () => {
   const handleRiskModalClose = () => {
     setIsRiskModalOpen(false);
     setSelectedRow([]);
+    setIsHistorySidebarOpen(false);
   };
 
   const handleRiskModalSubmit = () => {
@@ -976,18 +986,66 @@ const RiskManagement = () => {
           onSubmit={handleRiskModalSubmit}
           submitButtonText={selectedRow.length > 0 ? "Update" : "Save"}
           isSubmitting={isSubmitting}
-          maxWidth="1039px"
+          maxWidth={isHistorySidebarOpen ? "1375px" : "1039px"}
+          headerActions={selectedRow.length > 0 ? (
+            <Tooltip title="View activity history" arrow>
+              <IconButton
+                onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
+                size="small"
+                sx={{
+                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                  },
+                }}
+              >
+                <HistoryIcon size={20} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined}
         >
-          <AddNewRiskForm
-            closePopup={handleRiskModalClose}
-            popupStatus={selectedRow.length > 0 ? "edit" : "new"}
-            onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
-            onError={handleError}
-            onLoading={handleLoading}
-            users={users}
-            usersLoading={usersLoading}
-            onSubmitRef={onSubmitRef}
-          />
+          <Stack
+            direction="row"
+            sx={{
+              width: "100%",
+              minHeight: 0,
+              alignItems: "stretch",
+              overflow: "hidden",
+              position: "relative"
+            }}
+          >
+            <Box sx={{
+              flex: isHistorySidebarOpen ? "0 0 auto" : 1,
+              minWidth: 0,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflowX: "hidden",
+              overflowY: "auto"
+            }}>
+              <AddNewRiskForm
+                closePopup={handleRiskModalClose}
+                popupStatus={selectedRow.length > 0 ? "edit" : "new"}
+                onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
+                onError={handleError}
+                onLoading={handleLoading}
+                users={users}
+                usersLoading={usersLoading}
+                onSubmitRef={onSubmitRef}
+                compactMode={isHistorySidebarOpen}
+              />
+            </Box>
+            {selectedRow.length > 0 && selectedRow[0]?.id && (
+              <HistorySidebar
+                entityType="risk"
+                entityId={selectedRow[0].id}
+                isOpen={isHistorySidebarOpen}
+              />
+            )}
+          </Stack>
         </StandardModal>
         {showCustomizableSkeleton ? (
           <CustomizableSkeleton

@@ -65,6 +65,7 @@ import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.rout
 import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
+import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -193,6 +194,7 @@ try {
   app.use("/api/policy-change-history", policyChangeHistoryRoutes);
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
+  app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

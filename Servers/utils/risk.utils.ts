@@ -277,13 +277,24 @@ export const getRiskByIdQuery = async (
   ) as [IRisk[], number];
   const projectRisk = result[0][0];
   if (!projectRisk) return null;
-  const owner_name = await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-    {
-      replacements: { owner_id: projectRisk.risk_owner }
-    }
-  ) as [{ full_name: string }[], number];
-  (projectRisk as any).owner_name = owner_name[0][0].full_name;
+
+    let ownerFullName = "";
+
+  // Run query ONLY if risk_owner exists
+  if (projectRisk.risk_owner) {
+    const ownerResult = await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name 
+      FROM public.users 
+      WHERE id = :owner_id;`,
+      {
+        replacements: { owner_id: projectRisk.risk_owner }
+      }
+    ) as [{ full_name: string }[], number];
+
+    ownerFullName = ownerResult?.[0]?.[0]?.full_name ?? "";
+  }
+  (projectRisk as any).owner_name = ownerFullName;
+
   const approver_name = await sequelize.query(
     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
     {
@@ -539,8 +550,8 @@ export const createRiskQuery = async (
       // Build replacements
       const replacements = buildRiskReplacements({
         ...createdRisk.dataValues,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: owner_name?.[0]?.[0]?.full_name ?? "",
+        approver_name: approver_name?.[0]?.[0]?.full_name ?? "",
       });
 
       // Replace variables in subject and body
@@ -787,26 +798,37 @@ export const updateRiskByIdQuery = async (
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "risk_updated") {
-      const owner_name = await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-        {
-          replacements: { owner_id: updatedRisk.dataValues.risk_owner }, transaction
+      let ownerFullName = "";
+
+        if (updatedRisk.dataValues.risk_owner) {
+          const ownerResult = await sequelize.query(
+            `SELECT name || ' ' || surname AS full_name 
+            FROM public.users 
+            WHERE id = :owner_id;`,
+            {
+              replacements: { owner_id: updatedRisk.dataValues.risk_owner },
+              transaction
+            }
+          ) as [{ full_name: string }[], any];
+
+          ownerFullName = ownerResult?.[0]?.[0]?.full_name ?? "";
         }
-      ) as [{ full_name: string }[], number];
-      const approver_name = await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
-        {
-          replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
-        }
-      ) as [{ full_name: string }[], number];
+
+        const approver_name = await sequelize.query(
+          `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+          {
+            replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
+          }
+        ) as [{ full_name: string }[], number];
+  
 
       const params = automation.params!;
 
       // Build replacements
       const replacements = buildRiskUpdateReplacements(existingRisk, {
         ...updatedRisk.dataValues,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: ownerFullName,
+        approver_name: approver_name[0][0].full_name
       });
 
       // Replace variables in subject and body
@@ -897,8 +919,8 @@ export const deleteRiskByIdQuery = async (
       // Build replacements
       const replacements = buildRiskReplacements({
         ...deletedRisk,
-        owner_name: owner_name[0][0].full_name,
-        approver_name: approver_name[0][0].full_name,
+        owner_name: owner_name?.[0]?.[0]?.full_name ?? "",
+        approver_name: approver_name?.[0]?.[0]?.full_name ?? "",
       });
 
       // Replace variables in subject and body

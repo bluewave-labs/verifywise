@@ -249,7 +249,15 @@ export async function createRisk(
   );
   logger.debug("🛠️ Creating new project risk");
   try {
-    const projectRiskData = riskData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+
+    const projectRiskData = {
+      ...riskData,
+      risk_owner:
+        riskData.risk_owner && Number(riskData.risk_owner) !== 0
+          ? Number(riskData.risk_owner)
+          : null,
+    } as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+    
 
     const newProjectRisk = await createRiskQuery(
       { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
@@ -358,7 +366,16 @@ export async function updateRiskById(
   );
   logger.debug(`✏️ Update requested for project risk ID: ${projectRiskId}`);
   try {
-    const updateDataTyped = updateData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+
+    // Convert optional FK fields (0 => NULL)
+    const updateDataTyped = {
+      ...updateData,
+      risk_owner:
+        updateData.risk_owner && Number(updateData.risk_owner) !== 0
+          ? Number(updateData.risk_owner)
+          : null
+    } as Partial<RiskModel & { projects: number[]; frameworks: number[] }>;
+
 
     // Find existing risk to track changes
     const existingProjectRisk = await getRiskByIdQuery(projectRiskId, req.tenantId!);

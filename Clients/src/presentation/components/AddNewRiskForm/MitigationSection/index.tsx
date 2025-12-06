@@ -29,16 +29,16 @@ import allowedRoles from "../../../../application/constants/permissions";
 
 // Layout constants - matching RisksSection
 const LAYOUT = {
-  FIELD_WIDTH: 325,
+  FIELD_WIDTH: 323,
   COMPACT_FIELD_WIDTH: 318,
   HORIZONTAL_GAP: 8,
   VERTICAL_GAP: 16,
   COMPACT_CONTENT_WIDTH: 970, // Account for scrollbar (~17px)
   get TOTAL_CONTENT_WIDTH() {
-    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 991px
+    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 985px
   },
   get TWO_COLUMN_WIDTH() {
-    return (this.FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 658px
+    return (this.FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 654px
   },
   get COMPACT_TWO_COLUMN_WIDTH() {
     return (this.COMPACT_FIELD_WIDTH * 2) + this.HORIZONTAL_GAP; // 644px

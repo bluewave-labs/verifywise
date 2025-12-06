@@ -33,13 +33,13 @@ const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
 // Layout constants
 const LAYOUT = {
-  FIELD_WIDTH: 325,
+  FIELD_WIDTH: 323,
   COMPACT_FIELD_WIDTH: 318,
   HORIZONTAL_GAP: 8,
   VERTICAL_GAP: 16,
   COMPACT_CONTENT_WIDTH: 970, // Account for scrollbar (~17px)
   get TOTAL_CONTENT_WIDTH() {
-    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 991px
+    return (this.FIELD_WIDTH * 3) + (this.HORIZONTAL_GAP * 2); // 985px
   },
 } as const;
 
@@ -106,6 +106,8 @@ const RiskSection: FC<RiskSectionProps> = ({
     flexWrap: "wrap" as const,
     gap: `${LAYOUT.HORIZONTAL_GAP}px`,
     width: contentWidth,
+    maxWidth: contentWidth,
+    boxSizing: "border-box" as const,
   };
 
   const [alert, setAlert] = useState<alertState | null>(null);

@@ -1012,13 +1012,13 @@ const RiskManagement = () => {
             sx={{
               width: "100%",
               minHeight: 0,
-              alignItems: "flex-start",
+              alignItems: "stretch",
               overflow: "hidden",
               position: "relative"
             }}
           >
             <Box sx={{
-              flex: 1,
+              flex: isHistorySidebarOpen ? "0 0 auto" : 1,
               minWidth: 0,
               minHeight: 0,
               display: "flex",

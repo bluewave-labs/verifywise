@@ -18,34 +18,35 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
 ## Screenshots
+| The main dashboard | LLM Evals |
+| --- | --- |
+| <img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" /> | <img width="1598" height="859" alt="image" src="https://github.com/user-attachments/assets/4e6aff6c-0254-4a28-a09f-6fc804a57f23" /> |
 
-The main dashboard
-<img width="1598" height="861" alt="image" src="https://github.com/user-attachments/assets/649d030a-6e13-4cb5-96c3-707ae7d448f6" />
+| EU AI Act project view | AI Use case risks |
+| --- | --- |
+| <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/07b8f0e8-6358-4094-b17e-69cb347d622f" /> | <img width="1653" height="914" alt="image" src="https://github.com/user-attachments/assets/f399b206-f928-454a-a432-e7e5e343d7ce" /> |
 
-LLM Evals 
-<img width="1598" height="859" alt="image" src="https://github.com/user-attachments/assets/4e6aff6c-0254-4a28-a09f-6fc804a57f23" />
+| AI Risk management | AI Model inventory |
+| --- | --- |
+| <img width="1637" height="864" alt="image" src="https://github.com/user-attachments/assets/45c16d83-0e3b-4a71-814e-d7bdeaa492fd" /> | <img width="1637" height="861" alt="image" src="https://github.com/user-attachments/assets/225e10d1-845a-4437-b90f-ce97106c3688" /> |
 
-EU AI Act project view 
-<img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/07b8f0e8-6358-4094-b17e-69cb347d622f" />
+| AI Model risks | AI Policy manager and policy templates |
+| --- | --- |
+| <img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/cf67a9ae-c9f6-4eff-a0c3-5fc1dbe4b994" /> | <img width="1633" height="861" alt="image" src="https://github.com/user-attachments/assets/2ef1bcc8-e6e6-47de-9291-2157ff1ed35c" /> |
 
-AI Use case risks 
-<img width="1653" height="914" alt="image" src="https://github.com/user-attachments/assets/f399b206-f928-454a-a432-e7e5e343d7ce" />
+| AI vendors and vendor risks | AI Incident management (with filter example) |
+| --- | --- |
+| <img width="1662" height="914" alt="image" src="https://github.com/user-attachments/assets/26e8d3d3-6e79-4c5a-8058-f63e49a9e239" /> | <img width="1727" height="900" alt="image" src="https://github.com/user-attachments/assets/4b0929f5-d7f1-4998-b8b5-acf62c4051a0" /> |
+
+| AI Trust Center | Automations |
+| --- | --- |
+| <img width="1726" height="895" alt="image" src="https://github.com/user-attachments/assets/0359f312-c61c-4c01-b66b-97ec035e74c5" /> | <img width="1740" height="897" alt="image" src="https://github.com/user-attachments/assets/3d9c6d75-d1ff-41c3-aa81-1213c363d64a" /> |
+
+| Reporting |  |
+| --- | --- |
+| <img width="1735" height="898" alt="image" src="https://github.com/user-attachments/assets/5849beee-1639-45f5-94e8-4b5f156b455d" /> |  |
 
 
-AI Risk management
-<img width="1637" height="864" alt="image" src="https://github.com/user-attachments/assets/45c16d83-0e3b-4a71-814e-d7bdeaa492fd" />
-
-AI Model inventory 
-<img width="1637" height="861" alt="image" src="https://github.com/user-attachments/assets/225e10d1-845a-4437-b90f-ce97106c3688" />
-
-AI Model risks
-<img width="1647" height="860" alt="image" src="https://github.com/user-attachments/assets/cf67a9ae-c9f6-4eff-a0c3-5fc1dbe4b994" />
-
-AI Policy manager and policy templates
-<img width="1633" height="861" alt="image" src="https://github.com/user-attachments/assets/2ef1bcc8-e6e6-47de-9291-2157ff1ed35c" />
-
-AI vendors and vendor risks
-<img width="1662" height="914" alt="image" src="https://github.com/user-attachments/assets/26e8d3d3-6e79-4c5a-8058-f63e49a9e239" />
 
 
 

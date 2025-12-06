@@ -81,7 +81,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   entityType,
   entityId,
-  height = "560px",
+  height: _height = "560px",
 }) => {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();

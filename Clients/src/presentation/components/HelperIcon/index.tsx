@@ -4,24 +4,16 @@ import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { useUserGuideSidebarContext } from "../UserGuide";
 
 interface HelperIconProps {
-  /** @deprecated Use articlePath instead - onClick will be removed in future versions */
-  onClick?: () => void;
   /** Path to the User Guide article (e.g., "ai-governance/model-inventory") */
-  articlePath?: string;
+  articlePath: string;
   size?: "small" | "medium" | "large";
 }
 
-const HelperIcon: React.FC<HelperIconProps> = ({ onClick, articlePath, size = "small" }) => {
+const HelperIcon: React.FC<HelperIconProps> = ({ articlePath, size = "small" }) => {
   const userGuideSidebar = useUserGuideSidebarContext();
 
   const handleClick = () => {
-    if (articlePath) {
-      // Open User Guide sidebar to the specific article
-      userGuideSidebar.open(articlePath);
-    } else if (onClick) {
-      // Fallback to legacy onClick behavior
-      onClick();
-    }
+    userGuideSidebar.open(articlePath);
   };
 
   return (
@@ -31,9 +23,9 @@ const HelperIcon: React.FC<HelperIconProps> = ({ onClick, articlePath, size = "s
       aria-label="Open help information"
       size={size}
       sx={{
-        color: "#9CA3AF", // Lighter gray
+        color: "#9CA3AF",
         backgroundColor: "transparent",
-        padding: "4px", // Smaller padding for smaller icon
+        padding: "4px",
         "&:hover": {
           backgroundColor: "rgba(156, 163, 175, 0.1)",
         },

@@ -25,13 +25,10 @@ import {
   restoreTask,
   hardDeleteTask,
 } from "../../../application/repository/task.repository";
-import HeaderCard from "../../components/Cards/DashboardHeaderCard";
+import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import {
-  vwhomeHeaderCards,
-  vwhomeBody,
-} from "../Home/1.0Home/style";
+import { vwhomeBody } from "../Home/1.0Home/style";
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
@@ -527,13 +524,8 @@ const Tasks: React.FC = () => {
       {/* Tips */}
       <TipBox entityName="tasks" />
 
-      {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
-        <HeaderCard title="Tasks" count={summary.total} />
-        <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In progress" count={summary.inProgress} />
-        <HeaderCard title="Completed" count={summary.completed} />
-      </Stack>
+      {/* Summary Cards */}
+      <TaskSummaryCards summary={summary} />
 
 
       {/* Filter Controls */}

@@ -84,8 +84,8 @@ describe('DeadlineService', () => {
 
       const result = await deadlineService.getSummary(1, 1, 'tasks');
 
-      expect(result.tasks.overdue).toBe(0);
-      expect(result.tasks.dueSoon).toBe(0);
+      expect(result.tasks?.overdue).toBe(0);
+      expect(result.tasks?.dueSoon).toBe(0);
     });
   });
 
@@ -188,7 +188,7 @@ describe('DeadlineService', () => {
 
       expect(config).toEqual({
         DUE_SOON_THRESHOLD_DAYS: 14,
-        COMPLETED_STATUSES: expect.arrayContaining(['COMPLETED', 'DELETED'])
+        COMPLETED_STATUSES: expect.arrayContaining(['Completed', 'Deleted'])
       });
     });
   });
@@ -226,7 +226,7 @@ describe('DeadlineService', () => {
 
       const config = deadlineService.getConfig();
       expect(config.DUE_SOON_THRESHOLD_DAYS).toBe(30);
-      expect(config.COMPLETED_STATUSES).toEqual(expect.arrayContaining(['COMPLETED', 'DELETED']));
+      expect(config.COMPLETED_STATUSES).toEqual(expect.arrayContaining(['Completed', 'Deleted']));
     });
 
     it('should preserve existing config when partially updating', () => {

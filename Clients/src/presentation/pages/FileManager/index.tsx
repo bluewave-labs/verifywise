@@ -12,7 +12,6 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { getUserFilesMetaData } from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
 import { FileModel } from "../../../domain/models/Common/file/file.model";
@@ -69,7 +68,6 @@ const FileManager: React.FC = (): JSX.Element => {
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Fetch projects for the dropdown options
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -288,43 +286,7 @@ const FileManager: React.FC = (): JSX.Element => {
         }}
         tourKey="file-tour"
       />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Evidence & documents"
-        description="Centralize compliance documentation and audit evidence management"
-        whatItDoes="Store and organize all *governance documentation*, *audit evidence*, and *compliance artifacts*. View file details, filter by project, and download individual files."
-        whyItMatters="**Evidence management** is critical for demonstrating *compliance* during *audits* and *regulatory reviews*. It provides a centralized view of all uploaded documents and their sources."
-        quickActions={[
-          {
-            label: "Filter by Project",
-            description:
-              "Use the project dropdown to view files from specific use cases",
-            primary: true,
-          },
-          {
-            label: "Download Files",
-            description: "Download individual files directly from the table",
-          },
-        ]}
-        useCases={[
-          "View all files uploaded through *framework evidence uploads* and *compliance activities*",
-          "Track which files belong to specific *projects and frameworks*",
-        ]}
-        keyFeatures={[
-          "**Centralized file listing** showing all uploaded evidence and documents",
-          "*Project filtering* to view files from specific use cases",
-          "*Source navigation* to jump directly to the framework section where files were uploaded",
-        ]}
-        tips={[
-          "Use the *project filter* to focus on files from specific use cases",
-          "Click on the *source* to navigate to where the file was originally uploaded",
-          "Files shown here are uploaded through various *framework and compliance sections*",
-        ]}
-      />
-      <FileManagerHeader
-        onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-      />
+      <FileManagerHeader />
       <TipBox entityName="file-manager" />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
@@ -411,18 +373,12 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-interface FileManagerHeaderProps {
-  onHelperClick?: () => void;
-}
-
-const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
-  onHelperClick,
-}) => (
+const FileManagerHeader: React.FC = () => (
   <PageHeader
     title="Evidence & documents"
     description="This table lists all the files uploaded to the system."
     rightContent={
-      onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+      <HelperIcon articlePath="ai-governance/evidence-collection" size="small" />
     }
   />
 );

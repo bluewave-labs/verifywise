@@ -73,7 +73,7 @@ export const collections: Collection[] = [
     title: 'AI governance',
     description: 'Manage your AI models, track their lifecycle, and maintain comprehensive documentation.',
     icon: 'Brain',
-    articleCount: 4,
+    articleCount: 7,
     articles: [
       {
         id: 'model-inventory',
@@ -88,6 +88,12 @@ export const collections: Collection[] = [
         keywords: ['lifecycle', 'development', 'deployment', 'retirement'],
       },
       {
+        id: 'task-management',
+        title: 'Task management',
+        description: 'Coordinate AI governance activities and compliance tasks across your teams.',
+        keywords: ['task', 'tasks', 'assignment', 'compliance', 'governance', 'deadline', 'priority'],
+      },
+      {
         id: 'incident-management',
         title: 'AI incident management',
         description: 'Document, track, and resolve AI-related incidents effectively.',
@@ -97,7 +103,19 @@ export const collections: Collection[] = [
         id: 'evidence-collection',
         title: 'Evidence collection',
         description: 'Gather and organize evidence for compliance and audits.',
-        keywords: ['evidence', 'documentation', 'proof', 'audit', 'collection'],
+        keywords: ['evidence', 'documentation', 'proof', 'audit', 'collection', 'file', 'manager'],
+      },
+      {
+        id: 'watchtower',
+        title: 'WatchTower monitoring',
+        description: 'Real-time monitoring and alerting for your AI governance program.',
+        keywords: ['watchtower', 'monitoring', 'alerts', 'dashboard', 'compliance', 'risks'],
+      },
+      {
+        id: 'ai-trust-center',
+        title: 'AI Trust Center',
+        description: 'Public transparency portal for sharing your AI governance practices.',
+        keywords: ['trust', 'center', 'transparency', 'public', 'stakeholders', 'disclosure'],
       },
     ],
   },

@@ -32,6 +32,10 @@ import { notificationsContent } from './settings/notifications';
 import { integrationOverviewContent } from './integrations/integration-overview';
 import { slackIntegrationContent } from './integrations/slack-integration';
 import { apiAccessContent } from './integrations/api-access';
+import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
+import { runningExperimentsContent } from './llm-evals/running-experiments';
+import { managingDatasetsContent } from './llm-evals/managing-datasets';
+import { configuringScorersContent } from './llm-evals/configuring-scorers';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -78,6 +82,11 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'integrations/integration-overview': integrationOverviewContent,
   'integrations/slack-integration': slackIntegrationContent,
   'integrations/api-access': apiAccessContent,
+  // LLM Evals
+  'llm-evals/llm-evals-overview': llmEvalsOverviewContent,
+  'llm-evals/running-experiments': runningExperimentsContent,
+  'llm-evals/managing-datasets': managingDatasetsContent,
+  'llm-evals/configuring-scorers': configuringScorersContent,
 };
 
 // Helper to get article content

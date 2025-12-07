@@ -19,12 +19,6 @@
  * - Uses Promise.all for parallel queries where possible
  * - Efficient database connection usage
  *
- * Future Extensibility:
- * - Vendors: review_date filtering
- * - Policies: next_review_date filtering
- * - Risks: mitigation deadline filtering
- * - Customizable due-soon thresholds per entity type
- *
  * @module services/deadline
  */
 
@@ -44,10 +38,6 @@ export interface DeadlineSummary {
     dueSoon: number;
     threshold: number;
   };
-  // Future: Add vendors, policies, risks
-  // vendors?: { overdue: number; dueSoon: number; threshold: number };
-  // policies?: { overdue: number; dueSoon: number; threshold: number };
-  // risks?: { overdue: number; dueSoon: number; threshold: number };
 }
 
 /**

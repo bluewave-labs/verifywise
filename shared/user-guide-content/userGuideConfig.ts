@@ -8,7 +8,8 @@ export type IconName =
   | 'Plug'
   | 'FileText'
   | 'GraduationCap'
-  | 'BarChart3';
+  | 'BarChart3'
+  | 'FlaskConical';
 
 export interface Article {
   id: string;
@@ -116,6 +117,39 @@ export const collections: Collection[] = [
         title: 'AI Trust Center',
         description: 'Public transparency portal for sharing your AI governance practices.',
         keywords: ['trust', 'center', 'transparency', 'public', 'stakeholders', 'disclosure'],
+      },
+    ],
+  },
+  {
+    id: 'llm-evals',
+    title: 'LLM Evals',
+    description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
+    icon: 'FlaskConical',
+    articleCount: 4,
+    articles: [
+      {
+        id: 'llm-evals-overview',
+        title: 'LLM Evals overview',
+        description: 'Introduction to the LLM evaluation platform and key concepts.',
+        keywords: ['llm', 'evals', 'evaluation', 'benchmark', 'overview', 'introduction'],
+      },
+      {
+        id: 'running-experiments',
+        title: 'Running experiments',
+        description: 'Create and run evaluation experiments to test your models.',
+        keywords: ['experiment', 'run', 'evaluate', 'test', 'wizard', 'model', 'judge'],
+      },
+      {
+        id: 'managing-datasets',
+        title: 'Managing datasets',
+        description: 'Upload, browse, and manage evaluation datasets.',
+        keywords: ['dataset', 'upload', 'prompts', 'data', 'json', 'custom', 'builtin'],
+      },
+      {
+        id: 'configuring-scorers',
+        title: 'Configuring scorers',
+        description: 'Set up evaluation metrics and scoring thresholds.',
+        keywords: ['scorer', 'metric', 'threshold', 'judge', 'llm', 'bias', 'toxicity', 'hallucination'],
       },
     ],
   },

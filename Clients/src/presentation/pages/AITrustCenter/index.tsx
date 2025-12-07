@@ -59,7 +59,7 @@ const tabValue = params.tab || "overview";
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
         <PageHeader

@@ -19,8 +19,8 @@ const Reporting = () => {
   }, []);
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
-    <PageBreadcrumbs />
+    <Stack className="vwhome" gap={"16px"}>
+      <PageBreadcrumbs />
       <Suspense fallback={"loading..."}>
         <ReportingHeader articlePath="reporting/generating-reports" />
       </Suspense>

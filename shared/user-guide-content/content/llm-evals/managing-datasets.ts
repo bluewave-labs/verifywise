@@ -30,9 +30,9 @@ export const managingDatasetsContent: ArticleContent = {
       type: 'bullet-list',
       items: [
         { bold: 'Chatbot', text: 'General conversational prompts testing how models handle dialogue. Available in single-turn (isolated Q&A) and multi-turn (conversational) formats. The multi-turn datasets include conversation history so you can evaluate how models maintain context.' },
-        { bold: 'RAG', text: 'Prompts paired with retrieval context. These test whether models can ground their answers in provided documents rather than making things up. Essential if you\'re building knowledge-based applications.' },
-        { bold: 'Agent', text: 'Prompts that require tool use, multi-step reasoning, or task completion. Useful for evaluating AI assistants that need to take actions or follow complex instructions.' },
-        { bold: 'Safety', text: 'Adversarial prompts designed to test guardrails. These try to elicit harmful content, test jailbreaks, and verify that your model refuses inappropriate requests appropriately.' },
+        { bold: 'RAG', text: 'Prompts paired with retrieval context for retrieval-augmented generation systems. These test whether models can ground their answers in provided documents rather than making things up. Each prompt includes context documents that the model should reference.' },
+        { bold: 'Agent', text: 'Prompts that require tool use, multi-step reasoning, or task completion. Useful for evaluating AI assistants that need to take actions, call functions, or follow complex multi-step instructions.' },
+        { bold: 'Safety', text: 'Adversarial prompts designed to stress-test model guardrails. These include attempts to elicit harmful content, jailbreak attempts, and edge cases that test whether your model appropriately refuses dangerous or inappropriate requests.' },
       ],
     },
     {

@@ -17,7 +17,6 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -175,9 +174,11 @@ export async function updateTrainingRegistarById(
   const trainingRegistarId = parseInt(req.params.id);
 
   // Get existing training registrar for business rule validation
-  let existingTrainingRegistrar = null;
   try {
-    existingTrainingRegistrar = await getTrainingRegistarByIdQuery(trainingRegistarId, req.tenantId!);
+    existingTrainingRegistrar = await getTrainingRegistarByIdQuery(
+      trainingRegistarId,
+      req.tenantId!
+    );
   } catch (error) {
     // Continue without existing data if query fails
   }

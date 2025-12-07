@@ -4,7 +4,6 @@ import {
   ForeignKey,
   Model,
   Table,
-  Validate,
 } from "sequelize-typescript";
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
 

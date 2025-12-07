@@ -39,7 +39,6 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -589,10 +588,15 @@ export async function getAnnexCategoryRisks(
     fileName: "iso42001.ctrl.ts",
   });
 
-  logger.debug(`🔍 Fetching risks for ISO 42001 annex category ${annexCategoryId}`);
+  logger.debug(
+    `🔍 Fetching risks for ISO 42001 annex category ${annexCategoryId}`
+  );
 
   try {
-    const risks = await getAnnexCategoryRisksQuery(annexCategoryId, req.tenantId!);
+    const risks = await getAnnexCategoryRisksQuery(
+      annexCategoryId,
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -634,7 +638,6 @@ export async function saveClauses(
   logger.debug(`💾 Saving clauses for sub-clause ID ${subClauseId}`);
 
   try {
-
     const subClause = req.body as SubClauseISO & {
       user_id: string;
       delete: string;
@@ -646,7 +649,9 @@ export async function saveClauses(
     const filesToDeleteRaw = JSON.parse(subClause.delete || "[]");
     // Ensure all file IDs are numbers (handle cases where frontend sends strings)
     const filesToDelete = Array.isArray(filesToDeleteRaw)
-      ? filesToDeleteRaw.map((id) => (typeof id === "string" ? parseInt(id) : id)).filter((id) => !isNaN(id))
+      ? filesToDeleteRaw
+          .map((id) => (typeof id === "string" ? parseInt(id) : id))
+          .filter((id) => !isNaN(id))
       : [];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
@@ -731,7 +736,6 @@ export async function saveAnnexes(
   logger.debug(`💾 Saving annexes for annex category ID ${annexCategoryId}`);
 
   try {
-
     const annexCategory = req.body as AnnexCategoryISO & {
       user_id: string;
       project_id: string;
@@ -743,7 +747,9 @@ export async function saveAnnexes(
     const filesToDeleteRaw = JSON.parse(annexCategory.delete || "[]");
     // Ensure all file IDs are numbers (handle cases where frontend sends strings)
     const filesToDelete = Array.isArray(filesToDeleteRaw)
-      ? filesToDeleteRaw.map((id) => (typeof id === "string" ? parseInt(id) : id)).filter((id) => !isNaN(id))
+      ? filesToDeleteRaw
+          .map((id) => (typeof id === "string" ? parseInt(id) : id))
+          .filter((id) => !isNaN(id))
       : [];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
@@ -830,7 +836,6 @@ export async function deleteManagementSystemClauses(
   );
 
   try {
-
     const result = await deleteSubClausesISOByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -887,7 +892,6 @@ export async function deleteReferenceControls(
   );
 
   try {
-
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -1206,7 +1210,10 @@ export async function getProjectClausesAssignments(
 
   try {
     const { totalSubclauses, assignedSubclauses } =
-      await countSubClauseAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+      await countSubClauseAssignmentsISOByProjectId(
+        projectFrameworkId,
+        req.tenantId!
+      );
 
     await logSuccess({
       eventType: "Read",

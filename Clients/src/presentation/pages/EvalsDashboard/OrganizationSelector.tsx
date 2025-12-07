@@ -23,6 +23,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { Beaker, CirclePlus } from "lucide-react";
 import Alert from "../../components/Alert";
 import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
+import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 
 interface Props {
   onSelected: () => void;
@@ -66,6 +67,8 @@ export default function OrganizationSelector({ onSelected }: Props) {
   const [editSelectedUserIds, setEditSelectedUserIds] = useState<number[]>([]);
   const [updating, setUpdating] = useState(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [switchModalOpen, setSwitchModalOpen] = useState(false);
+  const [orgToSwitch, setOrgToSwitch] = useState<Organization | null>(null);
 
   useEffect(() => {
     loadOrgs();
@@ -127,8 +130,16 @@ export default function OrganizationSelector({ onSelected }: Props) {
     }
   };
 
-  const handlePick = async (orgId: string) => {
-    await deepEvalOrgsService.setCurrentOrg(orgId);
+  const handlePick = (org: Organization) => {
+    setOrgToSwitch(org);
+    setSwitchModalOpen(true);
+  };
+
+  const handleConfirmSwitch = async () => {
+    if (!orgToSwitch) return;
+    await deepEvalOrgsService.setCurrentOrg(orgToSwitch.id);
+    setSwitchModalOpen(false);
+    setOrgToSwitch(null);
     onSelected();
   };
 
@@ -334,7 +345,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
                       <Button
                         variant="outlined"
                         size="small"
-                        onClick={() => handlePick(org.id)}
+                        onClick={() => handlePick(org)}
                         sx={{
                           fontSize: "12px",
                           textTransform: "none",
@@ -450,6 +461,27 @@ export default function OrganizationSelector({ onSelected }: Props) {
           />
         </Stack>
       </StandardModal>
+
+      {/* Switch Organization Confirmation Modal */}
+      <DualButtonModal
+        isOpen={switchModalOpen}
+        title="Switch organization?"
+        TitleFontSize={16}
+        body={
+          <Typography sx={{ fontSize: 13, color: "#344054" }}>
+            You are about to switch to &quot;{orgToSwitch?.name || "this organization"}&quot;. You will see projects and experiments from this organization.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Switch"
+        onCancel={() => {
+          setSwitchModalOpen(false);
+          setOrgToSwitch(null);
+        }}
+        onProceed={handleConfirmSwitch}
+        proceedButtonColor="primary"
+        proceedButtonVariant="contained"
+      />
     </Box>
   );
 }

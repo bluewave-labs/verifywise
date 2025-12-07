@@ -41,7 +41,6 @@ import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
 import MLFlowDataTable from "./MLFlowDataTable";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import ModelInventorySteps from "./ModelInventorySteps";
@@ -133,7 +132,6 @@ const ModelInventory: React.FC = () => {
     body: string;
   } | null>(null);
 
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -1668,41 +1666,6 @@ const ModelInventory: React.FC = () => {
 
           <PageBreadcrumbs />
 
-          <HelperDrawer
-              open={isHelperDrawerOpen}
-              onClose={() => setIsHelperDrawerOpen(false)}
-              title="Model inventory & risk management"
-              description="Track and assess AI models and their associated risks throughout their lifecycle"
-              whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
-              whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
-              quickActions={[
-                  {
-                      label: "Add New Model",
-                      description:
-                          "Register a new AI model with comprehensive metadata and risk assessment",
-                      primary: true,
-                  },
-                  {
-                      label: "Assess Model Risk",
-                      description:
-                          "Evaluate potential risks for existing models using our assessment framework",
-                  },
-              ]}
-              useCases={[
-                  "*Machine learning models* in production environments requiring *monitoring and governance*",
-                  "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
-              ]}
-              keyFeatures={[
-                  "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
-                  "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
-                  "*Advanced filtering* by status, risk category, risk level, and search functionality",
-              ]}
-              tips={[
-                  "Use *status filters* to focus on models that need approval or attention",
-                  "Categorize *model risks* to better understand different types of potential issues",
-                  "Set *target dates* for risk mitigation to track resolution progress",
-              ]}
-          />
           {alert && (
               <Suspense fallback={<div>Loading...</div>}>
                   <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
@@ -1832,9 +1795,7 @@ const ModelInventory: React.FC = () => {
                   description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
                   rightContent={
                       <HelperIcon
-                          onClick={() =>
-                              setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                          }
+                          articlePath="ai-governance/model-inventory"
                           size="small"
                       />
                   }

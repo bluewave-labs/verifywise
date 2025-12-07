@@ -31,7 +31,6 @@ import {
     Severity,
 } from "../../../domain/enums/aiIncidentManagement.enum";
 import { createIncidentManagement } from "../../../application/repository/incident_management.repository";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
@@ -51,11 +50,11 @@ const IncidentManagement: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const hasProcessedUrlParam = useRef(false);
-    const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
     const [incidentsData, setIncidentsData] = useState<AIIncidentManagementModel[]>([]);
     const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [, setIsModalLoading] = useState(false);
     const [isNewIncidentModalOpen, setIsNewIncidentModalOpen] = useState(false);
     const [, setSelectedIncidentId] = useState<string | null>(null);
     const [, setUsers] = useState<any[]>([]);
@@ -358,7 +357,7 @@ const IncidentManagement: React.FC = () => {
 
     const fetchIncidentDataForSelectedId = async (id: string) => {
         try {
-            setIsLoading(true);
+            setIsModalLoading(true);
             const response = await getEntityById({
                 routeUrl: `/ai-incident-managements/${id}`,
             });
@@ -381,7 +380,7 @@ const IncidentManagement: React.FC = () => {
             });
             return null;
         } finally {
-            setIsLoading(false);
+            setIsModalLoading(false);
         }
     };
 
@@ -521,50 +520,6 @@ const IncidentManagement: React.FC = () => {
         <Stack className="vwhome" gap={"16px"}>
             <PageBreadcrumbs />
 
-            <HelperDrawer
-                open={isHelperDrawerOpen}
-                onClose={() => setIsHelperDrawerOpen(false)}
-                title="Incident Management"
-                description="Track, investigate, and resolve AI-related incidents efficiently"
-                whatItDoes="Maintain a centralized log of all AI incidents including *incident type*, *severity*, *reporter details*, and *status*. Record *impact assessment*, *mitigations*, *corrective actions*, and *approval workflow* for full traceability."
-                whyItMatters="Effective incident management ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It helps your team respond to issues promptly, identify root causes, and prevent recurrence."
-                quickActions={[
-                    {
-                        label: "Add New Incident",
-                        description:
-                            "Create a new incident record with details like severity, type, categories of harm, and reporter",
-                        primary: true,
-                    },
-                    {
-                        label: "Filter Incidents",
-                        description:
-                            "Use status, severity, and approval filters to find specific incidents quickly",
-                    },
-                    {
-                        label: "Archive Incident",
-                        description:
-                            "Archive resolved incidents to keep your active list clean while preserving records",
-                    },
-                ]}
-                useCases={[
-                    "Track incidents affecting health, safety, rights, property, or environment",
-                    "Document incidents requiring investigation and regulatory reporting",
-                    "Record mitigations and corrective actions for AI system failures",
-                ]}
-                keyFeatures={[
-                    "Incident lifecycle tracking from logging through investigation to closure",
-                    "Severity and status filtering for quick incident prioritization",
-                    "Approval workflows with pending, approved, and rejected statuses",
-                    "Search and filter by status, severity, and approval status",
-                ]}
-                tips={[
-                    "Use severity levels to prioritize incidents needing immediate attention",
-                    "Document immediate mitigations and planned corrective actions",
-                    "Archive resolved incidents to maintain a clean active list",
-                    "Review incident patterns regularly to improve AI system reliability",
-                ]}
-            />
-
             {alert && (
                 <Suspense fallback={<div>Loading...</div>}>
                     <Fade
@@ -595,9 +550,7 @@ const IncidentManagement: React.FC = () => {
                         description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
                         rightContent={
                             <HelperIcon
-                                onClick={() =>
-                                    setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                                }
+                                articlePath="ai-governance/incident-management"
                                 size="small"
                             />
                         }
@@ -741,6 +694,7 @@ const IncidentManagement: React.FC = () => {
                 }
                 isEdit={!!selectedIncident}
                 mode={mode}
+                incidentId={selectedIncident?.id}
             />
 
             <PageTour steps={IncidentManagementSteps} run={!isLoading} tourKey="incident-management-tour" />

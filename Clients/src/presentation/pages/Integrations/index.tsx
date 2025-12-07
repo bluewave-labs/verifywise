@@ -3,10 +3,10 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import {
   Box,
   Stack,
-  Typography,
 } from '@mui/material';
 import { Suspense } from 'react';
 import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
+import PageHeader from '../../components/Layout/PageHeader';
 import IntegrationCard from '../../components/IntegrationCard';
 import { AVAILABLE_INTEGRATIONS } from '../../../config/integrations';
 import { Integration, IntegrationStatus, IntegrationConnectionHandler } from '../../../domain/types/integrations';
@@ -199,15 +199,10 @@ const Integrations: React.FC = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, fontSize: '15px' }}>
-          Integrations
-        </Typography>
-        <Typography variant="body1" sx={{ fontSize: '13px' }} color="text.secondary">
-          Connect your favorite tools to streamline your AI governance workflow
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Integrations"
+        description="Connect your favorite tools to streamline your AI governance workflow"
+      />
 
 
       {/* Integration Cards Grid */}

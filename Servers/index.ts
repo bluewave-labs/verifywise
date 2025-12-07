@@ -17,6 +17,7 @@ import topicRoutes from "./routes/topic.route";
 import userRoutes from "./routes/user.route";
 import vendorRoutes from "./routes/vendor.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
+import vendorChangeHistoryRoutes from "./routes/vendorChangeHistory.route";
 import roleRoutes from "./routes/role.route";
 import fileRoutes from "./routes/file.route";
 import mailRoutes from "./routes/vwmailer.route";
@@ -61,6 +62,11 @@ import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 import notesRoutes from "./routes/notes.route";
 import deadlineAnalyticsRoutes from "./routes/deadline-analytics.route";
+import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.route";
+import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
+import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
+import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
+import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -129,6 +135,7 @@ try {
   app.use("/api/users", userRoutes);
   app.use("/api/vendorRisks", vendorRiskRoutes);
   app.use("/api/vendors", vendorRoutes);
+  app.use("/api/vendor-change-history", vendorChangeHistoryRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);
@@ -184,6 +191,19 @@ try {
   app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
   app.use("/api/notes", notesRoutes);
+  app.use("/api/deadline-analytics", deadlineAnalyticsRoutes);
+  app.use("/api/vendor-change-history", vendorChangeHistoryRoutes);
+  app.use("/api/vendor-risk-change-history", vendorRiskChangeHistoryRoutes);
+  app.use("/api/policy-change-history", policyChangeHistoryRoutes);
+  app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
+  app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
+  app.use("/api/project-risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/vendor-change-history", vendorChangeHistoryRoutes);
+  app.use("/api/vendor-risk-change-history", vendorRiskChangeHistoryRoutes);
+  app.use("/api/policy-change-history", policyChangeHistoryRoutes);
+  app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
+  app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
+  app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
   app.use("/api/deadline-analytics", deadlineAnalyticsRoutes);
 
   app.listen(port, () => {

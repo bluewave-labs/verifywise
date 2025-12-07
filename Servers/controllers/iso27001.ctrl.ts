@@ -35,7 +35,6 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
 
@@ -646,11 +645,7 @@ export async function saveAnnexes(
     logger.debug(`Files to delete: ${annexControl.delete}`);
     logger.debug(
       `Files in request: ${
-        Array.isArray(req.files)
-          ? req.files.length
-          : req.files
-          ? 1
-          : 0
+        Array.isArray(req.files) ? req.files.length : req.files ? 1 : 0
       }`
     );
 
@@ -1118,7 +1113,10 @@ export async function getProjectClausesAssignments(
 
   try {
     const { totalSubclauses, assignedSubclauses } =
-      await countSubClauseAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+      await countSubClauseAssignmentsISOByProjectId(
+        projectFrameworkId,
+        req.tenantId!
+      );
 
     await logSuccess({
       eventType: "Read",
@@ -1171,7 +1169,10 @@ export async function getProjectAnnexesAssignments(
 
   try {
     const { totalAnnexControls, assignedAnnexControls } =
-      await countAnnexControlAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+      await countAnnexControlAssignmentsISOByProjectId(
+        projectFrameworkId,
+        req.tenantId!
+      );
 
     await logSuccess({
       eventType: "Read",

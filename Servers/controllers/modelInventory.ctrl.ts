@@ -312,9 +312,8 @@ export async function updateModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
 
   // Get existing model inventory for business rule validation
-  let existingModelInventory = null;
   try {
-    existingModelInventory = (await getModelInventoryByIdQuery(
+    await getModelInventoryByIdQuery(
       modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;

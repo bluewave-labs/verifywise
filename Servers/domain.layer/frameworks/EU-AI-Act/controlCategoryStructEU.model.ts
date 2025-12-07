@@ -6,7 +6,6 @@ import {
   Table,
 } from "sequelize-typescript";
 import { ControlEU } from "./controlEU.model";
-import { ProjectModel } from "../../models/project/project.model";
 import { FrameworkModel } from "../../models/frameworks/frameworks.model";
 
 /*

@@ -35,9 +35,9 @@ export const taskManagementContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Not started', text: 'Task has been created but work has not begun' },
+        { bold: 'Open', text: 'Task has been created but work has not begun' },
         { bold: 'In progress', text: 'Task is actively being worked on' },
-        { bold: 'Done', text: 'Task has been completed' },
+        { bold: 'Completed', text: 'Task has been finished successfully' },
       ],
     },
     {
@@ -82,7 +82,7 @@ export const taskManagementContent: ArticleContent = {
         { bold: 'Search tasks', text: 'Use the search box to find tasks by title or description' },
         { bold: 'Update status', text: 'Change task status as work progresses' },
         { bold: 'Edit details', text: 'Modify task information, reassign, or update deadlines' },
-        { bold: 'Archive tasks', text: 'Archive completed tasks to keep your active list manageable' },
+        { bold: 'Archive tasks', text: 'Archive tasks to declutter your list — use "Include archived" to view them later, or restore and delete as needed' },
       ],
     },
     {

@@ -54,11 +54,10 @@ export const aiTrustCenterContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'AI principles', text: 'Your organization\'s guiding principles for AI development and deployment' },
-        { bold: 'Governance framework', text: 'Overview of your AI governance structure and processes' },
-        { bold: 'Model inventory', text: 'Public-facing information about AI models you use or develop' },
-        { bold: 'Compliance certifications', text: 'Certifications and standards you adhere to (ISO 42001, etc.)' },
-        { bold: 'Contact information', text: 'How stakeholders can reach your AI governance team' },
+        { bold: 'Introduction', text: 'Share your purpose, AI statement, and mission to set the tone for stakeholders' },
+        { bold: 'Compliance badges', text: 'Display certifications like EU AI Act, ISO 42001, ISO 27001, and NIST AI RMF' },
+        { bold: 'Company description', text: 'Describe your organization, core values, and commitment to responsible AI' },
+        { bold: 'Privacy and contact', text: 'Link to your privacy policy, terms of service, and provide contact details' },
       ],
     },
     {
@@ -75,10 +74,10 @@ export const aiTrustCenterContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Branding', text: 'Add your logo and customize colors to match your brand' },
-        { bold: 'Content selection', text: 'Choose which sections and data points to include' },
-        { bold: 'Access controls', text: 'Make the portal public or require authentication' },
-        { bold: 'Custom domain', text: 'Host on your own domain for seamless integration' },
+        { bold: 'Branding', text: 'Upload your logo and customize the header color to match your brand' },
+        { bold: 'Title', text: 'Set a custom title for your AI Trust Center page' },
+        { bold: 'Section toggles', text: 'Enable or disable individual sections to control what visitors see' },
+        { bold: 'Visibility', text: 'Turn the Trust Center on or off — when enabled, it is available at /ai-trust-center' },
       ],
     },
     {

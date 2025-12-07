@@ -54,6 +54,7 @@ const IncidentManagement: React.FC = () => {
     const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalLoading, setIsModalLoading] = useState(false);
     const [isNewIncidentModalOpen, setIsNewIncidentModalOpen] = useState(false);
     const [, setSelectedIncidentId] = useState<string | null>(null);
     const [, setUsers] = useState<any[]>([]);
@@ -356,7 +357,7 @@ const IncidentManagement: React.FC = () => {
 
     const fetchIncidentDataForSelectedId = async (id: string) => {
         try {
-            setIsLoading(true);
+            setIsModalLoading(true);
             const response = await getEntityById({
                 routeUrl: `/ai-incident-managements/${id}`,
             });
@@ -379,7 +380,7 @@ const IncidentManagement: React.FC = () => {
             });
             return null;
         } finally {
-            setIsLoading(false);
+            setIsModalLoading(false);
         }
     };
 

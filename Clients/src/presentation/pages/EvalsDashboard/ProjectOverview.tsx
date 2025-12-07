@@ -78,15 +78,7 @@ export default function ProjectOverview({
   return (
     <Box>
       {/* Header with New Experiment button */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Box>
-          <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600 }}>
-            Project overview
-          </Typography>
-          <Typography variant="body2" sx={{ fontSize: "13px", color: "#6B7280", mt: 0.5 }}>
-            Track your LLM evaluation experiments and monitor performance metrics
-          </Typography>
-        </Box>
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
         <CustomizableButton
           onClick={handleNewExperiment}
           variant="contained"

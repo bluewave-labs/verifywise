@@ -89,7 +89,7 @@ export default function ProfilePage() {
       <PageBreadcrumbs />
       <PageHeader
         title="Settings"
-        description=""
+        description="Manage your profile, security, team members, and application preferences."
         rightContent={
           <HelperIcon
             articlePath="settings/user-management"

@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Typography,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -200,13 +199,9 @@ export default function OrganizationSelector({ onSelected }: Props) {
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Description + header */}
-      <Stack spacing={2} mb={4}>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Organize your evaluations under an organization. Select an existing organization or create a new one to get started.
-        </Typography>
-        <Divider sx={{ mt: 3 }} />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
             Organizations
           </Typography>
@@ -219,6 +214,9 @@ export default function OrganizationSelector({ onSelected }: Props) {
             Create organization
           </CustomizableButton>
         </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Organize your evaluations under an organization. Select an existing organization or create a new one to get started.
+        </Typography>
       </Stack>
 
       {!loading && orgs.length === 0 ? (

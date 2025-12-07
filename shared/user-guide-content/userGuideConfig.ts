@@ -107,9 +107,9 @@ export const collections: Collection[] = [
       },
       {
         id: 'watchtower',
-        title: 'WatchTower monitoring',
-        description: 'Real-time monitoring and alerting for your AI governance program.',
-        keywords: ['watchtower', 'monitoring', 'alerts', 'dashboard', 'compliance', 'risks'],
+        title: 'Event Tracker',
+        description: 'Track user actions, system events, and application logs.',
+        keywords: ['event', 'tracker', 'events', 'logs', 'activity', 'audit', 'troubleshooting'],
       },
       {
         id: 'ai-trust-center',

@@ -23,7 +23,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Paper,
 } from "@mui/material";
 import { Upload, Download, X, MoreVertical, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -172,14 +171,6 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       setLoading(false);
     }
   }, []);
-
-  // Template category descriptions
-  const templateDescriptions: Record<string, string> = useMemo(() => ({
-    chatbot: "Chatbot prompts for single-turn or conversational evaluation of assistant replies.",
-    rag: "RAG tasks with retrieval_context, suitable for faithfulness/contextual metrics.",
-    agent: "Agentic tasks that involve tools and multi-step plans.",
-    safety: "Safety prompts for toxicity/harassment/PII leakage and related checks.",
-  }), []);
 
   // Flatten templates from all categories into a single array with category field
   type TemplateWithCategory = BuiltInDataset & { category: "chatbot" | "rag" | "agent" | "safety" };

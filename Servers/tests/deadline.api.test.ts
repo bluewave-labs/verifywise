@@ -5,14 +5,14 @@
  * Tests authentication, authorization, rate limiting, and performance.
  */
 
-import request from 'supertest';
-import express from 'express';
-import { authenticateJWT } from '../../middleware/auth.middleware';
+import * as request from 'supertest';
+import * as express from "express";
+import authenticateJWT  from '../middleware/auth.middleware';
 import rateLimit from 'express-rate-limit';
-import deadlineAnalyticsRoutes from '../../routes/deadline-analytics.route';
+import deadlineAnalyticsRoutes from '../routes/deadline-analytics.route';
 
 // Mock authentication middleware
-jest.mock('../../middleware/auth.middleware', () => ({
+jest.mock('../middleware/auth.middleware', () => ({
   authenticateJWT: jest.fn((req, res, next) => {
     // Mock authenticated user
     req.user = {
@@ -36,7 +36,7 @@ jest.mock('express-rate-limit', () => {
 });
 
 // Mock the deadline controller
-jest.mock('../../controllers/deadline-analytics.ctrl', () => ({
+jest.mock('../controllers/deadline-analytics.ctrl', () => ({
   getDeadlineSummary: jest.fn((req, res) => {
     res.json({
       entity_type: req.params.entity_type || 'task',
@@ -125,7 +125,7 @@ describe('Deadline API Integration Tests', () => {
 
     it('should return 401 without authentication', async () => {
       // Mock failed authentication
-      const { authenticateJWT } = require('../../middleware/auth.middleware');
+      const { authenticateJWT } = require('../middleware/auth.middleware');
       authenticateJWT.mockImplementationOnce((req, res, next) => {
         res.status(401).json({ error: 'Unauthorized' });
       });
@@ -139,7 +139,7 @@ describe('Deadline API Integration Tests', () => {
 
     it('should return 400 for invalid entity type', async () => {
       // Mock controller to throw error for invalid entity
-      const { getDeadlineSummary } = require('../../controllers/deadline-analytics.ctrl');
+      const { getDeadlineSummary } = require('../controllers/deadline-analytics.ctrl');
       getDeadlineSummary.mockImplementationOnce((req, res) => {
         res.status(400).json({ error: 'Invalid entity type' });
       });
@@ -234,7 +234,7 @@ describe('Deadline API Integration Tests', () => {
 
     it('should validate pagination limits', async () => {
       // Mock controller to reject excessive limit
-      const { getDeadlineDetails } = require('../../controllers/deadline-analytics.ctrl');
+      const { getDeadlineDetails } = require('../controllers/deadline-analytics.ctrl');
       getDeadlineDetails.mockImplementationOnce((req, res) => {
         if (parseInt(req.query.limit as string) > 100) {
           return res.status(400).json({ error: 'Page size cannot exceed 100' });
@@ -349,7 +349,7 @@ describe('Deadline API Integration Tests', () => {
   describe('Error Handling', () => {
     it('should handle missing authentication header', async () => {
       // Mock auth middleware to check for header
-      const { authenticateJWT } = require('../../middleware/auth.middleware');
+      const { authenticateJWT } = require('../middleware/auth.middleware');
       authenticateJWT.mockImplementationOnce((req, res, next) => {
         if (!req.headers.authorization) {
           return res.status(401).json({ error: 'Missing authentication token' });
@@ -376,7 +376,7 @@ describe('Deadline API Integration Tests', () => {
 
     it('should handle database connection errors gracefully', async () => {
       // Mock controller to simulate database error
-      const { getDeadlineSummary } = require('../../controllers/deadline-analytics.ctrl');
+      const { getDeadlineSummary } = require('../controllers/deadline-analytics.ctrl');
       getDeadlineSummary.mockImplementationOnce((req, res, next) => {
         const error = new Error('Database connection failed');
         next(error);

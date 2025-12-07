@@ -16,7 +16,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -173,15 +173,6 @@ export async function updateTrainingRegistarById(
 ): Promise<any> {
   const trainingRegistarId = parseInt(req.params.id);
 
-  // Get existing training registrar for business rule validation
-  try {
-    existingTrainingRegistrar = await getTrainingRegistarByIdQuery(
-      trainingRegistarId,
-      req.tenantId!
-    );
-  } catch (error) {
-    // Continue without existing data if query fails
-  }
   const transaction = await sequelize.transaction();
 
   logProcessing({

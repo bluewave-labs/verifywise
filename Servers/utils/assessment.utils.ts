@@ -1,7 +1,7 @@
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { sequelize } from "../database/db";
 import { createNewTopicsQuery } from "./topic.utils";
-import { QueryTypes, Transaction } from "sequelize";
+import { Transaction } from "sequelize";
 
 export const getAllAssessmentsQuery = async (
   tenant: string

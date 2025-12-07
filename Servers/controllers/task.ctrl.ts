@@ -177,7 +177,6 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     const pageNum = parseInt(page as string, 10);
     const pageSize = parseInt(page_size as string, 10);
     const limit = Math.min(pageSize, 100); // Cap at 100 items per page
-    const _offset = (pageNum - 1) * limit;
 
     const tasks = await getTasksQuery(
       { userId, role },

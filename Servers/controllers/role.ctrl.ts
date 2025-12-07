@@ -67,7 +67,7 @@ import {
  *   ]
  * }
  */
-export async function getAllRoles(req: Request, res: Response): Promise<any> {
+export async function getAllRoles(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllRoles",
     functionName: "getAllRoles",
@@ -301,7 +301,7 @@ export async function createRole(req: Request, res: Response): Promise<any> {
  */
 export async function updateRoleById(
   req: Request,
-  _res: Response
+  res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);

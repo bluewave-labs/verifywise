@@ -34,7 +34,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
 

@@ -142,13 +142,16 @@ export const countAnnexControlAssignmentsISOByProjectId = async (
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
-  )) as [{ totalAnnexControls: string; assignedAnnexControls: string }[], number];
+  )) as [
+    { totalAnnexControls: string; assignedAnnexControls: string }[],
+    number,
+  ];
 
   return result[0][0];
 };
 
 export const getAllClausesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = await sequelize.query(
@@ -187,9 +190,9 @@ export const getAllClausesWithSubClauseQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-        Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
-        number,
-      ];
+      Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
+      number,
+    ];
     (
       clause as ISO27001ClauseStructModel & {
         subClauses: Partial<
@@ -322,9 +325,9 @@ export const getSubClauseByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-      Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
-      number,
-    ];
+    Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
+    number,
+  ];
   const subClause = subClauses[0][0];
   (subClause as any).risks = [];
   const risks = (await sequelize.query(
@@ -386,7 +389,7 @@ export const getMainClausesQuery = async (
 };
 
 export const getAllAnnexesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = await sequelize.query(
@@ -428,9 +431,9 @@ export const getAllAnnexesWithControlsQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-        Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
-        number,
-      ];
+      Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
+      number,
+    ];
 
     (
       annex as ISO27001AnnexStructModel & {
@@ -461,7 +464,7 @@ export const getAnnexByIdQuery = async (
 
 export const getAnnexControlsByAnnexIdQuery = async (
   annexId: number,
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexControls = await sequelize.query(
@@ -526,9 +529,9 @@ export const getAnnexControlsByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-      Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
-      number,
-    ];
+    Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
+    number,
+  ];
   const annexControl = annexControls[0][0];
   (annexControl as any).risks = [];
   const risks = (await sequelize.query(
@@ -904,7 +907,9 @@ export const updateSubClauseQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely
@@ -923,6 +928,7 @@ export const updateSubClauseQuery = async (
       (subClauseResult as any).risks.push(risk.projects_risks_id);
     }
   }
+  return subClauseResult as IISO27001SubClause;
 };
 
 export const updateAnnexControlQuery = async (
@@ -1018,7 +1024,11 @@ export const updateAnnexControlQuery = async (
   const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
   const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
 
-  if (setClause.length === 0 && risksDeleted.length === 0 && risksMitigated.length === 0) {
+  if (
+    setClause.length === 0 &&
+    risksDeleted.length === 0 &&
+    risksMitigated.length === 0
+  ) {
     return annexControl as IISO27001AnnexControl;
   }
 
@@ -1054,7 +1064,9 @@ export const updateAnnexControlQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:annexcontrol_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:annexcontrol_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely

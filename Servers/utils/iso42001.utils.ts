@@ -155,7 +155,7 @@ export const countAnnexCategoryAssignmentsISOByProjectId = async (
 };
 
 export const getAllClausesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = await sequelize.query(
@@ -385,7 +385,7 @@ export const getManagementSystemClausesQuery = async (
 };
 
 export const getAllAnnexesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = await sequelize.query(
@@ -460,7 +460,7 @@ export const getAnnexByIdQuery = async (
 
 export const getAnnexCategoriesByAnnexIdQuery = async (
   annexId: number,
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexCategories = await sequelize.query(
@@ -942,6 +942,7 @@ export const updateSubClauseQuery = async (
       (subClauseResult as any).risks.push(risk.projects_risks_id);
     }
   }
+  return subClauseResult as SubClauseISO;
 };
 
 export const updateAnnexCategoryQuery = async (

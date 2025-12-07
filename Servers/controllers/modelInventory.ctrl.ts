@@ -130,7 +130,7 @@ export async function getModelByProjectId(req: Request, res: Response) {
   try {
     const modelInventories = (await getModelByProjectIdQuery(
       projectId,
-      req.tenantId!,
+      req.tenantId!
     )) as unknown as ModelInventoryModel[];
 
     logStructured(
@@ -143,9 +143,7 @@ export async function getModelByProjectId(req: Request, res: Response) {
       .status(200)
       .json(
         STATUS_CODE[200](
-          modelInventories.map((modelInventory) =>
-            modelInventory.toSafeJSON()
-          )
+          modelInventories.map((modelInventory) => modelInventory.toSafeJSON())
         )
       );
   } catch (error) {
@@ -169,12 +167,14 @@ export async function getModelByFrameworkId(req: Request, res: Response) {
     "getModelByFrameworkId",
     "modelInventory.ctrl.ts"
   );
-  logger.debug(`🔍 Looking up model inventory with framework id: ${frameworkId}`);
+  logger.debug(
+    `🔍 Looking up model inventory with framework id: ${frameworkId}`
+  );
 
   try {
     const modelInventories = (await getModelByFrameworkIdQuery(
       frameworkId,
-      req.tenantId!,
+      req.tenantId!
     )) as unknown as ModelInventoryModel[];
 
     logStructured(
@@ -187,9 +187,7 @@ export async function getModelByFrameworkId(req: Request, res: Response) {
       .status(200)
       .json(
         STATUS_CODE[200](
-          modelInventories.map((modelInventory) =>
-            modelInventory.toSafeJSON()
-          )
+          modelInventories.map((modelInventory) => modelInventory.toSafeJSON())
         )
       );
   } catch (error) {
@@ -205,7 +203,6 @@ export async function getModelByFrameworkId(req: Request, res: Response) {
 }
 
 export async function createNewModelInventory(req: Request, res: Response) {
-
   const {
     provider_model,
     provider,
@@ -313,7 +310,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 
   // Get existing model inventory for business rule validation
   try {
-    await getModelInventoryByIdQuery(
+    (await getModelInventoryByIdQuery(
       modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;
@@ -514,7 +511,12 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
       transaction
     );
 
-    await deleteModelInventoryByIdQuery(modelInventoryId, deleteRisks, req.tenantId!, transaction);
+    await deleteModelInventoryByIdQuery(
+      modelInventoryId,
+      deleteRisks,
+      req.tenantId!,
+      transaction
+    );
     await transaction.commit();
 
     logStructured(

@@ -20,7 +20,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
 
 export function mapReportTypeToFileSource(
   reportType: string | string[]

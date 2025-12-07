@@ -22,7 +22,6 @@ import {
 import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -103,8 +102,6 @@ const Training: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
-
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Search state
   const [searchTerm, setSearchTerm] = useState("");
@@ -467,39 +464,6 @@ const Training: React.FC = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="AI Training Registry"
-        description="Manage and track AI-related training programs and educational resources"
-        whatItDoes="Centralize all *AI training programs*, *courses*, and *educational materials* for your organization. Track *completion status*, *certifications*, and *learning progress* across teams."
-        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for *responsible AI development* and deployment. Training records support *compliance* and *competency requirements*."
-        quickActions={[
-          {
-            label: "Add Training Program",
-            description: "Register a new AI training course or educational program",
-            primary: true
-          },
-          {
-            label: "Track Progress",
-            description: "Monitor team completion rates and certification status"
-          }
-        ]}
-        useCases={[
-          "*Internal AI ethics* and *governance training programs* for development teams",
-          "*External certification courses* for *machine learning* and *data science skills*"
-        ]}
-        keyFeatures={[
-          "**Comprehensive training catalog** with *metadata* and prerequisites",
-          "*Progress tracking* and *certification management* for individuals and teams",
-          "*Integration* with learning management systems and *HR platforms*"
-        ]}
-        tips={[
-          "Prioritize *ethics and governance training* for all *AI team members*",
-          "Set up *automatic reminders* for *certification renewals* and mandatory training",
-          "Track *training effectiveness* through *assessments* and real-world application"
-        ]}
-      />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade
@@ -535,9 +499,7 @@ const Training: React.FC = () => {
                your organization. You can view, add, and manage training details here."
                rightContent={
                   <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
+                     articlePath="training/training-tracking"
                      size="small"
                     />
                  }

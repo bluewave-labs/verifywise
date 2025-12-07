@@ -5,7 +5,6 @@ import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
@@ -29,8 +28,6 @@ const WatchTower = () => {
     setValue(isLogsPage ? "2" : "1");
   }, [isLogsPage, location.pathname]);
 
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
     if (newValue === "1") navigate("/event-tracker");
@@ -40,26 +37,7 @@ const WatchTower = () => {
   return (
     <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Event tracker & audit logs"
-        description="Monitor system activities and maintain comprehensive audit trails"
-        whatItDoes="Track all *system events* and *user activities* across your *AI governance platform*. Capture detailed *audit logs* for *compliance monitoring*, *security analysis*, and *operational oversight*."
-        whyItMatters="**Audit trails** are essential for demonstrating *compliance*, investigating incidents, and maintaining *accountability*. They provide *forensic evidence* for security reviews and help identify patterns in *system usage* and potential anomalies."
-        quickActions={[]}
-        useCases={[
-          "*Compliance auditing* to demonstrate *control effectiveness* and *user activities*",
-          "*Security investigations* when analyzing potential incidents or *unauthorized access*"
-        ]}
-        keyFeatures={[
-          "*Real-time event monitoring* with *filtering* and *search capabilities*",
-          "*Immutable audit logs* with *timestamps* and *user attribution*",
-          "*Export functionality* for *compliance reporting* and *external analysis*"
-        ]}
-        tips={[]}
-      />
-    
+
       <Stack gap={"24px"} maxWidth={1400}>
       <PageHeader
                title="Event Tracker"
@@ -69,9 +47,7 @@ const WatchTower = () => {
                 patterns, and keep your application healthy"
                rightContent={
                   <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
+                     articlePath="ai-governance/watchtower"
                      size="small"
                     />
                  }

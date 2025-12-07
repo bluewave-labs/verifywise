@@ -18,6 +18,7 @@ import {
   Trash2 as DeleteIcon,
   Download as DownloadIcon,
   FileText as FileIcon,
+  Eye as ViewIcon,
 } from "lucide-react";
 import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
@@ -37,9 +38,13 @@ import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import {
+  updateEntityById,
+  getEntityById,
+} from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
+import Alert from "../../Alert";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
@@ -53,6 +58,14 @@ interface Control {
   shortDescription: string;
   guidance: string;
   status: string;
+}
+
+interface LinkedRisk {
+  id: number;
+  risk_name: string;
+  risk_level: string;
+  description?: string;
+  [key: string]: any;
 }
 
 interface VWISO27001AnnexDrawerDialogProps {
@@ -90,12 +103,15 @@ const VWISO27001AnnexDrawerDialog = ({
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const theme = useTheme();
-  const [_alert, setAlert] = useState<AlertProps | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [currentRisks, setCurrentRisks] = useState<number[]>([]);
+  const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRisk[]>([]);
+  const [selectedRiskForView, setSelectedRiskForView] =
+    useState<LinkedRisk | null>(null);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
     useState<boolean>(false);
 
@@ -197,6 +213,14 @@ const VWISO27001AnnexDrawerDialog = ({
     }
   }, [formData.risks]);
 
+  // Fetch linked risks when drawer opens and annex is loaded
+  useEffect(() => {
+    if (open && fetchedAnnex?.id) {
+      fetchLinkedRisks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, fetchedAnnex?.id, formData.risks, selectedRisks, deletedRisks]);
+
   // File management functions for inline Evidence tab
   const handleAddFiles = (files: File[]) => {
     const newFiles: FileData[] = files.map((file, index) => ({
@@ -278,9 +302,88 @@ const VWISO27001AnnexDrawerDialog = ({
     handleFieldChange(field, value);
   };
 
-  const handleRiskUpdateSuccess = () => {
+  // Risk management functions
+  const fetchLinkedRisks = async (riskIds?: number[]) => {
+    if (!fetchedAnnex?.id) return;
+
+    // Use provided riskIds or fall back to formData.risks + selectedRisks
+    const allRiskIds = riskIds
+      ? riskIds
+      : [...(formData.risks || []), ...selectedRisks].filter(
+          (id) => !deletedRisks.includes(id)
+        );
+
+    if (allRiskIds.length === 0) {
+      setLinkedRiskObjects([]);
+      return;
+    }
+
+    try {
+      const riskPromises = allRiskIds.map((riskId: number) =>
+        getEntityById({
+          routeUrl: `/projectRisks/${riskId}`,
+        })
+          .then((response) => response.data)
+          .catch(() => null)
+      );
+
+      const riskResults = await Promise.all(riskPromises);
+      const validRisks = riskResults.filter((risk) => risk !== null);
+      setLinkedRiskObjects(validRisks);
+    } catch (error) {
+      console.error("Error fetching linked risks:", error);
+      setLinkedRiskObjects([]);
+    }
+  };
+
+  const handleViewRiskDetails = async (risk: LinkedRisk) => {
+    setSelectedRiskForView(risk);
+    try {
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/${risk.id}`,
+      });
+      if (response.data) {
+        const riskData = response.data;
+        setRiskFormData({
+          riskName: riskData.risk_name || "",
+          actionOwner: riskData.action_owner || 0,
+          aiLifecyclePhase: riskData.ai_lifecycle_phase || 0,
+          riskDescription: riskData.risk_description || "",
+          riskCategory: riskData.risk_category || [1],
+          potentialImpact: riskData.potential_impact || "",
+          assessmentMapping: riskData.assessment_mapping || 0,
+          controlsMapping: riskData.controls_mapping || 0,
+          likelihood: riskData.likelihood || 1,
+          riskSeverity: riskData.risk_severity || 1,
+          riskLevel: riskData.risk_level || 0,
+          reviewNotes: riskData.review_notes || "",
+          applicableProjects: riskData.applicable_projects || [],
+          applicableFrameworks: riskData.applicable_frameworks || [],
+        });
+        setIsRiskDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching risk details:", error);
+      handleAlert({
+        variant: "error",
+        body: "Failed to load risk details",
+        setAlert,
+      });
+    }
+  };
+
+  const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
+    setSelectedRiskForView(null);
     setRiskFormData(null);
+  };
+
+  const handleRiskUpdateSuccess = () => {
+    handleRiskDetailModalClose();
+    // Refresh linked risks
+    if (fetchedAnnex?.id) {
+      fetchLinkedRisks();
+    }
     handleAlert({
       variant: "success",
       body: "Risk updated successfully",
@@ -461,7 +564,11 @@ const VWISO27001AnnexDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {title}
           </Typography>
-          <CloseIcon size={20} onClick={onClose} style={{ cursor: "pointer" }} />
+          <CloseIcon
+            size={20}
+            onClick={onClose}
+            style={{ cursor: "pointer" }}
+          />
         </Stack>
         <Divider />
         <TabContext value={activeTab}>
@@ -570,7 +677,10 @@ const VWISO27001AnnexDrawerDialog = ({
                   type="description"
                   value={formData.implementation_description}
                   onChange={(e) =>
-                    handleFieldChange("implementation_description", e.target.value)
+                    handleFieldChange(
+                      "implementation_description",
+                      e.target.value
+                    )
                   }
                   disabled={isEditingDisabled}
                   sx={{
@@ -583,118 +693,6 @@ const VWISO27001AnnexDrawerDialog = ({
                   placeholder="Describe how this requirement is implemented"
                 />
               </Stack>
-
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              sx={{
-                mt: 2,
-                borderRadius: 2,
-                width: 155,
-                height: 25,
-                fontSize: 11,
-                border: "1px solid #D0D5DD",
-                backgroundColor: "white",
-                color: "#344054",
-              }}
-              disableRipple={
-                theme.components?.MuiButton?.defaultProps?.disableRipple
-              }
-              onClick={() => setIsLinkedRisksModalOpen(true)}
-              disabled={isEditingDisabled}
-            >
-              Add/remove risks
-            </Button>
-            <Stack direction="row" spacing={10}>
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
-                }}
-              >
-                {`${formData.risks.length || 0} risks linked`}
-              </Typography>
-              {selectedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${selectedRisks.length} ${
-                    selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending save`}
-                </Typography>
-              )}
-              {deletedRisks.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${deletedRisks.length} ${
-                    deletedRisks.length === 1 ? "risk" : "risks"
-                  } pending delete`}
-                </Typography>
-              )}
-            </Stack>
-          </Stack>
-
-          <Dialog
-            open={auditedStatusModalOpen}
-            onClose={() => setAuditedStatusModalOpen(false)}
-            PaperProps={{
-              sx: {
-                width: "800px",
-                maxWidth: "800px",
-              },
-            }}
-          >
-            <Suspense fallback={"loading..."}>
-              <AuditRiskPopup
-                onClose={() => setAuditedStatusModalOpen(false)}
-                risks={formData.risks.concat(selectedRisks)}
-                _deletedRisks={deletedRisks}
-                _setDeletedRisks={setDeletedRisks}
-                _selectedRisks={selectedRisks}
-                _setSelectedRisks={setSelectedRisks}
-              />
-            </Suspense>
-          </Dialog>
-
-          {isLinkedRisksModalOpen && (
-            <Suspense fallback={"loading..."}>
-              <LinkedRisksPopup
-                onClose={() => setIsLinkedRisksModalOpen(false)}
-                currentRisks={formData.risks
-                  .concat(selectedRisks)
-                  .filter((risk) => !deletedRisks.includes(risk))}
-                setSelectecRisks={setSelectedRisks}
-                _setDeletedRisks={setDeletedRisks}
-                frameworkId={3}
-                isOrganizational={true}
-              />
-            </Suspense>
-          )}
             </Stack>
 
             <Stack
@@ -808,7 +806,8 @@ const VWISO27001AnnexDrawerDialog = ({
                 Evidence files
               </Typography>
               <Typography variant="body2" color="#6B7280">
-                Upload evidence files to document compliance with this requirement.
+                Upload evidence files to document compliance with this
+                requirement.
               </Typography>
 
               {/* File Input */}
@@ -830,7 +829,9 @@ const VWISO27001AnnexDrawerDialog = ({
                 <Stack spacing={2}>
                   <Button
                     variant="contained"
-                    onClick={() => document.getElementById("evidence-file-input")?.click()}
+                    onClick={() =>
+                      document.getElementById("evidence-file-input")?.click()
+                    }
                     disabled={isEditingDisabled}
                     sx={{
                       borderRadius: 2,
@@ -845,7 +846,9 @@ const VWISO27001AnnexDrawerDialog = ({
                         border: "1px solid #D0D5DD",
                       },
                     }}
-                    disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+                    disableRipple={
+                      theme.components?.MuiButton?.defaultProps?.disableRipple
+                    }
                   >
                     Add evidence files
                   </Button>
@@ -872,7 +875,14 @@ const VWISO27001AnnexDrawerDialog = ({
               {evidenceFiles.length > 0 && (
                 <Stack spacing={1}>
                   {evidenceFiles
-                    .filter((file) => !deletedFilesIds.includes(typeof file.id === "number" ? file.id : parseInt(file.id.toString())))
+                    .filter(
+                      (file) =>
+                        !deletedFilesIds.includes(
+                          typeof file.id === "number"
+                            ? file.id
+                            : parseInt(file.id.toString())
+                        )
+                    )
                     .map((file) => (
                       <Box
                         key={file.id}
@@ -886,7 +896,13 @@ const VWISO27001AnnexDrawerDialog = ({
                           backgroundColor: "#FAFBFC",
                         }}
                       >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
                           <FileIcon size={18} color="#475467" />
                           <Box>
                             <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
@@ -903,7 +919,9 @@ const VWISO27001AnnexDrawerDialog = ({
                               size="small"
                               onClick={() =>
                                 handleDownloadFile(
-                                  typeof file.id === "number" ? file.id : parseInt(file.id.toString()),
+                                  typeof file.id === "number"
+                                    ? file.id
+                                    : parseInt(file.id.toString()),
                                   file.fileName
                                 )
                               }
@@ -928,7 +946,9 @@ const VWISO27001AnnexDrawerDialog = ({
               {/* Pending Upload Files */}
               {uploadFiles.length > 0 && (
                 <Stack spacing={1}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#92400E" }}>
+                  <Typography
+                    sx={{ fontSize: 12, fontWeight: 600, color: "#92400E" }}
+                  >
                     Pending upload
                   </Typography>
                   {uploadFiles.map((file) => (
@@ -944,7 +964,9 @@ const VWISO27001AnnexDrawerDialog = ({
                         backgroundColor: "#FFFBEB",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                      >
                         <FileIcon size={18} color="#92400E" />
                         <Box>
                           <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
@@ -956,7 +978,10 @@ const VWISO27001AnnexDrawerDialog = ({
                         </Box>
                       </Box>
                       <Tooltip title="Remove">
-                        <IconButton size="small" onClick={() => handleDeleteFile(file.id)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDeleteFile(file.id)}
+                        >
                           <DeleteIcon size={16} />
                         </IconButton>
                       </Tooltip>
@@ -991,25 +1016,24 @@ const VWISO27001AnnexDrawerDialog = ({
                 Linked risks
               </Typography>
               <Typography variant="body2" color="#6B7280">
-                Link risks from your risk database to track which risks are addressed by this requirement.
+                Link risks from your risk database to track which risks are
+                addressed by this requirement.
               </Typography>
 
               <Stack direction="row" spacing={2} alignItems="center">
                 <Button
                   variant="contained"
-                  onClick={() => setIsLinkedRisksModalOpen(true)}
-                  disabled={isEditingDisabled}
                   sx={{
                     borderRadius: 2,
-                    minWidth: 155,
+                    width: 155,
                     height: 25,
                     fontSize: 11,
                     border: "1px solid #D0D5DD",
                     backgroundColor: "white",
                     color: "#344054",
-                    "&:hover": { backgroundColor: "#F9FAFB" },
                   }}
-                  disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+                  onClick={() => setIsLinkedRisksModalOpen(true)}
+                  disabled={isEditingDisabled}
                 >
                   Add/remove risks
                 </Button>
@@ -1031,19 +1055,145 @@ const VWISO27001AnnexDrawerDialog = ({
                 </Stack>
               </Stack>
 
+              {/* Linked Risks List */}
+              {linkedRiskObjects.length > 0 && (
+                <Stack spacing={1}>
+                  {linkedRiskObjects
+                    .filter((risk) => !deletedRisks.includes(risk.id))
+                    .map((risk) => (
+                      <Box
+                        key={risk.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 12px",
+                          border: "1px solid #EAECF0",
+                          borderRadius: "4px",
+                          backgroundColor: "#FFFFFF",
+                          "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                          },
+                        }}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            sx={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "#1F2937",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {risk.risk_name}
+                          </Typography>
+                          {risk.risk_level && (
+                            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                              Risk level: {risk.risk_level}
+                            </Typography>
+                          )}
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Tooltip title="View details">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewRiskDetails(risk)}
+                              sx={{
+                                color: "#475467",
+                                "&:hover": {
+                                  color: "#13715B",
+                                  backgroundColor: "rgba(19, 113, 91, 0.08)",
+                                },
+                              }}
+                            >
+                              <ViewIcon size={16} />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Unlink risk">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setDeletedRisks((prev) => [...prev, risk.id]);
+                                handleAlert({
+                                  variant: "info",
+                                  body: "Risk marked for removal. Save to apply changes.",
+                                  setAlert,
+                                });
+                              }}
+                              disabled={isEditingDisabled}
+                              sx={{
+                                color: "#475467",
+                                "&:hover": {
+                                  color: "#D32F2F",
+                                  backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                },
+                              }}
+                            >
+                              <DeleteIcon size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+                    ))}
+                </Stack>
+              )}
+
+              {/* Empty State */}
               {currentRisks.length === 0 && selectedRisks.length === 0 && (
-                <Box sx={{ border: "2px dashed #D0D5DD", borderRadius: "4px", padding: "20px", textAlign: "center", backgroundColor: "#FAFBFC" }}>
-                  <Typography sx={{ color: "#6B7280" }}>
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 4,
+                    color: "#6B7280",
+                    border: "2px dashed #D1D5DB",
+                    borderRadius: 1,
+                    backgroundColor: "#F9FAFB",
+                  }}
+                >
+                  <Typography variant="body2" sx={{ mb: 1 }}>
                     No risks linked yet
+                  </Typography>
+                  <Typography variant="caption" color="#9CA3AF">
+                    Click "Add/remove risks" to link risks from your risk
+                    database
                   </Typography>
                 </Box>
               )}
+
+              {/* Audit Modal */}
+              <Dialog
+                open={auditedStatusModalOpen}
+                onClose={() => setAuditedStatusModalOpen(false)}
+                PaperProps={{
+                  sx: {
+                    width: "800px",
+                    maxWidth: "800px",
+                  },
+                }}
+              >
+                <Suspense fallback={"loading..."}>
+                  <AuditRiskPopup
+                    onClose={() => setAuditedStatusModalOpen(false)}
+                    risks={formData.risks.concat(selectedRisks)}
+                    _deletedRisks={deletedRisks}
+                    _setDeletedRisks={setDeletedRisks}
+                    _selectedRisks={selectedRisks}
+                    _setSelectedRisks={setSelectedRisks}
+                  />
+                </Suspense>
+              </Dialog>
 
               {isLinkedRisksModalOpen && (
                 <Suspense fallback={"loading..."}>
                   <LinkedRisksPopup
                     onClose={() => setIsLinkedRisksModalOpen(false)}
-                    currentRisks={formData.risks.concat(selectedRisks).filter((risk) => !deletedRisks.includes(risk))}
+                    currentRisks={formData.risks
+                      .concat(selectedRisks)
+                      .filter((risk) => !deletedRisks.includes(risk))}
                     setSelectecRisks={setSelectedRisks}
                     _setDeletedRisks={setDeletedRisks}
                     frameworkId={3}
@@ -1052,20 +1202,33 @@ const VWISO27001AnnexDrawerDialog = ({
                 </Suspense>
               )}
 
+              {/* Risk Detail Modal */}
               <StandardModal
-                isOpen={isRiskDetailModalOpen}
-                onClose={() => setIsRiskDetailModalOpen(false)}
-                title="Risk Details"
+                isOpen={isRiskDetailModalOpen && !!riskFormData}
+                onClose={handleRiskDetailModalClose}
+                title={`Risk: ${
+                  selectedRiskForView?.risk_name || "Risk Details"
+                }`}
                 description="View and edit risk details"
+                onSubmit={() => onRiskSubmitRef.current?.()}
+                submitButtonText="Update"
+                maxWidth="1039px"
               >
                 <Suspense fallback={<CircularProgress />}>
                   <AddNewRiskForm
-                    closePopup={() => setIsRiskDetailModalOpen(false)}
+                    closePopup={handleRiskDetailModalClose}
                     popupStatus="edit"
                     initialRiskValues={riskFormData}
                     onSuccess={handleRiskUpdateSuccess}
+                    onError={(error) => {
+                      handleAlert({
+                        variant: "error",
+                        body: error?.message || "Failed to update risk",
+                        setAlert,
+                      });
+                    }}
+                    users={users}
                     onSubmitRef={onRiskSubmitRef}
-                    compactMode={true}
                   />
                 </Suspense>
               </StandardModal>
@@ -1082,6 +1245,11 @@ const VWISO27001AnnexDrawerDialog = ({
             </Suspense>
           </TabPanel>
         </TabContext>
+
+        {/* Alert */}
+        {alert && (
+          <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+        )}
 
         <Divider />
         <Stack

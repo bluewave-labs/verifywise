@@ -698,20 +698,13 @@ export default function EvalsDashboard() {
         ];
 
   return (
-    <Box>
-      <Box sx={{ mb: "8px" }}>
-        <Box>
-          <PageBreadcrumbs items={breadcrumbItems} />
-        </Box>
+    <Stack className="vwhome" gap={"16px"}>
+      <PageBreadcrumbs items={breadcrumbItems} />
 
-        {/* Page header (only for projects list view) */}
-        {!projectId && orgId && (
-          <Box sx={{ mt: 4 }}>
-            <PageHeader title="LLM evals" />
-          </Box>
-        )}
-
-      </Box>
+      <PageHeader
+        title="LLM evals"
+        description="Evaluate and benchmark your LLM applications for quality, safety, and performance using customizable scorers and datasets."
+      />
 
       <Box sx={{ display: "flex", gap: "16px" }}>
         {/* Left column: Project selector + Sidebar */}
@@ -1787,7 +1780,7 @@ export default function EvalsDashboard() {
           <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
         </Typography>
       </ModalStandard>
-    </Box>
+    </Stack>
   );
 }
 

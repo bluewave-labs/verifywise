@@ -16,6 +16,7 @@ import {
 import PolicyManager from "./PolicyManager";
 import PolicyTemplates from "./PolicyTemplates";
 import PolicySteps from "./PolicySteps";
+import policyTemplates from "../../assets/PolicyTemplates.json";
 
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
@@ -75,6 +76,7 @@ const PolicyDashboard: React.FC = () => {
                 label: "Policy Templates",
                 value: "templates",
                 icon: "ShieldHalf",
+                count: policyTemplates.length,
               },
             ]}
             activeTab={activeTab}

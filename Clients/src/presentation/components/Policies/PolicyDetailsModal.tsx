@@ -634,7 +634,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             <Typography
               sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
             >
-              {isNew ? "Create new policy" : formData.title}
+              {isNew ? (template ? "Create new policy from the template" : "Create new policy") : formData.title}
             </Typography>
           </Stack>
           <Stack direction="row" alignItems="center" gap={1}>
@@ -851,7 +851,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         >
           <CustomizableButton
             variant="contained"
-            text="Save"
+            text={isNew && template ? "Save in organizational policies" : "Save"}
             sx={{
               backgroundColor: "#13715B",
               border: "1px solid #13715B",

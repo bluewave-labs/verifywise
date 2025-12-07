@@ -5,16 +5,13 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,
   validateSchema,
   ValidationResult,
-  ValidationError,
-  VALIDATION_PATTERNS
+  ValidationError
 } from './validation.utils';
-import { IProjectAttributes } from '../../domain.layer/interfaces/i.project';
 import { AiRiskClassification } from '../../domain.layer/enums/ai-risk-classification.enum';
 import { HighRiskRole } from '../../domain.layer/enums/high-risk-role.enum';
 

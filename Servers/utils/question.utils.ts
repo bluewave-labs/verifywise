@@ -1,9 +1,9 @@
 import { QuestionModel } from "../domain.layer/models/question/question.model";
 import { sequelize } from "../database/db";
-import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
 import { IQuestion } from "../domain.layer/interfaces/I.question";
+import { deleteFileById } from "./fileUpload.utils";
 
 export const getAllQuestionsQuery = async (
   tenant: string
@@ -183,6 +183,7 @@ export const updateQuestionByIdQuery = async (
         }
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -199,7 +200,7 @@ export const updateQuestionByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteQuestionByIdQuery = async (

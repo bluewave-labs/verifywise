@@ -5,7 +5,6 @@
 
 import {
   validateString,
-  validateNumber,
   validateForeignKey,
   validateSchema,
   ValidationResult,
@@ -579,7 +578,7 @@ export const validateUserExists = async (userId: number): Promise<ValidationResu
  */
 export const validateEmailUniqueness = async (
   email: string,
-  excludeUserId?: number
+  _excludeUserId?: number
 ): Promise<ValidationResult> => {
   // This would be implemented to check email uniqueness in database
   // For now, just validate the email format

@@ -23,7 +23,6 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { getOrganizationsExists } from "../controllers/organization.ctrl";
 import { getOrganizationsExistsQuery } from "../utils/organization.utils";
 
 /**
@@ -66,7 +65,7 @@ export const checkMultiTenancy = async (req: Request, res: Response, next: NextF
       )
     ) || !organizationExists.exists
   ) {
-    next();
+    return next();
   } else {
     return res.status(403).json({
       message: "Multi tenancy is not enabled in this server. Please contact VerifyWise to get a license for multi tenancy option.",

@@ -27,11 +27,8 @@ import express from "express";
 const router = express.Router();
 
 import {
-  createRole,
-  deleteRoleById,
   getAllRoles,
   getRoleById,
-  updateRoleById,
 } from "../controllers/role.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";

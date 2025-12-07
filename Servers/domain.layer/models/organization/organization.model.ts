@@ -31,7 +31,6 @@ import { IOrganization } from "../../interfaces/i.organization";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 

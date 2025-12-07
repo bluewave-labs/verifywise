@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
 import {

@@ -147,7 +147,7 @@ export async function insertMockData(
 
         await createNISTAI_RMFFrameworkQuery(
           projectOrg.id!,
-          true,
+          false,
           tenant,
           transaction,
           true

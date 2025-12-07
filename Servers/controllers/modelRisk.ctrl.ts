@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import {
   getAllModelRisksQuery,
   getModelRiskByIdQuery,
@@ -146,15 +145,6 @@ export async function createNewModelRisk(req: Request, res: Response) {
 
 export async function updateModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
-  const modelRiskId = parseInt(id, 10);
-
-  // Get existing model risk for business rule validation
-  let existingModelRisk = null;
-  try {
-    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
-  } catch (error) {
-    // Continue without existing data if query fails
-  }
 
   logStructured(
     "processing",
@@ -168,7 +158,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
   try {
     const modelRisk = await updateModelRiskByIdQuery(
-      modelRiskId,
+      parseInt(id, 10),
       req.body,
       req.tenantId!
     );
@@ -208,7 +198,6 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
-  const modelRiskId = parseInt(id, 10);
 
   logStructured(
     "processing",

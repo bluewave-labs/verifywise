@@ -132,7 +132,7 @@ export const getTopicByIdForProjectQuery = async (
     }
   );
   const topic = topics[0];
-  const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant);
+  const subtopicStruct = await getAllSubTopicsQuery(topic.id!);
   (topic.dataValues as any).subTopics = subtopicStruct;
   for (let subtopic of subtopicStruct) {
     const questionAnswers = await getAllQuestionsQuery(
@@ -239,7 +239,6 @@ export const getControlByIdForProjectQuery = async (
 };
 
 export const getAllTopicsQuery = async (
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const topicStruct = await sequelize.query(`SELECT * FROM public.topics_struct_eu;`, {
@@ -252,7 +251,6 @@ export const getAllTopicsQuery = async (
 
 export const getAllSubTopicsQuery = async (
   topicId: number,
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subtopicStruct = await sequelize.query(
@@ -323,9 +321,9 @@ export const getAssessmentsEUByIdQuery = async (
   tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const topicStruct = await getAllTopicsQuery(tenant, transaction);
+  const topicStruct = await getAllTopicsQuery(transaction);
   for (let topic of topicStruct) {
-    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant, transaction);
+    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, transaction);
     (topic.dataValues as any).subTopics = subtopicStruct;
     for (let subtopic of subtopicStruct) {
       const questionAnswers = await getAllQuestionsQuery(
@@ -344,7 +342,6 @@ export const getAssessmentsEUByIdQuery = async (
 };
 
 export const getAllControlCategoriesQuery = async (
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await sequelize.query(
@@ -510,7 +507,7 @@ export const getCompliancesEUByIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await getAllControlCategoriesQuery(
-    tenant, transaction
+    transaction
   );
   let controlCategoryIdIndexMap = new Map();
   for (let [i, controlCategory] of controlCategoriesStruct.entries()) {
@@ -841,6 +838,7 @@ export const updateControlEUByIdQuery = async (
         updateControl[f as keyof ControlEU] = control[f as keyof ControlEU];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -957,6 +955,7 @@ export const updateSubcontrolEUByIdQuery = async (
           subcontrol[f as keyof SubcontrolEU];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;
@@ -1091,6 +1090,7 @@ export const updateQuestionEUByIdQuery = async (
         }
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

@@ -186,7 +186,6 @@ export async function getCurrentParameterCounts(
  */
 export async function getTimeseriesData(
   parameter: string,
-  startDate: Date,
   endDate: Date,
   tenant: string,
   transaction?: Transaction
@@ -263,7 +262,6 @@ export async function getTimeseriesWithInterpolation(
 
     const snapshots = await getTimeseriesData(
       parameter,
-      startDate,
       endDateInclusive,
       tenant,
       transaction

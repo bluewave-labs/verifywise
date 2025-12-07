@@ -94,7 +94,7 @@ export const updateSlackWebhookByIdQuery = async (
     .filter((f) => {
       if (
         f == "routing_type" &&
-        updateData.routing_type 
+        updateData.routing_type
       ) {
         // Mapping this as Postgres takes the array of string as {a, b, c }
         updateSlackWebhookData["routing_type"] =
@@ -106,6 +106,7 @@ export const updateSlackWebhookByIdQuery = async (
           updateData[f as keyof SlackWebhookModel];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;
@@ -123,7 +124,7 @@ export const updateSlackWebhookByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteSlackWebhookByIdQuery = async (

@@ -5,7 +5,6 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,

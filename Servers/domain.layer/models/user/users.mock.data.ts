@@ -2,9 +2,7 @@ import { IUser } from "../../interfaces/user.type";
 
 export const users = (
   role1: number,
-  role2: number,
-  role3: number,
-  role4: number
+  role2: number
 ): IUser[] => {
   return [
     {

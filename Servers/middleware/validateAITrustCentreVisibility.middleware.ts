@@ -10,9 +10,9 @@ export const validateVisibility = async (req: Request, res: Response, next: Next
 
   const isVisible = await getIsVisibleQuery(hash);
 
-  if (!isVisible) { // Removed Unnecessary validation
-    next();
+  if (!isVisible) {
+    return next();
   } else {
-    next();
+    return next();
   }
 }

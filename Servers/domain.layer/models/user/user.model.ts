@@ -582,8 +582,7 @@ export class UserModel extends Model<UserModel> {
    * }
    */
   static async validateEmailUniqueness(
-    email: string,
-    excludeUserId?: number
+    _email: string
   ): Promise<boolean> {
     // This is a placeholder implementation
     // In real implementation, you would query the database like:

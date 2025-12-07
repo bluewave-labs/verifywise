@@ -34,12 +34,11 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
+import logger from "../utils/logger/fileLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
 
-export async function getAllClauses(req: Request, res: Response): Promise<any> {
+export async function getAllClauses(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllClauses",
     functionName: "getAllClauses",
@@ -48,7 +47,7 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logger.debug("🔍 Fetching all clauses");
 
   try {
-    const clauses = await getAllClausesQuery(req.tenantId!);
+    const clauses = await getAllClausesQuery();
 
     await logSuccess({
       eventType: "Read",
@@ -152,7 +151,7 @@ export async function getAllAnnexesStructForProject(
   }
 }
 
-export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
+export async function getAllAnnexes(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllAnnexes",
     functionName: "getAllAnnexes",
@@ -161,7 +160,7 @@ export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
   logger.debug("🔍 Fetching all annexes");
 
   try {
-    const annexes = await getAllAnnexesQuery(req.tenantId!);
+    const annexes = await getAllAnnexesQuery();
 
     await logSuccess({
       eventType: "Read",
@@ -245,8 +244,7 @@ export async function getAnnexControlsByAnnexId(
 
   try {
     const annexControls = await getAnnexControlsByAnnexIdQuery(
-      annexId,
-      req.tenantId!
+      annexId
     );
     if (annexControls) {
       await logSuccess({

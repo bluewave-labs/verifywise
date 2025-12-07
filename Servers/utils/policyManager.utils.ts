@@ -183,6 +183,7 @@ export const updatePolicyByIdQuery = async (
           policy[f as keyof IPolicy];
         return true;
       }
+      return false;
     })
     .map((f) => {
       if (f === "tags" || f === "assigned_reviewer_ids") {
@@ -205,7 +206,10 @@ export const updatePolicyByIdQuery = async (
     transaction,
     // type: QueryTypes.UPDATE,
   });
-  const updatedPolicy = result[0];
+  const updatedPolicy = result[0] || null;
+  if (!updatedPolicy) {
+    return null;
+  }
   const automations = await sequelize.query(
     `SELECT
       pat.key AS trigger_key,

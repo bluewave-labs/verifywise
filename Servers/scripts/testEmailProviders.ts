@@ -33,8 +33,6 @@ async function testProvider(providerType: 'resend' | 'smtp', testEmail: string) 
   console.log(`\n🧪 Testing ${providerType.toUpperCase()} provider...`);
 
   try {
-    // Temporarily set provider type
-    const originalProvider = process.env.EMAIL_PROVIDER;
     process.env.EMAIL_PROVIDER = providerType;
 
     // Create provider

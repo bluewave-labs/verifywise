@@ -1,12 +1,10 @@
 import {
   Column,
   DataType,
-  ForeignKey,
   Model,
   Table,
 } from "sequelize-typescript";
 import { IEvidenceHub } from "../../interfaces/i.evidenceHub";
-import { UserModel } from "../user/user.model";
 
 export interface FileResponse {
   id: string | number;

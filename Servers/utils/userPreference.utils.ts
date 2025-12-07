@@ -59,6 +59,7 @@ export const updateUserPreferencesByIdQuery = async (
           data[f as keyof UserPreferencesModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -74,5 +75,5 @@ export const updateUserPreferencesByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };

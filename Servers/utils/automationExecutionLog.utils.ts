@@ -1,6 +1,6 @@
 import { sequelize } from "../database/db";
 import { IAutomationExecutionLog } from "../domain.layer/interfaces/i.automationExecutionLog";
-import { AutomationExecutionLogModel, IActionExecutionResult } from "../domain.layer/models/automationExecutionLog/automationExecutionLog.model";
+import { IActionExecutionResult } from "../domain.layer/models/automationExecutionLog/automationExecutionLog.model";
 
 /**
  * Create a new automation execution log

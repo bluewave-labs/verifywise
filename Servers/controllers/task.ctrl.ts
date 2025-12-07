@@ -13,7 +13,6 @@ import { sequelize } from "../database/db";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
-import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { ValidationException, BusinessLogicException, ForbiddenException } from "../domain.layer/exceptions/custom.exception";
 
@@ -121,7 +120,6 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       due_date_end,
       category,
       assignee,
-      organization_id,
       search,
       include_archived,
       sort_by = 'created_at',
@@ -152,7 +150,6 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     const pageNum = parseInt(page as string, 10);
     const pageSize = parseInt(page_size as string, 10);
     const limit = Math.min(pageSize, 100); // Cap at 100 items per page
-    const offset = (pageNum - 1) * limit;
 
     const tasks = await getTasksQuery(
       { userId, role },
@@ -259,13 +256,6 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
-  // Get existing task for business rule validation
-  let existingTask = null;
-  try {
-    existingTask = await getTaskByIdQuery(taskId, { userId: req.userId!, role: req.role! }, req.tenantId!, req.organizationId!);
-  } catch (error) {
-    // Continue without existing data if query fails
-  }
 
   logProcessing({
     description: `starting updateTask for ID ${taskId}`,

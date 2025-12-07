@@ -3,8 +3,6 @@ import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
-import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
@@ -489,7 +487,7 @@ export const updateProjectByIdQuery = async (
     "last_updated_by",
     "status",
   ]
-    .filter((f) => {
+    .filter((f): boolean => {
       if (
         project[f as keyof ProjectModel] !== undefined &&
         project[f as keyof ProjectModel]
@@ -498,6 +496,7 @@ export const updateProjectByIdQuery = async (
           project[f as keyof ProjectModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

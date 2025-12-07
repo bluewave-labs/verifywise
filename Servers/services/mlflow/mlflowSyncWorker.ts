@@ -2,7 +2,6 @@ import { Job, Worker } from "bullmq";
 import redisClient from "../../database/redis";
 import logger from "../../utils/logger/fileLogger";
 import { MLFlowService } from "../../src/services/mlflow.service";
-import { MLFlowIntegrationModel } from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
 import { getTenantHash } from "../../tools/getTenantHash";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
@@ -92,7 +91,6 @@ export const createMlflowSyncWorker = () => {
 
   return new Worker(
     "mlflow-sync",
-    // async (job: Job): Promise<SyncJobResult[]> => {
     async (job: Job) => {
       logger.debug(`Processing MLFlow sync job ${job.id}...`);
       const organizations = await getAllOrganizationsQuery();
@@ -103,7 +101,7 @@ export const createMlflowSyncWorker = () => {
 
         if (!integrations.length) {
           logger.info("No MLFlow integrations configured. Skipping sync.");
-          return [];
+          return;
         }
 
         const results: SyncJobResult[] = [];

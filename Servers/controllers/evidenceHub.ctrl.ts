@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub.model";
 import {
@@ -11,7 +10,6 @@ import {
 } from "../utils/evidenceHub.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { ValidationError } from "../utils/validations/validation.utils";
 import {
     recordEvidenceAddedToModel,
     recordEvidenceRemovedFromModel,

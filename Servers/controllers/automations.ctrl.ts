@@ -6,7 +6,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import { getAutomationExecutionLogs, getAutomationExecutionStats } from "../utils/automationExecutionLog.utils";
 
 export const getAllAutomationTriggers = async (
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   try {

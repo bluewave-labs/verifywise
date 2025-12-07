@@ -55,6 +55,7 @@ export const updateRoleByIdQuery = async (
         updateRole[f as keyof IRoleAttributes] = role[f as keyof IRoleAttributes];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -71,7 +72,7 @@ export const updateRoleByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteRoleByIdQuery = async (

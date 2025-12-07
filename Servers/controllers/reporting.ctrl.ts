@@ -20,8 +20,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
+import logger from "../utils/logger/fileLogger";
 
 export function mapReportTypeToFileSource(
   reportType: string | string[]
@@ -261,7 +260,6 @@ export async function deleteGeneratedReportById(
 ): Promise<any> {
   const reportId = parseInt(req.params.id);
   const transaction = await sequelize.transaction();
-  const userId = req.userId;
 
   logProcessing({
     description: `starting deleteGeneratedReportById for report ID ${reportId}`,

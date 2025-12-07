@@ -1,6 +1,5 @@
 import { sequelize } from "../database/db";
 import { createNewUserQuery } from "../utils/user.utils";
-import bcrypt from "bcrypt";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { insertMockData } from "../infrastructure.layer/driver/autoDriver.driver";
@@ -48,23 +47,8 @@ async function resetDatabase() {
     `);
     console.log("All enum types dropped.");
 
-    // Run migrations
     await execAsync("npx sequelize db:migrate");
     console.log("Migrations applied.");
-
-    // Create default admin user
-    const password_hash = await bcrypt.hash("Verifywise#1", 10);
-    const adminData = {
-      name: "VerifyWise",
-      surname: "Admin",
-      email: "verifywise@email.com",
-      password: "Verifywise#1",
-      confirmPassword: "Verifywise#1",
-      role_id: 1,
-      created_at: new Date(),
-      last_login: new Date(),
-      password_hash,
-    };
 
     const admin = await createNewUserQuery(
       await UserModel.createNewUser(

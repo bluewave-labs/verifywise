@@ -240,6 +240,7 @@ export const updateSubcontrolByIdQuery = async (
           subcontrol[f as keyof SubcontrolModel];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;
@@ -258,7 +259,7 @@ export const updateSubcontrolByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteSubcontrolByIdQuery = async (

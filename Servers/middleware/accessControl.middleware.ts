@@ -62,18 +62,17 @@ interface AuthenticatedRequest extends Request {
  * router.get('/audit-logs', authenticateJWT, authorize(['Admin', 'Auditor']), getAuditLogs);
  */
 const authorize = (allowedRoles: string[]) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    // Check if role exists (populated by authenticateJWT middleware)
     if (!req.role) {
         console.error('Authorization failed: No role found in request');
         return res.status(401).json({ message: "Authentication required" });
     }
-    const roleName = req.role; // Extract role from authenticated request
+    const roleName = req.role;
 
     if (!allowedRoles.includes(roleName)) {
         return res.status(403).json({ message: "Access denied" });
     }
 
-    next(); // Proceed if role is authorized
+    return next();
 };
 
 export default authorize;

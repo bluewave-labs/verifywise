@@ -61,25 +61,6 @@ export const ensureNISTAI_RMFDInfrastructure = async (
 };
 
 /**
- * Get demo subcategories from structure - using description from structure
- */
-const getDemoSubcategories = (): Array<{
-  description: string;
-}> => {
-  const subcategories = [];
-  for (let func of NIST_AI_RMF_Structure.functions) {
-    for (let category of func.categories) {
-      for (let subcategory of category.subcategories) {
-        subcategories.push({
-          description: subcategory.description, // Use description from structure
-        });
-      }
-    }
-  }
-  return subcategories;
-};
-
-/**
  * Count total and completed subcategories for a project
  */
 export const countSubcategoriesNISTByProjectId = async (
@@ -131,7 +112,6 @@ export const countSubcategoryAssignmentsNISTByProjectId = async (
  * Get all functions with their categories
  */
 export const getAllFunctionsWithCategoriesQuery = async (
-  projectFrameworkId: number,
   tenant: string,
   transaction: Transaction | null = null
 ) => {
@@ -231,7 +211,7 @@ export const getSubcategoryByIdQuery = async (
  */
 export const createNISTAI_RMFFrameworkQuery = async (
   projectId: number,
-  enable_ai_data_insertion: boolean,
+  _enable_ai_data_insertion: boolean,
   tenant: string,
   transaction: Transaction,
   is_mock_data: boolean = false
@@ -244,12 +224,8 @@ export const createNISTAI_RMFFrameworkQuery = async (
     }
   )) as [{ id: number }[], number];
 
-  const demoSubcategories = getDemoSubcategories();
-
   const subcategoryIds = await createNewSubcategoriesQuery(
     projectFrameworkId[0][0].id,
-    enable_ai_data_insertion,
-    demoSubcategories,
     tenant,
     transaction,
     is_mock_data
@@ -265,10 +241,6 @@ export const createNISTAI_RMFFrameworkQuery = async (
  */
 export const createNewSubcategoriesQuery = async (
   projectFrameworkId: number,
-  enable_ai_data_insertion: boolean,
-  demoSubcategories: Array<{
-    description: string;
-  }>,
   tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
@@ -467,7 +439,7 @@ export const deleteProjectFrameworkNISTQuery = async (
 
   // Check if the project has a NIST AI RMF framework before trying to delete subcategories
   if (projectFrameworkId && projectFrameworkId.length > 0) {
-    const subcategoriesDeleted = await deleteSubcategoriesNISTByProjectIdQuery(
+    await deleteSubcategoriesNISTByProjectIdQuery(
       projectFrameworkId[0].id,
       tenant,
       transaction

@@ -10,7 +10,6 @@ import { sequelize } from "../database/db";
 import { Transaction, QueryTypes } from "sequelize";
 import {
   EntityType,
-  EntityConfig,
   getEntityConfig,
   GENERIC_FORMATTERS,
 } from "../config/changeHistory.config";
@@ -257,8 +256,6 @@ export const recordEntityDeletion = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<void> => {
-  const config = getEntityConfig(entityType);
-
   // Get the entity name from the config or use a default
   const entityName = entityType
     .split("_")

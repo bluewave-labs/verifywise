@@ -5,7 +5,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "../project/project.model";
 import { UserModel } from "../user/user.model";
 import { IRisk } from "../../interfaces/I.risk";
 import {

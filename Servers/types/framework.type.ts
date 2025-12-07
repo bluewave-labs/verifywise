@@ -8,7 +8,8 @@ export const frameworkAdditionMap: Record<number, (
   projectId: number,
   enable_ai_data_insertion: boolean,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data?: boolean
 ) => Promise<Object>> = {
   1: createEUFrameworkQuery,
   2: createISOFrameworkQuery,

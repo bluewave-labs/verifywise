@@ -1,7 +1,6 @@
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { sequelize } from "../database/db";
-import { QueryTypes, Transaction } from "sequelize";
-import { updateProjectUpdatedByIdQuery } from "./project.utils";
+import { Transaction } from "sequelize";
 import { IRisk } from "../domain.layer/interfaces/I.risk";
 import { IProjectFrameworks } from "../domain.layer/interfaces/i.projectFramework";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";

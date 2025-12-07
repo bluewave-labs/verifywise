@@ -68,6 +68,7 @@ export const updateTopicByIdQuery = async (
         updateTopic[f as keyof TopicModel] = topic[f as keyof TopicModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -84,7 +85,7 @@ export const updateTopicByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteTopicByIdQuery = async (

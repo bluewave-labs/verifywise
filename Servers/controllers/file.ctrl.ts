@@ -7,11 +7,10 @@ import {
   uploadFile,
 } from "../utils/fileUpload.utils";
 import {
-  addFileToQuestion,
   RequestWithFile,
   UploadedFile,
 } from "../utils/question.utils";
-import { FileModel, FileType } from "../domain.layer/models/file/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";

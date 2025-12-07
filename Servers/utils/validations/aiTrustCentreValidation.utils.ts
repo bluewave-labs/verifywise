@@ -9,7 +9,6 @@ import { IAITrustCentreSubprocessors } from '../../domain.layer/interfaces/i.aiT
 import {
   validateString,
   validateForeignKey,
-  validateEnum,
   validateSchema,
   ValidationResult,
   ValidationError

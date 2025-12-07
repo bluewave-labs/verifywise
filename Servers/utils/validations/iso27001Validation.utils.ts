@@ -17,42 +17,6 @@ import { STATUSES } from '../../types/status.type';
 /**
  * Boolean validation function (since not available in validation.utils)
  */
-const validateBoolean = (
-  value: any,
-  fieldName: string,
-  options: { required?: boolean } = {}
-): ValidationResult => {
-  const { required = false } = options;
-
-  if (value === undefined || value === null) {
-    if (required) {
-      return {
-        isValid: false,
-        message: `${fieldName} is required`,
-        code: 'REQUIRED'
-      };
-    }
-    return { isValid: true };
-  }
-
-  // Handle string representations of booleans (from FormData)
-  if (typeof value === 'string') {
-    const lowerValue = value.toLowerCase();
-    if (lowerValue === 'true' || lowerValue === 'false') {
-      return { isValid: true };
-    }
-  }
-
-  if (typeof value === 'boolean') {
-    return { isValid: true };
-  }
-
-  return {
-    isValid: false,
-    message: `${fieldName} must be a boolean value (true/false)`,
-    code: 'INVALID_TYPE'
-  };
-};
 
 /**
  * Validation constants for ISO-27001

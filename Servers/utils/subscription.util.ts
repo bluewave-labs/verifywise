@@ -104,6 +104,7 @@ export async function updateSubscription(
           subscription[f as keyof SubscriptionModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -118,5 +119,5 @@ export async function updateSubscription(
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 }

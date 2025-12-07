@@ -12,8 +12,7 @@
 
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
-import { FileManagerModel, FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
-import { FileAccessLogModel } from "../domain.layer/models/fileManager/fileAccessLog.model";
+import { FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
 import sanitizeFilename from "sanitize-filename"; // Industry-standard filename sanitization
 
 /**

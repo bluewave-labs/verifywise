@@ -51,11 +51,6 @@ async function sendVendorReviewDateNotification() {
       }
       const params = automation.params!;
 
-      // Calculate days until review
-      const reviewDate = new Date(vendor.review_date!);
-      const daysUntilReview = Math.ceil((reviewDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Build replacements with review information
       const replacements = buildVendorReplacements(vendor);
 
       // Replace variables in subject and body
@@ -170,9 +165,6 @@ async function sendReportNotification() {
         });
         continue;
       } else if (frequency === 'monthly') {
-        const currentMonth = today.getMonth();
-        // if (currentMonth === 1 && params.dayOfMonth! > 28 && today.getDate() === 28) {
-        // }
         if (today.getMonth() !== params.dayOfMonth! - 1) {
           continue;
         }

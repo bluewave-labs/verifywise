@@ -1,17 +1,11 @@
 import express from "express";
 const router = express.Router();
-const multer = require("multer");
-const upload = multer({ Storage: multer.memoryStorage() });
 
 import {
-  createAssessment,
-  deleteAssessmentById,
   getAllAssessments,
   getAnswers,
   getAssessmentById,
   getAssessmentByProjectId,
-  // saveAnswers,
-  updateAssessmentById,
 } from "../controllers/assessment.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";

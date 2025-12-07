@@ -13,7 +13,6 @@
  */
 
 import rateLimit, { Options } from 'express-rate-limit';
-import { STATUS_CODE } from '../utils/statusCode.utils';
 import { Request, Response } from 'express';
 import logger from '../utils/logger/fileLogger';
 

@@ -163,9 +163,9 @@ router.get('/sync-status', async (req: Request, res: Response) => {
 });
 
 // GET /api/integrations/mlflow/health - Health check endpoint
-router.get('/health', async (req: Request, res: Response) => {
+router.get('/health', async (_req: Request, res: Response) => {
   try {
-    res.status(200).json({
+    return res.status(200).json({
       status: 'healthy',
       service: 'mlflow-integration',
       timestamp: new Date().toISOString(),

@@ -1,6 +1,6 @@
 import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
-import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ITrainingRegister } from "../domain.layer/interfaces/i.trainingRegister";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
 import { replaceTemplateVariables } from "./automation/automation.utils";

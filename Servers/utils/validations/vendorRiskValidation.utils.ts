@@ -5,16 +5,13 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
-  validateDate,
   validateForeignKey,
   validateSchema,
   ValidationResult,
   ValidationError,
   VENDOR_RISK_ENUMS
 } from './validation.utils';
-import { IVendorRisk } from '../../domain.layer/interfaces/i.vendorRisk';
 
 /**
  * Validation constants for vendor risks

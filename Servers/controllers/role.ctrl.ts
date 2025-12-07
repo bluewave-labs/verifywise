@@ -63,7 +63,7 @@ import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper
  *   ]
  * }
  */
-export async function getAllRoles(req: Request, res: Response): Promise<any> {
+export async function getAllRoles(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllRoles",
     functionName: "getAllRoles",

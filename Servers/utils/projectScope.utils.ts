@@ -94,6 +94,7 @@ export const updateProjectScopeByIdQuery = async (
           projectScope[f as keyof ProjectScopeModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -110,7 +111,7 @@ export const updateProjectScopeByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteProjectScopeByIdQuery = async (

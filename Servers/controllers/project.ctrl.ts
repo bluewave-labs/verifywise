@@ -365,10 +365,6 @@ export async function updateProjectById(
     //   );
     // }
 
-    // Get current project and members to check for changes
-    const ownerChanged =
-      existingProject && existingProject.owner !== updatedProject.owner;
-
     // Get current members before update to identify newly added ones
     const currentMembers = await getCurrentProjectMembers(
       projectId,

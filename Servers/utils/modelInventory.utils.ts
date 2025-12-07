@@ -2,7 +2,6 @@ import { ModelInventoryModel } from "../domain.layer/models/modelInventory/model
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
-import { buildVendorReplacements } from "./automation/vendor.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 import { buildModelReplacements, buildModelUpdateReplacements } from "./automation/modelInventory.automation.utils";

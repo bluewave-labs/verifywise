@@ -8,7 +8,6 @@ import {
 } from "../utils/project.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { QuestionStructEU } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
 import {
   countAnswersEUByProjectId,
   countSubControlsEUByProjectId,
@@ -21,7 +20,6 @@ import {
   getControlByIdForProjectQuery,
   getControlStructByControlCategoryIdForAProjectQuery,
   getTopicByIdForProjectQuery,
-  updateControlEUByIdQuery,
   updateQuestionEUByIdQuery,
   updateSubcontrolEUByIdQuery,
 } from "../utils/eu.utils";
@@ -33,8 +31,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
+import logger from "../utils/logger/fileLogger";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -826,7 +823,7 @@ export async function getAllProjectsComplianceProgress(
 }
 
 export async function getAllControlCategories(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   logProcessing({
@@ -837,7 +834,7 @@ export async function getAllControlCategories(
   logger.debug("🔍 Fetching all control categories");
 
   try {
-    const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
+    const controlCategories = await getAllControlCategoriesQuery();
 
     await logSuccess({
       eventType: "Read",
@@ -908,7 +905,7 @@ export async function getControlsByControlCategoryId(
   }
 }
 
-export async function getAllTopics(req: Request, res: Response): Promise<any> {
+export async function getAllTopics(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllTopics",
     functionName: "getAllTopics",
@@ -917,7 +914,7 @@ export async function getAllTopics(req: Request, res: Response): Promise<any> {
   logger.debug("🔍 Fetching all topics");
 
   try {
-    const topics = await getAllTopicsQuery(req.tenantId!);
+    const topics = await getAllTopicsQuery();
 
     await logSuccess({
       eventType: "Read",

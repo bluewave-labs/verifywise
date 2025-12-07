@@ -51,7 +51,6 @@ import { logFailure } from "../utils/logger/logHelper";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  generateRefreshToken,
   generateToken,
   getRefreshTokenPayload,
 } from "../utils/jwt.utils";
@@ -62,7 +61,6 @@ import {
   BusinessLogicException,
   ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
-import { getTenantHash } from "../tools/getTenantHash";
 import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";

@@ -5,7 +5,6 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,
@@ -13,7 +12,6 @@ import {
   ValidationResult,
   ValidationError
 } from './validation.utils';
-import { IRisk } from '../../domain.layer/interfaces/I.risk';
 import { validateRiskFrameworksQuery, validateRiskProjectsQuery } from '../risk.utils';
 
 /**

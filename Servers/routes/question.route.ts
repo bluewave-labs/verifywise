@@ -2,13 +2,10 @@ import express from "express";
 const router = express.Router();
 
 import {
-  createQuestion,
-  deleteQuestionById,
   getAllQuestions,
   getQuestionById,
   getQuestionsBySubtopicId,
   getQuestionsByTopicId,
-  updateQuestionById,
 } from "../controllers/question.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";

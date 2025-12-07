@@ -4,16 +4,11 @@ import { Transaction } from "sequelize";
 import { IAITrustCentreOverview } from "../domain.layer/interfaces/i.aiTrustCentreOverview";
 import { AITrustCenterResourcesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreResources.model";
 import { AITrustCenterSubprocessorsModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreSubprocessors.model";
-import { AITrustCenterIntroModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreIntro.model";
-import { AITrustCenterComplianceBadgesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreComplianceBadges.model";
-import { AITrustCenterCompanyDescriptionModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreCompanyDescription.model";
-import { AITrustCenterTermsAndContactModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreTermsAndContract.model";
-import { AITrustCenterInfoModel } from "../domain.layer/models/aiTrustCentre/aiTrustCenterInfo.model";
 import { IAITrustCentreResources } from "../domain.layer/interfaces/i.aiTrustCentreResources";
 import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrustCentreSubprocessors";
 import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentrePublic";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
+import { deleteFileById, getFileById } from "./fileUpload.utils";
 
 
 function isValidTenantSchema(tenant: string): boolean {
@@ -180,11 +175,8 @@ export const getAITrustCentreOverviewQuery = async (
 ) => {
   let updatedOverview: Partial<Record<keyof IAITrustCentreOverview, any>> = {};
 
-  const models = [AITrustCenterIntroModel, AITrustCenterComplianceBadgesModel, AITrustCenterCompanyDescriptionModel, AITrustCenterTermsAndContactModel, AITrustCenterInfoModel];
-
-  await Promise.all(["intro", "compliance_badges", "company_description", "terms_and_contact", "info"].map(async (section, i) => {
-    const model = models[i];
-    const query = `SELECT 
+  await Promise.all(["intro", "compliance_badges", "company_description", "terms_and_contact", "info"].map(async (section) => {
+    const query = `SELECT
       ${section === "info" ? "id, title, header_color, visible, intro_visible, compliance_badges_visible, company_description_visible, terms_and_contact_visible, resources_visible, subprocessor_visible, updated_at" : "*"}
     FROM "${tenant}".ai_trust_center${section === "info" ? "" : `_${section}`} LIMIT 1;`;
     const result = await sequelize.query(query) as [any[], number];
@@ -306,6 +298,7 @@ export const updateAITrustCentreOverviewQuery = async (
             updatedData[f] = (section as Record<string, any>)[f.toLowerCase()];
             return true;
           }
+          return false;
         })
         .map((f) => `${f} = :${f}`)
         .join(", ");
@@ -355,6 +348,7 @@ export const updateAITrustCentreResourceQuery = async (
         updatedResource[f as keyof typeof resource] = resource[f as keyof typeof resource];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -394,6 +388,7 @@ export const updateAITrustCentreSubprocessorQuery = async (
         updatedSubprocessor[f as keyof typeof subprocessor] = subprocessor[f as keyof typeof subprocessor];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

@@ -1,5 +1,4 @@
 import { sequelize } from "../../database/db";
-import { SubcontrolEUModel } from "../../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
 import { FileList } from "../../domain.layer/models/file/file.model";
 
 const getUserFilesMetaDataQuery = async (

@@ -7,7 +7,6 @@ import {
   validateNumber,
   validateString,
   validateForeignKey,
-  validateSchema,
   ValidationResult,
   ValidationError
 } from './validation.utils';
@@ -102,7 +101,7 @@ export const validatePaginationParams = (page: any, pageSize: any): ValidationEr
 /**
  * Validates file upload body parameters
  */
-export const validateFileUploadBody = async (body: any, tenant: string): Promise<ValidationError[]> => {
+export const validateFileUploadBody = async (body: any, _tenant: string): Promise<ValidationError[]> => {
   const errors: ValidationError[] = [];
 
   // Validate question_id (required)

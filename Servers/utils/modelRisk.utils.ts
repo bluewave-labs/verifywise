@@ -1,6 +1,5 @@
 import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import { IModelRisk } from "../domain.layer/interfaces/i.modelRisk";
-import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 

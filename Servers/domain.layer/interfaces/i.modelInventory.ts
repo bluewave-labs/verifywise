@@ -1,5 +1,4 @@
 import { ModelInventoryStatus } from "../enums/model-inventory-status.enum";
-import { FileManagerMetadata } from "../models/fileManager/fileManager.model";
 
 export interface IModelInventory {
   id?: number;

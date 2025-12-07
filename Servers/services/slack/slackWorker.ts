@@ -7,12 +7,12 @@ import { logSuccess, logFailure } from "../../utils/logger/logHelper";
 export const createNotificationWorker = () => {
   const worker = new Worker(
     "slack-notifications",
-    async (job: Job) => {
-      if (job.data.type === "policies") {
+    async (_job: Job) => {
+      if (_job.data.type === "policies") {
         const userId = await sendPolicyDueSoonNotification();
         return { success: true, sentAt: new Date().toISOString(), userId };
       } else {
-        throw new Error(`Unknown job type: ${job.data.type}`);
+        throw new Error(`Unknown job type: ${_job.data.type}`);
       }
     },
     { connection: redisClient },
@@ -29,7 +29,7 @@ export const createNotificationWorker = () => {
     });
   });
 
-  worker.on("failed", (job, err) => {
+  worker.on("failed", (_job, err) => {
     logFailure({
       eventType: "Update",
       description: "Processed Jobs",

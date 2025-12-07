@@ -7,8 +7,6 @@ import {
   getAllQuestionsQuery,
   getQuestionByIdQuery,
   updateQuestionByIdQuery,
-  RequestWithFile,
-  UploadedFile,
   getQuestionBySubTopicIdQuery,
   getQuestionByTopicIdQuery,
 } from "../utils/question.utils";

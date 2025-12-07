@@ -122,7 +122,7 @@ export class PolicyController {
   }
 
   // Get available policy tags
-  static async getPolicyTags(req: Request, res: Response) {
+  static async getPolicyTags(_req: Request, res: Response) {
     try {
       return res.status(200).json(STATUS_CODE[200](POLICY_TAGS));
     } catch (error) {

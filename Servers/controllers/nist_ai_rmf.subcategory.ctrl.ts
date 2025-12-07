@@ -26,7 +26,6 @@ import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { UploadedFile, RequestWithFile } from "../utils/question.utils";
 import { Transaction } from "sequelize";
 import { getUserProjects } from "../utils/user.utils";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 // helper function to delete files
 async function deleteFiles(

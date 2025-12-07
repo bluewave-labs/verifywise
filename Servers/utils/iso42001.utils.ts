@@ -155,7 +155,6 @@ export const countAnnexCategoryAssignmentsISOByProjectId = async (
 };
 
 export const getAllClausesQuery = async (
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = await sequelize.query(
@@ -362,7 +361,6 @@ export const getManagementSystemClausesQuery = async (
   transaction: Transaction | null = null
 ) => {
   const clausesStruct = (await getAllClausesQuery(
-    tenant,
     transaction
   )) as (ClauseStructISOModel &
     Partial<SubClauseStructISOModel & SubClauseISOModel>[])[]; // wrong type
@@ -385,7 +383,6 @@ export const getManagementSystemClausesQuery = async (
 };
 
 export const getAllAnnexesQuery = async (
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = await sequelize.query(
@@ -460,7 +457,6 @@ export const getAnnexByIdQuery = async (
 
 export const getAnnexCategoriesByAnnexIdQuery = async (
   annexId: number,
-  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexCategories = await sequelize.query(
@@ -567,7 +563,6 @@ export const getReferenceControlsQuery = async (
   transaction: Transaction | null = null
 ) => {
   const annexesStruct = (await getAllAnnexesQuery(
-    tenant,
     transaction
   )) as (AnnexStructISOModel &
     Partial<AnnexCategoryISOModel & AnnexCategoryStructISOModel>[])[]; // wrong type
@@ -942,6 +937,7 @@ export const updateSubClauseQuery = async (
       (subClauseResult as any).risks.push(risk.projects_risks_id);
     }
   }
+  return subClauseResult;
 };
 
 export const updateAnnexCategoryQuery = async (

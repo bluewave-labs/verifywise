@@ -108,6 +108,7 @@ export const updateControlCategoryByIdQuery = async (
           controlCategory[f as keyof ControlCategoryModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

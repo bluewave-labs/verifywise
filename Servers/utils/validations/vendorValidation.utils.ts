@@ -5,7 +5,6 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,
@@ -14,7 +13,6 @@ import {
   ValidationError,
   VALIDATION_PATTERNS
 } from './validation.utils';
-import { IVendor } from '../../domain.layer/interfaces/i.vendor';
 
 /**
  * Validation constants for vendors

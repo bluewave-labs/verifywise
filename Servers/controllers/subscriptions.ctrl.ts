@@ -11,7 +11,7 @@ import {
 import { sequelize } from "../database/db";
 import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscriptions.model";
 
-export async function getSubscriptionController(req: Request, res: Response) {
+export async function getSubscriptionController(_req: Request, res: Response) {
   logStructured(
     "processing",
     "Fetching subscriptions",
@@ -136,13 +136,6 @@ export async function updateSubscriptionController(
   res: Response
 ) {
   const subscriptionId = parseInt(req.params.id);
-  // Get existing subscription for business rule validation
-  let existingSubscription = null;
-  try {
-    existingSubscription = await getSubscriptionById(subscriptionId);
-  } catch (error) {
-    // Continue without existing data if query fails
-  }
 
   const transaction = await sequelize.transaction();
   const { tier_id, stripe_sub_id, status, start_date, end_date } = req.body;

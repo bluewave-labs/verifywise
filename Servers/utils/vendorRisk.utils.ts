@@ -140,6 +140,7 @@ export const updateVendorRiskByIdQuery = async (
           vendorRisk[f as keyof VendorRiskModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -156,7 +157,7 @@ export const updateVendorRiskByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteVendorRiskByIdQuery = async (

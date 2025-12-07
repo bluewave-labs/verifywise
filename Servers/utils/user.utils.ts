@@ -310,6 +310,7 @@ export const updateUserByIdQuery = async (
         updateUser[f as keyof UserModel] = user[f as keyof UserModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -326,7 +327,7 @@ export const updateUserByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 /**

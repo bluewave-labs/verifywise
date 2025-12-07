@@ -87,11 +87,9 @@ export const sendAutomationEmail = async (
             attachments: attachments || [],
         };
 
-        // Validate email options to prevent security issues
         validateEmailOptions(emailOptions);
 
-        // Send email using the configured provider
-        const result = await provider.sendEmail(emailOptions);
+        await provider.sendEmail(emailOptions);
     }
 }
 

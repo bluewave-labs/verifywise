@@ -41,9 +41,7 @@ import {
   getOrganizationsExistsQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
-import { invite } from "./vwmailer.ctrl";
 import { createNewTenant } from "../scripts/createNewTenant";
-import { createNewUserQuery } from "../utils/user.utils";
 import { createNewUserWrapper } from "./user.ctrl";
 import {
   ValidationException,
@@ -78,7 +76,7 @@ import { generateUserTokens } from "../utils/auth.utils";
  * }
  */
 export async function getAllOrganizations(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   logStructured(
@@ -144,7 +142,7 @@ export async function getAllOrganizations(
  * }
  */
 export async function getOrganizationsExists(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   try {

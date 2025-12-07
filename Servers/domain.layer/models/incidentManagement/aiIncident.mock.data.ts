@@ -1,8 +1,4 @@
 import {
-    INCIDENT_SEVERITY_ENUM,
-    INCIDENT_STATUS_ENUM,
-} from "../../../utils/validations/incidentManagementValidation.utils";
-import {
     AIIncidentManagementApprovalStatus,
     AIIncidentManagementStatus,
     IncidentType,

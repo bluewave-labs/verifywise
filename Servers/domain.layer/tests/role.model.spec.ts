@@ -13,7 +13,7 @@ jest.mock("sequelize-typescript", () => ({
   Table: jest.fn(),
   Model: class MockModel {
     static isInitialized = true;
-    constructor(data?: any) { }
+    constructor(_data?: any) { }
     static init() { }
   },
 }));
@@ -25,7 +25,7 @@ describe("RoleModel", () => {
   const validRoleData = {
     name: "Admin",
     description: "Administrator role with full access",
-  }
+  };
 
   it("should create a new role with valid data", async () => {
     const role = await RoleModel.createRole(validRoleData.name, validRoleData.description);

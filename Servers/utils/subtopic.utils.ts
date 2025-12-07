@@ -67,6 +67,7 @@ export const updateSubtopicByIdQuery = async (
           subtopic[f as keyof SubtopicModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -83,7 +84,7 @@ export const updateSubtopicByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  return result[0] || null;
 };
 
 export const deleteSubtopicByIdQuery = async (

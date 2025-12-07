@@ -54,7 +54,7 @@ const IncidentManagement: React.FC = () => {
     const [selectedIncident, setSelectedIncident] = useState<AIIncidentManagementModel | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [isModalLoading, setIsModalLoading] = useState(false);
+    const [, setIsModalLoading] = useState(false);
     const [isNewIncidentModalOpen, setIsNewIncidentModalOpen] = useState(false);
     const [, setSelectedIncidentId] = useState<string | null>(null);
     const [, setUsers] = useState<any[]>([]);

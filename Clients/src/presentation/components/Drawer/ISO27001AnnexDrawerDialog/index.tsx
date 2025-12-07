@@ -241,17 +241,32 @@ const VWISO27001AnnexDrawerDialog = ({
     });
   };
 
-  const handleDeleteFile = (fileId: string | number) => {
-    if (typeof fileId === "string") {
-      setUploadFiles(uploadFiles.filter((f) => f.id !== fileId));
-    } else {
-      setDeletedFilesIds([...deletedFilesIds, fileId]);
+  const handleDeleteEvidenceFile = (fileId: string) => {
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
       handleAlert({
-        variant: "info",
-        body: "Please save the changes to delete the file.",
+        variant: "error",
+        body: "Invalid file ID",
         setAlert,
       });
+      return;
     }
+    setEvidenceFiles((prev) => prev.filter((f) => f.id.toString() !== fileId));
+    setDeletedFilesIds((prev) => [...prev, fileIdNumber]);
+    handleAlert({
+      variant: "info",
+      body: "File marked for deletion. Save to apply changes.",
+      setAlert,
+    });
+  };
+
+  const handleDeleteUploadFile = (fileId: string) => {
+    setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
+    handleAlert({
+      variant: "info",
+      body: "File removed from upload queue.",
+      setAlert,
+    });
   };
 
   const handleDownloadFile = async (fileId: number, fileName: string) => {
@@ -890,29 +905,47 @@ const VWISO27001AnnexDrawerDialog = ({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          border: "1px solid #D0D5DD",
+                          padding: "10px 12px",
+                          border: "1px solid #EAECF0",
                           borderRadius: "4px",
-                          padding: "8px 12px",
-                          backgroundColor: "#FAFBFC",
+                          backgroundColor: "#FFFFFF",
+                          "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                          },
                         }}
                       >
                         <Box
                           sx={{
                             display: "flex",
-                            alignItems: "center",
                             gap: 1.5,
+                            flex: 1,
+                            minWidth: 0,
                           }}
                         >
                           <FileIcon size={18} color="#475467" />
-                          <Box>
-                            <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: "#1F2937",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               {file.fileName}
                             </Typography>
-                            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                              {((file.size || 0) / 1024).toFixed(1)} KB
-                            </Typography>
+                            {file.size && (
+                              <Typography
+                                sx={{ fontSize: 11, color: "#6B7280" }}
+                              >
+                                {((file.size || 0) / 1024).toFixed(1)} KB
+                              </Typography>
+                            )}
                           </Box>
                         </Box>
+
                         <Box sx={{ display: "flex", gap: 0.5 }}>
                           <Tooltip title="Download file">
                             <IconButton
@@ -925,6 +958,13 @@ const VWISO27001AnnexDrawerDialog = ({
                                   file.fileName
                                 )
                               }
+                              sx={{
+                                color: "#475467",
+                                "&:hover": {
+                                  color: "#13715B",
+                                  backgroundColor: "rgba(19, 113, 91, 0.08)",
+                                },
+                              }}
                             >
                               <DownloadIcon size={16} />
                             </IconButton>
@@ -932,7 +972,17 @@ const VWISO27001AnnexDrawerDialog = ({
                           <Tooltip title="Delete file">
                             <IconButton
                               size="small"
-                              onClick={() => handleDeleteFile(file.id)}
+                              onClick={() =>
+                                handleDeleteEvidenceFile(file.id.toString())
+                              }
+                              disabled={isEditingDisabled}
+                              sx={{
+                                color: "#475467",
+                                "&:hover": {
+                                  color: "#D32F2F",
+                                  backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                },
+                              }}
                             >
                               <DeleteIcon size={16} />
                             </IconButton>
@@ -958,29 +1008,54 @@ const VWISO27001AnnexDrawerDialog = ({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        border: "1px solid #FCD34D",
+                        padding: "10px 12px",
+                        border: "1px solid #FEF3C7",
                         borderRadius: "4px",
-                        padding: "8px 12px",
                         backgroundColor: "#FFFBEB",
                       }}
                     >
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                        sx={{
+                          display: "flex",
+                          gap: 1.5,
+                          flex: 1,
+                          minWidth: 0,
+                        }}
                       >
-                        <FileIcon size={18} color="#92400E" />
-                        <Box>
-                          <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                        <FileIcon size={18} color="#D97706" />
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            sx={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "#92400E",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             {file.fileName}
                           </Typography>
-                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-                            {((file.size || 0) / 1024).toFixed(1)} KB
-                          </Typography>
+                          {file.size && (
+                            <Typography sx={{ fontSize: 11, color: "#B45309" }}>
+                              {((file.size || 0) / 1024).toFixed(1)} KB
+                            </Typography>
+                          )}
                         </Box>
                       </Box>
-                      <Tooltip title="Remove">
+                      <Tooltip title="Remove from queue">
                         <IconButton
                           size="small"
-                          onClick={() => handleDeleteFile(file.id)}
+                          onClick={() =>
+                            handleDeleteUploadFile(file.id.toString())
+                          }
+                          sx={{
+                            color: "#92400E",
+                            "&:hover": {
+                              color: "#D97706",
+                              backgroundColor: "rgba(217, 119, 6, 0.08)",
+                            },
+                          }}
                         >
                           <DeleteIcon size={16} />
                         </IconButton>
@@ -994,14 +1069,15 @@ const VWISO27001AnnexDrawerDialog = ({
               {evidenceFiles.length === 0 && uploadFiles.length === 0 && (
                 <Box
                   sx={{
-                    border: "2px dashed #D0D5DD",
-                    borderRadius: "4px",
-                    padding: "20px",
                     textAlign: "center",
-                    backgroundColor: "#FAFBFC",
+                    py: 4,
+                    color: "#6B7280",
+                    border: "2px dashed #D1D5DB",
+                    borderRadius: 1,
+                    backgroundColor: "#F9FAFB",
                   }}
                 >
-                  <Typography sx={{ color: "#6B7280" }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
                     No evidence files uploaded yet
                   </Typography>
                 </Box>

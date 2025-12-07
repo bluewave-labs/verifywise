@@ -206,6 +206,7 @@ const AutomationsPage: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [toast]);
 
   // Close toast handler

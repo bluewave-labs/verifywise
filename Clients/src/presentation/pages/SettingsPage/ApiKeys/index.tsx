@@ -79,6 +79,7 @@ const ApiKeys = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [alert]);
 
   const handleTokenNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

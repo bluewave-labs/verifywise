@@ -72,6 +72,7 @@ const validateDuration = (duration: string): string | undefined => {
   // const invalidParts = parts.filter(part => !VALIDATION_RULES.DURATION_PATTERN.test(part));
 
   // return invalidParts.length > 0 ? ERROR_MESSAGES.INVALID_DURATION : undefined;
+  return undefined;
 };
 
 // Utility: Validate people count (Single Responsibility)

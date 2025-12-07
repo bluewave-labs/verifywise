@@ -320,6 +320,7 @@ const IncidentManagement: React.FC = () => {
             }, 3000);
             return () => clearTimeout(timer);
         }
+        return;
     }, [alert]);
 
     /** -------------------- CHECK FOR NAVIGATION STATE -------------------- */

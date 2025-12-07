@@ -90,6 +90,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [alert]);
 
   const roleItems = useMemo(

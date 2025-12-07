@@ -63,16 +63,16 @@ const Questions = ({
         const targetQuestion = questionsData.find(
           (question: Question) => question.question_id === targetQuestionId
         );
-        
+
         if (targetQuestion && questionRefs.current[targetQuestionId]) {
           setHighlightedQuestionId(targetQuestionId);
           hasScrolledRef.current = questionId;
-          
+
           questionRefs.current[targetQuestionId]?.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
           });
-          
+
           setTimeout(() => {
             setHighlightedQuestionId(null);
           }, 3000);
@@ -81,6 +81,7 @@ const Questions = ({
 
       return () => clearTimeout(timeoutId);
     }
+    return;
   }, [questionsData]);
 
   return (

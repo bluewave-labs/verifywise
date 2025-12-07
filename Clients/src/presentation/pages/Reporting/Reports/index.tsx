@@ -55,6 +55,7 @@ const Reports: React.FC<ReportsProps> = ({
       }, 500);
       return () => clearTimeout(timer);
     }
+    return;
   }, [externalRefreshKey]);
 
   const { data: projects = [], isLoading: loadingProjects } = useProjects();

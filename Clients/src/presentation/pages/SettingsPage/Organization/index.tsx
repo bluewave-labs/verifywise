@@ -375,6 +375,7 @@ const Organization = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [alert]);
 
   // Cleanup function to revoke object URLs when component unmounts

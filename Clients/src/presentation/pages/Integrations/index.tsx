@@ -189,6 +189,7 @@ const Integrations: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [toast]);
 
   if (!isAdmin) {

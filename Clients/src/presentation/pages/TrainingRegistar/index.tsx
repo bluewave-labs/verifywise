@@ -144,6 +144,7 @@ const Training: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [alert]);
 
   // Check for openCreateModal state from navigation

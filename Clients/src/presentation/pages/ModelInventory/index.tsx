@@ -792,6 +792,7 @@ const ModelInventory: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, [alert]);
 
   // Handle modelId and evidenceId URL params to open edit modal from Wise Search

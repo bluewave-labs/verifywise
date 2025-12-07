@@ -1,6 +1,4 @@
-import {
-  VendorRiskModel,
-} from "../domain.layer/models/vendorRisk/vendorRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { IVendorRisk } from "../domain.layer/interfaces/i.vendorRisk";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
@@ -8,21 +6,21 @@ import { QueryTypes, Transaction } from "sequelize";
 export const getVendorRisksByProjectIdQuery = async (
   projectId: number,
   tenant: string,
-  filter: 'active' | 'deleted' | 'all' = 'active'
+  filter: "active" | "deleted" | "all" = "active"
 ): Promise<IVendorRisk[]> => {
-  let whereClause = '';
+  let whereClause = "";
   switch (filter) {
-    case 'active':
-      whereClause = 'AND is_deleted = false';
+    case "active":
+      whereClause = "AND is_deleted = false";
       break;
-    case 'deleted':
-      whereClause = 'AND is_deleted = true';
+    case "deleted":
+      whereClause = "AND is_deleted = true";
       break;
-    case 'all':
-      whereClause = '';
+    case "all":
+      whereClause = "";
       break;
   }
-  
+
   const vendorRisks = await sequelize.query(
     `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id) ${whereClause} ORDER BY created_at DESC, id ASC;`,
     {
@@ -37,21 +35,21 @@ export const getVendorRisksByProjectIdQuery = async (
 export const getVendorRisksByVendorIdQuery = async (
   vendorId: number,
   tenant: string,
-  filter: 'active' | 'deleted' | 'all' = 'active'
+  filter: "active" | "deleted" | "all" = "active"
 ): Promise<IVendorRisk[]> => {
-  let whereClause = '';
+  let whereClause = "";
   switch (filter) {
-    case 'active':
-      whereClause = 'AND is_deleted = false';
+    case "active":
+      whereClause = "AND is_deleted = false";
       break;
-    case 'deleted':
-      whereClause = 'AND is_deleted = true';
+    case "deleted":
+      whereClause = "AND is_deleted = true";
       break;
-    case 'all':
-      whereClause = '';
+    case "all":
+      whereClause = "";
       break;
   }
-  
+
   const vendorRisks = await sequelize.query(
     `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id = :vendor_id ${whereClause} ORDER BY created_at DESC, id ASC;`,
     {
@@ -68,7 +66,9 @@ export const getVendorRiskByIdQuery = async (
   tenant: string,
   includeDeleted: boolean = false
 ): Promise<IVendorRisk | null> => {
-  const whereClause = includeDeleted ? 'WHERE id = :id' : 'WHERE id = :id AND is_deleted = false';
+  const whereClause = includeDeleted
+    ? "WHERE id = :id"
+    : "WHERE id = :id AND is_deleted = false";
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".vendorRisks ${whereClause} ORDER BY created_at DESC, id ASC`,
     {
@@ -140,6 +140,7 @@ export const updateVendorRiskByIdQuery = async (
           vendorRisk[f as keyof VendorRiskModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -197,21 +198,21 @@ export const deleteVendorRisksForVendorQuery = async (
 
 export const getAllVendorRisksAllProjectsQuery = async (
   tenant: string,
-  filter: 'active' | 'deleted' | 'all' = 'active'
+  filter: "active" | "deleted" | "all" = "active"
 ) => {
-  let whereClause = '';
+  let whereClause = "";
   switch (filter) {
-    case 'active':
-      whereClause = 'WHERE vr.is_deleted = false';
+    case "active":
+      whereClause = "WHERE vr.is_deleted = false";
       break;
-    case 'deleted':
-      whereClause = 'WHERE vr.is_deleted = true';
+    case "deleted":
+      whereClause = "WHERE vr.is_deleted = true";
       break;
-    case 'all':
-      whereClause = '';
+    case "all":
+      whereClause = "";
       break;
   }
-  
+
   const risks = await sequelize.query(
     `SELECT 
       vr.id AS risk_id,

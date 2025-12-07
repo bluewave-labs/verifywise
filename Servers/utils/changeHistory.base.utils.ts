@@ -10,7 +10,6 @@ import { sequelize } from "../database/db";
 import { Transaction, QueryTypes } from "sequelize";
 import {
   EntityType,
-  EntityConfig,
   getEntityConfig,
   GENERIC_FORMATTERS,
 } from "../config/changeHistory.config";
@@ -187,8 +186,14 @@ export const trackEntityChanges = async (
   entityType: EntityType,
   oldData: any,
   newData: any
-): Promise<Array<{ fieldName: string; oldValue: string; newValue: string }>> => {
-  const changes: Array<{ fieldName: string; oldValue: string; newValue: string }> = [];
+): Promise<
+  Array<{ fieldName: string; oldValue: string; newValue: string }>
+> => {
+  const changes: Array<{
+    fieldName: string;
+    oldValue: string;
+    newValue: string;
+  }> = [];
   const config = getEntityConfig(entityType);
 
   for (const field of config.fieldsToTrack) {
@@ -257,8 +262,6 @@ export const recordEntityDeletion = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<void> => {
-  const config = getEntityConfig(entityType);
-
   // Get the entity name from the config or use a default
   const entityName = entityType
     .split("_")

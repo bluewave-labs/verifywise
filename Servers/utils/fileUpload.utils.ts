@@ -1,7 +1,7 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
 import { FileModel } from "../domain.layer/models/file/file.model";
-import { QueryTypes, Transaction } from "sequelize";
+import { Transaction } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 /**
@@ -90,7 +90,11 @@ export const uploadFile = async (
   return result[0];
 };
 
-export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
+export const deleteFileById = async (
+  id: number,
+  tenant: string,
+  transaction: Transaction
+) => {
   const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id returning id`;
   console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {
@@ -113,7 +117,10 @@ export const getFileById = async (id: number, tenant: string) => {
   return result[0];
 };
 
-export const getFileMetadataByProjectId = async (project_id: number, tenant: string) => {
+export const getFileMetadataByProjectId = async (
+  project_id: number,
+  tenant: string
+) => {
   const query = `SELECT 
   f.id, 
   f.filename, 

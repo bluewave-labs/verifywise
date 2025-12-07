@@ -2,7 +2,6 @@ import { Job, Worker } from "bullmq";
 import redisClient from "../../database/redis";
 import logger from "../../utils/logger/fileLogger";
 import { MLFlowService } from "../../src/services/mlflow.service";
-import { MLFlowIntegrationModel } from "../../domain.layer/models/mlflowIntegration/mlflowIntegration.model";
 import { ValidationException } from "../../domain.layer/exceptions/custom.exception";
 import { getTenantHash } from "../../tools/getTenantHash";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
@@ -29,14 +28,14 @@ export const createMlflowSyncWorker = () => {
 
   const syncOrganization = async (
     organizationId: number,
-    tenant: string,
+    tenant: string
   ): Promise<SyncJobResult> => {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
       try {
         const models = await service.getModels(tenant);
         const modelCount = models.length;
         logger.info(
-          `Synced ${modelCount} MLFlow model(s) for organization ${tenant}`,
+          `Synced ${modelCount} MLFlow model(s) for organization ${tenant}`
         );
         return {
           organizationId,
@@ -50,7 +49,7 @@ export const createMlflowSyncWorker = () => {
 
         if (isValidationError) {
           logger.warn(
-            `Skipping MLFlow sync for org ${organizationId}: ${message}`,
+            `Skipping MLFlow sync for org ${organizationId}: ${message}`
           );
           return {
             organizationId,
@@ -61,13 +60,13 @@ export const createMlflowSyncWorker = () => {
         }
 
         logger.error(
-          `MLFlow sync attempt ${attempt} failed for org ${organizationId}: ${message}`,
+          `MLFlow sync attempt ${attempt} failed for org ${organizationId}: ${message}`
         );
 
         if (attempt < MAX_RETRIES) {
           const delay = BASE_DELAY_MS * 2 ** (attempt - 1);
           logger.debug(
-            `Retrying MLFlow sync for org ${organizationId} in ${delay}ms`,
+            `Retrying MLFlow sync for org ${organizationId} in ${delay}ms`
           );
           await sleep(delay);
           continue;
@@ -98,7 +97,9 @@ export const createMlflowSyncWorker = () => {
       const organizations = await getAllOrganizationsQuery();
       for (let org of organizations) {
         const tenantHash = getTenantHash(org.id!);
-        const result = await sequelize.query(`SELECT * FROM "${tenantHash}".mlflow_integrations;`) as [IMLFlowIntegration[], number];
+        const result = (await sequelize.query(
+          `SELECT * FROM "${tenantHash}".mlflow_integrations;`
+        )) as [IMLFlowIntegration[], number];
         const integrations = result[0];
 
         if (!integrations.length) {
@@ -114,7 +115,7 @@ export const createMlflowSyncWorker = () => {
                 ? "Scheduled sync skipped: last connection test failed"
                 : "Scheduled sync skipped: run a successful connection test.";
             logger.info(
-              `Skipping MLFlow sync for org ${org.id!} until a successful connection test is recorded.`,
+              `Skipping MLFlow sync for org ${org.id!} until a successful connection test is recorded.`
             );
             await service.recordSyncResult("error", tenantHash, reason);
             results.push({
@@ -126,24 +127,27 @@ export const createMlflowSyncWorker = () => {
             continue;
           }
           const result = await syncOrganization(org.id!, tenantHash);
-          logger.info(`MLFlow sync result for org ${org.id!}: ${result.success ? "Success" : "Failure"}`);
+          logger.info(
+            `MLFlow sync result for org ${org.id!}: ${result.success ? "Success" : "Failure"}`
+          );
           const syncMessage = result.success
             ? `Synced ${result.modelCount} model(s) via scheduled job`
             : result.error || "Failed to sync MLFlow models via scheduled job";
           await service.recordSyncResult(
             result.success ? "success" : "error",
             tenantHash,
-            syncMessage,
+            syncMessage
           );
           results.push(result);
         }
 
-        // return results;
+        return results;
       }
+      return [];
     },
     {
       connection: redisClient,
       concurrency: 1,
-    },
+    }
   );
 };

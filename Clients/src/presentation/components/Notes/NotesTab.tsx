@@ -245,6 +245,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
 
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [alert]);
 
   return (

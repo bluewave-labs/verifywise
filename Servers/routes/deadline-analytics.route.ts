@@ -17,6 +17,7 @@
  */
 
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   getDeadlineSummary,
   getDeadlineDetails,
@@ -25,6 +26,35 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 const router = express.Router();
+
+/**
+ * Rate limiting configuration for deadline analytics endpoints
+ * Uses user ID for key generation to properly limit per user, not per IP
+ */
+const deadlineRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // limit each user to 60 requests per windowMs
+  message: {
+    error: 'Too many requests, please try again later.',
+    retryAfter: 60
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    // Use user ID for authenticated users (guaranteed by auth middleware)
+    return String(req.userId);
+  },
+  // Skip successful requests from rate limiting
+  skipSuccessfulRequests: false,
+  // Only count failed requests towards rate limit
+  skipFailedRequests: false,
+});
+
+// Apply authentication middleware FIRST (must be before rate limiter)
+router.use(authenticateJWT);
+
+// Apply rate limiting after authentication
+router.use(deadlineRateLimiter);
 
 /**
  * GET /api/deadline-analytics/summary
@@ -36,29 +66,8 @@ const router = express.Router();
  * - entityType (optional): 'tasks' | 'vendors' | 'policies' | 'risks' (default: 'tasks')
  *
  * Authentication: Required (JWT)
- *
- * Example:
- * GET /api/deadline-analytics/summary?entityType=tasks
- *
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "tasks": {
- *       "overdue": 3,
- *       "dueSoon": 5,
- *       "threshold": 14
- *     }
- *   },
- *   "message": "OK",
- *   "timestamp": "2025-01-02T10:30:00.000Z",
- *   "performance": {
- *     "queryTime": 45,
- *     "cached": false
- *   }
- * }
  */
-router.get("/summary", authenticateJWT, getDeadlineSummary);
+router.get("/summary", getDeadlineSummary);
 
 /**
  * GET /api/deadline-analytics/details
@@ -73,44 +82,8 @@ router.get("/summary", authenticateJWT, getDeadlineSummary);
  * - limit (optional): Items per page (default: 20, max: 100)
  *
  * Authentication: Required (JWT)
- *
- * Example:
- * GET /api/deadline-analytics/details?entityType=tasks&category=overdue&page=1&limit=10
- *
- * Response:
- * {
- *   "success": true,
- *   "data": [
- *     {
- *       "id": 123,
- *       "title": "Complete project documentation",
- *       "description": "Write comprehensive documentation for the new feature",
- *       "due_date": "2024-12-25T00:00:00.000Z",
- *       "priority": "high",
- *       "status": "inProgress",
- *       "creator": {
- *         "name": "John Doe",
- *         "email": "john@example.com"
- *       },
- *       "created_at": "2024-12-01T10:00:00.000Z",
- *       "updated_at": "2024-12-20T15:30:00.000Z"
- *     }
- *   ],
- *   "message": "OK",
- *   "timestamp": "2025-01-02T10:30:00.000Z",
- *   "performance": {
- *     "queryTime": 67,
- *     "cached": false
- *   },
- *   "pagination": {
- *     "page": 1,
- *     "limit": 10,
- *     "total": 3,
- *     "hasMore": false
- *   }
- * }
  */
-router.get("/details", authenticateJWT, getDeadlineDetails);
+router.get("/details", getDeadlineDetails);
 
 /**
  * GET /api/deadline-analytics/config
@@ -119,21 +92,7 @@ router.get("/details", authenticateJWT, getDeadlineDetails);
  * Returns thresholds and completed status definitions.
  *
  * Authentication: Required (JWT)
- *
- * Example:
- * GET /api/deadline-analytics/config
- *
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "dueSoonThresholdDays": 14,
- *     "completedStatuses": ["COMPLETED", "DELETED"]
- *   },
- *   "message": "OK",
- *   "timestamp": "2025-01-02T10:30:00.000Z"
- * }
  */
-router.get("/config", authenticateJWT, getDeadlineConfig);
+router.get("/config", getDeadlineConfig);
 
 export default router;

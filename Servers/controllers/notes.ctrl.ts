@@ -19,6 +19,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { NotesAttachedToEnum } from "../domain.layer/models/notes/notes.model";
 import { NotesService } from "../services/notesService";
+import { getNoteByIdQuery } from "../utils/notes.utils";
 import {
   ValidationException,
   BusinessLogicException,
@@ -252,6 +253,14 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
       );
     }
 
+    // Get existing note for change tracking
+    let existingNote: Awaited<ReturnType<typeof getNoteByIdQuery>> | null = null;
+    try {
+      existingNote = await getNoteByIdQuery(noteId, tenant_id);
+    } catch {
+      // Continue without existing data if query fails
+    }
+
     // Use service for business logic (includes permission checks and sanitization)
     const updatedNote = await NotesService.updateNote(
       noteId,
@@ -269,7 +278,12 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
         entityType: (updatedNote as any).attached_to || "",
         entityId: parseInt((updatedNote as any).attached_to_id) || 0,
         note: updatedNote.toJSON() as unknown as Record<string, unknown>,
-        changes: {},
+        changes: existingNote
+          ? computeChanges(
+              existingNote.toJSON() as unknown as Record<string, unknown>,
+              updatedNote.toJSON() as unknown as Record<string, unknown>
+            )
+          : {},
       },
       {
         triggeredBy: { userId: userId },

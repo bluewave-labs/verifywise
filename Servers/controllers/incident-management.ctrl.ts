@@ -353,6 +353,33 @@ export async function updateIncidentById(req: Request, res: Response) {
       "updateIncidentById",
       "incidentManagement.controller.ts"
     );
+
+    // Emit incident updated event (fire-and-forget)
+    emitEvent(
+      PluginEvent.INCIDENT_UPDATED,
+      {
+        incidentId: incidentId,
+        projectId:
+          typeof savedIncident.ai_project === "number"
+            ? savedIncident.ai_project
+            : undefined,
+        incident: savedIncident.toSafeJSON() as unknown as Record<
+          string,
+          unknown
+        >,
+        changes: existingIncident
+          ? computeChanges(
+              existingIncident.toSafeJSON() as unknown as Record<string, unknown>,
+              savedIncident.toSafeJSON() as unknown as Record<string, unknown>
+            )
+          : {},
+      },
+      {
+        triggeredBy: { userId: req.userId! },
+        tenant: req.tenantId || "default",
+      }
+    );
+
     return res.status(200).json(STATUS_CODE[200](savedIncident.toSafeJSON()));
   } catch (error) {
     await transaction.rollback();

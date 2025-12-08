@@ -4,14 +4,17 @@ FROM node:20-alpine AS build
 # Step 2: Set the working directory
 WORKDIR /app
 
-# Step 3: Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Step 3: Copy package.json and package-lock.json from Clients directory
+COPY Clients/package.json Clients/package-lock.json ./
 
 # Step 4: Install dependencies
 RUN npm install
 
-# Step 5: Copy the rest of the application files
-COPY . .
+# Step 5: Copy the shared directory (needed for @user-guide-content alias)
+COPY shared/ /app/shared/
+
+# Step 6: Copy the rest of the Clients application files
+COPY Clients/ .
 
 ARG VITE_SLACK_CLIENT_ID
 ENV VITE_SLACK_CLIENT_ID=$VITE_SLACK_CLIENT_ID
@@ -32,7 +35,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # COPY upgrade.html /usr/share/nginx/html/upgrade.html
 
 # Step 10: Copy the custom NGINX configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY Clients/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Step 11: Expose port 80
 EXPOSE 80

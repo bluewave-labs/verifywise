@@ -63,7 +63,7 @@ import {
 } from "../controllers/plugin.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
+import { generalApiLimiter } from "../middleware/rateLimit.middleware";
 
 /**
  * GET /plugins
@@ -98,7 +98,7 @@ router.get("/ui-extensions", authenticateJWT, getPluginUIExtensions);
  * Requires authentication.
  * Rate limited to prevent abuse.
  */
-router.post("/upload", authenticateJWT, fileOperationsLimiter, upload.single("plugin"), uploadPlugin);
+router.post("/upload", authenticateJWT, generalApiLimiter, upload.single("plugin"), uploadPlugin);
 
 /**
  * POST /plugins/install-from-url
@@ -109,7 +109,7 @@ router.post("/upload", authenticateJWT, fileOperationsLimiter, upload.single("pl
  * Requires authentication.
  * Rate limited to prevent abuse.
  */
-router.post("/install-from-url", authenticateJWT, fileOperationsLimiter, installFromUrl);
+router.post("/install-from-url", authenticateJWT, generalApiLimiter, installFromUrl);
 
 /**
  * GET /plugins/:id

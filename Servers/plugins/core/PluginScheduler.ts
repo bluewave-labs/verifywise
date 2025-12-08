@@ -5,7 +5,7 @@
  * Plugins can schedule jobs using cron patterns or specific intervals.
  */
 
-import { Queue, Job } from "bullmq";
+import { Queue } from "bullmq";
 import redisClient from "../../database/redis";
 import logger from "../../utils/logger/fileLogger";
 import {

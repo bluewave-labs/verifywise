@@ -130,12 +130,6 @@ function getEntityName(entity: Record<string, unknown>, ...keys: string[]): stri
   return "Untitled";
 }
 
-// Helper to safely extract id from nested entity
-function getEntityId(entity: Record<string, unknown>): number {
-  const id = entity.id;
-  return typeof id === "number" ? id : 0;
-}
-
 // Extended manifest type to include UI extensions
 interface ExtendedManifest extends PluginManifest {
   ui?: {

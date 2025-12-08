@@ -353,7 +353,7 @@ function pluginToDTO(
  * List all registered plugins with their status.
  */
 export async function getAllPlugins(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {
@@ -773,7 +773,7 @@ export async function updatePluginConfig(
  * Get plugin system statistics.
  */
 export async function getPluginStats(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {
@@ -811,7 +811,7 @@ interface DashboardWidgetExtension {
  * Returns dashboard widgets that should be rendered.
  */
 export async function getPluginUIExtensions(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {

@@ -5,8 +5,8 @@
  * This module should be imported and called during server startup.
  */
 
-import express, { Application, Router } from "express";
-import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, PluginContext, MiddlewareRegistry } from "./core";
+import { Application, Router } from "express";
+import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, MiddlewareRegistry } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
 import { builtinPlugins } from "./builtin";
@@ -326,7 +326,7 @@ export function deletePluginFiles(pluginId: string): boolean {
  * @param pluginId - Plugin ID for logging
  * @returns The loaded Plugin object, or null if not found
  */
-async function loadFullPlugin(pluginPath: string, pluginId: string): Promise<Plugin | null> {
+async function loadFullPlugin(pluginPath: string, _pluginId: string): Promise<Plugin | null> {
   // Check for index.js or index.ts
   // Prefer .js files as they don't have import resolution issues with dynamic imports
   const jsPath = path.join(pluginPath, "index.js");

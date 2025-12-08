@@ -61,7 +61,7 @@ import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 import pluginRoutes from "./routes/plugin.route";
 import marketplaceRoutes from "./routes/marketplace.route";
-import { initializePlugins, shutdownPlugins } from "./plugins/init";
+import { initializePlugins } from "./plugins/init";
 import { createPluginMiddlewareWrapper, middlewareRegistry } from "./plugins/core";
 
 const swaggerDoc = YAML.load("./swagger.yaml");

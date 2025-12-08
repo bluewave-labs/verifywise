@@ -115,7 +115,7 @@ async function findActiveAutomations(
  * Build replacements object from event payload for template variable substitution
  */
 function buildReplacementsFromPayload(
-  event: PluginEvent,
+  _event: PluginEvent,
   payload: Record<string, unknown>
 ): Record<string, string> {
   const replacements: Record<string, string> = {};
@@ -134,9 +134,6 @@ function buildReplacementsFromPayload(
     if (triggeredBy.email) replacements["{{user_email}}"] = triggeredBy.email;
     if (triggeredBy.name) replacements["{{user_name}}"] = triggeredBy.name;
   }
-
-  // Add entity-specific data based on event type
-  const eventPrefix = event.split("_")[0].toLowerCase();
 
   // Extract the main entity from payload
   const entityKeys = ["project", "risk", "vendor", "model", "incident", "policy", "task", "training", "note", "file", "vendorRisk", "modelRisk"];

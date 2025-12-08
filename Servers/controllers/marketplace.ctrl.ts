@@ -373,7 +373,7 @@ export async function getMarketplacePluginById(
  * Get available plugin categories (types) with counts.
  */
 export async function getMarketplaceCategories(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {
@@ -411,7 +411,7 @@ export async function getMarketplaceCategories(
  * Get all available tags with counts.
  */
 export async function getMarketplaceTags(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {
@@ -449,7 +449,7 @@ export async function getMarketplaceTags(
  * Get plugins that have updates available.
  */
 export async function getAvailableUpdates(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {
@@ -481,7 +481,7 @@ export async function getAvailableUpdates(
  * Force refresh the registry cache.
  */
 export async function refreshRegistry(
-  req: Request,
+  _req: Request,
   res: ExpressResponse
 ): Promise<void> {
   try {

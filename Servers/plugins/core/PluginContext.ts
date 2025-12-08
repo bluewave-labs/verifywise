@@ -19,16 +19,13 @@ import {
   PluginFilter,
   FilterPayloads,
   FilterHandler,
-  PluginSchedulerAPI,
-  PluginModelAPI,
-  PluginMiddlewareAPI,
 } from "./types";
 import { EventBus } from "./EventBus";
 import { FilterBus } from "./FilterBus";
 import { PluginRegistry } from "./PluginRegistry";
-import { MetadataService, MetadataAPI } from "./MetadataService";
+import { MetadataService } from "./MetadataService";
 import { createPluginSchedulerAPI } from "./PluginScheduler";
-import { PluginModelRegistry, PluginModelManager } from "./PluginModelManager";
+import { PluginModelRegistry } from "./PluginModelManager";
 import { MiddlewareRegistry, PluginMiddlewareManager } from "./MiddlewareRegistry";
 
 export interface PluginContextFactoryOptions {

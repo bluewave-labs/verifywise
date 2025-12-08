@@ -16,8 +16,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
+import logger from "../utils/logger/fileLogger";
 import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
 import { PluginEvent } from "../plugins/core/types";
 

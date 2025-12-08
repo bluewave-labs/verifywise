@@ -13,7 +13,6 @@ import { sequelize } from "../database/db";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
-import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import {
   logProcessing,
   logSuccess,

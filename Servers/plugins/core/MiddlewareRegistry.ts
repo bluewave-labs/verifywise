@@ -6,7 +6,7 @@
  * First-registered wins for execution order.
  */
 
-import { Request, Response, NextFunction, Application } from "express";
+import { Request, Response, NextFunction } from "express";
 import { randomUUID } from "crypto";
 import {
   PluginMiddlewareAPI,
@@ -294,18 +294,16 @@ export class MiddlewareRegistry {
  */
 export class PluginMiddlewareManager implements PluginMiddlewareAPI {
   private pluginId: string;
-  private tenant: string;
   private registry: MiddlewareRegistry;
   private logger: PluginLogger;
 
   constructor(
     pluginId: string,
-    tenant: string,
+    _tenant: string,
     registry: MiddlewareRegistry,
     logger: PluginLogger
   ) {
     this.pluginId = pluginId;
-    this.tenant = tenant;
     this.registry = registry;
     this.logger = logger;
   }

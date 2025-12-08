@@ -47,7 +47,7 @@ import {
   recordMultipleFieldChanges,
   recordUseCaseDeletion,
 } from "../utils/useCaseChangeHistory.utils";
-import { emitEvent, computeChanges, getTriggeredBy } from "../plugins/core/emitEvent";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
 import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllProjects(

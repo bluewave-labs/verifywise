@@ -5,7 +5,7 @@
  * Handles plugin lifecycle (install, load, enable, disable, unload, uninstall).
  */
 
-import { Transaction } from "sequelize";
+import { Transaction, Sequelize } from "sequelize";
 import {
   Plugin,
   PluginManifest,
@@ -28,12 +28,18 @@ import {
   PluginContextFactory,
   PluginContextFactoryOptions,
 } from "./PluginContext";
+import {
+  MiddlewareRegistry,
+  middlewareRegistry as defaultMiddlewareRegistry,
+} from "./MiddlewareRegistry";
 
 export interface PluginManagerOptions {
   eventBus?: EventBus;
   filterBus?: FilterBus;
   registry?: PluginRegistry;
+  middlewareRegistry?: MiddlewareRegistry;
   db: DatabaseService;
+  sequelize: Sequelize;
   defaultTenant?: string;
 }
 
@@ -41,6 +47,7 @@ export class PluginManager {
   private eventBus: EventBus;
   private filterBus: FilterBus;
   private registry: PluginRegistry;
+  private middlewareRegistry: MiddlewareRegistry;
   private contextFactory: PluginContextFactory;
   private defaultTenant: string;
 
@@ -48,6 +55,7 @@ export class PluginManager {
     this.eventBus = options.eventBus || defaultEventBus;
     this.filterBus = options.filterBus || defaultFilterBus;
     this.registry = options.registry || defaultRegistry;
+    this.middlewareRegistry = options.middlewareRegistry || defaultMiddlewareRegistry;
     this.defaultTenant = options.defaultTenant || "default";
 
     // Create context factory
@@ -56,6 +64,8 @@ export class PluginManager {
       filterBus: this.filterBus,
       registry: this.registry,
       db: options.db,
+      sequelize: options.sequelize,
+      middlewareRegistry: this.middlewareRegistry,
       defaultTenant: this.defaultTenant,
     };
     this.contextFactory = new PluginContextFactory(contextOptions);
@@ -91,6 +101,9 @@ export class PluginManager {
     // Clean up event and filter handlers
     this.eventBus.removePluginHandlers(pluginId);
     this.filterBus.removePluginHandlers(pluginId);
+
+    // Clean up middleware
+    this.middlewareRegistry.removeByPlugin(pluginId);
 
     // Clean up config store to prevent memory leak
     this.contextFactory.removePluginConfig(pluginId);
@@ -442,6 +455,9 @@ export class PluginManager {
       this.eventBus.removePluginHandlers(pluginId);
       this.filterBus.removePluginHandlers(pluginId);
 
+      // Remove middleware registered by this plugin
+      this.middlewareRegistry.removeByPlugin(pluginId);
+
       this.registry.setEnabled(pluginId, false);
       context.logger.info("Plugin disabled");
 
@@ -631,6 +647,13 @@ export class PluginManager {
   }
 
   /**
+   * Get the middleware registry (for Express integration)
+   */
+  getMiddlewareRegistry(): MiddlewareRegistry {
+    return this.middlewareRegistry;
+  }
+
+  /**
    * Create a context for a plugin
    */
   createContext(pluginId: string, tenant?: string) {
@@ -652,12 +675,15 @@ export class PluginManager {
     enabledPlugins: number;
     registeredEvents: number;
     registeredFilters: number;
+    registeredMiddleware: number;
   } {
+    const middlewareStats = this.middlewareRegistry.getStats();
     return {
       totalPlugins: this.registry.count(),
       enabledPlugins: this.registry.enabledCount(),
       registeredEvents: this.eventBus.getRegisteredEvents().length,
       registeredFilters: this.filterBus.getRegisteredFilters().length,
+      registeredMiddleware: middlewareStats.total,
     };
   }
 }

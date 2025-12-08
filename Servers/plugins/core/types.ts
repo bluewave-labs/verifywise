@@ -53,6 +53,7 @@ export interface IntegrationManifest extends PluginManifest {
 
 export interface PluginConfigSchema {
   type: "string" | "number" | "boolean" | "object" | "array";
+  label?: string; // Display label for UI
   required?: boolean;
   default?: unknown;
   secret?: boolean;
@@ -73,7 +74,9 @@ export type PluginPermission =
   | "config:write"
   | "http:outbound"
   | "filesystem:read"
-  | "filesystem:write";
+  | "filesystem:write"
+  | "models:define"
+  | "middleware:inject";
 
 // ============================================================================
 // PLUGIN INTERFACES
@@ -180,6 +183,12 @@ export interface PluginContext {
 
   // Scheduler (for background/recurring jobs)
   scheduler: PluginSchedulerAPI;
+
+  // Model system (Sequelize models for plugins)
+  models: PluginModelAPI;
+
+  // Middleware system (inject middleware into routes)
+  middleware: PluginMiddlewareAPI;
 
   // HTTP context (if in request)
   request?: Request;
@@ -342,6 +351,174 @@ export interface PluginConfig {
   get<T = unknown>(key: string, defaultValue?: T): T;
   set(key: string, value: unknown): Promise<void>;
   getAll(): Record<string, unknown>;
+}
+
+// ============================================================================
+// PLUGIN MODEL API
+// ============================================================================
+
+/**
+ * Model definition attributes for Sequelize
+ */
+export interface PluginModelAttributes {
+  [key: string]: PluginModelAttributeDefinition;
+}
+
+export interface PluginModelAttributeDefinition {
+  type: "STRING" | "TEXT" | "INTEGER" | "BIGINT" | "FLOAT" | "DOUBLE" | "DECIMAL" | "BOOLEAN" | "DATE" | "DATEONLY" | "JSON" | "JSONB" | "UUID" | "ENUM";
+  allowNull?: boolean;
+  defaultValue?: unknown;
+  primaryKey?: boolean;
+  autoIncrement?: boolean;
+  unique?: boolean;
+  references?: {
+    model: string;
+    key: string;
+  };
+  onDelete?: "CASCADE" | "SET NULL" | "RESTRICT" | "NO ACTION";
+  onUpdate?: "CASCADE" | "SET NULL" | "RESTRICT" | "NO ACTION";
+  values?: string[]; // For ENUM type
+}
+
+/**
+ * Model options for Sequelize
+ */
+export interface PluginModelOptions {
+  timestamps?: boolean;
+  paranoid?: boolean;
+  indexes?: Array<{
+    name?: string;
+    unique?: boolean;
+    fields: string[];
+  }>;
+}
+
+/**
+ * Plugin Model API interface for plugin context
+ * Provides Sequelize model capabilities for plugins
+ */
+export interface PluginModelAPI {
+  /**
+   * Define a new model for this plugin
+   * Table name will be auto-prefixed: plugin_{pluginId}_{modelName}
+   * @param name - Model name (e.g., "ConsentRecord")
+   * @param attributes - Model attributes/columns
+   * @param options - Optional model options
+   */
+  define(
+    name: string,
+    attributes: PluginModelAttributes,
+    options?: PluginModelOptions
+  ): void;
+
+  /**
+   * Get a previously defined model
+   * @param name - Model name
+   */
+  get<T = unknown>(name: string): T | undefined;
+
+  /**
+   * Get a core VerifyWise model (e.g., User, Project)
+   * @param name - Core model name
+   */
+  getCoreModel<T = unknown>(name: string): T | undefined;
+
+  /**
+   * Sync all defined models to the database
+   * Call this after defining models in onInstall
+   * @param options - Sync options
+   */
+  sync(options?: { force?: boolean; alter?: boolean }): Promise<void>;
+
+  /**
+   * Drop all tables created by this plugin
+   * Use with caution - data will be lost
+   */
+  dropAll(): Promise<void>;
+
+  /**
+   * List all models defined by this plugin
+   */
+  list(): string[];
+
+  /**
+   * Check if a model is defined
+   */
+  has(name: string): boolean;
+}
+
+// ============================================================================
+// PLUGIN MIDDLEWARE API
+// ============================================================================
+
+/**
+ * Context passed to middleware handlers
+ */
+export interface MiddlewareContext {
+  req: Request;
+  res: Response;
+  pluginId: string;
+  tenant: string;
+}
+
+/**
+ * Middleware handler function type
+ */
+export type PluginMiddlewareHandler = (
+  ctx: MiddlewareContext,
+  next: () => Promise<void>
+) => void | Promise<void>;
+
+/**
+ * Registered middleware entry
+ */
+export interface RegisteredMiddleware {
+  id: string;
+  pluginId: string;
+  pattern: string;
+  position: "before" | "after";
+  handler: PluginMiddlewareHandler;
+  registeredAt: Date;
+}
+
+/**
+ * Plugin Middleware API interface for plugin context
+ * Provides route middleware injection for plugins
+ */
+export interface PluginMiddlewareAPI {
+  /**
+   * Add middleware to a route pattern
+   * @param pattern - Route pattern (e.g., "/api/projects/:id", "/api/risks/*")
+   * @param position - Execute before or after the route handler
+   * @param handler - Middleware function
+   * @returns Middleware ID for later removal
+   */
+  add(
+    pattern: string,
+    position: "before" | "after",
+    handler: PluginMiddlewareHandler
+  ): string;
+
+  /**
+   * Remove a middleware by ID
+   * @param id - Middleware ID returned from add()
+   */
+  remove(id: string): boolean;
+
+  /**
+   * Remove all middleware registered by this plugin
+   */
+  removeAll(): number;
+
+  /**
+   * List all middleware registered by this plugin
+   */
+  list(): RegisteredMiddleware[];
+
+  /**
+   * Check if middleware exists
+   */
+  has(id: string): boolean;
 }
 
 // ============================================================================

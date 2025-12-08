@@ -69,6 +69,7 @@ import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.ro
 import pluginRoutes from "./routes/plugin.route";
 import marketplaceRoutes from "./routes/marketplace.route";
 import { initializePlugins, shutdownPlugins } from "./plugins/init";
+import { createPluginMiddlewareWrapper, middlewareRegistry } from "./plugins/core";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -132,6 +133,10 @@ try {
   });
   app.use(cookieParser());
   // app.use(csrf());
+
+  // Plugin middleware wrapper - allows plugins to inject before/after middleware
+  // Must be added after body parsing and before routes
+  app.use(createPluginMiddlewareWrapper(middlewareRegistry));
 
   // Routes
   app.use("/api/users", userRoutes);

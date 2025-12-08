@@ -1,6 +1,6 @@
 # VerifyWise Plugin System Specification
 
-Version: 1.3.0
+Version: 1.4.0
 Last Updated: December 2024
 
 ## Table of Contents
@@ -26,7 +26,9 @@ Last Updated: December 2024
 19. [Available Events Reference](#19-available-events-reference)
 20. [Marketplace Backend API](#20-marketplace-backend-api)
 21. [Plugin Scheduler API](#21-plugin-scheduler-api)
-22. [Future Tasks](#22-future-tasks)
+22. [Plugin Model API](#22-plugin-model-api)
+23. [Plugin Middleware API](#23-plugin-middleware-api)
+24. [Future Tasks](#24-future-tasks)
 
 ---
 
@@ -384,6 +386,8 @@ Plugins must declare required permissions in their manifest. Users see these bef
 | `http:outbound` | Make outbound HTTP requests | Runtime check on HTTP calls |
 | `filesystem:read` | Read files from disk | Runtime check on file operations |
 | `filesystem:write` | Write files to disk | Runtime check on file operations |
+| `models:define` | Define Sequelize models | Runtime check on `context.models.define()` |
+| `middleware:inject` | Inject middleware into routes | Runtime check on `context.middleware.add()` |
 
 ### 6.1 Permission Enforcement
 
@@ -1769,7 +1773,340 @@ await context.scheduler.schedule(
 
 ---
 
-## 20. Future Tasks
+## 22. Plugin Model API
+
+The Plugin Model API allows plugins to define their own Sequelize models for database operations. Models are automatically prefixed to prevent conflicts between plugins.
+
+### 22.1 Overview
+
+The model API is available through the plugin context:
+
+```typescript
+async onInstall(context: PluginContext): Promise<void> {
+  // Define a model with Sequelize-like syntax
+  context.models.define('AuditLog', {
+    id: { type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    entityType: { type: 'STRING', allowNull: false },
+    entityId: { type: 'INTEGER', allowNull: false },
+    action: { type: 'STRING', allowNull: false },
+    userId: { type: 'INTEGER', references: { model: 'users', key: 'id' } },
+    details: { type: 'JSONB' },
+    tenant: { type: 'STRING', allowNull: false }
+  }, {
+    timestamps: true,
+    indexes: [
+      { fields: ['entityType', 'entityId'] },
+      { fields: ['userId'] }
+    ]
+  });
+
+  // Sync models to database (creates tables)
+  await context.models.sync();
+}
+```
+
+### 22.2 Table Naming Convention
+
+Plugin tables are automatically prefixed to prevent conflicts:
+
+```
+plugin_{plugin_id_underscored}_{model_name_snake_case}
+```
+
+Examples:
+- Plugin ID: `audit-trail`, Model: `AuditLog` → `plugin_audit_trail_audit_log`
+- Plugin ID: `jira-sync`, Model: `IssueMapping` → `plugin_jira_sync_issue_mapping`
+
+### 22.3 Model API Reference
+
+| Method | Description |
+|--------|-------------|
+| `define(name, attributes, options?)` | Define a new model |
+| `get<T>(name)` | Get a previously defined model |
+| `getCoreModel<T>(name)` | Get a core VerifyWise model (User, Project, etc.) |
+| `sync(options?)` | Sync all models to database |
+| `dropAll()` | Drop all plugin tables |
+| `list()` | List all defined model names |
+| `has(name)` | Check if a model is defined |
+
+### 22.4 Supported Data Types
+
+| Type | Sequelize Equivalent |
+|------|---------------------|
+| `STRING` | DataTypes.STRING |
+| `TEXT` | DataTypes.TEXT |
+| `INTEGER` | DataTypes.INTEGER |
+| `BIGINT` | DataTypes.BIGINT |
+| `FLOAT` | DataTypes.FLOAT |
+| `DOUBLE` | DataTypes.DOUBLE |
+| `DECIMAL` | DataTypes.DECIMAL |
+| `BOOLEAN` | DataTypes.BOOLEAN |
+| `DATE` | DataTypes.DATE |
+| `DATEONLY` | DataTypes.DATEONLY |
+| `JSON` | DataTypes.JSON |
+| `JSONB` | DataTypes.JSONB |
+| `UUID` | DataTypes.UUID |
+| `ENUM` | DataTypes.ENUM (requires `values` array) |
+
+### 22.5 Attribute Options
+
+```typescript
+interface PluginModelAttributeDefinition {
+  type: string;            // Required: data type name
+  allowNull?: boolean;     // Allow NULL values (default: true)
+  defaultValue?: unknown;  // Default value
+  primaryKey?: boolean;    // Is primary key
+  autoIncrement?: boolean; // Auto-increment (for INTEGER)
+  unique?: boolean;        // Unique constraint
+  values?: string[];       // For ENUM type
+  references?: {           // Foreign key reference
+    model: string;
+    key: string;
+  };
+  onDelete?: string;       // CASCADE, SET NULL, etc.
+  onUpdate?: string;       // CASCADE, SET NULL, etc.
+}
+```
+
+### 22.6 Working with Core Models
+
+Plugins can reference core VerifyWise models for relationships:
+
+```typescript
+// Available core models
+const coreModels = [
+  'User', 'Project', 'Risk', 'Vendor', 'VendorRisk',
+  'Model', 'ModelRisk', 'Task', 'Incident', 'Policy',
+  'Training', 'Note', 'File'
+];
+
+// Get a core model
+const UserModel = context.models.getCoreModel('User');
+if (UserModel) {
+  const user = await UserModel.findByPk(userId);
+}
+
+// Create association with core model
+context.models.associate('AuditLog', 'belongsTo', 'User', {
+  foreignKey: 'userId',
+  as: 'user'
+});
+```
+
+### 22.7 Model Sync Options
+
+```typescript
+// Force sync (drops and recreates tables - use with caution!)
+await context.models.sync({ force: true });
+
+// Alter sync (adds new columns, doesn't remove existing)
+await context.models.sync({ alter: true });
+
+// Safe sync (only creates if not exists)
+await context.models.sync();
+```
+
+### 22.8 Best Practices
+
+1. **Always include tenant column**: For multi-tenant data isolation
+2. **Use migrations pattern**: Track schema version in metadata
+3. **Sync only in onInstall**: Don't sync on every enable
+4. **Leave data on uninstall**: Unless explicitly requested
+
+### 22.9 Required Permission
+
+Plugins must declare `models:define` permission in their manifest:
+
+```json
+{
+  "permissions": ["models:define", "database:write"]
+}
+```
+
+---
+
+## 23. Plugin Middleware API
+
+The Plugin Middleware API allows plugins to inject middleware into existing routes. Middleware can run before or after route handlers.
+
+### 23.1 Overview
+
+The middleware API is available through the plugin context:
+
+```typescript
+async onEnable(context: PluginContext): Promise<void> {
+  // Add middleware that runs BEFORE the route handler
+  context.middleware.add('/api/risks/*', 'before', async (req, res, next, ctx) => {
+    context.logger.info(`Risk API accessed: ${req.method} ${req.path}`);
+    next();
+  });
+
+  // Add middleware that runs AFTER the route handler
+  context.middleware.add('/api/projects/:id', 'after', async (req, res, next, ctx) => {
+    // Modify response before it's sent
+    if (res.locals.responseBody) {
+      res.locals.responseBody.pluginEnhanced = true;
+    }
+    next();
+  });
+}
+```
+
+### 23.2 Middleware API Reference
+
+| Method | Description |
+|--------|-------------|
+| `add(pattern, position, handler)` | Add middleware for a route pattern |
+| `remove(id)` | Remove middleware by ID |
+| `removeAll()` | Remove all middleware for this plugin |
+| `list()` | List all middleware for this plugin |
+| `has(id)` | Check if middleware exists |
+
+### 23.3 Route Pattern Syntax
+
+Patterns support:
+- Exact paths: `/api/users`
+- Parameters: `/api/users/:id`
+- Wildcards: `/api/risks/*`
+
+```typescript
+// Match exact path
+context.middleware.add('/api/projects', 'before', handler);
+
+// Match path with parameter
+context.middleware.add('/api/projects/:id', 'before', handler);
+
+// Match all paths under /api/risks/
+context.middleware.add('/api/risks/*', 'before', handler);
+```
+
+### 23.4 Middleware Handler
+
+```typescript
+type PluginMiddlewareHandler = (
+  req: Request,
+  res: Response,
+  next: () => void,
+  context: MiddlewareContext
+) => Promise<void> | void;
+
+interface MiddlewareContext {
+  pluginId: string;
+  tenant: string;
+}
+```
+
+### 23.5 Before Middleware
+
+Before middleware runs before the route handler:
+
+```typescript
+context.middleware.add('/api/risks/*', 'before', async (req, res, next, ctx) => {
+  // Validate request
+  if (!req.headers['x-custom-header']) {
+    res.status(400).json({ error: 'Missing required header' });
+    return; // Don't call next() to stop the chain
+  }
+
+  // Add data to request
+  req.pluginData = { validated: true };
+
+  next(); // Continue to route handler
+});
+```
+
+**Important**: If you don't call `next()` and send a response, the request chain stops.
+
+### 23.6 After Middleware
+
+After middleware runs after the route handler:
+
+```typescript
+context.middleware.add('/api/projects/:id', 'after', async (req, res, next, ctx) => {
+  // Access the response body
+  const body = res.locals.responseBody;
+
+  // Modify response
+  if (body && body.data) {
+    body.data.enhancedBy = ctx.pluginId;
+  }
+
+  next();
+});
+```
+
+### 23.7 Execution Order
+
+- **Before middleware**: First-registered runs first
+- **After middleware**: First-registered runs first
+- Multiple plugins can add middleware to the same route
+
+```
+Request → Before(Plugin A) → Before(Plugin B) → Route Handler → After(Plugin A) → After(Plugin B) → Response
+```
+
+### 23.8 Cleanup on Disable
+
+Always remove middleware when the plugin is disabled:
+
+```typescript
+async onDisable(context: PluginContext): Promise<void> {
+  const removed = context.middleware.removeAll();
+  context.logger.info(`Removed ${removed} middleware entries`);
+}
+```
+
+### 23.9 Examples
+
+**Audit logging middleware:**
+
+```typescript
+context.middleware.add('/api/*', 'before', async (req, res, next, ctx) => {
+  const startTime = Date.now();
+  req.auditStartTime = startTime;
+  next();
+});
+
+context.middleware.add('/api/*', 'after', async (req, res, next, ctx) => {
+  const duration = Date.now() - req.auditStartTime;
+  await logAuditEntry({
+    path: req.path,
+    method: req.method,
+    duration,
+    tenant: ctx.tenant
+  });
+  next();
+});
+```
+
+**Request validation middleware:**
+
+```typescript
+context.middleware.add('/api/risks', 'before', async (req, res, next, ctx) => {
+  if (req.method === 'POST') {
+    const { title, severity } = req.body;
+    if (!title || !severity) {
+      res.status(400).json({ error: 'Title and severity are required' });
+      return;
+    }
+  }
+  next();
+});
+```
+
+### 23.10 Required Permission
+
+Plugins must declare `middleware:inject` permission in their manifest:
+
+```json
+{
+  "permissions": ["middleware:inject"]
+}
+```
+
+---
+
+## 24. Future Tasks
 
 The following features are planned for future implementation:
 

@@ -63,6 +63,18 @@ export {
   DatabaseService,
   QueryResult,
 
+  // Model API types
+  PluginModelAPI,
+  PluginModelAttributes,
+  PluginModelAttributeDefinition,
+  PluginModelOptions,
+
+  // Middleware API types
+  PluginMiddlewareAPI,
+  PluginMiddlewareHandler,
+  RegisteredMiddleware,
+  MiddlewareContext,
+
   // Events
   PluginEvent,
   EventPayloads,
@@ -142,6 +154,26 @@ export {
   isOneTimeJob,
   shutdownPluginScheduler,
 } from "./PluginScheduler";
+
+// =============================================================================
+// PLUGIN MODEL MANAGER
+// =============================================================================
+
+export {
+  PluginModelManager,
+  PluginModelRegistry,
+} from "./PluginModelManager";
+
+// =============================================================================
+// MIDDLEWARE REGISTRY
+// =============================================================================
+
+export {
+  MiddlewareRegistry,
+  PluginMiddlewareManager,
+  middlewareRegistry,
+  createPluginMiddlewareWrapper,
+} from "./MiddlewareRegistry";
 
 // =============================================================================
 // UI EXTENSION REGISTRY

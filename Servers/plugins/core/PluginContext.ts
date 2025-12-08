@@ -20,18 +20,24 @@ import {
   FilterPayloads,
   FilterHandler,
   PluginSchedulerAPI,
+  PluginModelAPI,
+  PluginMiddlewareAPI,
 } from "./types";
 import { EventBus } from "./EventBus";
 import { FilterBus } from "./FilterBus";
 import { PluginRegistry } from "./PluginRegistry";
 import { MetadataService, MetadataAPI } from "./MetadataService";
 import { createPluginSchedulerAPI } from "./PluginScheduler";
+import { PluginModelRegistry, PluginModelManager } from "./PluginModelManager";
+import { MiddlewareRegistry, PluginMiddlewareManager } from "./MiddlewareRegistry";
 
 export interface PluginContextFactoryOptions {
   eventBus: EventBus;
   filterBus: FilterBus;
   registry: PluginRegistry;
   db: DatabaseService;
+  sequelize: Sequelize;
+  middlewareRegistry: MiddlewareRegistry;
   defaultTenant?: string;
 }
 
@@ -43,6 +49,9 @@ export class PluginContextFactory {
   private filterBus: FilterBus;
   private registry: PluginRegistry;
   private db: DatabaseService;
+  private sequelize: Sequelize;
+  private modelRegistry: PluginModelRegistry;
+  private middlewareRegistry: MiddlewareRegistry;
   private defaultTenant: string;
   private configStore: Map<string, Record<string, unknown>> = new Map();
 
@@ -51,7 +60,12 @@ export class PluginContextFactory {
     this.filterBus = options.filterBus;
     this.registry = options.registry;
     this.db = options.db;
+    this.sequelize = options.sequelize;
+    this.middlewareRegistry = options.middlewareRegistry;
     this.defaultTenant = options.defaultTenant || "default";
+
+    // Initialize the model registry with sequelize
+    this.modelRegistry = new PluginModelRegistry(this.sequelize);
 
     // Wire up the event bus to use this factory for contexts
     this.eventBus.setContextFactory((pluginId) =>
@@ -73,6 +87,17 @@ export class PluginContextFactory {
     const metadata = new MetadataService(this.db, pluginId, tenant);
     const scheduler = createPluginSchedulerAPI(pluginId, tenant);
 
+    // Create plugin-scoped model manager
+    const models = this.modelRegistry.getManager(pluginId, logger);
+
+    // Create plugin-scoped middleware manager
+    const middleware = new PluginMiddlewareManager(
+      pluginId,
+      tenant,
+      this.middlewareRegistry,
+      logger
+    );
+
     const context: PluginContext = {
       pluginId,
       tenant,
@@ -81,6 +106,8 @@ export class PluginContextFactory {
       config,
       metadata,
       scheduler,
+      models,
+      middleware,
       request,
       response,
 

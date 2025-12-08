@@ -6,7 +6,7 @@
  */
 
 import express, { Application, Router } from "express";
-import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, PluginContext } from "./core";
+import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, PluginContext, MiddlewareRegistry } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
 import { builtinPlugins } from "./builtin";
@@ -15,6 +15,9 @@ import path from "path";
 import fs from "fs";
 import { registerAutomationHandlers } from "./core/automationHandler";
 import authenticateJWT from "../middleware/auth.middleware";
+
+// Global middleware registry instance
+const middlewareRegistry = new MiddlewareRegistry();
 
 /**
  * Read plugin icon from file if it's a file path
@@ -135,9 +138,11 @@ export async function initializePlugins(app?: Application): Promise<PluginManage
   // Create database service from sequelize
   const db = createDatabaseService(sequelize);
 
-  // Create plugin manager
+  // Create plugin manager with all required services
   pluginManager = new PluginManager({
     db,
+    sequelize,
+    middlewareRegistry,
     defaultTenant: "default",
   });
 
@@ -322,16 +327,17 @@ export function deletePluginFiles(pluginId: string): boolean {
  * @returns The loaded Plugin object, or null if not found
  */
 async function loadFullPlugin(pluginPath: string, pluginId: string): Promise<Plugin | null> {
-  // Check for index.ts or index.js
-  const tsPath = path.join(pluginPath, "index.ts");
+  // Check for index.js or index.ts
+  // Prefer .js files as they don't have import resolution issues with dynamic imports
   const jsPath = path.join(pluginPath, "index.js");
+  const tsPath = path.join(pluginPath, "index.ts");
 
   let modulePath: string | null = null;
 
-  if (fs.existsSync(tsPath)) {
-    modulePath = tsPath;
-  } else if (fs.existsSync(jsPath)) {
+  if (fs.existsSync(jsPath)) {
     modulePath = jsPath;
+  } else if (fs.existsSync(tsPath)) {
+    modulePath = tsPath;
   }
 
   if (!modulePath) {

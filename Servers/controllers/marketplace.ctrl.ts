@@ -19,7 +19,7 @@ import logger from "../utils/logger/fileLogger";
 
 /** GitHub raw URL for the plugin registry */
 const REGISTRY_URL =
-  "https://raw.githubusercontent.com/bluewave-labs/verifywise-apps/main/registry.json";
+  "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/registry.json";
 
 /** Cache TTL in milliseconds (15 minutes) */
 const REGISTRY_CACHE_TTL = 15 * 60 * 1000;

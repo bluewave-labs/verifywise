@@ -1,35 +1,8 @@
 version: "3.9"
 
 services:
-  postgresdb:
-    image: postgres:16.8
-    volumes:
-      - db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=$DB_USER
-      - POSTGRES_PASSWORD=$DB_PASSWORD
-      - POSTGRES_DB=$DB_NAME
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "$DB_USER", "-d", "$DB_NAME"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-  redis:
-    image: redis:7
-    expose:
-      - "6379"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
   backend:
-    depends_on:
-      postgresdb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    container_name: verifywise-backend
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
     ports:
@@ -56,17 +29,22 @@ services:
       - DO_SPACES_SECRET=$DO_SPACES_SECRET
       - LOG_DO_PREFIX=$LOG_DO_PREFIX
       - LOG_COMPRESSION_ENABLED=$LOG_COMPRESSION_ENABLED
+    restart: unless-stopped
+    networks:
+      - verifywise_network
+
   frontend:
+    container_name: verifywise-frontend
     depends_on:
       - backend
     image: ghcr.io/bluewave-labs/verifywise-frontend:latest
     pull_policy: always
+    restart: unless-stopped
+    networks:
+      - verifywise_network
+
   worker:
-    depends_on:
-      postgresdb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    container_name: verifywise-worker
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
     command: ["node", "dist/jobs/worker.js"]
@@ -79,10 +57,13 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - REDIS_URL=redis://redis:6379/0
     restart: unless-stopped
+    networks:
+      - verifywise_network
+
   bias_and_fairness_backend:
+    container_name: verifywise-bias-and-fairness-backend
     depends_on:
       - backend
-      - redis
     image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
     # pull_policy: always
     # ports:
@@ -97,7 +78,13 @@ services:
       - DB_NAME=$DB_NAME
       - BACKEND_URL=http://backend:$BACKEND_PORT
       - REDIS_URL=redis://redis:6379/0
+    restart: unless-stopped
+    networks:
+      - verifywise_network
 
 volumes:
-  db:
   app_logs:
+
+networks:
+  verifywise_network:
+    external: true

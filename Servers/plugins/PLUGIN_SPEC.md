@@ -1,30 +1,32 @@
 # VerifyWise Plugin System Specification
 
-Version: 1.2.0
+Version: 1.3.0
 Last Updated: December 2024
 
 ## Table of Contents
 
 1. [Overview](#1-overview)
 2. [Plugin Architecture](#2-plugin-architecture)
-3. [Plugin Manifest](#3-plugin-manifest)
-4. [Plugin File Structure](#4-plugin-file-structure)
-5. [Plugin Lifecycle](#5-plugin-lifecycle)
-6. [Plugin Permissions](#6-plugin-permissions)
-7. [Configuration & Secrets](#7-configuration--secrets)
-8. [Plugin Registry](#8-plugin-registry)
-9. [Installation & Updates](#9-installation--updates)
-10. [Plugin Webhooks](#10-plugin-webhooks)
-11. [Plugin Development](#11-plugin-development)
-12. [UI Extension Points](#12-ui-extension-points)
-13. [Database & Migrations](#13-database--migrations)
-14. [Error Handling](#14-error-handling)
-15. [Multi-tenant Support](#15-multi-tenant-support)
-16. [Version Comparison](#16-version-comparison)
-17. [Available Events Reference](#17-available-events-reference)
-18. [Marketplace Backend API](#18-marketplace-backend-api)
-19. [Plugin Scheduler API](#19-plugin-scheduler-api)
-20. [Future Tasks](#20-future-tasks)
+3. [Unified Plugin Architecture](#3-unified-plugin-architecture)
+4. [Plugin Manifest](#4-plugin-manifest)
+5. [Plugin File Structure](#5-plugin-file-structure)
+6. [Plugin Lifecycle](#6-plugin-lifecycle)
+7. [Plugin Permissions](#7-plugin-permissions)
+8. [Configuration & Secrets](#8-configuration--secrets)
+9. [Plugin Registry](#9-plugin-registry)
+10. [Installation & Updates](#10-installation--updates)
+11. [Plugin Webhooks](#11-plugin-webhooks)
+12. [Plugin Development](#12-plugin-development)
+13. [UI Extension Points](#13-ui-extension-points)
+14. [Dashboard Widget Templates](#14-dashboard-widget-templates)
+15. [Database & Migrations](#15-database--migrations)
+16. [Error Handling](#16-error-handling)
+17. [Multi-tenant Support](#17-multi-tenant-support)
+18. [Version Comparison](#18-version-comparison)
+19. [Available Events Reference](#19-available-events-reference)
+20. [Marketplace Backend API](#20-marketplace-backend-api)
+21. [Plugin Scheduler API](#21-plugin-scheduler-api)
+22. [Future Tasks](#22-future-tasks)
 
 ---
 
@@ -82,7 +84,70 @@ Registered ──► Installed ──► Loaded ──► Enabled              �
 
 ---
 
-## 3. Plugin Manifest
+## 3. Unified Plugin Architecture
+
+The VerifyWise plugin system uses a **Unified Plugin Architecture** where all plugins (both built-in and marketplace) have full access to TypeScript/JavaScript capabilities. There is no sandboxing or template-only restriction.
+
+### 3.1 Trust Model
+
+All plugins are trusted because they come from:
+- **VerifyWise Team** - Official built-in plugins
+- **VerifyWise Employees** - Marketplace plugins developed internally
+- **Customers** - Custom plugins for specific organizational needs
+
+There are no third-party plugins, which eliminates the need for sandboxing.
+
+### 3.2 Plugin Distribution Types
+
+| Type | Location | Distribution | Example |
+|------|----------|--------------|---------|
+| **Built-in** | `plugins/builtin/` | Ships with VerifyWise | activity-feed |
+| **Marketplace** | `plugins/marketplace/` | Downloaded on-demand | gdpr-compliance |
+
+Both types have identical capabilities:
+- Custom routes and API endpoints
+- Event handlers and filters
+- Database access via context
+- UI extensions (dashboard widgets, settings, navigation)
+- Full lifecycle hooks
+
+### 3.3 Plugin Loading
+
+The plugin loader automatically detects plugin type:
+
+```
+plugins/marketplace/my-plugin/
+├── manifest.json        # Required: Plugin metadata
+├── icon.svg            # Optional: Plugin icon
+├── index.ts            # Optional: Full TypeScript plugin
+└── ...                 # Any additional files
+```
+
+**Loading behavior:**
+1. If `index.ts` or `index.js` exists → Load as full TypeScript plugin (dynamic import)
+2. If only `manifest.json` exists → Create manifest-only plugin (backwards compatible)
+
+### 3.4 Sample Plugin
+
+A complete sample plugin demonstrating the unified architecture is available at:
+
+```
+plugins/marketplace/_sample-full-plugin/
+├── manifest.json       # Plugin metadata with config schema
+├── icon.svg           # Plugin icon
+└── index.ts           # Full TypeScript plugin with all features
+```
+
+The sample demonstrates:
+- All lifecycle hooks (install, enable, disable, uninstall)
+- Custom routes with authentication
+- Event subscriptions
+- Dashboard widget integration using templates
+- Configuration management
+
+---
+
+## 4. Plugin Manifest
 
 Each plugin must include a `manifest.json` file with the following schema:
 
@@ -676,41 +741,242 @@ esbuild.build({
 
 ---
 
-## 12. UI Extension Points
+## 13. UI Extension Points
 
-> **Note:** UI extensions are a future feature. This section describes the planned architecture.
+Plugins can extend the VerifyWise UI through defined extension points.
 
-### 12.1 Planned Extension Points
-
-Plugins will be able to add UI to controlled locations:
+### 13.1 Extension Points
 
 | Extension Point | Description | Status |
 |-----------------|-------------|--------|
 | Plugin settings page | `/settings/plugins/[plugin-id]` - Full page for plugin config | **Available** |
+| Dashboard widgets | Add widgets to main dashboard using templates | **Available** |
 | Risk card actions | Add buttons to risk cards (e.g., "Send to Jira") | Planned |
 | Project sidebar items | Add navigation items to project sidebar | Planned |
-| Dashboard widgets | Add widgets to main dashboard | Planned |
 | Report sections | Add custom sections to reports | Planned |
 
-### 12.2 Future: Registering UI Components
+### 13.2 Dashboard Widget Extensions
+
+Plugins can register dashboard widgets that appear on the main dashboard:
 
 ```typescript
-// Planned API - not yet implemented
-async onEnable(context: PluginContext) {
-  context.registerUIExtension({
-    point: 'risk-card-actions',
-    component: 'SendToJiraButton',
-    order: 10,
-    props: { /* ... */ }
-  });
+const plugin: Plugin = {
+  manifest: { ... },
+
+  uiExtensions: {
+    dashboardWidgets: [
+      {
+        widgetId: "my-plugin-stats",
+        pluginId: "my-plugin",
+        title: "Plugin Statistics",
+        template: "stats-card",    // Use built-in template
+        endpoint: "/dashboard/widget",  // API endpoint for data
+        config: {
+          refreshInterval: 30,
+          showChange: true
+        }
+      }
+    ]
+  }
+};
+```
+
+### 13.3 Fetching Widget Extensions
+
+The frontend fetches all plugin UI extensions via:
+
+```
+GET /api/plugins/ui-extensions
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "dashboardWidgets": [
+      {
+        "widgetId": "activity-feed-widget",
+        "pluginId": "activity-feed",
+        "title": "Recent Activity",
+        "template": "activity-feed",
+        "endpoint": "/activity",
+        "config": { "limit": 10 }
+      }
+    ]
+  }
 }
 ```
 
 ---
 
-## 13. Database & Migrations
+## 14. Dashboard Widget Templates
 
-### 13.1 Plugin Database Access
+Plugins can use pre-built widget templates for dashboard integration. Templates are optional conveniences that simplify plugin development.
+
+### 14.1 Available Templates
+
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `activity-feed` | Activity log with avatars and timestamps | Recent actions, audit logs |
+| `list` | Generic list of items with icons | Todo items, notifications |
+| `stats-card` | Single metric card with change indicator | KPIs, counters |
+| `table` | Tabular data display | Data listings, reports |
+| `chart` | Bar, line, pie, donut charts (Recharts) | Analytics, trends |
+| `timeline` | Chronological events with icons | History, milestones |
+| `progress` | Circular, linear, gauge indicators | Completion tracking |
+| `alerts` | Severity-based notifications | Critical issues, warnings |
+| `calendar` | Read-only calendar with events | Deadlines, schedules |
+| `card-grid` | Multiple mini stats cards | Dashboard overview |
+
+### 14.2 Template Data Contracts
+
+Each template expects data from the plugin's API endpoint in a specific format.
+
+#### `stats-card` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "value": 42,
+    "label": "Total Risks",
+    "change": "+5",
+    "changeType": "increase",
+    "icon": "shield"
+  }
+}
+```
+
+#### `list` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      { "id": "1", "title": "Item 1", "icon": "check", "url": "/item/1" }
+    ],
+    "total": 10
+  }
+}
+```
+
+#### `table` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "columns": ["Name", "Status", "Date"],
+    "rows": [
+      ["Risk A", "Open", "2024-01-15"],
+      ["Risk B", "Closed", "2024-01-10"]
+    ],
+    "total": 2
+  }
+}
+```
+
+#### `activity-feed` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "activities": [
+      {
+        "id": "1",
+        "action": "created",
+        "entityType": "risk",
+        "entityName": "Data Breach Risk",
+        "user": { "name": "John Doe", "avatar": "https://..." },
+        "timestamp": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### `chart` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "type": "bar",
+    "labels": ["Jan", "Feb", "Mar"],
+    "datasets": [
+      { "label": "Risks", "data": [10, 15, 8], "color": "#13715B" }
+    ]
+  }
+}
+```
+
+#### `alerts` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "alerts": [
+      {
+        "id": "1",
+        "title": "Critical Deadline",
+        "message": "Compliance review due tomorrow",
+        "severity": "critical",
+        "actionLabel": "View",
+        "actionUrl": "/reviews/123"
+      }
+    ]
+  }
+}
+```
+
+#### `card-grid` Template
+
+```json
+{
+  "success": true,
+  "data": {
+    "cards": [
+      { "id": "1", "label": "Risks", "value": 42, "icon": "shield", "color": "#dc2626" },
+      { "id": "2", "label": "Controls", "value": 156, "icon": "check", "color": "#16a34a" }
+    ]
+  }
+}
+```
+
+### 14.3 Template Configuration
+
+Each template supports configuration options:
+
+```typescript
+{
+  widgetId: "my-widget",
+  pluginId: "my-plugin",
+  title: "Widget Title",
+  template: "table",
+  endpoint: "/data",
+  config: {
+    refreshInterval: 60,     // Auto-refresh in seconds
+    pageSize: 10,           // Items per page (for lists/tables)
+    columns: 2,             // Grid columns (for card-grid)
+    compact: true,          // Compact mode
+    emptyMessage: "No data" // Custom empty state message
+  }
+}
+```
+
+### 14.4 Custom Widgets (Built-in Plugins Only)
+
+Built-in plugins can render custom React components instead of templates by including the component directly in the plugin code. This is not available for marketplace plugins.
+
+---
+
+## 15. Database & Migrations
+
+### 15.1 Plugin Database Access
 
 Plugins can create their own tables using migrations in the `onInstall` hook:
 

@@ -2353,9 +2353,6 @@ Plugins can extend the GraphQL schema.
 ### 5. Multi-Language Support
 Support plugins in languages other than TypeScript.
 
-### 6. Plugin Analytics
-Track plugin usage, errors, performance.
-
 ---
 
 ## References

@@ -2113,11 +2113,7 @@ The following features are planned for future implementation:
 | Feature | Priority | Description |
 |---------|----------|-------------|
 | ~~Plugin scheduled tasks~~ | ~~High~~ | ~~Allow plugins to schedule recurring jobs (cron)~~ ✅ Implemented |
-| Plugin auto-update | Medium | Opt-in automatic updates for plugins |
-| Plugin scaffold CLI | Medium | CLI tool to generate plugin boilerplate |
 | UI extension points | Medium | Allow plugins to inject UI components |
-| Plugin SDK npm package | Low | `@verifywise/plugin-types` for TypeScript support |
-| Plugin analytics | Low | Track plugin usage and performance |
 
 ---
 

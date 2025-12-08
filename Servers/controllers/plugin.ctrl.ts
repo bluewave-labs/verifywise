@@ -51,10 +51,21 @@ const ALLOWED_MARKETPLACE_DOMAINS = [
 ] as const;
 
 /**
- * Validate URL is from allowed download domains (SSRF protection)
- * Returns the validated URL string to create clear data flow for static analysis
+ * Fetch with timeout using AbortController
+ * Prevents plugin download requests from hanging indefinitely
+ * Includes SSRF protection by validating URL against allowed domains
+ *
+ * SECURITY: This function validates URLs before fetching:
+ * 1. Only HTTPS protocol is allowed
+ * 2. Domain must be in ALLOWED_MARKETPLACE_DOMAINS allowlist
+ * 3. URL is reconstructed from validated components
  */
-function validateDownloadUrl(url: string): string {
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs: number = FETCH_TIMEOUT_MS
+): Promise<Response> {
+  // ===== SSRF PROTECTION START =====
+  // Parse and validate URL - throws on invalid format
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -62,42 +73,31 @@ function validateDownloadUrl(url: string): string {
     throw new Error("Invalid URL format");
   }
 
-  // Only allow HTTPS
+  // Security: Only allow HTTPS protocol
   if (parsed.protocol !== "https:") {
     throw new Error("Only HTTPS URLs are allowed");
   }
 
-  // Validate against allowed domains
-  const isAllowed = ALLOWED_MARKETPLACE_DOMAINS.some(
-    (domain: string) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
+  // Security: Validate domain against hardcoded allowlist
+  const hostname = parsed.hostname;
+  const isAllowedDomain = ALLOWED_MARKETPLACE_DOMAINS.some(
+    (domain: string) => hostname === domain || hostname.endsWith(`.${domain}`)
   );
 
-  if (!isAllowed) {
-    throw new Error("URL domain not in allowed list");
+  if (!isAllowedDomain) {
+    throw new Error(`URL domain '${hostname}' not in allowed list`);
   }
 
-  // Return the validated URL (normalized by URL parser)
-  return parsed.href;
-}
-
-/**
- * Fetch with timeout using AbortController
- * Prevents plugin download requests from hanging indefinitely
- * Includes SSRF protection by validating URL against allowed domains
- */
-async function fetchWithTimeout(
-  url: string,
-  timeoutMs: number = FETCH_TIMEOUT_MS
-): Promise<Response> {
-  // SSRF protection: validate URL and get sanitized version
-  // Using the returned value ensures static analyzers can trace the data flow
-  const validatedUrl = validateDownloadUrl(url);
+  // Construct sanitized URL from validated components
+  // This creates a new URL string from parts we've verified
+  const sanitizedUrl = `https://${parsed.host}${parsed.pathname}${parsed.search}`;
+  // ===== SSRF PROTECTION END =====
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(validatedUrl, { signal: controller.signal });
+    const response = await fetch(sanitizedUrl, { signal: controller.signal });
     return response;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {

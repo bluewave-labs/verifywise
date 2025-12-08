@@ -16,10 +16,11 @@
 10. [Metadata API](#metadata-api)
 11. [Configuration Management](#configuration-management)
 12. [Dependency Management](#dependency-management)
-13. [Marketplace Integration](#marketplace-integration)
-14. [Security Model](#security-model)
-15. [Migration Path](#migration-path)
-16. [Lessons from Countly](#lessons-from-countly)
+13. [Unified Plugin Architecture](#unified-plugin-architecture)
+14. [Marketplace Integration](#marketplace-integration)
+15. [Security Model](#security-model)
+16. [Migration Path](#migration-path)
+17. [Lessons from Countly](#lessons-from-countly)
 
 ---
 
@@ -1703,6 +1704,160 @@ Load order:
   3. alerts
   4. dashboards
 ```
+
+---
+
+## Unified Plugin Architecture
+
+The VerifyWise plugin system uses a **Unified Plugin Architecture** where all plugins (both built-in and marketplace) have full access to TypeScript/JavaScript capabilities. There is no sandboxing or template-only restriction for marketplace plugins.
+
+### Trust Model
+
+All plugins are trusted because they come from:
+- **VerifyWise Team** - Official built-in plugins
+- **VerifyWise Employees** - Marketplace plugins developed internally
+- **Customers** - Custom plugins for specific organizational needs
+
+There are no third-party plugins, which eliminates the need for sandboxing.
+
+### Plugin Distribution Types
+
+| Type | Location | Distribution | Example |
+|------|----------|--------------|---------|
+| **Built-in** | `plugins/builtin/` | Ships with VerifyWise | activity-feed |
+| **Marketplace** | `plugins/marketplace/` | Downloaded on-demand | gdpr-compliance |
+
+Both types have identical capabilities:
+- Custom routes and API endpoints
+- Event handlers and filters
+- Database access via context
+- UI extensions (dashboard widgets, settings, navigation)
+- Full lifecycle hooks
+
+### Creating a Marketplace Plugin
+
+Marketplace plugins can include full TypeScript code. The plugin loader automatically detects whether a plugin has code:
+
+```
+plugins/marketplace/my-plugin/
+├── manifest.json        # Required: Plugin metadata
+├── icon.svg            # Optional: Plugin icon
+├── index.ts            # Optional: Full TypeScript plugin
+└── ...                 # Any additional files
+```
+
+**Loading behavior:**
+1. If `index.ts` or `index.js` exists → Load as full TypeScript plugin
+2. If only `manifest.json` exists → Create manifest-only plugin (backwards compatible)
+
+### Full Plugin Example
+
+```typescript
+// plugins/marketplace/my-plugin/index.ts
+
+import { Router, Request, Response } from "express";
+import { Plugin, PluginManifest, PluginContext } from "../../core";
+
+const manifest: PluginManifest = {
+  id: "my-plugin",
+  name: "My Plugin",
+  description: "A full TypeScript marketplace plugin",
+  version: "1.0.0",
+  author: "VerifyWise",
+  type: "feature",
+  permissions: ["read:projects", "events:subscribe"],
+  config: {
+    apiKey: {
+      type: "string",
+      label: "API Key",
+      secret: true,
+    },
+  },
+};
+
+const plugin: Plugin = {
+  manifest,
+
+  async onInstall(context) {
+    context.logger.info("Plugin installed");
+    // Create custom tables, seed data, etc.
+  },
+
+  async onEnable(context) {
+    context.logger.info("Plugin enabled");
+
+    // Subscribe to events
+    context.eventBus.on("project:created", async (data) => {
+      context.logger.info(`Project created: ${data.projectId}`);
+    });
+  },
+
+  async onDisable(context) {
+    context.logger.info("Plugin disabled");
+  },
+
+  // Custom API routes mounted at /api/plugins/my-plugin/
+  routes(router) {
+    router.get("/status", (req, res) => {
+      res.json({ success: true, data: { status: "active" } });
+    });
+
+    router.post("/sync", async (req, res) => {
+      // Perform sync operation
+      res.json({ success: true });
+    });
+  },
+
+  // Dashboard widgets using built-in templates
+  uiExtensions: {
+    dashboardWidgets: [
+      {
+        widgetId: "my-plugin-status",
+        pluginId: "my-plugin",
+        title: "Plugin Status",
+        template: "card-grid",  // Use built-in template
+        endpoint: "/dashboard/widget",
+        config: { columns: 2 },
+      },
+    ],
+  },
+};
+
+export default plugin;
+```
+
+### Widget Templates
+
+While plugins can write custom React components (for built-in plugins), marketplace plugins typically use pre-built widget templates for dashboard integration:
+
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `activity-feed` | Activity log with avatars | Recent actions, logs |
+| `list` | Generic list with icons | Todo items, notifications |
+| `stats-card` | Single metric card | KPIs, counters |
+| `table` | Tabular data display | Data listings |
+| `chart` | Bar, line, pie, donut charts | Analytics, trends |
+| `timeline` | Chronological events | History, milestones |
+| `progress` | Circular, linear, gauge | Completion tracking |
+| `alerts` | Severity-based notifications | Critical issues |
+| `calendar` | Read-only calendar | Deadlines, events |
+| `card-grid` | Multiple mini stats | Dashboard overview |
+
+Templates are **optional conveniences**, not constraints. As we develop more templates (e.g., breadcrumbs, blank pages), plugin development becomes easier.
+
+### Sample Plugin
+
+A complete sample plugin is available at:
+```
+plugins/marketplace/_sample-full-plugin/
+```
+
+This demonstrates:
+- Lifecycle hooks (install, enable, disable, uninstall)
+- Custom routes with authentication
+- Event subscriptions
+- Dashboard widget integration
+- Configuration management
 
 ---
 

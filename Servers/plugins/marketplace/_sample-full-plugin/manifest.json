@@ -1,0 +1,31 @@
+{
+  "id": "sample-full-plugin",
+  "name": "Sample Full Plugin",
+  "description": "A sample plugin demonstrating the full TypeScript plugin architecture with routes, events, and UI extensions.",
+  "version": "1.0.0",
+  "author": "VerifyWise",
+  "authorUrl": "https://verifywise.ai",
+  "type": "integration",
+  "icon": "icon.svg",
+  "permissions": ["read:projects", "write:projects", "events:subscribe"],
+  "config": {
+    "apiEndpoint": {
+      "type": "string",
+      "label": "API Endpoint",
+      "description": "External API endpoint to connect to",
+      "default": "https://api.example.com"
+    },
+    "syncInterval": {
+      "type": "number",
+      "label": "Sync Interval (minutes)",
+      "description": "How often to sync data",
+      "default": 30
+    },
+    "enableNotifications": {
+      "type": "boolean",
+      "label": "Enable Notifications",
+      "description": "Send notifications on important events",
+      "default": true
+    }
+  }
+}

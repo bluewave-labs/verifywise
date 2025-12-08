@@ -6,7 +6,7 @@
  */
 
 import express, { Application, Router } from "express";
-import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin } from "./core";
+import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, PluginContext } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
 import { builtinPlugins } from "./builtin";
@@ -312,10 +312,63 @@ export function deletePluginFiles(pluginId: string): boolean {
 }
 
 /**
+ * Load a full TypeScript/JavaScript plugin from disk
+ *
+ * Attempts to dynamically import a plugin that exports a Plugin object.
+ * Supports both TypeScript (.ts) and JavaScript (.js) files.
+ *
+ * @param pluginPath - Path to the plugin directory
+ * @param pluginId - Plugin ID for logging
+ * @returns The loaded Plugin object, or null if not found
+ */
+async function loadFullPlugin(pluginPath: string, pluginId: string): Promise<Plugin | null> {
+  // Check for index.ts or index.js
+  const tsPath = path.join(pluginPath, "index.ts");
+  const jsPath = path.join(pluginPath, "index.js");
+
+  let modulePath: string | null = null;
+
+  if (fs.existsSync(tsPath)) {
+    modulePath = tsPath;
+  } else if (fs.existsSync(jsPath)) {
+    modulePath = jsPath;
+  }
+
+  if (!modulePath) {
+    return null;
+  }
+
+  try {
+    // Dynamic import - works with both ts-node (development) and compiled JS (production)
+    const pluginModule = await import(modulePath);
+
+    // Support both default export and named 'plugin' export
+    const plugin: Plugin = pluginModule.default || pluginModule.plugin;
+
+    if (!plugin || !plugin.manifest) {
+      logger.warn(`[Plugins] Module at ${modulePath} does not export a valid Plugin object`);
+      return null;
+    }
+
+    logger.info(`[Plugins] Loaded full plugin from ${modulePath}`);
+    return plugin;
+  } catch (error) {
+    logger.error(`[Plugins] Failed to import plugin module ${modulePath}:`, error);
+    return null;
+  }
+}
+
+/**
  * Load marketplace plugins from disk
  *
  * Scans the plugins/marketplace directory for downloaded plugins
  * and registers them with the plugin manager.
+ *
+ * Unified Plugin Architecture:
+ * - If index.ts/index.js exists: Load full TypeScript/JavaScript plugin with all features
+ * - If only manifest.json exists: Create a manifest-only plugin (backwards compatible)
+ *
+ * Full plugins can include: lifecycle hooks, event handlers, routes, UI extensions, etc.
  */
 async function loadMarketplacePlugins(): Promise<void> {
   if (!pluginManager) return;
@@ -345,7 +398,7 @@ async function loadMarketplacePlugins(): Promise<void> {
       }
 
       try {
-        // Read and parse manifest
+        // Read and parse manifest for basic info
         const manifestContent = fs.readFileSync(manifestPath, "utf8");
         const manifest = JSON.parse(manifestContent);
 
@@ -355,29 +408,43 @@ async function loadMarketplacePlugins(): Promise<void> {
           continue;
         }
 
-        // Create plugin manifest with proper types
-        // Read icon from file if it's a file path (e.g., "icon.svg")
-        const iconContent = readPluginIcon(manifest.icon as string | undefined, pluginPath);
+        // Try to load full TypeScript/JavaScript plugin first
+        const fullPlugin = await loadFullPlugin(pluginPath, manifest.id);
 
-        const pluginManifest: PluginManifest = {
-          id: manifest.id as string,
-          name: manifest.name as string,
-          description: manifest.description as string,
-          version: manifest.version as string,
-          author: manifest.author as string,
-          authorUrl: manifest.authorUrl as string | undefined,
-          type: manifest.type as PluginType,
-          icon: iconContent,
-          permissions: (manifest.permissions as PluginPermission[]) || [],
-          config: (manifest.config as Record<string, PluginConfigSchema>) || {},
-          dependencies: (manifest.dependencies as Record<string, string>) || undefined,
-        };
+        if (fullPlugin) {
+          // Full plugin loaded - use it directly
+          // Read icon if specified in manifest but not in loaded plugin
+          if (!fullPlugin.manifest.icon && manifest.icon) {
+            fullPlugin.manifest.icon = readPluginIcon(manifest.icon as string | undefined, pluginPath);
+          }
 
-        // Create and register the plugin
-        const plugin = createDynamicPlugin(pluginManifest);
-        pluginManager.registerPlugin(plugin, {});
+          pluginManager.registerPlugin(fullPlugin, {});
+          logger.info(`[Plugins] Loaded full marketplace plugin: ${fullPlugin.manifest.name} (${fullPlugin.manifest.id})`);
+        } else {
+          // No code found - fall back to manifest-only plugin
+          // Read icon from file if it's a file path (e.g., "icon.svg")
+          const iconContent = readPluginIcon(manifest.icon as string | undefined, pluginPath);
 
-        logger.info(`[Plugins] Loaded marketplace plugin: ${manifest.name} (${manifest.id})`);
+          const pluginManifest: PluginManifest = {
+            id: manifest.id as string,
+            name: manifest.name as string,
+            description: manifest.description as string,
+            version: manifest.version as string,
+            author: manifest.author as string,
+            authorUrl: manifest.authorUrl as string | undefined,
+            type: manifest.type as PluginType,
+            icon: iconContent,
+            permissions: (manifest.permissions as PluginPermission[]) || [],
+            config: (manifest.config as Record<string, PluginConfigSchema>) || {},
+            dependencies: (manifest.dependencies as Record<string, string>) || undefined,
+          };
+
+          // Create manifest-only plugin (backwards compatible)
+          const plugin = createDynamicPlugin(pluginManifest);
+          pluginManager.registerPlugin(plugin, {});
+
+          logger.info(`[Plugins] Loaded manifest-only marketplace plugin: ${manifest.name} (${manifest.id})`);
+        }
       } catch (error) {
         logger.error(`[Plugins] Failed to load plugin from ${dir.name}:`, error);
       }

@@ -12,6 +12,9 @@
  * - "chart" - Bar, line, pie, and donut charts (Recharts)
  * - "timeline" - Chronological events with icons and avatars
  * - "progress" - Circular, linear, gauge, and multi-progress indicators
+ * - "alerts" - Critical notifications and warnings with severity levels
+ * - "calendar" - Read-only calendar with events and deadlines
+ * - "card-grid" - Multiple mini stats cards in a responsive grid
  */
 
 import { useState, useEffect } from "react";
@@ -28,6 +31,9 @@ import {
   ChartWidget,
   TimelineWidget,
   ProgressWidget,
+  AlertsWidget,
+  CalendarWidget,
+  CardGridWidget,
 } from "./templates";
 
 interface PluginWidgetRendererProps {
@@ -51,6 +57,9 @@ const widgetTemplates: Record<string, React.ComponentType<WidgetTemplateProps>> 
   "chart": ChartWidget,
   "timeline": TimelineWidget,
   "progress": ProgressWidget,
+  "alerts": AlertsWidget,
+  "calendar": CalendarWidget,
+  "card-grid": CardGridWidget,
 };
 
 /**

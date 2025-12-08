@@ -180,6 +180,7 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   if (isLoading) {

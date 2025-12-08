@@ -79,6 +79,7 @@ const StatsCardWidget: React.FC<StatsCardWidgetProps> = ({
       const interval = setInterval(fetchStats, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchStats, refreshInterval]);
 
   if (isLoading) {

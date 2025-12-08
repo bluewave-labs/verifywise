@@ -135,6 +135,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   // Group events by date

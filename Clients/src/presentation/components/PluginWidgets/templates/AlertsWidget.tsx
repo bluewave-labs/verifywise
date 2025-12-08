@@ -165,6 +165,7 @@ const AlertsWidget: React.FC<AlertsWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   const handleDismiss = (alertId: string) => {

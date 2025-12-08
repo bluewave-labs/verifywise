@@ -100,6 +100,7 @@ const Marketplace = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   const handleRefresh = async () => {

@@ -156,6 +156,7 @@ const CardGridWidget: React.FC<CardGridWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   const handleCardClick = (url: string) => {

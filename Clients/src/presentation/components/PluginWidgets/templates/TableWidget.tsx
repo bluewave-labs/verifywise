@@ -148,6 +148,7 @@ const TableWidget: React.FC<TableWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   if (isLoading) {

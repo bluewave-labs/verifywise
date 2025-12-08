@@ -184,6 +184,7 @@ const TimelineWidget: React.FC<TimelineWidgetProps> = ({
       const interval = setInterval(fetchData, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, refreshInterval]);
 
   if (isLoading) {

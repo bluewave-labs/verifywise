@@ -119,6 +119,7 @@ const ListWidget: React.FC<ListWidgetProps> = ({
       const interval = setInterval(fetchItems, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchItems, refreshInterval]);
 
   if (isLoading) {

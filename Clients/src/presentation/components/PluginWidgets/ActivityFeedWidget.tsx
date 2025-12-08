@@ -123,6 +123,7 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({
       const interval = setInterval(fetchActivities, refreshInterval * 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchActivities, refreshInterval]);
 
   if (isLoading) {

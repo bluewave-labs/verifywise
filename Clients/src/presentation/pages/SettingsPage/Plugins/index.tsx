@@ -88,6 +88,7 @@ const Plugins = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Filter plugins based on tab

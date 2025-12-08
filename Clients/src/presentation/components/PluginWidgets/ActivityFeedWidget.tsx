@@ -129,10 +129,7 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({
     return (
       <Box
         sx={{
-          border: "1px solid #d0d5dd",
-          borderRadius: "4px",
-          p: 2,
-          minHeight: 200,
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -145,14 +142,7 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({
 
   if (error) {
     return (
-      <Box
-        sx={{
-          border: "1px solid #d0d5dd",
-          borderRadius: "4px",
-          p: 2,
-          minHeight: 200,
-        }}
-      >
+      <Box sx={{ height: "100%", p: 2 }}>
         <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 2 }}>{title}</Typography>
         <Box
           sx={{
@@ -187,11 +177,9 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({
   return (
     <Box
       sx={{
-        border: "1px solid #d0d5dd",
-        borderRadius: "4px",
+        height: "100%",
         p: 2,
-        minHeight: 200,
-        backgroundColor: "#fff",
+        overflow: "auto",
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

@@ -3164,6 +3164,615 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  # =============================================================================
+  # PLUGIN SYSTEM API
+  # =============================================================================
+  #
+  # The Plugin System allows extending VerifyWise with additional functionality
+  # through a WordPress-style architecture. Plugins can add new compliance
+  # frameworks, integrations, reporting features, and more.
+  #
+  # Plugin Types:
+  # - framework: Compliance frameworks (e.g., GDPR, HIPAA)
+  # - integration: External service integrations
+  # - feature: New platform features
+  # - reporting: Custom reporting and analytics
+  #
+  # Plugin Lifecycle:
+  # 1. Upload/Download plugin package (.zip with manifest.json)
+  # 2. Install plugin (first-time setup)
+  # 3. Enable plugin (activate functionality)
+  # 4. Configure plugin (optional settings)
+  # 5. Disable/Uninstall when no longer needed
+  # =============================================================================
+
+  /plugins:
+    get:
+      summary: List all plugins
+      description: |
+        Returns a list of all registered plugins (both built-in and uploaded)
+        with their current status, configuration, and statistics.
+
+        Built-in plugins are marked with `isBuiltin: true` and cannot be uninstalled.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of plugins with statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plugin'
+                  stats:
+                    $ref: '#/components/schemas/PluginStats'
+        '401':
+          description: Unauthorized - JWT token required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/stats:
+    get:
+      summary: Get plugin system statistics
+      description: |
+        Returns aggregate statistics about the plugin system including
+        total plugin counts by status (registered, installed, enabled).
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: Plugin system statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PluginStats'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/upload:
+    post:
+      summary: Upload a plugin package
+      description: |
+        Upload a new plugin from a .zip file. The package must contain
+        a `manifest.json` file at the root level with required fields.
+
+        **Manifest Requirements:**
+        - `id`: Unique plugin identifier (string)
+        - `name`: Display name (string)
+        - `version`: Semantic version (string)
+        - `author`: Author name (string)
+        - `type`: One of: feature, integration, framework, reporting
+        - `description`: Plugin description (string)
+
+        **Optional Manifest Fields:**
+        - `authorUrl`: Author website URL
+        - `icon`: SVG icon or file path to icon
+        - `permissions`: Array of required permissions
+        - `config`: Configuration schema object
+        - `dependencies`: Object of required plugin dependencies
+
+        **Size Limits:**
+        - Maximum file size: 10MB
+        - Disk space check: Requires 50MB free space after extraction
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [plugin]
+              properties:
+                plugin:
+                  type: string
+                  format: binary
+                  description: The plugin .zip file
+      responses:
+        '200':
+          description: Plugin uploaded and registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Plugin "GDPR Compliance Checker" uploaded successfully'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: gdpr-compliance-checker
+                      name:
+                        type: string
+                        example: GDPR Compliance Checker
+                      version:
+                        type: string
+                        example: "1.0.0"
+                      type:
+                        type: string
+                        example: framework
+        '400':
+          description: Invalid plugin package or manifest
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: 'Invalid plugin package: manifest.json not found at root level.'
+                  validationErrors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Missing required field: description", "Invalid type: custom"]
+        '409':
+          description: Plugin already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '507':
+          description: Insufficient disk space
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: 'Insufficient disk space. Need 25MB but only 10MB available.'
+
+  /plugins/install-from-url:
+    post:
+      summary: Install plugin from marketplace
+      description: |
+        Install a plugin from the official VerifyWise marketplace by URL.
+
+        **Security Features:**
+        - Only allows downloads from trusted domains (github.com, githubusercontent.com)
+        - SHA256 checksum verification (if provided)
+        - Download timeout: 60 seconds
+        - Disk space validation before extraction
+
+        **Process:**
+        1. Download plugin .zip from provided URL
+        2. Verify checksum (if provided)
+        3. Extract and validate manifest.json
+        4. Register and install the plugin
+        5. Save plugin state to database for persistence across restarts
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceInstallRequest'
+      responses:
+        '200':
+          description: Plugin installed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Plugin "GDPR Compliance Checker" installed successfully'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      version:
+                        type: string
+        '400':
+          description: Invalid request or download failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                  validationErrors:
+                    type: array
+                    items:
+                      type: string
+        '409':
+          description: Plugin already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '507':
+          description: Insufficient disk space
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}:
+    get:
+      summary: Get plugin by ID
+      description: |
+        Retrieve detailed information about a specific plugin including
+        its manifest, current status, and configuration.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID (from manifest.json)
+          schema:
+            type: string
+          example: gdpr-compliance-checker
+      responses:
+        '200':
+          description: Plugin details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Plugin'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}/install:
+    post:
+      summary: Install a plugin
+      description: |
+        Perform first-time installation of a registered plugin.
+        This runs the plugin's `onInstall` lifecycle hook.
+
+        Built-in plugins are auto-installed when enabled.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plugin installed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginSuccess'
+        '400':
+          description: Plugin already installed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}/uninstall:
+    post:
+      summary: Uninstall a plugin
+      description: |
+        Permanently remove an installed plugin.
+        This runs the plugin's `onUninstall` lifecycle hook.
+
+        **Note:** Built-in plugins cannot be uninstalled.
+
+        If the plugin is enabled, it will be disabled first.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plugin uninstalled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginSuccess'
+        '400':
+          description: Plugin not installed or cannot be uninstalled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}/enable:
+    post:
+      summary: Enable a plugin
+      description: |
+        Activate a plugin's functionality. The plugin must be installed first
+        (unless it's a built-in plugin, which auto-installs).
+
+        This runs the plugin's `onEnable` lifecycle hook and makes its
+        features available in the application.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plugin enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginSuccess'
+        '400':
+          description: Plugin not installed or already enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}/disable:
+    post:
+      summary: Disable a plugin
+      description: |
+        Deactivate a plugin's functionality without uninstalling it.
+        The plugin can be re-enabled later without losing configuration.
+
+        This runs the plugin's `onDisable` lifecycle hook.
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plugin disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginSuccess'
+        '400':
+          description: Plugin already disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+  /plugins/{id}/config:
+    get:
+      summary: Get plugin configuration
+      description: |
+        Retrieve the current configuration values and schema for a plugin.
+
+        Returns:
+        - `config`: Current configuration values
+        - `schema`: Configuration field definitions (type, required, default, etc.)
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plugin configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      config:
+                        type: object
+                        description: Current configuration values
+                        example:
+                          apiKey: "sk-..."
+                          enabled: true
+                      schema:
+                        type: object
+                        description: Configuration schema defining available fields
+                        example:
+                          apiKey:
+                            type: string
+                            required: true
+                            description: API key for external service
+                          enabled:
+                            type: boolean
+                            default: true
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
+    put:
+      summary: Update plugin configuration
+      description: |
+        Update configuration values for a plugin.
+        Values are validated against the plugin's configuration schema.
+
+        **Validation:**
+        - Required fields must be provided
+        - Field types must match schema definitions
+        - Invalid fields return validation errors
+      tags: [Plugins]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plugin ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Configuration key-value pairs
+              example:
+                apiKey: "sk-new-key"
+                enabled: false
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Plugin "gdpr-checker" configuration updated successfully'
+                  data:
+                    type: object
+                    properties:
+                      config:
+                        type: object
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: Invalid configuration
+                  validationErrors:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - 'Missing required field: apiKey'
+                      - 'Invalid type for "enabled": expected boolean, got string'
+        '404':
+          description: Plugin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginError'
+
 components:
   securitySchemes:
     JWTAuth:
@@ -3911,3 +4520,267 @@ components:
         - "Accepted"
       description: Current status of the model risk
       example: "Open"
+
+    # =========================================================================
+    # PLUGIN SYSTEM SCHEMAS
+    # =========================================================================
+
+    Plugin:
+      type: object
+      description: |
+        Plugin data transfer object representing a registered plugin
+        with its manifest information and current status.
+      properties:
+        id:
+          type: string
+          description: Unique plugin identifier (from manifest.json)
+          example: gdpr-compliance-checker
+        name:
+          type: string
+          description: Human-readable plugin name
+          example: GDPR Compliance Checker
+        description:
+          type: string
+          description: Brief description of plugin functionality
+          example: Automatically check your AI systems against GDPR requirements
+        version:
+          type: string
+          description: Semantic version string
+          example: "1.0.0"
+        author:
+          type: string
+          description: Plugin author or organization
+          example: VerifyWise
+        authorUrl:
+          type: string
+          format: uri
+          description: Author's website URL
+          example: https://verifywise.ai
+        type:
+          $ref: '#/components/schemas/PluginType'
+        icon:
+          type: string
+          description: SVG icon content or base64-encoded image
+          example: '<svg xmlns="http://www.w3.org/2000/svg">...</svg>'
+        enabled:
+          type: boolean
+          description: Whether the plugin is currently enabled
+          example: true
+        installed:
+          type: boolean
+          description: Whether the plugin has been installed
+          example: true
+        isBuiltin:
+          type: boolean
+          description: Whether this is a built-in plugin (cannot be uninstalled)
+          example: false
+        config:
+          type: object
+          description: Current configuration values
+          additionalProperties: true
+        permissions:
+          type: array
+          description: Permissions required by this plugin
+          items:
+            $ref: '#/components/schemas/PluginPermission'
+          example: ["read:projects", "read:controls"]
+
+    PluginType:
+      type: string
+      description: |
+        Plugin type classification:
+        - **framework**: Compliance frameworks (GDPR, HIPAA, SOC2, etc.)
+        - **integration**: External service integrations (Slack, Jira, etc.)
+        - **feature**: New platform features and capabilities
+        - **reporting**: Custom reports and analytics
+      enum:
+        - framework
+        - integration
+        - feature
+        - reporting
+      example: framework
+
+    PluginPermission:
+      type: string
+      description: |
+        Permission strings that define what data/actions a plugin can access.
+        Format: `action:resource` (e.g., `read:projects`, `write:controls`)
+      example: read:projects
+
+    PluginStats:
+      type: object
+      description: Aggregate statistics about the plugin system
+      properties:
+        registered:
+          type: integer
+          description: Total number of registered plugins
+          example: 5
+        installed:
+          type: integer
+          description: Number of installed plugins
+          example: 3
+        enabled:
+          type: integer
+          description: Number of currently enabled plugins
+          example: 2
+
+    PluginManifest:
+      type: object
+      description: |
+        Plugin manifest schema defining the structure of manifest.json.
+        This file must be present at the root of the plugin .zip package.
+      required:
+        - id
+        - name
+        - version
+        - author
+        - type
+        - description
+      properties:
+        id:
+          type: string
+          description: Unique plugin identifier (lowercase, kebab-case recommended)
+          pattern: '^[a-z0-9-]+$'
+          example: gdpr-compliance-checker
+        name:
+          type: string
+          description: Display name for the plugin
+          minLength: 1
+          maxLength: 100
+          example: GDPR Compliance Checker
+        description:
+          type: string
+          description: Brief description of plugin functionality
+          minLength: 1
+          maxLength: 500
+          example: Automatically check your AI systems against GDPR requirements
+        version:
+          type: string
+          description: Semantic version (e.g., 1.0.0, 2.1.3-beta)
+          pattern: '^\d+\.\d+\.\d+(-[\w.]+)?$'
+          example: "1.0.0"
+        author:
+          type: string
+          description: Plugin author name or organization
+          example: VerifyWise
+        authorUrl:
+          type: string
+          format: uri
+          description: Author website URL
+          example: https://verifywise.ai
+        type:
+          $ref: '#/components/schemas/PluginType'
+        icon:
+          type: string
+          description: |
+            Plugin icon. Can be:
+            - Inline SVG content
+            - Relative file path (e.g., "icon.svg")
+          example: icon.svg
+        permissions:
+          type: array
+          description: List of permissions required by this plugin
+          items:
+            $ref: '#/components/schemas/PluginPermission'
+          example: ["read:projects", "read:controls", "write:reports"]
+        config:
+          type: object
+          description: Configuration schema defining available settings
+          additionalProperties:
+            $ref: '#/components/schemas/PluginConfigField'
+        dependencies:
+          type: object
+          description: Required plugin dependencies with version constraints
+          additionalProperties:
+            type: string
+          example:
+            core-utilities: "^1.0.0"
+
+    PluginConfigField:
+      type: object
+      description: Schema for a single configuration field
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Data type of the configuration value
+          enum: [string, number, boolean, array, object]
+          example: string
+        required:
+          type: boolean
+          description: Whether this field is required
+          default: false
+          example: true
+        default:
+          description: Default value if not provided
+        description:
+          type: string
+          description: Human-readable description of the field
+          example: API key for authentication
+
+    MarketplaceInstallRequest:
+      type: object
+      description: Request body for installing a plugin from the marketplace
+      required:
+        - id
+        - name
+        - version
+        - downloadUrl
+      properties:
+        id:
+          type: string
+          description: Plugin ID (must match manifest.json id)
+          example: gdpr-compliance-checker
+        name:
+          type: string
+          description: Plugin name for display
+          example: GDPR Compliance Checker
+        version:
+          type: string
+          description: Version to install
+          example: "1.0.0"
+        downloadUrl:
+          type: string
+          format: uri
+          description: |
+            URL to download the plugin .zip file.
+            Must be from an allowed domain (github.com, githubusercontent.com)
+          example: https://github.com/bluewave-labs/plugin-marketplace/releases/download/gdpr-compliance-checker-1.0.0/gdpr-compliance-checker-1.0.0.zip
+        checksum:
+          type: string
+          description: |
+            SHA256 checksum of the .zip file for integrity verification.
+            Can include "sha256:" prefix (will be stripped for comparison).
+          example: sha256:abc123def456...
+
+    PluginSuccess:
+      type: object
+      description: Successful plugin operation response
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 'Plugin "gdpr-compliance-checker" enabled successfully'
+
+    PluginError:
+      type: object
+      description: Plugin operation error response
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Human-readable error message
+          example: 'Plugin "unknown-plugin" not found'
+        validationErrors:
+          type: array
+          description: Detailed validation errors (if applicable)
+          items:
+            type: string
+          example:
+            - 'Missing required field: description'
+            - 'Invalid type: custom. Must be one of: feature, integration, framework, reporting'

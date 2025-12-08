@@ -1,0 +1,12 @@
+{
+  "id": "gdpr-compliance-checker",
+  "name": "GDPR compliance checker",
+  "description": "Automatically check your AI systems against GDPR requirements and generate compliance reports.",
+  "version": "1.0.0",
+  "author": "VerifyWise",
+  "authorUrl": "https://verifywise.ai",
+  "type": "framework",
+  "icon": "icon.svg",
+  "permissions": ["read:projects", "read:controls"],
+  "config": {}
+}

@@ -66,6 +66,9 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import pluginRoutes from "./routes/plugin.route";
+import marketplaceRoutes from "./routes/marketplace.route";
+import { initializePlugins, shutdownPlugins } from "./plugins/init";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -195,6 +198,17 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/plugins", pluginRoutes);
+  app.use("/api/marketplace", marketplaceRoutes);
+
+  // Initialize plugin system
+  (async () => {
+    try {
+      await initializePlugins();
+    } catch (error) {
+      console.error("[Plugins] Failed to initialize plugin system:", error);
+    }
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

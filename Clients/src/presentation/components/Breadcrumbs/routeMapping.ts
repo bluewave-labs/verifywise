@@ -33,6 +33,7 @@ import {
   Users,
   Building2,
   Key,
+  Store,
 } from "lucide-react";
 
 /**
@@ -60,6 +61,7 @@ export const routeMapping: Record<string, string> = {
   "/settings/organization": "Organization",
   "/settings/preferences": "Preferences",
   "/settings/apikeys": "API keys",
+  "/settings/plugins": "Plugins",
   "/organization": "Organization Settings",
 
   // File management
@@ -93,6 +95,9 @@ export const routeMapping: Record<string, string> = {
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
+
+  // Marketplace
+  "/marketplace": "Plugin marketplace",
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": "Framework risks",
@@ -154,6 +159,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/settings/organization": () => React.createElement(Building2, { size: 14, strokeWidth: 1.5 }),
   "/settings/preferences": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
   "/settings/apikeys": () => React.createElement(Key, { size: 14, strokeWidth: 1.5 }),
+  "/settings/plugins": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
   "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // File management
@@ -180,6 +186,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Automations
   "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
+
+  // Marketplace
+  "/marketplace": () => React.createElement(Store, { size: 14, strokeWidth: 1.5 }),
 
   // MLFlow
   "/integrations/mlflow": () => React.createElement(Activity, { size: 14, strokeWidth: 1.5 }),

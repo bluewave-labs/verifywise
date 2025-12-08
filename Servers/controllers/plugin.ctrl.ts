@@ -52,8 +52,9 @@ const ALLOWED_MARKETPLACE_DOMAINS = [
 
 /**
  * Validate URL is from allowed download domains (SSRF protection)
+ * Returns the validated URL string to create clear data flow for static analysis
  */
-function validateDownloadUrl(url: string): void {
+function validateDownloadUrl(url: string): string {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -74,6 +75,9 @@ function validateDownloadUrl(url: string): void {
   if (!isAllowed) {
     throw new Error("URL domain not in allowed list");
   }
+
+  // Return the validated URL (normalized by URL parser)
+  return parsed.href;
 }
 
 /**
@@ -85,14 +89,15 @@ async function fetchWithTimeout(
   url: string,
   timeoutMs: number = FETCH_TIMEOUT_MS
 ): Promise<Response> {
-  // SSRF protection: validate URL before making request
-  validateDownloadUrl(url);
+  // SSRF protection: validate URL and get sanitized version
+  // Using the returned value ensures static analyzers can trace the data flow
+  const validatedUrl = validateDownloadUrl(url);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(validatedUrl, { signal: controller.signal });
     return response;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {

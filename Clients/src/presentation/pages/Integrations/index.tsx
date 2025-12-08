@@ -1,26 +1,29 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
+import { Box, Stack } from "@mui/material";
+import { Suspense } from "react";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
+import IntegrationCard from "../../components/IntegrationCard";
+import { AVAILABLE_INTEGRATIONS } from "../../../config/integrations";
 import {
-  Box,
-  Stack,
-  Typography,
-} from '@mui/material';
-import { Suspense } from 'react';
-import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
-import IntegrationCard from '../../components/IntegrationCard';
-import { AVAILABLE_INTEGRATIONS } from '../../../config/integrations';
-import { Integration, IntegrationStatus, IntegrationConnectionHandler } from '../../../domain/types/integrations';
-import Alert from '../../components/Alert';
-import useSlackIntegrations from '../../../application/hooks/useSlackIntegrations';
-import { useAuth } from '../../../application/hooks/useAuth';
-import { apiServices } from '../../../infrastructure/api/networkServices';
+  Integration,
+  IntegrationStatus,
+  IntegrationConnectionHandler,
+} from "../../../domain/types/integrations";
+import Alert from "../../components/Alert";
+import useSlackIntegrations from "../../../application/hooks/useSlackIntegrations";
+import { useAuth } from "../../../application/hooks/useAuth";
+import { apiServices } from "../../../infrastructure/api/networkServices";
 
 const Integrations: React.FC = () => {
   const navigate = useNavigate();
   const { userId, userRoleName } = useAuth();
   const { slackIntegrations } = useSlackIntegrations(userId);
   const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS);
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
+    {}
+  );
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
     body: string;
@@ -32,17 +35,17 @@ const Integrations: React.FC = () => {
   // Update Slack integration status based on actual data
   useEffect(() => {
     if (slackIntegrations && slackIntegrations.length > 0) {
-      setIntegrations(prev =>
-        prev.map(int =>
-          int.id === 'slack'
+      setIntegrations((prev) =>
+        prev.map((int) =>
+          int.id === "slack"
             ? { ...int, status: IntegrationStatus.CONFIGURED }
             : int
         )
       );
     } else {
-      setIntegrations(prev =>
-        prev.map(int =>
-          int.id === 'slack'
+      setIntegrations((prev) =>
+        prev.map((int) =>
+          int.id === "slack"
             ? { ...int, status: IntegrationStatus.NOT_CONFIGURED }
             : int
         )
@@ -57,7 +60,7 @@ const Integrations: React.FC = () => {
           apiServices.get<{
             configured: boolean;
             config?: {
-              lastTestStatus?: 'success' | 'error';
+              lastTestStatus?: "success" | "error";
               lastTestedAt?: string;
             };
           }>("/integrations/mlflow/config"),
@@ -66,8 +69,8 @@ const Integrations: React.FC = () => {
             data: {
               configured: boolean;
               lastSyncedAt: string | null;
-              lastSyncStatus: 'success' | 'partial' | 'error' | null;
-              lastTestStatus: 'success' | 'error' | null;
+              lastSyncStatus: "success" | "partial" | "error" | null;
+              lastTestStatus: "success" | "error" | null;
               lastTestedAt: string | null;
             };
           }>("/integrations/mlflow/sync-status"),
@@ -76,9 +79,9 @@ const Integrations: React.FC = () => {
         const configured = configResponse.data?.configured;
         const syncData = statusResponse.data?.data;
 
-        setIntegrations(prev =>
-          prev.map(int =>
-            int.id === 'mlflow'
+        setIntegrations((prev) =>
+          prev.map((int) =>
+            int.id === "mlflow"
               ? {
                   ...int,
                   status: configured
@@ -95,13 +98,13 @@ const Integrations: React.FC = () => {
                     configResponse.data?.config?.lastTestedAt ??
                     null,
                 }
-              : int,
-          ),
+              : int
+          )
         );
       } catch (error) {
-        setIntegrations(prev =>
-          prev.map(int =>
-            int.id === 'mlflow'
+        setIntegrations((prev) =>
+          prev.map((int) =>
+            int.id === "mlflow"
               ? {
                   ...int,
                   status: IntegrationStatus.NOT_CONFIGURED,
@@ -110,8 +113,8 @@ const Integrations: React.FC = () => {
                   lastTestStatus: null,
                   lastTestedAt: null,
                 }
-              : int,
-          ),
+              : int
+          )
         );
       }
     };
@@ -120,61 +123,71 @@ const Integrations: React.FC = () => {
   }, []);
 
   // Handle integration connection
-  const handleConnect: IntegrationConnectionHandler = useCallback(async (integration: Integration) => {
-    setLoadingStates(prev => ({ ...prev, [integration.id]: true }));
+  const handleConnect: IntegrationConnectionHandler = useCallback(
+    async (integration: Integration) => {
+      setLoadingStates((prev) => ({ ...prev, [integration.id]: true }));
 
-    try {
-      // Simulate API call for connection
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      try {
+        // Simulate API call for connection
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Update integration status to configured
-      setIntegrations(prev =>
-        prev.map(int =>
-          int.id === integration.id
-            ? {
-                ...int,
-                status: IntegrationStatus.CONFIGURED,
-                lastSyncAt: new Date().toISOString(),
-              }
-            : int
-        )
-      );
+        // Update integration status to configured
+        setIntegrations((prev) =>
+          prev.map((int) =>
+            int.id === integration.id
+              ? {
+                  ...int,
+                  status: IntegrationStatus.CONFIGURED,
+                  lastSyncAt: new Date().toISOString(),
+                }
+              : int
+          )
+        );
 
-      setToast({
-        variant: "success",
-        body: `${integration.displayName} configured successfully!`,
-        visible: true,
-      });
-    } catch (err) {
-      setToast({
-        variant: "error",
-        body: `Failed to configure ${integration.displayName}. Please try again.`,
-        visible: true,
-      });
+        setToast({
+          variant: "success",
+          body: `${integration.displayName} configured successfully!`,
+          visible: true,
+        });
+      } catch (err) {
+        setToast({
+          variant: "error",
+          body: `Failed to configure ${integration.displayName}. Please try again.`,
+          visible: true,
+        });
 
-      // Update integration status to error
-      setIntegrations(prev =>
-        prev.map(int =>
-          int.id === integration.id
-            ? { ...int, status: IntegrationStatus.ERROR, error: 'Configuration failed' }
-            : int
-        )
-      );
-    } finally {
-      setLoadingStates(prev => ({ ...prev, [integration.id]: false }));
-    }
-  }, []);
+        // Update integration status to error
+        setIntegrations((prev) =>
+          prev.map((int) =>
+            int.id === integration.id
+              ? {
+                  ...int,
+                  status: IntegrationStatus.ERROR,
+                  error: "Configuration failed",
+                }
+              : int
+          )
+        );
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, [integration.id]: false }));
+      }
+    },
+    []
+  );
 
   // Handle integration management
-  const handleManage = useCallback((integration: Integration) => {
-    // Navigate to integration-specific management page
-    if (integration.id === 'slack') {
-      navigate('/integrations/slack');
-    } else if (integration.id === 'mlflow') {
-      navigate('/integrations/mlflow');
-    }
-    // TODO: Add navigation for other integration management pages
-  }, [navigate]);
+  const handleManage = useCallback(
+    (integration: Integration) => {
+      // Navigate to integration-specific management page
+      if (integration.id === "slack") {
+        navigate("/integrations/slack");
+      } else if (integration.id === "mlflow") {
+        navigate("/integrations/mlflow");
+      }
+      // TODO: Add navigation for other integration management pages
+    },
+    [navigate]
+  );
 
   // Close toast
   const handleCloseToast = () => {
@@ -189,6 +202,7 @@ const Integrations: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [toast]);
 
   if (!isAdmin) {
@@ -199,16 +213,10 @@ const Integrations: React.FC = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, fontSize: '15px' }}>
-          Integrations
-        </Typography>
-        <Typography variant="body1" sx={{ fontSize: '13px' }} color="text.secondary">
-          Connect your favorite tools to streamline your AI governance workflow
-        </Typography>
-      </Box>
-
+      <PageHeader
+        title="Integrations"
+        description="Connect your favorite tools to streamline your AI governance workflow"
+      />
 
       {/* Integration Cards Grid */}
       <Box sx={{ p: 2 }}>
@@ -217,7 +225,11 @@ const Integrations: React.FC = () => {
             <Box
               key={integration.id}
               sx={{
-                width: { xs: "100%", md: "calc(50% - 8px)", lg: "calc(33.333% - 11px)" }
+                width: {
+                  xs: "100%",
+                  md: "calc(50% - 8px)",
+                  lg: "calc(33.333% - 11px)",
+                },
               }}
             >
               <IntegrationCard
@@ -229,8 +241,7 @@ const Integrations: React.FC = () => {
             </Box>
           ))}
         </Box>
-
-        </Box>
+      </Box>
 
       {/* VerifyWise Toast */}
       {toast && toast.visible && (

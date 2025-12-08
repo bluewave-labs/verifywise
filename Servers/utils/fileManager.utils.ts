@@ -12,8 +12,7 @@
 
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
-import { FileManagerModel, FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
-import { FileAccessLogModel } from "../domain.layer/models/fileManager/fileAccessLog.model";
+import { FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
 import sanitizeFilename from "sanitize-filename"; // Industry-standard filename sanitization
 
 /**
@@ -32,13 +31,14 @@ export const uploadFileToManager = async (
   tenant: string,
   modelId?: number
 ): Promise<any> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   // Sanitize filename to remove dangerous characters
   const safeName = sanitizeFilename(file.originalname) || "file";
 
-    // Insert file metadata and content into database
-    const query = `
+  // Insert file metadata and content into database
+  const query = `
     INSERT INTO "${tenant}".file_manager
       (filename, size, mimetype, file_path, uploaded_by, upload_date, model_id,  org_id, is_demo)
     VALUES
@@ -53,8 +53,8 @@ export const uploadFileToManager = async (
       mimetype: file.mimetype,
       uploaded_by: userId,
       org_id: orgId,
-      model_id: modelId !== undefined ? modelId : null, 
-      file_path: safeName
+      model_id: modelId !== undefined ? modelId : null,
+      file_path: safeName,
     },
     type: QueryTypes.SELECT,
   });
@@ -69,9 +69,13 @@ export const uploadFileToManager = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<any>} File metadata
  */
-export const getFileById = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<any> => {
-
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+export const getFileById = async (
+  fileId: number,
+  tenant: string,
+  isFileManagerFile: boolean = false
+): Promise<any> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   let query = `
     SELECT * FROM "${tenant}".file_manager
@@ -105,7 +109,8 @@ export const getFilesByOrganization = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<{ files: FileManagerMetadata[]; total: number }> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const { limit, offset } = options;
 
@@ -172,7 +177,8 @@ export const logFileAccess = async (
   action: "download" | "view",
   tenant: string
 ): Promise<void> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const query = `
     INSERT INTO "${tenant}".file_access_logs
@@ -199,8 +205,13 @@ export const logFileAccess = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<boolean>} True if file was deleted successfully
  */
-export const deleteFile = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<boolean> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+export const deleteFile = async (
+  fileId: number,
+  tenant: string,
+  isFileManagerFile: boolean = false
+): Promise<boolean> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   // Delete from database (file content is stored in database)
   let query = `
@@ -238,7 +249,8 @@ export const getFileAccessLogs = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<any[]> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const { limit, offset } = options;
 

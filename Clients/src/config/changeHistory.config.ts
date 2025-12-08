@@ -13,7 +13,9 @@ export type EntityType =
   | "framework"
   | "evidence_hub"
   | "risk"
-  | "vendor_risk";
+  | "vendor_risk"
+  | "policy"
+  | "incident";
 
 export interface EntityHistoryConfig {
   entityName: string; // Display name (e.g., "Model", "Vendor")
@@ -71,6 +73,18 @@ export const ENTITY_HISTORY_CONFIGS: {
     emptyStateTitle: "Activity history",
     emptyStateMessage:
       "Automatically tracks every change to this vendor risk. See what your team is working on and what updates they've made, in real time.",
+  },
+  policy: {
+    entityName: "Policy",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this policy. See what your team is working on and what updates they've made, in real time.",
+  },
+  incident: {
+    entityName: "Incident",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this incident. See what your team is working on and what updates they've made, in real time.",
   },
 };
 

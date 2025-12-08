@@ -8,23 +8,9 @@ import {
   getAssessmentByIdQuery,
   getAssessmentByProjectIdQuery,
 } from "../utils/assessment.utils";
-import {
-  createNewTopicQuery,
-  getTopicByAssessmentIdQuery,
-  updateTopicByIdQuery,
-} from "../utils/topic.utils";
-import {
-  createNewSubtopicQuery,
-  getSubTopicByTopicIdQuery,
-  updateSubtopicByIdQuery,
-} from "../utils/subtopic.utils";
-import {
-  createNewQuestionQuery,
-  getQuestionBySubTopicIdQuery,
-  RequestWithFile,
-  updateQuestionByIdQuery,
-  UploadedFile,
-} from "../utils/question.utils";
+import { getTopicByAssessmentIdQuery } from "../utils/topic.utils";
+import { getSubTopicByTopicIdQuery } from "../utils/subtopic.utils";
+import { getQuestionBySubTopicIdQuery } from "../utils/question.utils";
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";

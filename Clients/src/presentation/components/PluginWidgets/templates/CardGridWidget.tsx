@@ -134,7 +134,7 @@ const CardGridWidget: React.FC<CardGridWidgetProps> = ({
   const fetchData = useCallback(async () => {
     try {
       const response = await apiServices.get(`/plugins/${pluginId}${endpoint}`);
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: CardGridData; error?: string };
 
       if (data.success && data.data) {
         setCardData(data.data);

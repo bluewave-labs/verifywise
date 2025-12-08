@@ -162,7 +162,7 @@ const TimelineWidget: React.FC<TimelineWidgetProps> = ({
       const response = await apiServices.get(
         `/plugins/${pluginId}${endpoint}?limit=${maxItems}`
       );
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: TimelineData; error?: string };
 
       if (data.success && data.data) {
         setTimelineData(data.data);
@@ -287,7 +287,7 @@ const TimelineWidget: React.FC<TimelineWidgetProps> = ({
 
         {/* Timeline events */}
         <Stack spacing={compact ? 1.5 : 2}>
-          {timelineData.events.map((event, index) => {
+          {timelineData.events.map((event) => {
             const eventType = event.type || "info";
             const colors = typeColors[eventType] || typeColors.info;
             const iconName = event.icon || typeIconMap[eventType] || "circle";

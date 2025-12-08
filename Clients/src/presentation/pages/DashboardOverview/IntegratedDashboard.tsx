@@ -65,7 +65,6 @@ import {
   DashboardWidgetExtension,
 } from "../../../application/repository/plugin.repository";
 import { getTemplate } from "../../components/PluginWidgets/PluginWidgetRenderer";
-import { Puzzle } from "lucide-react";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);

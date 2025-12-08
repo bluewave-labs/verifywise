@@ -113,7 +113,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
       const response = await apiServices.get(
         `/plugins/${pluginId}${endpoint}?start=${startDate}&end=${endDate}`
       );
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: CalendarData; error?: string };
 
       if (data.success && data.data) {
         setCalendarData(data.data);
@@ -378,7 +378,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
               </Typography>
               {dayEvents.length > 0 && (
                 <Stack direction="row" spacing={0.25} sx={{ mt: 0.25 }}>
-                  {dayEvents.slice(0, 3).map((event, idx) => (
+                  {dayEvents.slice(0, 3).map((event) => (
                     <Circle
                       key={event.id}
                       size={4}

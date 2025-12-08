@@ -126,7 +126,7 @@ const TableWidget: React.FC<TableWidgetProps> = ({
         `/plugins/${pluginId}${endpoint}?limit=${maxRows}`
       );
 
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: TableData; error?: string };
 
       if (data.success && data.data) {
         setTableData(data.data);

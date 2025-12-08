@@ -97,7 +97,7 @@ const ListWidget: React.FC<ListWidgetProps> = ({
         `/plugins/${pluginId}${endpoint}?limit=${maxItems}`
       );
 
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: { items: ListItem[] }; error?: string };
 
       if (data.success && data.data?.items) {
         setItems(data.data.items);

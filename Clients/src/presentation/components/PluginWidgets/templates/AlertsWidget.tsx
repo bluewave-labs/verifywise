@@ -143,7 +143,7 @@ const AlertsWidget: React.FC<AlertsWidgetProps> = ({
       const response = await apiServices.get(
         `/plugins/${pluginId}${endpoint}?limit=${maxItems}`
       );
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: AlertsData; error?: string };
 
       if (data.success && data.data) {
         setAlertsData(data.data);

@@ -83,7 +83,7 @@ export function getTemplate(templateName: string): React.ComponentType<WidgetTem
   return widgetTemplates[templateName] || null;
 }
 
-const PluginWidgetRenderer: React.FC<PluginWidgetRendererProps> = ({ location }) => {
+const PluginWidgetRenderer: React.FC<PluginWidgetRendererProps> = ({ location: _location }) => {
   const [widgets, setWidgets] = useState<DashboardWidgetExtension[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

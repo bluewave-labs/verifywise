@@ -158,7 +158,7 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
   const fetchData = useCallback(async () => {
     try {
       const response = await apiServices.get(`/plugins/${pluginId}${endpoint}`);
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: ChartData; error?: string };
 
       if (data.success && data.data) {
         setChartData(data.data);
@@ -355,7 +355,7 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
                 paddingAngle={2}
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                 labelLine={false}
               >
                 {dataWithColors.map((entry, index) => (

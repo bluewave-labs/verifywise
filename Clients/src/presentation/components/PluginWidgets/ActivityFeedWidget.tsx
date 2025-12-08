@@ -100,7 +100,7 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({
         `/plugins/${pluginId}${endpoint}?limit=${maxItems}`
       );
 
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: { activities: Activity[] }; error?: string };
 
       if (data.success && data.data?.activities) {
         setActivities(data.data.activities);

@@ -57,7 +57,7 @@ const StatsCardWidget: React.FC<StatsCardWidgetProps> = ({
     try {
       const response = await apiServices.get(`/plugins/${pluginId}${endpoint}`);
 
-      const data = response.data;
+      const data = response.data as { success: boolean; data?: StatsData; error?: string };
 
       if (data.success && data.data) {
         setStats(data.data);

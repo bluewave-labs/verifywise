@@ -9,6 +9,9 @@
  * - "list" - Generic list of items with icons
  * - "stats-card" - Single metric card with change indicator
  * - "table" - Tabular data display
+ * - "chart" - Bar, line, pie, and donut charts (Recharts)
+ * - "timeline" - Chronological events with icons and avatars
+ * - "progress" - Circular, linear, gauge, and multi-progress indicators
  */
 
 import { useState, useEffect } from "react";
@@ -18,7 +21,14 @@ import {
   DashboardWidgetExtension,
 } from "../../../application/repository/plugin.repository";
 import ActivityFeedWidget from "./ActivityFeedWidget";
-import { ListWidget, StatsCardWidget, TableWidget } from "./templates";
+import {
+  ListWidget,
+  StatsCardWidget,
+  TableWidget,
+  ChartWidget,
+  TimelineWidget,
+  ProgressWidget,
+} from "./templates";
 
 interface PluginWidgetRendererProps {
   location: "dashboard";
@@ -38,6 +48,9 @@ const widgetTemplates: Record<string, React.ComponentType<WidgetTemplateProps>> 
   "list": ListWidget,
   "stats-card": StatsCardWidget,
   "table": TableWidget,
+  "chart": ChartWidget,
+  "timeline": TimelineWidget,
+  "progress": ProgressWidget,
 };
 
 /**

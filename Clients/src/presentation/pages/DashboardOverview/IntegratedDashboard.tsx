@@ -60,6 +60,12 @@ import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdow
 import { MetricCardProps } from "../../../domain/interfaces/iDashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
+import {
+  getPluginUIExtensions,
+  DashboardWidgetExtension,
+} from "../../../application/repository/plugin.repository";
+import { getTemplate } from "../../components/PluginWidgets/PluginWidgetRenderer";
+import { Puzzle } from "lucide-react";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -776,6 +782,37 @@ const IntegratedDashboard: React.FC = () => {
   const [showOrgNameModal, setShowOrgNameModal] = useState(false);
   const [currentOrgName, setCurrentOrgName] = useState("");
   const [organizationId, setOrganizationId] = useState<number>(-1);
+
+  // Plugin widgets state
+  const [pluginWidgets, setPluginWidgets] = useState<DashboardWidgetExtension[]>([]);
+
+  // Fetch plugin widgets on mount
+  useEffect(() => {
+    const fetchPluginWidgets = async () => {
+      try {
+        const response = await getPluginUIExtensions();
+        if (response.success && response.data?.dashboardWidgets) {
+          setPluginWidgets(response.data.dashboardWidgets);
+        }
+      } catch (error) {
+        console.error("Failed to fetch plugin widgets:", error);
+      }
+    };
+    fetchPluginWidgets();
+  }, []);
+
+  // Add plugin widgets to visibleCards when they're loaded
+  useEffect(() => {
+    if (pluginWidgets.length > 0) {
+      setVisibleCards((prevCards) => {
+        const newCards = new Set(prevCards);
+        pluginWidgets.forEach((pw) => {
+          newCards.add(`plugin-${pw.widgetId}`);
+        });
+        return newCards;
+      });
+    }
+  }, [pluginWidgets]);
 
   // Load visible cards from localStorage on initial render
   const getInitialVisibleCards = (): Set<string> => {
@@ -1521,7 +1558,7 @@ const IntegratedDashboard: React.FC = () => {
   if (!mounted) return null;
 
   // Widget definitions with your actual dashboard data
-  const widgets = [
+  const staticWidgets = [
     {
       id: "projects",
       content: (
@@ -1684,6 +1721,96 @@ const IntegratedDashboard: React.FC = () => {
     },
   ];
 
+  // Create plugin widget entries dynamically
+  const pluginWidgetEntries = useMemo(() => {
+    return pluginWidgets.map((pw) => {
+      const WidgetComponent = getTemplate(pw.template);
+      if (!WidgetComponent) return null;
+
+      return {
+        id: `plugin-${pw.widgetId}`,
+        content: (
+          <Box sx={{ height: "100%", backgroundColor: "#fff" }}>
+            <WidgetComponent
+              pluginId={pw.pluginId}
+              endpoint={pw.endpoint}
+              title={pw.title}
+              config={pw.config}
+            />
+          </Box>
+        ),
+        title: pw.title,
+        isPlugin: true,
+      };
+    }).filter(Boolean) as { id: string; content: React.ReactNode; title: string; isPlugin: boolean }[];
+  }, [pluginWidgets]);
+
+  // Combine static widgets with plugin widgets
+  const allWidgets = useMemo(() => {
+    return [...staticWidgets, ...pluginWidgetEntries];
+  }, [staticWidgets, pluginWidgetEntries]);
+
+  // Generate plugin widget layouts dynamically
+  const pluginWidgetLayouts = useMemo(() => {
+    const lgLayouts: Layout[] = [];
+    const mdLayouts: Layout[] = [];
+    const smLayouts: Layout[] = [];
+
+    pluginWidgetEntries.forEach((pw, index) => {
+      // Position plugin widgets after the last static widget
+      // They will be placed in a new row at the bottom
+      const yOffset = 10 + Math.floor(index / 2) * 4;
+      const xOffset = (index % 2) * 6;
+
+      lgLayouts.push({
+        i: pw.id,
+        x: xOffset,
+        y: yOffset,
+        w: 6,
+        h: 4,
+        minW: 3,
+        maxW: 12,
+        minH: 2,
+        maxH: 6,
+      });
+
+      mdLayouts.push({
+        i: pw.id,
+        x: xOffset > 5 ? 5 : xOffset,
+        y: yOffset,
+        w: 5,
+        h: 4,
+        minW: 2.5,
+        maxW: 10,
+        minH: 2,
+        maxH: 6,
+      });
+
+      smLayouts.push({
+        i: pw.id,
+        x: 0,
+        y: yOffset + index * 4,
+        w: 6,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 6,
+      });
+    });
+
+    return { lg: lgLayouts, md: mdLayouts, sm: smLayouts };
+  }, [pluginWidgetEntries]);
+
+  // Combine static layouts with plugin widget layouts
+  const combinedLayouts = useMemo(() => {
+    return {
+      lg: [...(layouts.lg || []), ...pluginWidgetLayouts.lg],
+      md: [...(layouts.md || []), ...pluginWidgetLayouts.md],
+      sm: [...(layouts.sm || []), ...pluginWidgetLayouts.sm],
+    };
+  }, [layouts, pluginWidgetLayouts]);
+
   return (
     <Box sx={{ pb: 3 }}>
       <PageBreadcrumbs />
@@ -1799,7 +1926,7 @@ const IntegratedDashboard: React.FC = () => {
           {/* Show/Hide Selector - appears when lock is clicked once */}
           {showHideSelector && (
             <VerifyWiseMultiSelect
-              options={widgets.map((widget) => ({
+              options={allWidgets.map((widget) => ({
                 value: widget.id,
                 label: widget.title,
               }))}
@@ -2026,11 +2153,11 @@ const IntegratedDashboard: React.FC = () => {
               <Typography
                 component="span"
                 onClick={() => {
-                  const allWidgetIds = new Set(widgets.map((w) => w.id));
-                  setVisibleCards(allWidgetIds);
+                  const widgetIds = new Set(allWidgets.map((w) => w.id));
+                  setVisibleCards(widgetIds);
                   localStorage.setItem(
                     "dashboardVisibleCards",
-                    JSON.stringify(Array.from(allWidgetIds))
+                    JSON.stringify(Array.from(widgetIds))
                   );
                 }}
                 sx={{
@@ -2050,7 +2177,7 @@ const IntegratedDashboard: React.FC = () => {
         ) : (
           <ResponsiveGridLayout
             className="layout"
-            layouts={layouts}
+            layouts={combinedLayouts}
             onLayoutChange={handleLayoutChange}
             onResize={handleResize}
             onResizeStop={handleResizeStop}
@@ -2069,7 +2196,7 @@ const IntegratedDashboard: React.FC = () => {
             autoSize={true}
             isBounded={true}
           >
-            {widgets
+            {allWidgets
               .filter((widget) => visibleCards.has(widget.id))
               .map((widget) => (
                 <Card

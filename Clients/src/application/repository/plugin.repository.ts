@@ -179,6 +179,23 @@ export interface PluginUploadResponse {
   };
 }
 
+export interface DashboardWidgetExtension {
+  pluginId: string;
+  widgetId: string;
+  template: string;
+  title: string;
+  endpoint: string;
+  config?: Record<string, unknown>;
+}
+
+export interface UIExtensionsResponse {
+  success: boolean;
+  data: {
+    dashboardWidgets: DashboardWidgetExtension[];
+  };
+  error?: string;
+}
+
 /**
  * Upload a new plugin from a zip file
  */
@@ -195,6 +212,20 @@ export async function uploadPlugin(file: File): Promise<PluginUploadResponse> {
           "Content-Type": "multipart/form-data",
         },
       }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get UI extensions from all enabled plugins
+ */
+export async function getPluginUIExtensions(): Promise<UIExtensionsResponse> {
+  try {
+    const response = await apiServices.get<UIExtensionsResponse>(
+      `${BASE_URL}/ui-extensions`
     );
     return response.data;
   } catch (error) {

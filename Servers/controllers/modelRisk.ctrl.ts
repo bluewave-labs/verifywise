@@ -160,9 +160,10 @@ export async function updateModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
   const modelRiskId = parseInt(id, 10);
 
-  // Get existing model risk for business rule validation
+  // Get existing model risk for change tracking
+  let existingModelRisk: Awaited<ReturnType<typeof getModelRiskByIdQuery>> | null = null;
   try {
-    await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
+    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -241,6 +242,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
 
   logStructured(
     "processing",

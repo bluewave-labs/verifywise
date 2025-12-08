@@ -307,9 +307,10 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
-  // Get existing task for business rule validation
+  // Get existing task for change tracking
+  let existingTask: Awaited<ReturnType<typeof getTaskByIdQuery>> | null = null;
   try {
-    await getTaskByIdQuery(
+    existingTask = await getTaskByIdQuery(
       taskId,
       { userId: req.userId!, role: req.role! },
       req.tenantId!,

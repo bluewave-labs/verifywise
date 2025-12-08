@@ -67,12 +67,12 @@ const ProfileForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false); // Separate saving state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-interface AlertState {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-  isToast?: boolean;
-}
+  interface AlertState {
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+    isToast?: boolean;
+  }
 
   const [alert, setAlert] = useState<AlertState | null>(null);
 
@@ -119,7 +119,7 @@ interface AlertState {
         email: emailAddr,
       };
     },
-    [],
+    []
   );
 
   /**
@@ -142,10 +142,10 @@ interface AlertState {
       updateInitialState(
         actualUserData?.name || "",
         actualUserData?.surname || "",
-        actualUserData?.email || "",
+        actualUserData?.email || ""
       );
     } catch (error) {
-        logEngine({
+      logEngine({
         type: "error",
         message: "Failed to fetch user data.",
       });
@@ -199,6 +199,7 @@ interface AlertState {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   /**
@@ -214,13 +215,17 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Validation errors occurred while saving the profile.",
+        "Validation errors occurred while saving the profile."
       );
       return;
     }
 
     if (!id) {
-      showAlert("error", "Error", "User session not found. Please log in again.");
+      showAlert(
+        "error",
+        "Error",
+        "User session not found. Please log in again."
+      );
       return;
     }
 
@@ -239,7 +244,6 @@ interface AlertState {
         userData: updatedUser,
       });
 
-  
       // Validate response before proceeding with success path
       if (response && response.status >= 200 && response.status < 300) {
         // Update the initial state to reflect the new saved values
@@ -258,7 +262,7 @@ interface AlertState {
         showAlert(
           "error",
           "Error",
-          "Failed to update profile. Please try again.",
+          "Failed to update profile. Please try again."
         );
       }
     } catch (error) {
@@ -272,7 +276,7 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Failed to update profile. Please try again.",
+        "Failed to update profile. Please try again."
       );
     } finally {
       setSaving(false);
@@ -318,11 +322,11 @@ interface AlertState {
         2,
         50,
         false,
-        false,
+        false
       );
       setFirstnameError(validation.accepted ? null : validation.message);
     },
-    [],
+    []
   );
 
   /**
@@ -339,11 +343,11 @@ interface AlertState {
         2,
         50,
         false,
-        false,
+        false
       );
       setLastnameError(validation.accepted ? null : validation.message);
     },
-    [],
+    []
   );
 
   /**
@@ -387,7 +391,7 @@ interface AlertState {
         showAlert(
           "error",
           "Error",
-          "Failed to delete account. Please try again.",
+          "Failed to delete account. Please try again."
         );
       }
     } catch (error) {
@@ -400,14 +404,13 @@ interface AlertState {
       showAlert(
         "error",
         "Error",
-        "Failed to delete account. Please try again.",
+        "Failed to delete account. Please try again."
       );
     } finally {
       setIsDeleteModalOpen(false);
       setShowToast(false);
     }
   }, [id, logout, showAlert]);
-
 
   // Utility function to clear preview and revoke URLs
   const clearImagePreview = useCallback(() => {
@@ -436,7 +439,11 @@ interface AlertState {
       }
 
       if (!id) {
-        showAlert("error", "Error", "User session not found. Please log in again.");
+        showAlert(
+          "error",
+          "Error",
+          "User session not found. Please log in again."
+        );
         return;
       }
 
@@ -465,7 +472,7 @@ interface AlertState {
           showAlert(
             "success",
             "Success",
-            "Profile photo uploaded successfully",
+            "Profile photo uploaded successfully"
           );
         } else {
           showAlert("error", "Error", "Failed to upload profile photo");
@@ -480,22 +487,26 @@ interface AlertState {
         }
       }
     },
-    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl],
+    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl]
   );
 
   // Image removal handlers
   const handleRemoveImage = useCallback(
     () => setIsRemoveImageModalOpen(true),
-    [],
+    []
   );
   const handleRemoveImageCancel = useCallback(
     () => setIsRemoveImageModalOpen(false),
-    [],
+    []
   );
 
   const handleRemoveImageConfirm = useCallback(async () => {
     if (!id) {
-      showAlert("error", "Error", "User session not found. Please log in again.");
+      showAlert(
+        "error",
+        "Error",
+        "User session not found. Please log in again."
+      );
       return;
     }
 
@@ -517,20 +528,20 @@ interface AlertState {
         showAlert(
           "success",
           "Image Removed",
-          "Profile photo removed successfully",
+          "Profile photo removed successfully"
         );
       } else {
         showAlert(
           "error",
           "Remove Failed",
-          "Failed to remove profile photo. Please try again.",
+          "Failed to remove profile photo. Please try again."
         );
       }
     } catch (error) {
       showAlert(
         "error",
         "Remove Failed",
-        "Failed to remove profile photo. Please try again.",
+        "Failed to remove profile photo. Please try again."
       );
     } finally {
       setImageRemoving(false);
@@ -782,11 +793,18 @@ interface AlertState {
                 }}
               >
                 <Avatar
-                  user={{ firstname, lastname, pathToImage: !imageLoadError ? selectedImagePreview ?? imageUrl ?? "" : undefined }}
+                  user={{
+                    firstname,
+                    lastname,
+                    pathToImage: !imageLoadError
+                      ? selectedImagePreview ?? imageUrl ?? ""
+                      : undefined,
+                  }}
                   size="medium"
                   sx={{ width: 84, height: 84 }}
                 />
-              </Box>)}
+              </Box>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>

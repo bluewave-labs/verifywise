@@ -24,7 +24,6 @@ import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
-import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
 import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
@@ -80,7 +79,6 @@ export const createRoutes = (
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
-    <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
     <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
     <Route path="/evals/settings" element={<OrgSettings />} />
     <Route path="/training" element={<Training />} />

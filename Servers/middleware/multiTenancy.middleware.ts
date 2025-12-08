@@ -23,7 +23,6 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { getOrganizationsExists } from "../controllers/organization.ctrl";
 import { getOrganizationsExistsQuery } from "../utils/organization.utils";
 
 /**
@@ -54,22 +53,24 @@ import { getOrganizationsExistsQuery } from "../utils/organization.utils";
  * // Always allowed regardless of multi-tenancy setting
  * // Enables initial setup for self-hosted deployments
  */
-export const checkMultiTenancy = async (req: Request, res: Response, next: NextFunction) => {
+export const checkMultiTenancy = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const requestOrigin = req.headers.origin || req.headers.host;
   const organizationExists = await getOrganizationsExistsQuery();
   if (
-    (
-      process.env.MULTI_TENANCY_ENABLED === "true" &&
-      (
-        requestOrigin?.includes("app.verifywise.ai") ||
-        requestOrigin?.includes("test.verifywise.ai")
-      )
-    ) || !organizationExists.exists
+    (process.env.MULTI_TENANCY_ENABLED === "true" &&
+      (requestOrigin?.includes("app.verifywise.ai") ||
+        requestOrigin?.includes("test.verifywise.ai"))) ||
+    !organizationExists.exists
   ) {
-    next();
+    return next();
   } else {
     return res.status(403).json({
-      message: "Multi tenancy is not enabled in this server. Please contact VerifyWise to get a license for multi tenancy option.",
+      message:
+        "Multi tenancy is not enabled in this server. Please contact VerifyWise to get a license for multi tenancy option.",
     });
   }
-}
+};

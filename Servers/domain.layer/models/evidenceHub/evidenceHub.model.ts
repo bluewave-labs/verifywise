@@ -1,12 +1,5 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { IEvidenceHub } from "../../interfaces/i.evidenceHub";
-import { UserModel } from "../user/user.model";
 
 export interface FileResponse {
   id: string | number;
@@ -122,7 +115,8 @@ export class EvidenceHubModel extends Model<EvidenceHubModel> {
       description: data.description ?? existingEvidence.description,
       evidence_files: data.evidence_files ?? existingEvidence.evidence_files,
       expiry_date: data.expiry_date ?? existingEvidence.expiry_date,
-      mapped_model_ids: data.mapped_model_ids ?? existingEvidence.mapped_model_ids,
+      mapped_model_ids:
+        data.mapped_model_ids ?? existingEvidence.mapped_model_ids,
       updated_at: new Date(),
     });
 

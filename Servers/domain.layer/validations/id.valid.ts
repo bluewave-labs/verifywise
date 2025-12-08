@@ -10,6 +10,6 @@ export const validateId = (paramName = "id") => [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    next();
-  }
+    return next();
+  },
 ];

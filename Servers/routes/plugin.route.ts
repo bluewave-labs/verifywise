@@ -63,6 +63,7 @@ import {
 } from "../controllers/plugin.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
+import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
 
 /**
  * GET /plugins
@@ -95,8 +96,9 @@ router.get("/ui-extensions", authenticateJWT, getPluginUIExtensions);
  * Upload a new plugin from a zip file.
  * The zip must contain a manifest.json at the root level.
  * Requires authentication.
+ * Rate limited to prevent abuse.
  */
-router.post("/upload", authenticateJWT, upload.single("plugin"), uploadPlugin);
+router.post("/upload", authenticateJWT, fileOperationsLimiter, upload.single("plugin"), uploadPlugin);
 
 /**
  * POST /plugins/install-from-url
@@ -105,8 +107,9 @@ router.post("/upload", authenticateJWT, upload.single("plugin"), uploadPlugin);
  * Downloads the plugin from the provided URL, validates checksum,
  * and installs it.
  * Requires authentication.
+ * Rate limited to prevent abuse.
  */
-router.post("/install-from-url", authenticateJWT, installFromUrl);
+router.post("/install-from-url", authenticateJWT, fileOperationsLimiter, installFromUrl);
 
 /**
  * GET /plugins/:id

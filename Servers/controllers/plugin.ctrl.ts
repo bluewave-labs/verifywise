@@ -51,13 +51,43 @@ const ALLOWED_MARKETPLACE_DOMAINS = [
 ] as const;
 
 /**
+ * Validate URL is from allowed download domains (SSRF protection)
+ */
+function validateDownloadUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Invalid URL format");
+  }
+
+  // Only allow HTTPS
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only HTTPS URLs are allowed");
+  }
+
+  // Validate against allowed domains
+  const isAllowed = ALLOWED_MARKETPLACE_DOMAINS.some(
+    (domain: string) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
+  );
+
+  if (!isAllowed) {
+    throw new Error("URL domain not in allowed list");
+  }
+}
+
+/**
  * Fetch with timeout using AbortController
  * Prevents plugin download requests from hanging indefinitely
+ * Includes SSRF protection by validating URL against allowed domains
  */
 async function fetchWithTimeout(
   url: string,
   timeoutMs: number = FETCH_TIMEOUT_MS
 ): Promise<Response> {
+  // SSRF protection: validate URL before making request
+  validateDownloadUrl(url);
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 

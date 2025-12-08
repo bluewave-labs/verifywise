@@ -292,9 +292,32 @@ export async function deletePluginState(pluginId: string): Promise<void> {
 }
 
 /**
+ * Validate plugin ID to prevent path traversal attacks
+ */
+function validatePluginId(pluginId: string): void {
+  // Reject empty or whitespace-only IDs
+  if (!pluginId || !pluginId.trim()) {
+    throw new Error("Plugin ID cannot be empty");
+  }
+
+  // Reject path traversal attempts
+  if (pluginId.includes("..") || pluginId.includes("/") || pluginId.includes("\\")) {
+    throw new Error("Invalid plugin ID: path traversal not allowed");
+  }
+
+  // Only allow alphanumeric, hyphens, and underscores
+  if (!/^[a-zA-Z0-9_-]+$/.test(pluginId)) {
+    throw new Error("Invalid plugin ID: only alphanumeric characters, hyphens, and underscores allowed");
+  }
+}
+
+/**
  * Delete plugin files from disk
  */
 export function deletePluginFiles(pluginId: string): boolean {
+  // Validate plugin ID to prevent path traversal
+  validatePluginId(pluginId);
+
   // Check both marketplace and uploaded directories
   const pluginDirs = [
     path.join(process.cwd(), "plugins", "marketplace", pluginId),
@@ -303,6 +326,14 @@ export function deletePluginFiles(pluginId: string): boolean {
 
   let deleted = false;
   for (const pluginDir of pluginDirs) {
+    // Additional safety: verify the resolved path is within expected directories
+    const resolvedPath = path.resolve(pluginDir);
+    const expectedBase = path.resolve(process.cwd(), "plugins");
+    if (!resolvedPath.startsWith(expectedBase)) {
+      logger.error(`[Plugins] Path traversal attempt detected: ${pluginDir}`);
+      continue;
+    }
+
     if (fs.existsSync(pluginDir)) {
       try {
         fs.rmSync(pluginDir, { recursive: true });

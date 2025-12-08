@@ -163,24 +163,27 @@ export class PluginContextFactory {
 
   /**
    * Create a logger for a plugin
+   * Plugin ID is sanitized to prevent log injection attacks
    */
   private createLogger(pluginId: string): PluginLogger {
-    const prefix = `[Plugin:${pluginId}]`;
+    // Sanitize plugin ID - only allow alphanumeric, hyphens, and underscores
+    const sanitizedId = pluginId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const prefix = `[Plugin:${sanitizedId}]`;
 
     return {
       debug: (message: string, meta?: Record<string, unknown>) => {
         if (process.env.NODE_ENV === "development") {
-          console.debug(prefix, message, meta || "");
+          console.debug("%s %s %o", prefix, message, meta || "");
         }
       },
       info: (message: string, meta?: Record<string, unknown>) => {
-        console.info(prefix, message, meta || "");
+        console.info("%s %s %o", prefix, message, meta || "");
       },
       warn: (message: string, meta?: Record<string, unknown>) => {
-        console.warn(prefix, message, meta || "");
+        console.warn("%s %s %o", prefix, message, meta || "");
       },
       error: (message: string, meta?: Record<string, unknown>) => {
-        console.error(prefix, message, meta || "");
+        console.error("%s %s %o", prefix, message, meta || "");
       },
     };
   }

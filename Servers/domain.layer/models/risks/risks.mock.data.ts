@@ -2,7 +2,7 @@ import { IRisk } from "../../interfaces/I.risk";
 
 // Sample mock data for ProjectRisk
 const mockProjectRisks = (
-  projectId1: number,
+  _projectId1: number,
   userId1: number,
   userId2: number
 ): IRisk[] => {

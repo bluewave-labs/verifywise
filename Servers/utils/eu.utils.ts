@@ -156,41 +156,40 @@ const getSubControlsCalculations = async (
   dueDateFilter?: number
 ) => {
   // Build WHERE conditions dynamically
-  const conditions: string[] = ['c.id = :control_id'];
+  const conditions: string[] = ["c.id = :control_id"];
   const replacements: any = { control_id: controlId };
 
   // Add owner filter if provided
   if (owner !== undefined) {
-    conditions.push('sc.owner = :owner');
+    conditions.push("sc.owner = :owner");
     replacements.owner = owner;
   }
 
   // Add approver filter if provided
   if (approver !== undefined) {
-    conditions.push('sc.approver = :approver');
+    conditions.push("sc.approver = :approver");
     replacements.approver = approver;
   }
 
   // Add due date filter if provided (filters for due dates within the specified number of days)
   if (dueDateFilter !== undefined) {
-    conditions.push(`sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`);
+    conditions.push(
+      `sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`
+    );
     replacements.dueDateFilter = dueDateFilter;
   }
 
-  const whereClause = conditions.join(' AND ');
+  const whereClause = conditions.join(" AND ");
 
   const query = `SELECT COUNT(*) AS "numberOfSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "numberOfDoneSubcontrols" FROM
     "${tenant}".controls_eu c JOIN "${tenant}".subcontrols_eu sc ON c.id = sc.control_id WHERE ${whereClause};`;
 
-  const result = (await sequelize.query(
-    query,
-    {
-      replacements,
-    }
-  )) as [
-      { numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[],
-      number
-    ];
+  const result = (await sequelize.query(query, {
+    replacements,
+  })) as [
+    { numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[],
+    number,
+  ];
   return result[0][0] as {
     numberOfSubcontrols: string;
     numberOfDoneSubcontrols: string;
@@ -216,7 +215,13 @@ export const getControlByIdForProjectQuery = async (
   )) as [{ id: number }[], number];
   const controls = await getControlByIdQuery(controlId[0][0].id, tenant);
   const control = controls[0];
-  const subControls = await getSubControlsByIdQuery(control.id!, owner, approver, dueDateFilter, tenant);
+  const subControls = await getSubControlsByIdQuery(
+    control.id!,
+    owner,
+    approver,
+    dueDateFilter,
+    tenant
+  );
 
   (control as any).subControls = [];
   for (let subControl of subControls) {
@@ -239,20 +244,23 @@ export const getControlByIdForProjectQuery = async (
 };
 
 export const getAllTopicsQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const topicStruct = await sequelize.query(`SELECT * FROM public.topics_struct_eu;`, {
-    mapToModel: true,
-    model: TopicStructEUModel,
-    ...(transaction && { transaction }),
-  });
+  const topicStruct = await sequelize.query(
+    `SELECT * FROM public.topics_struct_eu;`,
+    {
+      mapToModel: true,
+      model: TopicStructEUModel,
+      ...(transaction && { transaction }),
+    }
+  );
   return topicStruct;
 };
 
 export const getAllSubTopicsQuery = async (
   topicId: number,
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subtopicStruct = await sequelize.query(
@@ -300,7 +308,10 @@ export const getAllQuestionsQuery = async (
       replacements: { subtopic_id: subtopicId, assessment_id: assessmentId },
       ...(transaction && { transaction }),
     }
-  )) as [Partial<QuestionStructEUModel & AnswerEU & { answer_id: number }>[], number];
+  )) as [
+    Partial<QuestionStructEUModel & AnswerEU & { answer_id: number }>[],
+    number,
+  ];
   const questionAnswers = result[0];
   for (let questionAnswer of questionAnswers) {
     (questionAnswer as any).risks = [];
@@ -325,7 +336,11 @@ export const getAssessmentsEUByIdQuery = async (
 ) => {
   const topicStruct = await getAllTopicsQuery(tenant, transaction);
   for (let topic of topicStruct) {
-    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant, transaction);
+    const subtopicStruct = await getAllSubTopicsQuery(
+      topic.id!,
+      tenant,
+      transaction
+    );
     (topic.dataValues as any).subTopics = subtopicStruct;
     for (let subtopic of subtopicStruct) {
       const questionAnswers = await getAllQuestionsQuery(
@@ -344,7 +359,7 @@ export const getAssessmentsEUByIdQuery = async (
 };
 
 export const getAllControlCategoriesQuery = async (
-  tenant: string,
+  _tenant: string,
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await sequelize.query(
@@ -390,9 +405,9 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
       },
     }
   )) as [
-      Partial<ControlStructEUModel & ControlEUModel & { control_id: number }>[],
-      number
-    ];
+    Partial<ControlStructEUModel & ControlEUModel & { control_id: number }>[],
+    number,
+  ];
   for (let control of controlsStruct[0]) {
     const subControlsCalculations = await getSubControlsCalculations(
       control.control_id!,
@@ -408,7 +423,9 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
       subControlsCalculations.numberOfDoneSubcontrols
     );
   }
-  return controlsStruct[0].filter((control) => (control as any).numberOfSubcontrols > 0);
+  return controlsStruct[0].filter(
+    (control) => (control as any).numberOfSubcontrols > 0
+  );
 };
 
 export const getControlByIdQuery = async (
@@ -439,7 +456,7 @@ export const getControlByIdQuery = async (
     }
   )) as [Partial<ControlEUModel & ControlStructEUModel>[], number];
   const control = result[0];
-  return control
+  return control;
 };
 
 export const getSubControlsByIdQuery = async (
@@ -451,28 +468,30 @@ export const getSubControlsByIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   // Build WHERE conditions dynamically
-  const conditions: string[] = ['sc.control_id = :control_id'];
+  const conditions: string[] = ["sc.control_id = :control_id"];
   const replacements: any = { control_id: subControlId };
 
   // Add owner filter if provided
   if (owner !== undefined) {
-    conditions.push('sc.owner = :owner');
+    conditions.push("sc.owner = :owner");
     replacements.owner = owner;
   }
 
   // Add approver filter if provided
   if (approver !== undefined) {
-    conditions.push('sc.approver = :approver');
+    conditions.push("sc.approver = :approver");
     replacements.approver = approver;
   }
 
   // Add due date filter if provided (filters for due dates within the specified number of days)
   if (dueDateFilter !== undefined) {
-    conditions.push(`sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`);
+    conditions.push(
+      `sc.due_date IS NOT NULL AND sc.due_date >= CURRENT_DATE AND sc.due_date <= CURRENT_DATE + :dueDateFilter * INTERVAL '1 day'`
+    );
     replacements.dueDateFilter = dueDateFilter;
   }
 
-  const whereClause = conditions.join(' AND ');
+  const whereClause = conditions.join(" AND ");
 
   const subControls = (await sequelize.query(
     `SELECT 
@@ -510,7 +529,8 @@ export const getCompliancesEUByIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await getAllControlCategoriesQuery(
-    tenant, transaction
+    tenant,
+    transaction
   );
   let controlCategoryIdIndexMap = new Map();
   for (let [i, controlCategory] of controlCategoriesStruct.entries()) {
@@ -552,7 +572,10 @@ export const getAssessmentsEUByProjectIdQuery = async (
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
-  const assessments = await getAssessmentsEUByIdQuery(assessmentId[0][0].id, tenant);
+  const assessments = await getAssessmentsEUByIdQuery(
+    assessmentId[0][0].id,
+    tenant
+  );
   return assessments;
 };
 
@@ -568,7 +591,8 @@ export const getComplianceEUByProjectIdQuery = async (
   )) as [{ id: number }[], number];
 
   const compliances = await getCompliancesEUByIdQuery(
-    controlIds[0].map((c) => c.id), tenant
+    controlIds[0].map((c) => c.id),
+    tenant
   );
   return compliances;
 };
@@ -653,10 +677,15 @@ export const createNewAnswersEUQuery = async (
           answer: enable_ai_data_insertion ? demoAnswers[ansCtr++] : null,
           status: is_mock_data
             ? STATUSES_ANSWERS[
-            Math.floor(Math.random() * STATUSES_ANSWERS.length)
-            ]
+                Math.floor(Math.random() * STATUSES_ANSWERS.length)
+              ]
             : "Not started",
-          is_demo: await findIsDemo("assessments", assessmentId, tenant, transaction),
+          is_demo: await findIsDemo(
+            "assessments",
+            assessmentId,
+            tenant,
+            transaction
+          ),
         },
         mapToModel: true,
         model: AnswerEUModel,
@@ -728,7 +757,11 @@ export const createNewControlsQuery = async (
       is_mock_data
     );
   }
-  const compliances = await getCompliancesEUByIdQuery(controlIds, tenant, transaction);
+  const compliances = await getCompliancesEUByIdQuery(
+    controlIds,
+    tenant,
+    transaction
+  );
   return compliances;
 };
 
@@ -764,20 +797,25 @@ export const createNewSubControlsQuery = async (
             : null,
           evidence_description:
             enable_ai_data_insertion &&
-              demoSubControls[ctr].evidence_description
+            demoSubControls[ctr].evidence_description
               ? demoSubControls[ctr].evidence_description
               : null,
           feedback_description:
             enable_ai_data_insertion &&
-              demoSubControls[ctr].feedback_description
+            demoSubControls[ctr].feedback_description
               ? demoSubControls[ctr].feedback_description
               : null,
           status: is_mock_data
             ? STATUSES_COMPLIANCE[
-            Math.floor(Math.random() * STATUSES_COMPLIANCE.length)
-            ]
+                Math.floor(Math.random() * STATUSES_COMPLIANCE.length)
+              ]
             : "Waiting",
-          is_demo: await findIsDemo("controls_eu", controlId, tenant, transaction),
+          is_demo: await findIsDemo(
+            "controls_eu",
+            controlId,
+            tenant,
+            transaction
+          ),
         },
         mapToModel: true,
         model: SubcontrolEUModel,
@@ -841,6 +879,7 @@ export const updateControlEUByIdQuery = async (
         updateControl[f as keyof ControlEU] = control[f as keyof ControlEU];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -957,6 +996,7 @@ export const updateSubcontrolEUByIdQuery = async (
           subcontrol[f as keyof SubcontrolEU];
         return true;
       }
+      return false;
     })
     .map((f) => {
       return `${f} = :${f}`;
@@ -1074,10 +1114,12 @@ export const addFileToAnswerEU = async (
 
 export const updateQuestionEUByIdQuery = async (
   id: number,
-  question: Partial<AnswerEU & {
-    risksDelete: number[];
-    risksMitigated: number[];
-  }>,
+  question: Partial<
+    AnswerEU & {
+      risksDelete: number[];
+      risksMitigated: number[];
+    }
+  >,
   tenant: string,
   transaction: Transaction
 ): Promise<AnswerEU | null> => {
@@ -1091,6 +1133,7 @@ export const updateQuestionEUByIdQuery = async (
         }
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -1117,8 +1160,13 @@ export const updateQuestionEUByIdQuery = async (
     }
   )) as [AnswerEURisksModel[], number];
   let currentRisks = risks[0].map((r) => r.projects_risks_id!);
-  currentRisks = currentRisks.filter((r) => !(validateRiskArray(question.risksDelete || [], "risksDelete")).includes(r));
-  currentRisks = currentRisks.concat(validateRiskArray(question.risksMitigated || [], "risksMitigated"));
+  currentRisks = currentRisks.filter(
+    (r) =>
+      !validateRiskArray(question.risksDelete || [], "risksDelete").includes(r)
+  );
+  currentRisks = currentRisks.concat(
+    validateRiskArray(question.risksMitigated || [], "risksMitigated")
+  );
 
   await sequelize.query(
     `DELETE FROM "${tenant}".answers_eu__risks WHERE answer_id = :id;`,
@@ -1129,7 +1177,9 @@ export const updateQuestionEUByIdQuery = async (
   );
   if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
-    const placeholders = currentRisks.map((_, i) => `(:answer_id${i}, :projects_risks_id${i})`).join(", ");
+    const placeholders = currentRisks
+      .map((_, i) => `(:answer_id${i}, :projects_risks_id${i})`)
+      .join(", ");
     const replacements: { [key: string]: any } = {};
 
     // Build replacement parameters safely

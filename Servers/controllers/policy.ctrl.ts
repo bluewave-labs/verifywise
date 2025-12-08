@@ -1,13 +1,19 @@
-import { Request, Response } from 'express';
-import { IPolicy, POLICY_TAGS } from '../domain.layer/interfaces/i.policy';
-import { STATUS_CODE } from '../utils/statusCode.utils';
-import { createPolicyQuery, deletePolicyByIdQuery, getAllPoliciesQuery, getPolicyByIdQuery, updatePolicyByIdQuery } from '../utils/policyManager.utils';
-import { sequelize } from '../database/db';
+import { Request, Response } from "express";
+import { IPolicy, POLICY_TAGS } from "../domain.layer/interfaces/i.policy";
+import { STATUS_CODE } from "../utils/statusCode.utils";
+import {
+  createPolicyQuery,
+  deletePolicyByIdQuery,
+  getAllPoliciesQuery,
+  getPolicyByIdQuery,
+  updatePolicyByIdQuery,
+} from "../utils/policyManager.utils";
+import { sequelize } from "../database/db";
 import {
   recordPolicyCreation,
   trackPolicyChanges,
   recordMultipleFieldChanges,
-} from '../utils/policyChangeHistory.utils';
+} from "../utils/policyChangeHistory.utils";
 import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
 import { PluginEvent } from "../plugins/core/types";
 
@@ -47,10 +53,15 @@ export class PolicyController {
       const policyData = {
         ...req.body,
         author_id: userId,
-        last_updated_by: userId
+        last_updated_by: userId,
       } as IPolicy;
 
-      const policy = await createPolicyQuery(policyData, req.tenantId!, userId, transaction);
+      const policy = await createPolicyQuery(
+        policyData,
+        req.tenantId!,
+        userId,
+        transaction
+      );
 
       if (policy) {
         // Record creation in change history
@@ -97,7 +108,10 @@ export class PolicyController {
       const policyId = parseInt(req.params.id);
       const userId = req.userId!;
       // Get existing policy for change tracking
-      const existingPolicyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const existingPolicyResult = await getPolicyByIdQuery(
+        req.tenantId!,
+        policyId
+      );
 
       if (!existingPolicyResult || existingPolicyResult.length === 0) {
         await transaction.rollback();
@@ -108,14 +122,23 @@ export class PolicyController {
 
       const policyData = {
         ...req.body,
-        last_updated_by: userId
+        last_updated_by: userId,
       } as Partial<IPolicy>;
 
-      const policy = await updatePolicyByIdQuery(policyId, policyData, req.tenantId!, userId, transaction);
+      const policy = await updatePolicyByIdQuery(
+        policyId,
+        policyData,
+        req.tenantId!,
+        userId,
+        transaction
+      );
 
       if (policy) {
         // Track and record changes
-        const changes = await trackPolicyChanges(existingPolicy as unknown as IPolicy, policyData);
+        const changes = await trackPolicyChanges(
+          existingPolicy as unknown as IPolicy,
+          policyData
+        );
         if (changes.length > 0) {
           await recordMultipleFieldChanges(
             policyId,
@@ -152,13 +175,13 @@ export class PolicyController {
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
       await transaction.rollback();
-      console.error('Error updating policy:', error);
+      console.error("Error updating policy:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
 
   // Get available policy tags
-  static async getPolicyTags(req: Request, res: Response) {
+  static async getPolicyTags(_req: Request, res: Response) {
     try {
       return res.status(200).json(STATUS_CODE[200](POLICY_TAGS));
     } catch (error) {
@@ -172,7 +195,11 @@ export class PolicyController {
     try {
       const policyId = parseInt(req.params.id);
 
-      const deleted = await deletePolicyByIdQuery(req.tenantId!, policyId, transaction);
+      const deleted = await deletePolicyByIdQuery(
+        req.tenantId!,
+        policyId,
+        transaction
+      );
 
       if (deleted) {
         await transaction.commit();
@@ -201,5 +228,4 @@ export class PolicyController {
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
-
 }

@@ -1,4 +1,3 @@
-import { ControlModel } from "../models/control/control.model";
 import {
   ValidationException,
   BusinessLogicException,

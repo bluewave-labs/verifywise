@@ -19,6 +19,8 @@ import {
 } from "../utils/modelInventoryChangeHistory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -283,6 +285,21 @@ export async function createNewModelInventory(req: Request, res: Response) {
       "createNewModelInventory",
       "modelInventory.ctrl.ts"
     );
+
+    // Emit model created event (fire-and-forget)
+    emitEvent(
+      PluginEvent.MODEL_CREATED,
+      {
+        modelId: savedModelInventory.id!,
+        projectId: projects?.[0] || 0,
+        model: savedModelInventory.toSafeJSON() as unknown as Record<string, unknown>,
+      },
+      {
+        triggeredBy: { userId: req.userId! },
+        tenant: req.tenantId || "default",
+      }
+    );
+
     return res
       .status(201)
       .json(STATUS_CODE[201](savedModelInventory.toSafeJSON()));
@@ -446,6 +463,27 @@ export async function updateModelInventoryById(req: Request, res: Response) {
       "updateModelInventoryById",
       "modelInventory.ctrl.ts"
     );
+
+    // Emit model updated event (fire-and-forget)
+    emitEvent(
+      PluginEvent.MODEL_UPDATED,
+      {
+        modelId: modelInventoryId,
+        projectId: projects?.[0] || 0,
+        model: savedModelInventory.toSafeJSON() as unknown as Record<string, unknown>,
+        changes: existingModelInventory
+          ? computeChanges(
+              existingModelInventory.toSafeJSON() as unknown as Record<string, unknown>,
+              savedModelInventory.toSafeJSON() as unknown as Record<string, unknown>
+            )
+          : {},
+      },
+      {
+        triggeredBy: { userId: req.userId! },
+        tenant: req.tenantId || "default",
+      }
+    );
+
     return res
       .status(200)
       .json(STATUS_CODE[200](savedModelInventory.toSafeJSON()));
@@ -524,6 +562,21 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
       "deleteModelInventoryById",
       "modelInventory.ctrl.ts"
     );
+
+    // Emit model deleted event (fire-and-forget)
+    emitEvent(
+      PluginEvent.MODEL_DELETED,
+      {
+        modelId: modelInventoryId,
+        projectId: 0,
+        model: existingModelInventory.toSafeJSON() as unknown as Record<string, unknown>,
+      },
+      {
+        triggeredBy: { userId: req.userId! },
+        tenant: req.tenantId || "default",
+      }
+    );
+
     return res
       .status(200)
       .json(STATUS_CODE[200]("Model inventory deleted successfully"));

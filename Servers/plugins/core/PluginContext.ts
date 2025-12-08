@@ -238,7 +238,7 @@ export function createDatabaseService(sequelize: Sequelize): DatabaseService {
   return {
     query: async (sql: string, params?: unknown[]) => {
       const [results] = await sequelize.query(sql, {
-        replacements: params,
+        bind: params,
       });
       return {
         rows: results as Record<string, unknown>[],

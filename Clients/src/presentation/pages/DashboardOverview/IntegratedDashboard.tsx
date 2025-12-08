@@ -1538,7 +1538,89 @@ const IntegratedDashboard: React.FC = () => {
     [enforceLayoutItemConstraints]
   );
 
-  
+  // Create plugin widget entries dynamically (must be before early returns)
+  const pluginWidgetEntries = useMemo(() => {
+    return pluginWidgets.map((pw) => {
+      const WidgetComponent = getTemplate(pw.template);
+      if (!WidgetComponent) return null;
+
+      return {
+        id: `plugin-${pw.widgetId}`,
+        content: (
+          <Box sx={{ height: "100%", backgroundColor: "#fff" }}>
+            <WidgetComponent
+              pluginId={pw.pluginId}
+              endpoint={pw.endpoint}
+              title={pw.title}
+              config={pw.config}
+            />
+          </Box>
+        ),
+        title: pw.title,
+        isPlugin: true,
+      };
+    }).filter(Boolean) as { id: string; content: React.ReactNode; title: string; isPlugin: boolean }[];
+  }, [pluginWidgets]);
+
+  // Generate plugin widget layouts dynamically (must be before early returns)
+  const pluginWidgetLayouts = useMemo(() => {
+    const lgLayouts: Layout[] = [];
+    const mdLayouts: Layout[] = [];
+    const smLayouts: Layout[] = [];
+
+    pluginWidgetEntries.forEach((pw, index) => {
+      const yOffset = 10 + Math.floor(index / 2) * 4;
+      const xOffset = (index % 2) * 6;
+
+      lgLayouts.push({
+        i: pw.id,
+        x: xOffset,
+        y: yOffset,
+        w: 6,
+        h: 4,
+        minW: 3,
+        maxW: 12,
+        minH: 2,
+        maxH: 6,
+      });
+
+      mdLayouts.push({
+        i: pw.id,
+        x: xOffset > 5 ? 5 : xOffset,
+        y: yOffset,
+        w: 5,
+        h: 4,
+        minW: 2.5,
+        maxW: 10,
+        minH: 2,
+        maxH: 6,
+      });
+
+      smLayouts.push({
+        i: pw.id,
+        x: 0,
+        y: yOffset + index * 4,
+        w: 6,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 6,
+      });
+    });
+
+    return { lg: lgLayouts, md: mdLayouts, sm: smLayouts };
+  }, [pluginWidgetEntries]);
+
+  // Combine static layouts with plugin widget layouts (must be before early returns)
+  const combinedLayouts = useMemo(() => {
+    return {
+      lg: [...(layouts.lg || []), ...pluginWidgetLayouts.lg],
+      md: [...(layouts.md || []), ...pluginWidgetLayouts.md],
+      sm: [...(layouts.sm || []), ...pluginWidgetLayouts.sm],
+    };
+  }, [layouts, pluginWidgetLayouts]);
+
   if (loading) {
     return (
       <Box
@@ -1721,95 +1803,8 @@ const IntegratedDashboard: React.FC = () => {
     },
   ];
 
-  // Create plugin widget entries dynamically
-  const pluginWidgetEntries = useMemo(() => {
-    return pluginWidgets.map((pw) => {
-      const WidgetComponent = getTemplate(pw.template);
-      if (!WidgetComponent) return null;
-
-      return {
-        id: `plugin-${pw.widgetId}`,
-        content: (
-          <Box sx={{ height: "100%", backgroundColor: "#fff" }}>
-            <WidgetComponent
-              pluginId={pw.pluginId}
-              endpoint={pw.endpoint}
-              title={pw.title}
-              config={pw.config}
-            />
-          </Box>
-        ),
-        title: pw.title,
-        isPlugin: true,
-      };
-    }).filter(Boolean) as { id: string; content: React.ReactNode; title: string; isPlugin: boolean }[];
-  }, [pluginWidgets]);
-
   // Combine static widgets with plugin widgets
-  const allWidgets = useMemo(() => {
-    return [...staticWidgets, ...pluginWidgetEntries];
-  }, [staticWidgets, pluginWidgetEntries]);
-
-  // Generate plugin widget layouts dynamically
-  const pluginWidgetLayouts = useMemo(() => {
-    const lgLayouts: Layout[] = [];
-    const mdLayouts: Layout[] = [];
-    const smLayouts: Layout[] = [];
-
-    pluginWidgetEntries.forEach((pw, index) => {
-      // Position plugin widgets after the last static widget
-      // They will be placed in a new row at the bottom
-      const yOffset = 10 + Math.floor(index / 2) * 4;
-      const xOffset = (index % 2) * 6;
-
-      lgLayouts.push({
-        i: pw.id,
-        x: xOffset,
-        y: yOffset,
-        w: 6,
-        h: 4,
-        minW: 3,
-        maxW: 12,
-        minH: 2,
-        maxH: 6,
-      });
-
-      mdLayouts.push({
-        i: pw.id,
-        x: xOffset > 5 ? 5 : xOffset,
-        y: yOffset,
-        w: 5,
-        h: 4,
-        minW: 2.5,
-        maxW: 10,
-        minH: 2,
-        maxH: 6,
-      });
-
-      smLayouts.push({
-        i: pw.id,
-        x: 0,
-        y: yOffset + index * 4,
-        w: 6,
-        h: 4,
-        minW: 3,
-        maxW: 6,
-        minH: 2,
-        maxH: 6,
-      });
-    });
-
-    return { lg: lgLayouts, md: mdLayouts, sm: smLayouts };
-  }, [pluginWidgetEntries]);
-
-  // Combine static layouts with plugin widget layouts
-  const combinedLayouts = useMemo(() => {
-    return {
-      lg: [...(layouts.lg || []), ...pluginWidgetLayouts.lg],
-      md: [...(layouts.md || []), ...pluginWidgetLayouts.md],
-      sm: [...(layouts.sm || []), ...pluginWidgetLayouts.sm],
-    };
-  }, [layouts, pluginWidgetLayouts]);
+  const allWidgets = [...staticWidgets, ...pluginWidgetEntries];
 
   return (
     <Box sx={{ pb: 3 }}>

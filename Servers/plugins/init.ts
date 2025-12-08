@@ -5,7 +5,8 @@
  * This module should be imported and called during server startup.
  */
 
-import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema } from "./core";
+import express, { Application, Router } from "express";
+import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
 import { builtinPlugins } from "./builtin";
@@ -13,6 +14,7 @@ import logger from "../utils/logger/fileLogger";
 import path from "path";
 import fs from "fs";
 import { registerAutomationHandlers } from "./core/automationHandler";
+import authenticateJWT from "../middleware/auth.middleware";
 
 /**
  * Read plugin icon from file if it's a file path
@@ -60,14 +62,75 @@ function readPluginIcon(iconValue: string | undefined, pluginDir: string): strin
 // Global plugin manager instance (persisted across requests)
 let pluginManager: PluginManager | null = null;
 
+// Store app reference for mounting routes
+let expressApp: Application | null = null;
+
+// Track mounted plugin routes to avoid duplicates
+const mountedPluginRoutes: Set<string> = new Set();
+
+/**
+ * Mount routes for a specific plugin
+ *
+ * Creates a router for the plugin and mounts it at /api/plugins/{pluginId}/
+ */
+function mountPluginRoutes(plugin: Plugin): void {
+  if (!expressApp || !plugin.routes) return;
+
+  const pluginId = plugin.manifest.id;
+
+  // Skip if already mounted
+  if (mountedPluginRoutes.has(pluginId)) {
+    return;
+  }
+
+  try {
+    // Create a new router for this plugin
+    const pluginRouter = Router();
+
+    // Let the plugin define its routes
+    plugin.routes(pluginRouter);
+
+    // Mount the router at /api/plugins/{pluginId}/
+    // Apply authentication middleware
+    expressApp.use(`/api/plugins/${pluginId}`, authenticateJWT, pluginRouter);
+
+    mountedPluginRoutes.add(pluginId);
+    logger.info(`[Plugins] Mounted routes for plugin "${pluginId}" at /api/plugins/${pluginId}/`);
+  } catch (error) {
+    logger.error(`[Plugins] Failed to mount routes for plugin "${pluginId}":`, error);
+  }
+}
+
+/**
+ * Mount routes for all enabled plugins
+ */
+export function mountAllPluginRoutes(): void {
+  if (!pluginManager || !expressApp) return;
+
+  const enabledPlugins = pluginManager.getEnabledPlugins();
+
+  for (const plugin of enabledPlugins) {
+    if (plugin.routes) {
+      mountPluginRoutes(plugin);
+    }
+  }
+}
+
 /**
  * Initialize the plugin system
  *
  * Creates the PluginManager, loads plugin states from database,
  * and enables previously enabled plugins.
+ *
+ * @param app - Express application instance for mounting plugin routes
  */
-export async function initializePlugins(): Promise<PluginManager> {
+export async function initializePlugins(app?: Application): Promise<PluginManager> {
   logger.info("[Plugins] Initializing plugin system...");
+
+  // Store app reference for route mounting
+  if (app) {
+    expressApp = app;
+  }
 
   // Create database service from sequelize
   const db = createDatabaseService(sequelize);
@@ -96,6 +159,9 @@ export async function initializePlugins(): Promise<PluginManager> {
 
   // Load plugin states from database (restores installed/enabled status)
   await loadPluginStates();
+
+  // Mount routes for all enabled plugins
+  mountAllPluginRoutes();
 
   logger.info("[Plugins] Plugin system initialized");
   logger.info("[Plugins] Stats:", pluginManager.getStats());

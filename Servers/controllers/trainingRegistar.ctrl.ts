@@ -18,6 +18,8 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -142,6 +144,20 @@ export async function createNewTrainingRegistar(
         functionName: "createNewTrainingRegistar",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_CREATED,
+        {
+          trainingId: (createdNewTrainingRegistar as any).id || 0,
+          training: createdNewTrainingRegistar as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(201).json(STATUS_CODE[201](createdNewTrainingRegistar));
     }
 
@@ -213,6 +229,26 @@ export async function updateTrainingRegistarById(
         functionName: "updateTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_UPDATED,
+        {
+          trainingId: trainingRegistarId,
+          training: trainingRegistar as unknown as Record<string, unknown>,
+          changes: existingTrainingRegistrar
+            ? computeChanges(
+                existingTrainingRegistrar as unknown as Record<string, unknown>,
+                trainingRegistar as unknown as Record<string, unknown>
+              )
+            : {},
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](trainingRegistar));
     }
 
@@ -267,6 +303,20 @@ export async function deleteTrainingRegistarById(
         functionName: "deleteTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_DELETED,
+        {
+          trainingId: trainingRegistarId,
+          training: deleteTrainingRegistar as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](deleteTrainingRegistar));
     }
 

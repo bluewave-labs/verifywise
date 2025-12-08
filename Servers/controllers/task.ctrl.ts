@@ -16,6 +16,8 @@ import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { ValidationException, BusinessLogicException, ForbiddenException } from "../domain.layer/exceptions/custom.exception";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -61,6 +63,20 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       functionName: "createTask",
       fileName: "task.ctrl.ts",
     });
+
+    // Emit task created event (fire-and-forget)
+    emitEvent(
+      PluginEvent.TASK_CREATED,
+      {
+        taskId: task.id!,
+        projectId: 0, // Tasks are org-level, not project-specific
+        task: taskResponse as unknown as Record<string, unknown>,
+      },
+      {
+        triggeredBy: { userId: userId },
+        tenant: req.tenantId || "default",
+      }
+    );
 
     return res.status(201).json(STATUS_CODE[201](taskResponse));
   } catch (error) {
@@ -319,6 +335,26 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       assignees: (updatedTask.dataValues as any)["assignees"] || []
     };
 
+    // Emit task updated event (fire-and-forget)
+    emitEvent(
+      PluginEvent.TASK_UPDATED,
+      {
+        taskId: taskId,
+        projectId: 0, // Tasks are org-level, not project-specific
+        task: taskResponse as unknown as Record<string, unknown>,
+        changes: existingTask
+          ? computeChanges(
+              existingTask.toJSON() as unknown as Record<string, unknown>,
+              taskResponse as unknown as Record<string, unknown>
+            )
+          : {},
+      },
+      {
+        triggeredBy: { userId: userId },
+        tenant: req.tenantId || "default",
+      }
+    );
+
     return res.status(200).json(STATUS_CODE[200](taskResponse));
   } catch (error) {
     await transaction.rollback();
@@ -369,6 +405,20 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
     fileName: "task.ctrl.ts",
   });
 
+  // Capture task data before deletion for event emission
+  let taskDataBeforeDelete: Record<string, unknown> | null = null;
+  try {
+    const taskBefore = await getTaskByIdQuery(taskId, { userId: req.userId!, role: req.role! }, req.tenantId!, req.organizationId!);
+    if (taskBefore) {
+      taskDataBeforeDelete = {
+        ...taskBefore.toJSON(),
+        assignees: (taskBefore.dataValues as any)["assignees"] || []
+      } as unknown as Record<string, unknown>;
+    }
+  } catch {
+    // Continue even if we can't get existing data
+  }
+
   const transaction = await sequelize.transaction();
   try {
     const { userId, role } = req;
@@ -396,6 +446,22 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
         functionName: "deleteTask",
         fileName: "task.ctrl.ts",
       });
+
+      // Emit task deleted event (fire-and-forget)
+      if (taskDataBeforeDelete) {
+        emitEvent(
+          PluginEvent.TASK_DELETED,
+          {
+            taskId: taskId,
+            projectId: 0, // Tasks are org-level, not project-specific
+            task: taskDataBeforeDelete,
+          },
+          {
+            triggeredBy: { userId: userId },
+            tenant: req.tenantId || "default",
+          }
+        );
+      }
 
       return res.status(200).json(STATUS_CODE[200]({ message: "Task deleted successfully" }));
     }

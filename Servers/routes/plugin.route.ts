@@ -59,6 +59,7 @@ import {
   getPluginStats,
   uploadPlugin,
   installFromUrl,
+  getPluginUIExtensions,
 } from "../controllers/plugin.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -78,6 +79,15 @@ router.get("/", authenticateJWT, getAllPlugins);
  * Requires authentication.
  */
 router.get("/stats", authenticateJWT, getPluginStats);
+
+/**
+ * GET /plugins/ui-extensions
+ *
+ * Get UI extensions from all enabled plugins.
+ * Returns dashboard widgets that should be rendered.
+ * Requires authentication.
+ */
+router.get("/ui-extensions", authenticateJWT, getPluginUIExtensions);
 
 /**
  * POST /plugins/upload

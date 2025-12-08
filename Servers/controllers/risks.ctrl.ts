@@ -24,6 +24,8 @@ import {
   trackProjectRiskChanges,
   recordProjectRiskDeletion,
 } from "../utils/projectRiskChangeHistory.utils";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllRisks(
   req: Request,
@@ -280,6 +282,21 @@ export async function createRisk(
         "Create",
         `Project risk created: ${newProjectRisk.risk_name}`
       );
+
+      // Emit risk created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.RISK_CREATED,
+        {
+          riskId: newProjectRisk.id!,
+          projectId: (newProjectRisk as any).project_id || 0,
+          risk: newProjectRisk as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(201).json(STATUS_CODE[201](newProjectRisk));
     }
 
@@ -408,6 +425,25 @@ export async function updateRiskById(
         "projectRisks.ctrl.ts"
       );
       await logEvent("Update", `Project risk updated: ID ${projectRiskId}`);
+
+      // Emit risk updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.RISK_UPDATED,
+        {
+          riskId: projectRiskId,
+          projectId: (updatedProjectRisk as any).project_id || 0,
+          risk: updatedProjectRisk as unknown as Record<string, unknown>,
+          changes: computeChanges(
+            existingProjectRisk as unknown as Record<string, unknown>,
+            updatedProjectRisk as unknown as Record<string, unknown>
+          ),
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(200).json(STATUS_CODE[200](updatedProjectRisk));
     }
 
@@ -508,6 +544,21 @@ export async function deleteRiskById(
         "projectRisks.ctrl.ts"
       );
       await logEvent("Delete", `Project risk deleted: ID ${projectRiskId}`);
+
+      // Emit risk deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.RISK_DELETED,
+        {
+          riskId: projectRiskId,
+          projectId: (deletedProjectRisk as any).project_id || 0,
+          risk: deletedProjectRisk as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(200).json(STATUS_CODE[200](deletedProjectRisk));
     }
 

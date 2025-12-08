@@ -7,6 +7,7 @@
 
 import { Plugin, PluginContext } from "../core";
 import { sampleTestPluginIcon } from "./icons";
+import activityFeedPlugin from "./activity-feed";
 
 /**
  * Sample Test Plugin
@@ -47,6 +48,6 @@ export const sampleTestPlugin: Plugin = {
 /**
  * All built-in plugins
  */
-export const builtinPlugins: Plugin[] = [sampleTestPlugin];
+export const builtinPlugins: Plugin[] = [sampleTestPlugin, activityFeedPlugin];
 
 export default builtinPlugins;

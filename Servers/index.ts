@@ -201,10 +201,10 @@ try {
   app.use("/api/plugins", pluginRoutes);
   app.use("/api/marketplace", marketplaceRoutes);
 
-  // Initialize plugin system
+  // Initialize plugin system (pass app for mounting plugin routes)
   (async () => {
     try {
-      await initializePlugins();
+      await initializePlugins(app);
     } catch (error) {
       console.error("[Plugins] Failed to initialize plugin system:", error);
     }

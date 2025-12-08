@@ -67,6 +67,7 @@ import {
   Accessibility,
   FolderTree,
   Code2,
+  Plug,
 } from 'lucide-react';
 import EndpointCard from './components/EndpointCard';
 import {
@@ -110,6 +111,7 @@ import {
   slackWebhookEndpoints,
   subscriptionEndpoints,
   tierEndpoints,
+  pluginEndpoints,
   Endpoint,
 } from './config/endpoints';
 
@@ -224,6 +226,9 @@ const App: React.FC = () => {
     { id: 'automation', label: 'Automation', icon: <Zap size={14} />, category: 'advanced', keywords: ['automation', 'rule', 'workflow'] },
     { id: 'nist-ai-rmf', label: 'NIST AI RMF', icon: <Award size={14} />, category: 'advanced', keywords: ['nist', 'rmf', 'framework'] },
     { id: 'integrations', label: 'Integrations', icon: <Globe size={14} />, category: 'advanced', keywords: ['integration', 'connect', 'api'] },
+
+    // Extensibility
+    { id: 'plugins', label: 'Plugins', icon: <Plug size={14} />, category: 'extensibility', keywords: ['plugin', 'extension', 'addon', 'marketplace'] },
   ];
 
   // Style Guide nav items - full list
@@ -364,6 +369,7 @@ const App: React.FC = () => {
       'sg-foundations': 'Foundations',
       'sg-resources': 'Resources',
       'guides': 'Guides',
+      'extensibility': 'Extensibility',
     };
     return labels[category] || category;
   };
@@ -620,6 +626,7 @@ const App: React.FC = () => {
               {activeSection === 'automation' && <EndpointSection title="Automation" description="Endpoints for automation rules and workflow management." endpoints={automationEndpoints} />}
               {activeSection === 'nist-ai-rmf' && <EndpointSection title="NIST AI RMF" description="Endpoints for NIST AI Risk Management Framework compliance." endpoints={nistAiRmfEndpoints} />}
               {activeSection === 'integrations' && <EndpointSection title="Integrations" description="Endpoints for managing third-party integrations." endpoints={integrationEndpoints} />}
+              {activeSection === 'plugins' && <EndpointSection title="Plugins" description="Endpoints for managing the plugin system. Install, enable, configure, and manage plugins to extend VerifyWise functionality with additional compliance frameworks, integrations, and features." endpoints={pluginEndpoints} />}
               </>
               )}
               {activeTopTab === 'style-guide' && <StyleGuideWrapper section={activeSection} />}

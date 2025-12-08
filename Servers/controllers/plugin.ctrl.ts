@@ -793,6 +793,82 @@ export async function getPluginStats(
 }
 
 /**
+ * Dashboard widget definition from plugin manifest
+ */
+interface DashboardWidgetExtension {
+  pluginId: string;
+  widgetId: string;
+  template: string;
+  title: string;
+  endpoint: string;
+  config?: Record<string, unknown>;
+}
+
+/**
+ * GET /api/plugins/ui-extensions
+ *
+ * Get UI extensions from all enabled plugins.
+ * Returns dashboard widgets that should be rendered.
+ */
+export async function getPluginUIExtensions(
+  req: Request,
+  res: ExpressResponse
+): Promise<void> {
+  try {
+    const manager = ensurePluginManager();
+    const plugins = manager.getAllPlugins();
+
+    const dashboardWidgets: DashboardWidgetExtension[] = [];
+
+    for (const plugin of plugins) {
+      // Only include extensions from enabled plugins
+      if (!manager.isEnabled(plugin.manifest.id)) {
+        continue;
+      }
+
+      // Check if plugin has UI extensions in manifest
+      const manifest = plugin.manifest as PluginManifest & {
+        ui?: {
+          dashboardWidgets?: Array<{
+            id: string;
+            template: string;
+            title: string;
+            endpoint: string;
+            config?: Record<string, unknown>;
+          }>;
+        };
+      };
+
+      if (manifest.ui?.dashboardWidgets) {
+        for (const widget of manifest.ui.dashboardWidgets) {
+          dashboardWidgets.push({
+            pluginId: plugin.manifest.id,
+            widgetId: widget.id,
+            template: widget.template,
+            title: widget.title,
+            endpoint: widget.endpoint,
+            config: widget.config,
+          });
+        }
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        dashboardWidgets,
+      },
+    });
+  } catch (error) {
+    logger.error("[PluginController] Error getting UI extensions:", error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get UI extensions",
+    });
+  }
+}
+
+/**
  * Validate configuration against schema
  */
 function validateConfig(

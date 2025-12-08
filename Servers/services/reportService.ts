@@ -1,8 +1,5 @@
 import { getMembersByProjectIdQuery } from "../utils/reporting.utils";
-import {
-  DefaultReportName,
-  ReportType,
-} from "../domain.layer/models/reporting/reporting.model";
+import { ReportType } from "../domain.layer/models/reporting/reporting.model";
 import { getProjectRiskMarkdown } from "./markdowns/projectRiskMarkdown";
 import { getVendorReportMarkdown } from "./markdowns/vendorAndRisksMarkdown";
 import { getAssessmentTrackerMarkdown } from "./markdowns/assessmentTrackerMarkdown";
@@ -25,30 +22,6 @@ export interface ReportBodyData {
  * If not, return as {type}_{YYYYMMDD}_{HHMMSS}
  */
 export function getFormattedReportName(name: string, type: string | string[]) {
-  let reportType;
-  switch (type) {
-    case ReportType.PROJECTRISK_REPORT:
-      reportType = DefaultReportName.PROJECTRISK_REPORT;
-      break;
-    case ReportType.VENDOR_REPORT:
-      reportType = DefaultReportName.VENDOR_REPORT;
-      break;
-    case ReportType.ASSESSMENT_REPORT:
-      reportType = DefaultReportName.ASSESSMENT_REPORT;
-      break;
-    case ReportType.COMPLIANCE_REPORT:
-      reportType = DefaultReportName.COMPLIANCE_REPORT;
-      break;
-    case ReportType.CLAUSES_AND_ANNEXES_REPORT:
-      reportType = DefaultReportName.CLAUSES_AND_ANNEXES_REPORT;
-      break;
-    case ReportType.ALL_REPORT:
-      reportType = DefaultReportName.ALL_REPORT;
-      break;
-    default:
-      reportType = DefaultReportName.MULTI_REPORT;
-  }
-
   const date = new Date();
 
   const year = date.getFullYear();

@@ -1,11 +1,12 @@
- 
- 
-import React, { useState, useEffect, useCallback, Suspense, useMemo, useRef } from "react";
-import {
-  Box,
-  Stack,
-  Fade,
-} from "@mui/material";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Suspense,
+  useMemo,
+  useRef,
+} from "react";
+import { Box, Stack, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
@@ -22,7 +23,6 @@ import {
 import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -31,10 +31,13 @@ import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
 import {
   TrainingRegistarModel,
-  TrainingRegistarDTO
+  TrainingRegistarDTO,
 } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { GroupBy } from "../../components/Table/GroupBy";
-import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import TipBox from "../../components/TipBox";
@@ -54,7 +57,6 @@ interface AlertState {
   body: string;
 }
 
-
 // Utility: Map TrainingRegistarModel to form data DTO (DRY)
 // Returns complete DTO (id is already optional in DTO definition)
 const mapTrainingToFormData = (
@@ -72,7 +74,11 @@ const mapTrainingToFormData = (
 };
 
 // Utility: Show alert with auto-dismiss (DRY)
-const createAlert = (variant: AlertVariant, body: string, title?: string): AlertState => ({
+const createAlert = (
+  variant: AlertVariant,
+  body: string,
+  title?: string
+): AlertState => ({
   variant,
   body,
   title,
@@ -89,9 +95,8 @@ const Training: React.FC = () => {
   const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(
     null
   );
-  const [selectedTraining, setSelectedTraining] = useState<TrainingRegistarModel | null>(
-    null
-  );
+  const [selectedTraining, setSelectedTraining] =
+    useState<TrainingRegistarModel | null>(null);
   const [showAlert, setShowAlert] = useState(false);
 
   const { userRoleName } = useAuth();
@@ -103,8 +108,6 @@ const Training: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
-
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Search state
   const [searchTerm, setSearchTerm] = useState("");
@@ -147,6 +150,7 @@ const Training: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Check for openCreateModal state from navigation
@@ -217,76 +221,85 @@ const Training: React.FC = () => {
   // Returns Promise<boolean>: true on success, false on failure
   // Uses DTO for data transfer (plain object), not Model (class instance)
   // Receives complete DTO after form validation (all required fields validated)
-  const handleTrainingSuccess = useCallback(async (
-    formData: TrainingRegistarDTO
-  ): Promise<boolean> => {
-    try {
-      // DEFENSIVE: formData already has numberOfPeople from model
-      // Server expects numberOfPeople (controller maps it to 'people' for DB)
-      let payload: TrainingRegistarModel | undefined;
-      let successMessage: string;
+  const handleTrainingSuccess = useCallback(
+    async (formData: TrainingRegistarDTO): Promise<boolean> => {
+      try {
+        // DEFENSIVE: formData already has numberOfPeople from model
+        // Server expects numberOfPeople (controller maps it to 'people' for DB)
+        let payload: TrainingRegistarModel | undefined;
+        let successMessage: string;
 
-      if (selectedTraining) {
-        // Defensive: Ensure training has an ID before updating
-        if (!selectedTraining.id) {
-          logEngine({
-            type: "error",
-            message: 'Cannot update training without ID',
+        if (selectedTraining) {
+          // Defensive: Ensure training has an ID before updating
+          if (!selectedTraining.id) {
+            logEngine({
+              type: "error",
+              message: "Cannot update training without ID",
+            });
+            setAlert(
+              createAlert("error", "Cannot update training: Missing ID")
+            );
+            return false;
+          }
+
+          // Update existing training
+          const res = await updateEntityById({
+            routeUrl: `/training/${selectedTraining.id}`,
+            body: formData,
           });
-          setAlert(createAlert('error', 'Cannot update training: Missing ID'));
-          return false;
+          // DEFENSIVE: updateEntityById returns AxiosResponse, extract data
+          payload = res?.data;
+          successMessage = "Training updated successfully!";
+        } else {
+          // Create new training
+          // DEFENSIVE: createTraining returns response.data directly
+          const created = await createTraining("/training", formData);
+          payload = created;
+          successMessage = "Training created successfully!";
         }
 
-        // Update existing training
-        const res = await updateEntityById({
-          routeUrl: `/training/${selectedTraining.id}`,
-          body: formData,
-        });
-        // DEFENSIVE: updateEntityById returns AxiosResponse, extract data
-        payload = res?.data;
-        successMessage = "Training updated successfully!";
-      } else {
-        // Create new training
-        // DEFENSIVE: createTraining returns response.data directly
-        const created = await createTraining("/training", formData);
-        payload = created;
-        successMessage = "Training created successfully!";
-      }
-
-      // Defensive: Check response validity
-      if (payload) {
-        setAlert(createAlert('success', successMessage));
-        await fetchTrainingData();
-        handleCloseModal();
-        return true;
-      } else {
-        // API returned but without data - unexpected state
+        // Defensive: Check response validity
+        if (payload) {
+          setAlert(createAlert("success", successMessage));
+          await fetchTrainingData();
+          handleCloseModal();
+          return true;
+        } else {
+          // API returned but without data - unexpected state
+          logEngine({
+            type: "error",
+            message: "API response missing data",
+          });
+          setAlert(
+            createAlert(
+              "error",
+              selectedTraining
+                ? "Failed to update training. Please try again."
+                : "Failed to create training. Please try again."
+            )
+          );
+          return false;
+        }
+      } catch (error) {
         logEngine({
           type: "error",
-          message: 'API response missing data',
+          message: `Failed to ${
+            selectedTraining ? "update" : "create"
+          } training: ${error}`,
         });
-        setAlert(createAlert(
-          'error',
-          selectedTraining
-            ? "Failed to update training. Please try again."
-            : "Failed to create training. Please try again."
-        ));
+        setAlert(
+          createAlert(
+            "error",
+            selectedTraining
+              ? "Failed to update training. Please try again."
+              : "Failed to create training. Please try again."
+          )
+        );
         return false;
       }
-    } catch (error) {
-      logEngine({
-        type: "error",
-        message: `Failed to ${selectedTraining ? 'update' : 'create'} training: ${error}`,
-      });
-      setAlert(createAlert(
-        'error',
-        selectedTraining
-          ? "Failed to update training. Please try again."
-          : "Failed to create training. Please try again."
-      ));
-      return false;
-    }
-  }, [selectedTraining, fetchTrainingData]);
+    },
+    [selectedTraining, fetchTrainingData]
+  );
 
   const handleDeleteTraining = async (id: string) => {
     try {
@@ -340,54 +353,60 @@ const Training: React.FC = () => {
   }, [trainingData]);
 
   // FilterBy - Filter columns configuration
-  const trainingFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: 'training_name',
-      label: 'Training name',
-      type: 'text' as const,
-    },
-    {
-      id: 'status',
-      label: 'Status',
-      type: 'select' as const,
-      options: [
-        { value: 'Planned', label: 'Planned' },
-        { value: 'In Progress', label: 'In progress' },
-        { value: 'Completed', label: 'Completed' },
-      ],
-    },
-    {
-      id: 'provider',
-      label: 'Provider',
-      type: 'select' as const,
-      options: getUniqueProviders(),
-    },
-    {
-      id: 'department',
-      label: 'Department',
-      type: 'select' as const,
-      options: getUniqueDepartments(),
-    },
-    {
-      id: 'duration',
-      label: 'Duration',
-      type: 'text' as const,
-    },
-  ], [getUniqueProviders, getUniqueDepartments]);
+  const trainingFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "training_name",
+        label: "Training name",
+        type: "text" as const,
+      },
+      {
+        id: "status",
+        label: "Status",
+        type: "select" as const,
+        options: [
+          { value: "Planned", label: "Planned" },
+          { value: "In Progress", label: "In progress" },
+          { value: "Completed", label: "Completed" },
+        ],
+      },
+      {
+        id: "provider",
+        label: "Provider",
+        type: "select" as const,
+        options: getUniqueProviders(),
+      },
+      {
+        id: "department",
+        label: "Department",
+        type: "select" as const,
+        options: getUniqueDepartments(),
+      },
+      {
+        id: "duration",
+        label: "Duration",
+        type: "text" as const,
+      },
+    ],
+    [getUniqueProviders, getUniqueDepartments]
+  );
 
   // FilterBy - Field value getter
   const getTrainingFieldValue = useCallback(
-    (item: TrainingRegistarModel, fieldId: string): string | number | Date | null | undefined => {
+    (
+      item: TrainingRegistarModel,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case 'training_name':
+        case "training_name":
           return item.training_name;
-        case 'status':
+        case "status":
           return item.status;
-        case 'provider':
+        case "provider":
           return item.provider;
-        case 'department':
+        case "department":
           return item.department;
-        case 'duration':
+        case "duration":
           return item.duration;
         default:
           return null;
@@ -397,7 +416,10 @@ const Training: React.FC = () => {
   );
 
   // FilterBy - Initialize hook
-  const { filterData: filterTrainingData, handleFilterChange: handleTrainingFilterChange } = useFilterBy<TrainingRegistarModel>(getTrainingFieldValue);
+  const {
+    filterData: filterTrainingData,
+    handleFilterChange: handleTrainingFilterChange,
+  } = useFilterBy<TrainingRegistarModel>(getTrainingFieldValue);
 
   // Filtered trainings using FilterBy and search
   const filteredTraining = useMemo(() => {
@@ -408,7 +430,7 @@ const Training: React.FC = () => {
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       result = result.filter((training) => {
-        const trainingName = training.training_name?.toLowerCase() ?? '';
+        const trainingName = training.training_name?.toLowerCase() ?? "";
         return trainingName.includes(search);
       });
     }
@@ -417,16 +439,19 @@ const Training: React.FC = () => {
   }, [filterTrainingData, trainingData, searchTerm]);
 
   // Define how to get the group key for each training
-  const getTrainingGroupKey = (training: TrainingRegistarModel, field: string): string | string[] => {
+  const getTrainingGroupKey = (
+    training: TrainingRegistarModel,
+    field: string
+  ): string | string[] => {
     switch (field) {
-      case 'status':
-        return training.status || 'Unknown Status';
-      case 'provider':
-        return training.provider || 'Unknown Provider';
-      case 'department':
-        return training.department || 'Unknown Department';
+      case "status":
+        return training.status || "Unknown Status";
+      case "provider":
+        return training.provider || "Unknown Provider";
+      case "department":
+        return training.department || "Unknown Department";
       default:
-        return 'Other';
+        return "Other";
     }
   };
 
@@ -441,12 +466,12 @@ const Training: React.FC = () => {
   // Define export columns for training table
   const exportColumns = useMemo(() => {
     return [
-      { id: 'training_name', label: 'Training Name' },
-      { id: 'duration', label: 'Duration' },
-      { id: 'provider', label: 'Provider' },
-      { id: 'department', label: 'Department' },
-      { id: 'status', label: 'Status' },
-      { id: 'numberOfPeople', label: 'People' },
+      { id: "training_name", label: "Training Name" },
+      { id: "duration", label: "Duration" },
+      { id: "provider", label: "Provider" },
+      { id: "department", label: "Department" },
+      { id: "status", label: "Status" },
+      { id: "numberOfPeople", label: "People" },
     ];
   }, []);
 
@@ -454,12 +479,12 @@ const Training: React.FC = () => {
   const exportData = useMemo(() => {
     return filteredTraining.map((training: TrainingRegistarModel) => {
       return {
-        training_name: training.training_name || '-',
-        duration: training.duration || '-',
-        provider: training.provider || '-',
-        department: training.department || '-',
-        status: training.status || '-',
-        numberOfPeople: training.numberOfPeople?.toString() || '-',
+        training_name: training.training_name || "-",
+        duration: training.duration || "-",
+        provider: training.provider || "-",
+        department: training.department || "-",
+        status: training.status || "-",
+        numberOfPeople: training.numberOfPeople?.toString() || "-",
       };
     });
   }, [filteredTraining]);
@@ -467,39 +492,6 @@ const Training: React.FC = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="AI Training Registry"
-        description="Manage and track AI-related training programs and educational resources"
-        whatItDoes="Centralize all *AI training programs*, *courses*, and *educational materials* for your organization. Track *completion status*, *certifications*, and *learning progress* across teams."
-        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for *responsible AI development* and deployment. Training records support *compliance* and *competency requirements*."
-        quickActions={[
-          {
-            label: "Add Training Program",
-            description: "Register a new AI training course or educational program",
-            primary: true
-          },
-          {
-            label: "Track Progress",
-            description: "Monitor team completion rates and certification status"
-          }
-        ]}
-        useCases={[
-          "*Internal AI ethics* and *governance training programs* for development teams",
-          "*External certification courses* for *machine learning* and *data science skills*"
-        ]}
-        keyFeatures={[
-          "**Comprehensive training catalog** with *metadata* and prerequisites",
-          "*Progress tracking* and *certification management* for individuals and teams",
-          "*Integration* with learning management systems and *HR platforms*"
-        ]}
-        tips={[
-          "Prioritize *ethics and governance training* for all *AI team members*",
-          "Set up *automatic reminders* for *certification renewals* and mandatory training",
-          "Track *training effectiveness* through *assessments* and real-world application"
-        ]}
-      />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade
@@ -529,102 +521,99 @@ const Training: React.FC = () => {
         </Suspense>
       )}
 
-        <PageHeader
-               title="AI Training Registry"
-               description=" This registry lists all AI-related training programs available to
+      <PageHeader
+        title="AI Training Registry"
+        description=" This registry lists all AI-related training programs available to
                your organization. You can view, add, and manage training details here."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
-             />
+        rightContent={
+          <HelperIcon articlePath="training/training-tracking" size="small" />
+        }
+      />
       <TipBox entityName="training" />
 
-           {/* Filter + Search row */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={4}
-            sx={{ width: "100%" }}
-          >
-            {/* Left side: FilterBy, GroupBy, Search */}
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FilterBy
-                columns={trainingFilterColumns}
-                onFilterChange={handleTrainingFilterChange}
-              />
-
-              <GroupBy
-                options={[
-                  { id: 'status', label: 'Status' },
-                  { id: 'provider', label: 'Provider' },
-                  { id: 'department', label: 'Department' },
-                ]}
-                onGroupChange={handleGroupChange}
-              />
-
-              <SearchBox
-                placeholder="Search trainings..."
-                value={searchTerm}
-                onChange={setSearchTerm}
-                inputProps={{ "aria-label": "Search trainings" }}
-                fullWidth={false}
-              />
-            </Stack>
-
-            {/* Right side: Export and Add Button */}
-            <Stack direction="row" gap="8px" alignItems="center">
-              <ExportMenu
-                data={exportData}
-                columns={exportColumns}
-                filename="training-registry"
-                title="Training Registry"
-              />
-              <Box data-joyride-id="add-training-button">
-                <CustomizableButton
-                          variant="contained"
-                          sx={{
-                            backgroundColor: "#13715B",
-                            border: "1px solid #13715B",
-                            gap: 2,
-                          }}
-                          text="New training"
-                          icon={<AddCircleOutlineIcon size={16} />}
-                          onClick={handleNewTrainingClick}
-                          isDisabled={isCreatingDisabled}
-                        />
-              </Box>
-            </Stack>
-          </Stack>
-
-        {/* Table */}
-        <Box sx={{ mt: 1 }}>
-          <GroupedTableView
-            groupedData={groupedTraining}
-            ungroupedData={filteredTraining}
-            renderTable={(data, options) => (
-              <TrainingTable
-                data={data}
-                isLoading={isLoading}
-                onEdit={handleEditTraining}
-                onDelete={handleDeleteTraining}
-                hidePagination={options?.hidePagination}
-              />
-            )}
+      {/* Filter + Search row */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={4}
+        sx={{ width: "100%" }}
+      >
+        {/* Left side: FilterBy, GroupBy, Search */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <FilterBy
+            columns={trainingFilterColumns}
+            onFilterChange={handleTrainingFilterChange}
           />
-        </Box>
+
+          <GroupBy
+            options={[
+              { id: "status", label: "Status" },
+              { id: "provider", label: "Provider" },
+              { id: "department", label: "Department" },
+            ]}
+            onGroupChange={handleGroupChange}
+          />
+
+          <SearchBox
+            placeholder="Search trainings..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            inputProps={{ "aria-label": "Search trainings" }}
+            fullWidth={false}
+          />
+        </Stack>
+
+        {/* Right side: Export and Add Button */}
+        <Stack direction="row" gap="8px" alignItems="center">
+          <ExportMenu
+            data={exportData}
+            columns={exportColumns}
+            filename="training-registry"
+            title="Training Registry"
+          />
+          <Box data-joyride-id="add-training-button">
+            <CustomizableButton
+              variant="contained"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              text="New training"
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={handleNewTrainingClick}
+              isDisabled={isCreatingDisabled}
+            />
+          </Box>
+        </Stack>
+      </Stack>
+
+      {/* Table */}
+      <Box sx={{ mt: 1 }}>
+        <GroupedTableView
+          groupedData={groupedTraining}
+          ungroupedData={filteredTraining}
+          renderTable={(data, options) => (
+            <TrainingTable
+              data={data}
+              isLoading={isLoading}
+              onEdit={handleEditTraining}
+              onDelete={handleDeleteTraining}
+              hidePagination={options?.hidePagination}
+            />
+          )}
+        />
+      </Box>
 
       {/* Modal */}
       <NewTraining
         isOpen={isNewTrainingModalOpen}
         setIsOpen={handleCloseModal}
         onSuccess={handleTrainingSuccess}
-        initialData={selectedTraining ? mapTrainingToFormData(selectedTraining) : undefined}
+        initialData={
+          selectedTraining ? mapTrainingToFormData(selectedTraining) : undefined
+        }
         isEdit={!!selectedTraining}
       />
 

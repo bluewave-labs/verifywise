@@ -26,7 +26,6 @@ import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { UploadedFile, RequestWithFile } from "../utils/question.utils";
 import { Transaction } from "sequelize";
 import { getUserProjects } from "../utils/user.utils";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 // helper function to delete files
 async function deleteFiles(
@@ -148,7 +147,9 @@ export async function getNISTAIRMFSubcategoryRisks(
     userId: req.userId!,
     tenantId: req.tenantId!,
   });
-  logger.debug(`🔍 Fetching risks for NIST AI RMF subcategory ${subcategoryId}`);
+  logger.debug(
+    `🔍 Fetching risks for NIST AI RMF subcategory ${subcategoryId}`
+  );
 
   try {
     const risks = await getNISTAIRMFSubcategoryRisksQuery(
@@ -506,7 +507,9 @@ export async function getNISTAIRMFAssignments(
   logger.debug("📊 Calculating NIST AI RMF assignments");
 
   try {
-    const assignments = await countNISTAIRMFSubcategoriesAssignments(req.tenantId!);
+    const assignments = await countNISTAIRMFSubcategoriesAssignments(
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -555,7 +558,9 @@ export async function getNISTAIRMFAssignmentsByFunction(
   logger.debug("📊 Calculating NIST AI RMF assignments by function");
 
   try {
-    const assignments = await countNISTAIRMFSubcategoriesAssignmentsByFunction(req.tenantId!);
+    const assignments = await countNISTAIRMFSubcategoriesAssignmentsByFunction(
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -604,7 +609,9 @@ export async function getNISTAIRMFProgressByFunction(
   logger.debug("📊 Calculating NIST AI RMF progress by function");
 
   try {
-    const progress = await countNISTAIRMFSubcategoriesProgressByFunction(req.tenantId!);
+    const progress = await countNISTAIRMFSubcategoriesProgressByFunction(
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -653,7 +660,9 @@ export async function getNISTAIRMFStatusBreakdown(
   logger.debug("📊 Calculating NIST AI RMF status breakdown");
 
   try {
-    const statusBreakdown = await getNISTAIRMFSubcategoriesStatusBreakdown(req.tenantId!);
+    const statusBreakdown = await getNISTAIRMFSubcategoriesStatusBreakdown(
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",

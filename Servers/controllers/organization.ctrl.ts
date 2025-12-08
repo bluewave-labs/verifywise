@@ -41,7 +41,6 @@ import {
   getOrganizationsExistsQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
-import { invite } from "./vwmailer.ctrl";
 import { createNewTenant } from "../scripts/createNewTenant";
 import { createNewUserQuery, getUserByEmailQuery } from "../utils/user.utils";
 import { createNewUserWrapper } from "./user.ctrl";
@@ -82,7 +81,7 @@ import { generateUserTokens } from "../utils/auth.utils";
  * }
  */
 export async function getAllOrganizations(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   logStructured(
@@ -121,8 +120,8 @@ export async function getAllOrganizations(
     await logEvent(
       "Error",
       `Failed to retrieve organizations: ${(error as Error).message}`,
-      req.userId!,
-      req.tenantId!
+      _req.userId!,
+      _req.tenantId!
     );
     logger.error("❌ Error in getAllOrganizations:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -150,7 +149,7 @@ export async function getAllOrganizations(
  * }
  */
 export async function getOrganizationsExists(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   try {
@@ -336,12 +335,15 @@ export async function createOrganization(
       );
 
       // Generate tokens for the newly created user
-      const { accessToken } = generateUserTokens({
-        id: user.id!,
-        email: body.userEmail,
-        roleName: "Admin", // roleId 1 corresponds to Admin
-        organizationId: organization_id,
-      }, res);
+      const { accessToken } = generateUserTokens(
+        {
+          id: user.id!,
+          email: body.userEmail,
+          roleName: "Admin", // roleId 1 corresponds to Admin
+          organizationId: organization_id,
+        },
+        res
+      );
 
       await transaction.commit();
       logStructured(
@@ -356,14 +358,16 @@ export async function createOrganization(
         user.id!,
         req.tenantId!
       );
-      return res.status(201).json(STATUS_CODE[201]({
-        user: user.toSafeJSON(),
-        organization: {
-          id: createdOrganization.id,
-          name: createdOrganization.name
-        },
-        token: accessToken,
-      }));
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          user: user.toSafeJSON(),
+          organization: {
+            id: createdOrganization.id,
+            name: createdOrganization.name,
+          },
+          token: accessToken,
+        })
+      );
     }
 
     logStructured(

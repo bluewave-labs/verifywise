@@ -1,43 +1,62 @@
-import { TableBody, TableRow, TableCell, Box } from "@mui/material";
-import singleTheme from "../../../../themes/v1SingleTheme";
+import { TableBody, TableRow, TableCell, Chip, Box } from "@mui/material";
 import { Trash2 as TrashIcon } from "lucide-react";
-import Button from "../../../../components/Button/index";
+import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
-const StatusBadge: React.FC<{
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+const StatusChip: React.FC<{
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
 }> = ({ status }) => {
-  const statusStyles = {
-    "In Progress": {
-      bg: "#fff9c4",
-      color: "#fbc02d",
-      border: "1px solid #fbc02d",
-    },
-    Running: { bg: "#fff9c4", color: "#fbc02d", border: "1px solid #fbc02d" },
-    Completed: { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
-    Failed: { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
-    Pending: { bg: "#e3f2fd", color: "#1976d2", border: "1px solid #1976d2" },
+  const getStatusStyles = () => {
+    switch (status) {
+      case "In Progress":
+      case "Running":
+        return {
+          backgroundColor: "#fff3e0",
+          color: "#ef6c00",
+        };
+      case "Completed":
+        return {
+          backgroundColor: "#c8e6c9",
+          color: "#388e3c",
+        };
+      case "Failed":
+        return {
+          backgroundColor: "#ffebee",
+          color: "#c62828",
+        };
+      case "Pending":
+        return {
+          backgroundColor: "#e0e0e0",
+          color: "#616161",
+        };
+      case "Available":
+        return {
+          backgroundColor: "#e3f2fd",
+          color: "#1565c0",
+        };
+      default:
+        return {
+          backgroundColor: "#e0e0e0",
+          color: "#616161",
+        };
+    }
   };
 
-  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
+  const style = getStatusStyles();
 
   return (
-    <span
-      style={{
-        backgroundColor: style.bg,
-        color: style.color,
-        padding: "4px 8px",
-        borderRadius: 8,
-        fontWeight: 600,
-        fontSize: "0.75rem",
-        textTransform: "uppercase",
-        display: "inline-block",
-        border: style.border,
+    <Chip
+      label={status}
+      size="small"
+      sx={{
+        ...style,
+        fontWeight: 500,
+        fontSize: "11px",
+        height: "22px",
+        borderRadius: "4px",
       }}
-    >
-      {status}
-    </span>
+    />
   );
 };
 
@@ -53,7 +72,17 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
       {rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row) => (
-          <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
+          <TableRow
+            key={row.id}
+            onClick={() => onShowDetails(row)}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+              },
+            }}
+          >
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -85,6 +114,16 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 textTransform: "none",
               }}
             >
+              {row.judge}
+            </TableCell>
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+              }}
+            >
               {row.dataset}
             </TableCell>
             <TableCell
@@ -96,52 +135,30 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               }}
             >
               <Box sx={{ width: "50%", ml: -4 }}>
-                <StatusBadge status={row.status} />
+                <StatusChip status={row.status} />
               </Box>
             </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <Box display="flex" justifyContent="left">
-                <Button
-                  onClick={() => onShowDetails(row)}
-                  sx={{
-                    ml: -2,
-                    fontSize: "18 !important",
-                    backgroundColor: "#13715B", // keep your styling
-                    color: "white",
-                    textTransform: "none",
-                    opacity: row.status !== "Completed" ? 0.5 : 1,
-                    pointerEvents: row.status !== "Completed" ? "none" : "auto",
-                    "&:hover": {
-                      backgroundColor: "#13715B",
-                    },
-                  }}
-                >
-                  Show
-                </Button>
-              </Box>
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <ConfirmableDeleteIconButton
-                disabled={false}
-                id={row.id}
-                onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
-                title={`Delete this evaluation?`}
-                message={`Are you sure you want to delete evaluation ID ${row.id} (Status: ${row.status})? This action is non-recoverable.`}
-                customIcon={<TrashIcon size={20} />}
-              />
-            </TableCell>
+            {onRemoveModel && (
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                  <ConfirmableDeleteIconButton
+                    disabled={false}
+                    id={row.id}
+                    onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
+                    title="Delete this evaluation?"
+                    message={`Are you sure you want to delete evaluation "${row.name || row.id}"?`}
+                    customIcon={<TrashIcon size={18} color="#667085" />}
+                  />
+                </Box>
+              </TableCell>
+            )}
           </TableRow>
         ))}
     </TableBody>

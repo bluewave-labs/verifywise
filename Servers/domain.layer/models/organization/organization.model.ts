@@ -31,7 +31,6 @@ import { IOrganization } from "../../interfaces/i.organization";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../../exceptions/custom.exception";
 
@@ -41,7 +40,8 @@ import {
 })
 export class OrganizationModel
   extends Model<OrganizationModel>
-  implements IOrganization {
+  implements IOrganization
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -100,7 +100,7 @@ export class OrganizationModel
     name: string,
     logo?: string,
     members?: number[],
-    projects?: number[],
+    projects?: number[]
   ): Promise<OrganizationModel> {
     // Validate name
     if (!name || name.trim().length === 0) {
@@ -329,7 +329,6 @@ export class OrganizationModel
         );
       }
     }
-
   }
 
   /**

@@ -11,7 +11,6 @@ import { sequelize } from "../database/db";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
 import {
   ValidationException,
-  BusinessLogicException,
   NotFoundException,
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";

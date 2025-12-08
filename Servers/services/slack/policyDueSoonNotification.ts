@@ -1,9 +1,9 @@
 import { PolicyManagerModel } from "../../domain.layer/models/policy/policy.model";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../../utils/logger/logHelper";
+// import {
+//   logProcessing,
+//   logSuccess,
+//   logFailure,
+// } from "../../utils/logger/logHelper";
 import { getAllPoliciesDueSoonQuery } from "../../utils/policyManager.utils";
 import { getAllOrganizationsQuery } from "../../utils/organization.utils";
 import { getTenantHash } from "../../tools/getTenantHash";
@@ -13,8 +13,8 @@ import logger from "../../utils/logger/fileLogger";
 import { getAllUsersQuery } from "../../utils/user.utils";
 
 export const sendPolicyDueSoonNotification = async (): Promise<number> => {
-  const functionName = "sendPolicyDueSoonNotification";
-  const fileName = "policyDueSoonNotification.ts";
+  // const functionName = "sendPolicyDueSoonNotification";
+  // const fileName = "policyDueSoonNotification.ts";
   // logProcessing({
   //   description: `Sending Slack Notification for Policies due soon across all organizations.`,
   //   functionName,

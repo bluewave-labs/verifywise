@@ -8,7 +8,6 @@ import {
 } from "../utils/project.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { QuestionStructEU } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
 import {
   countAnswersEUByProjectId,
   countSubControlsEUByProjectId,
@@ -21,7 +20,6 @@ import {
   getControlByIdForProjectQuery,
   getControlStructByControlCategoryIdForAProjectQuery,
   getTopicByIdForProjectQuery,
-  updateControlEUByIdQuery,
   updateQuestionEUByIdQuery,
   updateSubcontrolEUByIdQuery,
 } from "../utils/eu.utils";
@@ -33,8 +31,7 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
+import logger from "../utils/logger/fileLogger";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -193,9 +190,15 @@ export async function getControlById(
 ): Promise<any> {
   const controlId = parseInt(req.query.controlId as string);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-  const owner = req.query.owner ? parseInt(req.query.owner as string) : undefined;
-  const approver = req.query.approver ? parseInt(req.query.approver as string) : undefined;
-  const dueDateFilter = req.query.dueDateFilter ? parseInt(req.query.dueDateFilter as string) : undefined;
+  const owner = req.query.owner
+    ? parseInt(req.query.owner as string)
+    : undefined;
+  const approver = req.query.approver
+    ? parseInt(req.query.approver as string)
+    : undefined;
+  const dueDateFilter = req.query.dueDateFilter
+    ? parseInt(req.query.dueDateFilter as string)
+    : undefined;
 
   logProcessing({
     description: `starting getControlById for control ID ${controlId} and project framework ID ${projectFrameworkId}`,
@@ -428,10 +431,12 @@ export async function updateQuestionById(
   logger.debug(`✏️ Updating question ID ${questionId}`);
 
   try {
-    const body: Partial<AnswerEU & {
-      risksDelete: number[];
-      risksMitigated: number[];
-    }> = req.body;
+    const body: Partial<
+      AnswerEU & {
+        risksDelete: number[];
+        risksMitigated: number[];
+      }
+    > = req.body;
 
     const question = (await updateQuestionEUByIdQuery(
       questionId,
@@ -961,9 +966,18 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   const controlCategoryId = parseInt(req.params.id);
   const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-  const owner = req.query.owner && req.query.owner !== '' ? parseInt(req.query.owner as string) : undefined;
-  const approver = req.query.approver && req.query.approver !== '' ? parseInt(req.query.approver as string) : undefined;
-  const dueDateFilter = req.query.dueDateFilter && req.query.dueDateFilter !== '' ? parseInt(req.query.dueDateFilter as string) : undefined;
+  const owner =
+    req.query.owner && req.query.owner !== ""
+      ? parseInt(req.query.owner as string)
+      : undefined;
+  const approver =
+    req.query.approver && req.query.approver !== ""
+      ? parseInt(req.query.approver as string)
+      : undefined;
+  const dueDateFilter =
+    req.query.dueDateFilter && req.query.dueDateFilter !== ""
+      ? parseInt(req.query.dueDateFilter as string)
+      : undefined;
 
   logProcessing({
     description: `starting getControlsByControlCategoryId for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,

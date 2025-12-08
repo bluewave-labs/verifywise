@@ -2,11 +2,11 @@ import path from "path";
 import fs from "fs/promises";
 import { sendEmail } from "./emailService";
 import { TEMPLATES_DIR } from "../constants/emailTemplates";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../utils/logger/logHelper";
+// import {
+//   logProcessing,
+//   logSuccess,
+//   logFailure,
+// } from "../utils/logger/logHelper";
 
 interface QueuedEmail {
   recipientEmail: string;
@@ -30,23 +30,23 @@ interface RateLimitState {
 /**
  * Mask email address to prevent PII from being persisted in logs
  */
-function maskEmail(email: string): string {
-  if (!email || typeof email !== 'string' || email.trim() === '') {
-    return "redacted";
-  }
+// function maskEmail(email: string): string {
+//   if (!email || typeof email !== 'string' || email.trim() === '') {
+//     return "redacted";
+//   }
 
-  const trimmedEmail = email.trim();
+//   const trimmedEmail = email.trim();
 
-  if (trimmedEmail.length <= 2) {
-    return trimmedEmail.charAt(0) + "*";
-  }
+//   if (trimmedEmail.length <= 2) {
+//     return trimmedEmail.charAt(0) + "*";
+//   }
 
-  if (trimmedEmail.length <= 6) {
-    return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
-  }
+//   if (trimmedEmail.length <= 6) {
+//     return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+//   }
 
-  return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
-}
+//   return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+// }
 
 /**
  * Core notification service for sending emails with templates
@@ -285,12 +285,12 @@ export class NotificationService {
     } catch (error) {
 
       // Sanitize the error to remove any email addresses
-      const sanitized = new Error(
-        String((error as any)?.message ?? error).replace(
-          /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
-          "[redacted]"
-        )
-      );
+      // const sanitized = new Error(
+      //   String((error as any)?.message ?? error).replace(
+      //     /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+      //     "[redacted]"
+      //   )
+      // );
 
       throw error;
     }

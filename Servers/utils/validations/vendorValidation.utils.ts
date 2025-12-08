@@ -5,16 +5,14 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,
   validateSchema,
   ValidationResult,
   ValidationError,
-  VALIDATION_PATTERNS
-} from './validation.utils';
-import { IVendor } from '../../domain.layer/interfaces/i.vendor';
+  VALIDATION_PATTERNS,
+} from "./validation.utils";
 
 /**
  * Validation constants for vendors
@@ -24,64 +22,64 @@ export const VENDOR_VALIDATION_LIMITS = {
   VENDOR_PROVIDES: { MIN: 1, MAX: 500 },
   WEBSITE: { MIN: 1, MAX: 255 },
   VENDOR_CONTACT_PERSON: { MIN: 1, MAX: 255 },
-  REVIEW_RESULT: { MIN: 1, MAX: 1000 }
+  REVIEW_RESULT: { MIN: 1, MAX: 1000 },
 } as const;
 
 /**
  * Vendor review status enum
  */
 export const VENDOR_REVIEW_STATUS_ENUM = [
-  'Not started',
-  'In review',
-  'Reviewed',
-  'Requires follow-up'
+  "Not started",
+  "In review",
+  "Reviewed",
+  "Requires follow-up",
 ] as const;
 
 /**
  * Vendor scorecard enums
  */
 export const VENDOR_DATA_SENSITIVITY_ENUM = [
-  'None',
-  'Internal only',
-  'Personally identifiable information (PII)',
-  'Financial data',
-  'Health data (e.g. HIPAA)',
-  'Model weights or AI assets',
-  'Other sensitive data'
+  "None",
+  "Internal only",
+  "Personally identifiable information (PII)",
+  "Financial data",
+  "Health data (e.g. HIPAA)",
+  "Model weights or AI assets",
+  "Other sensitive data",
 ] as const;
 
 export const VENDOR_BUSINESS_CRITICALITY_ENUM = [
-  'Low (vendor supports non-core functions)',
-  'Medium (affects operations but is replaceable)',
-  'High (critical to core services or products)'
+  "Low (vendor supports non-core functions)",
+  "Medium (affects operations but is replaceable)",
+  "High (critical to core services or products)",
 ] as const;
 
 export const VENDOR_PAST_ISSUES_ENUM = [
-  'None',
-  'Minor incident (e.g. small delay, minor bug)',
-  'Major incident (e.g. data breach, legal issue)'
+  "None",
+  "Minor incident (e.g. small delay, minor bug)",
+  "Major incident (e.g. data breach, legal issue)",
 ] as const;
 
 export const VENDOR_REGULATORY_EXPOSURE_ENUM = [
-  'None',
-  'GDPR (EU)',
-  'HIPAA (US)',
-  'SOC 2',
-  'ISO 27001',
-  'EU AI act',
-  'CCPA (california)',
-  'Other'
+  "None",
+  "GDPR (EU)",
+  "HIPAA (US)",
+  "SOC 2",
+  "ISO 27001",
+  "EU AI act",
+  "CCPA (california)",
+  "Other",
 ] as const;
 
 /**
  * Validates vendor name field
  */
 export const validateVendorName = (value: any): ValidationResult => {
-  return validateString(value, 'Vendor name', {
+  return validateString(value, "Vendor name", {
     required: true,
     minLength: VENDOR_VALIDATION_LIMITS.VENDOR_NAME.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.VENDOR_NAME.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -89,11 +87,11 @@ export const validateVendorName = (value: any): ValidationResult => {
  * Validates vendor provides field (what services/products the vendor provides)
  */
 export const validateVendorProvides = (value: any): ValidationResult => {
-  return validateString(value, 'Vendor provides', {
+  return validateString(value, "Vendor provides", {
     required: true,
     minLength: VENDOR_VALIDATION_LIMITS.VENDOR_PROVIDES.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.VENDOR_PROVIDES.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -102,11 +100,11 @@ export const validateVendorProvides = (value: any): ValidationResult => {
  */
 export const validateWebsite = (value: any): ValidationResult => {
   // First validate as string
-  const stringValidation = validateString(value, 'Website', {
+  const stringValidation = validateString(value, "Website", {
     required: true,
     minLength: VENDOR_VALIDATION_LIMITS.WEBSITE.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.WEBSITE.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 
   if (!stringValidation.isValid) {
@@ -118,8 +116,9 @@ export const validateWebsite = (value: any): ValidationResult => {
   if (!urlPattern.test(value.trim())) {
     return {
       isValid: false,
-      message: 'Website must be a valid URL (starting with http:// or https://)',
-      code: 'INVALID_URL_FORMAT'
+      message:
+        "Website must be a valid URL (starting with http:// or https://)",
+      code: "INVALID_URL_FORMAT",
     };
   }
 
@@ -130,12 +129,12 @@ export const validateWebsite = (value: any): ValidationResult => {
  * Validates vendor contact person field
  */
 export const validateVendorContactPerson = (value: any): ValidationResult => {
-  return validateString(value, 'Vendor contact person', {
+  return validateString(value, "Vendor contact person", {
     required: true,
     minLength: VENDOR_VALIDATION_LIMITS.VENDOR_CONTACT_PERSON.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.VENDOR_CONTACT_PERSON.MAX,
     trimWhitespace: true,
-    pattern: VALIDATION_PATTERNS.LETTERS_ONLY // Only letters and spaces allowed
+    pattern: VALIDATION_PATTERNS.LETTERS_ONLY, // Only letters and spaces allowed
   });
 };
 
@@ -143,11 +142,11 @@ export const validateVendorContactPerson = (value: any): ValidationResult => {
  * Validates review result field
  */
 export const validateReviewResult = (value: any): ValidationResult => {
-  return validateString(value, 'Review result', {
+  return validateString(value, "Review result", {
     required: false,
     minLength: VENDOR_VALIDATION_LIMITS.REVIEW_RESULT.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.REVIEW_RESULT.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -155,73 +154,87 @@ export const validateReviewResult = (value: any): ValidationResult => {
  * Validates review status enum field
  */
 export const validateReviewStatus = (value: any): ValidationResult => {
-  return validateEnum(value, 'Review status', VENDOR_REVIEW_STATUS_ENUM, false);
+  return validateEnum(value, "Review status", VENDOR_REVIEW_STATUS_ENUM, false);
 };
 
 /**
  * Validates data sensitivity enum field
  */
 export const validateDataSensitivity = (value: any): ValidationResult => {
-  return validateEnum(value, 'Data sensitivity', VENDOR_DATA_SENSITIVITY_ENUM, false);
+  return validateEnum(
+    value,
+    "Data sensitivity",
+    VENDOR_DATA_SENSITIVITY_ENUM,
+    false
+  );
 };
 
 /**
  * Validates business criticality enum field
  */
 export const validateBusinessCriticality = (value: any): ValidationResult => {
-  return validateEnum(value, 'Business criticality', VENDOR_BUSINESS_CRITICALITY_ENUM, false);
+  return validateEnum(
+    value,
+    "Business criticality",
+    VENDOR_BUSINESS_CRITICALITY_ENUM,
+    false
+  );
 };
 
 /**
  * Validates past issues enum field
  */
 export const validatePastIssues = (value: any): ValidationResult => {
-  return validateEnum(value, 'Past issues', VENDOR_PAST_ISSUES_ENUM, false);
+  return validateEnum(value, "Past issues", VENDOR_PAST_ISSUES_ENUM, false);
 };
 
 /**
  * Validates regulatory exposure enum field
  */
 export const validateRegulatoryExposure = (value: any): ValidationResult => {
-  return validateEnum(value, 'Regulatory exposure', VENDOR_REGULATORY_EXPOSURE_ENUM, false);
+  return validateEnum(
+    value,
+    "Regulatory exposure",
+    VENDOR_REGULATORY_EXPOSURE_ENUM,
+    false
+  );
 };
 
 /**
  * Validates assignee foreign key
  */
 export const validateAssignee = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Assignee', true);
+  return validateForeignKey(value, "Assignee", true);
 };
 
 /**
  * Validates reviewer foreign key
  */
 export const validateReviewer = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Reviewer', false);
+  return validateForeignKey(value, "Reviewer", false);
 };
 
 /**
  * Validates review date field
  */
 export const validateReviewDate = (value: any): ValidationResult => {
-  return validateDate(value, 'Review date', {
-    required: false
+  return validateDate(value, "Review date", {
+    required: false,
   });
 };
-
 
 /**
  * Validates vendor ID for existing records
  */
 export const validateVendorId = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Vendor ID', true);
+  return validateForeignKey(value, "Vendor ID", true);
 };
 
 /**
  * Validates project ID for queries
  */
 export const validateProjectId = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Project ID', true);
+  return validateForeignKey(value, "Project ID", true);
 };
 
 /**
@@ -232,8 +245,8 @@ export const validateProjects = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
     return {
       isValid: false,
-      message: 'Projects is required',
-      code: 'REQUIRED_FIELD'
+      message: "Projects is required",
+      code: "REQUIRED_FIELD",
     };
   }
 
@@ -241,8 +254,8 @@ export const validateProjects = (value: any): ValidationResult => {
   if (!Array.isArray(value)) {
     return {
       isValid: false,
-      message: 'Projects must be an array',
-      code: 'INVALID_ARRAY'
+      message: "Projects must be an array",
+      code: "INVALID_ARRAY",
     };
   }
 
@@ -250,20 +263,24 @@ export const validateProjects = (value: any): ValidationResult => {
   if (value.length === 0) {
     return {
       isValid: false,
-      message: 'Projects array cannot be empty',
-      code: 'EMPTY_REQUIRED_ARRAY'
+      message: "Projects array cannot be empty",
+      code: "EMPTY_REQUIRED_ARRAY",
     };
   }
 
   // Validate each project ID in the array
   for (let i = 0; i < value.length; i++) {
     const projectId = value[i];
-    const validation = validateForeignKey(projectId, `Project ID at index ${i}`, false);
+    const validation = validateForeignKey(
+      projectId,
+      `Project ID at index ${i}`,
+      false
+    );
     if (!validation.isValid) {
       return {
         isValid: false,
         message: `Invalid project ID at index ${i}: ${validation.message}`,
-        code: validation.code || 'INVALID_PROJECT_ID'
+        code: validation.code || "INVALID_PROJECT_ID",
       };
     }
   }
@@ -288,7 +305,7 @@ export const createVendorSchema = {
   data_sensitivity: validateDataSensitivity,
   business_criticality: validateBusinessCriticality,
   past_issues: validatePastIssues,
-  regulatory_exposure: validateRegulatoryExposure
+  regulatory_exposure: validateRegulatoryExposure,
 };
 
 /**
@@ -296,20 +313,38 @@ export const createVendorSchema = {
  * All fields are optional for updates
  */
 export const updateVendorSchema = {
-  vendor_name: (value: any) => value !== undefined ? validateVendorName(value) : { isValid: true },
-  vendor_provides: (value: any) => value !== undefined ? validateVendorProvides(value) : { isValid: true },
-  assignee: (value: any) => value !== undefined ? validateAssignee(value) : { isValid: true },
-  website: (value: any) => value !== undefined ? validateWebsite(value) : { isValid: true },
-  vendor_contact_person: (value: any) => value !== undefined ? validateVendorContactPerson(value) : { isValid: true },
-  review_result: (value: any) => value !== undefined ? validateReviewResult(value) : { isValid: true },
-  review_status: (value: any) => value !== undefined ? validateReviewStatus(value) : { isValid: true },
-  reviewer: (value: any) => value !== undefined ? validateReviewer(value) : { isValid: true },
-  review_date: (value: any) => value !== undefined ? validateReviewDate(value) : { isValid: true },
-  projects: (value: any) => value !== undefined ? validateProjects(value) : { isValid: true },
-  data_sensitivity: (value: any) => value !== undefined ? validateDataSensitivity(value) : { isValid: true },
-  business_criticality: (value: any) => value !== undefined ? validateBusinessCriticality(value) : { isValid: true },
-  past_issues: (value: any) => value !== undefined ? validatePastIssues(value) : { isValid: true },
-  regulatory_exposure: (value: any) => value !== undefined ? validateRegulatoryExposure(value) : { isValid: true }
+  vendor_name: (value: any) =>
+    value !== undefined ? validateVendorName(value) : { isValid: true },
+  vendor_provides: (value: any) =>
+    value !== undefined ? validateVendorProvides(value) : { isValid: true },
+  assignee: (value: any) =>
+    value !== undefined ? validateAssignee(value) : { isValid: true },
+  website: (value: any) =>
+    value !== undefined ? validateWebsite(value) : { isValid: true },
+  vendor_contact_person: (value: any) =>
+    value !== undefined
+      ? validateVendorContactPerson(value)
+      : { isValid: true },
+  review_result: (value: any) =>
+    value !== undefined ? validateReviewResult(value) : { isValid: true },
+  review_status: (value: any) =>
+    value !== undefined ? validateReviewStatus(value) : { isValid: true },
+  reviewer: (value: any) =>
+    value !== undefined ? validateReviewer(value) : { isValid: true },
+  review_date: (value: any) =>
+    value !== undefined ? validateReviewDate(value) : { isValid: true },
+  projects: (value: any) =>
+    value !== undefined ? validateProjects(value) : { isValid: true },
+  data_sensitivity: (value: any) =>
+    value !== undefined ? validateDataSensitivity(value) : { isValid: true },
+  business_criticality: (value: any) =>
+    value !== undefined
+      ? validateBusinessCriticality(value)
+      : { isValid: true },
+  past_issues: (value: any) =>
+    value !== undefined ? validatePastIssues(value) : { isValid: true },
+  regulatory_exposure: (value: any) =>
+    value !== undefined ? validateRegulatoryExposure(value) : { isValid: true },
 };
 
 /**
@@ -325,20 +360,34 @@ export const validateCompleteVendor = (data: any): ValidationError[] => {
 export const validateUpdateVendor = (data: any): ValidationError[] => {
   // Check if at least one field is provided for update
   const updateFields = [
-    'vendor_name', 'vendor_provides', 'assignee', 'website',
-    'vendor_contact_person', 'review_result', 'review_status',
-    'reviewer', 'review_date', 'projects', 'data_sensitivity',
-    'business_criticality', 'past_issues', 'regulatory_exposure'
+    "vendor_name",
+    "vendor_provides",
+    "assignee",
+    "website",
+    "vendor_contact_person",
+    "review_result",
+    "review_status",
+    "reviewer",
+    "review_date",
+    "projects",
+    "data_sensitivity",
+    "business_criticality",
+    "past_issues",
+    "regulatory_exposure",
   ];
 
-  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
+  const hasUpdateField = updateFields.some(
+    (field) => data[field] !== undefined
+  );
 
   if (!hasUpdateField) {
-    return [{
-      field: 'body',
-      message: 'At least one field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
-    }];
+    return [
+      {
+        field: "body",
+        message: "At least one field must be provided for update",
+        code: "NO_UPDATE_FIELDS",
+      },
+    ];
   }
 
   return validateSchema(data, updateVendorSchema);
@@ -371,15 +420,15 @@ export const validateReviewStatusProgression = (
 ): ValidationResult => {
   // If status hasn't changed, it's always valid
   if (currentStatus === newStatus) {
-    return { isValid: true, message: '', code: '' };
+    return { isValid: true, message: "", code: "" };
   }
 
   // Define valid status transitions
   const validTransitions: Record<string, string[]> = {
-    'Not started': ['In review'],
-    'In review': ['Reviewed', 'Requires follow-up'],
-    'Reviewed': ['Requires follow-up'], // Can go back to follow-up if issues found
-    'Requires follow-up': ['In review', 'Reviewed'] // Can go back to review or directly to reviewed
+    "Not started": ["In review"],
+    "In review": ["Reviewed", "Requires follow-up"],
+    Reviewed: ["Requires follow-up"], // Can go back to follow-up if issues found
+    "Requires follow-up": ["In review", "Reviewed"], // Can go back to review or directly to reviewed
   };
 
   const allowedStatuses = validTransitions[currentStatus] || [];
@@ -387,12 +436,12 @@ export const validateReviewStatusProgression = (
   if (!allowedStatuses.includes(newStatus)) {
     return {
       isValid: false,
-      message: `Invalid status transition from "${currentStatus}" to "${newStatus}". Allowed transitions: ${allowedStatuses.join(', ')}`,
-      code: 'INVALID_STATUS_TRANSITION'
+      message: `Invalid status transition from "${currentStatus}" to "${newStatus}". Allowed transitions: ${allowedStatuses.join(", ")}`,
+      code: "INVALID_STATUS_TRANSITION",
     };
   }
 
-  return { isValid: true, message: '', code: '' };
+  return { isValid: true, message: "", code: "" };
 };
 
 /**
@@ -402,13 +451,13 @@ export const validateReviewDateConsistency = (
   reviewStatus: string,
   reviewDate: Date
 ): ValidationResult => {
-  if (reviewStatus === 'Reviewed' || reviewStatus === 'Requires follow-up') {
+  if (reviewStatus === "Reviewed" || reviewStatus === "Requires follow-up") {
     const now = new Date();
     if (reviewDate > now) {
       return {
         isValid: false,
-        message: 'Review date cannot be in the future for completed reviews',
-        code: 'FUTURE_REVIEW_DATE'
+        message: "Review date cannot be in the future for completed reviews",
+        code: "FUTURE_REVIEW_DATE",
       };
     }
   }
@@ -426,8 +475,8 @@ export const validateAssigneeReviewerDifference = (
   if (assignee === reviewer) {
     return {
       isValid: false,
-      message: 'Assignee and reviewer must be different people',
-      code: 'SAME_ASSIGNEE_REVIEWER'
+      message: "Assignee and reviewer must be different people",
+      code: "SAME_ASSIGNEE_REVIEWER",
     };
   }
 
@@ -437,7 +486,9 @@ export const validateAssigneeReviewerDifference = (
 /**
  * Validates website accessibility (placeholder for future implementation)
  */
-export const validateWebsiteAccessibility = async (website: string): Promise<ValidationResult> => {
+export const validateWebsiteAccessibility = async (
+  website: string
+): Promise<ValidationResult> => {
   // This would be implemented to check if website is accessible
   // For now, just validate the URL format
   return validateWebsite(website);
@@ -446,16 +497,20 @@ export const validateWebsiteAccessibility = async (website: string): Promise<Val
 /**
  * Validates that user exists (placeholder for database check)
  */
-export const validateUserExists = async (userId: number): Promise<ValidationResult> => {
+export const validateUserExists = async (
+  userId: number
+): Promise<ValidationResult> => {
   // This would be implemented to check if user exists in database
   // For now, just validate the ID format
-  return validateForeignKey(userId, 'User ID', true);
+  return validateForeignKey(userId, "User ID", true);
 };
 
 /**
  * Complete validation for vendor creation with business rules
  */
-export const validateCompleteVendorWithBusinessRules = (data: any): ValidationError[] => {
+export const validateCompleteVendorWithBusinessRules = (
+  data: any
+): ValidationError[] => {
   const errors = validateCompleteVendor(data);
 
   // Add business rule validations if basic validation passes
@@ -469,9 +524,10 @@ export const validateCompleteVendorWithBusinessRules = (data: any): ValidationEr
 
       if (!assigneeReviewerCheck.isValid) {
         errors.push({
-          field: 'reviewer',
-          message: assigneeReviewerCheck.message || 'Assignee and reviewer conflict',
-          code: assigneeReviewerCheck.code || 'BUSINESS_RULE_VIOLATION'
+          field: "reviewer",
+          message:
+            assigneeReviewerCheck.message || "Assignee and reviewer conflict",
+          code: assigneeReviewerCheck.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }
@@ -485,9 +541,9 @@ export const validateCompleteVendorWithBusinessRules = (data: any): ValidationEr
 
       if (!reviewDateCheck.isValid) {
         errors.push({
-          field: 'review_date',
-          message: reviewDateCheck.message || 'Review date is inconsistent',
-          code: reviewDateCheck.code || 'BUSINESS_RULE_VIOLATION'
+          field: "review_date",
+          message: reviewDateCheck.message || "Review date is inconsistent",
+          code: reviewDateCheck.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }
@@ -516,16 +572,18 @@ export const validateUpdateVendorWithBusinessRules = (
 
       if (!statusProgression.isValid) {
         errors.push({
-          field: 'review_status',
-          message: statusProgression.message || 'Invalid status progression',
-          code: statusProgression.code || 'BUSINESS_RULE_VIOLATION'
+          field: "review_status",
+          message: statusProgression.message || "Invalid status progression",
+          code: statusProgression.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }
 
     // Check assignee and reviewer difference
-    const newAssignee = data.assignee !== undefined ? data.assignee : currentVendor.assignee;
-    const newReviewer = data.reviewer !== undefined ? data.reviewer : currentVendor.reviewer;
+    const newAssignee =
+      data.assignee !== undefined ? data.assignee : currentVendor.assignee;
+    const newReviewer =
+      data.reviewer !== undefined ? data.reviewer : currentVendor.reviewer;
 
     if (newAssignee && newReviewer) {
       const assigneeReviewerCheck = validateAssigneeReviewerDifference(
@@ -535,16 +593,23 @@ export const validateUpdateVendorWithBusinessRules = (
 
       if (!assigneeReviewerCheck.isValid) {
         errors.push({
-          field: data.reviewer !== undefined ? 'reviewer' : 'assignee',
-          message: assigneeReviewerCheck.message || 'Assignee and reviewer conflict',
-          code: assigneeReviewerCheck.code || 'BUSINESS_RULE_VIOLATION'
+          field: data.reviewer !== undefined ? "reviewer" : "assignee",
+          message:
+            assigneeReviewerCheck.message || "Assignee and reviewer conflict",
+          code: assigneeReviewerCheck.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }
 
     // Check review date consistency
-    const newStatus = data.review_status !== undefined ? data.review_status : currentVendor.review_status;
-    const newDate = data.review_date !== undefined ? data.review_date : currentVendor.review_date;
+    const newStatus =
+      data.review_status !== undefined
+        ? data.review_status
+        : currentVendor.review_status;
+    const newDate =
+      data.review_date !== undefined
+        ? data.review_date
+        : currentVendor.review_date;
 
     if (newStatus && newDate) {
       const reviewDateCheck = validateReviewDateConsistency(
@@ -554,9 +619,9 @@ export const validateUpdateVendorWithBusinessRules = (
 
       if (!reviewDateCheck.isValid) {
         errors.push({
-          field: 'review_date',
-          message: reviewDateCheck.message || 'Review date is inconsistent',
-          code: reviewDateCheck.code || 'BUSINESS_RULE_VIOLATION'
+          field: "review_date",
+          message: reviewDateCheck.message || "Review date is inconsistent",
+          code: reviewDateCheck.code || "BUSINESS_RULE_VIOLATION",
         });
       }
     }

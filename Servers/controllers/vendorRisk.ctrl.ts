@@ -12,6 +12,11 @@ import {
 } from "../utils/vendorRisk.utils";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { logProcessing, logSuccess, logFailure } from '../utils/logger/logHelper';
+import {
+  recordVendorRiskCreation,
+  trackVendorRiskChanges,
+  recordMultipleFieldChanges,
+} from "../utils/vendorRiskChangeHistory.utils";
 
 export async function getAllVendorRisksAllProjects(
   req: Request,
@@ -235,6 +240,18 @@ export async function createVendorRisk(
     );
 
     if (createdVendorRisk) {
+      // Record creation in change history
+      const userId = req.userId;
+      if (userId && createdVendorRisk.id) {
+        await recordVendorRiskCreation(
+          createdVendorRisk.id,
+          userId,
+          req.tenantId!,
+          createdVendorRisk,
+          transaction
+        );
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: 'Create',
@@ -288,6 +305,25 @@ export async function updateVendorRiskById(
   });
 
   try {
+    // Fetch existing vendor risk for change tracking
+    const existingVendorRisk = await getVendorRiskByIdQuery(vendorRiskId, req.tenantId!);
+
+    if (!existingVendorRisk) {
+      await transaction.rollback();
+      await logSuccess({
+        eventType: 'Update',
+        description: `Vendor risk not found for update: ID ${vendorRiskId}`,
+        functionName: 'updateVendorRiskById',
+        fileName: 'vendorRisk.ctrl.ts',
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Create model from existing data for change tracking
+    const oldVendorRiskModel = new VendorRiskModel(existingVendorRisk as any);
+
     const vendorRiskModel = new VendorRiskModel();
     await vendorRiskModel.updateVendorRisk(updatedVendorRisk);
 
@@ -299,6 +335,21 @@ export async function updateVendorRiskById(
     );
 
     if (vendorRisk) {
+      // Track and record changes
+      const userId = req.userId;
+      if (userId) {
+        const changes = await trackVendorRiskChanges(oldVendorRiskModel, updatedVendorRisk);
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            vendorRiskId,
+            userId,
+            req.tenantId!,
+            changes,
+            transaction
+          );
+        }
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: 'Update',

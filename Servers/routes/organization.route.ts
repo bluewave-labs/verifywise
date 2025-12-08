@@ -26,8 +26,6 @@ const router = express.Router();
 
 import {
   createOrganization,
-  deleteOrganizationById,
-  getAllOrganizations,
   getOrganizationById,
   updateOrganizationById,
   getOrganizationsExists,

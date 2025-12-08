@@ -36,7 +36,6 @@ import {
   Building,
   Settings,
   FileText,
-  Scale,
   MessageCircle,
   Brain,
   Shield,
@@ -48,6 +47,7 @@ import {
   AlertCircle,
   FolderCog,
   Database,
+  Beaker,
   Heart,
   HelpCircle,
   Newspaper,
@@ -71,6 +71,7 @@ import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
+import { useUserGuideSidebarContext } from "../UserGuide";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -108,9 +109,9 @@ const getMenuGroups = (): IMenuGroup[] => [
         path: "/risk-management",
       },
       {
-        name: "Bias & Fairness",
-        icon: <Scale size={16} strokeWidth={1.5} />,
-        path: "/fairness-dashboard",
+        name: "LLM Evals",
+        icon: <Beaker size={16} strokeWidth={1.5} />,
+        path: "/evals",
       },
       {
         name: "Training Registry",
@@ -235,6 +236,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
+  const { open: openUserGuide } = useUserGuideSidebarContext();
 
   // Heart icon state
   const [showHeartIcon, setShowHeartIcon] = useState(false);
@@ -1522,11 +1524,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {/* Help Center */}
                   <ListItemButton
                     onClick={() => {
-                      window.open(
-                        "https://docs.verifywise.ai",
-                        "_blank",
-                        "noreferrer"
-                      );
+                      openUserGuide();
                       closePopup();
                     }}
                     sx={{

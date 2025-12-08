@@ -1,7 +1,7 @@
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import path from 'path';
-import { getTenantIdForLogging, ensureTenantLogDirectory, getCurrentDateStringUTC } from '../tenant/tenantContext';
+import { getTenantIdForLogging, ensureTenantLogDirectory } from '../tenant/tenantContext';
 
 const { combine, timestamp, printf, colorize } = format;
 const isDev = process.env.NODE_ENV !== 'production';

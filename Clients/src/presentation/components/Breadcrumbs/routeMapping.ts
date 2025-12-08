@@ -16,7 +16,6 @@ import {
   Building,
   Settings,
   FileText,
-  Scale,
   Brain,
   Shield,
   GraduationCap,
@@ -76,10 +75,6 @@ export const routeMapping: Record<string, string> = {
   // AI Trust Center
   "/ai-trust-center": "AI Trust Center",
   "/public": "Public AI Trust Center",
-
-  // Fairness and Bias
-  "/fairness-dashboard": "Fairness Dashboard",
-  "/fairness-results": "Fairness Results",
 
   // Training
   "/training": "Training Registry",
@@ -173,10 +168,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // AI Trust Center
   "/ai-trust-center": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
   "/public": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
-
-  // Fairness and Bias
-  "/fairness-dashboard": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
-  "/fairness-results": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
 
   // Training
   "/training": () => React.createElement(GraduationCap, { size: 14, strokeWidth: 1.5 }),

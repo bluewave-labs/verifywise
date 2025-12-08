@@ -3,7 +3,7 @@ import { getAllTiersQuery, getTiersFeaturesQuery } from "../utils/tiers.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
-async function getAllTiers(req: Request, res: Response) {
+async function getAllTiers(_req: Request, res: Response) {
     logStructured("processing", "Fetching all tiers", "getAllTiers", "tiers.ctrl.ts");
     logger.debug('🔍 Fetching all tiers');
 

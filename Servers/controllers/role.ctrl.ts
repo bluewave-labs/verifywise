@@ -38,7 +38,11 @@ import {
 import { sequelize } from "../database/db";
 import { RoleModel } from "../domain.layer/models/role/role.model";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 /**
  * Retrieves all roles from the system
@@ -63,13 +67,13 @@ import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper
  *   ]
  * }
  */
-export async function getAllRoles(req: Request, res: Response): Promise<any> {
+export async function getAllRoles(_req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllRoles",
     functionName: "getAllRoles",
     fileName: "role.ctrl.ts",
-    userId: req.userId!,
-    tenantId: req.tenantId!,
+    userId: _req.userId!,
+    tenantId: _req.tenantId!,
   });
 
   try {
@@ -80,8 +84,8 @@ export async function getAllRoles(req: Request, res: Response): Promise<any> {
       description: "Retrieved all roles",
       functionName: "getAllRoles",
       fileName: "role.ctrl.ts",
-      userId: req.userId!,
-      tenantId: req.tenantId!,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
     });
 
     if (roles) {
@@ -95,8 +99,8 @@ export async function getAllRoles(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve roles",
       functionName: "getAllRoles",
       fileName: "role.ctrl.ts",
-      userId: req.userId!,
-      tenantId: req.tenantId!,
+      userId: _req.userId!,
+      tenantId: _req.tenantId!,
       error: error as Error,
     });
 
@@ -224,7 +228,10 @@ export async function createRole(req: Request, res: Response): Promise<any> {
   try {
     const newRole = req.body;
 
-    const roleObj = await RoleModel.createRole(newRole.name, newRole.description);
+    const roleObj = await RoleModel.createRole(
+      newRole.name,
+      newRole.description
+    );
     const createdRole = await createNewRoleQuery(roleObj, transaction);
 
     if (createdRole) {
@@ -312,7 +319,10 @@ export async function createRole(req: Request, res: Response): Promise<any> {
  *   }
  * }
  */
-export async function updateRoleById(req: Request, res: Response): Promise<any> {
+export async function updateRoleById(
+  req: Request,
+  res: Response
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);
 
@@ -406,7 +416,10 @@ export async function updateRoleById(req: Request, res: Response): Promise<any> 
  *   }
  * }
  */
-export async function deleteRoleById(req: Request, res: Response): Promise<any> {
+export async function deleteRoleById(
+  req: Request,
+  res: Response
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);
 

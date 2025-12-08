@@ -2,11 +2,11 @@ import { notificationService } from "../notificationService";
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { frontEndUrl } from "../../config/constants";
 import { EMAIL_TEMPLATES } from "../../constants/emailTemplates";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../../utils/logger/logHelper";
+// import {
+//   logProcessing,
+//   logSuccess,
+//   logFailure,
+// } from "../../utils/logger/logHelper";
 
 // ============================================================================
 // TYPES
@@ -94,8 +94,8 @@ const ROLE_TEMPLATES: Record<ProjectRole, string> = {
 
 async function sendProjectNotification(
   data: ProjectNotificationData,
-  functionName: string,
-  fileName: string
+  _functionName: string,
+  _fileName: string
 ): Promise<void> {
   // logProcessing({
   //   description: `Sending ${data.type} notification for project: ${data.projectName}`,
@@ -156,6 +156,7 @@ async function sendProjectNotification(
     // Get template based on notification type
     let template: string;
     let subject: string;
+    // @ts-ignore
     let logMessage: string;
 
     if (data.type === "user_added") {

@@ -20,6 +20,11 @@ import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
+import {
+  recordVendorCreation,
+  trackVendorChanges,
+  recordMultipleFieldChanges,
+} from "../utils/vendorChangeHistory.utils";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -216,6 +221,17 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
     );
 
     if (createdVendor) {
+      // Record creation in change history
+      if (req.userId) {
+        await recordVendorCreation(
+          createdVendor.id!,
+          req.userId,
+          req.tenantId!,
+          vendorData,
+          transaction
+        );
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: "Create",
@@ -328,6 +344,9 @@ export async function updateVendorById(
     // Create VendorModel instance and update it
     const vendorModel = new VendorModel(existingVendor);
 
+    // Track changes before updating
+    const changes = await trackVendorChanges(vendorModel, updateData);
+
     // Update vendor using the enhanced method
     await vendorModel.updateVendor({
       vendor_name: updateData.vendor_name,
@@ -363,6 +382,17 @@ export async function updateVendorById(
     );
 
     if (vendor) {
+      // Record changes in change history
+      if (changes.length > 0) {
+        await recordMultipleFieldChanges(
+          vendorId,
+          userId,
+          req.tenantId!,
+          changes,
+          transaction
+        );
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: "Update",

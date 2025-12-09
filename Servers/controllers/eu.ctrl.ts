@@ -419,8 +419,9 @@ export async function updateQuestionById(
       if (Array.isArray(req.files)) {
         filesArray = req.files as UploadedFile[];
       } else {
-        // If it's not an array, convert to array (shouldn't happen with upload.any(), but defensive)
-        filesArray = [req.files as UploadedFile];
+        // If it's an object (key-value pairs), flatten all file arrays into one array
+        const filesObject = req.files as { [key: string]: UploadedFile[] };
+        filesArray = Object.values(filesObject).flat();
       }
     }
 

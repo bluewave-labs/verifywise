@@ -412,21 +412,27 @@ export async function updateQuestionById(
     }
 
     // Handle file uploads
-    // Debug: Log what we received
-    logger.debug(
-      `📦 Received files: ${req.files ? (req.files as UploadedFile[]).length : 0}`
-    );
-    if (req.files && Array.isArray(req.files)) {
-      (req.files as UploadedFile[]).forEach((f, idx) => {
-        logger.debug(
-          `  File ${idx}: fieldname="${f.fieldname}", originalname="${f.originalname}"`
-        );
-      });
+    // Normalize req.files to always be an array
+    // Multer's upload.any() returns an array, but we need to handle it safely
+    let filesArray: UploadedFile[] = [];
+    if (req.files) {
+      if (Array.isArray(req.files)) {
+        filesArray = req.files as UploadedFile[];
+      } else {
+        // If it's not an array, convert to array (shouldn't happen with upload.any(), but defensive)
+        filesArray = [req.files as UploadedFile];
+      }
     }
 
-    const evidenceFiles = ((req.files as UploadedFile[]) || []).filter(
-      (f) => f.fieldname === "files"
-    );
+    // Debug: Log what we received
+    logger.debug(`📦 Received files: ${filesArray.length}`);
+    filesArray.forEach((f, idx) => {
+      logger.debug(
+        `  File ${idx}: fieldname="${f.fieldname}", originalname="${f.originalname}"`
+      );
+    });
+
+    const evidenceFiles = filesArray.filter((f) => f.fieldname === "files");
 
     logger.debug(
       `📋 Filtered evidence files (fieldname="files"): ${evidenceFiles.length}`

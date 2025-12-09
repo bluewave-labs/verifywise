@@ -23,6 +23,7 @@ export interface AddNewRiskFormProps {
   users?: User[]; // Optional users data to avoid calling useUsers hook
   usersLoading?: boolean; // Optional loading state
   onSubmitRef?: MutableRefObject<(() => void) | null>; // Ref to expose submit function for StandardModal
+  compactMode?: boolean; // When true, use flexible widths for sidebar layout
 }
 
 export interface IRiskSectionProps {

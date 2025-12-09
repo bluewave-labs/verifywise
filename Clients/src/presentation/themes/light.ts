@@ -322,6 +322,12 @@ const light = createTheme({
       styleOverrides: {
         tooltip: {
           fontSize: '13px',
+          backgroundColor: '#1F2937',
+          padding: '8px 12px',
+          borderRadius: '4px',
+        },
+        arrow: {
+          color: '#1F2937',
         },
       },
     },

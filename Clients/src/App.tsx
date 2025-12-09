@@ -27,8 +27,20 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
-import { SidebarWrapper } from "./presentation/components/UserGuide";
-import { useUserGuideSidebar } from "./presentation/components/UserGuide/useUserGuideSidebar";
+import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+
+// Component for User Guide Sidebar that uses the context
+const UserGuideSidebarContainer = () => {
+  const userGuideSidebar = useUserGuideSidebarContext();
+  return (
+    <SidebarWrapper
+      isOpen={userGuideSidebar.isOpen}
+      onClose={userGuideSidebar.close}
+      onOpen={userGuideSidebar.open}
+      initialPath={userGuideSidebar.currentPath}
+    />
+  );
+};
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -62,7 +74,6 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
-  const userGuideSidebar = useUserGuideSidebar();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
@@ -210,40 +221,37 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ConditionalThemeWrapper>
-              {alert && (
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              )}
-              <CommandPaletteErrorBoundary>
-                <CommandPalette
-                  open={commandPalette.isOpen}
-                  onOpenChange={commandPalette.close}
-                />
-              </CommandPaletteErrorBoundary>
-              {showModal && (
-                <OnboardingModal
-                  onComplete={handleOnboardingComplete}
-                  onSkip={handleOnboardingSkip}
-                />
-              )}
-              <Routes>
-                {createRoutes(triggerSidebar, triggerSidebarReload)}
-              </Routes>
+            <UserGuideSidebarProvider>
+              <ConditionalThemeWrapper>
+                {alert && (
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => setAlert(null)}
+                  />
+                )}
+                <CommandPaletteErrorBoundary>
+                  <CommandPalette
+                    open={commandPalette.isOpen}
+                    onOpenChange={commandPalette.close}
+                  />
+                </CommandPaletteErrorBoundary>
+                {showModal && (
+                  <OnboardingModal
+                    onComplete={handleOnboardingComplete}
+                    onSkip={handleOnboardingSkip}
+                  />
+                )}
+                <Routes>
+                  {createRoutes(triggerSidebar, triggerSidebarReload)}
+                </Routes>
 
-              {/* User Guide Sidebar */}
-              <SidebarWrapper
-                isOpen={userGuideSidebar.isOpen}
-                onClose={userGuideSidebar.close}
-                onOpen={userGuideSidebar.open}
-                initialPath={userGuideSidebar.currentPath}
-              />
-            </ConditionalThemeWrapper>
+                {/* User Guide Sidebar */}
+                <UserGuideSidebarContainer />
+              </ConditionalThemeWrapper>
+            </UserGuideSidebarProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

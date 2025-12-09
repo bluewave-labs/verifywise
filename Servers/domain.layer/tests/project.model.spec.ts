@@ -1,4 +1,3 @@
-import { ProjectModel } from "../models/project/project.model";
 import { AiRiskClassification } from "../enums/ai-risk-classification.enum";
 import { HighRiskRole } from "../enums/high-risk-role.enum";
 import { ValidationException } from "../exceptions/custom.exception";

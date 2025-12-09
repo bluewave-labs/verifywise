@@ -381,7 +381,7 @@ export async function saveControls(
 }
 
 export async function updateQuestionById(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
@@ -399,12 +399,67 @@ export async function updateQuestionById(
       AnswerEU & {
         risksDelete: number[];
         risksMitigated: number[];
+        user_id: number;
+        project_id: number;
+        delete: string;
       }
     > = req.body;
 
+    // Handle file deletions
+    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
+    for (let f of filesToDelete) {
+      await deleteFileById(f, req.tenantId!, transaction);
+    }
+
+    // Handle file uploads
+    const evidenceFiles = ((req.files as UploadedFile[]) || []).filter(
+      (f) => f.fieldname === "files"
+    );
+
+    let uploadedFiles: FileType[] = [];
+    if (body.user_id && body.project_id) {
+      for (let f of evidenceFiles) {
+        const uploadedFile = await uploadFile(
+          f,
+          body.user_id,
+          body.project_id,
+          "Assessment tracker group",
+          req.tenantId!,
+          transaction
+        );
+        uploadedFiles.push({
+          id: uploadedFile.id!.toString(),
+          fileName: uploadedFile.filename,
+          project_id: uploadedFile.project_id,
+          uploaded_by: uploadedFile.uploaded_by,
+          uploaded_time: uploadedFile.uploaded_time,
+          type: uploadedFile.type,
+          source: uploadedFile.source,
+        });
+      }
+    }
+
+    // Prepare the update body
+    const updateBody: Partial<
+      AnswerEU & {
+        risksDelete: number[];
+        risksMitigated: number[];
+      }
+    > = {
+      answer: body.answer,
+      status: body.status,
+      risksDelete: JSON.parse((body.risksDelete as any) || "[]") || [],
+      risksMitigated: JSON.parse((body.risksMitigated as any) || "[]") || [],
+    };
+
+    // Add uploaded files to evidence_files if any
+    if (uploadedFiles.length > 0) {
+      updateBody.evidence_files = uploadedFiles;
+    }
+
     const question = (await updateQuestionEUByIdQuery(
       questionId,
-      body,
+      updateBody,
       req.tenantId!,
       transaction
     )) as AnswerEU;

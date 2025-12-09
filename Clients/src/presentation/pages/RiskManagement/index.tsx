@@ -23,7 +23,6 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/HelperDrawer";
 import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
@@ -96,7 +95,6 @@ const RiskManagement = () => {
 
   // State for filtering
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [isAnalyticsDrawerOpen, setIsAnalyticsDrawerOpen] = useState(false);
 
   // Modal state for StandardModal pattern
@@ -583,39 +581,6 @@ const RiskManagement = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Risk management & mitigation"
-        description="Identify, assess, and mitigate risks across your AI projects and operations"
-        whatItDoes="Manage *risk lifecycle* from *identification* to *mitigation* across all AI projects. Track *risk severity*, *likelihood assessments*, and *mitigation strategies*. Maintain comprehensive *risk registers* with *ownership assignments* and *progress monitoring*."
-        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and *regulatory compliance*. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure *business continuity* while meeting *governance requirements*."
-        quickActions={[
-          {
-            label: "Add New Risk",
-            description: "Identify and document new risks with assessment details",
-            primary: true
-          },
-          {
-            label: "Import AI Risks",
-            description: "Add risks from the MIT AI Risk Database for comprehensive coverage"
-          }
-        ]}
-        useCases={[
-          "*Operational risk assessment* for *AI model deployments* and *data processing activities*",
-          "*Regulatory compliance* tracking for *governance frameworks* like *EU AI Act* and ISO standards"
-        ]}
-        keyFeatures={[
-          "**Comprehensive risk assessment** with *severity* and *likelihood scoring*",
-          "*MIT AI Risk Database* integration for *industry-standard risk templates*",
-          "*Risk visualization* and *filtering* with *real-time dashboard updates*"
-        ]}
-        tips={[
-          "*Regular risk reviews* help identify *emerging threats* before they impact operations",
-          "Use *risk categories* to organize threats by *impact area* and *regulatory requirements*",
-          "Set *clear ownership* and *target dates* for effective *risk mitigation tracking*"
-        ]}
-      />
 
       <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
@@ -623,7 +588,7 @@ const RiskManagement = () => {
           description="Manage and monitor risks across all your projects"
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="risk-management/risk-assessment"
               size="small"
             />
           }

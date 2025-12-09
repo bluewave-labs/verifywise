@@ -44,6 +44,11 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
   const { userId, userRoleName } = useAuth();
   const theme = useTheme();
 
+  // Validate that attachedTo is provided (defensive check)
+  if (!attachedTo) {
+    console.error("NotesTab: attachedTo prop is missing or undefined");
+  }
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -93,14 +98,35 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
         return;
       }
 
+      // Validate that attachedTo and attachedToId are provided
+      if (!attachedTo || !attachedToId) {
+        setAlert({
+          variant: "error",
+          body: "Invalid entity information. Please refresh and try again.",
+          isToast: true,
+        });
+        return;
+      }
+
       setIsSaving(true);
       try {
-        const newNote = await notesRepository.createNote({
+        // Validate attachedTo one more time before sending (defensive check)
+        const entityType = attachedTo?.trim();
+        if (!entityType || entityType.length === 0) {
+          throw new Error(
+            "Entity type is missing. Please refresh and try again."
+          );
+        }
+
+        // Explicitly use the attachedTo prop value to ensure correct entity type
+        await notesRepository.createNote({
           content,
-          attached_to: attachedTo,
-          attached_to_id: attachedToId,
+          attached_to: entityType, // Use validated and trimmed value
+          attached_to_id: attachedToId.trim(), // Ensure ID is trimmed
         });
-        setNotes([newNote, ...notes]);
+
+        // Refetch notes to ensure we have the latest data with author info
+        await fetchNotes();
 
         setAlert({
           variant: "success",
@@ -119,7 +145,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
         setIsSaving(false);
       }
     },
-    [attachedTo, attachedToId, notes]
+    [attachedTo, attachedToId, fetchNotes]
   );
 
   const handleEditNote = useCallback((noteId: number, content: string) => {
@@ -142,13 +168,12 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
 
       setIsSaving(true);
       try {
-        const updatedNote = await notesRepository.updateNote(editingNoteId, {
+        await notesRepository.updateNote(editingNoteId, {
           content,
         });
-        const updatedNotes = notes.map((note) =>
-          note.id === editingNoteId ? updatedNote : note
-        );
-        setNotes(updatedNotes);
+
+        // Refetch notes to ensure we have the latest data
+        await fetchNotes();
 
         setEditingNoteId(null);
         setEditingContent("");
@@ -170,7 +195,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
         setIsSaving(false);
       }
     },
-    [editingNoteId, notes]
+    [editingNoteId, fetchNotes]
   );
 
   const handleCancelEdit = useCallback(() => {
@@ -183,7 +208,9 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
       setIsSaving(true);
       try {
         await notesRepository.deleteNote(noteId);
-        setNotes(notes.filter((note) => note.id !== noteId));
+
+        // Refetch notes to ensure we have the latest data
+        await fetchNotes();
 
         setAlert({
           variant: "success",
@@ -202,7 +229,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
         setIsSaving(false);
       }
     },
-    [notes]
+    [fetchNotes]
   );
 
   const handleCloseAlert = () => {
@@ -218,10 +245,14 @@ const NotesTab: React.FC<NotesTabProps> = ({ attachedTo, attachedToId }) => {
 
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [alert]);
 
   return (
-    <Stack spacing={theme.spacing(3)} sx={{ height: "100%", p: theme.spacing(3, 0) }}>
+    <Stack
+      spacing={theme.spacing(3)}
+      sx={{ height: "100%", p: theme.spacing(3, 0) }}
+    >
       {/* Alert */}
       {alert && (
         <Alert

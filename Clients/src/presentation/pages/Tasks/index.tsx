@@ -12,7 +12,6 @@ import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
@@ -26,13 +25,10 @@ import {
   restoreTask,
   hardDeleteTask,
 } from "../../../application/repository/task.repository";
-import HeaderCard from "../../components/Cards/DashboardHeaderCard";
+import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import {
-  vwhomeHeaderCards,
-  vwhomeBody,
-} from "../Home/1.0Home/style";
+import { vwhomeBody } from "../Home/1.0Home/style";
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
@@ -74,7 +70,6 @@ const Tasks: React.FC = () => {
   const [editingTask, setEditingTask] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "error" | "warning" | "info";
     title: string;
@@ -511,40 +506,6 @@ const Tasks: React.FC = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Task management"
-        description="Coordinate AI governance activities and compliance tasks across your teams"
-        whatItDoes="Centralize *task assignment* and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for *compliance requirements*, *audits*, and *implementation projects*."
-        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides *accountability* and visibility into team workload, helping meet *compliance deadlines* and *implementation milestones*."
-        quickActions={[
-          {
-            label: "Create New Task",
-            description:
-              "Assign a governance or compliance task to team members",
-            primary: true,
-          },
-          {
-            label: "Filter by Assignee",
-            description: "Use the assignee dropdown to view tasks assigned to specific users",
-          },
-        ]}
-        useCases={[
-          "*Compliance activities* like *framework implementation steps* and *audit preparations*",
-          "*Risk remediation tasks* arising from *vendor assessments* and *model evaluations*",
-        ]}
-        keyFeatures={[
-          "**Priority-based task management** with *due date tracking* and overdue detection",
-          "*Assignment to individual users* with *status tracking*",
-          "*Advanced filtering* by status, priority, assignee, and search functionality",
-        ]}
-        tips={[
-          "Use the *priority levels* (High, Medium, Low) to focus on the most critical tasks first",
-          "Set *due dates* to track deadlines and automatically identify overdue tasks",
-          "Use the *search and filter options* to quickly find specific tasks or view by assignee",
-        ]}
-      />
 
       {/* Page Header */}
       <Stack sx={vwhomeBody}>
@@ -553,7 +514,7 @@ const Tasks: React.FC = () => {
           description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="ai-governance/task-management"
               size="small"
             />
           }
@@ -563,13 +524,8 @@ const Tasks: React.FC = () => {
       {/* Tips */}
       <TipBox entityName="tasks" />
 
-      {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards} data-joyride-id="task-summary-cards">
-        <HeaderCard title="Tasks" count={summary.total} />
-        <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In progress" count={summary.inProgress} />
-        <HeaderCard title="Completed" count={summary.completed} />
-      </Stack>
+      {/* Summary Cards */}
+      <TaskSummaryCards summary={summary} />
 
 
       {/* Filter Controls */}

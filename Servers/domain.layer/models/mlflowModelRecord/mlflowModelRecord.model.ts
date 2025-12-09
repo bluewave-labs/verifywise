@@ -1,13 +1,5 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Index,
-  Model,
-  Table,
-} from "sequelize-typescript";
+import { Column, DataType, Index, Model, Table } from "sequelize-typescript";
 import { IMLFlowModelRecord } from "../../interfaces/i.mlflowModelRecord";
-import { OrganizationModel } from "../organization/organization.model";
 
 @Table({
   tableName: "mlflow_model_records",

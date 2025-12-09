@@ -35,7 +35,6 @@ interface AlertState {
   isToast?: boolean;
 }
 
-
 const Organization = () => {
   const { userRoleName, organizationId } = useAuth();
   const { fetchLogoAsBlobUrl } = useLogoFetch();
@@ -150,11 +149,15 @@ const Organization = () => {
 
       const tempOrganization = OrganizationModel.createNewOrganization({
         name: value,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
-      
+
       const validation = tempOrganization.validateName();
-      setOrganizationNameError(validation.accepted ? null : validation.message || "Invalid organization name");
+      setOrganizationNameError(
+        validation.accepted
+          ? null
+          : validation.message || "Invalid organization name"
+      );
       setIsSaveDisabled(!value.trim() || !validation.accepted);
     },
     []
@@ -293,7 +296,7 @@ const Organization = () => {
     try {
       const organizationData = OrganizationModel.createNewOrganization({
         name: organizationName,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
 
       const response = await CreateMyOrganization({
@@ -333,7 +336,7 @@ const Organization = () => {
       const organizationData = OrganizationModel.createNewOrganization({
         id: organizationId,
         name: organizationName,
-        logo: ""
+        logo: "",
       } as OrganizationModel);
 
       const response = await UpdateMyOrganization({
@@ -375,6 +378,7 @@ const Organization = () => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   // Cleanup function to revoke object URLs when component unmounts

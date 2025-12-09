@@ -16,7 +16,6 @@ import { sequelize } from "../database/db";
 import {
   ValidationException,
   BusinessLogicException,
-  NotFoundException,
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";

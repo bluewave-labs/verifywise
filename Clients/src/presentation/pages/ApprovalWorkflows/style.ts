@@ -5,6 +5,10 @@ export const workflowMainStack = {
     gap: "16px",
 };
 
+export const filterSearchContainer = {
+    mb: 2,
+};
+
 // Table row styles
 export const workflowRowHover = {
     "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
@@ -81,3 +85,94 @@ export const workflowPagination = (theme: Theme) => ({
         padding: theme.spacing(4),
     },
 });
+
+// Table container
+export const tableContainerStyle = {
+    overflowX: "auto" as const,
+};
+
+// Header cell styles
+export const headerCellEntityStyle = {
+    width: "18%",
+};
+
+export const headerCellStepsStyle = {
+    width: "15%",
+};
+
+export const headerCellDateStyle = {
+    width: "22%",
+};
+
+export const headerCellActionsStyle = (backgroundColor: string) => ({
+    position: "sticky" as const,
+    right: 0,
+    zIndex: 10,
+    width: "12%",
+    backgroundColor,
+});
+
+export const sortableHeaderStyle = {
+    cursor: "pointer" as const,
+    userSelect: "none" as const,
+    "&:hover": {
+        backgroundColor: "rgba(0, 0, 0, 0.04)",
+    },
+};
+
+export const headerContentBoxStyle = (theme: Theme) => ({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: theme.spacing(2),
+});
+
+export const headerLabelStyle = (isActive: boolean) => ({
+    fontWeight: 400,
+    color: isActive ? "primary.main" : "inherit",
+});
+
+export const sortIconBoxStyle = (isActive: boolean) => ({
+    display: "flex",
+    alignItems: "center",
+    color: isActive ? "primary.main" : "#9CA3AF",
+});
+
+// Body cell styles
+export const bodyCellTitleStyle = (cellStyle: any, isHighlighted: boolean) => ({
+    ...cellStyle,
+    backgroundColor: isHighlighted ? "#f5f5f5" : "#fafafa",
+});
+
+export const bodyCellEntityStyle = (cellStyle: any, isHighlighted: boolean) => ({
+    ...cellStyle,
+    width: "18%",
+    backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
+});
+
+export const bodyCellStepsStyle = (cellStyle: any, isHighlighted: boolean) => ({
+    ...cellStyle,
+    width: "15%",
+    backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
+});
+
+export const bodyCellDateStyle = (cellStyle: any, isHighlighted: boolean) => ({
+    ...cellStyle,
+    width: "22%",
+    backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
+});
+
+export const bodyCellActionsStyle = (cellStyle: any) => ({
+    ...cellStyle,
+    width: "12%",
+    backgroundColor: "#ffffff",
+});
+
+export const actionStackStyle = {
+    direction: "row" as const,
+    spacing: 1,
+};
+
+export const emptyTableCellStyle = {
+    py: 4,
+};

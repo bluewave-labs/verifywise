@@ -5,7 +5,7 @@ import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import { logEngine } from "../../../application/tools/log.engine";
-import { addNewWorkflowButton, workflowMainStack} from "./style";
+import { addNewWorkflowButton, workflowMainStack, filterSearchContainer } from "./style";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
@@ -250,7 +250,7 @@ const ApprovalWorkflows: React.FC = () => {
                     justifyContent="space-between"
                     alignItems="center"
                     spacing={2}
-                    sx={{ mb: 2 }}
+                    sx={filterSearchContainer}
                 >
                     <Stack direction="row" spacing={2} alignItems="center">
                         <FilterBy

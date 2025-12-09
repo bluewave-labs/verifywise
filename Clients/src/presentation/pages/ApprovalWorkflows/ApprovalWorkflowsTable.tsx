@@ -20,6 +20,21 @@ import {
     workflowPaginationMenu,
     workflowPaginationSelect,
     workflowPagination,
+    tableContainerStyle,
+    headerCellEntityStyle,
+    headerCellStepsStyle,
+    headerCellDateStyle,
+    headerCellActionsStyle,
+    sortableHeaderStyle,
+    headerContentBoxStyle,
+    headerLabelStyle,
+    sortIconBoxStyle,
+    bodyCellTitleStyle,
+    bodyCellEntityStyle,
+    bodyCellStepsStyle,
+    bodyCellDateStyle,
+    bodyCellActionsStyle,
+    emptyTableCellStyle,
 } from "./style";
 
 import CustomIconButton from "../../components/IconButton";
@@ -29,18 +44,10 @@ import dayjs from "dayjs";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import TablePaginationActions from "../../components/TablePagination";
-
-const entities = [{ _id: 1, name: "Use case" }];
+import { entities } from "./arrays";
+import { TABLE_COLUMNS } from "./arrays";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
-
-const TABLE_COLUMNS = [
-    { id: "workflow_title", label: "TITLE" },
-    { id: "entity_name", label: "ENTITY" },
-    { id: "steps", label: "STEPS COUNT" },
-    { id: "date_updated", label: "DATE UPDATED" },
-    { id: "actions", label: "ACTIONS" },
-];
 
 const WORKFLOW_TABLE_SORTING_KEY = "verifywise_workflow_table_sorting";
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -191,57 +198,20 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 key={column.id}
                                 sx={{
                                     ...singleTheme.tableStyles.primary.header.cell,
-                                    ...(column.id === "workflow_id" && {
-                                    }),
-                                    ...(column.id === "entity_name" && {
-                                        width: "18%",
-                                    }),
-                                    ...(column.id === "steps" && {
-                                        width: "15%",
-                                    }),
-                                    ...(column.id === "date_updated" && {
-                                        width: "22%",
-                                    }),
-                                    ...(column.id === "actions" && {
-                                        position: "sticky",
-                                        right: 0,
-                                        zIndex: 10,
-                                        width: "12%",
-                                        backgroundColor:
-                                            singleTheme.tableStyles.primary.header
-                                                .backgroundColors,
-                                    }),
-                                    ...(!isLastColumn && sortable
-                                        ? {
-                                            cursor: "pointer",
-                                            userSelect: "none",
-                                            "&:hover": {
-                                                backgroundColor: "rgba(0, 0, 0, 0.04)",
-                                            },
-                                        }
-                                        : {}),
+                                    ...(column.id === "entity_name" && headerCellEntityStyle),
+                                    ...(column.id === "steps" && headerCellStepsStyle),
+                                    ...(column.id === "date_updated" && headerCellDateStyle),
+                                    ...(column.id === "actions" && headerCellActionsStyle(singleTheme.tableStyles.primary.header.backgroundColors)),
+                                    ...(!isLastColumn && sortable && sortableHeaderStyle),
                                 }}
                                 onClick={() => sortable && handleSort(column.label)}
                             >
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        gap: theme.spacing(2),
-                                    }}
-                                >
-                                    <div style={{ fontWeight: 400, color: sortConfig.key === column.label ? "primary.main" : "inherit" }}>
+                                <Box sx={headerContentBoxStyle(theme)}>
+                                    <div style={headerLabelStyle(sortConfig.key === column.label)}>
                                         {column.label}
                                     </div>
                                     {sortable && (
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
-                                            }}
-                                        >
+                                        <Box sx={sortIconBoxStyle(sortConfig.key === column.label)}>
                                             {sortConfig.key === column.label && sortConfig.direction === "asc" && (
                                                 <ChevronUp size={16} />
                                             )}
@@ -294,37 +264,22 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             }}
                         >
                             <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("title") ? "#f5f5f5" : "#fafafa",
-                                }}
+                                sx={bodyCellTitleStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("title")))}
                             >
                                 {workflow.workflow_title}
                             </TableCell>
                             <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    width: "18%",
-                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("entity") ? "#f5f5f5" : "#ffffff",
-                                }}
+                                sx={bodyCellEntityStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("entity")))}
                             >
                                 {entities.find(e => e._id == workflow.entity)?.name}
                             </TableCell>
                             <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    width: "15%",
-                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("steps") ? "#f5f5f5" : "#ffffff",
-                                }}
+                                sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("steps")))}
                             >
                                 {workflow.steps?.length}
                             </TableCell>
                             <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    width: "22%",
-                                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("updated") ? "#f5f5f5" : "#ffffff",
-                                }}
+                                sx={bodyCellDateStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("updated")))}
                             >
                                 {workflow.date_updated
                                     ? dayjs
@@ -333,11 +288,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                     : "-"}
                             </TableCell>
                             <TableCell
-                                sx={{
-                                    ...cellStyle,
-                                    width: "12%",
-                                    backgroundColor: "#ffffff",
-                                }}
+                                sx={bodyCellActionsStyle(cellStyle)}
                             >
                                 <Stack direction="row" spacing={1}>
                                     <CustomIconButton
@@ -366,7 +317,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                         <TableCell
                             colSpan={TABLE_COLUMNS.length}
                             align="center"
-                            sx={{ py: 4 }}
+                            sx={emptyTableCellStyle}
                         >
                             No approval workflow data available.
                         </TableCell>
@@ -378,7 +329,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
     );
 
     return (
-        <TableContainer sx={{ overflowX: "auto" }}>
+        <TableContainer sx={tableContainerStyle}>
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {tableHeader}
                 {tableBody}

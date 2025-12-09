@@ -553,21 +553,21 @@ export async function uninstallPlugin(
     // Uninstall the plugin (calls onUninstall hook, marks as not installed)
     await manager.uninstallPlugin(id);
 
-    // For non-builtin plugins, fully remove from system
-    if (!isBuiltin) {
-      // Delete database state
-      try {
-        const { deletePluginState, deletePluginFiles } = await import("../plugins/init");
-        await deletePluginState(id);
+    // Delete database state for all plugins
+    try {
+      const { deletePluginState, deletePluginFiles } = await import("../plugins/init");
+      await deletePluginState(id);
+
+      // For non-builtin plugins, also remove files and unregister
+      if (!isBuiltin) {
         deletePluginFiles(id);
-      } catch (cleanupError) {
-        logger.warn(`[PluginController] Partial cleanup for "${id}":`, cleanupError);
+        manager.unregisterPlugin(id);
+        logger.info(`[PluginController] Plugin "${id}" fully uninstalled and removed`);
+      } else {
+        logger.info(`[PluginController] Built-in plugin "${id}" uninstalled (can be re-enabled)`);
       }
-
-      // Unregister from plugin manager
-      manager.unregisterPlugin(id);
-
-      logger.info(`[PluginController] Plugin "${id}" fully uninstalled and removed`);
+    } catch (cleanupError) {
+      logger.warn(`[PluginController] Partial cleanup for "${id}":`, cleanupError);
     }
 
     res.status(200).json({

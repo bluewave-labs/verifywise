@@ -270,24 +270,21 @@ const PluginCard: React.FC<PluginCardProps> = ({
               >
                 {enabled ? "Disable" : "Enable"}
               </VWLink>
-              {/* Only show uninstall button for non-builtin plugins */}
-              {!isBuiltin && (
-                <Tooltip title="Uninstall">
-                  <IconButton
-                    size="small"
-                    onClick={() => onUninstall?.(id)}
-                    disabled={isProcessing}
-                    disableRipple
-                    sx={{
-                      color: "#DC2626",
-                      opacity: 0.6,
-                      "&:hover": { backgroundColor: "#FEF2F2", opacity: 1 },
-                    }}
-                  >
-                    <UninstallIcon size={16} />
-                  </IconButton>
-                </Tooltip>
-              )}
+              <Tooltip title="Uninstall">
+                <IconButton
+                  size="small"
+                  onClick={() => onUninstall?.(id)}
+                  disabled={isProcessing}
+                  disableRipple
+                  sx={{
+                    color: "#DC2626",
+                    opacity: 0.6,
+                    "&:hover": { backgroundColor: "#FEF2F2", opacity: 1 },
+                  }}
+                >
+                  <UninstallIcon size={16} />
+                </IconButton>
+              </Tooltip>
             </>
           ) : (
             <VWLink

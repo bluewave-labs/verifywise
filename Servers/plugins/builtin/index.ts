@@ -2,53 +2,18 @@
  * Built-in Plugins Registry
  *
  * This file registers all built-in plugins that ship with VerifyWise.
- * Users can install/uninstall and enable/disable these plugins from Settings.
+ * These are real, functional plugins - not samples or demos.
+ *
+ * For plugin development templates, see:
+ * https://github.com/bluewave-labs/plugin-marketplace/tree/main/templates
  */
 
-import { Plugin, PluginContext } from "../core";
-import { sampleTestPluginIcon } from "./icons";
+import { Plugin } from "../core";
 import activityFeedPlugin from "./activity-feed";
-import samplePagePlugin from "./sample-page";
-
-/**
- * Sample Test Plugin
- * A minimal plugin for testing install/uninstall and enable/disable functionality
- */
-export const sampleTestPlugin: Plugin = {
-  manifest: {
-    id: "sample-test-plugin",
-    name: "Sample test plugin",
-    description:
-      "A minimal test plugin that does nothing. Use this to verify plugin install, uninstall, enable, and disable functionality works correctly.",
-    version: "1.0.0",
-    author: "VerifyWise",
-    authorUrl: "https://verifywise.ai",
-    type: "feature",
-    icon: sampleTestPluginIcon,
-    permissions: [],
-    config: {},
-  },
-
-  async onInstall(context: PluginContext): Promise<void> {
-    context.logger.info("Sample Test plugin installed");
-  },
-
-  async onUninstall(context: PluginContext): Promise<void> {
-    context.logger.info("Sample Test plugin uninstalled");
-  },
-
-  async onEnable(context: PluginContext): Promise<void> {
-    context.logger.info("Sample Test plugin enabled - doing nothing");
-  },
-
-  async onDisable(context: PluginContext): Promise<void> {
-    context.logger.info("Sample Test plugin disabled");
-  },
-};
 
 /**
  * All built-in plugins
  */
-export const builtinPlugins: Plugin[] = [sampleTestPlugin, activityFeedPlugin, samplePagePlugin];
+export const builtinPlugins: Plugin[] = [activityFeedPlugin];
 
 export default builtinPlugins;

@@ -328,6 +328,12 @@ export async function initializePlugins(app?: Application): Promise<PluginManage
 
 /**
  * Load plugin states from database and restore previous state
+ *
+ * IMPORTANT: Plugin default state behavior:
+ * - Fresh install: No records in plugin_states table, all plugins stay DISABLED
+ * - Upgrade: Records exist, plugins are restored to their previous state
+ *
+ * Built-in plugins are NOT auto-enabled. Users must manually enable them.
  */
 async function loadPluginStates(): Promise<void> {
   if (!pluginManager) return;
@@ -347,7 +353,16 @@ async function loadPluginStates(): Promise<void> {
       config: Record<string, unknown>;
     }>;
 
-    logger.info(`[Plugins] Found ${states.length} saved plugin states`);
+    const allPlugins = pluginManager.getAllPlugins();
+    const isFreshInstall = states.length === 0;
+
+    if (isFreshInstall) {
+      logger.info(`[Plugins] Fresh install detected - all ${allPlugins.length} plugins will remain DISABLED by default`);
+      logger.info(`[Plugins] Users can enable plugins from Settings > Plugins`);
+      return;
+    }
+
+    logger.info(`[Plugins] Found ${states.length} saved plugin states (upgrade/restart detected)`);
 
     // For each saved state, try to restore it
     for (const state of states) {

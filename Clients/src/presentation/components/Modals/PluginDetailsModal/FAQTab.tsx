@@ -50,6 +50,7 @@ const FAQTab: React.FC<FAQTabProps> = ({ plugin }) => {
             expandIcon={<ChevronDown size={16} color={colors.text.muted} />}
             sx={{
               minHeight: 48,
+              px: "8px",
               "& .MuiAccordionSummary-content": { my: 1 },
             }}
           >
@@ -63,7 +64,7 @@ const FAQTab: React.FC<FAQTabProps> = ({ plugin }) => {
               {item.question}
             </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ pt: 0, pb: 2 }}>
+          <AccordionDetails sx={{ pt: 0, pb: 2, px: "8px" }}>
             <Typography
               sx={{
                 fontSize: typography.fontSize.base,

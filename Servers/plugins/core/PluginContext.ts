@@ -173,17 +173,33 @@ export class PluginContextFactory {
     return {
       debug: (message: string, meta?: Record<string, unknown>) => {
         if (process.env.NODE_ENV === "development") {
-          console.debug("%s %s %o", prefix, message, meta || "");
+          if (meta && Object.keys(meta).length > 0) {
+            console.debug("%s %s %o", prefix, message, meta);
+          } else {
+            console.debug("%s %s", prefix, message);
+          }
         }
       },
       info: (message: string, meta?: Record<string, unknown>) => {
-        console.info("%s %s %o", prefix, message, meta || "");
+        if (meta && Object.keys(meta).length > 0) {
+          console.info("%s %s %o", prefix, message, meta);
+        } else {
+          console.info("%s %s", prefix, message);
+        }
       },
       warn: (message: string, meta?: Record<string, unknown>) => {
-        console.warn("%s %s %o", prefix, message, meta || "");
+        if (meta && Object.keys(meta).length > 0) {
+          console.warn("%s %s %o", prefix, message, meta);
+        } else {
+          console.warn("%s %s", prefix, message);
+        }
       },
       error: (message: string, meta?: Record<string, unknown>) => {
-        console.error("%s %s %o", prefix, message, meta || "");
+        if (meta && Object.keys(meta).length > 0) {
+          console.error("%s %s %o", prefix, message, meta);
+        } else {
+          console.error("%s %s", prefix, message);
+        }
       },
     };
   }

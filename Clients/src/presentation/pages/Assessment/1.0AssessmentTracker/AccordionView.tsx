@@ -333,6 +333,7 @@ const AccordionView = ({
                   filteredQuestions.map((question, index) => (
                     <Stack
                       key={question.question_id}
+                      onClick={() => onQuestionClick(question, subtopic)}
                       sx={styles.questionRow(
                         index === filteredQuestions.length - 1,
                         flashingQuestionId === question.question_id
@@ -345,10 +346,7 @@ const AccordionView = ({
                         placement="top"
                         enterDelay={500}
                       >
-                        <Typography
-                          sx={styles.questionText}
-                          onClick={() => onQuestionClick(question, subtopic)}
-                        >
+                        <Typography sx={styles.questionText}>
                           {question.question}
                         </Typography>
                       </Tooltip>

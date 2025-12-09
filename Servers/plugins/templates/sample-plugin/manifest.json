@@ -1,0 +1,115 @@
+{
+  "$schema": "https://verifywise.ai/schemas/plugin-manifest.json",
+
+  "_comment_id": "REQUIRED: Unique plugin identifier. Use lowercase letters, numbers, and hyphens only. This becomes your API route prefix: /api/plugins/{id}/",
+  "id": "sample-plugin",
+
+  "_comment_name": "REQUIRED: Human-readable name displayed in the UI",
+  "name": "Sample Plugin",
+
+  "_comment_description": "REQUIRED: Brief description (1-2 sentences) shown in plugin listings",
+  "description": "A comprehensive sample plugin demonstrating all available features, event handlers, routes, and dashboard widgets.",
+
+  "_comment_version": "REQUIRED: Semantic version (major.minor.patch). Increment on each release.",
+  "version": "1.0.0",
+
+  "_comment_author": "REQUIRED: Author name or organization",
+  "author": "VerifyWise",
+
+  "_comment_authorUrl": "OPTIONAL: Link to author's website",
+  "authorUrl": "https://verifywise.ai",
+
+  "_comment_homepage": "OPTIONAL: Link to plugin documentation",
+  "homepage": "https://docs.verifywise.ai/plugins/sample",
+
+  "_comment_repository": "OPTIONAL: Source code repository URL",
+  "repository": "https://github.com/bluewave-labs/verifywise",
+
+  "_comment_type": "REQUIRED: Plugin category. One of: integration, feature, framework, reporting",
+  "type": "feature",
+
+  "_comment_tags": "OPTIONAL: Searchable keywords for marketplace discovery",
+  "tags": ["sample", "template", "example", "demo"],
+
+  "_comment_permissions": "REQUIRED: Declare what your plugin needs access to. Only request what you actually use.",
+  "permissions": [
+    "events:listen",
+    "database:read",
+    "database:write",
+    "config:read",
+    "http:outbound"
+  ],
+
+  "_comment_config": "OPTIONAL: Define user-configurable settings. Each field creates a form input in the plugin settings UI.",
+  "config": {
+    "apiEndpoint": {
+      "type": "string",
+      "required": false,
+      "label": "API endpoint",
+      "description": "External API URL to connect to (optional)",
+      "placeholder": "https://api.example.com"
+    },
+    "apiKey": {
+      "type": "string",
+      "required": false,
+      "secret": true,
+      "label": "API key",
+      "description": "Your API key (stored securely)"
+    },
+    "enableNotifications": {
+      "type": "boolean",
+      "default": true,
+      "label": "Enable notifications",
+      "description": "Send notifications when events occur"
+    },
+    "maxItems": {
+      "type": "number",
+      "default": 50,
+      "min": 10,
+      "max": 200,
+      "label": "Maximum items",
+      "description": "Maximum number of items to store"
+    },
+    "logLevel": {
+      "type": "select",
+      "options": ["debug", "info", "warn", "error"],
+      "default": "info",
+      "label": "Log level",
+      "description": "Minimum log level to record"
+    }
+  },
+
+  "_comment_ui": "OPTIONAL: Define UI extensions. Currently supports dashboard widgets.",
+  "ui": {
+    "dashboardWidgets": [
+      {
+        "_comment": "Each widget needs: id (unique within plugin), template (rendering type), title, endpoint (your route)",
+        "id": "sample-stats-widget",
+        "template": "stats-card",
+        "title": "Sample stats",
+        "endpoint": "/stats",
+        "config": {
+          "refreshInterval": 60,
+          "showChange": true
+        }
+      },
+      {
+        "id": "sample-list-widget",
+        "template": "list",
+        "title": "Sample items",
+        "endpoint": "/items",
+        "config": {
+          "maxItems": 5
+        }
+      }
+    ]
+  },
+
+  "_comment_compatibility": "OPTIONAL: Specify VerifyWise version requirements",
+  "compatibility": {
+    "minVersion": "1.6.0"
+  },
+
+  "_comment_dependencies": "OPTIONAL: Other plugins that must be installed first",
+  "dependencies": {}
+}

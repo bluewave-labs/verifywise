@@ -59,6 +59,10 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import pluginRoutes from "./routes/plugin.route";
+import marketplaceRoutes from "./routes/marketplace.route";
+import { initializePlugins } from "./plugins/init";
+import { createPluginMiddlewareWrapper, middlewareRegistry } from "./plugins/core";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -125,6 +129,10 @@ try {
   });
   app.use(cookieParser());
   // app.use(csrf());
+
+  // Plugin middleware wrapper - allows plugins to inject before/after middleware
+  // Must be added after body parsing and before routes
+  app.use(createPluginMiddlewareWrapper(middlewareRegistry));
 
   // Routes
   app.use("/api/users", userRoutes);
@@ -194,6 +202,17 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/plugins", pluginRoutes);
+  app.use("/api/marketplace", marketplaceRoutes);
+
+  // Initialize plugin system (pass app for mounting plugin routes)
+  (async () => {
+    try {
+      await initializePlugins(app);
+    } catch (error) {
+      console.error("[Plugins] Failed to initialize plugin system:", error);
+    }
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

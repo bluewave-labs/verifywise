@@ -12,6 +12,7 @@ import Preferences from "./Preferences/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
+import Plugins from "./Plugins";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
@@ -37,6 +38,7 @@ export default function ProfilePage() {
       "team",
       "organization",
       "apikeys",
+      "plugins",
     ];
     return tabs;
   }, []);
@@ -134,6 +136,11 @@ export default function ProfilePage() {
               icon: "Key",
               disabled: isApiKeysDisabled,
             },
+            {
+              label: "Plugins",
+              value: "plugins",
+              icon: "Puzzle",
+            },
           ]}
           activeTab={activeTab}
           onChange={handleTabChange}
@@ -161,6 +168,10 @@ export default function ProfilePage() {
 
         <TabPanel value="apikeys">
           <ApiKeys />
+        </TabPanel>
+
+        <TabPanel value="plugins">
+          <Plugins />
         </TabPanel>
       </TabContext>
     </Stack>

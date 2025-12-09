@@ -47,6 +47,8 @@ import {
   recordMultipleFieldChanges,
   recordUseCaseDeletion,
 } from "../utils/useCaseChangeHistory.utils";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllProjects(
   req: Request,
@@ -262,6 +264,19 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           error: slackError as Error,
         });
       });
+
+      // Emit project created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.PROJECT_CREATED,
+        {
+          projectId: createdProject.id!,
+          project: createdProject as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId!, email: actor.email, name: `${actor.name} ${actor.surname}` },
+          tenant: req.tenantId || "default",
+        }
+      );
 
       return res.status(201).json(
         STATUS_CODE[201]({
@@ -493,6 +508,23 @@ export async function updateProjectById(
         }
       }
 
+      // Emit project updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.PROJECT_UPDATED,
+        {
+          projectId: projectId,
+          project: project as unknown as Record<string, unknown>,
+          changes: computeChanges(
+            existingProject as unknown as Record<string, unknown>,
+            project as unknown as Record<string, unknown>
+          ),
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](project));
     }
 
@@ -580,6 +612,19 @@ export async function deleteProjectById(
         functionName: "deleteProjectById",
         fileName: "project.ctrl.ts",
       });
+
+      // Emit project deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.PROJECT_DELETED,
+        {
+          projectId: projectId,
+          project: deletedProject as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
 
       return res.status(202).json(STATUS_CODE[202](deletedProject));
     }
@@ -1113,6 +1158,25 @@ export async function updateProjectStatus(
         functionName: "updateProjectStatus",
         fileName: "project.ctrl.ts",
       });
+
+      // Emit project updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.PROJECT_UPDATED,
+        {
+          projectId: projectId,
+          project: updatedProject as unknown as Record<string, unknown>,
+          changes: {
+            status: {
+              before: existingProject.status,
+              after: status,
+            },
+          },
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
 
       return res.status(200).json(STATUS_CODE[200](updatedProject));
     }

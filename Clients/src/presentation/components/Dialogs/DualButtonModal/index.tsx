@@ -53,7 +53,7 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           right: 0,
           bottom: 0,
           backgroundColor: "rgba(0, 0, 0, 0.5)",
-          zIndex: 1299,
+          zIndex: 1400,
         }}
       />
       <Stack
@@ -63,7 +63,7 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 1300, // Ensure it appears on top of other components
+          zIndex: 1401, // Ensure it appears on top of MUI Dialogs (z-index: 1300)
           backgroundColor: "white",
           padding: "16px",
           borderRadius: "8px",
@@ -75,7 +75,9 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           <Typography className="dual-btn-modal-title" fontSize={TitleFontSize}>
             {title}
           </Typography>
-          {body}
+          <Typography className="dual-btn-modal-body" sx={{ fontSize: 13 }}>
+            {body}
+          </Typography>
         </Stack>
         <Stack
           className="dual-btn-modal-actions"

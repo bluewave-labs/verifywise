@@ -2552,6 +2552,186 @@ export const tierEndpoints: Endpoint[] = [
   },
 ];
 
+// Plugin System endpoints
+export const pluginEndpoints: Endpoint[] = [
+  {
+    method: 'GET',
+    path: '/plugins',
+    summary: 'List all plugins',
+    description: 'Returns all registered plugins (built-in and uploaded) with their current status, configuration, and statistics. Built-in plugins are marked with isBuiltin: true and cannot be uninstalled.',
+    requiresAuth: true,
+    responses: [
+      { status: 200, description: 'List of plugins with statistics' },
+      { status: 401, description: 'Unauthorized - JWT token required' },
+      { status: 500, description: 'Internal server error' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'GET',
+    path: '/plugins/stats',
+    summary: 'Get plugin system statistics',
+    description: 'Returns aggregate statistics about the plugin system including total plugin counts by status (registered, installed, enabled).',
+    requiresAuth: true,
+    responses: [
+      { status: 200, description: 'Plugin system statistics' },
+      { status: 401, description: 'Unauthorized' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/upload',
+    summary: 'Upload a plugin package',
+    description: 'Upload a new plugin from a .zip file. The package must contain a manifest.json at the root level with required fields: id, name, version, author, type, description. Max file size: 10MB.',
+    requiresAuth: true,
+    requestBody: {
+      plugin: 'file (required) - The plugin .zip file',
+    },
+    responses: [
+      { status: 200, description: 'Plugin uploaded and registered successfully' },
+      { status: 400, description: 'Invalid plugin package or manifest' },
+      { status: 409, description: 'Plugin already exists' },
+      { status: 507, description: 'Insufficient disk space' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/install-from-url',
+    summary: 'Install plugin from marketplace',
+    description: 'Install a plugin from the official VerifyWise marketplace by URL. Only allows downloads from trusted domains (github.com, githubusercontent.com). Supports SHA256 checksum verification.',
+    requiresAuth: true,
+    requestBody: {
+      id: 'string (required) - Plugin ID',
+      name: 'string (required) - Plugin name',
+      version: 'string (required) - Version to install',
+      downloadUrl: 'string (required) - URL to download the .zip file',
+      checksum: 'string (optional) - SHA256 checksum for verification',
+    },
+    responses: [
+      { status: 200, description: 'Plugin installed successfully' },
+      { status: 400, description: 'Invalid request or download failed' },
+      { status: 409, description: 'Plugin already exists' },
+      { status: 507, description: 'Insufficient disk space' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'GET',
+    path: '/plugins/{id}',
+    summary: 'Get plugin by ID',
+    description: 'Retrieve detailed information about a specific plugin including its manifest, current status, and configuration.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID (from manifest.json)' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin details' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/{id}/install',
+    summary: 'Install a plugin',
+    description: 'Perform first-time installation of a registered plugin. Runs the plugin\'s onInstall lifecycle hook. Built-in plugins are auto-installed when enabled.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin installed successfully' },
+      { status: 400, description: 'Plugin already installed' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/{id}/uninstall',
+    summary: 'Uninstall a plugin',
+    description: 'Permanently remove an installed plugin. Runs the plugin\'s onUninstall lifecycle hook. Built-in plugins cannot be uninstalled.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin uninstalled successfully' },
+      { status: 400, description: 'Plugin not installed or cannot be uninstalled' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/{id}/enable',
+    summary: 'Enable a plugin',
+    description: 'Activate a plugin\'s functionality. The plugin must be installed first (unless it\'s a built-in plugin). Runs the plugin\'s onEnable lifecycle hook.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin enabled successfully' },
+      { status: 400, description: 'Plugin not installed or already enabled' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'POST',
+    path: '/plugins/{id}/disable',
+    summary: 'Disable a plugin',
+    description: 'Deactivate a plugin\'s functionality without uninstalling it. The plugin can be re-enabled later. Runs the plugin\'s onDisable lifecycle hook.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin disabled successfully' },
+      { status: 400, description: 'Plugin already disabled' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'GET',
+    path: '/plugins/{id}/config',
+    summary: 'Get plugin configuration',
+    description: 'Retrieve the current configuration values and schema for a plugin. Returns config (current values) and schema (field definitions).',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    responses: [
+      { status: 200, description: 'Plugin configuration and schema' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+  {
+    method: 'PUT',
+    path: '/plugins/{id}/config',
+    summary: 'Update plugin configuration',
+    description: 'Update configuration values for a plugin. Values are validated against the plugin\'s configuration schema.',
+    requiresAuth: true,
+    parameters: [
+      { name: 'id', in: 'path', type: 'string', required: true, description: 'Plugin ID' },
+    ],
+    requestBody: {
+      '[key]': 'any - Configuration key-value pairs',
+    },
+    responses: [
+      { status: 200, description: 'Configuration updated successfully' },
+      { status: 400, description: 'Invalid configuration' },
+      { status: 404, description: 'Plugin not found' },
+    ],
+    tag: 'Plugins',
+  },
+];
+
 // Export all endpoints grouped
 export const allEndpoints = {
   authentication: authenticationEndpoints,
@@ -2594,4 +2774,5 @@ export const allEndpoints = {
   slackWebhooks: slackWebhookEndpoints,
   subscription: subscriptionEndpoints,
   tiers: tierEndpoints,
+  plugins: pluginEndpoints,
 };

@@ -17,6 +17,8 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -141,6 +143,20 @@ export async function createNewTrainingRegistar(
         functionName: "createNewTrainingRegistar",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_CREATED,
+        {
+          trainingId: (createdNewTrainingRegistar as any).id || 0,
+          training: createdNewTrainingRegistar as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(201).json(STATUS_CODE[201](createdNewTrainingRegistar));
     }
 
@@ -172,6 +188,17 @@ export async function updateTrainingRegistarById(
   res: Response
 ): Promise<any> {
   const trainingRegistarId = parseInt(req.params.id);
+
+  // Get existing training registrar for change tracking
+  let existingTrainingRegistrar: Awaited<ReturnType<typeof getTrainingRegistarByIdQuery>> | null = null;
+  try {
+    existingTrainingRegistrar = await getTrainingRegistarByIdQuery(
+      trainingRegistarId,
+      req.tenantId!
+    );
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
 
   const transaction = await sequelize.transaction();
 
@@ -205,6 +232,26 @@ export async function updateTrainingRegistarById(
         functionName: "updateTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_UPDATED,
+        {
+          trainingId: trainingRegistarId,
+          training: trainingRegistar as unknown as Record<string, unknown>,
+          changes: existingTrainingRegistrar
+            ? computeChanges(
+                existingTrainingRegistrar as unknown as Record<string, unknown>,
+                trainingRegistar as unknown as Record<string, unknown>
+              )
+            : {},
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](trainingRegistar));
     }
 
@@ -259,6 +306,20 @@ export async function deleteTrainingRegistarById(
         functionName: "deleteTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
       });
+
+      // Emit training deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.TRAINING_DELETED,
+        {
+          trainingId: trainingRegistarId,
+          training: deleteTrainingRegistar as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](deleteTrainingRegistar));
     }
 

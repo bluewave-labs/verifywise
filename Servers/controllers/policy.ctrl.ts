@@ -14,6 +14,8 @@ import {
   trackPolicyChanges,
   recordMultipleFieldChanges,
 } from "../utils/policyChangeHistory.utils";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export class PolicyController {
   // Get all policies
@@ -74,6 +76,21 @@ export class PolicyController {
         }
 
         await transaction.commit();
+
+        // Emit policy created event (fire-and-forget)
+        emitEvent(
+          PluginEvent.POLICY_CREATED,
+          {
+            policyId: policy.id!,
+            projectId: 0,
+            policy: policy as unknown as Record<string, unknown>,
+          },
+          {
+            triggeredBy: { userId: userId },
+            tenant: req.tenantId || "default",
+          }
+        );
+
         return res.status(201).json(STATUS_CODE[201](policy));
       }
       await transaction.rollback();
@@ -133,6 +150,25 @@ export class PolicyController {
         }
 
         await transaction.commit();
+
+        // Emit policy updated event (fire-and-forget)
+        emitEvent(
+          PluginEvent.POLICY_UPDATED,
+          {
+            policyId: policyId,
+            projectId: 0,
+            policy: policy as unknown as Record<string, unknown>,
+            changes: computeChanges(
+              existingPolicy as unknown as Record<string, unknown>,
+              policy as unknown as Record<string, unknown>
+            ),
+          },
+          {
+            triggeredBy: { userId: userId },
+            tenant: req.tenantId || "default",
+          }
+        );
+
         return res.status(202).json(STATUS_CODE[202](policy));
       }
       await transaction.rollback();
@@ -167,6 +203,21 @@ export class PolicyController {
 
       if (deleted) {
         await transaction.commit();
+
+        // Emit policy deleted event (fire-and-forget)
+        emitEvent(
+          PluginEvent.POLICY_DELETED,
+          {
+            policyId: policyId,
+            projectId: 0,
+            policy: deleted as unknown as Record<string, unknown>,
+          },
+          {
+            triggeredBy: { userId: req.userId! },
+            tenant: req.tenantId || "default",
+          }
+        );
+
         return res.status(202).json(STATUS_CODE[202](deleted));
       }
 

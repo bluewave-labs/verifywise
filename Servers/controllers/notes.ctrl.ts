@@ -19,11 +19,18 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { NotesAttachedToEnum } from "../domain.layer/models/notes/notes.model";
 import { NotesService } from "../services/notesService";
+import { getNoteByIdQuery } from "../utils/notes.utils";
 import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
-import { logFailure, logProcessing } from "../utils/logger/logHelper";
+import {
+  logFailure,
+  logProcessing,
+  // logSuccess,
+} from "../utils/logger/logHelper";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 /**
  * Create a new note
@@ -88,6 +95,21 @@ export async function createNote(req: Request, res: Response): Promise<any> {
       attached_to_id,
       organization_id,
       tenant_id
+    );
+
+    // Emit note created event (fire-and-forget)
+    emitEvent(
+      PluginEvent.NOTE_CREATED,
+      {
+        noteId: savedNote.id!,
+        entityType: attached_to,
+        entityId: parseInt(attached_to_id) || 0,
+        note: savedNote.toJSON() as unknown as Record<string, unknown>,
+      },
+      {
+        triggeredBy: { userId: author_id },
+        tenant: tenant_id || "default",
+      }
     );
 
     return res.status(201).json(STATUS_CODE[201](savedNote.toJSON()));
@@ -231,6 +253,14 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
       );
     }
 
+    // Get existing note for change tracking
+    let existingNote: Awaited<ReturnType<typeof getNoteByIdQuery>> | null = null;
+    try {
+      existingNote = await getNoteByIdQuery(noteId, tenant_id);
+    } catch {
+      // Continue without existing data if query fails
+    }
+
     // Use service for business logic (includes permission checks and sanitization)
     const updatedNote = await NotesService.updateNote(
       noteId,
@@ -238,6 +268,27 @@ export async function updateNote(req: Request, res: Response): Promise<any> {
       userId,
       userRole,
       tenant_id
+    );
+
+    // Emit note updated event (fire-and-forget)
+    emitEvent(
+      PluginEvent.NOTE_UPDATED,
+      {
+        noteId: noteId,
+        entityType: (updatedNote as any).attached_to || "",
+        entityId: parseInt((updatedNote as any).attached_to_id) || 0,
+        note: updatedNote.toJSON() as unknown as Record<string, unknown>,
+        changes: existingNote
+          ? computeChanges(
+              existingNote.toJSON() as unknown as Record<string, unknown>,
+              updatedNote.toJSON() as unknown as Record<string, unknown>
+            )
+          : {},
+      },
+      {
+        triggeredBy: { userId: userId },
+        tenant: tenant_id || "default",
+      }
     );
 
     return res.status(200).json(STATUS_CODE[200](updatedNote.toJSON()));
@@ -295,6 +346,21 @@ export async function deleteNote(req: Request, res: Response): Promise<any> {
 
     // Use service for business logic (includes permission checks)
     await NotesService.deleteNote(noteId, userId, userRole, tenant_id);
+
+    // Emit note deleted event (fire-and-forget)
+    emitEvent(
+      PluginEvent.NOTE_DELETED,
+      {
+        noteId: noteId,
+        entityType: "",
+        entityId: 0,
+        note: { id: noteId } as unknown as Record<string, unknown>,
+      },
+      {
+        triggeredBy: { userId: userId },
+        tenant: tenant_id || "default",
+      }
+    );
 
     return res.status(200).json(STATUS_CODE[200]("Note deleted successfully"));
   } catch (error) {

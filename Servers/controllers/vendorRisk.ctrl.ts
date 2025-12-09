@@ -17,6 +17,8 @@ import {
   trackVendorRiskChanges,
   recordMultipleFieldChanges,
 } from "../utils/vendorRiskChangeHistory.utils";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllVendorRisksAllProjects(
   req: Request,
@@ -227,6 +229,22 @@ export async function createVendorRisk(
         functionName: 'createVendorRisk',
         fileName: 'vendorRisk.ctrl.ts'
       });
+
+      // Emit vendor risk created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_RISK_CREATED,
+        {
+          vendorRiskId: createdVendorRisk.id!,
+          vendorId: createdVendorRisk.vendor_id || 0,
+          projectId: (createdVendorRisk as any).project_id || 0,
+          vendorRisk: createdVendorRisk as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
     }
 
@@ -315,6 +333,26 @@ export async function updateVendorRiskById(
         functionName: 'updateVendorRiskById',
         fileName: 'vendorRisk.ctrl.ts'
       });
+
+      // Emit vendor risk updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_RISK_UPDATED,
+        {
+          vendorRiskId: vendorRiskId,
+          vendorId: (vendorRisk as any).vendor_id || 0,
+          projectId: (vendorRisk as any).project_id || 0,
+          vendorRisk: vendorRisk as unknown as Record<string, unknown>,
+          changes: computeChanges(
+            existingVendorRisk as unknown as Record<string, unknown>,
+            vendorRisk as unknown as Record<string, unknown>
+          ),
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](vendorRisk));
     }
 
@@ -366,6 +404,22 @@ export async function deleteVendorRiskById(
         functionName: 'deleteVendorRiskById',
         fileName: 'vendorRisk.ctrl.ts'
       });
+
+      // Emit vendor risk deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_RISK_DELETED,
+        {
+          vendorRiskId: vendorRiskId,
+          vendorId: (deletedVendorRisk as any).vendor_id || 0,
+          projectId: (deletedVendorRisk as any).project_id || 0,
+          vendorRisk: deletedVendorRisk as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
     }
 

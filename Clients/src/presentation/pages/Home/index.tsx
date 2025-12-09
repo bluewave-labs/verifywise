@@ -40,6 +40,9 @@ const CreateProjectForm = lazy(
 );
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 const Alert = lazy(() => import("../../components/Alert"));
+const PluginWidgetRenderer = lazy(
+  () => import("../../components/PluginWidgets/PluginWidgetRenderer")
+);
 
 // Custom hook for fetching projects
 const useProjects = (
@@ -364,6 +367,12 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               </Suspense>
             )
           )}
+          {/* Plugin Widgets Section */}
+          <Suspense fallback={null}>
+            <Box sx={{ mb: 3 }}>
+              <PluginWidgetRenderer location="dashboard" />
+            </Box>
+          </Suspense>
           <Box sx={styles.projectBox}>
             <Typography variant="h1" component="div" sx={styles.title}>
               Projects overview

@@ -25,6 +25,8 @@ import {
   trackVendorChanges,
   recordMultipleFieldChanges,
 } from "../utils/vendorChangeHistory.utils";
+import { emitEvent, computeChanges } from "../plugins/core/emitEvent";
+import { PluginEvent } from "../plugins/core/types";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -213,6 +215,21 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         functionName: "createVendor",
         fileName: "vendor.ctrl.ts",
       });
+
+      // Emit vendor created event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_CREATED,
+        {
+          vendorId: createdVendor.id!,
+          projectId: (createdVendor as any).project_id || 0,
+          vendor: createdVendor as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(201).json(STATUS_CODE[201](createdVendor));
     }
 
@@ -358,6 +375,25 @@ export async function updateVendorById(
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
       });
+
+      // Emit vendor updated event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_UPDATED,
+        {
+          vendorId: vendorId,
+          projectId: (vendor as any).project_id || 0,
+          vendor: vendor as unknown as Record<string, unknown>,
+          changes: computeChanges(
+            existingVendor as unknown as Record<string, unknown>,
+            vendor as unknown as Record<string, unknown>
+          ),
+        },
+        {
+          triggeredBy: { userId: userId },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](vendor));
     }
 
@@ -432,6 +468,21 @@ export async function deleteVendorById(
         functionName: "deleteVendorById",
         fileName: "vendor.ctrl.ts",
       });
+
+      // Emit vendor deleted event (fire-and-forget)
+      emitEvent(
+        PluginEvent.VENDOR_DELETED,
+        {
+          vendorId: vendorId,
+          projectId: (deletedVendor as any).project_id || 0,
+          vendor: deletedVendor as unknown as Record<string, unknown>,
+        },
+        {
+          triggeredBy: { userId: req.userId! },
+          tenant: req.tenantId || "default",
+        }
+      );
+
       return res.status(202).json(STATUS_CODE[202](deletedVendor));
     }
 

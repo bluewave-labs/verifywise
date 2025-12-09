@@ -1118,27 +1118,108 @@ export const updateQuestionEUByIdQuery = async (
     AnswerEU & {
       risksDelete: number[];
       risksMitigated: number[];
+      delete?: number[];
     }
   >,
   tenant: string,
   transaction: Transaction
 ): Promise<AnswerEU | null> => {
   const updateQuestion: Partial<Record<keyof AnswerEU, any>> = {};
-  const setClause = ["answer", "status"]
-    .filter((f) => {
-      if (question[f as keyof AnswerEU] !== undefined) {
-        updateQuestion[f as keyof AnswerEU] = question[f as keyof AnswerEU];
-        if (f === "answer" && !question[f]) {
-          updateQuestion[f as keyof AnswerEU] = "";
-        }
-        return true;
-      }
-      return false;
-    })
-    .map((f) => `${f} = :${f}`)
-    .join(", ");
+  const setClause: string[] = [];
 
-  const query = `UPDATE "${tenant}".answers_eu SET ${setClause} WHERE id = :id RETURNING *;`;
+  // Handle answer and status
+  ["answer", "status"].forEach((f) => {
+    if (question[f as keyof AnswerEU] !== undefined) {
+      updateQuestion[f as keyof AnswerEU] = question[f as keyof AnswerEU];
+      if (f === "answer" && !question[f]) {
+        updateQuestion[f as keyof AnswerEU] = "";
+      }
+      setClause.push(`${f} = :${f}`);
+    }
+  });
+
+  // Handle evidence_files: merge existing files with new ones, remove deleted ones
+  const hasFileOperations =
+    question.evidence_files !== undefined || question.delete !== undefined;
+
+  if (hasFileOperations) {
+    // Get existing evidence files
+    const existingFilesResult = await sequelize.query(
+      `SELECT evidence_files FROM "${tenant}".answers_eu WHERE id = :id`,
+      {
+        replacements: { id },
+        mapToModel: true,
+        model: AnswerEUModel,
+        transaction,
+      }
+    );
+
+    let currentEvidenceFiles: any[] = [];
+    // Access pattern matches existing code at line 938: files[0].evidence_files
+    // With mapToModel: true, result[0] appears to be the model instance directly (not an array)
+    // This matches the pattern used in ISO27001: files[0].evidence_links
+    if (existingFilesResult[0]) {
+      const evidenceFilesData = (existingFilesResult[0] as any).evidence_files;
+
+      if (evidenceFilesData !== null && evidenceFilesData !== undefined) {
+        if (Array.isArray(evidenceFilesData)) {
+          currentEvidenceFiles = evidenceFilesData;
+        } else if (typeof evidenceFilesData === "string") {
+          try {
+            currentEvidenceFiles = JSON.parse(evidenceFilesData);
+          } catch {
+            currentEvidenceFiles = [];
+          }
+        } else {
+          currentEvidenceFiles = [evidenceFilesData];
+        }
+      }
+    }
+
+    // Remove deleted files
+    const filesToDelete = question.delete || [];
+    if (Array.isArray(filesToDelete) && filesToDelete.length > 0) {
+      currentEvidenceFiles = currentEvidenceFiles.filter(
+        (f: any) => !filesToDelete.includes(parseInt(f.id?.toString() || "0"))
+      );
+    }
+
+    // Add new uploaded files
+    // Note: question.evidence_files may be an empty array if only deletions occurred
+    if (
+      question.evidence_files !== undefined &&
+      Array.isArray(question.evidence_files)
+    ) {
+      currentEvidenceFiles = currentEvidenceFiles.concat(
+        question.evidence_files
+      );
+    }
+
+    // Update evidence_files in the query
+    updateQuestion.evidence_files = JSON.stringify(currentEvidenceFiles);
+    setClause.push(`evidence_files = :evidence_files`);
+  }
+
+  if (setClause.length === 0) {
+    // No fields to update, just return the existing answer
+    const result = await sequelize.query(
+      `SELECT * FROM "${tenant}".answers_eu WHERE id = :id`,
+      {
+        replacements: { id },
+        mapToModel: true,
+        model: AnswerEUModel,
+        transaction,
+      }
+    );
+    // With mapToModel: true, result is [ModelInstance[], number]
+    const answer =
+      Array.isArray(result[0]) && result[0].length > 0
+        ? result[0][0]
+        : (result[0] as any);
+    return answer || null;
+  }
+
+  const query = `UPDATE "${tenant}".answers_eu SET ${setClause.join(", ")} WHERE id = :id RETURNING *;`;
 
   updateQuestion.id = id;
 
@@ -1149,7 +1230,12 @@ export const updateQuestionEUByIdQuery = async (
     // type: QueryTypes.UPDATE,
     transaction,
   });
-  const answer = result[0];
+  // With mapToModel: true, result is [ModelInstance[], number]
+  // For a single UPDATE, result[0] is an array with one model instance
+  const answer =
+    Array.isArray(result[0]) && result[0].length > 0
+      ? result[0][0]
+      : (result[0] as any);
   (answer as any).dataValues.risks = [];
 
   const risks = (await sequelize.query(

@@ -4,6 +4,32 @@ import {
 } from "lucide-react";
 
 import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, TextField, Button } from "@mui/material";
+import {
+    sidebarContainer,
+    sidebarMenuStyle,
+    sidebarInnerStack,
+    listStyle,
+    getAccordionStyleWithIndex,
+    groupTypographyStyle,
+    tooltipStyle,
+    listItemButtonStyle,
+    listItemTextStyle,
+    horizontalDividerStyle,
+    verticalDividerStyle,
+    timelineContainer,
+    stepCircleStyle,
+    stepContainerStyle,
+    stepDateStyle,
+    stepTitleStyle,
+    stepDividerStyle,
+    stepDetailsStack,
+    approverNameStyle,
+    seeDetailsLinkStyle,
+    commentLabelStyle,
+    commentTextStyle,
+    commentFieldStyle,
+    withdrawalBodyStyle,
+} from './style';
 import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
@@ -16,6 +42,7 @@ import DualButtonModal from "../../Dialogs/DualButtonModal";
 import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
 import { IMenuItem } from "../../../../domain/interfaces/i.menu";
+
 
 export interface IRequestorApprovalProps {
     isOpen: boolean;
@@ -224,7 +251,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             <Stack direction="row" spacing={12} >
                 <Box
                     width="250px"
-                    sx={{ alignSelf: "stretch" }}
+                    sx={sidebarContainer}
                 >
                     <Stack>
                         <Stack
@@ -232,22 +259,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             className={`sidebar-menu expanded}`}
                             py={theme.spacing(1)}
                             gap={theme.spacing(1)}
-                            sx={{
-                                backgroundColor: theme.palette.background.main,
-                                "& ,selected-path, & >MuiListItemButton-root:hover": {
-                                    backgroundColor: theme.palette.background.main,
-                                },
-                                "& .Muilist-root svg path": {
-                                    stroke: theme.palette.text.tertiary,
-                                },
-                                "& p, & span, & .MuiListSubheader-root": {
-                                    color: theme.palette.text.secondary,
-                                }
-                            }}
+                            sx={sidebarMenuStyle(theme)}
                         >
                             <Stack
-                                pb={theme.spacing(12)}
-                                sx={{ position: "relative" }}
+                                sx={sidebarInnerStack(theme)}
                             >
                                 <Stack
                                     direction="row"
@@ -259,55 +274,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                         component="nav"
                                         aria-labelledby="nested-menu-subheader"
                                         disablePadding
-                                        sx={{
-                                            px: theme.spacing(0),
-                                            flex: 1,
-                                            overflowY: "auto",
-                                            overflowX: "hidden",
-                                            "&::-webkit-scrollbar": {
-                                                width: "4px",
-                                            },
-                                            "&::-webkit-scrollbar-track": {
-                                                background: "transparent",
-                                            },
-                                            "&::-webkit-scrollbar-thumb": {
-                                                background: theme.palette.border.light,
-                                                borderRadius: "2px",
-                                            },
-                                            "&::-webkit-scrollbar-thumb:hover": {
-                                                background: theme.palette.border.dark,
-                                            },
-                                        }}
+                                        sx={listStyle(theme)}
                                     >
                                         {menuGroups.map((group, index) => (
                                             <React.Fragment key={group.name}>
                                                 <Accordion
                                                     expanded={expandedGroups[group.name] || false}
                                                     onChange={handleGroupAccordionChange(group.name)}
-                                                    sx={{
-                                                        backgroundColor: "transparent",
-                                                        boxShadow: "none",
-                                                        border: "none",
-                                                        "&::before": {
-                                                            display: "none",
-                                                        },
-                                                        "& .MuiAccordionSummary-root": {
-                                                            minHeight: "unset !important",
-                                                            padding: "0 !important",
-                                                            px: `${theme.spacing(4)} !important`,
-                                                            pb: `${theme.spacing(4)} !important`,
-                                                            mt: index === 1 ? theme.spacing(8) : theme.spacing(8),
-                                                        },
-                                                        "& .MuiAccordionSummary-content": {
-                                                            margin: "0 !important",
-                                                        },
-                                                        "& .MuiAccordionSummary-content.Mui-expanded": {
-                                                            margin: "0 !important",
-                                                        },
-                                                        "& .MuiAccordionDetails-root": {
-                                                            padding: 0,
-                                                        },
-                                                    }}
+                                                    sx={getAccordionStyleWithIndex(theme, index)}
                                                 >
                                                     <AccordionSummary
                                                         expandIcon={
@@ -324,14 +298,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                     >
                                                         <Typography
                                                             variant="overline"
-                                                            sx={{
-                                                                color: theme.palette.text.disabled,
-                                                                fontSize: "7px",
-                                                                fontWeight: 400,
-                                                                letterSpacing: "0.3px",
-                                                                textTransform: "uppercase",
-                                                                opacity: 0.7,
-                                                            }}
+                                                            sx={groupTypographyStyle(theme)}
                                                         >
                                                             {group.name}
                                                         </Typography>
@@ -340,7 +307,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                         {/* Group items */}
                                                         {group.items.map((item) => (
                                                             <Tooltip
-                                                                sx={{ fontSize: 13 }}
+                                                                sx={tooltipStyle}
                                                                 key={item.path}
                                                                 placement="right"
                                                                 title={""}
@@ -374,47 +341,11 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                                             setSelectedItem(item);
                                                                         }
                                                                     }}
-
-                                                                    sx={{
-                                                                        height: "32px",
-                                                                        gap: theme.spacing(4),
-                                                                        borderRadius: theme.shape.borderRadius,
-                                                                        px: theme.spacing(4),
-                                                                        background:
-                                                                            (item.id !== undefined && selectedItem?.id === item.id)
-                                                                                ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-                                                                                : "transparent",
-                                                                        border:
-                                                                            (item.id !== undefined && selectedItem?.id === item.id)
-                                                                                ? "1px solid #D8D8D8"
-                                                                                : "1px solid transparent",
-
-                                                                        "&:hover": {
-                                                                            background:
-                                                                                (item.id !== undefined && selectedItem?.id === item.id)
-                                                                                    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-                                                                                    : "#F9F9F9",
-                                                                            border:
-                                                                                (item.id !== undefined && selectedItem?.id === item.id)
-                                                                                    ? "1px solid #D8D8D8"
-                                                                                    : "1px solid transparent",
-                                                                        },
-                                                                        "&:hover svg": {
-                                                                            color: "#13715B !important",
-                                                                            stroke: "#13715B !important",
-                                                                        },
-                                                                        "&:hover svg path": {
-                                                                            stroke: "#13715B !important",
-                                                                        },
-                                                                    }}
+                                                                    sx={listItemButtonStyle(theme, item.id !== undefined && selectedItem?.id === item.id)}
                                                                 >
 
                                                                     <ListItemText
-                                                                        sx={{
-                                                                            "& .MuiListItemText-primary": {
-                                                                                fontSize: "13px",
-                                                                            },
-                                                                        }}
+                                                                        sx={listItemTextStyle}
                                                                     >
                                                                         {item.name}
                                                                     </ListItemText>
@@ -427,13 +358,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                     <Divider
                                                         orientation="horizontal"
                                                         flexItem
-                                                        sx={{
-                                                            borderColor: theme.palette.border.light,
-                                                            mx: 4,
-                                                            mr: 16,
-                                                            width: '248px',
-                                                            mb: theme.spacing(12)
-                                                        }}
+                                                        sx={horizontalDividerStyle(theme)}
                                                     />
                                                 )}
                                             </React.Fragment>
@@ -447,18 +372,10 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 <Divider
                     orientation="vertical"
                     flexItem
-                    sx={{
-                        borderColor: theme.palette.border.light,
-                        mx: 4,
-                        mr: 16,
-                        my: theme.spacing(16)
-                    }}
+                    sx={verticalDividerStyle(theme)}
                 />
                 <Stack spacing={8} direction="column"
-                    sx={{
-                        paddingLeft: 8,
-                        width: '548px'
-                    }}>
+                    sx={timelineContainer}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography fontWeight={600} fontSize={16} mb={2}>
                             Approval timeline
@@ -478,17 +395,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 <Box key={step.id} mb={12}>
                                     <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">
                                         <Box
-                                            sx={{
-                                                minWidth: '20px',
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '50%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                backgroundColor: step.status === 'completed' ? '#11725B' : 'transparent',
-                                                border: step.status === 'completed' ? 'none' : '2px solid #CCCCCC',
-                                            }}
+                                            sx={stepCircleStyle(step.status === 'completed')}
                                         >
                                             {step.status === 'completed' ? (
                                                 <Check size={12} color="#FFFFFF" />
@@ -496,16 +403,16 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                 <Check size={12} color="#CCCCCC" strokeWidth={3} />
                                             )}
                                         </Box>
-                                        <Stack direction="column" sx={{ flex: 1, mb: 2 }} >
+                                        <Stack direction="column" sx={stepContainerStyle} >
                                             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                                <Typography fontWeight={500} fontSize={16}>
+                                                <Typography sx={stepTitleStyle}>
                                                     {step.approvalResult
                                                         ? `${step.title} - ${step.approvalResult}`
                                                         : step.title
                                                     }
                                                 </Typography>
                                                 {step.date && (
-                                                    <Typography fontSize={12} fontWeight={400} color="#999999">
+                                                    <Typography sx={stepDateStyle}>
                                                         {dayjs(step.date).format("YYYY-MM-DD, HH:mm")}
                                                     </Typography>
                                                 )}
@@ -517,24 +424,17 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                             <Divider
                                                 orientation="vertical"
                                                 flexItem
-                                                sx={{
-                                                    borderRightWidth: "0.5px",
-                                                    borderColor: "#E0E0E0",
-                                                    mt: 4,
-                                                    ml: 5,
-                                                    mr: 12,
-                                                    mb: 2,
-                                                }}
+                                                sx={stepDividerStyle}
                                             />
                                         )}
-                                        <Stack sx={{ flex: 1 }} spacing={6} ml={2}>
+                                        <Stack sx={stepDetailsStack} spacing={6} ml={2}>
                                             {step.approverName && (
                                                 <Stack
                                                     direction="row"
                                                     spacing={4}
                                                     alignItems="center"
                                                     gap={2}>
-                                                    <Typography fontWeight={500} fontSize={14} mb={2} color="#999999">
+                                                    <Typography sx={approverNameStyle}>
                                                         {step.approverName}
                                                     </Typography>
                                                 </Stack>
@@ -546,27 +446,17 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                     onClick={() => {
                                                         handleSeeDetailsClick(step.id);
                                                     }}
-                                                    sx={{
-                                                        color: "#13715B",
-                                                        fontSize: '13px',
-                                                        fontWeight: 500,
-                                                        textDecoration: "underline",
-                                                        cursor: 'pointer',
-                                                        '&:hover': {
-                                                            color: "#0F5A47",
-                                                        },
-                                                        alignSelf: 'flex-start',
-                                                    }}
+                                                    sx={seeDetailsLinkStyle}
                                                 >
                                                     See details
                                                 </Link>
                                             )}
                                             {step.comment && (
                                                 <Stack direction="column" spacing={2}>
-                                                    <Typography fontWeight={600} fontSize={12} color="#999999">
+                                                    <Typography sx={commentLabelStyle}>
                                                         Comment
                                                     </Typography>
-                                                    <Typography fontWeight={500} fontSize={14}>
+                                                    <Typography sx={commentTextStyle}>
                                                         {step.comment}
                                                     </Typography>
                                                 </Stack>
@@ -586,19 +476,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 placeholder="Add comment"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
-
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        fontSize: '14px',
-                                        backgroundColor: '#FFFFFF',
-                                        '&:hover fieldset': {
-                                            borderColor: '#D0D5DD',
-                                        },
-                                        '&.Mui-focused fieldset': {
-                                            borderColor: '#13715B',
-                                        },
-                                    },
-                                }}
+                                sx={commentFieldStyle}
                             />
                         </Stack>
                     )}
@@ -617,7 +495,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 isOpen={isWithdrawConfirmationOpen}
                 title="Confirm Withdrawal"
                 body={
-                    <Typography fontSize={13}>
+                    <Typography sx={withdrawalBodyStyle}>
                         Are you sure you want to withdraw this approval request? This action cannot be undone.
                     </Typography>
                 }

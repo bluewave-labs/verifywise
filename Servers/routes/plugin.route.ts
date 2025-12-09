@@ -63,6 +63,7 @@ import {
 } from "../controllers/plugin.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
+import requireAdmin from "../middleware/admin.middleware";
 import { generalApiLimiter } from "../middleware/rateLimit.middleware";
 
 /**
@@ -95,10 +96,10 @@ router.get("/ui-extensions", authenticateJWT, getPluginUIExtensions);
  *
  * Upload a new plugin from a zip file.
  * The zip must contain a manifest.json at the root level.
- * Requires authentication.
+ * Requires authentication and admin role.
  * Rate limited to prevent abuse.
  */
-router.post("/upload", authenticateJWT, generalApiLimiter, upload.single("plugin"), uploadPlugin);
+router.post("/upload", authenticateJWT, requireAdmin, generalApiLimiter, upload.single("plugin"), uploadPlugin);
 
 /**
  * POST /plugins/install-from-url
@@ -106,10 +107,10 @@ router.post("/upload", authenticateJWT, generalApiLimiter, upload.single("plugin
  * Install a plugin from the marketplace by URL.
  * Downloads the plugin from the provided URL, validates checksum,
  * and installs it.
- * Requires authentication.
+ * Requires authentication and admin role.
  * Rate limited to prevent abuse.
  */
-router.post("/install-from-url", authenticateJWT, generalApiLimiter, installFromUrl);
+router.post("/install-from-url", authenticateJWT, requireAdmin, generalApiLimiter, installFromUrl);
 
 /**
  * GET /plugins/:id
@@ -125,7 +126,7 @@ router.get("/:id", authenticateJWT, getPluginById);
  * Install a plugin (first-time setup).
  * Requires authentication and admin role.
  */
-router.post("/:id/install", authenticateJWT, installPlugin);
+router.post("/:id/install", authenticateJWT, requireAdmin, installPlugin);
 
 /**
  * POST /plugins/:id/uninstall
@@ -133,7 +134,7 @@ router.post("/:id/install", authenticateJWT, installPlugin);
  * Uninstall a plugin (permanent removal).
  * Requires authentication and admin role.
  */
-router.post("/:id/uninstall", authenticateJWT, uninstallPlugin);
+router.post("/:id/uninstall", authenticateJWT, requireAdmin, uninstallPlugin);
 
 /**
  * POST /plugins/:id/enable
@@ -141,7 +142,7 @@ router.post("/:id/uninstall", authenticateJWT, uninstallPlugin);
  * Enable a plugin.
  * Requires authentication and admin role.
  */
-router.post("/:id/enable", authenticateJWT, enablePlugin);
+router.post("/:id/enable", authenticateJWT, requireAdmin, enablePlugin);
 
 /**
  * POST /plugins/:id/disable
@@ -149,7 +150,7 @@ router.post("/:id/enable", authenticateJWT, enablePlugin);
  * Disable a plugin.
  * Requires authentication and admin role.
  */
-router.post("/:id/disable", authenticateJWT, disablePlugin);
+router.post("/:id/disable", authenticateJWT, requireAdmin, disablePlugin);
 
 /**
  * GET /plugins/:id/config
@@ -165,6 +166,6 @@ router.get("/:id/config", authenticateJWT, getPluginConfig);
  * Update plugin configuration.
  * Requires authentication and admin role.
  */
-router.put("/:id/config", authenticateJWT, updatePluginConfig);
+router.put("/:id/config", authenticateJWT, requireAdmin, updatePluginConfig);
 
 export default router;

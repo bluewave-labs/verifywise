@@ -1,3 +1,44 @@
+/**
+ * @fileoverview Plugin Management Settings Page
+ *
+ * This page provides the admin interface for managing installed plugins.
+ * Users can view, install, enable, disable, and uninstall plugins.
+ *
+ * ## Features
+ *
+ * - **View plugins**: Display all installed plugins in a card grid
+ * - **Filter by status**: Tabs to show all, enabled, or disabled plugins
+ * - **Install**: Install plugins from uploaded ZIP files
+ * - **Enable/Disable**: Toggle plugin activation
+ * - **Uninstall**: Remove plugins completely
+ * - **Plugin details**: View full plugin information in a modal
+ * - **Marketplace access**: Navigate to plugin marketplace
+ *
+ * ## Plugin Lifecycle
+ *
+ * 1. **Upload**: User uploads a ZIP file containing manifest.json
+ * 2. **Install**: Plugin is registered and onInstall hook is called
+ * 3. **Enable**: Plugin is activated and onEnable hook is called
+ * 4. **Disable**: Plugin is deactivated and onDisable hook is called
+ * 5. **Uninstall**: Plugin is removed and onUninstall hook is called
+ *
+ * ## Context Integration
+ *
+ * Uses `useRefreshPluginExtensions()` hook to update all plugin-aware
+ * components (like dashboard widgets) after enable/disable operations.
+ *
+ * ## API Endpoints Used
+ *
+ * - GET /plugins - List all plugins
+ * - POST /plugins/upload - Upload a new plugin
+ * - POST /plugins/:id/install - Install a plugin
+ * - POST /plugins/:id/enable - Enable a plugin
+ * - POST /plugins/:id/disable - Disable a plugin
+ * - POST /plugins/:id/uninstall - Uninstall a plugin
+ *
+ * @module pages/SettingsPage/Plugins
+ */
+
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Stack,

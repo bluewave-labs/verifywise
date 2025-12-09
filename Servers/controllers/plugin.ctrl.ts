@@ -630,6 +630,17 @@ export async function enablePlugin(
     await manager.loadPlugin(id);
     await manager.enablePlugin(id);
 
+    // Mount plugin routes dynamically if the plugin has routes
+    try {
+      const { mountPluginRoutes } = await import("../plugins/init");
+      if (plugin.routes) {
+        mountPluginRoutes(plugin);
+        logger.info(`[PluginController] Mounted routes for plugin "${id}"`);
+      }
+    } catch (routeError) {
+      logger.warn(`[PluginController] Failed to mount routes for plugin "${id}": ${routeError}`);
+    }
+
     // Persist enabled state to database
     try {
       const { savePluginState } = await import("../plugins/init");
@@ -848,10 +859,31 @@ interface DashboardWidgetExtension {
 }
 
 /**
+ * Plugin page definition for sidebar navigation
+ * Plugins can define a page that appears in the Plugins sidebar menu
+ */
+interface PluginPageExtension {
+  pluginId: string;
+  pluginName: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  type: "template" | "iframe" | "api";
+  // For type: "template" - uses widget-like templates
+  template?: string;
+  endpoint?: string;
+  // For type: "iframe" - embeds external URL
+  url?: string;
+  // For type: "api" - fetches HTML content from plugin endpoint
+  apiEndpoint?: string;
+  config?: Record<string, unknown>;
+}
+
+/**
  * GET /api/plugins/ui-extensions
  *
  * Get UI extensions from all enabled plugins.
- * Returns dashboard widgets that should be rendered.
+ * Returns dashboard widgets and pages for sidebar navigation.
  */
 export async function getPluginUIExtensions(
   _req: Request,
@@ -862,6 +894,7 @@ export async function getPluginUIExtensions(
     const plugins = manager.getAllPlugins();
 
     const dashboardWidgets: DashboardWidgetExtension[] = [];
+    const pages: PluginPageExtension[] = [];
 
     for (const plugin of plugins) {
       // Only include extensions from enabled plugins
@@ -879,9 +912,21 @@ export async function getPluginUIExtensions(
             endpoint: string;
             config?: Record<string, unknown>;
           }>;
+          page?: {
+            title: string;
+            description?: string;
+            icon?: string;
+            type: "template" | "iframe" | "api";
+            template?: string;
+            endpoint?: string;
+            url?: string;
+            apiEndpoint?: string;
+            config?: Record<string, unknown>;
+          };
         };
       };
 
+      // Collect dashboard widgets
       if (manifest.ui?.dashboardWidgets) {
         for (const widget of manifest.ui.dashboardWidgets) {
           dashboardWidgets.push({
@@ -894,12 +939,30 @@ export async function getPluginUIExtensions(
           });
         }
       }
+
+      // Collect plugin pages for sidebar
+      if (manifest.ui?.page) {
+        pages.push({
+          pluginId: plugin.manifest.id,
+          pluginName: plugin.manifest.name,
+          title: manifest.ui.page.title,
+          description: manifest.ui.page.description,
+          icon: manifest.ui.page.icon || plugin.manifest.icon,
+          type: manifest.ui.page.type,
+          template: manifest.ui.page.template,
+          endpoint: manifest.ui.page.endpoint,
+          url: manifest.ui.page.url,
+          apiEndpoint: manifest.ui.page.apiEndpoint,
+          config: manifest.ui.page.config,
+        });
+      }
     }
 
     res.status(200).json({
       success: true,
       data: {
         dashboardWidgets,
+        pages,
       },
     });
   } catch (error) {

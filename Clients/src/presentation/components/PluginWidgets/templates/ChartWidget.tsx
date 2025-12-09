@@ -356,7 +356,18 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
                 paddingAngle={2}
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                label={({ name, percent, x, y }) => (
+                  <text
+                    x={x}
+                    y={y}
+                    fill="#374151"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontSize: "13px" }}
+                  >
+                    {`${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                  </text>
+                )}
                 labelLine={false}
               >
                 {dataWithColors.map((entry, index) => (
@@ -379,7 +390,16 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
   };
 
   return (
-    <Box sx={{ height: "100%", p: 2, overflow: "hidden" }}>
+    <Box
+      sx={{
+        height: "100%",
+        p: 2,
+        overflow: "hidden",
+        outline: "none",
+        "& *:focus": { outline: "none" },
+        "& svg": { outline: "none" },
+      }}
+    >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
         <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#000" }}>{title}</Typography>
         <Typography

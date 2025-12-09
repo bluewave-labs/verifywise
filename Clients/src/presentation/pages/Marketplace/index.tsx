@@ -1,3 +1,41 @@
+/**
+ * @fileoverview Plugin Marketplace Page
+ *
+ * This page displays available plugins from the VerifyWise Plugin Marketplace.
+ * Users can browse, search, filter, and install plugins to extend the platform.
+ *
+ * ## Features
+ *
+ * - **Browse plugins**: View all available plugins in a responsive grid
+ * - **Search**: Filter plugins by name, description, or tags
+ * - **Type filter**: Filter by plugin type (framework, integration, feature, reporting)
+ * - **Pagination**: Navigate through large plugin lists
+ * - **Install**: Download and install plugins from the marketplace
+ * - **Cache management**: Shows cache age and allows forced refresh
+ *
+ * ## Data Flow
+ *
+ * 1. On mount, fetches marketplace plugins and installed plugins in parallel
+ * 2. Marketplace data is cached on the server to reduce external API calls
+ * 3. When user clicks "Install", plugin is downloaded and registered
+ * 4. After installation, the installed plugins list is refreshed
+ *
+ * ## Related Components
+ *
+ * - PluginCard: Displays individual plugin information
+ * - SearchBox: Handles search input
+ * - DualButtonModal: Confirmation dialog for installation
+ *
+ * ## API Endpoints Used
+ *
+ * - GET /marketplace - Fetch available plugins
+ * - POST /marketplace/refresh - Force refresh from remote registry
+ * - POST /marketplace/install - Install a plugin from marketplace
+ * - GET /plugins - Get list of installed plugins
+ *
+ * @module pages/Marketplace
+ */
+
 import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Stack,

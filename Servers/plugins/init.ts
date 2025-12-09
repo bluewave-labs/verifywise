@@ -79,7 +79,7 @@ const mountedPluginRoutes: Set<string> = new Set();
  *
  * Creates a router for the plugin and mounts it at /api/plugins/{pluginId}/
  */
-function mountPluginRoutes(plugin: Plugin): void {
+export function mountPluginRoutes(plugin: Plugin): void {
   if (!expressApp || !plugin.routes) return;
 
   const pluginId = plugin.manifest.id;

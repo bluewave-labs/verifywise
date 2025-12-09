@@ -1,0 +1,20 @@
+{
+  "id": "sample-page",
+  "name": "Sample page",
+  "description": "A sample plugin demonstrating the empty-page template with breadcrumb navigation, title, and description.",
+  "version": "1.0.0",
+  "author": "VerifyWise",
+  "authorUrl": "https://verifywise.ai",
+  "type": "feature",
+  "permissions": [],
+  "ui": {
+    "page": {
+      "title": "Sample plugin page",
+      "description": "This is a sample page created by a plugin to demonstrate the empty-page template.",
+      "icon": "rocket",
+      "type": "template",
+      "template": "empty-page",
+      "endpoint": "/page-content"
+    }
+  }
+}

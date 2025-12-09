@@ -54,6 +54,7 @@ import {
   Users,
   Headphones,
   Trash2,
+  Puzzle,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -72,6 +73,7 @@ import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
 import { useUserGuideSidebarContext } from "../UserGuide";
+import { usePluginPages } from "../../../application/contexts/PluginExtensions.context";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -234,9 +236,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [slideoverOpen, setSlideoverOpen] = useState(false);
   const [managementAnchorEl, setManagementAnchorEl] =
     useState<null | HTMLElement>(null);
+  const [pluginsAnchorEl, setPluginsAnchorEl] =
+    useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
   const { open: openUserGuide } = useUserGuideSidebarContext();
+  const { pages: pluginPages, isLoading: pluginsLoading } = usePluginPages();
 
   // Heart icon state
   const [showHeartIcon, setShowHeartIcon] = useState(false);
@@ -949,6 +954,232 @@ const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </React.Fragment>
         ))}
+
+        {/* Plugins Section - Only shown if there are plugin pages */}
+        {!pluginsLoading && pluginPages.length > 0 && (
+          <>
+            <Tooltip
+              sx={{ fontSize: 13 }}
+              placement="right"
+              title={collapsed ? "Plugins" : ""}
+              slotProps={{
+                popper: {
+                  modifiers: [
+                    {
+                      name: "offset",
+                      options: {
+                        offset: [0, -16],
+                      },
+                    },
+                  ],
+                },
+              }}
+              disableInteractive
+            >
+              <ListItemButton
+                disableRipple={
+                  theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+                }
+                onClick={(event) => setPluginsAnchorEl(event.currentTarget)}
+                sx={{
+                  height: "32px",
+                  gap: theme.spacing(4),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(4),
+                  background: location.pathname.startsWith("/plugins/")
+                    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                    : "transparent",
+                  border: location.pathname.startsWith("/plugins/")
+                    ? "1px solid #D8D8D8"
+                    : "1px solid transparent",
+                  "&:hover": {
+                    background: location.pathname.startsWith("/plugins/")
+                      ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                      : "#F9F9F9",
+                    border: location.pathname.startsWith("/plugins/")
+                      ? "1px solid #D8D8D8"
+                      : "1px solid transparent",
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "16px",
+                    mr: 0,
+                    "& svg": {
+                      color: location.pathname.startsWith("/plugins/")
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                      stroke: location.pathname.startsWith("/plugins/")
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                      transition: "color 0.2s ease, stroke 0.2s ease",
+                    },
+                    "& svg path": {
+                      stroke: location.pathname.startsWith("/plugins/")
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
+                  }}
+                >
+                  <Puzzle size={16} strokeWidth={1.5} />
+                </ListItemIcon>
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "13px",
+                    },
+                  }}
+                >
+                  Plugins
+                </ListItemText>
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  style={{
+                    transform: pluginsAnchorEl
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </ListItemButton>
+            </Tooltip>
+
+            {/* Plugins Dropdown Menu */}
+            <Menu
+              anchorEl={pluginsAnchorEl}
+              open={Boolean(pluginsAnchorEl)}
+              onClose={() => setPluginsAnchorEl(null)}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    minWidth: "180px",
+                    borderRadius: theme.shape.borderRadius,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    ml: 1,
+                  },
+                },
+              }}
+            >
+              {/* All plugins header */}
+              <Typography
+                sx={{
+                  px: theme.spacing(4),
+                  py: theme.spacing(2),
+                  color: "rgb(28, 33, 48)",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  display: "block",
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  mb: 1,
+                }}
+              >
+                All plugins
+              </Typography>
+              {pluginPages.map((page) => (
+                <MenuItem
+                  key={page.pluginId}
+                  onClick={() => {
+                    navigate(`/plugins/${page.pluginId}`);
+                    setPluginsAnchorEl(null);
+                  }}
+                  sx={{
+                    display: "flex",
+                    gap: theme.spacing(4),
+                    px: theme.spacing(4),
+                    py: 0,
+                    height: "32px",
+                    fontSize: "13px",
+                    borderRadius: theme.shape.borderRadius,
+                    backgroundColor: location.pathname === `/plugins/${page.pluginId}`
+                      ? "rgba(19, 113, 91, 0.08)"
+                      : "transparent",
+                    "&:hover": {
+                      backgroundColor: "#F9F9F9",
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      width: "100%",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "16px",
+                        height: "16px",
+                        flexShrink: 0,
+                        "& svg": {
+                          color: location.pathname === `/plugins/${page.pluginId}`
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                          stroke: location.pathname === `/plugins/${page.pluginId}`
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                          transition: "color 0.2s ease, stroke 0.2s ease",
+                        },
+                        "& svg path": {
+                          stroke: location.pathname === `/plugins/${page.pluginId}`
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        },
+                      }}
+                    >
+                      <Puzzle size={14} strokeWidth={1.5} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontSize: "13px",
+                        color: location.pathname === `/plugins/${page.pluginId}`
+                          ? "#13715B"
+                          : theme.palette.text.secondary,
+                        fontWeight: location.pathname === `/plugins/${page.pluginId}`
+                          ? 500
+                          : 400,
+                      }}
+                    >
+                      {page.title}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Menu>
+          </>
+        )}
       </List>
       <Divider sx={{ my: theme.spacing(4) }} />
       {/* Management Section */}

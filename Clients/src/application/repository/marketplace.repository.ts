@@ -1,8 +1,51 @@
 /**
- * Marketplace Repository
+ * @fileoverview Marketplace Repository
  *
- * Fetches plugin data from the official VerifyWise plugin marketplace on GitHub.
- * Implements caching with 1-hour expiration.
+ * Provides API functions for interacting with the VerifyWise Plugin Marketplace.
+ * The marketplace is a JSON registry hosted on GitHub that lists available plugins
+ * for download and installation.
+ *
+ * ## Features
+ *
+ * - **Caching**: Caches marketplace data in localStorage for 1 hour
+ * - **Offline support**: Falls back to stale cache when network is unavailable
+ * - **Timeout handling**: Prevents hanging requests with 30-second timeout
+ * - **Error handling**: User-friendly error messages for common HTTP errors
+ *
+ * ## Data Flow
+ *
+ * 1. Check localStorage for cached data
+ * 2. If cache is valid (< 1 hour), return cached data
+ * 3. If cache is stale or missing, fetch from GitHub
+ * 4. On success, update cache and return fresh data
+ * 5. On failure, return stale cache if available, otherwise return error
+ *
+ * ## Registry Format
+ *
+ * The marketplace registry is a JSON file with the following structure:
+ *
+ * ```json
+ * {
+ *   "version": "1.0.0",
+ *   "generated": "2024-01-01T00:00:00Z",
+ *   "plugins": [
+ *     {
+ *       "id": "my-plugin",
+ *       "name": "My Plugin",
+ *       "description": "Does something useful",
+ *       "version": "1.0.0",
+ *       "author": { "name": "Developer", "url": "https://example.com" },
+ *       "type": "feature",
+ *       "tags": ["utility", "productivity"],
+ *       "download": "https://github.com/.../releases/download/v1.0.0/my-plugin.zip",
+ *       "checksum": "sha256:abc123...",
+ *       "permissions": ["database:read"]
+ *     }
+ *   ]
+ * }
+ * ```
+ *
+ * @module repository/marketplace
  */
 
 import { apiServices } from "../../infrastructure/api/networkServices";

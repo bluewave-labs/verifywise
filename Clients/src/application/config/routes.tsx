@@ -40,6 +40,7 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+import PluginPage from "../../presentation/pages/PluginPage";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -98,6 +99,7 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/plugins/:pluginId" element={<PluginPage />} />
   </Route>,
   <Route
     key="admin-reg"

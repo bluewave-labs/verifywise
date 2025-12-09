@@ -60,51 +60,53 @@ export async function getLinkedObjects(req: Request, res: Response) {
  * POST /policies/:policyId/linked-objects
  */
 export async function createLinkedObject(req: Request, res: Response) {
-    const policyId = parseInt(req.params.policyId);
-    const { object_type, object_id } = req.body;
-  
-    logStructured(
-      "processing",
-      `Creating link for policy ${policyId}`,
-      "createLinkedObject",
-      "policyLinkedObjects.ctrl.ts"
-    );
-    logger.debug(`🔗 Linking ${object_type} (${object_id}) to policy ${policyId}`);
-  
-    let transaction: Transaction | null = null;
-  
-    try {
-      const tenant = req.tenantId!;
-      transaction = await sequelize.transaction();
-  
-      await createPolicyLinkedObjectQuery(policyId, object_type, object_id, tenant, transaction);
-  
-      await transaction.commit();
-  
-      logStructured(
-        "successful",
-        `link created for policy ${policyId}`,
-        "createLinkedObject",
-        "policyLinkedObjects.ctrl.ts"
+  const policyId = parseInt(req.params.policyId);
+  const { object_type, object_id, object_ids } = req.body;
+
+  logger.debug(`🔗 Linking ${object_type} to policy ${policyId}`);
+
+  let transaction: Transaction | null = null;
+
+  try {
+    const tenant = req.tenantId!;
+    transaction = await sequelize.transaction();
+
+    // Handle single insert (old)
+    if (object_id) {
+      await createPolicyLinkedObjectQuery(
+        policyId,
+        object_type,
+        object_id,
+        tenant,
+        transaction
       );
-      logger.debug(`✅ Link created for policy ${policyId}`);
-  
-      return res
-        .status(201)
-        .json(STATUS_CODE[201]("Linked successfully"));
-    } catch (error) {
-      if (transaction) await transaction.rollback();
-  
-      logStructured(
-        "error",
-        "failed to link object",
-        "createLinkedObject",
-        "policyLinkedObjects.ctrl.ts"
-      );
-      logger.error("❌ Error in createLinkedObject:", error);
-      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
+
+    // Handle bulk insert (new)
+    if (Array.isArray(object_ids)) {
+      for (const id of object_ids) {
+        await createPolicyLinkedObjectQuery(
+          policyId,
+          object_type,
+          id,
+          tenant,
+          transaction
+        );
+      }
+    }
+
+    await transaction.commit();
+
+    return res.status(201).json({
+      message: "Linked successfully",
+    });
+  } catch (error: any) {
+    if (transaction) await transaction.rollback();
+    logger.error("❌ Error in createLinkedObject:", error);
+    return res.status(500).json({ message: error.message });
+  }
 }
+
   
 
 export async function updateLinkedObject(req: Request, res: Response) {

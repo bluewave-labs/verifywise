@@ -4,7 +4,7 @@ import { Box, Stack} from "@mui/material";
 import { TabContext } from "@mui/lab";
 import StandardModal from "../Modals/StandardModal";
 import TabBar from "../TabBar";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import { deleteEntityById, getAllEntities } from "../../../application/repository/entity.repository";
 import { addNewModelButtonStyle } from "../../../presentation/pages/ModelInventory/style";
 import CustomizableButton from "../Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
@@ -12,6 +12,8 @@ import LinkedObjectsTable from "./LinkedPoliciesTable";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { handleAlert } from "../../../application/tools/alertUtils";
+import LinkRiskSelectorModal from "./LinkRiskSelectorModal";
+import { createPolicyLinkedObjects } from "../../../application/repository/policyLinkedObjects.repository";
 
 interface LinkedPolicyModalProps {
     onClose: () => void;
@@ -30,7 +32,9 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     const [risks, setRisks] = useState<any[]>([]);
     const [evidence, setEvidence] = useState<any[]>([]);
 
-    const [, setProjectRisks] = useState<RiskModel[]>([]);
+    const [projectRisk, setProjectRisks] = useState<RiskModel[]>([]);
+
+    const [openRiskSelector, setOpenRiskSelector] = useState(false);
 
     const [, setAlert] = useState<{
         variant: "success" | "info" | "warning" | "error";
@@ -57,7 +61,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         };
 
         fetchData();
-    }, [isOpen, policyId]);
+    }, [isOpen, policyId, projectRisk]);
 
     const fetchProjectRisks = useCallback(async (filter: 'active' | 'deleted' | 'all' = 'active') => {
         try {
@@ -93,11 +97,9 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     // REMOVE LINK
     // ------------------------------------
     const handleRemove = async (type: string, id: number) => {
-        await fetch(`/api/policies/${policyId}/linked-objects`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ object_type: type, object_id: id }),
-        });
+      
+        await deleteEntityById({ routeUrl: `/policy-linked/${policyId}/linked-objects`, });
+
 
         if (type === "control")
             setControls((prev) => prev.filter((i) => i.id !== id));
@@ -106,6 +108,38 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         if (type === "evidence")
             setEvidence((prev) => prev.filter((i) => i.id !== id));
     };
+
+
+    const handleAddRisks = async (riskIds: number[]) => {
+
+      console.log("RiskIds", riskIds);
+      try {
+       const response = await createPolicyLinkedObjects(
+          `/policy-linked/${policyId}/linked-objects`,
+          {
+            object_type: "risk",
+            object_ids: riskIds,
+          }
+        );
+
+        console.log("response", response);
+    
+        // Re-fetch updated linked objects to update UI
+        const updated = await getAllEntities({
+          routeUrl: `/policy-linked/${policyId}/linked-objects`,
+        });
+    
+        setRisks(updated.data.risks || []);
+        handleToast("success", "Risks linked successfully!");
+      } catch (error) {
+        console.error(error);
+        handleToast("error", "Failed to link risks.");
+      }
+    };
+    
+    
+    
+  
 
     // ------------------------------------
     // RENDER LIST + ADD BUTTON
@@ -128,15 +162,19 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 sx={addNewModelButtonStyle}
                 text={`Link new ${label.toLowerCase()}`}
                 icon={<AddCircleOutlineIcon size={16} />}
-                // onClick={() => openSelector(type)}
+                onClick={() => {
+                  if (type === "risk") setOpenRiskSelector(true);
+               }}
+               
               />
             </Box>
-      
+
             {/* ---------- TABLE LIST ---------- */}
             <LinkedObjectsTable
               type={type}
               items={items}
               onRemove={handleRemove}
+              projectRisk={projectRisk}
             />
           </Stack>
         </Box>
@@ -166,10 +204,29 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 {/* ---------- TAB CONTENT ---------- */}
                 {activeTab === "controls" &&
                     renderSection(controls, "control", "Control")}
-                {activeTab === "risks" && renderSection(risks, "risk", "Risk")}
+                {activeTab === "risks" &&
+                    renderSection(
+                      risks.length ? risks : projectRisk.map(r => ({
+                        id: r.id,
+                        risk_name: r.risk_name,
+                        created_by_name: r.risk_owner || "-",
+                        due_date: r.deadline || "-",
+                      })),
+                      "risk",
+                      "Risk"
+                    )}
                 {activeTab === "evidence" &&
                     renderSection(evidence, "evidence", "Evidence")}
             </TabContext>
+
+            <LinkRiskSelectorModal
+                isOpen={openRiskSelector}
+                onClose={() => setOpenRiskSelector(false)}
+                policyId={policyId!}
+                linkedRiskIds={risks.map((r) => r.id)}
+                onSubmit={handleAddRisks}
+            />
+
         </StandardModal>
     );
 };

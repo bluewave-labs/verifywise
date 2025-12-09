@@ -102,10 +102,10 @@ There are no third-party plugins, which eliminates the need for sandboxing.
 
 ### 3.2 Plugin Distribution Types
 
-| Type | Location | Distribution | Example |
-|------|----------|--------------|---------|
-| **Built-in** | `plugins/builtin/` | Ships with VerifyWise | activity-feed |
-| **Marketplace** | `plugins/marketplace/` | Downloaded on-demand | gdpr-compliance |
+| Type | Location | Distribution | Removable | Example |
+|------|----------|--------------|-----------|---------|
+| **Built-in** | `plugins/builtin/` | Ships with VerifyWise | Yes (can be re-enabled) | activity-feed |
+| **Marketplace** | `plugins/marketplace/` | Downloaded on-demand | Yes (fully removed) | gdpr-compliance |
 
 Both types have identical capabilities:
 - Custom routes and API endpoints
@@ -349,6 +349,17 @@ module.exports = {
 |--------|----------|--------------|
 | **Uninstall** | Remove plugin code, keep data | `onDisable` → `onUnload` → `onUninstall` (deleteData=false) |
 | **Uninstall and delete data** | Remove code AND all plugin data | `onDisable` → `onUnload` → `onUninstall` (deleteData=true) |
+
+#### Built-in vs Marketplace Uninstallation
+
+Both built-in and marketplace plugins can be uninstalled by users, but with different behaviors:
+
+| Plugin Type | On Uninstall | Re-enablement |
+|-------------|--------------|---------------|
+| **Built-in** | DB state deleted, plugin remains registered | User can re-enable anytime |
+| **Marketplace** | DB state deleted, files removed, plugin unregistered | Must re-install from marketplace |
+
+**WordPress-like behavior**: Similar to WordPress bundled plugins, users have full control to remove any plugin. Built-in plugins remain available for re-enablement since their code ships with VerifyWise. Marketplace plugins are fully removed and must be re-downloaded to reinstall.
 
 ### 5.5 Rollback Flow
 
@@ -1055,28 +1066,96 @@ async onUninstall(context: PluginContext) {
 
 ---
 
-## 14. Error Handling
+## 14. Error Handling & Plugin Protection
 
-### 14.1 Plugin Errors
+The plugin system includes multiple protection mechanisms to ensure that misbehaving plugins cannot crash the server or affect other plugins.
+
+### 14.1 Protection Mechanisms
+
+| Mechanism | Description | Implementation |
+|-----------|-------------|----------------|
+| **Try-catch wrappers** | All lifecycle hooks wrapped in safe execution | `safeExecute()` in PluginManager |
+| **Sandboxed route handlers** | All HTTP methods wrapped with async error catching | `createSandboxedRouter()` in init.ts |
+| **Lifecycle timeout** | 30-second timeout on lifecycle methods | `withTimeout()` in PluginManager |
+| **Auto-disable on errors** | 5 errors in 60 seconds triggers auto-disable | Error tracking in PluginManager |
+| **Sliding window tracking** | Errors older than 60 seconds expire | Timestamp-based tracking |
+| **headersSent check** | Safe error responses even after partial writes | Error handler middleware |
+
+### 14.2 Safe Execution Wrapper
+
+All lifecycle hooks (`onInstall`, `onUninstall`, `onLoad`, `onUnload`, `onEnable`, `onDisable`) are wrapped with the `safeExecute` method:
+
+```typescript
+// Example from PluginManager
+private async safeExecute<T>(
+  pluginId: string,
+  methodName: string,
+  fn: () => Promise<T>,
+  options: {
+    timeout?: number;        // Default: 30000ms
+    skipErrorTracking?: boolean;  // True for cleanup operations
+  }
+): Promise<T | undefined>
+```
+
+**Key behaviors:**
+- Catches all errors, logs them, and returns undefined instead of crashing
+- Applies timeout (default 30 seconds) to prevent hanging plugins
+- Tracks errors for auto-disable (except cleanup operations)
+- Cleanup operations (`onDisable`, `onUninstall`, `onUnload`) skip error tracking
+
+### 14.3 Route Handler Sandboxing
+
+All plugin routes are automatically wrapped to catch errors:
+
+```typescript
+// All HTTP methods are sandboxed
+const wrapHandler = (handler) => {
+  return async (req, res, next) => {
+    try {
+      await handler(req, res, next);
+    } catch (error) {
+      logger.error(`[Plugin:${pluginId}] Route error:`, error);
+      next(error);  // Pass to error handler
+    }
+  };
+};
+```
+
+### 14.4 Auto-Disable on Repeated Errors
+
+If a plugin generates too many errors, it is automatically disabled:
+
+| Threshold | Value |
+|-----------|-------|
+| Error count | 5 errors |
+| Time window | 60 seconds |
+| Behavior | Plugin auto-disabled, admin notified |
+
+**Sliding window:** Errors older than 60 seconds are not counted. A plugin can recover if errors are spaced out.
+
+### 14.5 Plugin Errors
 
 If an enabled plugin throws an unhandled error:
 
 1. Error is logged with plugin context and stack trace
-2. Plugin is automatically disabled
-3. Admin is notified via system alert
-4. Other plugins continue running unaffected
-5. Error details stored for admin review
+2. Error tracked for auto-disable evaluation
+3. If error threshold exceeded: plugin auto-disabled
+4. Admin is notified via system alert
+5. Other plugins continue running unaffected
+6. Error details stored for admin review
 
-### 14.2 Error States
+### 14.6 Error States
 
 | Error Type | Action | Recovery |
 |------------|--------|----------|
-| Lifecycle hook error | Auto-disable plugin | Admin fixes config, re-enables |
-| Event handler error | Log, continue processing | Automatic (next event) |
+| Lifecycle hook error | Caught, logged, operation continues | Automatic |
+| Lifecycle timeout | Operation cancelled after 30s | Admin re-enables |
+| Route handler error | Returns 500, logged, tracked | Automatic (next request) |
+| Repeated errors (5+) | Auto-disable plugin | Admin fixes and re-enables |
 | Permission denied | Log, throw error | Fix plugin permissions |
-| Webhook error | Return 500, log | Automatic (next request) |
 
-### 14.3 Startup Errors
+### 14.7 Startup Errors
 
 If a plugin fails during server startup:
 - Log error with full details
@@ -1084,12 +1163,13 @@ If a plugin fails during server startup:
 - Mark plugin as "error" state in UI
 - Store error message for admin review
 
-### 14.4 Error Information
+### 14.8 Error Information
 
 Admin can view in Plugins UI:
 - Last error message
 - Error timestamp
 - Stack trace (expandable)
+- Error count and auto-disable status
 - Suggested fix (if known error type)
 
 ---

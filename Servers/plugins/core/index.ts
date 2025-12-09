@@ -44,6 +44,8 @@ export {
   IntegrationManifest,
   PluginConfigSchema,
   PluginPermission,
+  PluginFAQItem,
+  PluginChangelogEntry,
 
   // Plugin interfaces
   Plugin,

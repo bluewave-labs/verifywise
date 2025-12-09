@@ -24,6 +24,19 @@ export interface PluginManifest {
   type: PluginType;
   icon?: string; // SVG data URL or inline SVG string (64x64)
 
+  // Extended metadata
+  homepage?: string; // Plugin website URL
+  repository?: string; // Source code URL (GitHub)
+  supportUrl?: string; // Where to get help/report issues
+  detailedDescription?: string; // Markdown content with features, usage
+  tags?: string[]; // Categories for filtering
+  keywords?: string[]; // Search terms
+  releaseDate?: string; // When this version was released (ISO date)
+
+  // FAQ and Changelog
+  faq?: PluginFAQItem[];
+  changelog?: PluginChangelogEntry[];
+
   compatibility?: {
     minCoreVersion?: string;
     maxCoreVersion?: string;
@@ -40,6 +53,22 @@ export interface PluginManifest {
     models?: boolean;
     migrations?: boolean;
   };
+}
+
+export interface PluginFAQItem {
+  question: string;
+  answer: string;
+}
+
+export interface PluginChangelogEntry {
+  /** Version number (e.g., "1.0.0", "2.1.0") */
+  version: string;
+  /** Release name (e.g., "Initial Release", "Bug Fixes", "Performance Update") */
+  name?: string;
+  /** Release date in ISO format (e.g., "2024-01-15") */
+  date?: string;
+  /** List of changes in this release */
+  changes: string[];
 }
 
 export interface FrameworkManifest extends PluginManifest {

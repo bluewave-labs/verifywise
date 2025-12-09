@@ -1051,12 +1051,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   Plugins
                 </ListItemText>
-                <ChevronDown
+                <ChevronRight
                   size={16}
                   strokeWidth={1.5}
                   style={{
                     transform: pluginsAnchorEl
-                      ? "rotate(180deg)"
+                      ? "rotate(90deg)"
                       : "rotate(0deg)",
                     transition: "transform 0.2s ease",
                   }}

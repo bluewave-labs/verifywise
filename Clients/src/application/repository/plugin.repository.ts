@@ -59,6 +59,30 @@ const BASE_URL = "/plugins";
 // =============================================================================
 
 /**
+ * FAQ item for plugin documentation.
+ */
+export interface PluginFAQItem {
+  /** The question */
+  question: string;
+  /** The answer */
+  answer: string;
+}
+
+/**
+ * Changelog entry for plugin version history.
+ */
+export interface PluginChangelogEntry {
+  /** Version number (e.g., "1.0.0", "2.1.0") */
+  version: string;
+  /** Release name (e.g., "Initial Release", "Bug Fixes", "Performance Update") */
+  name?: string;
+  /** Release date in ISO format (e.g., "2024-01-15") */
+  date?: string;
+  /** List of changes in this release */
+  changes: string[];
+}
+
+/**
  * Data Transfer Object for plugin information.
  * Represents a plugin as returned by the API.
  *
@@ -102,6 +126,33 @@ export interface PluginDTO {
   config?: Record<string, unknown>;
   /** Permissions required by this plugin */
   permissions?: string[];
+
+  // Extended metadata fields
+  /** Plugin homepage URL */
+  homepage?: string;
+  /** Plugin source code repository URL */
+  repository?: string;
+  /** Support/documentation URL */
+  supportUrl?: string;
+  /** Detailed description (supports markdown) */
+  detailedDescription?: string;
+  /** Category tags for filtering */
+  tags?: string[];
+  /** Search keywords */
+  keywords?: string[];
+  /** Release date (ISO format) */
+  releaseDate?: string;
+  /** Frequently asked questions */
+  faq?: PluginFAQItem[];
+  /** Version history and changes */
+  changelog?: PluginChangelogEntry[];
+  /** Compatibility information */
+  compatibility?: {
+    /** Minimum VerifyWise core version required */
+    minCoreVersion?: string;
+    /** Maximum VerifyWise core version supported */
+    maxCoreVersion?: string;
+  };
 }
 
 /**

@@ -345,6 +345,23 @@ function ensurePluginManager(): PluginManager {
 }
 
 /**
+ * FAQ item DTO
+ */
+interface PluginFAQItemDTO {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Changelog entry DTO
+ */
+interface PluginChangelogEntryDTO {
+  version: string;
+  date?: string;
+  changes: string[];
+}
+
+/**
  * Plugin response DTO
  */
 interface PluginDTO {
@@ -361,6 +378,20 @@ interface PluginDTO {
   isBuiltin: boolean;
   config?: Record<string, unknown>;
   permissions?: string[];
+  // Extended metadata
+  homepage?: string;
+  repository?: string;
+  supportUrl?: string;
+  detailedDescription?: string;
+  tags?: string[];
+  keywords?: string[];
+  releaseDate?: string;
+  faq?: PluginFAQItemDTO[];
+  changelog?: PluginChangelogEntryDTO[];
+  compatibility?: {
+    minCoreVersion?: string;
+    maxCoreVersion?: string;
+  };
 }
 
 /**
@@ -387,6 +418,17 @@ function pluginToDTO(
     isBuiltin: BUILTIN_PLUGIN_IDS.has(manifest.id),
     config,
     permissions: manifest.permissions,
+    // Extended metadata
+    homepage: manifest.homepage,
+    repository: manifest.repository,
+    supportUrl: manifest.supportUrl,
+    detailedDescription: manifest.detailedDescription,
+    tags: manifest.tags,
+    keywords: manifest.keywords,
+    releaseDate: manifest.releaseDate,
+    faq: manifest.faq,
+    changelog: manifest.changelog,
+    compatibility: manifest.compatibility,
   };
 }
 

@@ -1,6 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-  <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-  <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-  <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#EFF6FF"/>
+  <!-- Document/page outline -->
+  <rect x="14" y="10" width="36" height="44" rx="4" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <!-- Header area -->
+  <rect x="18" y="16" width="28" height="6" rx="2" fill="#BFDBFE"/>
+  <!-- Stats row - 3 mini cards -->
+  <rect x="18" y="26" width="8" height="8" rx="2" fill="#DBEAFE"/>
+  <rect x="28" y="26" width="8" height="8" rx="2" fill="#DBEAFE"/>
+  <rect x="38" y="26" width="8" height="8" rx="2" fill="#DBEAFE"/>
+  <!-- Table/list rows -->
+  <rect x="18" y="38" width="28" height="3" rx="1" fill="#2563EB" opacity="0.6"/>
+  <rect x="18" y="43" width="24" height="2" rx="1" fill="#2563EB" opacity="0.3"/>
+  <rect x="18" y="47" width="20" height="2" rx="1" fill="#2563EB" opacity="0.3"/>
 </svg>

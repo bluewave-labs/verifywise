@@ -1,55 +1,120 @@
 /**
- * PluginDetailsModal - Displays detailed information about a plugin
+ * PluginDetailsModal - Displays detailed information about a plugin with settings
  *
- * Uses StandardModal as its base and provides a consistent layout
- * for showing plugin metadata, status, permissions, and configuration.
+ * Uses StandardModal as its base and provides tabs:
+ * - About: Plugin metadata, status, permissions
+ * - Settings: Editable configuration based on plugin's config schema
+ * - FAQ: Frequently asked questions (if available)
+ * - Changelog: Version history (if available)
  */
 
-import React from "react";
-import { Stack, Box, Typography } from "@mui/material";
+import React, { useState, useEffect, useCallback } from "react";
+import { Box } from "@mui/material";
 import StandardModal from "../StandardModal";
-import CompactChip from "../../Chip/CompactChip";
-import { PluginDTO } from "../../../../application/repository/plugin.repository";
+import TabBar from "../../TabBar";
+import TabContext from "@mui/lab/TabContext";
+import {
+  getPluginConfig,
+  updatePluginConfig,
+} from "../../../../application/repository/plugin.repository";
 
-interface PluginDetailsModalProps {
-  /** The plugin to display details for */
-  plugin: PluginDTO | null;
+// Tab components
+import AboutTab from "./AboutTab";
+import SettingsTab from "./SettingsTab";
+import FAQTab from "./FAQTab";
+import ChangelogTab from "./ChangelogTab";
 
-  /** Controls whether the modal is visible */
-  isOpen: boolean;
+// Types
+import { PluginDetailsModalProps, TabType, ConfigSchema } from "./types";
 
-  /** Callback function called when modal should close */
-  onClose: () => void;
-}
-
-/**
- * Get chip colors based on plugin type
- */
-const getTypeChipConfig = (
-  type: string
-): { backgroundColor: string; textColor: string } => {
-  switch (type) {
-    case "framework":
-      return { backgroundColor: "#E3F2FD", textColor: "#1565C0" };
-    case "integration":
-      return { backgroundColor: "#F3E8FF", textColor: "#7C3AED" };
-    case "feature":
-      return { backgroundColor: "#E6F4EA", textColor: "#138A5E" };
-    case "reporting":
-      return { backgroundColor: "#FFF8E1", textColor: "#795548" };
-    default:
-      return { backgroundColor: "#F3F4F6", textColor: "#6B7280" };
-  }
-};
+// Theme
+import { spacing } from "../../UserGuide/styles/theme";
 
 const PluginDetailsModal: React.FC<PluginDetailsModalProps> = ({
   plugin,
   isOpen,
   onClose,
+  onSettingsSaved,
 }) => {
+  const [activeTab, setActiveTab] = useState<TabType>("about");
+  const [configValues, setConfigValues] = useState<Record<string, unknown>>({});
+  const [configSchema, setConfigSchema] = useState<Record<string, ConfigSchema> | null>(null);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Load config and schema when plugin changes or modal opens
+  const loadConfig = useCallback(async () => {
+    if (!plugin || !isOpen) return;
+
+    setIsLoadingConfig(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const response = await getPluginConfig(plugin.id);
+      if (response.success && response.data) {
+        setConfigValues(response.data.config || {});
+        setConfigSchema(response.data.schema as Record<string, ConfigSchema> || null);
+      }
+    } catch {
+      setSaveError("Failed to load plugin configuration");
+    } finally {
+      setIsLoadingConfig(false);
+    }
+  }, [plugin, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && plugin) {
+      loadConfig();
+      setActiveTab("about");
+    }
+  }, [isOpen, plugin, loadConfig]);
+
+  // Clear success message after a delay
+  useEffect(() => {
+    if (saveSuccess) {
+      const timer = setTimeout(() => setSaveSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [saveSuccess]);
+
+  const handleConfigChange = (key: string, value: unknown) => {
+    setConfigValues((prev) => ({ ...prev, [key]: value }));
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
+  const handleSaveConfig = async () => {
+    if (!plugin) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const response = await updatePluginConfig(plugin.id, configValues);
+      if (response.success) {
+        setSaveSuccess(true);
+        onSettingsSaved?.();
+      } else {
+        setSaveError(response.error || "Failed to save configuration");
+      }
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save configuration");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!plugin) return null;
 
-  const typeColors = getTypeChipConfig(plugin.type);
+  // Determine which tabs to show
+  const hasSettings = configSchema && Object.keys(configSchema).length > 0;
+  const hasFAQ = plugin.faq && plugin.faq.length > 0;
+  const hasChangelog = plugin.changelog && plugin.changelog.length > 0;
 
   return (
     <StandardModal
@@ -57,125 +122,41 @@ const PluginDetailsModal: React.FC<PluginDetailsModalProps> = ({
       onClose={onClose}
       title={plugin.name}
       description="Plugin information and configuration"
-      cancelButtonText="OK"
+      cancelButtonText="Close"
       maxWidth="600px"
     >
-      <Stack spacing={3}>
-        {/* Type and Status */}
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-          <CompactChip
-            label={plugin.type}
-            size="medium"
-            backgroundColor={typeColors.backgroundColor}
-            textColor={typeColors.textColor}
-          />
-          <CompactChip
-            label={plugin.installed ? "Installed" : "Not installed"}
-            size="medium"
-            variant={plugin.installed ? "success" : "default"}
-          />
-          {plugin.installed && (
-            <CompactChip
-              label={plugin.enabled ? "Enabled" : "Disabled"}
-              size="medium"
-              variant={plugin.enabled ? "success" : "warning"}
+      <TabContext value={activeTab}>
+        <TabBar
+          tabs={[
+            { label: "About", value: "about", icon: "Info" as const },
+            ...(hasSettings || !isLoadingConfig
+              ? [{ label: "Settings", value: "settings", icon: "Settings" as const }]
+              : []),
+            ...(hasFAQ ? [{ label: "FAQ", value: "faq", icon: "HelpCircle" as const }] : []),
+            ...(hasChangelog ? [{ label: "Changelog", value: "changelog", icon: "History" as const }] : []),
+          ]}
+          activeTab={activeTab}
+          onChange={(_e, value) => setActiveTab(value as TabType)}
+        />
+
+        <Box sx={{ mt: spacing.lg }}>
+          {activeTab === "about" && <AboutTab plugin={plugin} />}
+          {activeTab === "settings" && (
+            <SettingsTab
+              configSchema={configSchema}
+              configValues={configValues}
+              isLoading={isLoadingConfig}
+              isSaving={isSaving}
+              saveError={saveError}
+              saveSuccess={saveSuccess}
+              onConfigChange={handleConfigChange}
+              onSave={handleSaveConfig}
             />
           )}
-        </Stack>
-
-        {/* Description */}
-        <Box>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.5 }}>
-            Description
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: "#475467", lineHeight: 1.6 }}>
-            {plugin.description}
-          </Typography>
+          {activeTab === "faq" && <FAQTab plugin={plugin} />}
+          {activeTab === "changelog" && <ChangelogTab plugin={plugin} />}
         </Box>
-
-        {/* Metadata */}
-        <Stack direction="row" spacing={4}>
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.5 }}>
-              Version
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#475467" }}>
-              v{plugin.version}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.5 }}>
-              Author
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#475467" }}>
-              {plugin.author}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.5 }}>
-              Plugin ID
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#475467", fontFamily: "monospace" }}>
-              {plugin.id}
-            </Typography>
-          </Box>
-        </Stack>
-
-        {/* Permissions */}
-        {plugin.permissions && plugin.permissions.length > 0 && (
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 1 }}>
-              Permissions
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: "8px" }}>
-              {plugin.permissions.map((permission) => (
-                <Box
-                  key={permission}
-                  sx={{
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    backgroundColor: "#F3F4F6",
-                    color: "#6B7280",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid #E5E7EB",
-                  }}
-                >
-                  {permission}
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        )}
-
-        {/* Configuration (if installed and has config) */}
-        {plugin.installed && plugin.config && Object.keys(plugin.config).length > 0 && (
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 1 }}>
-              Configuration
-            </Typography>
-            <Box
-              sx={{
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #E5E7EB",
-                borderRadius: "4px",
-                padding: "12px",
-              }}
-            >
-              {Object.entries(plugin.config).map(([key, value]) => (
-                <Stack key={key} direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                  <Typography sx={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
-                    {key}
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, color: "#344054", fontFamily: "monospace" }}>
-                    {typeof value === "object" ? JSON.stringify(value) : String(value)}
-                  </Typography>
-                </Stack>
-              ))}
-            </Box>
-          </Box>
-        )}
-      </Stack>
+      </TabContext>
     </StandardModal>
   );
 };

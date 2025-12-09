@@ -50,6 +50,16 @@ const samplePagePlugin: Plugin = {
     context.logger.info("Sample Page plugin uninstalled");
   },
 
+  async onLoad(context: PluginContext): Promise<void> {
+    pluginContext = context;
+    context.logger.info("Sample Page plugin loaded");
+  },
+
+  async onUnload(context: PluginContext): Promise<void> {
+    pluginContext = null;
+    context.logger.info("Sample Page plugin unloaded");
+  },
+
   async onEnable(context: PluginContext): Promise<void> {
     pluginContext = context;
     context.logger.info("Sample Page plugin enabled");

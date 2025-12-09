@@ -1,9 +1,0 @@
-{
-  "id": "error-test",
-  "name": "Error test",
-  "description": "Test plugin for verifying error protection mechanisms. Provides routes to test error handling, timeouts, and auto-disable functionality.",
-  "version": "1.0.0",
-  "author": "VerifyWise",
-  "type": "feature",
-  "permissions": []
-}

@@ -9,7 +9,6 @@ import { Plugin, PluginContext } from "../core";
 import { sampleTestPluginIcon } from "./icons";
 import activityFeedPlugin from "./activity-feed";
 import samplePagePlugin from "./sample-page";
-import errorTestPlugin from "./error-test";
 
 /**
  * Sample Test Plugin
@@ -50,6 +49,6 @@ export const sampleTestPlugin: Plugin = {
 /**
  * All built-in plugins
  */
-export const builtinPlugins: Plugin[] = [sampleTestPlugin, activityFeedPlugin, samplePagePlugin, errorTestPlugin];
+export const builtinPlugins: Plugin[] = [sampleTestPlugin, activityFeedPlugin, samplePagePlugin];
 
 export default builtinPlugins;

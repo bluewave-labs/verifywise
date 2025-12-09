@@ -1,7 +1,7 @@
 # VerifyWise Plugin System Specification
 
-Version: 1.4.0
-Last Updated: December 2024
+Version: 1.5.0
+Last Updated: December 8, 2025
 
 ## Table of Contents
 
@@ -28,7 +28,8 @@ Last Updated: December 2024
 21. [Plugin Scheduler API](#21-plugin-scheduler-api)
 22. [Plugin Model API](#22-plugin-model-api)
 23. [Plugin Middleware API](#23-plugin-middleware-api)
-24. [Future Tasks](#24-future-tasks)
+24. [Hot Reload (Development)](#24-hot-reload-development)
+25. [Future Tasks](#25-future-tasks)
 
 ---
 
@@ -2106,13 +2107,82 @@ Plugins must declare `middleware:inject` permission in their manifest:
 
 ---
 
-## 24. Future Tasks
+## 24. Hot Reload (Development)
+
+Hot reload allows plugins to be updated without restarting the server. This feature is **only active in development mode** (`NODE_ENV !== 'production'`).
+
+### 24.1 How It Works
+
+1. **File Watching**: The system uses `chokidar` to watch plugin directories
+2. **Change Detection**: When a file changes, the affected plugin is identified by path
+3. **Debouncing**: Rapid changes are debounced (500ms default) to avoid multiple reloads
+4. **Reload Sequence**:
+   - Disable plugin (unregister event/filter handlers)
+   - Unregister plugin from registry
+   - Clear Node.js module cache for plugin files
+   - Re-import the plugin module
+   - Register the updated plugin
+   - Re-enable if it was previously enabled
+
+### 24.2 Configuration
+
+Hot reload starts automatically in development mode. No configuration required.
+
+**Environment Variables:**
+| Variable | Description |
+|----------|-------------|
+| `NODE_ENV` | Set to anything except `production` to enable hot reload |
+| `DEBUG_HOT_RELOAD` | Set to `true` for verbose logging |
+
+### 24.3 Watched Directories
+
+By default, hot reload watches:
+- `plugins/marketplace/` - Marketplace plugins
+- `plugins/builtin/` - Built-in plugins
+
+### 24.4 Example Output
+
+```
+[HotReload] Starting hot reload for: /app/plugins/marketplace, /app/plugins/builtin
+[HotReload] Hot reload started - watching for plugin changes
+...
+[HotReload] Reloading plugin "my-plugin" due to change in index.ts
+[HotReload] Plugin "my-plugin" reloaded successfully in 45ms
+```
+
+### 24.5 Limitations
+
+- **Development only**: Disabled in production for security and stability
+- **No database migrations**: Hot reload doesn't run `onInstall` again; data schema changes require server restart
+- **Module cache**: Some edge cases with circular dependencies may require manual restart
+
+### 24.6 API
+
+```typescript
+import { PluginHotReload, createHotReload } from './plugins/core';
+
+// Manual creation (usually not needed - init.ts handles this)
+const hotReload = new PluginHotReload({
+  pluginManager,
+  watchDirs: ['marketplace', 'builtin'],
+  debounceMs: 500,
+});
+
+hotReload.start();
+// ... later
+await hotReload.stop();
+```
+
+---
+
+## 25. Future Tasks
 
 The following features are planned for future implementation:
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
 | ~~Plugin scheduled tasks~~ | ~~High~~ | ~~Allow plugins to schedule recurring jobs (cron)~~ ✅ Implemented |
+| ~~Hot reload~~ | ~~High~~ | ~~Update plugins without server restart~~ ✅ Implemented |
 | UI extension points | Medium | Allow plugins to inject UI components |
 
 ---

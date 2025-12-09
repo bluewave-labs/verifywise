@@ -6,22 +6,23 @@ import { fieldStyle } from "../../Reporting/GenerateReport/GenerateReportFrom/st
 import SelectComponent from "../../Inputs/Select";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-dark_grey.svg";
-import { addNewStep, stepNumberStyle } from "./style";
+import {
+    addNewStep,
+    stepNumberStyle,
+    entitySelectStyle,
+    stepContainerStyle,
+    stepTitleStyle,
+    removeStepLinkContainer,
+    removeStepLinkStyle,
+    verticalStepDividerStyle,
+    stepFieldsContainer,
+    approverSelectStyle,
+    conditionsSelectStyle,
+    descriptionFieldStyle,
+} from "./style";
 import { ApprovalWorkflowStepModel } from "../../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
-
-const APPROVERS = [
-    { _id: 1, name: "James Smith" },
-    { _id: 2, name: "John Doe" },
-];
-
-const entities = [
-    { _id: 1, name: "Use case" }
-];
-
-const conditions = [
-    { _id: 1, name: "All" },
-    { _id: 2, name: "Any" },
-];
+import { entities, conditions } from "./arrays";
+import { APPROVERS } from "./mockData";
 
 interface NewApprovalWorkflowFormErrors {
     workflow_title?: string;
@@ -30,7 +31,6 @@ interface NewApprovalWorkflowFormErrors {
 }
 
 interface NewApprovalWorkflowStepFormErrors {
-
     step_name?: string;
     approver?: string;
     conditions?: string;
@@ -100,7 +100,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
             steps: []
         };
         let hasErrors = false;
-        
+
         if (!workflowTitle.trim()) {
             newErrors.workflow_title = "Workflow title is required.";
             hasErrors = true;
@@ -128,7 +128,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
         setErrors(newErrors);
         return !hasErrors;
     }
-    
+
     const handleSave = () => {
         if (validateForm()) {
             const formData = {
@@ -187,10 +187,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                     <SelectComponent
                         items={entities}
                         value={entity}
-                        sx={{
-                            width: "50%",
-                            backgroundColor: theme.palette.background.main,
-                        }}
+                        sx={entitySelectStyle(theme)}
                         id="entity"
                         label="Entity"
                         error={errors.entity}
@@ -203,33 +200,17 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                     <Stack key={stepIndex} spacing={8}>
                         {/* STEPS */}
                         <Stack spacing={4}
-                            sx={{
-                                pt: stepIndex > 0 ? 8 : 0
-                            }}>
+                            sx={stepContainerStyle(stepIndex)}>
                             <Stack direction="row" spacing={8}>
                                 <Box sx={stepNumberStyle}>{stepIndex + 1}</Box>
-                                <Typography fontWeight={500} fontSize={16}>
+                                <Typography sx={stepTitleStyle}>
                                     {"STEP " + (stepIndex + 1)}
                                 </Typography>
-                                <Box sx={{
-                                    flex: 1,
-                                    display: "flex",
-                                    justifyContent: "flex-start",
-                                }}>
+                                <Box sx={removeStepLinkContainer}>
                                     <Link
                                         component="button"
                                         onClick={() => removeStep(stepIndex)}
-                                        sx={{
-                                            color: "#13715B",
-                                            textDecoration: "underline",
-                                            cursor: "pointer",
-                                            fontSize: 13,
-                                            fontWeight: 500,
-                                            "&:hover": {
-                                                color: "#0F5A47",
-                                            },
-                                            visibility: stepIndex === 0 ? "hidden" : "visible",
-                                        }}
+                                        sx={removeStepLinkStyle(stepIndex === 0)}
                                     >
                                         Remove step
                                     </Link>
@@ -240,17 +221,10 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                     <Divider
                                         orientation="vertical"
                                         flexItem
-                                        sx={{
-                                            borderRightWidth: "1px",
-                                            height: "216px",
-                                            borderColor: "#E0E0E0",
-                                            mt: 4,
-                                            ml: 6,
-                                            mr: 12,
-                                        }}
+                                        sx={verticalStepDividerStyle}
                                     />
                                 </Box>
-                                <Stack sx={{ flex: 1 }} spacing={6}>
+                                <Stack sx={stepFieldsContainer} spacing={6}>
                                     <Field
                                         id={`step_name_${stepIndex}`}
                                         label="Step name"
@@ -270,10 +244,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         <SelectComponent
                                             items={APPROVERS}
                                             value={step.approver || ""}
-                                            sx={{
-                                                width: "48%",
-                                                backgroundColor: theme.palette.background.main,
-                                            }}
+                                            sx={approverSelectStyle(theme)}
                                             id={`approver-${stepIndex}`}
                                             label="Approver"
                                             isRequired
@@ -288,10 +259,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                         <SelectComponent
                                             items={conditions}
                                             value={step.conditions || ""}
-                                            sx={{
-                                                width: "52%",
-                                                backgroundColor: theme.palette.background.main,
-                                            }}
+                                            sx={conditionsSelectStyle(theme)}
                                             id={`conditions-${stepIndex}`}
                                             label="Conditions"
                                             isRequired
@@ -316,7 +284,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
                                             newSteps[stepIndex].description = e.target.value;
                                             setWorkflowSteps(newSteps);
                                         }}
-                                        sx={{ ...fieldStyle, maxHeight: "115px" }}
+                                        sx={{ ...fieldStyle, ...descriptionFieldStyle }}
                                         placeholder="Enter description"
                                     />
                                 </Stack>

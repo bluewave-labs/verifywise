@@ -22,7 +22,6 @@ import {
   Stack,
   Tooltip,
   Typography,
-  Chip,
 } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import {
@@ -55,6 +54,7 @@ import {
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
 // Hooks & Utilities
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -84,6 +84,26 @@ export const inputStyles = {
 
 const ACCEPTED_FILE_TYPES =
   "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar";
+
+/**
+ * Darken a hex color by a percentage
+ */
+const darkenColor = (hex: string, percent: number): string => {
+  // Remove # if present
+  const cleanHex = hex.replace("#", "");
+  // Convert to RGB
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  // Darken each component
+  const newR = Math.max(0, Math.floor(r * (1 - percent / 100)));
+  const newG = Math.max(0, Math.floor(g * (1 - percent / 100)));
+  const newB = Math.max(0, Math.floor(b * (1 - percent / 100)));
+  // Convert back to hex
+  return `#${newR.toString(16).padStart(2, "0")}${newG
+    .toString(16)
+    .padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
+};
 
 // ============================================================================
 // COMPONENT
@@ -675,37 +695,95 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     <Typography fontSize={13} color="#344054">
                       {displayQuestion.question}
                     </Typography>
-                    {displayQuestion?.hint && (
-                      <Typography
-                        fontSize={12}
-                        color="#666"
-                        sx={{ marginTop: "8px", fontStyle: "italic" }}
-                      >
-                        💡 Hint: {displayQuestion.hint}
-                      </Typography>
-                    )}
+                  </Stack>
+                )}
+
+                {/* Hint Panel */}
+                {displayQuestion?.hint && (
+                  <Stack
+                    sx={{
+                      border: "1px solid #d5e8d5",
+                      padding: "12px",
+                      backgroundColor: "#f5fef5",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <Typography
+                      fontSize={13}
+                      sx={{ marginBottom: "8px", fontWeight: 600 }}
+                    >
+                      Hint:
+                    </Typography>
+                    <Typography fontSize={13} color="#666">
+                      {displayQuestion.hint}
+                    </Typography>
                   </Stack>
                 )}
 
                 {/* Priority & Required Badges */}
                 <Stack direction="row" gap={1} alignItems="center">
-                  {displayQuestion?.priority_level && (
-                    <Chip
-                      label={displayQuestion.priority_level}
-                      size="small"
-                      sx={{
-                        backgroundColor: "#f0f0f0",
-                        color: "#344054",
-                        textTransform: "capitalize",
-                      }}
-                    />
-                  )}
+                  {displayQuestion?.priority_level &&
+                    (() => {
+                      const priorityColors = getPriorityColors(
+                        displayQuestion.priority_level
+                      );
+                      // Create gradient colors (very slightly darker at bottom)
+                      const gradientTop = priorityColors.bg;
+                      const gradientBottom = darkenColor(priorityColors.bg, 3);
+                      // Create border color (very slightly darker than background)
+                      const borderColor = darkenColor(priorityColors.bg, 6);
+
+                      return (
+                        <Box
+                          key="priority-chip"
+                          component="span"
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: 24,
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                            background: `linear-gradient(180deg, ${gradientTop} 0%, ${gradientBottom} 100%)`,
+                            border: `1px solid ${borderColor}`,
+                            color: priorityColors.text,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textTransform: "capitalize",
+                            whiteSpace: "nowrap",
+                            lineHeight: 1,
+                            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                          }}
+                        >
+                          {displayQuestion.priority_level}
+                        </Box>
+                      );
+                    })()}
                   {displayQuestion?.is_required && (
-                    <Chip
-                      label="Required"
-                      size="small"
-                      sx={{ backgroundColor: "#e8f5e9" }}
-                    />
+                    <Box
+                      key="required-chip"
+                      component="span"
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: 24,
+                        padding: "4px 12px",
+                        borderRadius: "4px",
+                        background:
+                          "linear-gradient(180deg, #E6F4EA 0%, #D4E8DB 100%)",
+                        border: "1px solid #B8DCC5",
+                        color: "#138A5E",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                        lineHeight: 1,
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                      }}
+                    >
+                      Required
+                    </Box>
                   )}
                 </Stack>
 

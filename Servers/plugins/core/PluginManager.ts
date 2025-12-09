@@ -43,6 +43,14 @@ export interface PluginManagerOptions {
   defaultTenant?: string;
 }
 
+// Error tracking for auto-disable feature
+interface PluginErrorRecord {
+  count: number;
+  timestamps: number[];
+  lastError: string;
+  autoDisabled: boolean;
+}
+
 export class PluginManager {
   private eventBus: EventBus;
   private filterBus: FilterBus;
@@ -50,6 +58,220 @@ export class PluginManager {
   private middlewareRegistry: MiddlewareRegistry;
   private contextFactory: PluginContextFactory;
   private defaultTenant: string;
+
+  // Error tracking for auto-disable feature
+  private errorTracker: Map<string, PluginErrorRecord> = new Map();
+
+  // ==========================================================================
+  // SAFE EXECUTION WRAPPER & ERROR TRACKING
+  // ==========================================================================
+
+  // Default timeout for lifecycle hooks (30 seconds)
+  private static readonly DEFAULT_LIFECYCLE_TIMEOUT = 30000;
+
+  // Auto-disable thresholds
+  private static readonly ERROR_THRESHOLD = 5; // Number of errors before auto-disable
+  private static readonly ERROR_WINDOW_MS = 60000; // Time window for counting errors (1 minute)
+
+  /**
+   * Safely execute a plugin method with error handling and timeout
+   *
+   * Wraps plugin method calls in try-catch to prevent plugin errors from
+   * crashing the server. Logs errors and returns a default value on failure.
+   * Supports optional timeout to prevent hanging plugins.
+   *
+   * @param pluginId - The plugin ID for logging
+   * @param methodName - The method name being called (for logging)
+   * @param fn - The function to execute
+   * @param options - Configuration options
+   * @returns The result of fn(), or defaultValue on error/timeout
+   */
+  private async safeExecute<T>(
+    pluginId: string,
+    methodName: string,
+    fn: () => Promise<T> | T,
+    options: {
+      defaultValue?: T;
+      rethrow?: boolean;
+      logLevel?: "error" | "warn" | "info";
+      timeout?: number; // Timeout in milliseconds (0 = no timeout)
+      skipErrorTracking?: boolean; // Skip error tracking for cleanup operations
+    } = {}
+  ): Promise<T | undefined> {
+    const {
+      defaultValue,
+      rethrow = false,
+      logLevel = "error",
+      timeout = PluginManager.DEFAULT_LIFECYCLE_TIMEOUT,
+      skipErrorTracking = false,
+    } = options;
+
+    try {
+      // Execute with timeout if specified
+      if (timeout > 0) {
+        return await this.withTimeout(fn(), timeout, pluginId, methodName);
+      }
+      return await fn();
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      const logMsg = `[Plugin:${pluginId}] Error in ${methodName}: ${errMsg}`;
+
+      // Log at appropriate level
+      if (logLevel === "error") {
+        console.error(logMsg);
+      } else if (logLevel === "warn") {
+        console.warn(logMsg);
+      } else {
+        console.log(logMsg);
+      }
+
+      // Track error for auto-disable feature (skip for cleanup operations)
+      if (!skipErrorTracking) {
+        this.trackError(pluginId, errMsg);
+      }
+
+      // Optionally rethrow for methods that should block on error
+      if (rethrow) {
+        throw error;
+      }
+
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Execute a promise with a timeout
+   *
+   * @param promise - The promise to execute
+   * @param timeoutMs - Timeout in milliseconds
+   * @param pluginId - Plugin ID for logging
+   * @param methodName - Method name for logging
+   * @returns The promise result or throws on timeout
+   */
+  private async withTimeout<T>(
+    promise: Promise<T> | T,
+    timeoutMs: number,
+    pluginId: string,
+    methodName: string
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(
+          new Error(
+            `Plugin "${pluginId}" timed out in ${methodName} after ${timeoutMs}ms`
+          )
+        );
+      }, timeoutMs);
+
+      Promise.resolve(promise)
+        .then((result) => {
+          clearTimeout(timer);
+          resolve(result);
+        })
+        .catch((error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Track an error for a plugin
+   *
+   * Records the error and checks if the plugin should be auto-disabled.
+   *
+   * @param pluginId - The plugin ID
+   * @param errorMessage - The error message
+   * @returns true if plugin was auto-disabled
+   */
+  private trackError(pluginId: string, errorMessage: string): boolean {
+    const now = Date.now();
+    let record = this.errorTracker.get(pluginId);
+
+    if (!record) {
+      record = {
+        count: 0,
+        timestamps: [],
+        lastError: "",
+        autoDisabled: false,
+      };
+      this.errorTracker.set(pluginId, record);
+    }
+
+    // Remove old errors outside the time window
+    record.timestamps = record.timestamps.filter(
+      (t) => now - t < PluginManager.ERROR_WINDOW_MS
+    );
+
+    // Add this error
+    record.timestamps.push(now);
+    record.count = record.timestamps.length;
+    record.lastError = errorMessage;
+
+    // Check if we should auto-disable
+    if (
+      record.count >= PluginManager.ERROR_THRESHOLD &&
+      !record.autoDisabled
+    ) {
+      record.autoDisabled = true;
+      console.error(
+        `[Plugin:${pluginId}] Auto-disabling plugin after ${record.count} errors in ${PluginManager.ERROR_WINDOW_MS / 1000}s`
+      );
+
+      // Disable the plugin asynchronously (don't await to prevent blocking)
+      this.disablePlugin(pluginId).catch((e) => {
+        console.error(`[Plugin:${pluginId}] Failed to auto-disable:`, e);
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Clear error tracking for a plugin
+   *
+   * Called when a plugin is successfully re-enabled to reset error counts.
+   *
+   * @param pluginId - The plugin ID
+   */
+  private clearErrorTracking(pluginId: string): void {
+    this.errorTracker.delete(pluginId);
+  }
+
+  /**
+   * Get error status for a plugin
+   *
+   * @param pluginId - The plugin ID
+   * @returns Error record or undefined
+   */
+  getPluginErrorStatus(pluginId: string): PluginErrorRecord | undefined {
+    return this.errorTracker.get(pluginId);
+  }
+
+  /**
+   * Check if a plugin was auto-disabled
+   *
+   * @param pluginId - The plugin ID
+   * @returns true if plugin was auto-disabled due to errors
+   */
+  isAutoDisabled(pluginId: string): boolean {
+    return this.errorTracker.get(pluginId)?.autoDisabled ?? false;
+  }
+
+  /**
+   * Report a plugin error (public method for route handlers)
+   *
+   * Tracks the error and may trigger auto-disable.
+   *
+   * @param pluginId - The plugin ID
+   * @param errorMessage - The error message
+   * @returns true if plugin was auto-disabled as a result
+   */
+  reportPluginError(pluginId: string, errorMessage: string): boolean {
+    return this.trackError(pluginId, errorMessage);
+  }
 
   constructor(options: PluginManagerOptions) {
     this.eventBus = options.eventBus || defaultEventBus;
@@ -141,7 +363,12 @@ export class PluginManager {
 
     try {
       if (plugin.onInstall) {
-        await plugin.onInstall(context);
+        await this.safeExecute(
+          pluginId,
+          "onInstall",
+          () => plugin.onInstall!(context),
+          { rethrow: true }
+        );
       }
       this.registry.setInstalled(pluginId, true);
       context.logger.info("Plugin installed successfully");
@@ -250,7 +477,14 @@ export class PluginManager {
 
     try {
       if (plugin.onUninstall) {
-        await plugin.onUninstall(context);
+        // Don't rethrow - allow uninstall to complete even if hook fails
+        // Skip error tracking - cleanup errors shouldn't contribute to auto-disable
+        await this.safeExecute(
+          pluginId,
+          "onUninstall",
+          () => plugin.onUninstall!(context),
+          { rethrow: false, logLevel: "warn", skipErrorTracking: true }
+        );
       }
       this.registry.setInstalled(pluginId, false);
       context.logger.info("Plugin uninstalled successfully");
@@ -296,7 +530,12 @@ export class PluginManager {
 
     try {
       if (plugin.onLoad) {
-        await plugin.onLoad(context);
+        await this.safeExecute(
+          pluginId,
+          "onLoad",
+          () => plugin.onLoad!(context),
+          { rethrow: true }
+        );
       }
       this.registry.setLoaded(pluginId, true);
       context.logger.info("Plugin loaded");
@@ -324,16 +563,18 @@ export class PluginManager {
       this.defaultTenant
     );
 
-    try {
-      if (plugin.onUnload) {
-        await plugin.onUnload(context);
-      }
-      this.registry.setLoaded(pluginId, false);
-      context.logger.info("Plugin unloaded");
-    } catch (error) {
-      context.logger.error("Failed to unload plugin", { error });
-      // Don't throw - continue unloading other plugins
+    // Use safeExecute without rethrow - continue unloading even if hook fails
+    // Skip error tracking - cleanup errors shouldn't contribute to auto-disable
+    if (plugin.onUnload) {
+      await this.safeExecute(
+        pluginId,
+        "onUnload",
+        () => plugin.onUnload!(context),
+        { rethrow: false, logLevel: "warn", skipErrorTracking: true }
+      );
     }
+    this.registry.setLoaded(pluginId, false);
+    context.logger.info("Plugin unloaded");
   }
 
   /**
@@ -378,41 +619,63 @@ export class PluginManager {
     );
 
     try {
-      // Register event handlers
+      // Register event handlers (wrapped to prevent crash on malformed handlers)
       if (plugin.eventHandlers) {
-        const handlers = plugin.eventHandlers();
-        for (const [event, handler] of Object.entries(handlers)) {
-          if (handler) {
-            this.eventBus.on(
-              event as PluginEvent,
-              handler as EventHandler<PluginEvent>,
-              pluginId
-            );
+        const handlers = await this.safeExecute(
+          pluginId,
+          "eventHandlers",
+          () => plugin.eventHandlers!(),
+          { defaultValue: {}, rethrow: false }
+        );
+        if (handlers) {
+          for (const [event, handler] of Object.entries(handlers)) {
+            if (handler) {
+              this.eventBus.on(
+                event as PluginEvent,
+                handler as EventHandler<PluginEvent>,
+                pluginId
+              );
+            }
           }
         }
       }
 
-      // Register filter handlers
+      // Register filter handlers (wrapped to prevent crash on malformed handlers)
       if (plugin.filterHandlers) {
-        const handlers = plugin.filterHandlers();
-        for (const [filter, handler] of Object.entries(handlers)) {
-          if (handler) {
-            this.filterBus.addFilter(
-              filter as PluginFilter,
-              handler as FilterHandler<PluginFilter>,
-              pluginId
-            );
+        const handlers = await this.safeExecute(
+          pluginId,
+          "filterHandlers",
+          () => plugin.filterHandlers!(),
+          { defaultValue: {}, rethrow: false }
+        );
+        if (handlers) {
+          for (const [filter, handler] of Object.entries(handlers)) {
+            if (handler) {
+              this.filterBus.addFilter(
+                filter as PluginFilter,
+                handler as FilterHandler<PluginFilter>,
+                pluginId
+              );
+            }
           }
         }
       }
 
-      // Call onEnable hook
+      // Call onEnable hook (rethrow to block enable on failure)
       if (plugin.onEnable) {
-        await plugin.onEnable(context);
+        await this.safeExecute(
+          pluginId,
+          "onEnable",
+          () => plugin.onEnable!(context),
+          { rethrow: true }
+        );
       }
 
       this.registry.setEnabled(pluginId, true);
       context.logger.info("Plugin enabled");
+
+      // Clear error tracking on successful enable (reset for fresh start)
+      this.clearErrorTracking(pluginId);
 
       // Emit plugin enabled event
       await this.eventBus.emit(PluginEvent.PLUGIN_ENABLED, { pluginId, timestamp: new Date() });
@@ -445,28 +708,29 @@ export class PluginManager {
       this.defaultTenant
     );
 
-    try {
-      // Call onDisable hook first
-      if (plugin.onDisable) {
-        await plugin.onDisable(context);
-      }
-
-      // Unregister handlers
-      this.eventBus.removePluginHandlers(pluginId);
-      this.filterBus.removePluginHandlers(pluginId);
-
-      // Remove middleware registered by this plugin
-      this.middlewareRegistry.removeByPlugin(pluginId);
-
-      this.registry.setEnabled(pluginId, false);
-      context.logger.info("Plugin disabled");
-
-      // Emit plugin disabled event
-      await this.eventBus.emit(PluginEvent.PLUGIN_DISABLED, { pluginId, timestamp: new Date() });
-    } catch (error) {
-      context.logger.error("Failed to disable plugin", { error });
-      throw error;
+    // Call onDisable hook first (don't rethrow - allow disable to complete)
+    // Skip error tracking - cleanup errors shouldn't contribute to auto-disable
+    if (plugin.onDisable) {
+      await this.safeExecute(
+        pluginId,
+        "onDisable",
+        () => plugin.onDisable!(context),
+        { rethrow: false, logLevel: "warn", skipErrorTracking: true }
+      );
     }
+
+    // Unregister handlers (always proceed even if onDisable failed)
+    this.eventBus.removePluginHandlers(pluginId);
+    this.filterBus.removePluginHandlers(pluginId);
+
+    // Remove middleware registered by this plugin
+    this.middlewareRegistry.removeByPlugin(pluginId);
+
+    this.registry.setEnabled(pluginId, false);
+    context.logger.info("Plugin disabled");
+
+    // Emit plugin disabled event
+    await this.eventBus.emit(PluginEvent.PLUGIN_DISABLED, { pluginId, timestamp: new Date() });
   }
 
   // ==========================================================================

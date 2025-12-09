@@ -5,7 +5,7 @@
  * This module should be imported and called during server startup.
  */
 
-import { Application, Router } from "express";
+import { Application, Router, Request, Response, NextFunction } from "express";
 import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, MiddlewareRegistry, PluginHotReload } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
@@ -75,6 +75,132 @@ let expressApp: Application | null = null;
 const mountedPluginRoutes: Set<string> = new Set();
 
 /**
+ * Create error handling middleware for plugin routes
+ *
+ * Catches errors from plugin route handlers and returns a standardized error response.
+ * Prevents plugin errors from crashing the server.
+ *
+ * @param pluginId - The plugin ID for logging context
+ * @returns Express error handling middleware
+ */
+function createPluginErrorHandler(pluginId: string) {
+  return (err: Error, req: Request, res: Response, _next: NextFunction): void => {
+    const errorMessage = err.message || "Unknown error";
+    const errorStack = process.env.NODE_ENV !== "production" ? err.stack : undefined;
+
+    logger.error(`[Plugin:${pluginId}] Route error: ${errorMessage}`, {
+      path: req.path,
+      method: req.method,
+      stack: errorStack,
+    });
+
+    // Track error for auto-disable feature
+    if (pluginManager) {
+      const wasAutoDisabled = pluginManager.reportPluginError(pluginId, errorMessage);
+      if (wasAutoDisabled) {
+        logger.warn(`[Plugin:${pluginId}] Plugin was auto-disabled due to repeated errors`);
+      }
+    }
+
+    // Return standardized error response (only if headers not already sent)
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: `Plugin error: ${errorMessage}`,
+        plugin: pluginId,
+      });
+    }
+  };
+}
+
+/**
+ * Create a sandboxed router that wraps all route handlers
+ *
+ * Intercepts route registrations and wraps handlers to catch async errors.
+ * This ensures that even unhandled promise rejections are caught.
+ *
+ * @param pluginId - The plugin ID for logging context
+ * @returns A router with wrapped handlers
+ */
+function createSandboxedRouter(pluginId: string): Router {
+  const router = Router();
+
+  // Wrap a handler to catch async errors (only wrap functions)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wrapHandler = (handler: any): any => {
+    // Only wrap if it's a function
+    if (typeof handler !== "function") {
+      return handler;
+    }
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        await handler(req, res, next);
+      } catch (error) {
+        logger.error(`[Plugin:${pluginId}] Async route error:`, error);
+        next(error);
+      }
+    };
+  };
+
+  // Wrap an array of handlers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wrapHandlers = (handlers: any[]): any[] => handlers.map(wrapHandler);
+
+  // Store original methods
+  const originalGet = router.get.bind(router);
+  const originalPost = router.post.bind(router);
+  const originalPut = router.put.bind(router);
+  const originalPatch = router.patch.bind(router);
+  const originalDelete = router.delete.bind(router);
+  const originalAll = router.all.bind(router);
+  const originalOptions = router.options.bind(router);
+  const originalHead = router.head.bind(router);
+
+  // Override HTTP methods to wrap handlers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.get = function (path: any, ...handlers: any[]) {
+    return originalGet(path, ...wrapHandlers(handlers));
+  } as typeof router.get;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.post = function (path: any, ...handlers: any[]) {
+    return originalPost(path, ...wrapHandlers(handlers));
+  } as typeof router.post;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.put = function (path: any, ...handlers: any[]) {
+    return originalPut(path, ...wrapHandlers(handlers));
+  } as typeof router.put;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.patch = function (path: any, ...handlers: any[]) {
+    return originalPatch(path, ...wrapHandlers(handlers));
+  } as typeof router.patch;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.delete = function (path: any, ...handlers: any[]) {
+    return originalDelete(path, ...wrapHandlers(handlers));
+  } as typeof router.delete;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.all = function (path: any, ...handlers: any[]) {
+    return originalAll(path, ...wrapHandlers(handlers));
+  } as typeof router.all;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.options = function (path: any, ...handlers: any[]) {
+    return originalOptions(path, ...wrapHandlers(handlers));
+  } as typeof router.options;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.head = function (path: any, ...handlers: any[]) {
+    return originalHead(path, ...wrapHandlers(handlers));
+  } as typeof router.head;
+
+  return router;
+}
+
+/**
  * Mount routes for a specific plugin
  *
  * Creates a router for the plugin and mounts it at /api/plugins/{pluginId}/
@@ -90,18 +216,21 @@ export function mountPluginRoutes(plugin: Plugin): void {
   }
 
   try {
-    // Create a new router for this plugin
-    const pluginRouter = Router();
+    // Create a sandboxed router that wraps handlers to catch async errors
+    const pluginRouter = createSandboxedRouter(pluginId);
 
-    // Let the plugin define its routes
+    // Let the plugin define its routes (handlers are automatically wrapped)
     plugin.routes(pluginRouter);
+
+    // Add plugin-specific error handler as the last middleware
+    pluginRouter.use(createPluginErrorHandler(pluginId));
 
     // Mount the router at /api/plugins/{pluginId}/
     // Apply authentication middleware
     expressApp.use(`/api/plugins/${pluginId}`, authenticateJWT, pluginRouter);
 
     mountedPluginRoutes.add(pluginId);
-    logger.info(`[Plugins] Mounted routes for plugin "${pluginId}" at /api/plugins/${pluginId}/`);
+    logger.info(`[Plugins] Mounted sandboxed routes for plugin "${pluginId}" at /api/plugins/${pluginId}/`);
   } catch (error) {
     logger.error(`[Plugins] Failed to mount routes for plugin "${pluginId}":`, error);
   }

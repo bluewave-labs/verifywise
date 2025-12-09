@@ -53,6 +53,32 @@ export interface PluginManifest {
     models?: boolean;
     migrations?: boolean;
   };
+
+  /**
+   * UI extensions provided by this plugin
+   */
+  ui?: {
+    /** Dashboard widgets to display on the main dashboard */
+    dashboardWidgets?: Array<{
+      id: string;
+      template: string;
+      title: string;
+      endpoint: string;
+      config?: Record<string, unknown>;
+    }>;
+    /** Page definition for sidebar navigation */
+    page?: {
+      title: string;
+      description?: string;
+      icon?: string;
+      type: "template" | "iframe" | "api";
+      template?: string;
+      endpoint?: string;
+      url?: string;
+      apiEndpoint?: string;
+      config?: Record<string, unknown>;
+    };
+  };
 }
 
 export interface PluginFAQItem {

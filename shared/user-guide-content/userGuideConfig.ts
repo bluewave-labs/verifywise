@@ -9,7 +9,8 @@ export type IconName =
   | 'FileText'
   | 'GraduationCap'
   | 'BarChart3'
-  | 'FlaskConical';
+  | 'FlaskConical'
+  | 'Puzzle';
 
 export interface Article {
   id: string;
@@ -312,6 +313,39 @@ export const collections: Collection[] = [
         title: 'API access',
         description: 'Create and manage API keys for programmatic access.',
         keywords: ['api', 'access', 'keys', 'token', 'developer', 'integration', 'programmatic'],
+      },
+    ],
+  },
+  {
+    id: 'plugins',
+    title: 'Plugins',
+    description: 'Extend VerifyWise functionality with built-in and marketplace plugins.',
+    icon: 'Puzzle',
+    articleCount: 4,
+    articles: [
+      {
+        id: 'plugin-overview',
+        title: 'Plugin overview',
+        description: 'Introduction to the plugin system and how plugins extend VerifyWise.',
+        keywords: ['plugin', 'plugins', 'overview', 'extension', 'addon', 'customize', 'extend'],
+      },
+      {
+        id: 'managing-plugins',
+        title: 'Managing plugins',
+        description: 'Install, enable, configure, and manage plugins in your organization.',
+        keywords: ['plugin', 'manage', 'install', 'enable', 'disable', 'configure', 'settings', 'admin'],
+      },
+      {
+        id: 'plugin-marketplace',
+        title: 'Plugin marketplace',
+        description: 'Browse and install plugins from the VerifyWise marketplace.',
+        keywords: ['plugin', 'marketplace', 'browse', 'install', 'download', 'community', 'registry'],
+      },
+      {
+        id: 'developing-plugins',
+        title: 'Developing plugins',
+        description: 'Create custom plugins to extend VerifyWise with new features.',
+        keywords: ['plugin', 'develop', 'create', 'build', 'custom', 'developer', 'api', 'template'],
       },
     ],
   },

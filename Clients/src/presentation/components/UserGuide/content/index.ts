@@ -29,6 +29,10 @@ import { notificationsContent } from './settings/notifications';
 import { integrationOverviewContent } from './integrations/integration-overview';
 import { slackIntegrationContent } from './integrations/slack-integration';
 import { apiAccessContent } from './integrations/api-access';
+import { pluginOverviewContent } from './plugins/plugin-overview';
+import { managingPluginsContent } from './plugins/managing-plugins';
+import { pluginMarketplaceContent } from './plugins/plugin-marketplace';
+import { developingPluginsContent } from './plugins/developing-plugins';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -72,6 +76,11 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'integrations/integration-overview': integrationOverviewContent,
   'integrations/slack-integration': slackIntegrationContent,
   'integrations/api-access': apiAccessContent,
+  // Plugins
+  'plugins/plugin-overview': pluginOverviewContent,
+  'plugins/managing-plugins': managingPluginsContent,
+  'plugins/plugin-marketplace': pluginMarketplaceContent,
+  'plugins/developing-plugins': developingPluginsContent,
 };
 
 // Helper to get article content

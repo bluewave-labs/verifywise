@@ -36,6 +36,10 @@ import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
 import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
+import { pluginOverviewContent } from './plugins/plugin-overview';
+import { managingPluginsContent } from './plugins/managing-plugins';
+import { pluginMarketplaceContent } from './plugins/plugin-marketplace';
+import { developingPluginsContent } from './plugins/developing-plugins';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -87,6 +91,11 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'llm-evals/running-experiments': runningExperimentsContent,
   'llm-evals/managing-datasets': managingDatasetsContent,
   'llm-evals/configuring-scorers': configuringScorersContent,
+  // Plugins
+  'plugins/plugin-overview': pluginOverviewContent,
+  'plugins/managing-plugins': managingPluginsContent,
+  'plugins/plugin-marketplace': pluginMarketplaceContent,
+  'plugins/developing-plugins': developingPluginsContent,
 };
 
 // Helper to get article content

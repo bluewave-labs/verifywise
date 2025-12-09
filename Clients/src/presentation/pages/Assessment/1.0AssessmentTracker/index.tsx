@@ -321,6 +321,7 @@ const AssessmentTracker = ({
             question={selectedQuestion}
             subtopic={selectedSubtopic}
             currentProjectId={currentProjectId}
+            projectFrameworkId={currentProjectFramework}
             onSaveSuccess={handleSaveSuccess}
           />
         )}

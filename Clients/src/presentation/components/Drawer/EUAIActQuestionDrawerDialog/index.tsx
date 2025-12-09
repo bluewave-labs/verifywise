@@ -63,6 +63,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { updateEUAIActAnswerById } from "../../../../application/repository/question.repository";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { getFileById } from "../../../../application/repository/file.repository";
+import { getAssessmentTopicById } from "../../../../application/repository/assesment.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 
 // Type for risk objects
@@ -115,6 +116,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   question: questionProp,
   subtopic,
   currentProjectId,
+  projectFrameworkId,
   onSaveSuccess,
 }) => {
   const { userRoleName, userId } = useAuth();
@@ -128,6 +130,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [activeTab, setActiveTab] = useState("details");
   const [fetchedQuestion, setFetchedQuestion] = useState<any>(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   // ========================================================================
   // STATE - FORM DATA
@@ -216,14 +219,22 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   // EFFECTS - INITIALIZATION
   // ========================================================================
 
-  // Initialize from props or fetch when drawer opens
+  // Fetch question data when drawer opens
   useEffect(() => {
-    if (open && questionProp?.answer_id) {
-      // Use prop data immediately for fast display
+    if (
+      open &&
+      questionProp?.answer_id &&
+      subtopic?.topic_id &&
+      projectFrameworkId
+    ) {
+      fetchQuestionData();
+      // Reset pending states
+      resetPendingState();
+    } else if (open && questionProp?.answer_id) {
+      // Fallback: Use prop data if projectFrameworkId is not available
       const question = questionProp;
       setFetchedQuestion(question);
 
-      // Initialize form data from props
       const statusId =
         question.status === "Not started"
           ? "notStarted"
@@ -237,15 +248,14 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         answer: question.answer || "",
         status: statusId,
       });
+      setEditorKey((prev) => prev + 1);
 
-      // Initialize evidence files
       if (question.evidence_files) {
         setEvidenceFiles(question.evidence_files as FileData[]);
       } else {
         setEvidenceFiles([]);
       }
 
-      // Initialize risks
       if (question.risks) {
         setCurrentRisks(question.risks);
         fetchLinkedRisks(question.risks);
@@ -254,14 +264,121 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         setLinkedRiskObjects([]);
       }
 
-      // Reset pending states
       resetPendingState();
     }
-  }, [open, questionProp?.answer_id]);
+  }, [open, questionProp?.answer_id, subtopic?.topic_id, projectFrameworkId]);
 
   // ========================================================================
   // DATA FETCHING
   // ========================================================================
+
+  const fetchQuestionData = async () => {
+    if (
+      !questionProp?.answer_id ||
+      !subtopic?.topic_id ||
+      !projectFrameworkId
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await getAssessmentTopicById({
+        topicId: subtopic.topic_id,
+        projectFrameworkId: projectFrameworkId,
+      });
+
+      if (response?.data) {
+        // Find the specific question by answer_id in the topic structure
+        let foundQuestion = null;
+        for (const topicSubTopic of response.data.subTopics || []) {
+          if (topicSubTopic.id === subtopic.id) {
+            const question = (topicSubTopic.questions || []).find(
+              (q: any) => q.answer_id === questionProp.answer_id
+            );
+            if (question) {
+              foundQuestion = question;
+              break;
+            }
+          }
+        }
+
+        if (foundQuestion) {
+          setFetchedQuestion(foundQuestion);
+
+          // Initialize form data from fetched data
+          const statusId =
+            foundQuestion.status === "Not started"
+              ? "notStarted"
+              : foundQuestion.status === "In progress"
+              ? "inProgress"
+              : foundQuestion.status === "Done"
+              ? "done"
+              : "notStarted";
+
+          setFormData({
+            answer: foundQuestion.answer || "",
+            status: statusId,
+          });
+          // Force RichTextEditor to remount with new content
+          setEditorKey((prev) => prev + 1);
+
+          // Initialize evidence files
+          if (foundQuestion.evidence_files) {
+            setEvidenceFiles(foundQuestion.evidence_files as FileData[]);
+          } else {
+            setEvidenceFiles([]);
+          }
+
+          // Initialize risks
+          if (foundQuestion.risks && foundQuestion.risks.length > 0) {
+            setCurrentRisks(foundQuestion.risks);
+            await fetchLinkedRisks(foundQuestion.risks);
+          } else {
+            setCurrentRisks([]);
+            setLinkedRiskObjects([]);
+          }
+        } else {
+          // Fallback to prop data if question not found
+          setFetchedQuestion(questionProp);
+          setFormData({
+            answer: questionProp.answer || "",
+            status:
+              questionProp.status === "Not started"
+                ? "notStarted"
+                : questionProp.status === "In progress"
+                ? "inProgress"
+                : questionProp.status === "Done"
+                ? "done"
+                : "notStarted",
+          });
+          setEditorKey((prev) => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching question data:", error);
+      handleAlertCall({
+        variant: "error",
+        body: "Failed to load question data",
+      });
+      // Fallback to prop data on error
+      setFetchedQuestion(questionProp);
+      setFormData({
+        answer: questionProp.answer || "",
+        status:
+          questionProp.status === "Not started"
+            ? "notStarted"
+            : questionProp.status === "In progress"
+            ? "inProgress"
+            : questionProp.status === "Done"
+            ? "done"
+            : "notStarted",
+      });
+      setEditorKey((prev) => prev + 1);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchLinkedRisks = async (riskIds?: number[]) => {
     if (!questionProp?.answer_id) return;
@@ -793,6 +910,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     Answer:
                   </Typography>
                   <RichTextEditor
+                    key={`answer-editor-${displayQuestion?.answer_id}-${editorKey}`}
                     onContentChange={handleAnswerChange}
                     initialContent={formData.answer}
                     isEditable={!isEditingDisabled}

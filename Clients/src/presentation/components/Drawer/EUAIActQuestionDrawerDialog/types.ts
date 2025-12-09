@@ -7,7 +7,12 @@ export interface EUAIActQuestionDrawerProps {
   question: Question;
   subtopic: Subtopic;
   currentProjectId: number;
-  onSaveSuccess: (success: boolean, message?: string, questionId?: number) => void;
+  projectFrameworkId?: number;
+  onSaveSuccess: (
+    success: boolean,
+    message?: string,
+    questionId?: number
+  ) => void;
 }
 
 export interface EUAIActFormData {

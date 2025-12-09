@@ -3,6 +3,7 @@ import { welcomeContent } from './getting-started/welcome';
 import { installingContent } from './getting-started/installing';
 import { dashboardContent } from './getting-started/dashboard';
 import { quickStartContent } from './getting-started/quick-start';
+import { navigationOverviewContent } from './getting-started/navigation-overview';
 import { modelInventoryContent } from './ai-governance/model-inventory';
 import { modelLifecycleContent } from './ai-governance/model-lifecycle';
 import { taskManagementContent } from './ai-governance/task-management';
@@ -29,9 +30,12 @@ import { organizationSettingsContent } from './settings/organization-settings';
 import { userManagementContent } from './settings/user-management';
 import { roleConfigurationContent } from './settings/role-configuration';
 import { notificationsContent } from './settings/notifications';
+import { multiOrganizationContent } from './settings/multi-organization';
+import { emailConfigurationContent } from './settings/email-configuration';
 import { integrationOverviewContent } from './integrations/integration-overview';
 import { slackIntegrationContent } from './integrations/slack-integration';
 import { apiAccessContent } from './integrations/api-access';
+import { mlflowIntegrationContent } from './integrations/mlflow-integration';
 import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
 import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
@@ -49,6 +53,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'getting-started/installing': installingContent,
   'getting-started/dashboard': dashboardContent,
   'getting-started/quick-start': quickStartContent,
+  'getting-started/navigation-overview': navigationOverviewContent,
   // AI Governance
   'ai-governance/model-inventory': modelInventoryContent,
   'ai-governance/model-lifecycle': modelLifecycleContent,
@@ -82,10 +87,13 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'settings/user-management': userManagementContent,
   'settings/role-configuration': roleConfigurationContent,
   'settings/notifications': notificationsContent,
+  'settings/multi-organization': multiOrganizationContent,
+  'settings/email-configuration': emailConfigurationContent,
   // Integrations
   'integrations/integration-overview': integrationOverviewContent,
   'integrations/slack-integration': slackIntegrationContent,
   'integrations/api-access': apiAccessContent,
+  'integrations/mlflow-integration': mlflowIntegrationContent,
   // LLM Evals
   'llm-evals/llm-evals-overview': llmEvalsOverviewContent,
   'llm-evals/running-experiments': runningExperimentsContent,

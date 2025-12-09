@@ -42,7 +42,7 @@ export const collections: Collection[] = [
     title: 'Getting started',
     description: 'Learn the basics of VerifyWise and get up and running quickly with your AI governance journey.',
     icon: 'Rocket',
-    articleCount: 4,
+    articleCount: 5,
     articles: [
       {
         id: 'welcome',
@@ -67,6 +67,12 @@ export const collections: Collection[] = [
         title: 'Quick start guide',
         description: 'Get your first project configured in under 10 minutes.',
         keywords: ['quick', 'start', 'first', 'project', 'setup'],
+      },
+      {
+        id: 'navigation-overview',
+        title: 'Platform navigation',
+        description: 'Tour of all major sections and how to find what you need.',
+        keywords: ['navigation', 'sections', 'tour', 'overview', 'sidebar', 'menu', 'find'],
       },
     ],
   },
@@ -294,7 +300,7 @@ export const collections: Collection[] = [
     title: 'Integrations',
     description: 'Connect VerifyWise with your existing tools and workflows.',
     icon: 'Plug',
-    articleCount: 3,
+    articleCount: 4,
     articles: [
       {
         id: 'integration-overview',
@@ -313,6 +319,12 @@ export const collections: Collection[] = [
         title: 'API access',
         description: 'Create and manage API keys for programmatic access.',
         keywords: ['api', 'access', 'keys', 'token', 'developer', 'integration', 'programmatic'],
+      },
+      {
+        id: 'mlflow-integration',
+        title: 'MLflow integration',
+        description: 'Sync your MLflow model registry with VerifyWise.',
+        keywords: ['mlflow', 'model', 'registry', 'sync', 'integration', 'training', 'experiment'],
       },
     ],
   },
@@ -354,7 +366,7 @@ export const collections: Collection[] = [
     title: 'Settings & configuration',
     description: 'Configure VerifyWise to match your organization\'s needs.',
     icon: 'Settings',
-    articleCount: 4,
+    articleCount: 6,
     articles: [
       {
         id: 'organization-settings',
@@ -379,6 +391,18 @@ export const collections: Collection[] = [
         title: 'Notification settings',
         description: 'Configure how you receive governance notifications.',
         keywords: ['notification', 'slack', 'alerts', 'configure', 'settings'],
+      },
+      {
+        id: 'multi-organization',
+        title: 'Multi-organization setup',
+        description: 'Manage multiple organizations with isolated data and users.',
+        keywords: ['multi-organization', 'multi-tenant', 'organization', 'isolation', 'enterprise'],
+      },
+      {
+        id: 'email-configuration',
+        title: 'Email configuration',
+        description: 'Configure email providers for self-hosted deployments.',
+        keywords: ['email', 'smtp', 'resend', 'ses', 'exchange', 'provider', 'configuration'],
       },
     ],
   },

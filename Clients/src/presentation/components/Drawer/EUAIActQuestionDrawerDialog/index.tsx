@@ -1193,13 +1193,6 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               >
                                 {file.fileName}
                               </Typography>
-                              {file.size > 0 && (
-                                <Typography
-                                  sx={{ fontSize: 11, color: "#6B7280" }}
-                                >
-                                  {(file.size / 1024).toFixed(1)} KB
-                                </Typography>
-                              )}
                             </Box>
                           </Box>
                           <Box
@@ -1297,13 +1290,6 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             >
                               {file.fileName}
                             </Typography>
-                            {file.size > 0 && (
-                              <Typography
-                                sx={{ fontSize: 11, color: "#B45309" }}
-                              >
-                                {(file.size / 1024).toFixed(1)} KB
-                              </Typography>
-                            )}
                           </Box>
                         </Box>
                         <Box

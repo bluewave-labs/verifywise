@@ -1141,6 +1141,7 @@ export const updateQuestionEUByIdQuery = async (
   // Handle evidence_files: merge existing files with new ones, remove deleted ones
   const hasFileOperations =
     question.evidence_files !== undefined || question.delete !== undefined;
+
   if (hasFileOperations) {
     // Get existing evidence files
     const existingFilesResult = await sequelize.query(
@@ -1154,23 +1155,24 @@ export const updateQuestionEUByIdQuery = async (
     );
 
     let currentEvidenceFiles: any[] = [];
-    if (
-      existingFilesResult[0] &&
-      Array.isArray(existingFilesResult[0]) &&
-      existingFilesResult[0][0]
-    ) {
-      const evidenceFilesData = (existingFilesResult[0][0] as any)
-        .evidence_files;
-      if (Array.isArray(evidenceFilesData)) {
-        currentEvidenceFiles = evidenceFilesData;
-      } else if (typeof evidenceFilesData === "string") {
-        try {
-          currentEvidenceFiles = JSON.parse(evidenceFilesData);
-        } catch {
-          currentEvidenceFiles = [];
+    // Access pattern matches existing code at line 938: files[0].evidence_files
+    // With mapToModel: true, result[0] appears to be the model instance directly (not an array)
+    // This matches the pattern used in ISO27001: files[0].evidence_links
+    if (existingFilesResult[0]) {
+      const evidenceFilesData = (existingFilesResult[0] as any).evidence_files;
+
+      if (evidenceFilesData !== null && evidenceFilesData !== undefined) {
+        if (Array.isArray(evidenceFilesData)) {
+          currentEvidenceFiles = evidenceFilesData;
+        } else if (typeof evidenceFilesData === "string") {
+          try {
+            currentEvidenceFiles = JSON.parse(evidenceFilesData);
+          } catch {
+            currentEvidenceFiles = [];
+          }
+        } else {
+          currentEvidenceFiles = [evidenceFilesData];
         }
-      } else if (evidenceFilesData) {
-        currentEvidenceFiles = [evidenceFilesData];
       }
     }
 
@@ -1183,7 +1185,11 @@ export const updateQuestionEUByIdQuery = async (
     }
 
     // Add new uploaded files
-    if (question.evidence_files && Array.isArray(question.evidence_files)) {
+    // Note: question.evidence_files may be an empty array if only deletions occurred
+    if (
+      question.evidence_files !== undefined &&
+      Array.isArray(question.evidence_files)
+    ) {
       currentEvidenceFiles = currentEvidenceFiles.concat(
         question.evidence_files
       );

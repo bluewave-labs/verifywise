@@ -1131,7 +1131,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
 
                     <Stack direction="row" spacing={2}>
                       <Typography sx={{ fontSize: 11, color: "#344054" }}>
-                        {`${evidenceFiles.length || 0} files attached`}
+                        {`${evidenceFiles.length} files attached`}
                       </Typography>
                       {uploadFiles.length > 0 && (
                         <Typography sx={{ fontSize: 11, color: "#13715B" }}>
@@ -1193,7 +1193,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               >
                                 {file.fileName}
                               </Typography>
-                              {file.size && (
+                              {file.size > 0 && (
                                 <Typography
                                   sx={{ fontSize: 11, color: "#6B7280" }}
                                 >
@@ -1202,7 +1202,14 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               )}
                             </Box>
                           </Box>
-                          <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              flexShrink: 0,
+                              marginLeft: 1,
+                            }}
+                          >
                             <Tooltip title="Download file">
                               <IconButton
                                 size="small"
@@ -1290,7 +1297,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             >
                               {file.fileName}
                             </Typography>
-                            {file.size && (
+                            {file.size > 0 && (
                               <Typography
                                 sx={{ fontSize: 11, color: "#B45309" }}
                               >
@@ -1299,23 +1306,30 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             )}
                           </Box>
                         </Box>
-                        <Tooltip title="Remove from queue">
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleDeleteUploadFile(file.id.toString())
-                            }
-                            sx={{
-                              color: "#92400E",
-                              "&:hover": {
-                                color: "#D32F2F",
-                                backgroundColor: "rgba(211, 47, 47, 0.08)",
-                              },
-                            }}
-                          >
-                            <DeleteIcon size={16} />
-                          </IconButton>
-                        </Tooltip>
+                        <Box
+                          sx={{
+                            flexShrink: 0,
+                            marginLeft: 1,
+                          }}
+                        >
+                          <Tooltip title="Remove from queue">
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleDeleteUploadFile(file.id.toString())
+                              }
+                              sx={{
+                                color: "#92400E",
+                                "&:hover": {
+                                  color: "#D32F2F",
+                                  backgroundColor: "rgba(211, 47, 47, 0.08)",
+                                },
+                              }}
+                            >
+                              <DeleteIcon size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </Box>
                     ))}
                   </Stack>

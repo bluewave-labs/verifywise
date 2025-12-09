@@ -412,8 +412,24 @@ export async function updateQuestionById(
     }
 
     // Handle file uploads
+    // Debug: Log what we received
+    logger.debug(
+      `📦 Received files: ${req.files ? (req.files as UploadedFile[]).length : 0}`
+    );
+    if (req.files && Array.isArray(req.files)) {
+      (req.files as UploadedFile[]).forEach((f, idx) => {
+        logger.debug(
+          `  File ${idx}: fieldname="${f.fieldname}", originalname="${f.originalname}"`
+        );
+      });
+    }
+
     const evidenceFiles = ((req.files as UploadedFile[]) || []).filter(
       (f) => f.fieldname === "files"
+    );
+
+    logger.debug(
+      `📋 Filtered evidence files (fieldname="files"): ${evidenceFiles.length}`
     );
 
     let uploadedFiles: FileType[] = [];
@@ -426,7 +442,14 @@ export async function updateQuestionById(
         ? parseInt(body.project_id)
         : (body.project_id as number);
 
+    logger.debug(
+      `👤 userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`
+    );
+
     if (userId && projectId && evidenceFiles.length > 0) {
+      logger.debug(
+        `📤 Uploading ${evidenceFiles.length} file(s) for question ID ${questionId}`
+      );
       for (let f of evidenceFiles) {
         const uploadedFile = await uploadFile(
           f,
@@ -436,16 +459,37 @@ export async function updateQuestionById(
           req.tenantId!,
           transaction
         );
+
+        if (!uploadedFile || !uploadedFile.id) {
+          logger.error(`❌ Failed to upload file: ${f.originalname}`);
+          continue;
+        }
+
+        // Convert uploaded_time to ISO string if it's a Date object
+        const uploadedTime =
+          uploadedFile.uploaded_time instanceof Date
+            ? uploadedFile.uploaded_time.toISOString()
+            : uploadedFile.uploaded_time;
+
         uploadedFiles.push({
           id: uploadedFile.id!.toString(),
           fileName: uploadedFile.filename,
           project_id: uploadedFile.project_id,
           uploaded_by: uploadedFile.uploaded_by,
-          uploaded_time: uploadedFile.uploaded_time,
-          type: uploadedFile.type,
-          source: uploadedFile.source,
+          uploaded_time: uploadedTime,
+          type: uploadedFile.type || "application/octet-stream",
+          source: uploadedFile.source || "Assessment tracker group",
         });
+
+        logger.debug(
+          `✅ File uploaded successfully: ${uploadedFile.filename} (ID: ${uploadedFile.id})`
+        );
       }
+      logger.debug(`📦 Total uploaded files: ${uploadedFiles.length}`);
+    } else {
+      logger.debug(
+        `⚠️ Skipping file upload - userId: ${userId}, projectId: ${projectId}, evidenceFiles.length: ${evidenceFiles.length}`
+      );
     }
 
     // Prepare the update body
@@ -454,6 +498,7 @@ export async function updateQuestionById(
         risksDelete: number[];
         risksMitigated: number[];
         delete?: number[];
+        evidence_files?: FileType[];
       }
     > = {
       answer: body.answer,
@@ -463,9 +508,17 @@ export async function updateQuestionById(
       delete: filesToDelete, // Pass deleted files to query function
     };
 
-    // Add uploaded files to evidence_files if any
-    if (uploadedFiles.length > 0) {
-      updateBody.evidence_files = uploadedFiles;
+    // Always set evidence_files if there are file operations (upload or delete)
+    // This ensures the file operations are processed even if only deletions
+    if (uploadedFiles.length > 0 || filesToDelete.length > 0) {
+      updateBody.evidence_files = uploadedFiles; // Will be empty array if no uploads, but delete will still be processed
+      logger.debug(
+        `📋 Setting evidence_files in updateBody: ${uploadedFiles.length} files, ${filesToDelete.length} deletions`
+      );
+    } else {
+      logger.debug(
+        `⚠️ No file operations - uploadedFiles: ${uploadedFiles.length}, filesToDelete: ${filesToDelete.length}`
+      );
     }
 
     const question = (await updateQuestionEUByIdQuery(

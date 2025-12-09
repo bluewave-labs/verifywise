@@ -1,8 +1,8 @@
 /**
  * Plugin Widget Renderer
  *
- * Fetches UI extensions from enabled plugins and renders the appropriate
- * widget templates. Used by the Dashboard to display plugin widgets.
+ * Renders UI extensions from enabled plugins using the appropriate
+ * widget templates. Uses the PluginExtensionsContext for shared state.
  *
  * Available Templates:
  * - "activity-feed" - Activity log with avatars and timestamps
@@ -17,12 +17,8 @@
  * - "card-grid" - Multiple mini stats cards in a responsive grid
  */
 
-import { useState, useEffect } from "react";
 import { Box, Typography, CircularProgress, Stack } from "@mui/material";
-import {
-  getPluginUIExtensions,
-  DashboardWidgetExtension,
-} from "../../../application/repository/plugin.repository";
+import { useDashboardWidgets } from "../../../application/contexts/PluginExtensions.context";
 import ActivityFeedWidget from "./ActivityFeedWidget";
 import {
   ListWidget,
@@ -84,26 +80,8 @@ export function getTemplate(templateName: string): React.ComponentType<WidgetTem
 }
 
 const PluginWidgetRenderer: React.FC<PluginWidgetRendererProps> = ({ location: _location }) => {
-  const [widgets, setWidgets] = useState<DashboardWidgetExtension[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchExtensions = async () => {
-      try {
-        const response = await getPluginUIExtensions();
-        if (response.success && response.data?.dashboardWidgets) {
-          setWidgets(response.data.dashboardWidgets);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load plugin widgets");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchExtensions();
-  }, []);
+  // Use shared context instead of local fetch
+  const { widgets, isLoading, error } = useDashboardWidgets();
 
   if (isLoading) {
     return (

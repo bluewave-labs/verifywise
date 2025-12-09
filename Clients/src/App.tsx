@@ -28,6 +28,7 @@ import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import { PluginExtensionsProvider } from "./application/contexts/PluginExtensions.context";
 
 // Component for User Guide Sidebar that uses the context
 const UserGuideSidebarContainer = () => {
@@ -221,8 +222,9 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <UserGuideSidebarProvider>
-              <ConditionalThemeWrapper>
+            <PluginExtensionsProvider>
+              <UserGuideSidebarProvider>
+                <ConditionalThemeWrapper>
                 {alert && (
                   <Alert
                     variant={alert.variant}
@@ -250,8 +252,9 @@ function App() {
 
                 {/* User Guide Sidebar */}
                 <UserGuideSidebarContainer />
-              </ConditionalThemeWrapper>
-            </UserGuideSidebarProvider>
+                </ConditionalThemeWrapper>
+              </UserGuideSidebarProvider>
+            </PluginExtensionsProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

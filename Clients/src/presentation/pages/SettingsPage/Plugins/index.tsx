@@ -32,6 +32,7 @@ import {
   uploadPlugin,
   PluginDTO,
 } from "../../../../application/repository/plugin.repository";
+import { useRefreshPluginExtensions } from "../../../../application/contexts/PluginExtensions.context";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -42,6 +43,9 @@ interface AlertState {
 const PLUGINS_PER_PAGE = 12; // 3 columns x 4 rows
 
 const Plugins = () => {
+  // Refresh plugin UI extensions when plugins are enabled/disabled
+  const refreshPluginExtensions = useRefreshPluginExtensions();
+
   const [plugins, setPlugins] = useState<PluginDTO[]>([]);
   const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -171,6 +175,8 @@ const Plugins = () => {
         const actionWord = type === "install" ? "installed" : type === "uninstall" ? "uninstalled" : type === "enable" ? "enabled" : "disabled";
         showAlert("success", "Success", response.message || `Plugin ${actionWord}`);
         fetchPlugins();
+        // Refresh plugin UI extensions so dashboard widgets update
+        refreshPluginExtensions();
       } else {
         showAlert("error", "Error", response.error || `Failed to ${type} plugin`);
       }

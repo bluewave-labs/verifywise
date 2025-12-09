@@ -130,23 +130,20 @@ plugins/marketplace/my-plugin/
 1. If `index.ts` or `index.js` exists → Load as full TypeScript plugin (dynamic import)
 2. If only `manifest.json` exists → Create manifest-only plugin (backwards compatible)
 
-### 3.4 Sample Plugin
+### 3.4 Sample Plugins
 
-A complete sample plugin demonstrating the unified architecture is available at:
+Two reference implementations are available:
 
-```
-plugins/marketplace/_sample-full-plugin/
-├── manifest.json       # Plugin metadata with config schema
-├── icon.svg           # Plugin icon
-└── index.ts           # Full TypeScript plugin with all features
-```
+**1. Minimal Test Plugin** (`plugins/builtin/index.ts`):
+- Basic lifecycle hooks (install, uninstall, enable, disable)
+- No external dependencies
+- Use this to verify plugin system functionality
 
-The sample demonstrates:
-- All lifecycle hooks (install, enable, disable, uninstall)
-- Custom routes with authentication
-- Event subscriptions
-- Dashboard widget integration using templates
-- Configuration management
+**2. Activity Feed Plugin** (`plugins/builtin/activity-feed/`):
+- Dashboard widget using the "activity-feed" template
+- Custom API endpoint for widget data
+- Icon and manifest configuration
+- Use this as a reference for building dashboard widgets
 
 ---
 

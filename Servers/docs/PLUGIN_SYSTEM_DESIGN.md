@@ -1246,70 +1246,60 @@ export class UIExtensionRegistry {
 }
 ```
 
-### Frontend Integration
+### Frontend Integration ✅ Implemented
+
+The frontend integration uses React Context to provide plugin UI extensions to all components:
 
 ```tsx
-// In App.tsx or Routes component
-import { usePluginManager } from "./hooks/usePluginManager";
+// In App.tsx - Wrap the app with the provider
+import { PluginExtensionsProvider } from "./application/contexts/PluginExtensions.context";
 
-function AppRoutes() {
-  const { getRoutes, getNavigationItems } = usePluginManager();
-
-  // Get all plugin routes
-  const pluginRoutes = getRoutes();
-
+function App() {
   return (
-    <Routes>
-      {/* Core routes */}
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/projects" element={<Projects />} />
-
-      {/* Plugin routes - dynamically injected */}
-      {pluginRoutes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={<route.component />}
-        />
-      ))}
-    </Routes>
+    <PluginExtensionsProvider>
+      <UserGuideSidebarProvider>
+        {/* ... rest of app */}
+      </UserGuideSidebarProvider>
+    </PluginExtensionsProvider>
   );
 }
 
-// In Sidebar component
-function Sidebar() {
-  const { getNavigationItems } = usePluginManager();
-  const items = getNavigationItems(currentUser.role);
+// In Dashboard component - Use the hook to get widgets
+import { useDashboardWidgets } from "../application/contexts/PluginExtensions.context";
 
-  return (
-    <nav>
-      {items.map((item) => (
-        <NavItem key={item.id} {...item} />
-      ))}
-    </nav>
-  );
-}
-
-// In Dashboard component
 function Dashboard() {
-  const { getDashboardWidgets } = usePluginManager();
-  const widgets = getDashboardWidgets(currentUser.role);
+  const { widgets, isLoading, error } = useDashboardWidgets();
+
+  if (isLoading) return <Spinner />;
+  if (error) return null;
 
   return (
     <WidgetGrid>
       {widgets.map((widget) => (
-        <Widget key={widget.id} {...widget}>
-          <widget.component
-            pluginContext={pluginContext}
-            config={widgetConfig}
-            size={widgetSize}
-          />
-        </Widget>
+        <PluginWidget key={widget.widgetId} {...widget} />
       ))}
     </WidgetGrid>
   );
 }
+
+// In Plugins settings page - Refresh extensions after changes
+import { useRefreshPluginExtensions } from "../application/contexts/PluginExtensions.context";
+
+function PluginsSettings() {
+  const refreshPluginExtensions = useRefreshPluginExtensions();
+
+  const handleEnablePlugin = async (pluginId: string) => {
+    await enablePlugin(pluginId);
+    await refreshPluginExtensions(); // Update all components using plugin hooks
+  };
+}
 ```
+
+**Key benefits of this approach:**
+- Single API call on app load (not per-component)
+- Shared state prevents duplicate fetches
+- `refresh()` function updates all components simultaneously
+- Clean separation between data fetching and rendering
 
 ---
 
@@ -1845,19 +1835,20 @@ While plugins can write custom React components (for built-in plugins), marketpl
 
 Templates are **optional conveniences**, not constraints. As we develop more templates (e.g., breadcrumbs, blank pages), plugin development becomes easier.
 
-### Sample Plugin
+### Sample Plugins
 
-A complete sample plugin is available at:
-```
-plugins/marketplace/_sample-full-plugin/
-```
+Two reference implementations are available in the codebase:
 
-This demonstrates:
-- Lifecycle hooks (install, enable, disable, uninstall)
-- Custom routes with authentication
-- Event subscriptions
-- Dashboard widget integration
-- Configuration management
+**1. Minimal Test Plugin** (`plugins/builtin/index.ts`):
+- Basic lifecycle hooks (install, uninstall, enable, disable)
+- No external dependencies
+- Use this to verify plugin system functionality
+
+**2. Activity Feed Plugin** (`plugins/builtin/activity-feed/`):
+- Dashboard widget using the "activity-feed" template
+- Custom API endpoint for widget data
+- Icon and manifest configuration
+- Use this as a reference for building dashboard widgets
 
 ---
 
@@ -2139,19 +2130,38 @@ plugins/core/
 | Types | ~150 | All interfaces |
 | **Total** | **~1000** | Complete foundation |
 
-#### Phase 1 Frontend Work
+#### Phase 1 Frontend Work ✅ Implemented
 
 ```
-src/
-├── hooks/
-│   └── usePluginManager.ts     # React hook for plugin access
+src/application/
 ├── contexts/
-│   └── PluginContext.tsx       # Plugin context provider
-└── components/
-    ├── PluginNavigation.tsx    # Dynamic navigation from plugins
-    ├── PluginDashboard.tsx     # Dashboard widget container
-    └── PluginSettings.tsx      # Plugin settings renderer
+│   └── PluginExtensions.context.tsx   # Context provider + hooks
+└── presentation/components/
+    └── PluginWidgets/
+        └── PluginWidgetRenderer.tsx   # Dashboard widget renderer
 ```
+
+**Implemented hooks (in PluginExtensions.context.tsx):**
+
+| Hook | Purpose |
+|------|---------|
+| `usePluginExtensions()` | Access full extensions context |
+| `useDashboardWidgets()` | Get dashboard widgets from plugins |
+| `usePluginNavigation()` | Get navigation items from plugins |
+| `usePluginSettingsPages()` | Get settings pages from plugins |
+| `useRefreshPluginExtensions()` | Refresh extensions after plugin changes |
+
+**Usage example:**
+```tsx
+// In Dashboard component
+const { widgets, isLoading, error } = useDashboardWidgets();
+
+// In Plugins settings page (refresh after enable/disable)
+const refreshPluginExtensions = useRefreshPluginExtensions();
+await refreshPluginExtensions();
+```
+
+The `PluginExtensionsProvider` wraps the app in `App.tsx` and fetches plugin UI extensions once on load, providing shared state to all components via React Context.
 
 ### Phase 2: Convert EU AI Act
 - Move existing code to `plugins/builtin/eu-ai-act/`

@@ -237,3 +237,29 @@ export const commentFieldStyle = {
 export const withdrawalBodyStyle = {
   fontSize: 13
 }
+
+// StepDetailsModal styles
+export const stepDetailsContainerStack = {
+  spacing: 4
+}
+
+export const stepDetailFieldStack = {
+  spacing: 1
+}
+
+export const stepDetailLabelStyle = {
+  fontWeight: 600,
+  fontSize: 14,
+  color: "#344054"
+}
+
+export const stepDetailValueStyle = {
+  fontSize: 14,
+  color: "#475467"
+}
+
+export const stepDetailValueWithWrapStyle = {
+  fontSize: 14,
+  color: "#475467",
+  whiteSpace: "pre-wrap" as const
+}

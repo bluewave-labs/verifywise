@@ -199,6 +199,16 @@ export {
 export { PluginManager, PluginManagerOptions } from "./PluginManager";
 
 // =============================================================================
+// HOT RELOAD (Development)
+// =============================================================================
+
+export {
+  PluginHotReload,
+  HotReloadOptions,
+  createHotReload,
+} from "./HotReload";
+
+// =============================================================================
 // EVENT EMISSION HELPER
 // =============================================================================
 

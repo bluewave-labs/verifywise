@@ -2341,8 +2341,21 @@ export default EUAIActPlugin;
 ### 1. Plugin Sandboxing
 Run plugins in isolated processes/VMs for security.
 
-### 2. Hot Reload
-Update plugins without server restart.
+### ~~2. Hot Reload~~ ✅ Implemented
+~~Update plugins without server restart.~~
+
+Hot reload is now available in development mode. When `NODE_ENV !== 'production'`, the plugin system watches plugin directories and automatically reloads plugins when files change.
+
+**Usage:**
+- Hot reload starts automatically in development mode
+- Set `DEBUG_HOT_RELOAD=true` for verbose logging
+- Only watches `plugins/marketplace` and `plugins/builtin` directories
+
+**How it works:**
+1. File watcher (chokidar) monitors plugin directories
+2. On file change, the affected plugin is identified
+3. Plugin is disabled → unregistered → module cache cleared → re-imported → registered → enabled
+4. Changes take effect without server restart
 
 ### 3. Plugin UI Components
 Allow plugins to contribute React components to the frontend.

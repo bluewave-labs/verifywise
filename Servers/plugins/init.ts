@@ -6,7 +6,7 @@
  */
 
 import { Application, Router } from "express";
-import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, MiddlewareRegistry } from "./core";
+import { PluginManager, createDatabaseService, PluginManifest, PluginType, PluginPermission, PluginConfigSchema, Plugin, MiddlewareRegistry, PluginHotReload } from "./core";
 import { setPluginManager, createDynamicPlugin } from "../controllers/plugin.ctrl";
 import { sequelize } from "../database/db";
 import { builtinPlugins } from "./builtin";
@@ -64,6 +64,9 @@ function readPluginIcon(iconValue: string | undefined, pluginDir: string): strin
 
 // Global plugin manager instance (persisted across requests)
 let pluginManager: PluginManager | null = null;
+
+// Hot reload instance (development only)
+let hotReload: PluginHotReload | null = null;
 
 // Store app reference for mounting routes
 let expressApp: Application | null = null;
@@ -167,6 +170,26 @@ export async function initializePlugins(app?: Application): Promise<PluginManage
 
   // Mount routes for all enabled plugins
   mountAllPluginRoutes();
+
+  // Start hot reload in development mode
+  if (process.env.NODE_ENV !== "production") {
+    hotReload = new PluginHotReload({
+      pluginManager,
+      watchDirs: ["marketplace", "builtin"],
+      createDynamicPlugin,
+      logger: {
+        info: (msg, ...args) => logger.info(`[HotReload] ${msg}`, ...args),
+        warn: (msg, ...args) => logger.warn(`[HotReload] ${msg}`, ...args),
+        error: (msg, ...args) => logger.error(`[HotReload] ${msg}`, ...args),
+        debug: (msg, ...args) => {
+          if (process.env.DEBUG_HOT_RELOAD) {
+            logger.info(`[HotReload:Debug] ${msg}`, ...args);
+          }
+        },
+      },
+    });
+    hotReload.start();
+  }
 
   logger.info("[Plugins] Plugin system initialized");
   logger.info("[Plugins] Stats:", pluginManager.getStats());
@@ -497,9 +520,15 @@ async function loadMarketplacePlugins(): Promise<void> {
  * Disables and unloads all plugins gracefully.
  */
 export async function shutdownPlugins(): Promise<void> {
-  if (!pluginManager) return;
-
   logger.info("[Plugins] Shutting down plugin system...");
+
+  // Stop hot reload first
+  if (hotReload) {
+    await hotReload.stop();
+    hotReload = null;
+  }
+
+  if (!pluginManager) return;
 
   try {
     await pluginManager.disableAll();

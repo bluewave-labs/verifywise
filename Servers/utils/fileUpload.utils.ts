@@ -87,7 +87,10 @@ export const uploadFile = async (
     // type: QueryTypes.INSERT
     ...(transaction && { transaction }),
   });
-  return result[0];
+  // result[0] is an array of model instances, get the first one
+  return Array.isArray(result[0]) && result[0].length > 0
+    ? result[0][0]
+    : result[0];
 };
 
 export const deleteFileById = async (

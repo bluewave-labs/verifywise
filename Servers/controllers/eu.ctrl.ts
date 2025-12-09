@@ -399,8 +399,8 @@ export async function updateQuestionById(
       AnswerEU & {
         risksDelete: number[];
         risksMitigated: number[];
-        user_id: number;
-        project_id: number;
+        user_id: string | number;
+        project_id: string | number;
         delete: string;
       }
     > = req.body;
@@ -417,12 +417,21 @@ export async function updateQuestionById(
     );
 
     let uploadedFiles: FileType[] = [];
-    if (body.user_id && body.project_id) {
+    const userId =
+      typeof body.user_id === "string"
+        ? parseInt(body.user_id)
+        : (body.user_id as number);
+    const projectId =
+      typeof body.project_id === "string"
+        ? parseInt(body.project_id)
+        : (body.project_id as number);
+
+    if (userId && projectId && evidenceFiles.length > 0) {
       for (let f of evidenceFiles) {
         const uploadedFile = await uploadFile(
           f,
-          body.user_id,
-          body.project_id,
+          userId,
+          projectId,
           "Assessment tracker group",
           req.tenantId!,
           transaction
@@ -444,12 +453,14 @@ export async function updateQuestionById(
       AnswerEU & {
         risksDelete: number[];
         risksMitigated: number[];
+        delete?: number[];
       }
     > = {
       answer: body.answer,
       status: body.status,
       risksDelete: JSON.parse((body.risksDelete as any) || "[]") || [],
       risksMitigated: JSON.parse((body.risksMitigated as any) || "[]") || [],
+      delete: filesToDelete, // Pass deleted files to query function
     };
 
     // Add uploaded files to evidence_files if any

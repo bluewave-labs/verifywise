@@ -250,8 +250,36 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
       });
       setEditorKey((prev) => prev + 1);
 
+      // Initialize evidence files
       if (question.evidence_files) {
-        setEvidenceFiles(question.evidence_files as FileData[]);
+        // Normalize file structure
+        let files: any[] = [];
+        if (Array.isArray(question.evidence_files)) {
+          files = question.evidence_files;
+        } else if (typeof question.evidence_files === "string") {
+          try {
+            files = JSON.parse(question.evidence_files);
+          } catch {
+            files = [];
+          }
+        } else if (question.evidence_files) {
+          files = [question.evidence_files];
+        }
+
+        // Normalize file structure to match FileData type
+        const normalizedFiles: FileData[] = files.map((file: any) => ({
+          id: file.id?.toString() || file.fileId?.toString() || "",
+          fileName: file.fileName || file.filename || file.file_name || "",
+          size: file.size || 0,
+          type: file.type || "",
+          uploadDate:
+            file.uploadDate || file.uploaded_time || new Date().toISOString(),
+          uploader: file.uploader || file.uploaded_by?.toString() || "Unknown",
+          data: file.data,
+          source: file.source,
+        }));
+
+        setEvidenceFiles(normalizedFiles);
       } else {
         setEvidenceFiles([]);
       }
@@ -325,7 +353,37 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
 
           // Initialize evidence files
           if (foundQuestion.evidence_files) {
-            setEvidenceFiles(foundQuestion.evidence_files as FileData[]);
+            // Normalize file structure
+            let files: any[] = [];
+            if (Array.isArray(foundQuestion.evidence_files)) {
+              files = foundQuestion.evidence_files;
+            } else if (typeof foundQuestion.evidence_files === "string") {
+              try {
+                files = JSON.parse(foundQuestion.evidence_files);
+              } catch {
+                files = [];
+              }
+            } else if (foundQuestion.evidence_files) {
+              files = [foundQuestion.evidence_files];
+            }
+
+            // Normalize file structure to match FileData type
+            const normalizedFiles: FileData[] = files.map((file: any) => ({
+              id: file.id?.toString() || file.fileId?.toString() || "",
+              fileName: file.fileName || file.filename || file.file_name || "",
+              size: file.size || 0,
+              type: file.type || "",
+              uploadDate:
+                file.uploadDate ||
+                file.uploaded_time ||
+                new Date().toISOString(),
+              uploader:
+                file.uploader || file.uploaded_by?.toString() || "Unknown",
+              data: file.data,
+              source: file.source,
+            }));
+
+            setEvidenceFiles(normalizedFiles);
           } else {
             setEvidenceFiles([]);
           }
@@ -589,6 +647,92 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   // HELPERS
   // ========================================================================
 
+  const refreshData = async () => {
+    if (
+      !questionProp?.answer_id ||
+      !subtopic?.topic_id ||
+      !projectFrameworkId
+    ) {
+      return;
+    }
+    try {
+      // Refresh question data from API to get updated evidence files
+      const response = await getAssessmentTopicById({
+        topicId: subtopic.topic_id,
+        projectFrameworkId: projectFrameworkId,
+      });
+
+      if (response?.data) {
+        // Find the specific question by answer_id in the topic structure
+        let foundQuestion = null;
+        for (const topicSubTopic of response.data.subTopics || []) {
+          if (topicSubTopic.id === subtopic.id) {
+            const question = (topicSubTopic.questions || []).find(
+              (q: any) => q.answer_id === questionProp.answer_id
+            );
+            if (question) {
+              foundQuestion = question;
+              break;
+            }
+          }
+        }
+
+        if (foundQuestion) {
+          // Update evidence files with fresh data from backend
+          if (foundQuestion.evidence_files) {
+            // Ensure evidence_files is an array and normalize the structure
+            let files: any[] = [];
+            if (Array.isArray(foundQuestion.evidence_files)) {
+              files = foundQuestion.evidence_files;
+            } else if (typeof foundQuestion.evidence_files === "string") {
+              try {
+                files = JSON.parse(foundQuestion.evidence_files);
+              } catch {
+                files = [];
+              }
+            } else if (foundQuestion.evidence_files) {
+              files = [foundQuestion.evidence_files];
+            }
+
+            // Normalize file structure to match FileData type
+            const normalizedFiles: FileData[] = files.map((file: any) => ({
+              id: file.id?.toString() || file.fileId?.toString() || "",
+              fileName: file.fileName || file.filename || file.file_name || "",
+              size: file.size || 0,
+              type: file.type || "",
+              uploadDate:
+                file.uploadDate ||
+                file.uploaded_time ||
+                new Date().toISOString(),
+              uploader:
+                file.uploader || file.uploaded_by?.toString() || "Unknown",
+              data: file.data,
+              source: file.source,
+            }));
+
+            setEvidenceFiles(normalizedFiles);
+          } else {
+            setEvidenceFiles([]);
+          }
+
+          // Update risks
+          if (foundQuestion.risks && foundQuestion.risks.length > 0) {
+            setCurrentRisks(foundQuestion.risks);
+            await fetchLinkedRisks(foundQuestion.risks);
+          } else {
+            setCurrentRisks([]);
+            setLinkedRiskObjects([]);
+          }
+
+          // Update fetched question (for display purposes)
+          setFetchedQuestion(foundQuestion);
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  };
+
   const resetPendingState = () => {
     setUploadFiles([]);
     setDeletedFiles([]);
@@ -645,27 +789,8 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
           body: "Question updated successfully",
         });
 
-        // Update local state with response data
-        if (response.data?.data) {
-          setFormData({
-            answer: response.data.data.answer || "",
-            status:
-              response.data.data.status === "Not started"
-                ? "notStarted"
-                : response.data.data.status === "In progress"
-                ? "inProgress"
-                : response.data.data.status === "Done"
-                ? "done"
-                : "notStarted",
-          });
-          setEvidenceFiles(response.data.data.evidence_files || []);
-        }
-
-        // Refresh linked risks
-        if (response.data?.data?.risks) {
-          setCurrentRisks(response.data.data.risks);
-          await fetchLinkedRisks(response.data.data.risks);
-        }
+        // Refresh data from API to get updated evidence files
+        await refreshData();
 
         // Reset pending states
         resetPendingState();

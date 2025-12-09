@@ -309,7 +309,7 @@ export const getRiskByIdQuery = async (
   }
   (projectRisk as any).owner_name = ownerFullName;
 
-  const approver_name = await sequelize.query(
+  const approver_name = (await sequelize.query(
     `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
     {
       replacements: { approver_id: projectRisk.risk_approval },

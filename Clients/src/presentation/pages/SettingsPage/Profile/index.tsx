@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   ChangeEvent,
+  useContext,
 } from "react";
 import {
   Box,
@@ -38,6 +39,7 @@ import {
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
 import Avatar from "../../../components/Avatar/VWAvatar";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -78,6 +80,8 @@ const ProfileForm: React.FC = () => {
 
   const theme = useTheme();
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
+
+  const { refreshUsers } = useContext(VerifyWiseContext);
 
   const isModified =
     firstname !== initialStateRef.current.firstname ||
@@ -249,7 +253,7 @@ const ProfileForm: React.FC = () => {
         // Update the initial state to reflect the new saved values
         // This prevents the form from thinking it's still modified
         updateInitialState(firstname, lastname, email);
-
+        refreshUsers();
         showAlert("success", "Success", "Profile updated successfully.");
       } else {
         // Handle failure response
@@ -420,6 +424,8 @@ const ProfileForm: React.FC = () => {
     }
   }, [selectedImagePreview]);
 
+  const { setPhotoRefreshFlag } = useContext(VerifyWiseContext);
+
   // Handle Image file selection and upload
   const handleImageChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -464,6 +470,7 @@ const ProfileForm: React.FC = () => {
             if (imageUrl && imageUrl.startsWith("blob:")) {
               URL.revokeObjectURL(imageUrl);
             }
+            setPhotoRefreshFlag(prev => !prev);
             setImageUrl(photoUrl);
             setImageLoadError(false);
           }
@@ -523,7 +530,7 @@ const ProfileForm: React.FC = () => {
         setImageUrl(null);
         setImageLoadError(false); // Reset error state
         clearImagePreview();
-
+        setPhotoRefreshFlag(prev => !prev);
         setIsRemoveImageModalOpen(false);
         showAlert(
           "success",

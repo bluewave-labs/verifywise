@@ -72,6 +72,7 @@ import { TaskStatus } from "../../../domain/enums/task.enum";
 import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 import FlyingHearts from "../FlyingHearts";
 import { useUserGuideSidebarContext } from "../UserGuide";
+import { useProfilePhotoFetch } from "../../../application/hooks/useProfilePhotoFetch";
 
 const getMenuGroups = (): IMenuGroup[] => [
   {
@@ -255,11 +256,38 @@ const Sidebar: React.FC<SidebarProps> = ({
     ? users.find((user: User) => user.id === userId) || DEFAULT_USER
     : DEFAULT_USER;
 
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+  const { photoRefreshFlag } = useContext(VerifyWiseContext);
+
+  useEffect(() => {
+    let cancel = false;
+    let previousUrl: string | null = null;
+    (async () => {
+      const url = await fetchProfilePhotoAsBlobUrl(userId || 0);
+      if (cancel) {
+        if (url) URL.revokeObjectURL(url);
+        return;
+      }
+      if (previousUrl && previousUrl !== url) {
+        URL.revokeObjectURL(previousUrl);
+      }
+
+      previousUrl = url ?? null;
+      setAvatarUrl(url ?? "");
+    })();
+
+    return () => {
+      cancel = true;
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+    }
+  }, [userId, fetchProfilePhotoAsBlobUrl, photoRefreshFlag]);
+
   const userAvator: User_Avatar = {
     firstname: user.name,
     lastname: user.surname,
     email: user.email,
-    pathToImage: "",
+    pathToImage: avatarUrl,
   };
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);

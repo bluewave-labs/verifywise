@@ -159,6 +159,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -183,7 +185,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -208,7 +212,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 

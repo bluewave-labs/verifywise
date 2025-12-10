@@ -1,4 +1,5 @@
 import { Theme } from "@mui/material";
+import { CSSProperties } from "styled-components";
 
 // Main page styles (index.tsx)
 export const workflowMainStack = {
@@ -139,30 +140,30 @@ export const sortIconBoxStyle = (isActive: boolean) => ({
 });
 
 // Body cell styles
-export const bodyCellTitleStyle = (cellStyle: any, isHighlighted: boolean) => ({
+export const bodyCellTitleStyle = (cellStyle: CSSProperties, isHighlighted: boolean) => ({
     ...cellStyle,
     backgroundColor: isHighlighted ? "#f5f5f5" : "#fafafa",
 });
 
-export const bodyCellEntityStyle = (cellStyle: any, isHighlighted: boolean) => ({
+export const bodyCellEntityStyle = (cellStyle: CSSProperties, isHighlighted: boolean) => ({
     ...cellStyle,
     width: "18%",
     backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
 });
 
-export const bodyCellStepsStyle = (cellStyle: any, isHighlighted: boolean) => ({
+export const bodyCellStepsStyle = (cellStyle: CSSProperties, isHighlighted: boolean) => ({
     ...cellStyle,
     width: "15%",
     backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
 });
 
-export const bodyCellDateStyle = (cellStyle: any, isHighlighted: boolean) => ({
+export const bodyCellDateStyle = (cellStyle: CSSProperties, isHighlighted: boolean) => ({
     ...cellStyle,
     width: "22%",
     backgroundColor: isHighlighted ? "#f5f5f5" : "#ffffff",
 });
 
-export const bodyCellActionsStyle = (cellStyle: any) => ({
+export const bodyCellActionsStyle = (cellStyle: CSSProperties) => ({
     ...cellStyle,
     width: "12%",
     backgroundColor: "#ffffff",

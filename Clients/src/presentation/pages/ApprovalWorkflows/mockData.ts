@@ -1,3 +1,4 @@
+import { ApprovalStatus } from "../../../domain/enums/aiApprovalWorkflow.enum";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 
    export const MOCK_WORKFLOWS: ApprovalWorkflowModel[] = [
@@ -20,7 +21,7 @@ import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWor
                     description: "Validate technical requirements and compliance"
                 }
             ],
-            approval_status: "Pending" as any,
+            approval_status: ApprovalStatus.PENDING,
             date_updated: new Date(),
         }),
         new ApprovalWorkflowModel({
@@ -36,7 +37,7 @@ import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWor
                     description: "Analyze potential risks and impacts"
                 }
             ],
-            approval_status: "Approved" as any,
+            approval_status: ApprovalStatus.APPROVED,
             date_updated: new Date(),
         }),
     ];

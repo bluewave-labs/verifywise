@@ -41,6 +41,8 @@ import CustomIconButton from "../../components/IconButton";
 import { singleTheme } from "../../themes";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import TablePaginationActions from "../../components/TablePagination";

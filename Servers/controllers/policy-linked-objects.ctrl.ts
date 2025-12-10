@@ -154,16 +154,15 @@ export async function updateLinkedObject(req: Request, res: Response) {
  * DELETE /policies/:policyId/linked-objects
  */
 export async function deleteLinkedObject(req: Request, res: Response) {
-    const policyId = parseInt(req.params.policyId);
-    const { object_type, object_id } = req.body;
+    const id = parseInt(req.params.policyId);
   
     logStructured(
       "processing",
-      `Deleting link for policy ${policyId}`,
+      `Deleting link for policy ${id}`,
       "deleteLinkedObject",
       "policyLinkedObjects.ctrl.ts"
     );
-    logger.debug(`🗑️ Unlinking ${object_type} (${object_id}) from policy ${policyId}`);
+    logger.debug(`🗑️ Unlinking ${id} ($ from policy ${id}`);
   
     let transaction: Transaction | null = null;
   
@@ -171,17 +170,17 @@ export async function deleteLinkedObject(req: Request, res: Response) {
       const tenant = req.tenantId!;
       transaction = await sequelize.transaction();
   
-      await deletePolicyLinkedObjectQuery(policyId, object_type, object_id, tenant, transaction);
+      await deletePolicyLinkedObjectQuery(id, tenant, transaction);
   
       await transaction.commit();
   
       logStructured(
         "successful",
-        `link removed for policy ${policyId}`,
+        `link removed for policy ${id}`,
         "deleteLinkedObject",
         "policyLinkedObjects.ctrl.ts"
       );
-      logger.debug(`✅ Link removed for policy ${policyId}`);
+      logger.debug(`✅ Link removed for policy ${id}`);
   
       return res
         .status(200)

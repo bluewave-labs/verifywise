@@ -114,22 +114,20 @@ export const updatePolicyLinkedObjectQuery = async (
  * DELETE linked object (by id)
  */
 export const deletePolicyLinkedObjectQuery = async (
-    policy_id: number,
-    object_type: string,
-    object_id: number,
+    id: number,
     tenant: string,
     transaction?: Transaction
   ) => {
     logger.debug(
-      `🗑 Deleting policy_linked_object → policy:${policy_id}, type:${object_type}, id:${object_id}`
+      `🗑 Deleting policy_linked_object → policy:${id}`
     );
   
     const result = await sequelize.query(
       `DELETE FROM "${tenant}".policy_linked_objects 
-       WHERE policy_id = :policy_id AND object_type = :object_type AND object_id = :object_id
+       WHERE id = :id
        RETURNING *`,
       {
-        replacements: { policy_id, object_type, object_id },
+        replacements: { id :id },
         mapToModel: true,
         model: PolicyLinkedObjectsModel,
         transaction,

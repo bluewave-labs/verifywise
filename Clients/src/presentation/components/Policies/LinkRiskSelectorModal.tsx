@@ -7,11 +7,13 @@ import {
     TableRow,
     TableCell,
     Checkbox,
-    Stack,
     Typography,
     TableFooter,
     TablePagination,
     TableContainer,
+    Box,
+    Stack,
+    useTheme,
 } from "@mui/material";
 
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -22,11 +24,27 @@ import { getAllProjectRisks } from "../../../application/repository/projectRisk.
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { singleTheme } from "../../themes";
 import { useUserMap } from "../../../presentation/hooks/userMap";
+import {
+    loadingContainerStyle,
+    paginationMenuProps,
+    paginationSelectStyle,
+    showingTextCellStyle,
+    tableFooterRowStyle,
+    tableRowDeletingStyle,
+    tableRowHoverStyle,
+} from "../../../presentation/pages/ModelInventory/style";
+import EmptyState from "../EmptyState";
+import TablePaginationActions from "../TablePagination";
+import { paginationStyle } from "../Table/styles";
 
 const SORT_KEY = "vw_link_risk_selector_sort";
 
 type SortDirection = "asc" | "desc" | null;
 type SortConfig = { key: string; direction: SortDirection };
+
+const SelectorVertical = (props: any) => (
+    <ChevronsUpDown size={16} {...props} />
+);
 
 interface LinkRiskSelectorModalProps {
     isOpen: boolean;
@@ -34,9 +52,13 @@ interface LinkRiskSelectorModalProps {
     linkedRiskIds: number[];
     policyId: number;
     onSubmit: (selectedIds: number[]) => Promise<void>;
+    hidePagination?: boolean;
+    deletingId?: number | null;
+    paginated?: boolean;
 }
 
 const TABLE_COLUMNS = [
+    { id: "", label: "", sortable: false },
     { id: "risk_name", label: "RISK NAME", sortable: true },
     { id: "likelihood", label: "LIKELIHOOD", sortable: true },
     { id: "severity", label: "SEVERITY", sortable: true },
@@ -52,10 +74,12 @@ const SortableTableHead = ({
     columns,
     sortConfig,
     onSort,
+    theme,
 }: {
     columns: typeof TABLE_COLUMNS;
     sortConfig: SortConfig;
     onSort: (columnId: string) => void;
+    theme: any;
 }) => {
     return (
         <TableHead
@@ -65,26 +89,44 @@ const SortableTableHead = ({
             }}
         >
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                <TableCell width={50}></TableCell>
+                {/* <TableCell width={50}></TableCell> */}
 
                 {columns.map((column) => (
                     <TableCell
                         key={column.id}
-                        onClick={() => column.sortable && onSort(column.id)}
+                        component={"td"}
+                        className="risk-selector-table-header-cel"
                         sx={{
                             ...singleTheme.tableStyles.primary.header.cell,
+                            ...(column.id === "actions" && {
+                                position: "sticky",
+                                right: 0,
+                                zIndex: 10,
+                                backgroundColor:
+                                    singleTheme.tableStyles.primary.header
+                                        .backgroundColors,
+                            }),
                             ...(column.sortable
                                 ? {
                                       cursor: "pointer",
                                       userSelect: "none",
                                       "&:hover": {
-                                          backgroundColor: "rgba(0,0,0,0.04)",
+                                          backgroundColor:
+                                              "rgba(0, 0, 0, 0.04)",
                                       },
                                   }
                                 : {}),
                         }}
+                        onClick={() => column.sortable && onSort(column.id)}
                     >
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: theme.spacing(2),
+                            }}
+                        >
                             <Typography
                                 variant="body2"
                                 sx={{
@@ -97,10 +139,17 @@ const SortableTableHead = ({
                             >
                                 {column.label}
                             </Typography>
-
-                            {/* Sorting Icon */}
                             {column.sortable && (
-                                <>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color:
+                                            sortConfig.key === column.id
+                                                ? "primary.main"
+                                                : "#9CA3AF",
+                                    }}
+                                >
                                     {sortConfig.key === column.id &&
                                         sortConfig.direction === "asc" && (
                                             <ChevronUp size={16} />
@@ -112,9 +161,9 @@ const SortableTableHead = ({
                                     {sortConfig.key !== column.id && (
                                         <ChevronsUpDown size={16} />
                                     )}
-                                </>
+                                </Box>
                             )}
-                        </Stack>
+                        </Box>
                     </TableCell>
                 ))}
             </TableRow>
@@ -129,14 +178,16 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
     isOpen,
     onClose,
     linkedRiskIds,
-    policyId,
     onSubmit,
+    hidePagination = false,
+    deletingId,
+    paginated = true,
 }) => {
     const [risks, setRisks] = useState<any[]>([]);
     const [selected, setSelected] = useState<number[]>([]);
-    const [, setIsLoading] = useState(false);
+    const [loading, setIsLoading] = useState(false);
 
-    console.log("linkedRiskIds", linkedRiskIds)
+    const theme = useTheme();
 
     // Sorting
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -144,14 +195,17 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
         return saved ? JSON.parse(saved) : { key: "", direction: null };
     });
 
+    // Save sorting state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(SORT_KEY, JSON.stringify(sortConfig));
+    }, [sortConfig]);
+
     // Pagination
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Toast helper
     const [, setAlert] = useState<any>(null);
-
-    console.log("policyId", policyId);
 
     const toast = (variant: any, msg: string) => {
         handleAlert({ variant, body: msg, setAlert });
@@ -194,13 +248,6 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
         });
     }, [risks, sortConfig]);
 
-    console.log("sortedRisks", sortedRisks)
-
-    const paginatedItems = sortedRisks.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-    );
-
     // -----------------------------
     // Handle Sorting
     // -----------------------------
@@ -221,16 +268,41 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
         );
     };
 
+    const handleChangePage = useCallback((_: unknown, newPage: number) => {
+        setPage(newPage);
+    }, []);
+
+    const handleChangeRowsPerPage = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+        },
+        []
+    );
+
+    const getRange = useMemo(() => {
+        const start = page * rowsPerPage + 1;
+        const end = Math.min(
+            page * rowsPerPage + rowsPerPage,
+            sortedRisks?.length ?? 0
+        );
+        return `${start} - ${end}`;
+    }, [page, rowsPerPage, sortedRisks?.length]);
+
     // -----------------------------
     // Selection Handlers
     // -----------------------------
-    const toggleSelect = (id: number) => {
-        if (linkedRiskIds.includes(id)) return; // already linked → disabled
 
-        setSelected((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-        );
-    };
+    const toggleSelect = useCallback(
+        (id: number) => {
+            if (linkedRiskIds.includes(id)) return; // already linked → disabled
+
+            setSelected((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+            );
+        },
+        [linkedRiskIds] // correct dependency
+    );
 
     // -----------------------------
     // Submit Handler
@@ -250,35 +322,33 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
 
     const { userMap } = useUserMap();
 
-    return (
-        <StandardModal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Link New Risks"
-            description="Select risks to link with this policy."
-            onSubmit={selected.length > 0 ? handleSubmit : undefined}
-            //   submitting={isLoading}
-        >
-            <TableContainer sx={{ maxHeight: 450, overflow: "auto" }}>
-                <Table stickyHeader>
-                    <SortableTableHead
-                        columns={TABLE_COLUMNS}
-                        sortConfig={sortConfig}
-                        onSort={handleSort}
-                    />
-
-                    <TableBody>
-                        {paginatedItems.map((risk) => {
-                            // const disabled = linkedRiskIds.includes(risk.id);
-                            
+    const tableBody = useMemo(
+        () => (
+            <TableBody>
+                {sortedRisks?.length ? (
+                    sortedRisks
+                        .slice(
+                            hidePagination ? 0 : page * rowsPerPage,
+                            hidePagination
+                                ? Math.min(sortedRisks.length, 100)
+                                : page * rowsPerPage + rowsPerPage
+                        )
+                        .map((risk) => {
                             const disabled = linkedRiskIds.some(
-                                (linkedId) => Number(linkedId) === Number(risk.id)
-                              );
+                                (id) => Number(id) === Number(risk.id)
+                            );
+
                             return (
                                 <TableRow
                                     key={risk.id}
                                     sx={{
-                                        opacity: disabled ? 0.4 : 1,
+                                        ...singleTheme.tableStyles.primary.body
+                                            .row,
+                                        ...tableRowHoverStyle,
+                                        ...(deletingId ===
+                                            risk.id?.toString() &&
+                                            tableRowDeletingStyle),
+                                        opacity: disabled ? 0.45 : 1,
                                         cursor: disabled
                                             ? "not-allowed"
                                             : "pointer",
@@ -287,7 +357,7 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                                         !disabled && toggleSelect(risk.id)
                                     }
                                 >
-                                    {/* checkbox */}
+                                    {/* Checkbox */}
                                     <TableCell width={50}>
                                         <Checkbox
                                             disabled={disabled}
@@ -299,12 +369,21 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                                         />
                                     </TableCell>
 
+                                    {/* RISK NAME */}
                                     <TableCell>{risk.risk_name}</TableCell>
+
+                                    {/* LIKELIHOOD */}
                                     <TableCell>{risk.likelihood}</TableCell>
+
+                                    {/* SEVERITY */}
                                     <TableCell>{risk.severity}</TableCell>
+
+                                    {/* LEVEL */}
                                     <TableCell>
                                         {risk.risk_level_autocalculated}
                                     </TableCell>
+
+                                    {/* RISK OWNER */}
                                     <TableCell>
                                         {risk
                                             ? userMap.get(
@@ -314,26 +393,112 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                                     </TableCell>
                                 </TableRow>
                             );
-                        })}
-                    </TableBody>
-                </Table>
-
-                {/* Pagination */}
-                <TableFooter>
+                        })
+                ) : (
                     <TableRow>
-                        <TablePagination
-                            count={sortedRisks.length}
-                            page={page}
-                            onPageChange={(_, p) => setPage(p)}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={(e) => {
-                                setRowsPerPage(parseInt(e.target.value, 10));
-                                setPage(0);
-                            }}
-                            rowsPerPageOptions={[5, 10, 15, 25]}
-                        />
+                        <TableCell
+                            colSpan={TABLE_COLUMNS.length}
+                            align="center"
+                        >
+                            <EmptyState message="No risks found." />
+                        </TableCell>
                     </TableRow>
-                </TableFooter>
+                )}
+            </TableBody>
+        ),
+        [
+            sortedRisks,
+            page,
+            rowsPerPage,
+            hidePagination,
+            deletingId,
+            linkedRiskIds,
+            selected,
+            toggleSelect,
+            userMap,
+        ]
+    );
+
+    if (loading) {
+        return (
+            <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={loadingContainerStyle(theme)}
+            >
+                <Typography>Loading...</Typography>
+            </Stack>
+        );
+    }
+
+    return (
+        <StandardModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Link New Risks"
+            description="Select risks to link with this policy."
+            onSubmit={selected.length > 0 ? handleSubmit : undefined}
+        >
+            <TableContainer sx={{ maxHeight: 450, overflow: "auto" }}>
+                <Table sx={singleTheme.tableStyles.primary.frame}>
+                    <SortableTableHead
+                        columns={TABLE_COLUMNS}
+                        sortConfig={sortConfig}
+                        onSort={handleSort}
+                        theme={theme}
+                    />
+
+                    {tableBody}
+                    {paginated &&
+                        !hidePagination &&
+                        sortedRisks &&
+                        sortedRisks.length > 0 && (
+                            <TableFooter>
+                                <TableRow sx={tableFooterRowStyle(theme)}>
+                                    <TableCell sx={showingTextCellStyle(theme)}>
+                                        Showing {getRange} of{" "}
+                                        {sortedRisks?.length} model(s)
+                                    </TableCell>
+                                    <TablePagination
+                                        count={sortedRisks?.length ?? 0}
+                                        page={page}
+                                        onPageChange={handleChangePage}
+                                        rowsPerPage={rowsPerPage}
+                                        rowsPerPageOptions={[5, 10, 15, 25]}
+                                        onRowsPerPageChange={
+                                            handleChangeRowsPerPage
+                                        }
+                                        ActionsComponent={(props) => (
+                                            <TablePaginationActions
+                                                {...props}
+                                            />
+                                        )}
+                                        labelRowsPerPage="Rows per page"
+                                        labelDisplayedRows={({ page, count }) =>
+                                            `Page ${page + 1} of ${Math.max(
+                                                0,
+                                                Math.ceil(count / rowsPerPage)
+                                            )}`
+                                        }
+                                        slotProps={{
+                                            select: {
+                                                MenuProps:
+                                                    paginationMenuProps(theme),
+                                                inputProps: {
+                                                    id: "pagination-dropdown",
+                                                },
+                                                IconComponent: SelectorVertical,
+                                                sx: paginationSelectStyle(
+                                                    theme
+                                                ),
+                                            },
+                                        }}
+                                        sx={paginationStyle(theme)}
+                                    />
+                                </TableRow>
+                            </TableFooter>
+                        )}
+                </Table>
             </TableContainer>
         </StandardModal>
     );

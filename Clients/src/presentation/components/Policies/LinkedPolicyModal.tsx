@@ -78,6 +78,11 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         }
       }, []);
 
+      useEffect(() => {
+        console.log("Updated risks", risks);
+      }, [risks]);
+      
+
       const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
         handleAlert({
           variant: type,
@@ -97,16 +102,21 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     // REMOVE LINK
     // ------------------------------------
     const handleRemove = async (type: string, id: number) => {
-      
-        await deleteEntityById({ routeUrl: `/policy-linked/${policyId}/linked-objects`, });
+
+      await deleteEntityById({
+        routeUrl:`/policy-linked/${id}/linked-objects`,
+      });
 
 
         if (type === "control")
             setControls((prev) => prev.filter((i) => i.id !== id));
         if (type === "risk")
             setRisks((prev) => prev.filter((i) => i.id !== id));
+          console.log("risk", risks)
         if (type === "evidence")
             setEvidence((prev) => prev.filter((i) => i.id !== id));
+
+        handleToast("success", "Risks unlinked successfully!");
     };
 
 
@@ -171,10 +181,10 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
 
             {/* ---------- TABLE LIST ---------- */}
             <LinkedObjectsTable
-              type={type}
               items={items}
               onRemove={handleRemove}
               projectRisk={projectRisk}
+              paginated={true}
             />
           </Stack>
         </Box>
@@ -206,12 +216,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                     renderSection(controls, "control", "Control")}
                 {activeTab === "risks" &&
                     renderSection(
-                      risks.length ? risks : projectRisk.map(r => ({
-                        id: r.id,
-                        risk_name: r.risk_name,
-                        created_by_name: r.risk_owner || "-",
-                        due_date: r.deadline || "-",
-                      })),
+                      risks.length ? risks : [], // <-- empty array if no risks
                       "risk",
                       "Risk"
                     )}
@@ -223,8 +228,9 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 isOpen={openRiskSelector}
                 onClose={() => setOpenRiskSelector(false)}
                 policyId={policyId!}
-                linkedRiskIds={risks.map((r) => r.id)}
+                linkedRiskIds={risks.map((r) => r.object_id)}
                 onSubmit={handleAddRisks}
+                paginated={true}
             />
 
         </StandardModal>

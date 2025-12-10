@@ -92,7 +92,7 @@ export const getAccordionStyleWithIndex = (theme: Theme, index: number) => ({
 
 export const groupTypographyStyle = (theme: Theme) => ({
   color: theme.palette.text.disabled,
-  fontSize: "7px",
+  fontSize: "12px",
   fontWeight: 400,
   letterSpacing: "0.3px",
   textTransform: "uppercase",

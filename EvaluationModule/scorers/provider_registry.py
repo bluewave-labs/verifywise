@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
-from scorers.config_schema import JudgeModelConfig
+from config_schema import JudgeModelConfig
 
 @dataclass(frozen=True)
 class ModelInfo:

@@ -237,7 +237,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 setSelectedItem(firstItem);
             }
         }
-    }, []);
+    }, [menuGroups]);
 
     return (
         <StandardModal

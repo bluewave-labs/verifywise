@@ -82,7 +82,7 @@ export async function createNewUser({
   userData,
 }: {
   userData: CreateUserData;
-}, headers: Record<string, string>): Promise<ApiResponse<User>> {
+}, headers?: Record<string, string>): Promise<ApiResponse<User>> {
   try {
     const response = await apiServices.post(`/users/register`, userData, { headers });
     return response as ApiResponse<User>;

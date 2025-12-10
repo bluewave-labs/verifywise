@@ -14,6 +14,10 @@ import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import LinkRiskSelectorModal from "./LinkRiskSelectorModal";
 import { createPolicyLinkedObjects } from "../../../application/repository/policyLinkedObjects.repository";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
+import { FileModel } from "../../../domain/models/Common/file/file.model";
+import LinkEvidenceSelectorModal from "./LinkEvidenceSelectorModal";
 
 interface LinkedPolicyModalProps {
     onClose: () => void;
@@ -35,6 +39,11 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     const [projectRisk, setProjectRisks] = useState<RiskModel[]>([]);
 
     const [openRiskSelector, setOpenRiskSelector] = useState(false);
+
+    const [openEvidenceSelector, setOpenEvidenceSelector] = useState(false);
+
+    const [filesData, setFilesData] = useState<FileModel[]>([]);
+    
 
     const [, setAlert] = useState<{
         variant: "success" | "info" | "warning" | "error";
@@ -79,6 +88,16 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
       }, []);
 
       useEffect(() => {
+        const fetchEvidenceData = async () => {
+          const response = await getUserFilesMetaData();
+          setFilesData(transformFilesData(response));
+        };
+      
+        fetchEvidenceData();
+      }, []);
+      
+
+      useEffect(() => {
         console.log("Updated risks", risks);
       }, [risks]);
       
@@ -112,7 +131,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
             setControls((prev) => prev.filter((i) => i.id !== id));
         if (type === "risk")
             setRisks((prev) => prev.filter((i) => i.id !== id));
-          console.log("risk", risks)
         if (type === "evidence")
             setEvidence((prev) => prev.filter((i) => i.id !== id));
 
@@ -120,35 +138,44 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     };
 
 
-    const handleAddRisks = async (riskIds: number[]) => {
-
-      console.log("RiskIds", riskIds);
+    const handleAddLinkedObjects = async (
+      objectType: "risk" | "evidence" | "control",
+      objectIds: number[]
+    ) => {
       try {
-       const response = await createPolicyLinkedObjects(
+        console.log("Object Type:", objectType);
+        console.log("Object Ids:", objectIds);
+    
+        const response = await createPolicyLinkedObjects(
           `/policy-linked/${policyId}/linked-objects`,
           {
-            object_type: "risk",
-            object_ids: riskIds,
+            object_type: objectType,
+            object_ids: objectIds,
           }
         );
-
+    
         console.log("response", response);
     
-        // Re-fetch updated linked objects to update UI
+        // Fetch updated linked objects
         const updated = await getAllEntities({
           routeUrl: `/policy-linked/${policyId}/linked-objects`,
         });
     
-        setRisks(updated.data.risks || []);
-        handleToast("success", "Risks linked successfully!");
+        // Set state based on type
+        if (objectType === "risk") {
+          setRisks(updated.data.risks || []);
+        } else if (objectType === "evidence") {
+          setEvidence(updated.data.evidence || []);
+        } else if (objectType === "control") {
+          setControls(updated.data.controls || []);
+        }
+    
+        handleToast("success", `${objectType} linked successfully!`);
       } catch (error) {
         console.error(error);
-        handleToast("error", "Failed to link risks.");
+        handleToast("error", `Failed to link ${objectType}.`);
       }
     };
-    
-    
-    
   
 
     // ------------------------------------
@@ -174,6 +201,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 icon={<AddCircleOutlineIcon size={16} />}
                 onClick={() => {
                   if (type === "risk") setOpenRiskSelector(true);
+                  if (type === "evidence") setOpenEvidenceSelector(true);
                }}
                
               />
@@ -184,7 +212,9 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
               items={items}
               onRemove={handleRemove}
               projectRisk={projectRisk}
+              evidenceData={filesData}
               paginated={true}
+              type={type}
             />
           </Stack>
         </Box>
@@ -221,15 +251,24 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                       "Risk"
                     )}
                 {activeTab === "evidence" &&
-                    renderSection(evidence, "evidence", "Evidence")}
+                    renderSection(evidence.length ? evidence : [], "evidence", "Evidence")}
             </TabContext>
 
             <LinkRiskSelectorModal
                 isOpen={openRiskSelector}
                 onClose={() => setOpenRiskSelector(false)}
-                policyId={policyId!}
+              
                 linkedRiskIds={risks.map((r) => r.object_id)}
-                onSubmit={handleAddRisks}
+                policyId={policyId!}
+                onSubmit={(ids) => handleAddLinkedObjects("risk", ids)}
+                paginated={true}
+            />
+
+           <LinkEvidenceSelectorModal
+                isOpen={openEvidenceSelector}
+                onClose={() => setOpenEvidenceSelector(false)}
+                linkedEvidenceIds={evidence.map((r) => r.object_id)}
+                onSubmit={(ids) => handleAddLinkedObjects("evidence", ids)}
                 paginated={true}
             />
 

@@ -42,10 +42,12 @@ import { useUserMap } from "../../../presentation/hooks/userMap";
 interface LinkedObjectsTableProps {
     items: any[];
     projectRisk: any[];
+    evidenceData: any[];
     onRemove: (type: string, id: number) => void;
     deletingId?: number | null;
     hidePagination?: boolean;
     paginated?: boolean;
+    type?: string;
 }
 
 
@@ -170,16 +172,16 @@ const SelectorVertical = (props: any) => (
 const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
     items,
     projectRisk,
+    evidenceData,
     onRemove,
     deletingId,
     hidePagination = false,
     paginated = true,
+    type
 }) => {
     const theme = useTheme();
     const { userMap } = useUserMap();
 
-    // const [sortKey, setSortKey] = useState<SortKey>(null);
-    // const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
     // Sorting
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -195,29 +197,78 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    // -----------------------------
-    // MERGE ITEMS WITH RISK DATA
-    // -----------------------------
     const mergedItems = useMemo(() => {
-        return items.map((linked) => {
-            const fullRisk = projectRisk.find(
-                (r) => Number(r.id) === Number(linked.object_id)
-            );
 
+        console.log("items", items);
+        console.log("type", type);
+        return items.map((linked) => {
+            // const type = linked.object_type;
+    
+            let source: any = null;
+    
+            // Match based on type
+            if (type === "risk") {
+                source = projectRisk.find(
+                    (r) => Number(r.id) === Number(linked.object_id)
+                );
+            }
+    
+            if (type === "evidence") {
+                source = evidenceData.find(
+                    (e) => Number(e.id) === Number(linked.object_id)
+                );
+
+                console.log("source", source);
+            }
+    
+            // if (type === "control") {
+            //     source = controlList.find(
+            //         (c) => Number(c.id) === Number(linked.object_id)
+            //     );
+            // }
+    
+            // COMMON STRUCTURE for TABLE
             return {
-                id: linked.id,
-                type: linked.object_type || "-",
-                name: fullRisk?.risk_name || "-",
-                created_by:
-                    fullRisk?.risk_owner
-                        ? userMap.get(String(fullRisk.risk_owner)) || "-"
+                id: linked.id, // policy_linked_objects row id
+                object_id: linked.object_id,
+                type: type,
+    
+                // ---- NAME ----
+                name:
+                    type === "risk"
+                        ? source?.risk_name || "-"
+                        : type === "evidence"
+                        ? source?.fileName || "-"
+                        // : type === "control"
+                        // ? source?.control_name || "-"
                         : "-",
-                due_date: fullRisk?.deadline || "-",
-                object_id: linked.object_id
+    
+                // ---- CREATED BY ----
+                created_by:
+                    type === "risk"
+                        ? userMap.get(String(source?.risk_owner)) || "-"
+                        : type === "evidence"
+                        ? userMap.get(String(source?.uploader)) || "-"
+                        // : type === "control"
+                        // ? userMap.get(String(source?.assigned_to)) || "-"
+                        : "-",
+    
+                // ---- DUE DATE ----
+                due_date:
+                    type === "risk"
+                        ? source?.deadline || "-"
+                        : type === "evidence"
+                        ?  "-"
+                        // : type === "control"
+                        // ? source?.due_date || "-"
+                        : "-",
             };
         });
-    }, [items, projectRisk, userMap]);
+    }, [items, type, userMap, projectRisk, evidenceData]);
+
+    console.log("mergedItems", mergedItems);
     
+
      // -----------------------------
     // Handle Sorting
     // -----------------------------
@@ -327,7 +378,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                         tableRowDeletingStyle),
                                 }}
                             >
-                                {/* <TableCell>{row.name}</TableCell> */}
+                                
                                 <TableCell
                                 >
                                     <TooltipCell value={row.name} />
@@ -357,7 +408,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                         <IconButton
                                             size="small"
                                             onClick={() =>
-                                                onRemove(row.type, row.id)
+                                                onRemove(type!, row.id)
                                             }
                                         >
                                             <Trash2 size={18} />
@@ -375,14 +426,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                 )}
             </TableBody>
         ),
-        [
-            sortedData,
-            hidePagination,
-            page,
-            rowsPerPage,
-            deletingId,
-            onRemove,
-        ]
+        [sortedData, hidePagination, page, rowsPerPage, deletingId, onRemove, type]
     );
 
     return (

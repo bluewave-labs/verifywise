@@ -83,7 +83,7 @@ CustomAxios.interceptors.request.use(
     // Add authorization token
     const state = store.getState();
     const token = state.auth.authToken;
-    if (token && !config.url?.includes('/users/reset-password')) {
+    if (token && !(config.url?.includes('/users/reset-password') || config.url?.includes('/users/register'))) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 

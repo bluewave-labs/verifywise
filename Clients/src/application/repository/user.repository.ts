@@ -82,9 +82,9 @@ export async function createNewUser({
   userData,
 }: {
   userData: CreateUserData;
-}): Promise<ApiResponse<User>> {
+}, headers: Record<string, string>): Promise<ApiResponse<User>> {
   try {
-    const response = await apiServices.post(`/users/register`, userData);
+    const response = await apiServices.post(`/users/register`, userData, { headers });
     return response as ApiResponse<User>;
   } catch (error: unknown) {
     // Re-throw the error with the response data intact

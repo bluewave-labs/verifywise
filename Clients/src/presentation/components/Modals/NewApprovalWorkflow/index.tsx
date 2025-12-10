@@ -131,6 +131,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
 
     const handleSave = () => {
         if (validateForm()) {
+            setIsSubmitting
             const formData = {
                 workflow_title: workflowTitle.trim(),
                 entity: entity,
@@ -144,6 +145,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
             };
             clearForm();
             onSuccess?.(formData);
+            setIsSubmitting(false);
         }
     };
 

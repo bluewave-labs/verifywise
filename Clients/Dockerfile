@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Step 3: Copy the shared directory (needed for @user-guide-content alias)
 # This will be at /app/shared, accessible via ../shared from /app/src
-COPY shared/ /app/shared/
+# COPY shared/ /app/shared/
 
 # Step 4: Set working directory to /app/src for the client app
 WORKDIR /app/src

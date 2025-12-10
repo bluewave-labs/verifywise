@@ -1,4 +1,4 @@
-import React, { useMemo, memo, useCallback } from 'react';
+import React, { useMemo, memo, useCallback, useEffect } from 'react';
 import { Stack, IconButton, Button } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Puzzle, Zap } from 'lucide-react';
@@ -6,6 +6,7 @@ import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
+import ApprovalButton from './ApprovalButton';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -114,6 +115,17 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
+  const [approvalRequestsCount, setApprovalRequestsCount] = React.useState(0);
+  const [requestorRequestsCount, setRequestorRequestsCount] = React.useState(0);
+
+  useEffect(() => {
+    // Fetch counts from API or state management
+    // For demonstration, we'll set static values
+    setApprovalRequestsCount(5);
+    setRequestorRequestsCount(3);
+  }, []);
+
+
   return (
     <Stack
       direction="row"
@@ -133,92 +145,16 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
         </IconButton>
       </VWTooltip>
 
-      <Button
-        variant="contained"
-        size="small"
+      <ApprovalButton
+        label="Approval requests"
+        count={approvalRequestsCount}
         onClick={() => { setIsRequestModalOpen(true); setIsRequestor(false); }}
-        sx={{
-          background: '#F4F4F4',
-          color: '#344054',
-          fontWeight: 500,
-          fontSize: '13px', // Standardized font size
-          height: '32px', // Standardized medium height
-          minHeight: '32px',
-          padding: '8px 16px', // Standardized padding
-          borderRadius: '4px',
-          textTransform: 'none',
-          '&:hover': {
-            color: '#13715B',
-          },
-          transition: 'all 0.2s ease',
-        }}
-      >
-        Approval requests
-        <Box
-          component="span"
-          sx={{
-            backgroundColor: '#CBCFD7',
-            color: '#374151',
-            px: '6px',
-            py: '4px',
-            ml: '8px',
-            borderRadius: '12px',
-            fontSize: '11px',
-            fontWeight: 600,
-            lineHeight: 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '20px',
-            textAlign: 'center'
-          }}
-        >
-          1
-        </Box>
-      </Button>
-      <Button
-        variant="contained"
-        size="small"
+      />
+      <ApprovalButton
+        label="Requestor requests"
+        count={requestorRequestsCount}
         onClick={() => { setIsRequestModalOpen(true); setIsRequestor(true); }}
-        sx={{
-          background: '#F4F4F4',
-          color: '#344054',
-          fontWeight: 500,
-          fontSize: '13px', // Standardized font size
-          height: '32px', // Standardized medium height
-          minHeight: '32px',
-          padding: '8px 16px', // Standardized padding
-          borderRadius: '4px',
-          textTransform: 'none',
-          '&:hover': {
-            color: '#13715B',
-          },
-          transition: 'all 0.2s ease',
-        }}
-      >
-        Requestor requests
-        <Box
-          component="span"
-          sx={{
-            backgroundColor: '#CBCFD7',
-            color: '#374151',
-            px: '6px',
-            py: '4px',
-            ml: '8px',
-            borderRadius: '12px',
-            fontSize: '11px',
-            fontWeight: 600,
-            lineHeight: 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '20px',
-            textAlign: 'center'
-          }}
-        >
-          1
-        </Box>
-      </Button>
+      />
 
       {/* Integrations */}
       <VWTooltip

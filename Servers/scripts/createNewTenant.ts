@@ -819,7 +819,7 @@ export const createNewTenant = async (
         id SERIAL PRIMARY KEY,
         provider_model VARCHAR(255) NOT NULL,
         version VARCHAR(255) NOT NULL,
-        approver INTEGER NOT NULL,
+        approver INTEGER,
         capabilities TEXT NOT NULL,
         security_assessment BOOLEAN NOT NULL DEFAULT false,
         status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,

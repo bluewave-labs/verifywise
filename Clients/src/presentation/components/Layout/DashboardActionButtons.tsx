@@ -1,5 +1,5 @@
 import React, { useMemo, memo, useCallback, useEffect } from 'react';
-import { Stack, IconButton, Button } from '@mui/material';
+import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Puzzle, Zap } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';

@@ -50,7 +50,6 @@ import {
   uploadUserProfilePhoto,
   getUserProfilePhoto,
   deleteUserProfilePhoto,
-  resetPassword,
 } from "../controllers/user.ctrl";
 import resetPasswordMiddleware from "../middleware/resetPassword.middleware";
 import authenticateJWT from "../middleware/auth.middleware";

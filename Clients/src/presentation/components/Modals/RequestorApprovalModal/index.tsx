@@ -3,7 +3,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, TextField, Button } from "@mui/material";
+import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, Button } from "@mui/material";
 import {
     sidebarContainer,
     sidebarMenuStyle,

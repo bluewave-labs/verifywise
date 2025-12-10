@@ -133,7 +133,7 @@ const ApprovalWorkflows: React.FC = () => {
                 type: "error",
                 message: "No workflow data found for this ID.",
             });
-            return
+            return null;
         }
         catch (error) {
             logEngine({

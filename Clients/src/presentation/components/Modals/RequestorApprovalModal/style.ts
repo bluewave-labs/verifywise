@@ -19,10 +19,10 @@ export const sidebarContainer = {
 
 export const sidebarMenuStyle = (theme: Theme) => ({
   backgroundColor: theme.palette.background.main,
-  "& ,selected-path, & >MuiListItemButton-root:hover": {
+  "& .selected-path, & >MuiListItemButton-root:hover": {
     backgroundColor: theme.palette.background.main,
   },
-  "& .Muilist-root svg path": {
+  "& .MuiList-root svg path": {
     stroke: theme.palette.text.tertiary,
   },
   "& p, & span, & .MuiListSubheader-root": {

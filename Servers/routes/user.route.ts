@@ -53,6 +53,7 @@ import {
   getUserProfilePhoto,
   deleteUserProfilePhoto,
 } from "../controllers/user.ctrl";
+import resetPasswordMiddleware from "../middleware/resetPassword.middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import registerJWT from "../middleware/register.middleware";
 
@@ -150,7 +151,7 @@ router.post("/refresh-token", refreshAccessToken);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-// router.post("/reset-password", resetPassword);
+router.post("/reset-password", resetPasswordMiddleware, resetPassword);
 
 /**
  * PATCH /users/:id

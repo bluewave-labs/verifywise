@@ -206,7 +206,7 @@ const ApprovalWorkflows: React.FC = () => {
                     workflow_title: formData.workflow_title,
                     entity: formData.entity,
                     steps: formData.steps.map(step => new ApprovalWorkflowStepModel(step)),
-                    approval_status: "Pending" as any,
+                    approval_status: ApprovalStatus.PENDING,
                     date_updated: new Date(),
                 });
 

@@ -70,124 +70,193 @@ export const getAllRisksQuery = async (
       break;
   }
 
-  const result = (await sequelize.query(
-    `SELECT * FROM "${tenant}".risks ${whereClause} ORDER BY created_at DESC, id ASC`
-  )) as [IRisk[], number];
-  const projectRisks = result[0];
+  const query = `
+    SELECT
+      r.*,
+      COALESCE(
+        JSON_AGG(DISTINCT pr.project_id) FILTER (WHERE pr.project_id IS NOT NULL),
+        '[]'
+      ) as projects,
+      COALESCE(
+        JSON_AGG(DISTINCT fr.framework_id) FILTER (WHERE fr.framework_id IS NOT NULL),
+        '[]'
+      ) as frameworks,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', scr.subclause_id,
+          'meta_id', sc.subclause_meta_id,
+          'sup_id', csi.clause_no,
+          'title', scs.title,
+          'sub_id', scs.order_no,
+          'parent_id', csi.id,
+          'project_id', pf_sc.project_id
+        )) FILTER (WHERE scr.subclause_id IS NOT NULL),
+        '[]'
+      ) as sub_clauses,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', acr.annexcategory_id,
+          'meta_id', ac.annexcategory_meta_id,
+          'sup_id', asi.annex_no,
+          'sub_id', acs.sub_id,
+          'title', acs.title,
+          'parent_id', asi.id,
+          'project_id', pf_ac.project_id
+        )) FILTER (WHERE acr.annexcategory_id IS NOT NULL),
+        '[]'
+      ) as annex_categories,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', cr.control_id,
+          'meta_id', ac_eu.control_meta_id,
+          'sup_id', ccs.id,
+          'sub_id', cse.id,
+          'title', cse.title,
+          'parent_id', cse.id,
+          'project_id', pf_cr.project_id
+        )) FILTER (WHERE cr.control_id IS NOT NULL),
+        '[]'
+      ) as controls,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', ans.id,
+          'meta_id', ans.question_id,
+          'sup_id', ts.id,
+          'sub_id', sts.id,
+          'title', ts.title || '. ' || sts.title || '. ' || qse.question,
+          'parent_id', qse.id,
+          'project_id', pf_ans.project_id
+        )) FILTER (WHERE ans.id IS NOT NULL),
+        '[]'
+      ) as assessments,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', acr_27001.annexcontrol_id,
+          'meta_id', ac_27001.annexcontrol_meta_id,
+          'sup_id', ccs_27001.id,
+          'sub_id', cse_27001.id,
+          'title', cse_27001.title,
+          'parent_id', cse_27001.id,
+          'project_id', pf_ac27001.project_id
+        )) FILTER (WHERE acr_27001.annexcontrol_id IS NOT NULL),
+        '[]'
+      ) as annex_controls_27001,
+      COALESCE(
+        JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+          'id', scr_27001.subclause_id,
+          'meta_id', sc_27001.subclause_meta_id,
+          'sup_id', csi_27001.arrangement,
+          'title', scs_27001.title,
+          'sub_id', scs_27001.order_no,
+          'parent_id', csi_27001.id,
+          'project_id', pf_sc27001.project_id
+        )) FILTER (WHERE scr_27001.subclause_id IS NOT NULL),
+        '[]'
+      ) as sub_clauses_27001
+    FROM "${tenant}".risks r
 
-  for (let risk of projectRisks) {
-    (risk as any).projects = [];
-    (risk as any).frameworks = [];
-    (risk as any).subClauses = [];
-    (risk as any).annexCategories = [];
-    (risk as any).controls = [];
-    (risk as any).assessments = [];
-    (risk as any).subClauses_27001 = [];
-    (risk as any).annexControls_27001 = [];
+    -- Projects relationship
+    LEFT JOIN "${tenant}".projects_risks pr ON r.id = pr.risk_id
 
-    const attachedProjects = (await sequelize.query(
-      `SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [{ project_id: number }[], number];
-    if (attachedProjects[0].length > 0) {
-      (risk as any).projects = attachedProjects[0].map((p) => p.project_id);
+    -- Frameworks relationship
+    LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
+
+    -- SubClauses ISO relationship
+    LEFT JOIN "${tenant}".subclauses_iso__risks scr ON r.id = scr.projects_risks_id
+    LEFT JOIN "${tenant}".subclauses_iso sc ON scr.subclause_id = sc.id
+    LEFT JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+    LEFT JOIN public.clauses_struct_iso csi ON csi.id = scs.clause_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_sc ON pf_sc.framework_id = csi.framework_id
+
+    -- Annex Categories relationship
+    LEFT JOIN "${tenant}".annexcategories_iso__risks acr ON r.id = acr.projects_risks_id
+    LEFT JOIN "${tenant}".annexcategories_iso ac ON acr.annexcategory_id = ac.id
+    LEFT JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+    LEFT JOIN public.annex_struct_iso asi ON asi.id = acs.annex_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_ac ON pf_ac.framework_id = asi.framework_id
+
+    -- Controls EU relationship
+    LEFT JOIN "${tenant}".controls_eu__risks cr ON r.id = cr.projects_risks_id
+    LEFT JOIN "${tenant}".controls_eu ac_eu ON cr.control_id = ac_eu.id
+    LEFT JOIN public.controls_struct_eu cse ON cse.id = ac_eu.control_meta_id
+    LEFT JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_cr ON pf_cr.framework_id = ccs.framework_id
+
+    -- Answers/Assessments EU relationship
+    LEFT JOIN "${tenant}".answers_eu__risks aur ON r.id = aur.projects_risks_id
+    LEFT JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
+    LEFT JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
+    LEFT JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
+    LEFT JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_ans ON pf_ans.framework_id = ts.framework_id
+
+    -- Annex Controls ISO 27001 relationship
+    LEFT JOIN "${tenant}".annexcontrols_iso27001__risks acr_27001 ON r.id = acr_27001.projects_risks_id
+    LEFT JOIN "${tenant}".annexcontrols_iso27001 ac_27001 ON acr_27001.annexcontrol_id = ac_27001.id
+    LEFT JOIN public.annexcontrols_struct_iso27001 cse_27001 ON cse_27001.id = ac_27001.annexcontrol_meta_id
+    LEFT JOIN public.annex_struct_iso27001 ccs_27001 ON ccs_27001.id = cse_27001.annex_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_ac27001 ON pf_ac27001.framework_id = ccs_27001.framework_id
+
+    -- SubClauses ISO 27001 relationship
+    LEFT JOIN "${tenant}".subclauses_iso27001__risks scr_27001 ON r.id = scr_27001.projects_risks_id
+    LEFT JOIN "${tenant}".subclauses_iso27001 sc_27001 ON scr_27001.subclause_id = sc_27001.id
+    LEFT JOIN public.subclauses_struct_iso27001 scs_27001 ON scs_27001.id = sc_27001.subclause_meta_id
+    LEFT JOIN public.clauses_struct_iso27001 csi_27001 ON csi_27001.id = scs_27001.clause_id
+    LEFT JOIN "${tenant}".projects_frameworks pf_sc27001 ON pf_sc27001.framework_id = csi_27001.framework_id
+
+    ${whereClause}
+    GROUP BY r.id
+    ORDER BY r.created_at DESC, r.id ASC
+  `;
+
+  const result = (await sequelize.query(query)) as [any[], number];
+  const risks = result[0];
+
+  // Transform the aggregated JSON arrays back to the expected format
+  for (let risk of risks) {
+    // Parse JSON strings if needed
+    if (typeof risk.projects === 'string') {
+      risk.projects = JSON.parse(risk.projects);
+    }
+    if (typeof risk.frameworks === 'string') {
+      risk.frameworks = JSON.parse(risk.frameworks);
     }
 
-    const attachedFrameworks = (await sequelize.query(
-      `SELECT framework_id FROM "${tenant}".frameworks_risks WHERE risk_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [{ framework_id: number }[], number];
-    if (attachedFrameworks[0].length > 0) {
-      (risk as any).frameworks = attachedFrameworks[0].map(
-        (f) => f.framework_id
-      );
-    }
+    // Handle the complex objects - rename keys to camelCase
+    const transformArray = (arr: any[]) => {
+      if (typeof arr === 'string') {
+        arr = JSON.parse(arr);
+      }
 
-    const attachedSubClauses = (await sequelize.query(
-      `SELECT
-        scr.subclause_id AS id, sc.subclause_meta_id AS meta_id, csi.clause_no AS sup_id, scs.title, scs.order_no AS sub_id, csi.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".subclauses_iso__risks scr JOIN "${tenant}".subclauses_iso sc ON scr.subclause_id = sc.id
-      JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
-      JOIN public.clauses_struct_iso csi ON csi.id = scs.clause_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = csi.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedSubClauses[0].length > 0) {
-      (risk as any).subClauses = attachedSubClauses[0];
-    }
+      // Filter out empty objects and transform keys
+      const filtered = arr.filter((item: any) => item && item.id != null);
 
-    const attachedAnnexCategories = (await sequelize.query(
-      `SELECT
-       acr.annexcategory_id AS id, ac.annexcategory_meta_id AS meta_id, asi.annex_no AS sup_id, acs.sub_id AS sub_id, acs.title, asi.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".annexcategories_iso__risks acr JOIN "${tenant}".annexcategories_iso ac ON acr.annexcategory_id = ac.id
-      JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
-      JOIN public.annex_struct_iso asi ON asi.id = acs.annex_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = asi.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedAnnexCategories[0].length > 0) {
-      (risk as any).annexCategories = attachedAnnexCategories[0];
-    }
+      return filtered.map((item: any) => ({
+        id: item.id,
+        meta_id: item.meta_id,
+        parent_id: item.parent_id,
+        sup_id: item.sup_id,
+        title: item.title,
+        sub_id: item.sub_id,
+        project_id: item.project_id
+      }));
+    };
 
-    const attachedControls = (await sequelize.query(
-      `SELECT cr.control_id AS id, ac.control_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".controls_eu__risks cr JOIN "${tenant}".controls_eu ac ON cr.control_id = ac.id
-      JOIN public.controls_struct_eu cse ON cse.id = ac.control_meta_id
-      JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = ccs.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedControls[0].length > 0) {
-      (risk as any).controls = attachedControls[0];
-    }
+    risk.subClauses = transformArray(risk.sub_clauses || []);
+    risk.annexCategories = transformArray(risk.annex_categories || []);
+    risk.controls = transformArray(risk.controls || []);
+    risk.assessments = transformArray(risk.assessments || []);
+    risk.annexControls_27001 = transformArray(risk.annex_controls_27001 || []);
+    risk.subClauses_27001 = transformArray(risk.sub_clauses_27001 || []);
 
-    const attachedAssessments = (await sequelize.query(
-      `SELECT ans.id AS id, ans.question_id AS meta_id, ts.id AS sup_id, sts.id AS sub_id, 
-        ts.title || '. ' || sts.title || '. ' || qse.question AS title, 
-        qse.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".answers_eu__risks aur JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
-      JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
-      JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
-      JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = ts.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedAssessments[0].length > 0) {
-      (risk as any).assessments = attachedAssessments[0];
-    }
-
-    const attachedAnnexControls_27001 = (await sequelize.query(
-      `SELECT acr.annexcontrol_id AS id, ac.annexcontrol_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".annexcontrols_iso27001__risks acr JOIN "${tenant}".annexcontrols_iso27001 ac ON acr.annexcontrol_id = ac.id
-      JOIN public.annexcontrols_struct_iso27001 cse ON cse.id = ac.annexcontrol_meta_id
-      JOIN public.annex_struct_iso27001 ccs ON ccs.id = cse.annex_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = ccs.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedAnnexControls_27001[0].length > 0) {
-      (risk as any).annexControls_27001 = attachedAnnexControls_27001[0];
-    }
-
-    const attachedSubClauses_27001 = (await sequelize.query(
-      `SELECT
-        scr.subclause_id AS id, sc.subclause_meta_id AS meta_id, csi.arrangement AS sup_id, scs.title, scs.order_no AS sub_id, csi.id AS parent_id, pf.project_id AS project_id
-      FROM "${tenant}".subclauses_iso27001__risks scr JOIN "${tenant}".subclauses_iso27001 sc ON scr.subclause_id = sc.id
-      JOIN public.subclauses_struct_iso27001 scs ON scs.id = sc.subclause_meta_id
-      JOIN public.clauses_struct_iso27001 csi ON csi.id = scs.clause_id
-      JOIN "${tenant}".projects_frameworks pf ON pf.framework_id = csi.framework_id
-      WHERE projects_risks_id = :riskId`,
-      { replacements: { riskId: risk.id } }
-    )) as [Mitigation[], number];
-    if (attachedSubClauses_27001[0].length > 0) {
-      (risk as any).subClauses_27001 = attachedSubClauses_27001[0];
-    }
+    // Clean up the snake_case versions
+    delete risk.sub_clauses;
+    delete risk.annex_categories;
+    delete risk.annex_controls_27001;
+    delete risk.sub_clauses_27001;
   }
-  return projectRisks;
+
+  return risks as IRisk[];
 };
 
 export const getRisksByProjectQuery = async (

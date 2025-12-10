@@ -96,7 +96,7 @@ const ApprovalWorkflows: React.FC = () => {
     const fetchApprovalWorkflowData = async (showLoading = true) => {
         if (showLoading) setIsLoading(true);
         try {
-            if (!workflowData || workflowData.length == 0) {
+            if (!workflowData || workflowData.length === 0) {
                 setWorkflowData(MOCK_WORKFLOWS);
             }
             //TO-DO: fetch approval workflows from API

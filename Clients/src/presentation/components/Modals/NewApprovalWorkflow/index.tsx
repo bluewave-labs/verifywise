@@ -45,7 +45,6 @@ interface ICreateApprovalWorkflowProps {
         steps: ApprovalWorkflowStepModel[];
     }
     isEdit?: boolean;
-    mode?: string;
     onSuccess?: (data: {
         workflow_title: string;
         entity: number;

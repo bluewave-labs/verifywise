@@ -14,7 +14,7 @@ export const workflowRowHover = {
     "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
 };
 
-export const worklowTableRowDeletingStyle = {
+export const workflowTableRowDeletingStyle = {
     opacity: 0.6,
     backgroundColor: "#f5f5f5",
 };

@@ -14,7 +14,7 @@ import {
 
 import {
     workflowRowHover,
-    worklowTableRowDeletingStyle,
+    workflowTableRowDeletingStyle,
     workflowFooterRow,
     workflowShowingText,
     workflowPaginationMenu,
@@ -262,7 +262,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 ...workflowRowHover,
                                 ...(archivedId ===
                                     workflow.id?.toString() &&
-                                    worklowTableRowDeletingStyle),
+                                    workflowTableRowDeletingStyle),
                             }}
                         >
                             <TableCell

@@ -154,8 +154,8 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 aValue = a.workflow_title?.toLowerCase() || "";
                 bValue = b.workflow_title?.toLowerCase() || "";
             } else if (sortKey.includes("entity")) {
-                const aEntity = entities.find(e => e._id == a.entity)?.name || "";
-                const bEntity = entities.find(e => e._id == b.entity)?.name || "";
+                const aEntity = entities.find(e => e._id === a.entity)?.name || "";
+                const bEntity = entities.find(e => e._id === b.entity)?.name || "";
                 aValue = aEntity.toLowerCase();
                 bValue = bEntity.toLowerCase();
             } else if (sortKey.includes("steps")) {
@@ -273,7 +273,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                             <TableCell
                                 sx={bodyCellEntityStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("entity")))}
                             >
-                                {entities.find(e => e._id == workflow.entity)?.name}
+                                {entities.find(e => e._id === workflow.entity)?.name}
                             </TableCell>
                             <TableCell
                                 sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("steps")))}

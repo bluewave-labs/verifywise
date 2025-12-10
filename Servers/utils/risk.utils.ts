@@ -167,6 +167,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
     LEFT JOIN public.clauses_struct_iso csi ON csi.id = scs.clause_id
     LEFT JOIN "${tenant}".projects_frameworks pf_sc ON pf_sc.framework_id = csi.framework_id
+      AND pf_sc.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     -- Annex Categories relationship
     LEFT JOIN "${tenant}".annexcategories_iso__risks acr ON r.id = acr.projects_risks_id
@@ -174,6 +175,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
     LEFT JOIN public.annex_struct_iso asi ON asi.id = acs.annex_id
     LEFT JOIN "${tenant}".projects_frameworks pf_ac ON pf_ac.framework_id = asi.framework_id
+      AND pf_ac.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     -- Controls EU relationship
     LEFT JOIN "${tenant}".controls_eu__risks cr ON r.id = cr.projects_risks_id
@@ -181,6 +183,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.controls_struct_eu cse ON cse.id = ac_eu.control_meta_id
     LEFT JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
     LEFT JOIN "${tenant}".projects_frameworks pf_cr ON pf_cr.framework_id = ccs.framework_id
+      AND pf_cr.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     -- Answers/Assessments EU relationship
     LEFT JOIN "${tenant}".answers_eu__risks aur ON r.id = aur.projects_risks_id
@@ -189,6 +192,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
     LEFT JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
     LEFT JOIN "${tenant}".projects_frameworks pf_ans ON pf_ans.framework_id = ts.framework_id
+      AND pf_ans.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     -- Annex Controls ISO 27001 relationship
     LEFT JOIN "${tenant}".annexcontrols_iso27001__risks acr_27001 ON r.id = acr_27001.projects_risks_id
@@ -196,6 +200,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.annexcontrols_struct_iso27001 cse_27001 ON cse_27001.id = ac_27001.annexcontrol_meta_id
     LEFT JOIN public.annex_struct_iso27001 ccs_27001 ON ccs_27001.id = cse_27001.annex_id
     LEFT JOIN "${tenant}".projects_frameworks pf_ac27001 ON pf_ac27001.framework_id = ccs_27001.framework_id
+      AND pf_ac27001.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     -- SubClauses ISO 27001 relationship
     LEFT JOIN "${tenant}".subclauses_iso27001__risks scr_27001 ON r.id = scr_27001.projects_risks_id
@@ -203,6 +208,7 @@ export const getAllRisksQuery = async (
     LEFT JOIN public.subclauses_struct_iso27001 scs_27001 ON scs_27001.id = sc_27001.subclause_meta_id
     LEFT JOIN public.clauses_struct_iso27001 csi_27001 ON csi_27001.id = scs_27001.clause_id
     LEFT JOIN "${tenant}".projects_frameworks pf_sc27001 ON pf_sc27001.framework_id = csi_27001.framework_id
+      AND pf_sc27001.project_id IN (SELECT project_id FROM "${tenant}".projects_risks WHERE risk_id = r.id)
 
     ${whereClause}
     GROUP BY r.id
@@ -211,6 +217,26 @@ export const getAllRisksQuery = async (
 
   const result = (await sequelize.query(query)) as [any[], number];
   const risks = result[0];
+
+  // Helper function to transform arrays - hoisted outside loop for performance
+  const transformArray = (arr: any[]) => {
+    if (typeof arr === 'string') {
+      arr = JSON.parse(arr);
+    }
+
+    // Filter out empty objects and transform keys
+    const filtered = arr.filter((item: any) => item && item.id != null);
+
+    return filtered.map((item: any) => ({
+      id: item.id,
+      meta_id: item.meta_id,
+      parent_id: item.parent_id,
+      sup_id: item.sup_id,
+      title: item.title,
+      sub_id: item.sub_id,
+      project_id: item.project_id
+    }));
+  };
 
   // Transform the aggregated JSON arrays back to the expected format
   for (let risk of risks) {
@@ -221,26 +247,6 @@ export const getAllRisksQuery = async (
     if (typeof risk.frameworks === 'string') {
       risk.frameworks = JSON.parse(risk.frameworks);
     }
-
-    // Handle the complex objects - rename keys to camelCase
-    const transformArray = (arr: any[]) => {
-      if (typeof arr === 'string') {
-        arr = JSON.parse(arr);
-      }
-
-      // Filter out empty objects and transform keys
-      const filtered = arr.filter((item: any) => item && item.id != null);
-
-      return filtered.map((item: any) => ({
-        id: item.id,
-        meta_id: item.meta_id,
-        parent_id: item.parent_id,
-        sup_id: item.sup_id,
-        title: item.title,
-        sub_id: item.sub_id,
-        project_id: item.project_id
-      }));
-    };
 
     risk.subClauses = transformArray(risk.sub_clauses || []);
     risk.annexCategories = transformArray(risk.annex_categories || []);

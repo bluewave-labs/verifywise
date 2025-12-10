@@ -343,12 +343,8 @@ export interface UIExtensionsResponse {
  * ```
  */
 export async function getAllPlugins(): Promise<PluginListResponse> {
-  try {
-    const response = await apiServices.get<PluginListResponse>(BASE_URL);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get<PluginListResponse>(BASE_URL);
+  return response.data;
 }
 
 /**
@@ -366,14 +362,10 @@ export async function getAllPlugins(): Promise<PluginListResponse> {
  * ```
  */
 export async function getPluginStats(): Promise<{ success: boolean; data: PluginStats }> {
-  try {
-    const response = await apiServices.get<{ success: boolean; data: PluginStats }>(
-      `${BASE_URL}/stats`
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get<{ success: boolean; data: PluginStats }>(
+    `${BASE_URL}/stats`
+  );
+  return response.data;
 }
 
 /**
@@ -390,12 +382,8 @@ export async function getPluginStats(): Promise<{ success: boolean; data: Plugin
  * ```
  */
 export async function getPluginById(id: string): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.get<PluginResponse>(`${BASE_URL}/${id}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get<PluginResponse>(`${BASE_URL}/${id}`);
+  return response.data;
 }
 
 /**
@@ -423,12 +411,8 @@ export async function getPluginById(id: string): Promise<PluginResponse> {
  * ```
  */
 export async function installPlugin(id: string): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/install`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/install`);
+  return response.data;
 }
 
 /**
@@ -458,12 +442,8 @@ export async function installPlugin(id: string): Promise<PluginResponse> {
  * ```
  */
 export async function uninstallPlugin(id: string): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/uninstall`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/uninstall`);
+  return response.data;
 }
 
 /**
@@ -492,12 +472,8 @@ export async function uninstallPlugin(id: string): Promise<PluginResponse> {
  * ```
  */
 export async function enablePlugin(id: string): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/enable`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/enable`);
+  return response.data;
 }
 
 /**
@@ -524,12 +500,8 @@ export async function enablePlugin(id: string): Promise<PluginResponse> {
  * ```
  */
 export async function disablePlugin(id: string): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/disable`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post<PluginResponse>(`${BASE_URL}/${id}/disable`);
+  return response.data;
 }
 
 /**
@@ -550,12 +522,8 @@ export async function disablePlugin(id: string): Promise<PluginResponse> {
  * ```
  */
 export async function getPluginConfig(id: string): Promise<PluginConfigResponse> {
-  try {
-    const response = await apiServices.get<PluginConfigResponse>(`${BASE_URL}/${id}/config`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get<PluginConfigResponse>(`${BASE_URL}/${id}/config`);
+  return response.data;
 }
 
 /**
@@ -584,12 +552,8 @@ export async function updatePluginConfig(
   id: string,
   config: Record<string, unknown>
 ): Promise<PluginResponse> {
-  try {
-    const response = await apiServices.put<PluginResponse>(`${BASE_URL}/${id}/config`, config);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.put<PluginResponse>(`${BASE_URL}/${id}/config`, config);
+  return response.data;
 }
 
 /**
@@ -624,23 +588,19 @@ export async function updatePluginConfig(
  * ```
  */
 export async function uploadPlugin(file: File): Promise<PluginUploadResponse> {
-  try {
-    const formData = new FormData();
-    formData.append("plugin", file);
+  const formData = new FormData();
+  formData.append("plugin", file);
 
-    const response = await apiServices.post<PluginUploadResponse>(
-      `${BASE_URL}/upload`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.post<PluginUploadResponse>(
+    `${BASE_URL}/upload`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
 }
 
 /**
@@ -666,12 +626,8 @@ export async function uploadPlugin(file: File): Promise<PluginUploadResponse> {
  * ```
  */
 export async function getPluginUIExtensions(): Promise<UIExtensionsResponse> {
-  try {
-    const response = await apiServices.get<UIExtensionsResponse>(
-      `${BASE_URL}/ui-extensions`
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiServices.get<UIExtensionsResponse>(
+    `${BASE_URL}/ui-extensions`
+  );
+  return response.data;
 }

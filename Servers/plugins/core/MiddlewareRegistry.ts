@@ -368,6 +368,13 @@ export function createPluginMiddlewareWrapper(
   getTenant: (req: Request) => string = () => "default"
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    // OPTIMIZATION: Skip all wrapper logic if no middleware is registered
+    // This eliminates overhead when no plugins are installed/enabled
+    const stats = registry.getStats();
+    if (stats.total === 0) {
+      return next();
+    }
+
     const path = req.path;
     const tenant = getTenant(req);
 

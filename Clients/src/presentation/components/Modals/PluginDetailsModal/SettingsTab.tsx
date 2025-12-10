@@ -91,10 +91,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     }
 
     // Enum/Select field - use Select component
-    if (schema.enum && schema.enum.length > 0) {
-      const items = schema.enum.map((option) => ({
+    // Support both schema.enum and schema.options (from manifest.json "select" type)
+    const selectOptions = schema.enum || schema.options;
+    if (schema.type === "select" || (selectOptions && selectOptions.length > 0)) {
+      const items = (selectOptions || []).map((option) => ({
         _id: option,
-        name: option,
+        name: option.charAt(0).toUpperCase() + option.slice(1), // Capitalize first letter
       }));
 
       return (

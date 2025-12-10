@@ -3,7 +3,7 @@ import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/mater
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
+import { BarChart3, ChevronDown, History as HistoryIcon, Upload } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
@@ -37,6 +37,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import HistorySidebar from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
+import RiskImportModal from "../../components/Modals/RiskImportModal";
 
 /**
  * Set initial loading status for all CRUD process
@@ -102,6 +103,7 @@ const RiskManagement = () => {
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
@@ -675,6 +677,22 @@ const RiskManagement = () => {
                 <BarChart3 size={16} color="#344054" />
               </IconButton>
             </div>
+            <CustomizableButton
+              variant="outlined"
+              text="Import"
+              onClick={() => setIsImportModalOpen(true)}
+              startIcon={<Upload size={16} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                border: "1px solid #D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
+              }}
+            />
             <div data-joyride-id="add-risk-button">
               <CustomizableButton
                 variant="contained"
@@ -1041,6 +1059,19 @@ const RiskManagement = () => {
         isOpen={isAIModalOpen}
         setIsOpen={setIsAIModalOpen}
         onRiskSelected={handleRiskSelected}
+      />
+      <RiskImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          handleAlert({
+            variant: "success",
+            body: "Risks imported successfully",
+            setAlert,
+          });
+          fetchProjectRisks();
+        }}
+        defaultRiskType="project"
       />
       <AddNewRiskIBMModal
         isOpen={isIBMModalOpen}

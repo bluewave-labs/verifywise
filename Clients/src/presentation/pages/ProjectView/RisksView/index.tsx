@@ -24,6 +24,9 @@ import { getAllEntities } from "../../../../application/repository/entity.reposi
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import RisksCard from "../../../components/Cards/RisksCard";
+import RiskImportModal from "../../../components/Modals/RiskImportModal";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { Upload } from "lucide-react";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -144,6 +147,8 @@ const RisksView: FC<RisksViewProps> = memo(
       title?: string;
       body: string;
     } | null>(null);
+
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     /**
      * Handles closing the risk edit popup
@@ -275,12 +280,45 @@ const RisksView: FC<RisksViewProps> = memo(
           >
             {title} risks
           </Typography>
-          {title === "Project" ? (
-            <AddNewRiskPopupRender />
-          ) : (
-            <AddNewVendorRiskPopupRender />
-          )}
+          <Stack direction="row" spacing={2}>
+            <CustomizableButton
+              variant="outlined"
+              text="Import"
+              onClick={() => setIsImportModalOpen(true)}
+              startIcon={<Upload size={16} />}
+              sx={{
+                height: "34px",
+                fontSize: "13px",
+                border: "1px solid #D0D5DD",
+                color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
+              }}
+            />
+            {title === "Project" ? (
+              <AddNewRiskPopupRender />
+            ) : (
+              <AddNewVendorRiskPopupRender />
+            )}
+          </Stack>
         </Stack>
+
+        <RiskImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={() => {
+            handleAlert({
+              variant: "success",
+              body: "Risks imported successfully",
+              setAlert,
+            });
+            fetchRiskData();
+          }}
+          defaultRiskType={title === "Project" ? "project" : "vendor"}
+          projectId={parseInt(projectId)}
+        />
 
         {Object.keys(selectedRow || {}).length > 0 &&
           anchorEl &&

@@ -205,18 +205,22 @@ try {
   app.use("/api/plugins", pluginRoutes);
   app.use("/api/marketplace", marketplaceRoutes);
 
-  // Initialize plugin system (pass app for mounting plugin routes)
+  // Start server with plugin initialization
   (async () => {
+    // Initialize plugin system BEFORE server starts accepting requests
+    // This prevents race conditions where requests arrive before plugins are loaded
     try {
       await initializePlugins(app);
     } catch (error) {
       console.error("[Plugins] Failed to initialize plugin system:", error);
+      // Continue starting server even if plugins fail - graceful degradation
     }
-  })();
 
-  app.listen(port, () => {
-    console.log(`Server running on port http://${host}:${port}/`);
-  });
+    // Start listening only after plugins are initialized
+    app.listen(port, () => {
+      console.log(`Server running on port http://${host}:${port}/`);
+    });
+  })();
 } catch (error) {
   console.error("Error setting up the server:", error);
 }

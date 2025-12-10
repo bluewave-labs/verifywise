@@ -342,7 +342,7 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
         );
 
       case "pie":
-      case "donut":
+      case "donut": {
         const innerRadius = chartType === "donut" ? "50%" : 0;
         return (
           <ResponsiveContainer width="100%" height={height}>
@@ -379,6 +379,7 @@ const ChartWidget: React.FC<ChartWidgetProps> = ({
             </PieChart>
           </ResponsiveContainer>
         );
+      }
 
       default:
         return (

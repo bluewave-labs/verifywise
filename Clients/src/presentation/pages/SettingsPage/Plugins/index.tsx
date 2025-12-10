@@ -340,7 +340,7 @@ const Plugins = () => {
             Plugin management
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#666666", mt: "4px" }}>
-            Manage installed plugins and extensions
+            Manage installed plugins. Browse the Marketplace to discover and install more.
           </Typography>
         </Box>
         <Stack direction="row" spacing="8px">
@@ -447,25 +447,9 @@ const Plugins = () => {
           >
             No plugins available
           </Typography>
-          <Typography sx={{ fontSize: 13, color: "#666666", mb: "24px" }}>
-            Plugins will appear here when registered
+          <Typography sx={{ fontSize: 13, color: "#666666" }}>
+            Browse the marketplace to discover and install plugins
           </Typography>
-          <CustomizableButton
-            variant="outlined"
-            text="Upload plugin"
-            icon={<UploadIcon size={16} />}
-            onClick={handleUploadClick}
-            sx={{
-              height: 34,
-              fontSize: 13,
-              borderColor: "#13715B",
-              color: "#13715B",
-              "&:hover": {
-                borderColor: "#0e5c47",
-                backgroundColor: "rgba(19, 113, 91, 0.04)",
-              },
-            }}
-          />
         </Box>
       ) : filteredPlugins.length === 0 ? (
         <Box

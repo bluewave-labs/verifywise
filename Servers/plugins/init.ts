@@ -74,6 +74,51 @@ let expressApp: Application | null = null;
 // Track mounted plugin routes to avoid duplicates
 const mountedPluginRoutes: Set<string> = new Set();
 
+// Flag indicating if required database tables exist
+let pluginTablesExist = false;
+
+/**
+ * Check if the required plugin database tables exist
+ * This prevents 500 errors when migrations haven't been run
+ */
+async function checkPluginTables(): Promise<boolean> {
+  try {
+    const [results] = await sequelize.query(
+      `SELECT
+        (SELECT to_regclass('public.plugin_states')) AS plugin_states,
+        (SELECT to_regclass('public.entity_metadata')) AS entity_metadata`
+    );
+
+    const row = results[0] as { plugin_states: string | null; entity_metadata: string | null };
+    const pluginStatesExists = row.plugin_states !== null;
+    const entityMetadataExists = row.entity_metadata !== null;
+
+    if (!pluginStatesExists || !entityMetadataExists) {
+      const missing: string[] = [];
+      if (!pluginStatesExists) missing.push('plugin_states');
+      if (!entityMetadataExists) missing.push('entity_metadata');
+
+      logger.warn(`[Plugins] WARNING: Missing database tables: ${missing.join(', ')}`);
+      logger.warn(`[Plugins] Run 'npx sequelize-cli db:migrate' to create them`);
+      logger.warn(`[Plugins] Plugin features will be limited until tables are created`);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    logger.error("[Plugins] Failed to check plugin tables:", error);
+    return false;
+  }
+}
+
+/**
+ * Check if plugin tables are available
+ * Use this to gracefully degrade when tables don't exist
+ */
+export function arePluginTablesAvailable(): boolean {
+  return pluginTablesExist;
+}
+
 /**
  * Create error handling middleware for plugin routes
  *
@@ -267,6 +312,12 @@ export async function initializePlugins(app?: Application): Promise<PluginManage
     expressApp = app;
   }
 
+  // Check if required database tables exist
+  pluginTablesExist = await checkPluginTables();
+  if (!pluginTablesExist) {
+    logger.warn("[Plugins] Plugin system running in limited mode (database tables missing)");
+  }
+
   // Create database service from sequelize
   const db = createDatabaseService(sequelize);
 
@@ -337,6 +388,12 @@ export async function initializePlugins(app?: Application): Promise<PluginManage
  */
 async function loadPluginStates(): Promise<void> {
   if (!pluginManager) return;
+
+  // Skip if tables don't exist
+  if (!pluginTablesExist) {
+    logger.info("[Plugins] Skipping state load (database tables not available)");
+    return;
+  }
 
   try {
     // Query plugin states from database
@@ -413,6 +470,12 @@ export async function savePluginState(
   enabled: boolean,
   config?: Record<string, unknown>
 ): Promise<void> {
+  // Skip if tables don't exist (graceful degradation)
+  if (!pluginTablesExist) {
+    logger.warn(`[Plugins] Cannot save state for "${pluginId}" (database tables not available)`);
+    return;
+  }
+
   try {
     await sequelize.query(
       `INSERT INTO plugin_states (tenant, plugin_id, installed, enabled, config, installed_at, enabled_at, updated_at)
@@ -446,6 +509,12 @@ export async function savePluginState(
  * Delete plugin state from database
  */
 export async function deletePluginState(pluginId: string): Promise<void> {
+  // Skip if tables don't exist (graceful degradation)
+  if (!pluginTablesExist) {
+    logger.warn(`[Plugins] Cannot delete state for "${pluginId}" (database tables not available)`);
+    return;
+  }
+
   try {
     await sequelize.query(
       `DELETE FROM plugin_states WHERE plugin_id = $1 AND tenant = 'default'`,

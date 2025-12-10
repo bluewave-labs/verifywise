@@ -14,13 +14,14 @@ export type { PluginFAQItem, PluginChangelogEntry };
 export type TabType = "about" | "settings" | "faq" | "changelog";
 
 export interface ConfigSchema {
-  type: "string" | "number" | "boolean" | "object" | "array";
+  type: "string" | "number" | "boolean" | "object" | "array" | "select";
   label?: string;
   required?: boolean;
   default?: unknown;
   secret?: boolean;
   description?: string;
   enum?: string[];
+  options?: string[];  // Alternative to enum for select fields
   min?: number;
   max?: number;
 }

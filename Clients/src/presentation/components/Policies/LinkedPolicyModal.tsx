@@ -96,6 +96,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
             "Unexpected error occurs while fetching project risks."
           );
         }
+        return null;
       }, []);
 
       useEffect(() => {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { createPolicyLinkedObjectQuery, deletePolicyLinkedObjectQuery, getAllPolicyLinkedObjectsQuery, getPolicyLinkedObjectByIdQuery, updatePolicyLinkedObjectQuery } from "../utils/policyLinkedObject.utils";
+import { createPolicyLinkedObjectQuery, deletePolicyLinkedObjectQuery, getPolicyLinkedObjectByIdQuery } from "../utils/policyLinkedObject.utils";
 import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 

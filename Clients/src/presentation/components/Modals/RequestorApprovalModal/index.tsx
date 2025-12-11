@@ -395,7 +395,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 <Box key={step.id} mb={12}>
                                     <Stack direction="row" spacing={8} justifyContent="center" alignItems="flex-start">
                                         <Box
-                                            sx={stepCircleStyle(step.status === 'completed')}
+                                            sx={stepCircleStyle(theme, step.status === 'completed')}
                                         >
                                             {step.status === 'completed' ? (
                                                 <Check size={12} color="#FFFFFF" />

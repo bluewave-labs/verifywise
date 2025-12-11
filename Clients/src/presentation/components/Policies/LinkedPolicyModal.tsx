@@ -230,6 +230,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
       
 
     return (
+      <>
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
@@ -277,7 +278,10 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 paginated={true}
             />
 
-            {alert && (
+           
+        </StandardModal>
+
+        {alert && (
               <Suspense fallback={<div>Loading...</div>}>
                   <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
                       <Box mb={2}>
@@ -296,7 +300,8 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
               </Suspense>
           )}
 
-        </StandardModal>
+
+        </>
     );
 };
 

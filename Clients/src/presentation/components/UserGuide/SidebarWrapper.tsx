@@ -12,8 +12,9 @@ import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
 import './SidebarWrapper.css';
+import RiskAdvisorChat from '../RiskAdvisorChat';
 
-type Tab = 'user-guide' | 'help';
+type Tab = 'user-guide' | 'advisor' | 'help';
 
 interface SidebarWrapperProps {
   isOpen: boolean;
@@ -177,16 +178,24 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Build breadcrumb items for dropdown
   const buildBreadcrumbs = () => {
-    const items: { label: string; onClick: () => void }[] = [
-      { label: 'User guide', onClick: handleHomeClick },
-    ];
-    if (collection) {
-      items.push({ label: collection.title, onClick: () => setArticleId(undefined) });
+    let items: { label: string; onClick: () => void }[] = [];
+    switch (activeTab) {
+      case 'user-guide':
+        items = [
+          { label: 'User guide', onClick: handleHomeClick },
+        ];
+        if (collection) {
+          items.push({ label: collection.title, onClick: () => setArticleId(undefined) });
+        }
+        if (article) {
+          items.push({ label: article.title, onClick: () => {} });
+        }
+        return items;
+      case 'advisor':
+        return [{ label: 'Advisor', onClick: () => {} }];
+      default:
+        return [{ label: 'Help', onClick: () => {} }];
     }
-    if (article) {
-      items.push({ label: article.title, onClick: () => {} });
-    }
-    return items;
   };
 
   // Handle "Open in new tab"
@@ -264,6 +273,22 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       />
     );
   };
+
+  // Render Advisor content
+  const renderAdvisorContent = () => {
+    return <RiskAdvisorChat />
+  }
+
+  const contentArea = (tabValue: Tab) => {
+    switch (tabValue) {
+      case 'user-guide':
+        return renderUserGuideContent();
+      case 'advisor':
+        return renderAdvisorContent();
+      default: 
+        return <HelpSection />;
+    }
+  }
 
   // Handle tab click - open sidebar if closed, or just switch tab
   const handleTabClick = (tab: Tab) => {
@@ -422,7 +447,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
                 backgroundColor: colors.background.alt,
               }}
             >
-              {activeTab === 'user-guide' ? renderUserGuideContent() : <HelpSection />}
+              {contentArea(activeTab)}
             </div>
           </>
         )}

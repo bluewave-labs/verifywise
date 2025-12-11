@@ -58,7 +58,7 @@ export const ChartRenderer: FC<ChartRendererProps> = ({ chartData }) => {
                 curve: 'linear',
               }))}
               height={250}
-              width={320}
+              width={300}
               margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
             />
           );

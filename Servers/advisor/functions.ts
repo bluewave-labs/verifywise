@@ -1,7 +1,20 @@
 import { IRisk } from "../domain.layer/interfaces/I.risk";
-import { getAllRisksQuery, getRisksByProjectQuery, getRisksByFrameworkQuery } from "../utils/risk.utils";
 import { getTimeseriesForTimeframe } from "../utils/history/riskHistory.utils";
-
+import {
+  getAllRisksQuery,
+  getRisksByFrameworkQuery,
+  getRisksByProjectQuery,
+} from "../utils/risk.utils";
+import {
+  getCachedAnalytics,
+  setCachedAnalytics,
+  getCachedExecutiveSummary,
+  setCachedExecutiveSummary,
+  getCachedTimeseries,
+  setCachedTimeseries,
+  getCachedRiskData,
+  setCachedRiskData,
+} from "../utils/cache/advisor.cache";
 
 export interface FetchRisksParams {
   projectId?: number;
@@ -9,51 +22,113 @@ export interface FetchRisksParams {
   severity?: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   likelihood?: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
   category?: string;
-  mitigationStatus?: "Not Started" | "In Progress" | "Completed" | "On Hold" | "Deferred" | "Canceled" | "Requires review";
-  riskLevel?: "No risk" | "Very low risk" | "Low risk" | "Medium risk" | "High risk" | "Very high risk";
+  mitigationStatus?:
+    | "Not Started"
+    | "In Progress"
+    | "Completed"
+    | "On Hold"
+    | "Deferred"
+    | "Canceled"
+    | "Requires review";
+  riskLevel?:
+    | "No risk"
+    | "Very low risk"
+    | "Low risk"
+    | "Medium risk"
+    | "High risk"
+    | "Very high risk";
   aiLifecyclePhase?: string;
   limit?: number;
+  overdue?: boolean;
 }
 
 const fetchRisks = async (
   params: FetchRisksParams,
-  tenant: string
+  tenant: string,
 ): Promise<IRisk[]> => {
   let risks: IRisk[] = [];
 
   try {
-    // Fetch based on scope
-    if (params.projectId) {
-      const result = await getRisksByProjectQuery(params.projectId, tenant, 'active');
-      risks = result || [];
-    } else if (params.frameworkId) {
-      const result = await getRisksByFrameworkQuery(params.frameworkId, tenant, 'active');
-      risks = result || [];
+    // Try cache first
+    // const cached = await getCachedRiskData(tenant, params.projectId);
+    const cached = await getCachedRiskData(tenant, params.projectId);
+    if (cached) {
+      if (params.projectId) {
+        const result = cached.filter((risk: any) =>
+          risk.projects.includes(params.projectId),
+        );
+        risks = result || [];
+      } else if (params.frameworkId) {
+        const result = cached.filter((risk: any) =>
+          risk.frameworks.includes(params.frameworkId),
+        );
+        risks = result || [];
+      } else {
+        risks = cached;
+      }
     } else {
-      risks = await getAllRisksQuery(tenant, 'active');
+      await setCachedRiskData(
+        tenant,
+        params.projectId,
+        await getAllRisksQuery(tenant, "active"),
+      );
+
+      // Fetch based on scope
+      if (params.projectId) {
+        const result = await getRisksByProjectQuery(
+          params.projectId,
+          tenant,
+          "active",
+        );
+        risks = result || [];
+      } else if (params.frameworkId) {
+        const result = await getRisksByFrameworkQuery(
+          params.frameworkId,
+          tenant,
+          "active",
+        );
+        risks = result || [];
+      } else {
+        risks = await getAllRisksQuery(tenant, "active");
+      }
     }
 
     // Apply filters
     if (params.severity) {
-      risks = risks.filter(r => r.severity === params.severity);
+      risks = risks.filter((r) => r.severity === params.severity);
     }
     if (params.likelihood) {
-      risks = risks.filter(r => r.likelihood === params.likelihood);
+      risks = risks.filter((r) => r.likelihood === params.likelihood);
     }
     if (params.category) {
-      risks = risks.filter(r =>
-        r.risk_category && Array.isArray(r.risk_category) &&
-        r.risk_category.some(cat => cat.toLowerCase().includes(params.category!.toLowerCase()))
+      risks = risks.filter(
+        (r) =>
+          r.risk_category &&
+          Array.isArray(r.risk_category) &&
+          r.risk_category.some((cat) =>
+            cat.toLowerCase().includes(params.category!.toLowerCase()),
+          ),
       );
     }
     if (params.mitigationStatus) {
-      risks = risks.filter(r => r.mitigation_status === params.mitigationStatus);
+      risks = risks.filter(
+        (r) => r.mitigation_status === params.mitigationStatus,
+      );
     }
     if (params.riskLevel) {
-      risks = risks.filter(r => r.risk_level_autocalculated === params.riskLevel);
+      risks = risks.filter(
+        (r) => r.risk_level_autocalculated === params.riskLevel,
+      );
     }
     if (params.aiLifecyclePhase) {
-      risks = risks.filter(r => r.ai_lifecycle_phase === params.aiLifecyclePhase);
+      risks = risks.filter(
+        (r) => r.ai_lifecycle_phase === params.aiLifecyclePhase,
+      );
+    }
+
+    if (params.overdue) {
+      const now = new Date();
+      risks = risks.filter((r) => r.deadline && new Date(r.deadline) < now);
     }
 
     // Limit results
@@ -64,10 +139,11 @@ const fetchRisks = async (
     return risks;
   } catch (error) {
     console.error("Error fetching risks:", error);
-    throw new Error(`Failed to fetch risks: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to fetch risks: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
-
 
 export interface RiskAnalytics {
   riskMatrix: {
@@ -94,29 +170,44 @@ export interface RiskAnalytics {
 
 const getRiskAnalytics = async (
   params: { projectId?: number },
-  tenant: string
+  tenant: string,
 ): Promise<RiskAnalytics> => {
   try {
-    // Fetch risks for analysis
-    const risks = params.projectId
-      ? await getRisksByProjectQuery(params.projectId, tenant, 'active') || []
-      : await getAllRisksQuery(tenant, 'active');
+    // Try cache first
+    const cached = await getCachedAnalytics(tenant, params.projectId);
+    if (cached) {
+      return cached;
+    }
+
+    const risks = await fetchRisks({ projectId: params.projectId }, tenant);
 
     const totalRisks = risks.length;
 
     // 1. Risk Matrix (Severity × Likelihood)
-    const riskMatrix: RiskAnalytics['riskMatrix'] = {};
-    const severities = ["Negligible", "Minor", "Moderate", "Major", "Catastrophic"];
-    const likelihoods = ["Rare", "Unlikely", "Possible", "Likely", "Almost Certain"];
+    const riskMatrix: RiskAnalytics["riskMatrix"] = {};
+    const severities = [
+      "Negligible",
+      "Minor",
+      "Moderate",
+      "Major",
+      "Catastrophic",
+    ];
+    const likelihoods = [
+      "Rare",
+      "Unlikely",
+      "Possible",
+      "Likely",
+      "Almost Certain",
+    ];
 
-    severities.forEach(sev => {
+    severities.forEach((sev) => {
       riskMatrix[sev] = {};
-      likelihoods.forEach(like => {
+      likelihoods.forEach((like) => {
         riskMatrix[sev][like] = 0;
       });
     });
 
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.severity && risk.likelihood) {
         riskMatrix[risk.severity][risk.likelihood]++;
       }
@@ -124,9 +215,9 @@ const getRiskAnalytics = async (
 
     // 2. Category Distribution
     const categoryMap = new Map<string, number>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.risk_category && Array.isArray(risk.risk_category)) {
-        risk.risk_category.forEach(cat => {
+        risk.risk_category.forEach((cat) => {
           categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
         });
       }
@@ -136,20 +227,21 @@ const getRiskAnalytics = async (
       .map(([category, count]) => ({
         category,
         count,
-        percentage: totalRisks > 0 ? Math.round((count / totalRisks) * 100) : 0
+        percentage: totalRisks > 0 ? Math.round((count / totalRisks) * 100) : 0,
       }))
       .sort((a, b) => b.count - a.count);
 
     // 3. Mitigation Status Breakdown
     const mitigationStatusBreakdown: { [status: string]: number } = {};
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       const status = risk.mitigation_status || "Not Started";
-      mitigationStatusBreakdown[status] = (mitigationStatusBreakdown[status] || 0) + 1;
+      mitigationStatusBreakdown[status] =
+        (mitigationStatusBreakdown[status] || 0) + 1;
     });
 
     // 4. Lifecycle Phase Distribution
     const lifecyclePhaseDistribution: { [phase: string]: number } = {};
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.ai_lifecycle_phase) {
         lifecyclePhaseDistribution[risk.ai_lifecycle_phase] =
           (lifecyclePhaseDistribution[risk.ai_lifecycle_phase] || 0) + 1;
@@ -158,27 +250,33 @@ const getRiskAnalytics = async (
 
     // 5. Risk Level Summary
     const riskLevelSummary: { [level: string]: number } = {};
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.risk_level_autocalculated) {
         riskLevelSummary[risk.risk_level_autocalculated] =
           (riskLevelSummary[risk.risk_level_autocalculated] || 0) + 1;
       }
     });
 
-    return {
+    const analytics = {
       riskMatrix,
       categoryDistribution,
       mitigationStatusBreakdown,
       lifecyclePhaseDistribution,
       riskLevelSummary,
-      totalRisks
+      totalRisks,
     };
+
+    // Cache the result
+    await setCachedAnalytics(tenant, params.projectId, analytics);
+
+    return analytics;
   } catch (error) {
     console.error("Error getting risk analytics:", error);
-    throw new Error(`Failed to get risk analytics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to get risk analytics: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
-
 
 export interface ExecutiveSummary {
   totalActiveRisks: number;
@@ -203,32 +301,36 @@ export interface ExecutiveSummary {
 
 const getExecutiveSummary = async (
   params: { projectId?: number },
-  tenant: string
+  tenant: string,
 ): Promise<ExecutiveSummary> => {
   try {
-    // Fetch risks
-    const risks = params.projectId
-      ? await getRisksByProjectQuery(params.projectId, tenant, 'active') || []
-      : await getAllRisksQuery(tenant, 'active');
+    // Try cache first
+    const cached = await getCachedExecutiveSummary(tenant, params.projectId);
+    if (cached) {
+      return cached;
+    }
+
+    const risks = await fetchRisks({ projectId: params.projectId }, tenant);
 
     const totalActiveRisks = risks.length;
 
     // Count critical and high risks
-    const criticalRisks = risks.filter(r =>
-      r.severity === "Catastrophic" ||
-      r.risk_level_autocalculated === "Very high risk"
+    const criticalRisks = risks.filter(
+      (r) =>
+        r.severity === "Catastrophic" ||
+        r.risk_level_autocalculated === "Very high risk",
     ).length;
 
-    const highRisks = risks.filter(r =>
-      r.severity === "Major" ||
-      r.risk_level_autocalculated === "High risk"
+    const highRisks = risks.filter(
+      (r) =>
+        r.severity === "Major" || r.risk_level_autocalculated === "High risk",
     ).length;
 
     // Top categories (top 3)
     const categoryMap = new Map<string, number>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.risk_category && Array.isArray(risk.risk_category)) {
-        risk.risk_category.forEach(cat => {
+        risk.risk_category.forEach((cat) => {
           categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
         });
       }
@@ -241,29 +343,36 @@ const getExecutiveSummary = async (
 
     // Overdue mitigations
     const now = new Date();
-    const overdueMitigations = risks.filter(r =>
-      r.deadline &&
-      new Date(r.deadline) < now &&
-      r.mitigation_status !== "Completed"
+    const overdueMitigations = risks.filter(
+      (r) =>
+        r.deadline &&
+        new Date(r.deadline) < now &&
+        r.mitigation_status !== "Completed",
     ).length;
 
     // Mitigation progress
     const mitigationProgress = {
-      notStarted: risks.filter(r => r.mitigation_status === "Not Started").length,
-      inProgress: risks.filter(r => r.mitigation_status === "In Progress").length,
-      completed: risks.filter(r => r.mitigation_status === "Completed").length
+      notStarted: risks.filter((r) => r.mitigation_status === "Not Started")
+        .length,
+      inProgress: risks.filter((r) => r.mitigation_status === "In Progress")
+        .length,
+      completed: risks.filter((r) => r.mitigation_status === "Completed")
+        .length,
     };
 
     // Urgent risks (high/critical severity with upcoming deadlines or overdue)
     const urgentRisks = risks
-      .filter(r =>
-        (r.severity === "Major" || r.severity === "Catastrophic") &&
-        r.mitigation_status !== "Completed"
+      .filter(
+        (r) =>
+          (r.severity === "Major" || r.severity === "Catastrophic") &&
+          r.mitigation_status !== "Completed",
       )
-      .map(r => {
+      .map((r) => {
         const deadline = r.deadline ? new Date(r.deadline) : null;
         const daysUntilDeadline = deadline
-          ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          ? Math.ceil(
+              (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+            )
           : null;
 
         return {
@@ -272,7 +381,7 @@ const getExecutiveSummary = async (
           severity: r.severity,
           likelihood: r.likelihood,
           deadline,
-          daysUntilDeadline
+          daysUntilDeadline,
         };
       })
       .sort((a, b) => {
@@ -283,22 +392,27 @@ const getExecutiveSummary = async (
       })
       .slice(0, 5); // Top 5 most urgent
 
-    return {
+    const summary = {
       totalActiveRisks,
       criticalRisks,
       highRisks,
       topCategories,
       overdueMitigations,
       mitigationProgress,
-      urgentRisks
+      urgentRisks,
     };
+
+    // Cache the result
+    await setCachedExecutiveSummary(tenant, params.projectId, summary);
+
+    return summary;
   } catch (error) {
     console.error("Error getting executive summary:", error);
-    throw new Error(`Failed to get executive summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to get executive summary: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
-
-
 
 export interface RiskHistoryTimeseriesParams {
   parameter: "severity" | "likelihood" | "mitigation_status" | "risk_level";
@@ -312,30 +426,41 @@ export interface TimeseriesDataPoint {
 
 const getRiskHistoryTimeseries = async (
   params: RiskHistoryTimeseriesParams,
-  tenant: string
+  tenant: string,
 ): Promise<TimeseriesDataPoint[]> => {
   try {
     const { parameter, timeframe } = params;
+
+    // Try cache first
+    const cached = await getCachedTimeseries(tenant, parameter, timeframe);
+    if (cached) {
+      return cached;
+    }
 
     // Fetch timeseries data using the utility function
     const timeseriesData = await getTimeseriesForTimeframe(
       parameter,
       timeframe,
-      tenant
+      tenant,
     );
+
+    // Cache the result
+    await setCachedTimeseries(tenant, parameter, timeframe, timeseriesData);
 
     return timeseriesData;
   } catch (error) {
     console.error("Error getting risk history timeseries:", error);
-    throw new Error(`Failed to get risk history timeseries: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to get risk history timeseries: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
 
 const availableTools: any = {
-    "fetch_risks": fetchRisks,
-    "get_risk_analytics": getRiskAnalytics,
-    "get_executive_summary": getExecutiveSummary,
-    "get_risk_history_timeseries": getRiskHistoryTimeseries
+  fetch_risks: fetchRisks,
+  get_risk_analytics: getRiskAnalytics,
+  get_executive_summary: getExecutiveSummary,
+  get_risk_history_timeseries: getRiskHistoryTimeseries,
 };
 
-export {availableTools};
+export { availableTools };

@@ -209,9 +209,9 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 onClick={() => sortable && handleSort(column.label)}
                             >
                                 <Box sx={headerContentBoxStyle(theme)}>
-                                    <div style={headerLabelStyle(sortConfig.key === column.label)}>
+                                    <Box sx={headerLabelStyle(sortConfig.key === column.label)}>
                                         {column.label}
-                                    </div>
+                                    </Box>
                                     {sortable && (
                                         <Box sx={sortIconBoxStyle(sortConfig.key === column.label)}>
                                             {sortConfig.key === column.label && sortConfig.direction === "asc" && (

@@ -75,6 +75,8 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
 
 
     useEffect(() => {
+      if (!alert) return;
+
       if (alert) {
         setShowAlert(true);
         const timer = setTimeout(() => {

@@ -76,16 +76,16 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
 
     useEffect(() => {
       if (!alert) return;
-
-      if (alert) {
-        setShowAlert(true);
-        const timer = setTimeout(() => {
-          setShowAlert(false);
-          setTimeout(() => setAlert(null), 300);
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
+    
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+    
+      return () => clearTimeout(timer);
     }, [alert]);
+    
 
     const fetchProjectRisks = useCallback(async (filter: 'active' | 'deleted' | 'all' = 'active') => {
         try {

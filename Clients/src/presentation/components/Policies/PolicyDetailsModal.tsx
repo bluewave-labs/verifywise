@@ -40,6 +40,7 @@ import {
   Image,
   Redo2,
   Undo2,
+  History as HistoryIcon,
 } from "lucide-react";
 
 const FormatUnderlined = () => <Underline size={16} />;
@@ -49,6 +50,8 @@ import { IconButton, Tooltip, useTheme, Box, Select, MenuItem } from "@mui/mater
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
+import HistorySidebar from "../Common/HistorySidebar";
+import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
   createPolicy,
   updatePolicy,
@@ -75,6 +78,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [openImage, setOpenImage] = useState(false);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+  // Prefetch history data when drawer opens in edit mode
+  usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -124,6 +131,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       assignedReviewers: [],
       content: "",
     });
+    setIsHistorySidebarOpen(false);
     onClose();
   }
 
@@ -604,13 +612,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         }}
         anchor="right"
         sx={{
-          width: 900,
+          width: isHistorySidebarOpen ? 1236 : 900,
           "& .MuiDrawer-paper": {
-            width: 900,
+            width: isHistorySidebarOpen ? 1236 : 900,
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
             overflow: "hidden",
+            transition: "width 300ms ease-in-out",
           },
         }}
       >
@@ -625,27 +634,57 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             <Typography
               sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
             >
-              {isNew ? "Create new policy" : formData.title}
+              {isNew ? (template ? "Create new policy from the template" : "Create new policy") : formData.title}
             </Typography>
           </Stack>
-          <CloseGreyIcon
-            size={16}
-            style={{ color: "#98A2B3", cursor: "pointer" }}
-            onClick={handleClose}
-          />
+          <Stack direction="row" alignItems="center" gap={1}>
+            {!isNew && policy?.id && (
+              <Tooltip title="View activity history" arrow>
+                <IconButton
+                  onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
+                  size="small"
+                  sx={{
+                    color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                    padding: "4px",
+                    borderRadius: "4px",
+                    backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
+                    "&:hover": {
+                      backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
+                    },
+                  }}
+                >
+                  <HistoryIcon size={16} />
+                </IconButton>
+              </Tooltip>
+            )}
+            <CloseGreyIcon
+              size={16}
+              style={{ color: "#98A2B3", cursor: "pointer" }}
+              onClick={handleClose}
+            />
+          </Stack>
         </Stack>
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={2} sx={{ paddingBottom: "16px" }}>
-          <PolicyForm
-            formData={formData}
-            setFormData={setFormData}
-            tags={tags}
-            errors={errors}
-            setErrors={setErrors}
-          />
-          <Stack sx={{ width: "100%", height: "100%" }}>
+        <Stack
+          direction="row"
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
+          {/* Main Content */}
+          <Stack spacing={2} sx={{ flex: 1, paddingBottom: "16px", minWidth: 0, overflow: "auto" }}>
+            <PolicyForm
+              formData={formData}
+              setFormData={setFormData}
+              tags={tags}
+              errors={errors}
+              setErrors={setErrors}
+            />
+            <Stack sx={{ width: "100%", height: "100%" }}>
             <Box
               sx={{
                 display: "flex",
@@ -780,13 +819,24 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
               </Typography>
             )}
           </Stack>
+          </Stack>
+
+          {/* History Sidebar - Only shown when editing */}
+          {!isNew && policy?.id && (
+            <HistorySidebar
+              isOpen={isHistorySidebarOpen}
+              entityType="policy"
+              entityId={policy.id}
+              height="100%"
+            />
+          )}
         </Stack>
 
         <Box
           sx={{
             position: "fixed",
             bottom: 0,
-            right: 20,
+            right: isHistorySidebarOpen ? 356 : 20,
             left: "auto",
             width: "calc(900px - 40px)",
             pt: 2,
@@ -796,11 +846,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             display: "flex",
             justifyContent: "flex-end",
             zIndex: 1201,
+            transition: "right 300ms ease-in-out",
           }}
         >
           <CustomizableButton
             variant="contained"
-            text="Save"
+            text={isNew && template ? "Save in organizational policies" : "Save"}
             sx={{
               backgroundColor: "#13715B",
               border: "1px solid #13715B",

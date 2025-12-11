@@ -9,10 +9,10 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
 
 export const invite = async (
-  req: Request,
+  _req: Request,
   res: Response,
   body: {
     to: string;

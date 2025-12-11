@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ArrowRight, FileText, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, GraduationCap, BarChart3, LucideIcon } from 'lucide-react';
+import { ChevronLeft, ArrowRight, FileText, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, GraduationCap, BarChart3, FlaskConical, LucideIcon } from 'lucide-react';
 import { Collection, IconName } from '@user-guide-content/userGuideConfig';
 
 // Map icon names to actual Lucide components
@@ -13,6 +13,7 @@ const iconMap: Record<IconName, LucideIcon> = {
   FileText,
   GraduationCap,
   BarChart3,
+  FlaskConical,
 };
 import { colors, typography, spacing, border } from './styles/theme';
 import './CollectionPage.css';

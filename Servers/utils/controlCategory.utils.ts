@@ -7,9 +7,7 @@ import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 
 export const getAllControlCategoriesQuery = async (
   tenant: string
-): Promise<
-  ControlCategoryModel[]
-> => {
+): Promise<ControlCategoryModel[]> => {
   const controlCategories = await sequelize.query(
     `SELECT * FROM "${tenant}".controlcategories ORDER BY created_at DESC, id ASC`,
     {
@@ -108,6 +106,7 @@ export const updateControlCategoryByIdQuery = async (
           controlCategory[f as keyof ControlCategoryModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

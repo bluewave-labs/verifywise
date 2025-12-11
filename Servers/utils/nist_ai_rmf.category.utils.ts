@@ -3,7 +3,7 @@ import { NISTAIMRFCategoryModel } from "../domain.layer/frameworks/NIST-AI-RMF/n
 
 export const getAllNISTAIRMFCategoriesBytitleQuery = async (
   title: string,
-  tenant: string
+  _tenant: string
 ): Promise<NISTAIMRFCategoryModel[]> => {
   const categories = await sequelize.query(
     `SELECT * FROM "public".nist_ai_rmf_categories WHERE title = :title ORDER BY created_at DESC, id ASC`,

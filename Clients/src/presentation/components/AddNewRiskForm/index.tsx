@@ -57,6 +57,9 @@ const COMPONENT_CONSTANTS = {
   TAB_GAP: "34px",
   MIN_TAB_HEIGHT: "20px",
   BORDER_RADIUS: 2,
+  // Match the form content widths from RisksSection/MitigationSection
+  CONTENT_WIDTH: 985, // 323 * 3 + 8 * 2
+  COMPACT_CONTENT_WIDTH: 970, // Account for scrollbar (~17px)
 } as const;
 
 const VALIDATION_LIMITS = {
@@ -128,6 +131,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   users: usersProp,
   usersLoading: usersLoadingProp,
   onSubmitRef,
+  compactMode = false,
 }) => {
   const theme = useTheme();
   const disableRipple =
@@ -753,10 +757,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     );
   }
 
+  // Calculate tab bar width based on compactMode
+  const tabBarWidth = compactMode
+    ? COMPONENT_CONSTANTS.COMPACT_CONTENT_WIDTH
+    : COMPONENT_CONSTANTS.CONTENT_WIDTH;
+
   return (
     <Stack className="AddNewRiskForm">
       <TabContext value={value}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider", width: `${tabBarWidth}px` }}>
           <TabList
             onChange={handleChange}
             aria-label="Add new risk tabs"
@@ -799,6 +808,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               riskErrors={riskErrors}
               userRoleName={userRoleName}
               disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
           <TabPanel
@@ -815,6 +825,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               mitigationErrors={mitigationErrors}
               userRoleName={userRoleName}
               disableInternalScroll={!!onSubmitRef}
+              compactMode={compactMode}
             />
           </TabPanel>
         </Suspense>

@@ -190,7 +190,7 @@ const CustomizablePolicyTable = ({
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
         {data.cols.map((col) => {
           const isLastColumn = col.id === "actions";
-          const sortable = !["actions"].includes(col.id);
+          const sortable = !["actions", "tags"].includes(col.id);
 
           return (
             <TableCell

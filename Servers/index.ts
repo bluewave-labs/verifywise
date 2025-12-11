@@ -2,25 +2,19 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { csrf } from "lusca";
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
-import controlRoutes from "./routes/control.route";
 import projectRoutes from "./routes/project.route";
 import risksRoutes from "./routes/risks.route";
-import projectScopeRoutes from "./routes/projectScope.route";
 import questionRoutes from "./routes/question.route";
-import subcontrolRoutes from "./routes/subcontrol.route";
-import subtopicRoutes from "./routes/subtopic.route";
-import topicRoutes from "./routes/topic.route";
 import userRoutes from "./routes/user.route";
 import vendorRoutes from "./routes/vendor.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
+import vendorChangeHistoryRoutes from "./routes/vendorChangeHistory.route";
 import roleRoutes from "./routes/role.route";
 import fileRoutes from "./routes/file.route";
 import mailRoutes from "./routes/vwmailer.route";
-import controlCategory from "./routes/controlCategory.route";
 import euRouter from "./routes/eu.route";
 import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
@@ -61,6 +55,11 @@ import searchRoutes from "./routes/search.route";
 import deepEvalRoutes from "./routes/deepEvalRoutes.route";
 import evaluationLlmApiKeyRoutes from "./routes/evaluationLlmApiKey.route";
 import notesRoutes from "./routes/notes.route";
+import vendorRiskChangeHistoryRoutes from "./routes/vendorRiskChangeHistory.route";
+import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
+import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
+import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
+import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -98,7 +97,7 @@ try {
           const requestHost = originUrl.hostname;
 
           // Allow if origin is from same host (localhost, 127.0.0.1, or actual host)
-          const allowedHosts = [host, 'localhost', '127.0.0.1', '::1'];
+          const allowedHosts = [host, "localhost", "127.0.0.1", "::1"];
 
           if (allowedHosts.includes(requestHost)) {
             return callback(null, true);
@@ -116,7 +115,10 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/api/bias_and_fairness/") || req.url.includes("/api/deepeval/")) {
+    if (
+      req.url.includes("/api/bias_and_fairness/") ||
+      req.url.includes("/api/deepeval/")
+    ) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -129,6 +131,7 @@ try {
   app.use("/api/users", userRoutes);
   app.use("/api/vendorRisks", vendorRiskRoutes);
   app.use("/api/vendors", vendorRoutes);
+  app.use("/api/vendor-change-history", vendorChangeHistoryRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);
@@ -154,7 +157,10 @@ try {
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
-  app.use("/api/model-inventory-change-history", modelInventoryChangeHistoryRoutes);
+  app.use(
+    "/api/model-inventory-change-history",
+    modelInventoryChangeHistoryRoutes
+  );
   app.use("/api/riskHistory", riskHistoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
@@ -185,6 +191,11 @@ try {
   app.use("/api/deepeval", deepEvalRoutes());
   app.use("/api/evaluation-llm-keys", evaluationLlmApiKeyRoutes);
   app.use("/api/notes", notesRoutes);
+  app.use("/api/vendor-risk-change-history", vendorRiskChangeHistoryRoutes);
+  app.use("/api/policy-change-history", policyChangeHistoryRoutes);
+  app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
+  app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
+  app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

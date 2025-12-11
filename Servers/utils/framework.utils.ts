@@ -1,4 +1,4 @@
-import { QueryTypes, Transaction } from "sequelize";
+import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
@@ -68,7 +68,7 @@ const checkFrameworkExistsQuery = async (
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
   return exists;
-}
+};
 
 const canRemoveFrameworkFromProjectQuery = async (
   frameworkId: number,
@@ -76,17 +76,22 @@ const canRemoveFrameworkFromProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  const exists = await checkFrameworkExistsQuery(
+    frameworkId,
+    projectId,
+    tenant,
+    transaction
+  );
   if (!exists) {
     return false; // Framework not found in the project
   }
-  
+
   const [[{ can_remove }]] = (await sequelize.query(
     `SELECT (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) > 1 AND EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS can_remove;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ can_remove: boolean }], number];
   return can_remove;
-}
+};
 
 export const canAddFrameworkToProjectQuery = async (
   frameworkId: number,
@@ -94,7 +99,12 @@ export const canAddFrameworkToProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  const exists = await checkFrameworkExistsQuery(
+    frameworkId,
+    projectId,
+    tenant,
+    transaction
+  );
   if (exists) {
     return false; // Framework already added
   }
@@ -113,7 +123,7 @@ export const canAddFrameworkToProjectQuery = async (
   }
 
   return true; // Framework can be added
-}
+};
 
 export const addFrameworkToProjectQuery = async (
   frameworkId: number,
@@ -121,7 +131,12 @@ export const addFrameworkToProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const canAdd = await canAddFrameworkToProjectQuery(frameworkId, projectId, tenant, transaction);
+  const canAdd = await canAddFrameworkToProjectQuery(
+    frameworkId,
+    projectId,
+    tenant,
+    transaction
+  );
   if (!canAdd) {
     return false;
   }
@@ -165,7 +180,12 @@ export const deleteFrameworkFromProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const canRemove = await canRemoveFrameworkFromProjectQuery(frameworkId, projectId, tenant, transaction);
+  const canRemove = await canRemoveFrameworkFromProjectQuery(
+    frameworkId,
+    projectId,
+    tenant,
+    transaction
+  );
   if (!canRemove) {
     return false;
   }
@@ -188,6 +208,10 @@ export const deleteFrameworkFromProjectQuery = async (
     return false;
   }
   // call framework deletion function
-  const result = await frameworkDeletionFunction(projectId, tenant, transaction);
+  const result = await frameworkDeletionFunction(
+    projectId,
+    tenant,
+    transaction
+  );
   return result;
 };

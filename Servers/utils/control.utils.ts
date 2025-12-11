@@ -1,7 +1,7 @@
 import { ControlModel } from "../domain.layer/models/control/control.model";
 import { sequelize } from "../database/db";
 import { createNewSubControlsQuery } from "./subControl.utils";
-import { Model, QueryTypes, Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { IControl } from "../domain.layer/interfaces/i.control";
 
 export const getAllControlsQuery = async (
@@ -135,6 +135,7 @@ export const updateControlByIdQuery = async (
           control[f as keyof ControlModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

@@ -10,6 +10,8 @@ import {
     FormLabel,
     useTheme,
     Divider,
+    IconButton,
+    Tooltip,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
 import Checkbox from "../../Inputs/Checkbox";
@@ -17,6 +19,7 @@ import dayjs, { Dayjs } from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { History as HistoryIcon } from "lucide-react";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { getAllProjects } from "../../../../application/repository/project.repository";
 import { User } from "../../../../domain/types/User";
@@ -29,6 +32,7 @@ import {
     IncidentType,
     HarmCategory,
 } from "../../../../domain/enums/aiIncidentManagement.enum";
+import HistorySidebar from "../../Common/HistorySidebar";
 
 // To
 import Field from "../../Inputs/Field";
@@ -42,6 +46,7 @@ interface SideDrawerIncidentProps {
     initialData?: NewIncidentFormValues;
     isEdit?: boolean;
     mode?: string;
+    incidentId?: number;
 }
 
 export interface NewIncidentFormValues {
@@ -134,6 +139,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     initialData,
     isEdit = false,
     mode,
+    incidentId,
 }) => {
     const theme = useTheme();
     const [values, setValues] = useState<NewIncidentFormValues>(
@@ -143,6 +149,10 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     const [users, setUsers] = useState<User[]>([]);
     const [projectList, setProjects] = useState<Project[]>([]);
     const [, setIsLoadingUsers] = useState(false);
+    const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
+    // Calculate drawer width based on history sidebar state
+    const drawerWidth = isHistorySidebarOpen ? 1036 : 700;
 
     // Fetch Users & Projects
     useEffect(() => {
@@ -294,14 +304,24 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     return (
         <Drawer anchor="right" open={isOpen} onClose={handleClose}>
             <Stack
+                direction="row"
                 sx={{
-                    width: 700,
+                    width: drawerWidth,
                     maxHeight: "100vh",
-                    overflowY: "auto",
-                    p: theme.spacing(10),
                     bgcolor: theme.palette.background.paper,
+                    transition: "width 0.3s ease",
                 }}
             >
+                {/* Main Content */}
+                <Stack
+                    sx={{
+                        width: isHistorySidebarOpen ? 700 : "100%",
+                        maxHeight: "100vh",
+                        overflowY: "auto",
+                        p: theme.spacing(10),
+                        transition: "width 0.3s ease",
+                    }}
+                >
                 {/* Header */}
 
                 {mode !== "view" && (
@@ -344,9 +364,25 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     </Typography>
                                 )}
                             </Stack>
-                            <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
-                                <CloseIcon />
-                            </Box>
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                                {isEdit && incidentId && (
+                                    <Tooltip title="Activity history">
+                                        <IconButton
+                                            onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
+                                            sx={{
+                                                color: isHistorySidebarOpen
+                                                    ? theme.palette.primary.main
+                                                    : theme.palette.text.secondary,
+                                            }}
+                                        >
+                                            <HistoryIcon size={16} />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                                <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
+                                    <CloseIcon />
+                                </Box>
+                            </Stack>
                         </Stack>
                         <Divider sx={{
                             mb: 4,
@@ -831,6 +867,17 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         )}
                     </Stack>
                 </form>
+                </Stack>
+
+                {/* History Sidebar */}
+                {isEdit && incidentId && (
+                    <HistorySidebar
+                        isOpen={isHistorySidebarOpen}
+                        entityType="incident"
+                        entityId={incidentId}
+                        height="100%"
+                    />
+                )}
             </Stack>
         </Drawer>
     );

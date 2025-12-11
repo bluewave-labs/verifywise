@@ -4,16 +4,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from config_schema import (
+from .config_schema import (
     LLMJudgeScorerConfig,
     load_llm_judge_scorer_config,
 )
-from prompt_template import PromptTemplateNormalizer
-from json_repository import (
+from .prompt_template import PromptTemplateNormalizer
+from .json_repository import (
     JsonScorerRepository,
     ScorerRecord,
 )
-from provider_registry import SimpleLLMProviderRegistry
+from .provider_registry import SimpleLLMProviderRegistry
 
 @dataclass
 class ScorerSummary:

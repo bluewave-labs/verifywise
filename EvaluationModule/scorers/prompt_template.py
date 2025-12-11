@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from typing import List, Set
-from config_schema import MessageTemplate
+from .config_schema import MessageTemplate
 
 
 class PromptTemplateNormalizer:

@@ -78,9 +78,13 @@ const LLMKeys = () => {
 
   useEffect(() => {
     if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
+      const timeoutId = setTimeout(() => {
+        setAlert(null);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [alert]);
 
   const isCreateButtonDisabled =  !formData.key || !formData.model || !formData.name || !formData.url || isLoading;

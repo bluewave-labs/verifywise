@@ -71,6 +71,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         };
 
         fetchData();
+        return ; 
     }, [isOpen, policyId, projectRisk]);
 
 

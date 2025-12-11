@@ -19,7 +19,7 @@ export const sidebarContainer = {
 
 export const sidebarMenuStyle = (theme: Theme) => ({
   backgroundColor: theme.palette.background.main,
-  "& .selected-path, & >MuiListItemButton-root:hover": {
+  "& .selected-path, & > .MuiListItemButton-root:hover": {
     backgroundColor: theme.palette.background.main,
   },
   "& .MuiList-root svg path": {
@@ -109,25 +109,25 @@ export const listItemButtonStyle = (theme: Theme, isSelected: boolean) => ({
   borderRadius: theme.shape.borderRadius,
   px: theme.spacing(4),
   background: isSelected
-    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+    ? `linear-gradient(135deg, ${theme.palette.action.selected} 0%, ${theme.palette.action.hover} 100%)`
     : "transparent",
   border: isSelected
-    ? "1px solid #D8D8D8"
+    ? `1px solid ${theme.palette.divider}`
     : "1px solid transparent",
   "&:hover": {
     background: isSelected
-      ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-      : "#F9F9F9",
+      ? `linear-gradient(135deg, ${theme.palette.action.selected} 0%, ${theme.palette.action.hover} 100%)`
+      : theme.palette.action.hover,
     border: isSelected
-      ? "1px solid #D8D8D8"
+      ? `1px solid ${theme.palette.divider}`
       : "1px solid transparent",
   },
   "&:hover svg": {
-    color: "#13715B !important",
-    stroke: "#13715B !important",
+    color: `${theme.palette.primary.main} !important`,
+    stroke: `${theme.palette.primary.main} !important`,
   },
   "&:hover svg path": {
-    stroke: "#13715B !important",
+    stroke: `${theme.palette.primary.main} !important`,
   },
 })
 

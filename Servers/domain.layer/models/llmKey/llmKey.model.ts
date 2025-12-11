@@ -25,6 +25,18 @@ export class LLMKeyModel extends Model<LLMKeyModel> implements ILLMKey {
   name!: string;
 
   @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  url!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  model!: string;
+
+  @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })

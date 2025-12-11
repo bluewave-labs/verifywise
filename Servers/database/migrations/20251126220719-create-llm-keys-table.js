@@ -18,6 +18,8 @@ module.exports = {
             id SERIAL PRIMARY KEY,
             key TEXT NOT NULL UNIQUE,
             name TEXT NOT NULL,
+            url TEXT NOT NULL,
+            model TEXT NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
         `, { transaction });

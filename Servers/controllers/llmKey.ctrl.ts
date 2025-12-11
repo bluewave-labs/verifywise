@@ -50,7 +50,7 @@ export const createLLMKey = async (req: Request, res: Response) => {
   const functionName = 'createLLMKey';
 
   const transaction = await sequelize.transaction();
-  const { name, key } = req.body;
+  const { name, key, url, model } = req.body;
 
   if (!name || typeof name !== 'string' || !key || typeof key !== 'string') {
     await transaction.rollback();
@@ -62,8 +62,10 @@ export const createLLMKey = async (req: Request, res: Response) => {
   logger.debug(`🛠️ Creating LLM Key: ${name}`);
   try {
     const data: ILLMKey = {
-      name: name,
-      key: key,
+      name,
+      key,
+      url,
+      model,
     }
     const llmKey = await createLLMKeyQuery(data, req.tenantId!, transaction);
     logStructured('successful', `created LLM Key ${llmKey.id}`, functionName, fileName);
@@ -89,15 +91,17 @@ export const updateLLMKey = async (req: Request, res: Response) => {
   const functionName = 'updateLLMKey';
 
   const transaction = await sequelize.transaction();
-  const { name, key } = req.body;
+  const { name, key, url, model } = req.body;
   const id = parseInt(req.params.id);
 
   logStructured('processing', `starting LLM Key update for ${name}`, functionName, fileName);
   logger.debug(`🛠️ Updating LLM Key: ${name}`);
   try {
     const data: ILLMKey = {
-      name: name,
-      key: key,
+      name,
+      key,
+      url,
+      model,
     }
     const llmKey = await updateLLMKeyByIdQuery(id, data, req.tenantId!, transaction);
 

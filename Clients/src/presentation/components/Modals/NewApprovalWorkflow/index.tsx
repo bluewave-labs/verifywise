@@ -130,7 +130,7 @@ const CreateNewApprovalWorkflow: FC<ICreateApprovalWorkflowProps> = ({
 
     const handleSave = () => {
         if (validateForm()) {
-            setIsSubmitting
+            setIsSubmitting(true)
             const formData = {
                 workflow_title: workflowTitle.trim(),
                 entity: entity,

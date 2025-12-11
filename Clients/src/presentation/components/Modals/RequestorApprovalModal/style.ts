@@ -150,7 +150,7 @@ export const timelineContainer = {
   width: '548px'
 }
 
-export const stepCircleStyle = (isCompleted: boolean) => ({
+export const stepCircleStyle = (theme: Theme, isCompleted: boolean) => ({
   minWidth: '20px',
   width: '20px',
   height: '20px',
@@ -158,8 +158,8 @@ export const stepCircleStyle = (isCompleted: boolean) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: isCompleted ? '#11725B' : 'transparent',
-  border: isCompleted ? 'none' : '2px solid #CCCCCC',
+  backgroundColor: isCompleted ? theme.palette.primary.main : 'transparent',
+  border: isCompleted ? 'none' : `2px solid ${theme.palette.grey[400]}`,
 })
 
 export const stepContainerStyle = {
@@ -198,17 +198,17 @@ export const approverNameStyle = {
   color: "#999999"
 }
 
-export const seeDetailsLinkStyle = {
-  color: "#13715B",
+export const seeDetailsLinkStyle = (theme: Theme) => ({
+  color: theme.palette.primary.main,
   fontSize: '13px',
   fontWeight: 500,
   textDecoration: "underline",
   cursor: 'pointer',
   '&:hover': {
-    color: "#0F5A47",
+    color: theme.palette.primary.dark,
   },
   alignSelf: 'flex-start',
-}
+})
 
 export const commentLabelStyle = {
   fontWeight: 600,

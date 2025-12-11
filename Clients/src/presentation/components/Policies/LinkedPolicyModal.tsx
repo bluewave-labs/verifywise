@@ -71,7 +71,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         };
 
         fetchData();
-        return ; 
     }, [isOpen, policyId, projectRisk]);
 
 
@@ -85,6 +84,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         return () => clearTimeout(timer);
       }
     }, [alert]);
+
     const fetchProjectRisks = useCallback(async (filter: 'active' | 'deleted' | 'all' = 'active') => {
         try {
           const response = await getAllProjectRisks({ filter });
@@ -97,7 +97,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
             "Unexpected error occurs while fetching project risks."
           );
         }
-        return null;
       }, []);
 
       useEffect(() => {

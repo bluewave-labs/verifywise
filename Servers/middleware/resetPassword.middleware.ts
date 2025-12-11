@@ -1,16 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { roleMap } from "./auth.middleware";
 
-const registerJWT = async (
+const resetPassword = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void | Response> => {
-  // Extract Bearer token from Authorization header
   const token = req.headers.authorization?.split(" ")[1];
-  const { roleId, organizationId } = req.body;
 
   if (!token) {
     return res.status(400).json(
@@ -37,8 +34,20 @@ const registerJWT = async (
         .status(406)
         .json(STATUS_CODE[406]({ message: "This invitation link is expired. You need to be invited again to gain access to the dashboard" }));
 
-    if (Number(decoded.roleId) !== roleId || decoded.organizationId !== organizationId || !roleMap.has(Number(roleId))) {
-      return res.status(403).json({ message: 'Role or Organization mismatch' });
+    if (!decoded.email) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "Invalid token payload",
+        })
+      );
+    }
+
+    if (decoded.email !== req.body.email) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "Token email does not match request email",
+        })
+      );
     }
 
     // Proceed to next middleware or route handler
@@ -48,4 +57,4 @@ const registerJWT = async (
   }
 }
 
-export default registerJWT;
+export default resetPassword;

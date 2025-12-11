@@ -21,7 +21,6 @@ const ApprovalWorkflows: React.FC = () => {
     const [workflowData, setWorkflowData] = useState<ApprovalWorkflowModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
-    const [selectWorkflowId, setSelectWorkflowId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
 
@@ -155,7 +154,6 @@ const ApprovalWorkflows: React.FC = () => {
     const handleNewWorkflowClick = () => setIsNewWorkflowModalOpen(true);
 
     const handleEditWorkflowClick = async (id: string) => {
-        setSelectWorkflowId(id);
         const workflow = await fetchWorkflowDataById(id);
         if (workflow) {
             setIsNewWorkflowModalOpen(true);
@@ -227,7 +225,6 @@ const ApprovalWorkflows: React.FC = () => {
     const handleCloseModal = () => {
         setIsNewWorkflowModalOpen(false);
         setSelectWorkflow(null);
-        setSelectWorkflowId(null);
     }
 
     /** -------------------- RENDER -------------------- */

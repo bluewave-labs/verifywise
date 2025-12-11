@@ -1,27 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Box, useTheme, Typography, Paper } from '@mui/material';
 import { AssistantRuntime, AssistantRuntimeProvider } from '@assistant-ui/react';
-import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
-import { useRiskAdvisorRuntime } from './useRiskAdvisorRuntime';
+import { useAdvisorRuntime } from './useAdvisorRuntime';
 import { CustomThread } from './CustomThread';
 
-const RiskAdvisorChat = () => {
-  const [risks, setRisks] = useState([]);
+const AdvisorChat = () => {
   const theme = useTheme();
-  const fetchProjectRisks = useCallback(async () => {
-    try {
-      const response = await getAllProjectRisks({});
-      setRisks(response.data);
-    } catch (error) {
-      console.error("Error fetching project risks:", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProjectRisks();
-  }, [fetchProjectRisks]);
-
-  const runtime: AssistantRuntime = useRiskAdvisorRuntime(risks || []);
+  const runtime: AssistantRuntime = useAdvisorRuntime();
 
   return (
     <Paper
@@ -65,4 +49,4 @@ const RiskAdvisorChat = () => {
   );
 };
 
-export default RiskAdvisorChat;
+export default AdvisorChat;

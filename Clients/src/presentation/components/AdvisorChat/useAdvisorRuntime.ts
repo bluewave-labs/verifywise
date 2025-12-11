@@ -3,7 +3,7 @@ import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
 import { runAdvisorAPI } from '../../../application/repository/advisor.repository';
 
-export const useRiskAdvisorRuntime = (risks: any[] = []) => {
+export const useAdvisorRuntime = () => {
   // Memoize the chat adapter to prevent recreation on every render
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
     async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
@@ -105,11 +105,11 @@ export const useRiskAdvisorRuntime = (risks: any[] = []) => {
       content: [
         {
           type: 'text' as const,
-          text: `Hello! I'm your VerifyWise AI Risk Management Advisor. I can help you analyze risks, understand risk distributions, and provide insights about your risk landscape${risks && risks.length > 0 ? ` across your ${risks.length} tracked risks` : ''}. What would you like to know?`,
+          text: `Hello! I'm your VerifyWise AI Risk Management Advisor. I can help you analyze risks, understand risk distributions, and provide insights about your risk landscape. What would you like to know?`,
         },
       ],
     },
-  ], [risks]); // Only recreate if risk count changes
+  ], []); // Only recreate if risk count changes
 
   const runtime = useLocalRuntime(chatModelAdapter, {
     initialMessages,

@@ -12,7 +12,7 @@ import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
 import './SidebarWrapper.css';
-import RiskAdvisorChat from '../RiskAdvisorChat';
+import AdvisorChat from '../AdvisorChat';
 
 type Tab = 'user-guide' | 'advisor' | 'help';
 
@@ -276,7 +276,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Render Advisor content
   const renderAdvisorContent = () => {
-    return <RiskAdvisorChat />
+    return <AdvisorChat />
   }
 
   const contentArea = (tabValue: Tab) => {

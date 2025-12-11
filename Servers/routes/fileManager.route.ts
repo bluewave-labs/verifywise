@@ -17,16 +17,19 @@
  */
 
 import express, { Request, Response, NextFunction } from "express";
-import { uploadFile, listFiles, downloadFile, removeFile } from "../controllers/fileManager.ctrl";
+import {
+  uploadFile,
+  listFiles,
+  downloadFile,
+  removeFile,
+} from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
 import { fileOperationsLimiter } from "../middleware/rateLimit.middleware";
 import multer from "multer";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import * as path from "path";
-import * as fs from "fs";
 import { ALLOWED_MIME_TYPES } from "../utils/validations/fileManagerValidation.utils";
-import logger from "../utils/logger/fileLogger";
 
 const router = express.Router();
 
@@ -36,7 +39,7 @@ const storage = multer.memoryStorage();
 
 // File filter to validate file types
 const fileFilter = (
-  req: Express.Request,
+  _req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
@@ -44,7 +47,8 @@ const fileFilter = (
   const ext = path.extname(file.originalname).toLowerCase();
 
   // Check if MIME type is allowed
-  const allowedExts = ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
+  const allowedExts =
+    ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
 
   if (allowedExts && Array.isArray(allowedExts) && allowedExts.includes(ext)) {
     cb(null, true);
@@ -66,12 +70,19 @@ const upload = multer({
  * Catches file size limit errors and file type rejection errors
  * Note: No temp file cleanup needed with memory storage
  */
-const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
+const handleMulterError = (
+  err: any,
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(413).json(
-        STATUS_CODE[413]('File size exceeds maximum allowed size of 30MB')
-      );
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(413)
+        .json(
+          STATUS_CODE[413]("File size exceeds maximum allowed size of 30MB")
+        );
     }
     // Other multer errors
     return res.status(400).json(STATUS_CODE[400](err.message));
@@ -79,13 +90,17 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
 
   // Handle unsupported file type error
   if (err && err.message === "UNSUPPORTED_FILE_TYPE") {
-    return res.status(415).json(
-      STATUS_CODE[415]('Unsupported file type. Allowed types: Documents (PDF, DOC, DOCX, XLS, XLSX, CSV, MD), Images (JPEG, PNG, GIF, WEBP, SVG, BMP, TIFF), Videos (MP4, MPEG, MOV, AVI, WMV, WEBM, MKV)')
-    );
+    return res
+      .status(415)
+      .json(
+        STATUS_CODE[415](
+          "Unsupported file type. Allowed types: Documents (PDF, DOC, DOCX, XLS, XLSX, CSV, MD), Images (JPEG, PNG, GIF, WEBP, SVG, BMP, TIFF), Videos (MP4, MPEG, MOV, AVI, WMV, WEBM, MKV)"
+        )
+      );
   }
 
   // Pass to next error handler if not a recognized error
-  next(err);
+  return next(err);
 };
 
 /**

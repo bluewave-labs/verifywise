@@ -45,14 +45,20 @@ export async function updateEUAIActAnswerById({
   body: any;
 }): Promise<any> {
   try {
+    // Match the pattern used by ISO27001/ISO42001 drawers
+    // When sending FormData, set Content-Type to multipart/form-data
+    // Axios will automatically add the boundary parameter
+    const headers: any = {};
+    if (body instanceof FormData) {
+      headers["Content-Type"] = "multipart/form-data";
+    } else {
+      headers["Content-Type"] = "application/json";
+    }
+
     const response = await apiServices.patch(
       `/eu-ai-act/saveAnswer/${answerId}`,
       body,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { headers }
     );
     return response;
   } catch (error: any) {

@@ -16,7 +16,6 @@ import {
   Building,
   Settings,
   FileText,
-  Scale,
   Brain,
   Shield,
   GraduationCap,
@@ -43,12 +42,10 @@ import {
 export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
-  "/test": "Dashboard",
   "/overview": "Use cases",
 
   // Project related
   "/project-view": "Project overview",
-  "/test/project-view": "Project overview",
 
   // Vendor management
   "/vendors": "Vendor Management",
@@ -76,10 +73,6 @@ export const routeMapping: Record<string, string> = {
   // AI Trust Center
   "/ai-trust-center": "AI Trust Center",
   "/public": "Public AI Trust Center",
-
-  // Fairness and Bias
-  "/fairness-dashboard": "Fairness Dashboard",
-  "/fairness-results": "Fairness Results",
 
   // Training
   "/training": "Training Registry",
@@ -115,8 +108,6 @@ export const routeMapping: Record<string, string> = {
   "/set-new-password": "Set New Password",
   "/reset-password-continue": "Continue Password Reset",
 
-  // Playground
-  "/playground": "Component Playground",
 };
 
 /**
@@ -126,11 +117,9 @@ export const routeMapping: Record<string, string> = {
 export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // Main pages
   "/": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
-  "/test": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
 
   // Project related
   "/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
-  "/test/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
   "/overview": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
 
   // Tasks
@@ -173,10 +162,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // AI Trust Center
   "/ai-trust-center": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
   "/public": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
-
-  // Fairness and Bias
-  "/fairness-dashboard": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
-  "/fairness-results": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
 
   // Training
   "/training": () => React.createElement(GraduationCap, { size: 14, strokeWidth: 1.5 }),

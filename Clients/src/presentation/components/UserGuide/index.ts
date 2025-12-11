@@ -61,3 +61,6 @@ export type { ArticleContent, ContentBlock, TocItem } from '@user-guide-content/
 
 // Hook for managing sidebar state
 export { useUserGuideSidebar } from './useUserGuideSidebar';
+
+// Context for sharing sidebar state across components
+export { UserGuideSidebarProvider, useUserGuideSidebarContext } from './UserGuideSidebarContext';

@@ -29,7 +29,6 @@ import RisksCard from "../../components/Cards/RisksCard";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import SearchBox from "../../components/Search/SearchBox";
 import {
@@ -404,8 +403,6 @@ const Vendors = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
-
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const isCreatingDisabled =
     !allowedRoles.vendors.create.includes(userRoleName) ||
@@ -876,53 +873,6 @@ const Vendors = () => {
   return (
     <Stack className="vwhome" gap={0}>
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Vendor management"
-        description="Manage your AI vendors and their associated risks"
-        whatItDoes="Track and manage *external entities* that provide AI-related products, services, or components to your organization. Monitor their *compliance status* and assess *associated risks*."
-        whyItMatters="**Vendor management** is crucial for maintaining *supply chain security*, ensuring *compliance*, and mitigating *third-party risks* in your AI ecosystem."
-        quickActions={[
-          {
-            label: "Add Your First Vendor",
-            description:
-              "Start by adding a key AI vendor to track their services and compliance",
-            primary: true,
-            action: () => {
-              setIsHelperDrawerOpen(false);
-              setIsOpen(true);
-            },
-          },
-          {
-            label: "Add Vendor Risk",
-            description:
-              "Quickly assess vendor risks using our pre-built risk templates",
-            action: () => {
-              setIsHelperDrawerOpen(false);
-              setIsRiskModalOpen(true);
-            },
-          },
-        ]}
-        useCases={[
-          "*AI model vendors* providing machine learning algorithms and *pre-trained models*",
-          "*Cloud AI platforms* offering infrastructure and *development environments*",
-          "*Data processing services* handling *sensitive or regulated information*",
-          "*Third-party analytics tools* integrated with your AI systems",
-        ]}
-        keyFeatures={[
-          "**Centralized vendor database** with basic vendor information and contact details",
-          "*Vendor risk management* with description, severity, likelihood, and action planning",
-          "*Project-based filtering* to view vendors and risks by specific use cases",
-          "*Dual-tab interface* for managing both vendors and their associated risks",
-        ]}
-        tips={[
-          "Use the *project filter* to focus on vendors and risks for specific use cases",
-          "Track *risk severity* and *likelihood* to understand which risks need attention",
-          "Add *action plans* to vendor risks to document mitigation strategies",
-          "Switch between *Vendors* and *Risks* tabs to manage different aspects of vendor oversight",
-        ]}
-      />
       <PageTour
         steps={VendorsSteps}
         run={runVendorTour}
@@ -957,7 +907,7 @@ const Vendors = () => {
               rightContent={
                 value === "1" ? (
                   <HelperIcon
-                    onClick={() => setIsHelperDrawerOpen(true)}
+                    articlePath="risk-management/vendor-management"
                     size="small"
                   />
                 ) : undefined

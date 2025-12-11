@@ -12,7 +12,6 @@ import Preferences from "./Preferences/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
@@ -25,7 +24,6 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { tab } = useParams<{ tab?: string }>();
 
@@ -89,45 +87,12 @@ export default function ProfilePage() {
   return (
     <Stack className="vwhome">
       <PageBreadcrumbs />
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Settings & configuration"
-        description="Manage your account, organization, and system preferences"
-        whatItDoes="Configure *user profiles*, *security settings*, *team management*, and *organizational preferences*. Control *access permissions*, *notification preferences*, and *system integrations*."
-        whyItMatters="Proper **configuration** ensures your *AI governance platform* operates *securely* and efficiently. Settings management helps maintain *user access controls*, enforce *security policies*, and customize the platform to your *organization's needs*."
-        quickActions={[
-          {
-            label: "Update Profile",
-            description: "Manage your personal information and preferences",
-            primary: true,
-          },
-          {
-            label: "Manage Team",
-            description: "Add users and configure role-based permissions",
-          },
-        ]}
-        useCases={[
-          "*User onboarding* with appropriate *role assignments* and *access levels*",
-          "*Security configuration* including *password policies* and *authentication methods*",
-        ]}
-        keyFeatures={[
-          "**Role-based access control** with *granular permission settings*",
-          "*Team management* with *user invitation* and *deactivation workflows*",
-          "*Organization-wide settings* for *branding* and *compliance preferences*",
-        ]}
-        tips={[
-          "*Regularly review* user access to ensure *appropriate permissions*",
-          "Enable *two-factor authentication* for *enhanced security*",
-          "Document *role definitions* to ensure *consistent permission assignments*",
-        ]}
-      />
       <PageHeader
         title="Settings"
-        description=""
+        description="Manage your profile, security, team members, and application preferences."
         rightContent={
           <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            articlePath="settings/user-management"
             size="small"
           />
         }

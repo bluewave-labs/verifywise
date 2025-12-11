@@ -1,13 +1,7 @@
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { sequelize } from "../database/db";
-import {
-  QueryTypes,
-  Transaction,
-  Op,
-  WhereOptions,
-  OrderItem,
-} from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
@@ -250,7 +244,7 @@ export const getTasksQuery = async (
 
   // Apply filters
   if (filters.status && filters.status.length > 0) {
-    const statusList = filters.status.map((s, i) => `:status${i}`).join(", ");
+    const statusList = filters.status.map((_s, i) => `:status${i}`).join(", ");
     whereConditions.push(`t.status IN (${statusList})`);
     filters.status.forEach((status, i) => {
       replacements[`status${i}`] = status;
@@ -259,7 +253,7 @@ export const getTasksQuery = async (
 
   if (filters.priority && filters.priority.length > 0) {
     const priorityList = filters.priority
-      .map((p, i) => `:priority${i}`)
+      .map((_p, i) => `:priority${i}`)
       .join(", ");
     whereConditions.push(`t.priority IN (${priorityList})`);
     filters.priority.forEach((priority, i) => {
@@ -280,7 +274,7 @@ export const getTasksQuery = async (
   if (filters.category && filters.category.length > 0) {
     // For JSONB array contains any of the categories
     const categoryConditions = filters.category
-      .map((j, i) => `t.categories::jsonb ? :category${i}`)
+      .map((_j, i) => `t.categories::jsonb ? :category${i}`)
       .join(" OR ");
     whereConditions.push(`(${categoryConditions})`);
     filters.category.forEach((cat, i) => {
@@ -572,6 +566,7 @@ export const updateTaskByIdQuery = async (
             : task[f as keyof ITask];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -613,7 +608,7 @@ export const updateTaskByIdQuery = async (
     // Add new assignees if any
     if (assignees && assignees.length > 0) {
       const assigneeValues = assignees
-        .map((assigneeId, index) => `(:taskId, :assignee${index})`)
+        .map((_assigneeId, index) => `(:taskId, :assignee${index})`)
         .join(", ");
 
       const assigneeReplacements: any = { taskId: id };
@@ -933,11 +928,7 @@ export const restoreTaskByIdQuery = async (
 
   // Check if task is actually archived
   if (task.status !== TaskStatus.DELETED) {
-    throw new ValidationException(
-      "Task is not archived",
-      "task",
-      "restore"
-    );
+    throw new ValidationException("Task is not archived", "task", "restore");
   }
 
   // Only creator or admin can restore
@@ -1034,7 +1025,7 @@ export const hardDeleteTaskByIdQuery = async (
   );
 
   // Then hard delete the task
-  const result = await sequelize.query(
+  await sequelize.query(
     `DELETE FROM "${tenant}".tasks WHERE id = :id RETURNING id;`,
     {
       replacements: { id },

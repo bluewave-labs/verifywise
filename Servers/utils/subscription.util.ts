@@ -10,12 +10,17 @@ export async function getSubscription(): Promise<SubscriptionModel[]> {
   return subscription;
 }
 
-export async function getSubscriptionById(id: number): Promise<SubscriptionModel> {
-  const subscription = await sequelize.query(`SELECT * FROM subscriptions WHERE id = :id`, {
-    replacements: { id },
-    mapToModel: true,
-    model: SubscriptionModel,
-  });
+export async function getSubscriptionById(
+  id: number
+): Promise<SubscriptionModel> {
+  const subscription = await sequelize.query(
+    `SELECT * FROM subscriptions WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SubscriptionModel,
+    }
+  );
   if (!subscription || subscription.length === 0) {
     throw new Error(`Subscription with id ${id} not found`);
   }
@@ -104,6 +109,7 @@ export async function updateSubscription(
           subscription[f as keyof SubscriptionModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

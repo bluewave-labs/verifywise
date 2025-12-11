@@ -232,6 +232,12 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
         });
     }, [evidences, sortConfig]);
 
+    const visibleEvidence = useMemo(
+        () => sortedEvidences.filter(evi => !linkedEvidenceIds.includes(Number(evi.id))),
+        [sortedEvidences, linkedEvidenceIds]
+    );
+
+
     const toggleSelect = useCallback(
         (id: number) => {
             if (linkedEvidenceIds.includes(id)) return;
@@ -277,21 +283,21 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
         const start = page * rowsPerPage + 1;
         const end = Math.min(
             page * rowsPerPage + rowsPerPage,
-            sortedEvidences.length
+            visibleEvidence.length
         );
         return `${start} - ${end}`;
-    }, [page, rowsPerPage, sortedEvidences.length]);
+    }, [page, rowsPerPage, visibleEvidence.length]);
     
 
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {sortedEvidences.length > 0 ? (
-                    sortedEvidences
+                {visibleEvidence.length > 0 ? (
+                    visibleEvidence
                         .slice(
                             hidePagination ? 0 : page * rowsPerPage,
                             hidePagination
-                                ? Math.min(sortedEvidences.length, 100)
+                                ? Math.min(visibleEvidence.length, 100)
                                 : page * rowsPerPage + rowsPerPage
                         )
                         .map((ev) => {
@@ -372,7 +378,7 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
             </TableBody>
         ),
         [
-            sortedEvidences,
+            visibleEvidence,
             page,
             rowsPerPage,
             hidePagination,
@@ -423,16 +429,16 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
 
                     {tableBody}
 
-                    {paginated && sortedEvidences.length > 0 && (
+                    {paginated && visibleEvidence.length > 0 && (
                         <TableFooter>
                             <TableRow sx={tableFooterRowStyle(theme)}>
                                 <TableCell sx={showingTextCellStyle(theme)}>
                                     Showing {getRange} of{" "}
-                                    {sortedEvidences.length} item(s)
+                                    {visibleEvidence.length} item(s)
                                 </TableCell>
 
                                 <TablePagination
-                                    count={sortedEvidences.length}
+                                    count={visibleEvidence.length}
                                     page={page}
                                     onPageChange={handleChangePage}
                                     rowsPerPage={rowsPerPage}

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useEffect, useState } from "react";
-import { Box, Stack} from "@mui/material";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
+import { Box, Fade, Stack} from "@mui/material";
 import { TabContext } from "@mui/lab";
 import StandardModal from "../Modals/StandardModal";
 import TabBar from "../TabBar";
 import { deleteEntityById, getAllEntities } from "../../../application/repository/entity.repository";
-import { addNewModelButtonStyle } from "../../../presentation/pages/ModelInventory/style";
+import { addNewModelButtonStyle, toastFadeStyle } from "../../../presentation/pages/ModelInventory/style";
 import CustomizableButton from "../Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import LinkedObjectsTable from "./LinkedPoliciesTable";
@@ -19,6 +19,8 @@ import { transformFilesData } from "../../../application/utils/fileTransform.uti
 import { FileModel } from "../../../domain/models/Common/file/file.model";
 import LinkEvidenceSelectorModal from "./LinkEvidenceSelectorModal";
 
+const Alert = React.lazy(() => import("../../components/Alert"));
+
 interface LinkedPolicyModalProps {
     onClose: () => void;
     policyId: number | null;
@@ -30,9 +32,8 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     policyId,
     isOpen,
 }) => {
-    const [activeTab, setActiveTab] = useState("controls");
+    const [activeTab, setActiveTab] = useState("risks");
 
-    const [controls, setControls] = useState<any[]>([]);
     const [risks, setRisks] = useState<any[]>([]);
     const [evidence, setEvidence] = useState<any[]>([]);
 
@@ -43,13 +44,14 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
     const [openEvidenceSelector, setOpenEvidenceSelector] = useState(false);
 
     const [filesData, setFilesData] = useState<FileModel[]>([]);
-    
 
-    const [, setAlert] = useState<{
-        variant: "success" | "info" | "warning" | "error";
-        title?: string;
-        body: string;
-      } | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+    
+    const [alert, setAlert] = useState<{
+      variant: "success" | "info" | "warning" | "error";
+      title?: string;
+      body: string;
+    } | null>(null);
 
     // ------------------------------------
     // FETCH EXISTING LINKS
@@ -64,7 +66,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
 
             const data = res.data;
 
-            setControls(data.controls || []);
             setRisks(data.risks || []);
             setEvidence(data.evidence || []);
         };
@@ -72,11 +73,21 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         fetchData();
     }, [isOpen, policyId, projectRisk]);
 
+
+    useEffect(() => {
+      if (alert) {
+        setShowAlert(true);
+        const timer = setTimeout(() => {
+          setShowAlert(false);
+          setTimeout(() => setAlert(null), 300);
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }, [alert]);
     const fetchProjectRisks = useCallback(async (filter: 'active' | 'deleted' | 'all' = 'active') => {
         try {
           const response = await getAllProjectRisks({ filter });
 
-          console.log("response", response.data)
           setProjectRisks(response.data);
         } catch (error) {
           console.error("Error fetching project risks:", error);
@@ -98,7 +109,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
       
 
       useEffect(() => {
-        console.log("Updated risks", risks);
+        // console.log("Updated risks", risks);
       }, [risks]);
       
 
@@ -126,15 +137,15 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
         routeUrl:`/policy-linked/${id}/linked-objects`,
       });
 
-
-        if (type === "control")
-            setControls((prev) => prev.filter((i) => i.id !== id));
         if (type === "risk")
             setRisks((prev) => prev.filter((i) => i.id !== id));
         if (type === "evidence")
             setEvidence((prev) => prev.filter((i) => i.id !== id));
 
-        handleToast("success", "Risks unlinked successfully!");
+        setAlert({
+          variant: "success",
+          body: `${type} unlinked successfully!`,
+        });
     };
 
 
@@ -143,18 +154,14 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
       objectIds: number[]
     ) => {
       try {
-        console.log("Object Type:", objectType);
-        console.log("Object Ids:", objectIds);
     
-        const response = await createPolicyLinkedObjects(
+        await createPolicyLinkedObjects(
           `/policy-linked/${policyId}/linked-objects`,
           {
             object_type: objectType,
             object_ids: objectIds,
           }
         );
-    
-        console.log("response", response);
     
         // Fetch updated linked objects
         const updated = await getAllEntities({
@@ -166,11 +173,12 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
           setRisks(updated.data.risks || []);
         } else if (objectType === "evidence") {
           setEvidence(updated.data.evidence || []);
-        } else if (objectType === "control") {
-          setControls(updated.data.controls || []);
         }
     
-        handleToast("success", `${objectType} linked successfully!`);
+        setAlert({
+          variant: "success",
+          body: `${objectType} linked successfully!`,
+        });
       } catch (error) {
         console.error(error);
         handleToast("error", `Failed to link ${objectType}.`);
@@ -232,7 +240,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 <Box sx={{ mb: 3 }}>
                     <TabBar
                         tabs={[
-                            { label: "Controls", value: "controls" },
                             { label: "Risks", value: "risks" },
                             { label: "Evidence", value: "evidence" },
                         ]}
@@ -242,8 +249,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 </Box>
 
                 {/* ---------- TAB CONTENT ---------- */}
-                {activeTab === "controls" &&
-                    renderSection(controls, "control", "Control")}
                 {activeTab === "risks" &&
                     renderSection(
                       risks.length ? risks : [], // <-- empty array if no risks
@@ -271,6 +276,25 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
                 onSubmit={(ids) => handleAddLinkedObjects("evidence", ids)}
                 paginated={true}
             />
+
+            {alert && (
+              <Suspense fallback={<div>Loading...</div>}>
+                  <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
+                      <Box mb={2}>
+                          <Alert
+                              variant={alert.variant}
+                              title={alert.title}
+                              body={alert.body}
+                              isToast={true}
+                              onClick={() => {
+                                  setShowAlert(false);
+                                  setTimeout(() => setAlert(null), 300);
+                              }}
+                          />
+                      </Box>
+                  </Fade>
+              </Suspense>
+          )}
 
         </StandardModal>
     );

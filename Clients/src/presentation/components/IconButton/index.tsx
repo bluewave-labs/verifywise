@@ -249,6 +249,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["edit", "archive", "delete"];
     } else if (type === "Policy") {
       return ["edit", "link_objects" , "remove"];
+    } else if (type === "LinkedObjectsType") {
+      return ["remove",];
     } else {
       return ["edit", "remove"];
     }
@@ -277,7 +279,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       return "Restore task";
     }
     if ((type === "Policy" || type === "policy") && item === "link_objects") {
-      return "Linked policies";
+      return "Linked objects";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };

@@ -10,7 +10,6 @@ import {
     TableRow,
     Box,
     Tooltip,
-    IconButton,
     TableFooter,
     useTheme,
     Typography,
@@ -20,8 +19,8 @@ import {
     ChevronUp,
     ChevronDown,
     ChevronsUpDown,
-    Trash2,
 } from "lucide-react";
+import CustomIconButton from "../../components/IconButton";
 
 import EmptyState from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
@@ -199,10 +198,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
 
     const mergedItems = useMemo(() => {
 
-        console.log("items", items);
-        console.log("type", type);
         return items.map((linked) => {
-            // const type = linked.object_type;
     
             let source: any = null;
     
@@ -217,15 +213,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                 source = evidenceData.find(
                     (e) => Number(e.id) === Number(linked.object_id)
                 );
-
-                console.log("source", source);
             }
-    
-            // if (type === "control") {
-            //     source = controlList.find(
-            //         (c) => Number(c.id) === Number(linked.object_id)
-            //     );
-            // }
     
             // COMMON STRUCTURE for TABLE
             return {
@@ -239,8 +227,6 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                         ? source?.risk_name || "-"
                         : type === "evidence"
                         ? source?.fileName || "-"
-                        // : type === "control"
-                        // ? source?.control_name || "-"
                         : "-",
     
                 // ---- CREATED BY ----
@@ -249,8 +235,6 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                         ? userMap.get(String(source?.risk_owner)) || "-"
                         : type === "evidence"
                         ? userMap.get(String(source?.uploader)) || "-"
-                        // : type === "control"
-                        // ? userMap.get(String(source?.assigned_to)) || "-"
                         : "-",
     
                 // ---- DUE DATE ----
@@ -259,15 +243,10 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                         ? source?.deadline || "-"
                         : type === "evidence"
                         ?  "-"
-                        // : type === "control"
-                        // ? source?.due_date || "-"
                         : "-",
             };
         });
     }, [items, type, userMap, projectRisk, evidenceData]);
-
-    console.log("mergedItems", mergedItems);
-    
 
      // -----------------------------
     // Handle Sorting
@@ -386,13 +365,13 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                 
                                 <TableCell>{row.type}</TableCell>
                                 <TableCell>{row.created_by}</TableCell>
-                                <TableCell>
-                                    {row.due_date !== "-"
-                                        ? new Date(row.due_date).toLocaleDateString(
-                                              "en-GB"
-                                          )
-                                        : "-"}
-                                </TableCell>
+                                {type === "risk" && (
+                                        <TableCell>
+                                            {row.due_date !== "-"
+                                                ? new Date(row.due_date).toLocaleDateString("en-GB")
+                                                : "-"}
+                                        </TableCell>
+                                    )}
 
                                 <TableCell
                                     sx={{
@@ -404,22 +383,27 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                         zIndex: 10,
                                     }}
                                 >
-                                    <Tooltip title="Remove link">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() =>
-                                                onRemove(type!, row.id)
-                                            }
-                                        >
-                                            <Trash2 size={18} />
-                                        </IconButton>
-                                    </Tooltip>
+                                        {/* Delete objects */}
+                                        <CustomIconButton
+                                                id={Number(row.id)}
+                                                onDelete={() => onRemove(type!, row.id)}
+                                                onEdit={() => {
+                                                    // edit
+                                                }}
+                                                onMouseEvent={() => {}}
+                                                warningTitle={`Delete this ${type}?`}
+                                                warningMessage={`When you delete this ${type}, all data related to it will be removed. This action is non-recoverable.`}
+                                                type="LinkedObjectsType"
+                                            />
                                 </TableCell>
                             </TableRow>
                         ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={TABLE_COLUMNS.length} align="center">
+                       <TableCell 
+                            colSpan={TABLE_COLUMNS.filter(c => !(c.id === "due_date" && type !== "risk")).length}
+                            align="center"
+                            >
                             <EmptyState message="No linked items found." />
                         </TableCell>
                     </TableRow>
@@ -434,7 +418,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
             <Table sx={singleTheme.tableStyles.primary.frame}>
                 {/* HEADER */}
                 <SortableTableHead
-                        columns={TABLE_COLUMNS}
+                       columns={TABLE_COLUMNS.filter(c => !(c.id === "due_date" && type !== "risk"))}
                         sortConfig={sortConfig}
                         onSort={handleSort}
                         theme={theme}

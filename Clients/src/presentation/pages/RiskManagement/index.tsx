@@ -513,6 +513,18 @@ const RiskManagement = () => {
         routeUrl: `/projectRisks/${riskId}`,
       });
       if (response.status === 200) {
+
+          // Delete the risk from all linked policies
+      try {
+        await deleteEntityById({
+          routeUrl: `/policy-linked/risk/${riskId}/unlink-all`, 
+        });
+      } catch (linkedError) {
+        console.error("Error deleting risk from linked policies", linkedError);
+        handleToast("warning", "Risk deleted but failed to remove from some linked policies.");
+      }
+
+
         // Set current pagination number after deleting the risk
         const rowsPerPage = 5;
         const rowCount = projectRisks.slice(

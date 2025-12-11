@@ -107,46 +107,83 @@ export async function createLinkedObject(req: Request, res: Response) {
   }
 }
 
-  
 
-export async function updateLinkedObject(req: Request, res: Response) {
-    const policyId = parseInt(req.params.policyId);
-    const { old_object_type, old_object_id, new_object_type, new_object_id } = req.body;
-  
-    logger.debug(
-      `♻️ Updating link for policy ${policyId}: ${old_object_type}(${old_object_id}) → ${new_object_type}(${new_object_id})`
+export async function deleteRiskFromAllPolicies(req: Request, res: Response) {
+  const riskId = parseInt(req.params.riskId);
+
+  logStructured(
+    "processing",
+    `Deleting risk ${riskId} from all policies`,
+    "deleteRiskFromAllPolicies",
+    "policyLinkedObjects.ctrl.ts"
+  );
+
+  let transaction: Transaction | null = null;
+
+  try {
+    const tenant = req.tenantId!;
+    transaction = await sequelize.transaction();
+
+    await sequelize.query(
+      `DELETE FROM "${tenant}".policy_linked_objects
+       WHERE object_id = :riskId AND object_type = 'risk'`,
+      {
+        replacements: { riskId },
+        transaction,
+      }
     );
-  
-    let transaction: Transaction | null = null;
-  
-    try {
-      const tenant = req.tenantId!;
-      transaction = await sequelize.transaction();
-  
-      await updatePolicyLinkedObjectQuery(
-        policyId,
-        old_object_type,
-        old_object_id,
-        new_object_type,
-        new_object_id,
-        tenant,
-        transaction
-      );
-  
-      await transaction.commit();
-  
-      logger.debug(`✅ Link updated successfully for policy ${policyId}`);
-  
-      return res
-        .status(200)
-        .json(STATUS_CODE[200]("Linked object updated successfully"));
-    } catch (error) {
-      if (transaction) await transaction.rollback();
-  
-      logger.error("❌ Error in updateLinkedObject:", error);
-      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-    }
+
+    await transaction.commit();
+
+    logStructured(
+      "successful",
+      `Risk ${riskId} removed from all policies`,
+      "deleteRiskFromAllPolicies",
+      "policyLinkedObjects.ctrl.ts"
+    );
+
+    return res.status(200).json(STATUS_CODE[200]("Risk unlinked from all policies successfully"));
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    logStructured(
+      "error",
+      "failed to unlink risk from all policies",
+      "deleteRiskFromAllPolicies",
+      "policyLinkedObjects.ctrl.ts"
+    );
+    logger.error("❌ Error in deleteRiskFromAllPolicies:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
 }
+
+
+export async function deleteEvidenceFromAllPolicies(req: Request, res: Response) {
+  const evidenceId = parseInt(req.params.evidenceId);
+
+  let transaction: Transaction | null = null;
+
+  try {
+    const tenant = req.tenantId!;
+    transaction = await sequelize.transaction();
+
+    await sequelize.query(
+      `DELETE FROM "${tenant}".policy_linked_objects
+       WHERE object_id = :evidenceId AND object_type = 'evidence'`,
+      {
+        replacements: { evidenceId },
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
+    return res.status(200).json(STATUS_CODE[200]("Evidence unlinked from all policies successfully"));
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
   
   
 

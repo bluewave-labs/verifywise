@@ -279,15 +279,19 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
         },
         []
     );
+    const visibleRisks = useMemo(
+        () => sortedRisks.filter(risk => !linkedRiskIds.includes(Number(risk.id))),
+        [sortedRisks, linkedRiskIds]
+    );
 
     const getRange = useMemo(() => {
         const start = page * rowsPerPage + 1;
         const end = Math.min(
             page * rowsPerPage + rowsPerPage,
-            sortedRisks?.length ?? 0
+            visibleRisks?.length ?? 0
         );
         return `${start} - ${end}`;
-    }, [page, rowsPerPage, sortedRisks?.length]);
+    }, [page, rowsPerPage, visibleRisks?.length]);
 
     // -----------------------------
     // Selection Handlers
@@ -321,16 +325,17 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
     };
 
     const { userMap } = useUserMap();
+    
 
     const tableBody = useMemo(
         () => (
             <TableBody>
-                {sortedRisks?.length ? (
-                    sortedRisks
+                {visibleRisks?.length ? (
+                    visibleRisks
                         .slice(
                             hidePagination ? 0 : page * rowsPerPage,
                             hidePagination
-                                ? Math.min(sortedRisks.length, 100)
+                                ? Math.min(visibleRisks.length, 100)
                                 : page * rowsPerPage + rowsPerPage
                         )
                         .map((risk) => {
@@ -407,7 +412,7 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
             </TableBody>
         ),
         [
-            sortedRisks,
+            visibleRisks,
             page,
             rowsPerPage,
             hidePagination,
@@ -451,16 +456,16 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                     {tableBody}
                     {paginated &&
                         !hidePagination &&
-                        sortedRisks &&
-                        sortedRisks.length > 0 && (
+                        visibleRisks &&
+                        visibleRisks.length > 0 && (
                             <TableFooter>
                                 <TableRow sx={tableFooterRowStyle(theme)}>
                                     <TableCell sx={showingTextCellStyle(theme)}>
                                         Showing {getRange} of{" "}
-                                        {sortedRisks?.length} model(s)
+                                        {visibleRisks?.length} model(s)
                                     </TableCell>
                                     <TablePagination
-                                        count={sortedRisks?.length ?? 0}
+                                        count={visibleRisks?.length ?? 0}
                                         page={page}
                                         onPageChange={handleChangePage}
                                         rowsPerPage={rowsPerPage}

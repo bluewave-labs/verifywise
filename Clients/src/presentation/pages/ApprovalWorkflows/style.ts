@@ -128,15 +128,15 @@ export const headerContentBoxStyle = (theme: Theme) => ({
     gap: theme.spacing(2),
 });
 
-export const headerLabelStyle = (isActive: boolean) => ({
+export const headerLabelStyle = (isActive: boolean, theme?: Theme) => ({
     fontWeight: 400,
-    color: isActive ? "primary.main" : "inherit",
+    color: isActive && theme ? theme.palette.primary.main : "inherit",
 });
 
-export const sortIconBoxStyle = (isActive: boolean) => ({
+export const sortIconBoxStyle = (isActive: boolean, theme?: Theme) => ({
     display: "flex",
     alignItems: "center",
-    color: isActive ? "primary.main" : "#9CA3AF",
+    color: isActive && theme ? theme.palette.primary.main : "#9CA3AF",
 });
 
 // Body cell styles

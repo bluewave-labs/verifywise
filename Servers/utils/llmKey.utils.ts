@@ -42,10 +42,12 @@ export const createLLMKeyQuery = async (
   }
 
   const result = await sequelize.query(
-    `INSERT INTO "${tenant}".llm_keys (key, name) VALUES (:key, :name) RETURNING *;`, {
+    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING *;`, {
     replacements: {
       key: data.key,
       name: data.name,
+      url: data.url,
+      model: data.model,
     },
     transaction
   }) as [ILLMKey[], number];
@@ -59,12 +61,13 @@ export const updateLLMKeyByIdQuery = async (
   transaction: Transaction
 ): Promise<LLMKeyModel | null> => {
   const updateData: Partial<Record<keyof ILLMKey, any>> = {};
-  const setClause = ["name", "key"]
+  const setClause = ["name", "key", "url", "model"]
     .filter((f) => {
       if (data[f as keyof ILLMKey] !== undefined && data[f as keyof ILLMKey]) {
         updateData[f as keyof ILLMKey] = data[f as keyof ILLMKey];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

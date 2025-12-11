@@ -15,7 +15,7 @@ import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Field from "../../../components/Inputs/Field";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { LLMKeysModel } from "../../../../domain/models/Common/llmKeys/llmKeys.model";
+import { LLMKeysFormData, LLMKeysModel } from "../../../../domain/models/Common/llmKeys/llmKeys.model";
 import { createLLMKey, deleteLLMKey, editLLMKey, getLLMKeys } from "../../../../application/repository/llmKeys.repository";
 
 interface AlertState {
@@ -26,6 +26,12 @@ interface AlertState {
 }
 
 const LLMKeys = () => {
+  const initialFormData = {
+    name: "",
+    key: "",
+    url: "",
+    model: "",
+  };
   const { userRoleName } = useAuth();
   const theme = useTheme();
   const isDisabled = !allowedRoles.llmKeys?.manage?.includes(userRoleName);
@@ -40,8 +46,7 @@ const LLMKeys = () => {
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hoveredKeyId, setHoveredKeyId] = useState<number | null>(null);
   const [deletingKeyId, setDeletingKeyId] = useState<number | null>(null);
-  const [formName, setFormName] = useState<string>("");
-  const [formKey, setFormKey] = useState<string>("");
+  const [formData, setFormData] = useState<LLMKeysFormData>(initialFormData);
 
   const showAlert = useCallback(
     (variant: AlertState["variant"], title: string, body: string) => {
@@ -78,13 +83,9 @@ const LLMKeys = () => {
     }
   }, [alert]);
 
-  const isCreateButtonDisabled =  !formKey || !formName || isLoading;
+  const isCreateButtonDisabled =  !formData.key || !formData.model || !formData.name || !formData.url || isLoading;
 
   const handleCreateKey = useCallback(async () => {
-    const formData = {
-      name: formName,
-      key: formKey,
-    };
     setIsLoading(true);
     try {
       const response = await createLLMKey({ body: formData });
@@ -98,14 +99,10 @@ const LLMKeys = () => {
       setIsLoading(false);
       handleCloseCreateModal();
     }
-  }, [fetchLLMKeys, formKey, formName, showAlert]);
+  }, [fetchLLMKeys, formData, showAlert]);
 
 
   const handleEditKey = useCallback(async () => {
-    const formData = {
-      name: formName,
-      key: formKey,
-    };
     setIsLoading(true);
     try {
       const response = await editLLMKey({ id: keyToEdit, body: formData });
@@ -119,7 +116,7 @@ const LLMKeys = () => {
       setIsLoading(false);
       handleCloseCreateModal();
     }
-  }, [fetchLLMKeys, formKey, formName, showAlert, keyToEdit]);
+  }, [fetchLLMKeys, formData, showAlert, keyToEdit]);
 
   const handleDeleteKey = useCallback(async () => {
     if (!keyToDelete) return;
@@ -144,16 +141,23 @@ const LLMKeys = () => {
   const handleCloseCreateModal = useCallback(() => {
     setIsCreateModalOpen(false);
     setIsEditModalOpen(false);
-    setFormKey("");
-    setFormName("");
+    setFormData(initialFormData);
   }, []);
 
-  const handleEditButtonClick = useCallback((key: LLMKeysModel) => {
-    setKeyToEdit(key.id.toString());
-    setFormName(key.name);
-    setFormKey(key.key);
+  const handleEditButtonClick = useCallback((data: LLMKeysModel) => {
+    setKeyToEdit(data.id.toString());
+    setFormData({
+      name: data.name,
+      key: data.key,
+      url: data.url,
+      model: data.model,
+    });
     setIsEditModalOpen(true);
   }, []);
+
+  const handleFormChange = (name: string, value: string) => {
+    setFormData({...formData, [name]: value});
+  }
 
 
   return (
@@ -347,18 +351,33 @@ const LLMKeys = () => {
                 {isCreateModalOpen ? 'Create a new API key for access to your Verifywise Advisor.': "Edit your AI API key details below."} 
               </Typography>
               <Field
-                id="key-name"
+                id="llm-form-name"
                 label="Name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="e.g. Open AI API Key"
+                value={formData.name}
+                onChange={(e) => handleFormChange("name", e.target.value)}
+                placeholder="e.g. Anthropic"
                 isRequired
               />
               <Field
-                id="key-value"
+                id="llm-form-key"
                 label="Key"
-                value={formKey}
-                onChange={(e) => setFormKey(e.target.value)}
+                value={formData.key}
+                onChange={(e) => handleFormChange("key", e.target.value)}
+                isRequired
+              />
+              <Field
+                id="llm-form-url"
+                label="URL"
+                value={formData.url}
+                onChange={(e) => handleFormChange("url", e.target.value)}
+                placeholder="e.g. https://api.anthropic.com"
+                isRequired
+              />
+              <Field
+                id="llm-form-model"
+                label="Model"
+                value={formData.model}
+                onChange={(e) => handleFormChange("model", e.target.value)}
                 isRequired
               />
             </Stack>

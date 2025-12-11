@@ -450,23 +450,21 @@ export async function createOrganizationWithGoogle(
   try {
     const body = req.body as {
       token: string;
-      organizationData: {
-        name: string;
-        logo: string;
-      }
     };
-
-    if (!body.organizationData.name) {
-      await transaction.rollback();
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]("Organization name is required"));
+    const ticket = await client.verifyIdToken({
+      idToken: body.token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) {
+      logger.error(`❌ Google login failed`);
+      return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
     }
+    const { email, given_name, family_name, sub } = payload;
 
     // Use the OrganizationModel's createNewOrganization method with validation
     const organizationModel = await OrganizationModel.createNewOrganization(
-      body.organizationData.name,
-      body.organizationData.logo
+      `${given_name}'s Organization`,
     );
 
     // Validate the organization data before saving
@@ -482,18 +480,6 @@ export async function createOrganizationWithGoogle(
       const organization_id = createdOrganization.id!;
       await createNewTenant(organization_id, transaction);
 
-      const ticket = await client.verifyIdToken({
-        idToken: body.token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-
-      if (!payload) {
-        logger.error(`❌ Google login failed`);
-        return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
-      }
-
-      const { email, given_name, family_name, sub } = payload;
       const existingUser = await getUserByEmailQuery(email!);
       if (existingUser) {
         logStructured('error', `user already exists: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
@@ -531,6 +517,10 @@ export async function createOrganizationWithGoogle(
         await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
         return res.status(201).json(STATUS_CODE[201]({
           user: user.toSafeJSON(),
+          organization: {
+            id: createdOrganization.id,
+            name: createdOrganization.name
+          },
           token: accessToken
         }));
       }

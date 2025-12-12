@@ -953,6 +953,10 @@ export const updateSubcontrolEUByIdQuery = async (
     uploaded_time: Date;
   }[];
 
+  // Store original arrays to check for deletions specific to this subcontrol
+  const originalEvidenceFiles = [...currentEvidenceFiles];
+  const originalFeedbackFiles = [...currentFeedbackFiles];
+
   currentEvidenceFiles = currentEvidenceFiles.filter(
     (f) => !deletedFiles.includes(parseInt(f.id))
   );
@@ -962,6 +966,14 @@ export const updateSubcontrolEUByIdQuery = async (
     (f) => !deletedFiles.includes(parseInt(f.id))
   );
   currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
+
+  // Track if files were modified for THIS subcontrol (uploads or deletes)
+  // Check if any deleted files belong to this subcontrol's files
+  const hasEvidenceDeletes = originalEvidenceFiles.some(f => deletedFiles.includes(parseInt(f.id)));
+  const hasFeedbackDeletes = originalFeedbackFiles.some(f => deletedFiles.includes(parseInt(f.id)));
+  
+  const hasEvidenceFileChanges = evidenceUploadedFiles.length > 0 || hasEvidenceDeletes;
+  const hasFeedbackFileChanges = feedbackUploadedFiles.length > 0 || hasFeedbackDeletes;
 
   const updateSubControl: Partial<Record<keyof SubcontrolEU, any>> = {};
   const setClause = [
@@ -978,12 +990,14 @@ export const updateSubcontrolEUByIdQuery = async (
     "feedback_files",
   ]
     .filter((f) => {
-      if (f == "evidence_files" && currentEvidenceFiles.length > 0) {
+      // Always update evidence_files if there were changes (uploads or deletes)
+      if (f == "evidence_files" && hasEvidenceFileChanges) {
         updateSubControl["evidence_files"] =
           JSON.stringify(currentEvidenceFiles);
         return true;
       }
-      if (f == "feedback_files" && currentFeedbackFiles.length > 0) {
+      // Always update feedback_files if there were changes (uploads or deletes)
+      if (f == "feedback_files" && hasFeedbackFileChanges) {
         updateSubControl["feedback_files"] =
           JSON.stringify(currentFeedbackFiles);
         return true;

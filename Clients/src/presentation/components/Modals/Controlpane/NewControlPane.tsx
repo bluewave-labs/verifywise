@@ -51,6 +51,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import { useSearchParams } from "react-router-dom";
+import { getFileById } from "../../../../application/repository/file.repository";
 
 // Input styles matching other drawers
 export const inputStyles = {
@@ -174,10 +175,55 @@ const NewControlPane = ({
     return value;
   };
 
+  const normalizeFiles = (files: any[]): FileData[] => {
+    if (!Array.isArray(files)) return [];
+    return files.map((file: any) => ({
+      id: file.id?.toString() || file.fileId?.toString() || "",
+      fileName: file.fileName || file.filename || file.file_name || "",
+      size: file.size || 0,
+      type: file.type || "",
+      uploadDate:
+        file.uploadDate || file.uploaded_time || new Date().toISOString(),
+      uploader: file.uploader || file.uploaded_by?.toString() || "Unknown",
+      data: file.data,
+      source: file.source,
+    }));
+  };
+
   const initializeSubcontrolFormData = () => {
     const newFormData: Record<number, SubcontrolFormData> = {};
     controlData.subControls?.forEach((sc) => {
       if (sc.id) {
+        // Normalize evidence files
+        let evidenceFiles: FileData[] = [];
+        if (sc.evidence_files) {
+          if (Array.isArray(sc.evidence_files)) {
+            evidenceFiles = normalizeFiles(sc.evidence_files);
+          } else if (typeof sc.evidence_files === "string") {
+            try {
+              const parsed = JSON.parse(sc.evidence_files);
+              evidenceFiles = normalizeFiles(Array.isArray(parsed) ? parsed : [parsed]);
+            } catch {
+              evidenceFiles = [];
+            }
+          }
+        }
+
+        // Normalize feedback files
+        let feedbackFiles: FileData[] = [];
+        if (sc.feedback_files) {
+          if (Array.isArray(sc.feedback_files)) {
+            feedbackFiles = normalizeFiles(sc.feedback_files);
+          } else if (typeof sc.feedback_files === "string") {
+            try {
+              const parsed = JSON.parse(sc.feedback_files);
+              feedbackFiles = normalizeFiles(Array.isArray(parsed) ? parsed : [parsed]);
+            } catch {
+              feedbackFiles = [];
+            }
+          }
+        }
+
         newFormData[sc.id] = {
           id: sc.id,
           title: sc.title,
@@ -192,15 +238,11 @@ const NewControlPane = ({
           implementation_details: sanitizeField(sc.implementation_details),
           risk_review: sc.risk_review || "",
           evidence_description: sanitizeField(sc.evidence_description),
-          evidence_files: Array.isArray(sc.evidence_files)
-            ? sc.evidence_files
-            : [],
+          evidence_files: evidenceFiles,
           uploadEvidenceFiles: [],
           deletedEvidenceFileIds: [],
           feedback_description: sanitizeField(sc.feedback_description),
-          feedback_files: Array.isArray(sc.feedback_files)
-            ? sc.feedback_files
-            : [],
+          feedback_files: feedbackFiles,
           uploadFeedbackFiles: [],
           deletedFeedbackFileIds: [],
           risks: [],
@@ -342,21 +384,31 @@ const NewControlPane = ({
     }
   };
 
-  const handleDeleteEvidenceFile = (fileId: number) => {
+  const handleDeleteEvidenceFile = (fileId: string) => {
     const currentSubcontrol =
       controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
+
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
 
     setSubcontrolFormData((prev) => ({
       ...prev,
       [currentSubcontrol.id]: {
         ...prev[currentSubcontrol.id],
         evidence_files: prev[currentSubcontrol.id].evidence_files.filter(
-          (f) => Number(f.id) !== fileId
+          (f) => f.id.toString() !== fileId
         ),
         deletedEvidenceFileIds: [
           ...prev[currentSubcontrol.id].deletedEvidenceFileIds,
-          fileId,
+          fileIdNumber,
         ],
       },
     }));
@@ -415,21 +467,31 @@ const NewControlPane = ({
     }
   };
 
-  const handleDeleteFeedbackFile = (fileId: number) => {
+  const handleDeleteFeedbackFile = (fileId: string) => {
     const currentSubcontrol =
       controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
+
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
 
     setSubcontrolFormData((prev) => ({
       ...prev,
       [currentSubcontrol.id]: {
         ...prev[currentSubcontrol.id],
         feedback_files: prev[currentSubcontrol.id].feedback_files.filter(
-          (f) => Number(f.id) !== fileId
+          (f) => f.id.toString() !== fileId
         ),
         deletedFeedbackFileIds: [
           ...prev[currentSubcontrol.id].deletedFeedbackFileIds,
-          fileId,
+          fileIdNumber,
         ],
       },
     }));
@@ -439,6 +501,53 @@ const NewControlPane = ({
       body: "Please save the changes to save the file changes.",
       setAlert,
     });
+  };
+
+  const handleDownloadFile = async (fileId: string, fileName: string) => {
+    try {
+      // Validate fileId
+      const fileIdNumber = parseInt(fileId);
+      if (isNaN(fileIdNumber) || fileIdNumber <= 0) {
+        handleAlert({
+          variant: "error",
+          body: "Invalid file ID",
+          setAlert,
+        });
+        return;
+      }
+
+      // The backend expects the file ID as a string, but it must be a valid numeric ID
+      const response = await getFileById({
+        id: fileId,
+        responseType: "arraybuffer",
+      });
+
+      const blob = new Blob([response], { type: "application/octet-stream" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      handleAlert({
+        variant: "success",
+        body: "File downloaded successfully",
+        setAlert,
+      });
+    } catch (error: any) {
+      console.error("Error downloading file:", error);
+      console.error("File ID attempted:", fileId);
+      handleAlert({
+        variant: "error",
+        body: error?.response?.status === 404 
+          ? "File not found. It may have been deleted." 
+          : "Failed to download file. Please try again.",
+        setAlert,
+      });
+    }
   };
 
   // ========================================================================
@@ -579,6 +688,14 @@ const NewControlPane = ({
       const allDeletedFileIds = Object.values(subcontrolFormData).flatMap(
         (data) => [...data.deletedEvidenceFileIds, ...data.deletedFeedbackFileIds]
       );
+      
+      // Debug logging
+      console.log("Files to upload:", {
+        evidence: Object.values(subcontrolFormData).map(d => d.uploadEvidenceFiles.length),
+        feedback: Object.values(subcontrolFormData).map(d => d.uploadFeedbackFiles.length),
+      });
+      console.log("Files to delete:", allDeletedFileIds);
+      
       formData.append("delete", JSON.stringify(allDeletedFileIds));
 
       // Add user and project info
@@ -596,13 +713,32 @@ const NewControlPane = ({
       if (response.status === 200) {
         setIsSubmitting(false);
 
-        // Reset pending states
-        const newFormData = initializeSubcontrolFormData();
-        setSubcontrolFormData(newFormData);
+        // Extract the actual response data from the STATUS_CODE wrapper
+        // Response structure: { message: "OK", data: { response: { control, subControls } } }
+        const responseData = response.data?.data?.response || response.data?.response || response.data;
+        
+        // Update controlData with the response if available
+        if (responseData?.subControls) {
+          const updatedControl = {
+            ...controlData,
+            subControls: responseData.subControls,
+          };
+          setControlData(updatedControl);
+          
+          // Re-initialize form data from updated controlData
+          const newFormData = initializeSubcontrolFormData();
+          setSubcontrolFormData(newFormData);
+        }
 
-        // Notify parent components
+        // Notify parent components to refresh data
         OnSave?.(controlData);
         onComplianceUpdate?.();
+
+        handleAlert({
+          variant: "success",
+          body: "Control saved successfully",
+          setAlert,
+        });
 
         // Close the drawer
         handleClose();
@@ -931,8 +1067,8 @@ const NewControlPane = ({
 
                       <DatePicker
                         label="Due date:"
-                        value={currentFormData.due_date}
-                        onChange={(date) =>
+                        date={currentFormData.due_date}
+                        handleDateChange={(date) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "due_date",
@@ -1102,14 +1238,18 @@ const NewControlPane = ({
                               </Box>
                               <Box sx={{ display: "flex", gap: "4px" }}>
                                 <Tooltip title="Download">
-                                  <IconButton size="small" disabled={isEditingDisabled}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDownloadFile(file.id.toString(), file.fileName)}
+                                    disabled={isEditingDisabled}
+                                  >
                                     <DownloadIcon size={16} />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteEvidenceFile(Number(file.id))}
+                                    onClick={() => handleDeleteEvidenceFile(file.id.toString())}
                                     disabled={isEditingDisabled}
                                   >
                                     <DeleteIcon size={16} />
@@ -1320,14 +1460,18 @@ const NewControlPane = ({
                               </Box>
                               <Box sx={{ display: "flex", gap: "4px" }}>
                                 <Tooltip title="Download">
-                                  <IconButton size="small" disabled={isAuditingDisabled}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDownloadFile(file.id.toString(), file.fileName)}
+                                    disabled={isAuditingDisabled}
+                                  >
                                     <DownloadIcon size={16} />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteFeedbackFile(Number(file.id))}
+                                    onClick={() => handleDeleteFeedbackFile(file.id.toString())}
                                     disabled={isAuditingDisabled}
                                   >
                                     <DeleteIcon size={16} />

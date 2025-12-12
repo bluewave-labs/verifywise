@@ -43,7 +43,7 @@ interface ChangeOrganizationNameModalProps {
 const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = ({
   isOpen,
   onClose,
-  currentOrgName,
+  currentOrgName: _currentOrgName, // Kept for API compatibility but not used - field starts empty
   organizationId,
   onSuccess,
 }) => {

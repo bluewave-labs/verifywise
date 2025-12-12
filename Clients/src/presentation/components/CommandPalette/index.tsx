@@ -198,7 +198,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     results: searchResults,
     flatResults,
     isLoading: isSearching,
-    totalCount,
     recentSearches,
     addToRecent,
     removeFromRecent,

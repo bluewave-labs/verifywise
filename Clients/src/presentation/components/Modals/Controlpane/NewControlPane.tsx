@@ -127,6 +127,7 @@ const NewControlPane = ({
   // File input refs
   const evidenceFileInputRef = useRef<HTMLInputElement>(null);
   const feedbackFileInputRef = useRef<HTMLInputElement>(null);
+  const subcontrolTabsContainerRef = useRef<HTMLDivElement>(null);
 
   // Risk linking state
   const [showLinkedRisksPopup, setShowLinkedRisksPopup] = useState(false);
@@ -354,6 +355,34 @@ const NewControlPane = ({
   ) => {
     setSelectedSubcontrolIndex(newIndex);
   };
+
+  // Scroll active tab into view when it changes
+  useEffect(() => {
+    if (subcontrolTabsContainerRef.current) {
+      const container = subcontrolTabsContainerRef.current;
+      const activeTabElement = container.querySelector(
+        `[role="tab"][aria-selected="true"]`
+      ) as HTMLElement;
+
+      if (activeTabElement) {
+        const containerRect = container.getBoundingClientRect();
+        const tabRect = activeTabElement.getBoundingClientRect();
+        const scrollLeft = container.scrollLeft;
+        const tabLeft = tabRect.left - containerRect.left + scrollLeft;
+        const containerWidth = container.clientWidth;
+
+        // Calculate scroll position to center the tab
+        const targetScrollLeft =
+          tabLeft - containerWidth / 2 + tabRect.width / 2;
+
+        // Smooth scroll to center the active tab
+        container.scrollTo({
+          left: Math.max(0, targetScrollLeft),
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedSubcontrolIndex]);
 
   const handleSectionTabChange = (
     _: React.SyntheticEvent,
@@ -995,14 +1024,37 @@ const NewControlPane = ({
 
         {/* OUTER TABS - SUBCONTROLS */}
         {controlData.subControls && controlData.subControls.length > 0 && (
-          <Box>
+          <Box
+            ref={subcontrolTabsContainerRef}
+            sx={{
+              overflowX: "auto",
+              overflowY: "hidden",
+              scrollBehavior: "smooth",
+              "&::-webkit-scrollbar": {
+                height: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#D0D5DD",
+                borderRadius: "3px",
+                "&:hover": {
+                  backgroundColor: "#98A2B3",
+                },
+              },
+            }}
+          >
             <TabBar
               tabs={outerTabs}
               activeTab={selectedSubcontrolIndex.toString()}
               onChange={(event, newValue) =>
                 handleSubcontrolTabChange(event, parseInt(newValue))
               }
-              tabListSx={{ padding: "0 20px" }}
+              tabListSx={{
+                padding: "0 20px",
+                minWidth: "max-content",
+              }}
             />
           </Box>
         )}

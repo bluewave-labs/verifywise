@@ -1,24 +1,25 @@
+export type LLMProvider = "Anthropic" | "OpenAI" | "OpenRouter";
+
 interface LLMKeysData {
   id: number;
-  name: string;
+  name: LLMProvider;
   key: string;
-  url: string;
+  url?: string | null;
   model: string;
   created_at?: string;
 }
 
 export interface LLMKeysFormData {
-  name: string;
+  name: LLMProvider;
   key: string;
-  url: string;
   model: string;
 }
 
 export class LLMKeysModel {
   id!: number;
-  name!: string;
+  name!: LLMProvider;
   key!: string;
-  url!: string;
+  url?: string | null;
   model!: string;
   created_at?: string;
 
@@ -41,5 +42,9 @@ export class LLMKeysModel {
       month: "short",
       day: "numeric",
     });
+  }
+
+  static getAvailableProviders(): LLMProvider[] {
+    return ["Anthropic", "OpenAI", "OpenRouter"];
   }
 }

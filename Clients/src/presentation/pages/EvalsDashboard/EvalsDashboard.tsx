@@ -1556,7 +1556,10 @@ export default function EvalsDashboard() {
       {/* Onboarding Modal - Step 1: Create Organization */}
       <ModalStandard
         isOpen={onboardingStep === "org"}
-        onClose={() => {}} // Cannot be dismissed
+        onClose={() => {
+          setOnboardingStep(null);
+          setOnboardingOrgName("");
+        }}
         title="Welcome to LLM evals"
         description="Let's get started by creating your first organization. Organizations help you group projects and manage access."
         onSubmit={handleOnboardingCreateOrg}
@@ -1577,7 +1580,12 @@ export default function EvalsDashboard() {
       {/* Onboarding Modal - Step 2: Create Project */}
       <ModalStandard
         isOpen={onboardingStep === "project"}
-        onClose={() => {}} // Cannot be dismissed
+        onClose={() => {
+          setOnboardingStep(null);
+          setOnboardingProjectName("");
+          setOnboardingProjectDesc("");
+          setOnboardingProjectUseCase("chatbot");
+        }}
         title="Create your first project"
         description="Projects help you organize your LLM evaluations. Each project can have its own datasets, experiments, and configurations."
         onSubmit={handleOnboardingCreateProject}

@@ -54,6 +54,11 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [historyIndex, setHistoryIndex] = useState(0);
   const isNavigatingRef = useRef(false);
 
+
+  // To display adivsor in the sidebar, add a path to that particular page here
+  const advisorEligiblePaths = ['/risk-management'];
+  const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
+
   // Parse initial path on mount
   useEffect(() => {
     if (initialPath) {
@@ -66,6 +71,13 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       }
     }
   }, [initialPath]);
+
+  
+  useEffect(() => {
+    if (!displayAdvisor && activeTab === 'advisor') {
+      setActiveTab('user-guide');
+    }
+  }, [activeTab, displayAdvisor]);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -403,6 +415,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       <TabBar
         activeTab={isOpen ? activeTab : undefined}
         onTabChange={handleTabClick}
+        displayAdvisor={displayAdvisor}
       />
 
       {/* Main Sidebar Content - Slides in/out */}

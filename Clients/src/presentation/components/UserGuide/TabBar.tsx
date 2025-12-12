@@ -8,6 +8,7 @@ type Tab = 'user-guide' | 'advisor' | 'help';
 interface TabBarProps {
   activeTab: Tab | undefined;
   onTabChange: (tab: Tab) => void;
+  displayAdvisor: boolean;
 }
 
 interface TabItemProps {
@@ -60,11 +61,7 @@ const TabItem: React.FC<TabItemProps> = ({ label, icon, isActive, onClick }) => 
   );
 };
 
-const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
-  // To display adivsor in the sidebar, add a path to that particular page here
-  const advisorEligiblePaths = ['/risk-management']
-  const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
-
+const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, displayAdvisor }) => {
   return (
     <div
       style={{

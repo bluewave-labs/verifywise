@@ -1379,13 +1379,6 @@ const NewControlPane = ({
                                   >
                                     {file.fileName}
                                   </Typography>
-                                  {file.size && (
-                                    <Typography
-                                      sx={{ fontSize: 11, color: "#6B7280" }}
-                                    >
-                                      {(file.size / 1024).toFixed(1)} KB
-                                    </Typography>
-                                  )}
                                 </Box>
                               </Box>
                               <Box sx={{ display: "flex", gap: "4px" }}>
@@ -1467,13 +1460,6 @@ const NewControlPane = ({
                                     >
                                       {file.fileName}
                                     </Typography>
-                                    {file.size && (
-                                      <Typography
-                                        sx={{ fontSize: 11, color: "#B45309" }}
-                                      >
-                                        {(file.size / 1024).toFixed(1)} KB
-                                      </Typography>
-                                    )}
                                   </Box>
                                 </Box>
                                 <Tooltip title="Remove from queue">
@@ -1645,13 +1631,6 @@ const NewControlPane = ({
                                   >
                                     {file.fileName}
                                   </Typography>
-                                  {file.size && (
-                                    <Typography
-                                      sx={{ fontSize: 11, color: "#6B7280" }}
-                                    >
-                                      {(file.size / 1024).toFixed(1)} KB
-                                    </Typography>
-                                  )}
                                 </Box>
                               </Box>
                               <Box sx={{ display: "flex", gap: "4px" }}>
@@ -1733,13 +1712,6 @@ const NewControlPane = ({
                                     >
                                       {file.fileName}
                                     </Typography>
-                                    {file.size && (
-                                      <Typography
-                                        sx={{ fontSize: 11, color: "#B45309" }}
-                                      >
-                                        {(file.size / 1024).toFixed(1)} KB
-                                      </Typography>
-                                    )}
                                   </Box>
                                 </Box>
                                 <Tooltip title="Remove from queue">

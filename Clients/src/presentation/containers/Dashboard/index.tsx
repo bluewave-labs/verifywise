@@ -279,7 +279,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
         hasDemoData={hasDemoData}
       />
-      <Stack sx={{ pr: 14 }}>
+      <Stack>
         <DemoAppBanner />
         {alertState && (
           <Alert

@@ -56,6 +56,7 @@ const ALLOWED_TABLE_NAMES = new Set([
   "ai_trust_center_subprocessor",
   "trainingregistar",
   "ai_incident_managements",
+  "deepeval_projects",
 ]);
 
 /**
@@ -83,7 +84,7 @@ function escapeILikePattern(query: string): string {
  * Search result interface for individual matches
  */
 export interface SearchResult {
-  id: number;
+  id: number | string;
   entityType: string;
   title: string;
   subtitle?: string;
@@ -125,11 +126,12 @@ interface EntityConfig {
   titleColumn: string;
   subtitleColumn?: string;
   icon: string;
-  route: (id: number) => string;
+  route: (id: number | string) => string;
   requiresProjectAccess?: boolean;
   requiresVendorAccess?: boolean;
   organizationColumn?: string;
   projectColumn?: string;
+  tenantColumn?: string;
 }
 
 /**
@@ -246,6 +248,16 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     icon: "AlertCircle",
     route: (id) => `/ai-incident-managements?incidentId=${id}`,
   },
+  deepeval_projects: {
+    tableName: "deepeval_projects",
+    searchColumns: ["name", "description"],
+    titleColumn: "name",
+    subtitleColumn: "description",
+    icon: "FlaskConical",
+    route: (id) => `/evals/${id}`,
+    // Note: No tenantColumn filter needed - schema isolation is sufficient
+    // The EvalServer stores "default" in tenant column but uses schema "a4ayc80OGd"
+  },
 };
 
 /**
@@ -339,6 +351,12 @@ async function searchEntity(
   if (config.organizationColumn) {
     conditions.push(`${config.organizationColumn} = :organizationId`);
     replacements.organizationId = organizationId;
+  }
+
+  // Add tenant filter if applicable (for tables with explicit tenant column)
+  if (config.tenantColumn) {
+    conditions.push(`${config.tenantColumn} = :tenantId`);
+    replacements.tenantId = tenantId;
   }
 
   // Add project access filter if applicable

@@ -3,15 +3,16 @@ import {
   Typography,
   useTheme,
   Box,
-  Paper,
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
-import LogLine from "../../../components/LogLine";
+import LogsTable from "../../../components/Table/LogsTable";
 import EmptyState from "../../../components/EmptyState";
 import { RefreshCw as RefreshIcon } from "lucide-react";
+import SearchBox from "../../../components/Search/SearchBox";
+import Select from "../../../components/Inputs/Select";
 
 const WatchTowerLogs = () => {
   const theme = useTheme();
@@ -19,6 +20,8 @@ const WatchTowerLogs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [logsInfo, setLogsInfo] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [stateFilter, setStateFilter] = useState<string>("all");
 
   const fetchLogs = async () => {
     try {
@@ -56,6 +59,40 @@ const WatchTowerLogs = () => {
     fetchLogs();
   };
 
+  // Filter logs based on search query and state filter
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((line) => line.toLowerCase().includes(query));
+    }
+
+    // Apply state filter
+    if (stateFilter && stateFilter !== "all") {
+      result = result.filter((line) => {
+        const lowerLine = line.toLowerCase();
+        if (stateFilter === "successful") {
+          return lowerLine.includes("successful") || lowerLine.includes("success");
+        }
+        return lowerLine.includes(stateFilter.toLowerCase());
+      });
+    }
+
+    return result;
+  }, [logs, searchQuery, stateFilter]);
+
+  // State filter options
+  const stateOptions = [
+    { _id: "all", name: "All states" },
+    { _id: "successful", name: "Successful" },
+    { _id: "processing", name: "Processing" },
+    { _id: "error", name: "Error" },
+    { _id: "info", name: "Info" },
+    { _id: "warn", name: "Warning" },
+  ];
+
   if (isLoading) {
     return (
       <Stack className="watch-tower-logs" spacing={theme.spacing(4)}>
@@ -63,7 +100,7 @@ const WatchTowerLogs = () => {
           alignItems="center"
           justifyContent="center"
           sx={{
-            border: "1px solid #EEEEEE",
+            border: "1px solid #d0d5dd",
             borderRadius: "4px",
             padding: theme.spacing(15, 5),
             minHeight: 200,
@@ -91,121 +128,74 @@ const WatchTowerLogs = () => {
         </Typography>
       )}
 
-      {logs.length > 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            border: `1px solid ${theme.palette.border.light}`,
-            borderRadius: theme.shape.borderRadius,
-            backgroundColor: theme.palette.background.main,
-            overflow: "hidden",
-          }}
-        >
-          {/* Log File Header */}
-          <Box
+      {/* Header with search, filter, and refresh */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: theme.spacing(2),
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
+          <SearchBox
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search logs..."
+            sx={{ width: 200 }}
+          />
+          <Select
+            id="state-filter"
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            items={stateOptions}
             sx={{
-              backgroundColor: theme.palette.grey[50],
-              borderBottom: `1px solid ${theme.palette.border.light}`,
-              padding: theme.spacing(3, 4),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              minWidth: 140,
+              "& .MuiOutlinedInput-root": {
+                height: 34,
+              },
+            }}
+          />
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "12px",
+              color: theme.palette.text.secondary,
             }}
           >
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  marginBottom: theme.spacing(0.5),
-                }}
-              >
-                Application Logs
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "13px",
-                  color: theme.palette.text.secondary,
-                }}
-              >
-                {logsInfo || "Real-time application log entries"}
-              </Typography>
-            </Box>
-            <Box
+            {logsInfo || `${filteredLogs.length} log entries`}
+          </Typography>
+          <Tooltip
+            title="Refresh logs"
+            disableInteractive
+            sx={{ fontSize: 13 }}
+          >
+            <IconButton
+              disableRipple={
+                theme.components?.MuiIconButton?.defaultProps?.disableRipple
+              }
+              onClick={handleRefresh}
+              disabled={isLoading}
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: theme.spacing(2),
+                "&:focus": { outline: "none" },
+                "&:hover": {
+                  backgroundColor: theme.palette.grey[100],
+                },
+                "&:disabled svg": {
+                  color: theme.palette.action.disabled,
+                },
               }}
             >
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "12px",
-                  color: theme.palette.text.secondary,
-                  backgroundColor: theme.palette.grey[100],
-                  padding: theme.spacing(0.5, 1.5),
-                  borderRadius: theme.shape.borderRadius,
-                  fontWeight: 500,
-                }}
-              >
-                {logs.length} lines
-              </Typography>
-              <Tooltip
-                title="Refresh logs"
-                disableInteractive
-                sx={{ fontSize: 13 }}
-              >
-                <IconButton
-                  disableRipple={
-                    theme.components?.MuiIconButton?.defaultProps?.disableRipple
-                  }
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  sx={{
-                    "&:focus": { outline: "none" },
-                    "&:hover": {
-                      backgroundColor: theme.palette.grey[100],
-                    },
-                    "&:disabled svg": {
-                      color: theme.palette.action.disabled,
-                    },
-                  }}
-                >
-                  <RefreshIcon size={16} color={theme.palette.text.disabled} />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </Box>
+              <RefreshIcon size={16} color={theme.palette.text.disabled} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
 
-          {/* Log Content */}
-          <Box
-            sx={{
-              maxHeight: "50vh",
-              overflowY: "auto",
-              "&::-webkit-scrollbar": {
-                width: "8px",
-              },
-              "&::-webkit-scrollbar-track": {
-                backgroundColor: theme.palette.grey[100],
-              },
-              "&::-webkit-scrollbar-thumb": {
-                backgroundColor: theme.palette.grey[300],
-                borderRadius: "4px",
-                "&:hover": {
-                  backgroundColor: theme.palette.grey[400],
-                },
-              },
-            }}
-          >
-            {logs.map((line, index) => (
-              <LogLine key={index} line={line} index={index} />
-            ))}
-          </Box>
-        </Paper>
+      {filteredLogs.length > 0 ? (
+        <LogsTable data={filteredLogs} isLoading={isLoading} paginated={true} />
       ) : !error ? (
         <EmptyState message="There are currently no logs available." />
       ) : null}

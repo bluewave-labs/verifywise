@@ -79,6 +79,7 @@ export const routeMapping: Record<string, string> = {
 
   // Event tracking
   "/event-tracker": "Event Tracker",
+  "/event-tracker/logs": "Logs",
 
   // Automations
   "/automations": "Automations",
@@ -168,6 +169,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Event tracking
   "/event-tracker": () => React.createElement(Telescope, { size: 14, strokeWidth: 1.5 }),
+  "/event-tracker/logs": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
   // Policy Manager
   "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),

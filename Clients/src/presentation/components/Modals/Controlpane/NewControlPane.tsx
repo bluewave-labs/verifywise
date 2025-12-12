@@ -689,8 +689,15 @@ const NewControlPane = ({
     // Refresh linked risks after update
     if (currentSubcontrol?.id) {
       const subcontrolData = subcontrolFormData[currentSubcontrol.id];
-      if (subcontrolData && subcontrolData.risks && subcontrolData.risks.length > 0) {
-        fetchLinkedRisksForSubcontrol(currentSubcontrol.id, subcontrolData.risks);
+      if (
+        subcontrolData &&
+        subcontrolData.risks &&
+        subcontrolData.risks.length > 0
+      ) {
+        fetchLinkedRisksForSubcontrol(
+          currentSubcontrol.id,
+          subcontrolData.risks
+        );
       }
     }
   };
@@ -918,11 +925,16 @@ const NewControlPane = ({
         anchor="right"
         open={isOpen}
         onClose={handleClose}
-        PaperProps={{
-          sx: {
+        sx={{
+          width: 600,
+          margin: 0,
+          "& .MuiDrawer-paper": {
             width: 600,
-            height: "100vh",
+            margin: 0,
+            borderRadius: 0,
+            overflowX: "hidden",
             backgroundColor: "#FCFCFD",
+            height: "100vh",
             display: "flex",
             flexDirection: "column",
           },
@@ -2033,7 +2045,11 @@ const NewControlPane = ({
       <StandardModal
         isOpen={isRiskDetailModalOpen && !!riskFormData}
         onClose={handleRiskDetailModalClose}
-        title={`Risk: ${selectedRiskForView?.name || selectedRiskForView?.risk_name || "Risk Details"}`}
+        title={`Risk: ${
+          selectedRiskForView?.name ||
+          selectedRiskForView?.risk_name ||
+          "Risk Details"
+        }`}
         description="View and edit risk details"
         onSubmit={() => onRiskSubmitRef.current?.()}
         submitButtonText="Update"

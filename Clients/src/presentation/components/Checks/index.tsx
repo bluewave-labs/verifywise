@@ -14,7 +14,7 @@ import "./index.css";
 
 import { Check as CheckIcon } from "lucide-react";
 import { Square as CheckOutlined } from "lucide-react";
-import { CheckVariants } from "../../../domain/enums/checkVariants";
+import { CheckVariants } from "../../../domain/enums/checkVariants.enum";
 
 const CheckGrey = () => <CheckIcon size={16} />;
 

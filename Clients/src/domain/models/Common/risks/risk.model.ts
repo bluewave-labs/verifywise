@@ -1,7 +1,7 @@
 import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
 import { CurrentRiskLevel } from "../../../enums/currentRiskLevel.enum";
 import { Likelihood } from "../../../enums/likelihood.enum";
-import { MitigationStatus } from "../../../enums/mitigitaion";
+import { MitigationStatus } from "../../../enums/mitigation.enum";
 import { RiskLevelAutoCalculated } from "../../../enums/riskLevelAutoCalculated.enum";
 import { RiskSeverity } from "../../../enums/riskSeverity.enum";
 import { Severity } from "../../../enums/severity.enum";

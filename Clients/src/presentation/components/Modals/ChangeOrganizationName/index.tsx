@@ -47,7 +47,8 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
   organizationId,
   onSuccess,
 }) => {
-  const [organizationName, setOrganizationName] = useState(currentOrgName);
+  // Start with empty field - user must explicitly enter organization name
+  const [organizationName, setOrganizationName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { users } = useUsers();
@@ -128,12 +129,12 @@ const ChangeOrganizationNameModal: React.FC<ChangeOrganizationNameModalProps> = 
       <StandardModal
         isOpen={isOpen}
         onClose={handleSkip}
-        title="Customize your organization name"
-        description="We've created an organization for you. You can change the name now or keep the default."
+        title="Name your organization"
+        description="Enter a name for your organization to get started."
         onSubmit={handleSave}
         submitButtonText="Save"
         cancelButtonText="Skip for now"
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || !organizationName.trim()}
         maxWidth="600px"
       >
         <Stack spacing={6}>

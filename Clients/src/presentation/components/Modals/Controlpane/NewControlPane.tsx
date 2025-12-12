@@ -1366,22 +1366,34 @@ const NewControlPane = ({
                                   display: "flex",
                                   alignItems: "center",
                                   gap: 1.5,
+                                  flex: 1,
+                                  minWidth: 0,
                                 }}
                               >
                                 <FileIcon size={18} color="#475467" />
-                                <Box>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
                                   <Typography
                                     sx={{
                                       fontSize: 13,
                                       fontWeight: 500,
                                       color: "#1F2937",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
                                     }}
                                   >
                                     {file.fileName}
                                   </Typography>
                                 </Box>
                               </Box>
-                              <Box sx={{ display: "flex", gap: "4px" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: "4px",
+                                  flexShrink: 0,
+                                  marginLeft: 1,
+                                }}
+                              >
                                 <Tooltip title="Download">
                                   <IconButton
                                     size="small"
@@ -1447,15 +1459,20 @@ const NewControlPane = ({
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 1.5,
+                                    flex: 1,
+                                    minWidth: 0,
                                   }}
                                 >
                                   <FileIcon size={18} color="#D97706" />
-                                  <Box>
+                                  <Box sx={{ minWidth: 0, flex: 1 }}>
                                     <Typography
                                       sx={{
                                         fontSize: 13,
                                         fontWeight: 500,
                                         color: "#92400E",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
                                       }}
                                     >
                                       {file.fileName}
@@ -1479,6 +1496,7 @@ const NewControlPane = ({
                                       }));
                                     }}
                                     disabled={isEditingDisabled}
+                                    sx={{ flexShrink: 0, marginLeft: 1 }}
                                   >
                                     <DeleteIcon size={16} />
                                   </IconButton>
@@ -1618,22 +1636,34 @@ const NewControlPane = ({
                                   display: "flex",
                                   alignItems: "center",
                                   gap: 1.5,
+                                  flex: 1,
+                                  minWidth: 0,
                                 }}
                               >
                                 <FileIcon size={18} color="#475467" />
-                                <Box>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
                                   <Typography
                                     sx={{
                                       fontSize: 13,
                                       fontWeight: 500,
                                       color: "#1F2937",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
                                     }}
                                   >
                                     {file.fileName}
                                   </Typography>
                                 </Box>
                               </Box>
-                              <Box sx={{ display: "flex", gap: "4px" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: "4px",
+                                  flexShrink: 0,
+                                  marginLeft: 1,
+                                }}
+                              >
                                 <Tooltip title="Download">
                                   <IconButton
                                     size="small"
@@ -1699,15 +1729,20 @@ const NewControlPane = ({
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 1.5,
+                                    flex: 1,
+                                    minWidth: 0,
                                   }}
                                 >
                                   <FileIcon size={18} color="#D97706" />
-                                  <Box>
+                                  <Box sx={{ minWidth: 0, flex: 1 }}>
                                     <Typography
                                       sx={{
                                         fontSize: 13,
                                         fontWeight: 500,
                                         color: "#92400E",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
                                       }}
                                     >
                                       {file.fileName}
@@ -1731,6 +1766,7 @@ const NewControlPane = ({
                                       }));
                                     }}
                                     disabled={isAuditingDisabled}
+                                    sx={{ flexShrink: 0, marginLeft: 1 }}
                                   >
                                     <DeleteIcon size={16} />
                                   </IconButton>

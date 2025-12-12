@@ -111,8 +111,10 @@ const getTimeBasedGreeting = (userName?: string, userToken?: any): { icon: React
     ];
 
     if (hour >= 1 && hour <= 4) {
-      const randomMessage = lateNightMessages[Math.floor(Math.random() * lateNightMessages.length)];
-      greetingText = randomMessage;
+      // Use stable index based on current minute to prevent flickering on re-renders
+      // Changes only once per minute, which is acceptable behavior
+      const stableIndex = now.getMinutes() % lateNightMessages.length;
+      greetingText = lateNightMessages[stableIndex];
     } else {
       greetingText = "Good night";
     }

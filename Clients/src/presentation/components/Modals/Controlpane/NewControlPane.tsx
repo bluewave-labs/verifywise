@@ -1024,39 +1024,39 @@ const NewControlPane = ({
 
         {/* OUTER TABS - SUBCONTROLS */}
         {controlData.subControls && controlData.subControls.length > 0 && (
-          <Box
-            ref={subcontrolTabsContainerRef}
-            sx={{
-              overflowX: "auto",
-              overflowY: "hidden",
-              scrollBehavior: "smooth",
-              "&::-webkit-scrollbar": {
-                height: "6px",
-              },
-              "&::-webkit-scrollbar-track": {
-                backgroundColor: "transparent",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                backgroundColor: "#D0D5DD",
-                borderRadius: "3px",
-                "&:hover": {
-                  backgroundColor: "#98A2B3",
+          <TabContext value={selectedSubcontrolIndex.toString()}>
+            <Box
+              ref={subcontrolTabsContainerRef}
+              sx={{
+                overflowX: "auto",
+                overflowY: "hidden",
+                scrollBehavior: "smooth",
+                "&::-webkit-scrollbar": {
+                  height: "6px",
                 },
-              },
-            }}
-          >
-            <TabBar
-              tabs={outerTabs}
-              activeTab={selectedSubcontrolIndex.toString()}
-              onChange={(event, newValue) =>
-                handleSubcontrolTabChange(event, parseInt(newValue))
-              }
-              tabListSx={{
-                padding: "0 20px",
-                minWidth: "max-content",
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#D0D5DD",
+                  borderRadius: "3px",
+                  "&:hover": {
+                    backgroundColor: "#98A2B3",
+                  },
+                },
               }}
-            />
-          </Box>
+            >
+              <Box sx={{ padding: "0 20px", minWidth: "max-content" }}>
+                <TabBar
+                  tabs={outerTabs}
+                  activeTab={selectedSubcontrolIndex.toString()}
+                  onChange={(event, newValue) =>
+                    handleSubcontrolTabChange(event, parseInt(newValue))
+                  }
+                />
+              </Box>
+            </Box>
+          </TabContext>
         )}
 
         {/* DRAWER CONTENT */}

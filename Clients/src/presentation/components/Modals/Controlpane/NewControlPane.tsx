@@ -32,6 +32,7 @@ import CustomizableToast from "../../Toast";
 import TabBar from "../../TabBar";
 import CustomizableButton from "../../Button/CustomizableButton";
 import RichTextEditor from "../../RichTextEditor";
+import StandardModal from "../../Modals/StandardModal";
 
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
@@ -50,6 +51,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import { useSearchParams } from "react-router-dom";
 import { getFileById } from "../../../../application/repository/file.repository";
+import { getEntityById } from "../../../../application/repository/entity.repository";
 
 // Input styles matching other drawers
 export const inputStyles = {
@@ -128,8 +130,10 @@ const NewControlPane = ({
 
   // Risk linking state
   const [showLinkedRisksPopup, setShowLinkedRisksPopup] = useState(false);
-  const [showRiskDetailModal, setShowRiskDetailModal] = useState(false);
-  const [selectedRiskForDetail, setSelectedRiskForDetail] = useState<any>(null);
+  const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
+  const [selectedRiskForView, setSelectedRiskForView] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
   // PERMISSIONS
@@ -214,6 +218,9 @@ const NewControlPane = ({
           }
         }
 
+        // Initialize risks from backend data
+        const risks = Array.isArray(sc.risks) ? sc.risks : [];
+
         newFormData[sc.id] = {
           id: sc.id,
           title: sc.title,
@@ -235,7 +242,7 @@ const NewControlPane = ({
           feedback_files: feedbackFiles,
           uploadFeedbackFiles: [],
           deletedFeedbackFileIds: [],
-          risks: [],
+          risks: risks,
           selectedRisks: [],
           deletedRisks: [],
           linkedRiskObjects: [],
@@ -249,10 +256,60 @@ const NewControlPane = ({
   // INITIALIZATION & EFFECTS
   // ========================================================================
 
+  // Fetch linked risks for a subcontrol
+  const fetchLinkedRisksForSubcontrol = async (
+    subcontrolId: number,
+    riskIds: number[]
+  ) => {
+    if (riskIds.length === 0) {
+      return;
+    }
+
+    try {
+      const riskPromises = riskIds.map((riskId: number) =>
+        getEntityById({
+          routeUrl: `/projectRisks/${riskId}`,
+        })
+          .then((response: any) => response.data)
+          .catch(() => null)
+      );
+
+      const riskResults = await Promise.all(riskPromises);
+      const validRisks = riskResults.filter((risk: any) => risk !== null);
+
+      // Update the linkedRiskObjects for this subcontrol
+      setSubcontrolFormData((prev) => {
+        if (!prev[subcontrolId]) return prev;
+        return {
+          ...prev,
+          [subcontrolId]: {
+            ...prev[subcontrolId],
+            linkedRiskObjects: validRisks,
+          },
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching linked risks:", error);
+    }
+  };
+
   useEffect(() => {
     setControlData(data);
     const formData = initializeSubcontrolFormData();
     setSubcontrolFormData(formData);
+
+    // Fetch linked risks for each subcontrol
+    Object.keys(formData).forEach((subcontrolIdStr) => {
+      const subcontrolId = parseInt(subcontrolIdStr);
+      const subcontrolData = formData[subcontrolId];
+      if (
+        subcontrolData &&
+        subcontrolData.risks &&
+        subcontrolData.risks.length > 0
+      ) {
+        fetchLinkedRisksForSubcontrol(subcontrolId, subcontrolData.risks);
+      }
+    });
 
     // Filter project members
     if (users && users.length > 0) {
@@ -580,9 +637,62 @@ const NewControlPane = ({
     });
   };
 
-  const handleViewRiskDetail = (risk: any) => {
-    setSelectedRiskForDetail(risk);
-    setShowRiskDetailModal(true);
+  const handleViewRiskDetail = async (risk: any) => {
+    setSelectedRiskForView(risk);
+    try {
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/${risk.id}`,
+      });
+      if (response.data) {
+        const riskData = response.data;
+        setRiskFormData({
+          riskName: riskData.risk_name || "",
+          actionOwner: riskData.risk_owner || 0,
+          aiLifecyclePhase: riskData.ai_lifecycle_phase || 0,
+          riskDescription: riskData.risk_description || "",
+          riskCategory: riskData.risk_category || [1],
+          potentialImpact: riskData.impact || "",
+          assessmentMapping: riskData.assessment_mapping || 0,
+          controlsMapping: riskData.controls_mapping || 0,
+          likelihood: riskData.likelihood_score || 1,
+          riskSeverity: riskData.severity_score || 1,
+          riskLevel: riskData.risk_level || 0,
+          reviewNotes: riskData.review_notes || "",
+          applicableProjects: riskData.applicable_projects || [],
+          applicableFrameworks: riskData.applicable_frameworks || [],
+        });
+        setIsRiskDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching risk details:", error);
+      handleAlert({
+        variant: "error",
+        body: "Failed to load risk details",
+        setAlert,
+      });
+    }
+  };
+
+  const handleRiskDetailModalClose = () => {
+    setIsRiskDetailModalOpen(false);
+    setSelectedRiskForView(null);
+    setRiskFormData(null);
+  };
+
+  const handleRiskUpdateSuccess = () => {
+    handleRiskDetailModalClose();
+    handleAlert({
+      variant: "success",
+      body: "Risk updated successfully",
+      setAlert,
+    });
+    // Refresh linked risks after update
+    if (currentSubcontrol?.id) {
+      const subcontrolData = subcontrolFormData[currentSubcontrol.id];
+      if (subcontrolData && subcontrolData.risks && subcontrolData.risks.length > 0) {
+        fetchLinkedRisksForSubcontrol(currentSubcontrol.id, subcontrolData.risks);
+      }
+    }
   };
 
   // ========================================================================
@@ -623,6 +733,8 @@ const NewControlPane = ({
           implementation_details: formDataForSC.implementation_details || "",
           evidence_description: formDataForSC.evidence_description || "",
           feedback_description: formDataForSC.feedback_description || "",
+          risksDelete: JSON.stringify(formDataForSC.deletedRisks || []),
+          risksMitigated: JSON.stringify(formDataForSC.selectedRisks || []),
         };
       });
       formData.append("subControls", JSON.stringify(subControlsForJson));
@@ -1670,33 +1782,65 @@ const NewControlPane = ({
 
                 {/* TAB 3: CROSS MAPPINGS */}
                 <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
-                  <Stack spacing={2}>
-                    <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                      Link risks to this subcontrol to track mitigation efforts.
+                  <Stack spacing={3}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Linked risks
                     </Typography>
-                    <Button
-                      variant="outlined"
-                      onClick={() => setShowLinkedRisksPopup(true)}
-                      disabled={isEditingDisabled}
-                    >
-                      Add/remove risks
-                    </Button>
 
-                    {/* Risk Counter */}
-                    {(currentFormData.linkedRiskObjects.length > 0 ||
-                      currentFormData.selectedRisks.length > 0) && (
-                      <Typography sx={{ fontSize: "11px" }}>
-                        {currentFormData.linkedRiskObjects.length} risks linked
-                        {currentFormData.selectedRisks.length > 0 &&
-                          ` | +${currentFormData.selectedRisks.length} pending save`}
-                        {currentFormData.deletedRisks.length > 0 &&
-                          ` | -${currentFormData.deletedRisks.length} pending delete`}
-                      </Typography>
-                    )}
+                    <Typography variant="body2" color="#6B7280">
+                      Link risks from your risk database to track which risks
+                      are being addressed by this subcontrol.
+                    </Typography>
 
-                    {/* Risk Cards */}
-                    {(currentFormData.linkedRiskObjects.length > 0 ||
-                      currentFormData.selectedRisks.length > 0) && (
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Button
+                        variant="contained"
+                        sx={{
+                          borderRadius: 2,
+                          width: 155,
+                          height: 25,
+                          fontSize: 11,
+                          border: "1px solid #D0D5DD",
+                          backgroundColor: "white",
+                          color: "#344054",
+                          textTransform: "none",
+                          "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                            border: "1px solid #D0D5DD",
+                          },
+                        }}
+                        onClick={() => setShowLinkedRisksPopup(true)}
+                        disabled={isEditingDisabled}
+                      >
+                        Add/remove risks
+                      </Button>
+
+                      <Stack direction="row" spacing={2}>
+                        <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                          {`${
+                            currentFormData.linkedRiskObjects.filter(
+                              (r) =>
+                                !currentFormData.deletedRisks.includes(r.id)
+                            ).length || 0
+                          } risks linked`}
+                        </Typography>
+                        {currentFormData.selectedRisks.length > 0 && (
+                          <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                            {`+${currentFormData.selectedRisks.length} pending save`}
+                          </Typography>
+                        )}
+                        {currentFormData.deletedRisks.length > 0 && (
+                          <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                            {`-${currentFormData.deletedRisks.length} pending delete`}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Stack>
+
+                    {/* Linked Risks List */}
+                    {currentFormData.linkedRiskObjects.filter(
+                      (r) => !currentFormData.deletedRisks.includes(r.id)
+                    ).length > 0 && (
                       <Stack spacing={1}>
                         {currentFormData.linkedRiskObjects
                           .filter(
@@ -1709,41 +1853,68 @@ const NewControlPane = ({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                padding: "8px 12px",
-                                backgroundColor: "#FFFFFF",
-                                border: "1px solid #d0d5dd",
+                                padding: "10px 12px",
+                                border: "1px solid #EAECF0",
                                 borderRadius: "4px",
+                                backgroundColor: "#FFFFFF",
+                                "&:hover": {
+                                  backgroundColor: "#F9FAFB",
+                                },
                               }}
                             >
-                              <Box sx={{ flex: 1 }}>
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <Typography
-                                  sx={{ fontSize: "12px", fontWeight: 500 }}
+                                  sx={{
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    color: "#1F2937",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
                                 >
-                                  {risk.name}
+                                  {risk.name || risk.risk_name}
                                 </Typography>
-                                {risk.level && (
+                                {(risk.level || risk.risk_level) && (
                                   <Typography
-                                    sx={{ fontSize: "11px", color: "#6B7280" }}
+                                    sx={{ fontSize: 11, color: "#6B7280" }}
                                   >
-                                    Level: {risk.level}
+                                    Risk level: {risk.level || risk.risk_level}
                                   </Typography>
                                 )}
                               </Box>
-                              <Box sx={{ display: "flex", gap: "4px" }}>
+
+                              <Box sx={{ display: "flex", gap: 0.5 }}>
                                 <Tooltip title="View details">
                                   <IconButton
                                     size="small"
                                     onClick={() => handleViewRiskDetail(risk)}
-                                    disabled={isEditingDisabled}
+                                    sx={{
+                                      color: "#475467",
+                                      "&:hover": {
+                                        color: "#13715B",
+                                        backgroundColor:
+                                          "rgba(19, 113, 91, 0.08)",
+                                      },
+                                    }}
                                   >
                                     <ViewIcon size={16} />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title="Unlink">
+
+                                <Tooltip title="Unlink risk">
                                   <IconButton
                                     size="small"
                                     onClick={() => handleUnlinkRisk(risk.id)}
                                     disabled={isEditingDisabled}
+                                    sx={{
+                                      color: "#475467",
+                                      "&:hover": {
+                                        color: "#D32F2F",
+                                        backgroundColor:
+                                          "rgba(211, 47, 47, 0.08)",
+                                      },
+                                    }}
                                   >
                                     <DeleteIcon size={16} />
                                   </IconButton>
@@ -1753,6 +1924,31 @@ const NewControlPane = ({
                           ))}
                       </Stack>
                     )}
+
+                    {/* Empty State */}
+                    {currentFormData.linkedRiskObjects.filter(
+                      (r) => !currentFormData.deletedRisks.includes(r.id)
+                    ).length === 0 &&
+                      currentFormData.selectedRisks.length === 0 && (
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            py: 4,
+                            color: "#6B7280",
+                            border: "2px dashed #D1D5DB",
+                            borderRadius: 1,
+                            backgroundColor: "#F9FAFB",
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            No risks linked yet
+                          </Typography>
+                          <Typography variant="caption" color="#9CA3AF">
+                            Click "Add/remove risks" to link risks from your
+                            risk database
+                          </Typography>
+                        </Box>
+                      )}
                   </Stack>
                 </TabPanel>
 
@@ -1798,21 +1994,6 @@ const NewControlPane = ({
                   </Suspense>
                 )}
 
-                {/* RISK DETAIL MODAL - LAZY LOADED */}
-                {showRiskDetailModal && selectedRiskForDetail && (
-                  <Suspense fallback={<CircularProgress size={24} />}>
-                    <AddNewRiskForm
-                      closePopup={() => {
-                        setShowRiskDetailModal(false);
-                        setSelectedRiskForDetail(null);
-                      }}
-                      popupStatus="view"
-                      onSuccess={() => {}}
-                      onError={() => {}}
-                    />
-                  </Suspense>
-                )}
-
                 {/* TAB 4: NOTES */}
                 <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
                   <Suspense fallback={<CircularProgress size={24} />}>
@@ -1847,6 +2028,35 @@ const NewControlPane = ({
           />
         </Box>
       </Drawer>
+
+      {/* Risk Detail Modal - Outside Drawer to appear on top */}
+      <StandardModal
+        isOpen={isRiskDetailModalOpen && !!riskFormData}
+        onClose={handleRiskDetailModalClose}
+        title={`Risk: ${selectedRiskForView?.name || selectedRiskForView?.risk_name || "Risk Details"}`}
+        description="View and edit risk details"
+        onSubmit={() => onRiskSubmitRef.current?.()}
+        submitButtonText="Update"
+        maxWidth="1039px"
+      >
+        <Suspense fallback={<CircularProgress />}>
+          <AddNewRiskForm
+            closePopup={handleRiskDetailModalClose}
+            popupStatus="edit"
+            initialRiskValues={riskFormData}
+            onSuccess={handleRiskUpdateSuccess}
+            onError={(error) => {
+              handleAlert({
+                variant: "error",
+                body: error?.message || "Failed to update risk",
+                setAlert,
+              });
+            }}
+            users={users}
+            onSubmitRef={onRiskSubmitRef}
+          />
+        </Suspense>
+      </StandardModal>
     </>
   );
 };

@@ -105,7 +105,7 @@ const RegisterUser: React.FC = () => {
         values,
         user,
         setIsSubmitting,
-      });
+      }, userToken);
       if (isSuccess === 201) {
         setValues(initialState);
         setErrors({});

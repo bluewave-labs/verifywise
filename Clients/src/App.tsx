@@ -29,9 +29,29 @@ import useUserPreferences from "./application/hooks/useUserPreferences";
 import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 
+// Auth routes where the helper sidebar should not be shown
+const AUTH_ROUTES = [
+  '/login',
+  '/admin-reg',
+  '/user-reg',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/set-new-password',
+  '/reset-password-continue',
+];
+
 // Component for User Guide Sidebar that uses the context
 const UserGuideSidebarContainer = () => {
+  const location = useLocation();
   const userGuideSidebar = useUserGuideSidebarContext();
+
+  // Don't show the helper sidebar on auth pages
+  const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
+  if (isAuthPage) {
+    return null;
+  }
+
   return (
     <SidebarWrapper
       isOpen={userGuideSidebar.isOpen}
@@ -159,6 +179,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -183,7 +205,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -208,7 +232,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 

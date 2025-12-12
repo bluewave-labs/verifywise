@@ -52,6 +52,14 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import { useSearchParams } from "react-router-dom";
 
+// Input styles matching other drawers
+export const inputStyles = {
+  minWidth: 200,
+  maxWidth: "100%",
+  flexGrow: 1,
+  height: 34,
+};
+
 const tabStyle = {
   textTransform: "none",
   fontWeight: 400,
@@ -687,20 +695,29 @@ const NewControlPane = ({
                 fontSize: "16px",
                 fontWeight: 600,
                 color: "#1c2130",
-                mb: 1,
+                mb: controlData.description ? 1.5 : 0,
               }}
             >
               {`${controlCategoryId}.${controlData.order_no} ${controlData.title}`}
             </Typography>
-            <Typography
-              sx={{
-                fontSize: "13px",
-                fontWeight: 400,
-                color: "#344054",
-              }}
-            >
-              {controlData.description}
-            </Typography>
+            {/* Control Description Panel */}
+            {controlData.description && (
+              <Stack
+                sx={{
+                  border: "1px solid #eee",
+                  padding: "12px",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "4px",
+                }}
+              >
+                <Typography fontSize={13} sx={{ marginBottom: "8px" }}>
+                  <strong>Description:</strong>
+                </Typography>
+                <Typography fontSize={13} color="#666">
+                  {controlData.description}
+                </Typography>
+              </Stack>
+            )}
           </Box>
           <Button
             onClick={handleClose}
@@ -716,11 +733,12 @@ const NewControlPane = ({
 
         {/* OUTER TABS - SUBCONTROLS */}
         {controlData.subControls && controlData.subControls.length > 0 && (
-          <Box sx={{ borderBottom: "1px solid #d0d5dd" }}>
+          <Box>
             <TabBar
               tabs={outerTabs}
               activeTab={selectedSubcontrolIndex.toString()}
               onChange={(event, newValue) => handleSubcontrolTabChange(event, parseInt(newValue))}
+              tabListSx={{ padding: "0 20px" }}
             />
           </Box>
         )}
@@ -743,187 +761,195 @@ const NewControlPane = ({
                     fontSize: "16px",
                     fontWeight: 600,
                     color: "#1c2130",
-                    mb: 1,
+                    mb: currentSubcontrol.description ? 1.5 : 0,
                   }}
                 >
                   {`${controlCategoryId}.${controlData.order_no}.${currentSubcontrol.order_no}`}{" "}
                   {currentSubcontrol.title}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    color: "#344054",
-                  }}
-                >
-                  {currentSubcontrol.description}
-                </Typography>
+                {/* Description Panel */}
+                {currentSubcontrol.description && (
+                  <Stack
+                    sx={{
+                      border: "1px solid #eee",
+                      padding: "12px",
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <Typography fontSize={13} sx={{ marginBottom: "8px" }}>
+                      <strong>Description:</strong>
+                    </Typography>
+                    <Typography fontSize={13} color="#666">
+                      {currentSubcontrol.description}
+                    </Typography>
+                  </Stack>
+                )}
               </Box>
 
               {/* INNER TABS - SECTIONS */}
               <TabContext value={activeTab}>
-                <TabBar
-                  tabs={innerTabs}
-                  activeTab={activeTab}
-                  onChange={handleSectionTabChange}
-                />
+                <Box sx={{ padding: "0 20px" }}>
+                  <TabBar
+                    tabs={innerTabs}
+                    activeTab={activeTab}
+                    onChange={handleSectionTabChange}
+                  />
+                </Box>
 
                 {/* TAB 1: DETAILS */}
-                <TabPanel value="details" sx={{ p: 0, mt: 2 }}>
-                  <Stack spacing="15px">
+                <TabPanel value="details" sx={{ padding: 0 }}>
+                  <Stack padding="15px 20px" gap="15px">
                     {/* Implementation Details */}
-                    <Field
-                      label="Implementation details"
-                      type="description"
-                      value={currentFormData.implementation_details}
-                      onChange={(e) =>
-                        updateSubcontrolField(
-                          currentSubcontrol.id!,
-                          "implementation_details",
-                          e.target.value
-                        )
-                      }
-                      disabled={isEditingDisabled}
-                      sx={{ minHeight: "90px" }}
-                    />
-
-                    {/* Divider */}
-                    <Divider sx={{ my: 2 }} />
-
-                    {/* Form Fields Section */}
-                    <Stack spacing="24px">
-                      {/* Row 1: Status, Owner */}
-                      <Stack direction="row" spacing={2}>
-                        <Select
-                          id={`status-${currentSubcontrol.id}`}
-                          label="Status"
-                          value={currentFormData.status}
-                          onChange={(e: SelectChangeEvent) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "status",
-                              e.target.value
-                            )
-                          }
-                          items={[
-                            { _id: "Waiting", name: "Waiting" },
-                            { _id: "In progress", name: "In progress" },
-                            { _id: "Done", name: "Done" },
-                          ]}
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                        <Select
-                          id={`owner-${currentSubcontrol.id}`}
-                          label="Owner"
-                          value={currentFormData.owner}
-                          onChange={(e: SelectChangeEvent) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "owner",
-                              e.target.value
-                            )
-                          }
-                          items={(projectMembers || []).map((user) => ({
-                            _id: user.id!.toString(),
-                            name: user.name || "",
-                            surname: user.surname || "",
-                          }))}
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                      </Stack>
-
-                      {/* Row 2: Reviewer, Approver */}
-                      <Stack direction="row" spacing={2}>
-                        <Select
-                          id={`reviewer-${currentSubcontrol.id}`}
-                          label="Reviewer"
-                          value={currentFormData.reviewer}
-                          onChange={(e: SelectChangeEvent) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "reviewer",
-                              e.target.value
-                            )
-                          }
-                          items={(projectMembers || []).map((user) => ({
-                            _id: user.id!.toString(),
-                            name: user.name || "",
-                            surname: user.surname || "",
-                          }))}
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                        <Select
-                          id={`approver-${currentSubcontrol.id}`}
-                          label="Approver"
-                          value={currentFormData.approver}
-                          onChange={(e: SelectChangeEvent) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "approver",
-                              e.target.value
-                            )
-                          }
-                          items={(projectMembers || []).map((user) => ({
-                            _id: user.id!.toString(),
-                            name: user.name || "",
-                            surname: user.surname || "",
-                          }))}
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                      </Stack>
-
-                      {/* Row 3: Risk Review, Due Date */}
-                      <Stack direction="row" spacing={2}>
-                        <Select
-                          id={`risk-review-${currentSubcontrol.id}`}
-                          label="Risk review"
-                          value={currentFormData.risk_review}
-                          onChange={(e: SelectChangeEvent) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "risk_review",
-                              e.target.value
-                            )
-                          }
-                          items={[
-                            { _id: "Acceptable risk", name: "Acceptable risk" },
-                            { _id: "Residual risk", name: "Residual risk" },
-                            { _id: "Unacceptable risk", name: "Unacceptable risk" },
-                          ]}
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                        <DatePicker
-                          label="Due date"
-                          value={currentFormData.due_date}
-                          onChange={(date) =>
-                            updateSubcontrolField(
-                              currentSubcontrol.id!,
-                              "due_date",
-                              date
-                            )
-                          }
-                          disabled={isEditingDisabled}
-                          sx={{ flex: 1 }}
-                        />
-                      </Stack>
+                    <Stack>
+                      <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                        Implementation description:
+                      </Typography>
+                      <Field
+                        type="description"
+                        value={currentFormData.implementation_details}
+                        onChange={(e) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "implementation_details",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Describe how this requirement is implemented..."
+                        disabled={isEditingDisabled}
+                      />
                     </Stack>
 
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* Status & Assignments */}
+                    <Stack gap="24px">
+                      <Select
+                        id={`status-${currentSubcontrol.id}`}
+                        label="Status:"
+                        value={currentFormData.status}
+                        onChange={(e: SelectChangeEvent) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "status",
+                            e.target.value
+                          )
+                        }
+                        items={[
+                          { _id: "Waiting", name: "Waiting" },
+                          { _id: "In progress", name: "In progress" },
+                          { _id: "Done", name: "Done" },
+                        ]}
+                        sx={inputStyles}
+                        placeholder="Select status"
+                        disabled={isEditingDisabled}
+                      />
+
+                      <Select
+                        id={`owner-${currentSubcontrol.id}`}
+                        label="Owner:"
+                        value={currentFormData.owner}
+                        onChange={(e: SelectChangeEvent) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "owner",
+                            e.target.value
+                          )
+                        }
+                        items={(projectMembers || []).map((user) => ({
+                          _id: user.id!.toString(),
+                          name: user.name || "",
+                          surname: user.surname || "",
+                        }))}
+                        sx={inputStyles}
+                        placeholder="Select owner"
+                        disabled={isEditingDisabled}
+                      />
+
+                      <Select
+                        id={`reviewer-${currentSubcontrol.id}`}
+                        label="Reviewer:"
+                        value={currentFormData.reviewer}
+                        onChange={(e: SelectChangeEvent) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "reviewer",
+                            e.target.value
+                          )
+                        }
+                        items={(projectMembers || []).map((user) => ({
+                          _id: user.id!.toString(),
+                          name: user.name || "",
+                          surname: user.surname || "",
+                        }))}
+                        sx={inputStyles}
+                        placeholder="Select reviewer"
+                        disabled={isEditingDisabled}
+                      />
+
+                      <Select
+                        id={`approver-${currentSubcontrol.id}`}
+                        label="Approver:"
+                        value={currentFormData.approver}
+                        onChange={(e: SelectChangeEvent) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "approver",
+                            e.target.value
+                          )
+                        }
+                        items={(projectMembers || []).map((user) => ({
+                          _id: user.id!.toString(),
+                          name: user.name || "",
+                          surname: user.surname || "",
+                        }))}
+                        sx={inputStyles}
+                        placeholder="Select approver"
+                        disabled={isEditingDisabled}
+                      />
+
+                      <Select
+                        id={`risk-review-${currentSubcontrol.id}`}
+                        label="Risk review:"
+                        value={currentFormData.risk_review}
+                        onChange={(e: SelectChangeEvent) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "risk_review",
+                            e.target.value
+                          )
+                        }
+                        items={[
+                          { _id: "Acceptable risk", name: "Acceptable risk" },
+                          { _id: "Residual risk", name: "Residual risk" },
+                          { _id: "Unacceptable risk", name: "Unacceptable risk" },
+                        ]}
+                        sx={inputStyles}
+                        placeholder="Select risk review"
+                        disabled={isEditingDisabled}
+                      />
+
+                      <DatePicker
+                        label="Due date:"
+                        value={currentFormData.due_date}
+                        onChange={(date) =>
+                          updateSubcontrolField(
+                            currentSubcontrol.id!,
+                            "due_date",
+                            date
+                          )
+                        }
+                        sx={inputStyles}
+                        disabled={isEditingDisabled}
+                      />
+                    </Stack>
+
+                    <Divider sx={{ my: 2 }} />
+
                     {/* Evidence Description */}
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontSize: "13px",
-                          fontWeight: 500,
-                          color: "#344054",
-                          mb: 1,
-                        }}
-                      >
-                        Evidence
+                    <Stack>
+                      <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                        Evidence:
                       </Typography>
                       <RichTextEditor
                         value={currentFormData.evidence_description}
@@ -937,19 +963,12 @@ const NewControlPane = ({
                         disabled={isEditingDisabled}
                         sx={{ minHeight: "90px" }}
                       />
-                    </Box>
+                    </Stack>
 
                     {/* Auditor Feedback Description */}
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontSize: "13px",
-                          fontWeight: 500,
-                          color: "#344054",
-                          mb: 1,
-                        }}
-                      >
-                        Auditor feedback
+                    <Stack>
+                      <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
+                        Auditor feedback:
                       </Typography>
                       <RichTextEditor
                         value={currentFormData.feedback_description}
@@ -963,13 +982,14 @@ const NewControlPane = ({
                         disabled={isAuditingDisabled}
                         sx={{ minHeight: "90px" }}
                       />
-                    </Box>
+                    </Stack>
                   </Stack>
                 </TabPanel>
 
-                {/* TAB 2: EVIDENCE */}
-                <TabPanel value="evidences" sx={{ p: 0, mt: 2 }}>
-                  <Stack spacing={4}>
+                {/* TAB 2: EVIDENCES */}
+                <TabPanel value="evidences" sx={{ padding: "15px 20px" }}>
+                  <Stack spacing={3}>
+                    {/* Evidence Files Section */}
                     {/* SECTION 1: EVIDENCE FILES */}
                     <Box>
                       {/* Section Header */}
@@ -1408,7 +1428,7 @@ const NewControlPane = ({
                 </TabPanel>
 
                 {/* TAB 3: CROSS MAPPINGS */}
-                <TabPanel value="cross-mappings" sx={{ p: 0, mt: 2 }}>
+                <TabPanel value="cross-mappings" sx={{ padding: "15px 20px" }}>
                   <Stack spacing={2}>
                     <Typography sx={{ fontSize: "13px", color: "#475467" }}>
                       Link risks to this subcontrol to track mitigation efforts.
@@ -1522,7 +1542,7 @@ const NewControlPane = ({
                 )}
 
                 {/* TAB 4: NOTES */}
-                <TabPanel value="notes" sx={{ p: 0, mt: 2 }}>
+                <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
                   <Suspense fallback={<CircularProgress size={24} />}>
                     <NotesTab
                       attachedTo="EU_AI_ACT_SUBCONTROL"
@@ -1547,9 +1567,9 @@ const NewControlPane = ({
           }}
         >
           <CustomizableButton
-            label="Save"
+            text="Save"
             onClick={confirmSave}
-            disabled={isSubmitting}
+            isDisabled={isSubmitting}
             sx={{ height: "34px" }}
             startIcon={<SaveIcon size={16} />}
           />

@@ -2,8 +2,6 @@ import {
   Box,
   Button,
   Stack,
-  Tab,
-  Tabs,
   Typography,
   Drawer,
   CircularProgress,
@@ -21,12 +19,12 @@ import {
   FileText as FileIcon,
   Eye as ViewIcon,
 } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { useState, useEffect, Suspense, lazy, useRef } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
@@ -59,18 +57,6 @@ export const inputStyles = {
   maxWidth: "100%",
   flexGrow: 1,
   height: 34,
-};
-
-const tabStyle = {
-  textTransform: "none",
-  fontWeight: 400,
-  alignItems: "flex-start",
-  justifyContent: "flex-end",
-  padding: "16px 0 7px",
-  minHeight: "20px",
-  "&.Mui-selected": {
-    color: "#13715B",
-  },
 };
 
 interface SubcontrolFormData {
@@ -134,7 +120,7 @@ const NewControlPane = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // File input refs
   const evidenceFileInputRef = useRef<HTMLInputElement>(null);
@@ -202,7 +188,9 @@ const NewControlPane = ({
           } else if (typeof sc.evidence_files === "string") {
             try {
               const parsed = JSON.parse(sc.evidence_files);
-              evidenceFiles = normalizeFiles(Array.isArray(parsed) ? parsed : [parsed]);
+              evidenceFiles = normalizeFiles(
+                Array.isArray(parsed) ? parsed : [parsed]
+              );
             } catch {
               evidenceFiles = [];
             }
@@ -217,7 +205,9 @@ const NewControlPane = ({
           } else if (typeof sc.feedback_files === "string") {
             try {
               const parsed = JSON.parse(sc.feedback_files);
-              feedbackFiles = normalizeFiles(Array.isArray(parsed) ? parsed : [parsed]);
+              feedbackFiles = normalizeFiles(
+                Array.isArray(parsed) ? parsed : [parsed]
+              );
             } catch {
               feedbackFiles = [];
             }
@@ -343,8 +333,7 @@ const NewControlPane = ({
     const files = event.target.files;
     if (!files) return;
 
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
 
     const newFiles: FileData[] = [];
@@ -361,12 +350,15 @@ const NewControlPane = ({
       });
     }
 
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
     setSubcontrolFormData((prev) => ({
       ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
+      [subcontrolId]: {
+        ...prev[subcontrolId],
         uploadEvidenceFiles: [
-          ...prev[currentSubcontrol.id].uploadEvidenceFiles,
+          ...prev[subcontrolId].uploadEvidenceFiles,
           ...newFiles,
         ],
       },
@@ -385,8 +377,7 @@ const NewControlPane = ({
   };
 
   const handleDeleteEvidenceFile = (fileId: string) => {
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
 
     const fileIdNumber = parseInt(fileId);
@@ -399,15 +390,18 @@ const NewControlPane = ({
       return;
     }
 
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
     setSubcontrolFormData((prev) => ({
       ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
-        evidence_files: prev[currentSubcontrol.id].evidence_files.filter(
-          (f) => f.id.toString() !== fileId
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        evidence_files: prev[subcontrolId].evidence_files.filter(
+          (f: FileData) => f.id.toString() !== fileId
         ),
         deletedEvidenceFileIds: [
-          ...prev[currentSubcontrol.id].deletedEvidenceFileIds,
+          ...prev[subcontrolId].deletedEvidenceFileIds,
           fileIdNumber,
         ],
       },
@@ -426,8 +420,7 @@ const NewControlPane = ({
     const files = event.target.files;
     if (!files) return;
 
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
 
     const newFiles: FileData[] = [];
@@ -444,12 +437,15 @@ const NewControlPane = ({
       });
     }
 
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
     setSubcontrolFormData((prev) => ({
       ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
+      [subcontrolId]: {
+        ...prev[subcontrolId],
         uploadFeedbackFiles: [
-          ...prev[currentSubcontrol.id].uploadFeedbackFiles,
+          ...prev[subcontrolId].uploadFeedbackFiles,
           ...newFiles,
         ],
       },
@@ -468,8 +464,7 @@ const NewControlPane = ({
   };
 
   const handleDeleteFeedbackFile = (fileId: string) => {
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
 
     const fileIdNumber = parseInt(fileId);
@@ -482,15 +477,18 @@ const NewControlPane = ({
       return;
     }
 
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
     setSubcontrolFormData((prev) => ({
       ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
-        feedback_files: prev[currentSubcontrol.id].feedback_files.filter(
-          (f) => f.id.toString() !== fileId
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        feedback_files: prev[subcontrolId].feedback_files.filter(
+          (f: FileData) => f.id.toString() !== fileId
         ),
         deletedFeedbackFileIds: [
-          ...prev[currentSubcontrol.id].deletedFeedbackFileIds,
+          ...prev[subcontrolId].deletedFeedbackFileIds,
           fileIdNumber,
         ],
       },
@@ -542,9 +540,10 @@ const NewControlPane = ({
       console.error("File ID attempted:", fileId);
       handleAlert({
         variant: "error",
-        body: error?.response?.status === 404 
-          ? "File not found. It may have been deleted." 
-          : "Failed to download file. Please try again.",
+        body:
+          error?.response?.status === 404
+            ? "File not found. It may have been deleted."
+            : "Failed to download file. Please try again.",
         setAlert,
       });
     }
@@ -554,51 +553,23 @@ const NewControlPane = ({
   // HANDLERS - RISK LINKING
   // ========================================================================
 
-  const handleAddRisks = (selectedRiskIds: number[]) => {
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
-    if (!currentSubcontrol.id) return;
-
-    setSubcontrolFormData((prev) => ({
-      ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
-        selectedRisks: [
-          ...prev[currentSubcontrol.id].selectedRisks,
-          ...selectedRiskIds.filter(
-            (id) =>
-              !prev[currentSubcontrol.id].risks.includes(id) &&
-              !prev[currentSubcontrol.id].selectedRisks.includes(id)
-          ),
-        ],
-      },
-    }));
-
-    setShowLinkedRisksPopup(false);
-
-    handleAlert({
-      variant: "info",
-      body: "Please save the changes to save the risk changes.",
-      setAlert,
-    });
-  };
-
   const handleUnlinkRisk = (riskId: number) => {
-    const currentSubcontrol =
-      controlData.subControls![selectedSubcontrolIndex];
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
     if (!currentSubcontrol.id) return;
 
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
     setSubcontrolFormData((prev) => ({
       ...prev,
-      [currentSubcontrol.id]: {
-        ...prev[currentSubcontrol.id],
-        selectedRisks: prev[currentSubcontrol.id].selectedRisks.filter(
-          (id) => id !== riskId
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        selectedRisks: prev[subcontrolId].selectedRisks.filter(
+          (id: number) => id !== riskId
         ),
-        deletedRisks:
-          prev[currentSubcontrol.id].risks.includes(riskId)
-            ? [...prev[currentSubcontrol.id].deletedRisks, riskId]
-            : prev[currentSubcontrol.id].deletedRisks,
+        deletedRisks: prev[subcontrolId].risks.includes(riskId)
+          ? [...prev[subcontrolId].deletedRisks, riskId]
+          : prev[subcontrolId].deletedRisks,
       },
     }));
 
@@ -638,10 +609,14 @@ const NewControlPane = ({
           description: sc.description,
           order_no: sc.order_no,
           status: formDataForSC.status || "",
-          approver: formDataForSC.approver ? Number(formDataForSC.approver) : null,
+          approver: formDataForSC.approver
+            ? Number(formDataForSC.approver)
+            : null,
           risk_review: formDataForSC.risk_review || null,
           owner: formDataForSC.owner ? Number(formDataForSC.owner) : null,
-          reviewer: formDataForSC.reviewer ? Number(formDataForSC.reviewer) : null,
+          reviewer: formDataForSC.reviewer
+            ? Number(formDataForSC.reviewer)
+            : null,
           due_date: formDataForSC.due_date
             ? formDataForSC.due_date.format("YYYY-MM-DD")
             : null,
@@ -686,16 +661,23 @@ const NewControlPane = ({
 
       // Add deleted files
       const allDeletedFileIds = Object.values(subcontrolFormData).flatMap(
-        (data) => [...data.deletedEvidenceFileIds, ...data.deletedFeedbackFileIds]
+        (data) => [
+          ...data.deletedEvidenceFileIds,
+          ...data.deletedFeedbackFileIds,
+        ]
       );
-      
+
       // Debug logging
       console.log("Files to upload:", {
-        evidence: Object.values(subcontrolFormData).map(d => d.uploadEvidenceFiles.length),
-        feedback: Object.values(subcontrolFormData).map(d => d.uploadFeedbackFiles.length),
+        evidence: Object.values(subcontrolFormData).map(
+          (d) => d.uploadEvidenceFiles.length
+        ),
+        feedback: Object.values(subcontrolFormData).map(
+          (d) => d.uploadFeedbackFiles.length
+        ),
       });
       console.log("Files to delete:", allDeletedFileIds);
-      
+
       formData.append("delete", JSON.stringify(allDeletedFileIds));
 
       // Add user and project info
@@ -715,8 +697,11 @@ const NewControlPane = ({
 
         // Extract the actual response data from the STATUS_CODE wrapper
         // Response structure: { message: "OK", data: { response: { control, subControls } } }
-        const responseData = response.data?.data?.response || response.data?.response || response.data;
-        
+        const responseData =
+          response.data?.data?.response ||
+          response.data?.response ||
+          response.data;
+
         // Update controlData with the response if available
         if (responseData?.subControls) {
           const updatedControl = {
@@ -724,7 +709,7 @@ const NewControlPane = ({
             subControls: responseData.subControls,
           };
           setControlData(updatedControl);
-          
+
           // Re-initialize form data from updated controlData
           const newFormData = initializeSubcontrolFormData();
           setSubcontrolFormData(newFormData);
@@ -766,10 +751,26 @@ const NewControlPane = ({
     : null;
 
   const innerTabs = [
-    { label: "Details", value: "details", icon: "FileText" },
-    { label: "Evidences", value: "evidences", icon: "FolderOpen" },
-    { label: "Cross mappings", value: "cross-mappings", icon: "Link" },
-    { label: "Notes", value: "notes", icon: "MessageSquare" },
+    {
+      label: "Details",
+      value: "details",
+      icon: "FileText" as keyof typeof LucideIcons,
+    },
+    {
+      label: "Evidences",
+      value: "evidences",
+      icon: "FolderOpen" as keyof typeof LucideIcons,
+    },
+    {
+      label: "Cross mappings",
+      value: "cross-mappings",
+      icon: "Link" as keyof typeof LucideIcons,
+    },
+    {
+      label: "Notes",
+      value: "notes",
+      icon: "MessageSquare" as keyof typeof LucideIcons,
+    },
   ];
 
   // ========================================================================
@@ -777,10 +778,11 @@ const NewControlPane = ({
   // ========================================================================
 
   // Create outer tabs from subControls
-  const outerTabs = controlData.subControls?.map((subControl, index) => ({
-    label: `Subcontrol ${index + 1}`,
-    value: index.toString(),
-  })) || [];
+  const outerTabs =
+    controlData.subControls?.map((_, index) => ({
+      label: `Subcontrol ${index + 1}`,
+      value: index.toString(),
+    })) || [];
 
   return (
     <>
@@ -873,7 +875,9 @@ const NewControlPane = ({
             <TabBar
               tabs={outerTabs}
               activeTab={selectedSubcontrolIndex.toString()}
-              onChange={(event, newValue) => handleSubcontrolTabChange(event, parseInt(newValue))}
+              onChange={(event, newValue) =>
+                handleSubcontrolTabChange(event, parseInt(newValue))
+              }
               tabListSx={{ padding: "0 20px" }}
             />
           </Box>
@@ -964,11 +968,11 @@ const NewControlPane = ({
                         id={`status-${currentSubcontrol.id}`}
                         label="Status:"
                         value={currentFormData.status}
-                        onChange={(e: SelectChangeEvent) =>
+                        onChange={(e: SelectChangeEvent<string | number>) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "status",
-                            e.target.value
+                            String(e.target.value)
                           )
                         }
                         items={[
@@ -985,11 +989,11 @@ const NewControlPane = ({
                         id={`owner-${currentSubcontrol.id}`}
                         label="Owner:"
                         value={currentFormData.owner}
-                        onChange={(e: SelectChangeEvent) =>
+                        onChange={(e: SelectChangeEvent<string | number>) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "owner",
-                            e.target.value
+                            String(e.target.value)
                           )
                         }
                         items={(projectMembers || []).map((user) => ({
@@ -1006,11 +1010,11 @@ const NewControlPane = ({
                         id={`reviewer-${currentSubcontrol.id}`}
                         label="Reviewer:"
                         value={currentFormData.reviewer}
-                        onChange={(e: SelectChangeEvent) =>
+                        onChange={(e: SelectChangeEvent<string | number>) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "reviewer",
-                            e.target.value
+                            String(e.target.value)
                           )
                         }
                         items={(projectMembers || []).map((user) => ({
@@ -1027,11 +1031,11 @@ const NewControlPane = ({
                         id={`approver-${currentSubcontrol.id}`}
                         label="Approver:"
                         value={currentFormData.approver}
-                        onChange={(e: SelectChangeEvent) =>
+                        onChange={(e: SelectChangeEvent<string | number>) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "approver",
-                            e.target.value
+                            String(e.target.value)
                           )
                         }
                         items={(projectMembers || []).map((user) => ({
@@ -1048,17 +1052,20 @@ const NewControlPane = ({
                         id={`risk-review-${currentSubcontrol.id}`}
                         label="Risk review:"
                         value={currentFormData.risk_review}
-                        onChange={(e: SelectChangeEvent) =>
+                        onChange={(e: SelectChangeEvent<string | number>) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "risk_review",
-                            e.target.value
+                            String(e.target.value)
                           )
                         }
                         items={[
                           { _id: "Acceptable risk", name: "Acceptable risk" },
                           { _id: "Residual risk", name: "Residual risk" },
-                          { _id: "Unacceptable risk", name: "Unacceptable risk" },
+                          {
+                            _id: "Unacceptable risk",
+                            name: "Unacceptable risk",
+                          },
                         ]}
                         sx={inputStyles}
                         placeholder="Select risk review"
@@ -1088,16 +1095,17 @@ const NewControlPane = ({
                         Evidence:
                       </Typography>
                       <RichTextEditor
-                        value={currentFormData.evidence_description}
-                        onChange={(value) =>
+                        key={`evidence-${currentSubcontrol.id}`}
+                        initialContent={currentFormData.evidence_description}
+                        onContentChange={(content: string) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "evidence_description",
-                            value
+                            content
                           )
                         }
-                        disabled={isEditingDisabled}
-                        sx={{ minHeight: "90px" }}
+                        isEditable={!isEditingDisabled}
+                        bodySx={{ minHeight: "90px" }}
                       />
                     </Stack>
 
@@ -1107,16 +1115,17 @@ const NewControlPane = ({
                         Auditor feedback:
                       </Typography>
                       <RichTextEditor
-                        value={currentFormData.feedback_description}
-                        onChange={(value) =>
+                        key={`feedback-${currentSubcontrol.id}`}
+                        initialContent={currentFormData.feedback_description}
+                        onContentChange={(content: string) =>
                           updateSubcontrolField(
                             currentSubcontrol.id!,
                             "feedback_description",
-                            value
+                            content
                           )
                         }
-                        disabled={isAuditingDisabled}
-                        sx={{ minHeight: "90px" }}
+                        isEditable={!isAuditingDisabled}
+                        bodySx={{ minHeight: "90px" }}
                       />
                     </Stack>
                   </Stack>
@@ -1148,7 +1157,8 @@ const NewControlPane = ({
                           mb: 2,
                         }}
                       >
-                        Upload evidence files to document compliance with this subcontrol.
+                        Upload evidence files to document compliance with this
+                        subcontrol.
                       </Typography>
 
                       {/* Upload Button */}
@@ -1188,17 +1198,21 @@ const NewControlPane = ({
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.evidence_files.length > 0 && (
                             <Typography sx={{ fontSize: 11, color: "#344054" }}>
-                              {currentFormData.evidence_files.length} files attached
+                              {currentFormData.evidence_files.length} files
+                              attached
                             </Typography>
                           )}
                           {currentFormData.uploadEvidenceFiles.length > 0 && (
                             <Typography sx={{ fontSize: 11, color: "#13715B" }}>
-                              +{currentFormData.uploadEvidenceFiles.length} pending upload
+                              +{currentFormData.uploadEvidenceFiles.length}{" "}
+                              pending upload
                             </Typography>
                           )}
-                          {currentFormData.deletedEvidenceFileIds.length > 0 && (
+                          {currentFormData.deletedEvidenceFileIds.length >
+                            0 && (
                             <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
-                              -{currentFormData.deletedEvidenceFileIds.length} pending delete
+                              -{currentFormData.deletedEvidenceFileIds.length}{" "}
+                              pending delete
                             </Typography>
                           )}
                         </Stack>
@@ -1223,14 +1237,28 @@ const NewControlPane = ({
                                 },
                               }}
                             >
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1.5,
+                                }}
+                              >
                                 <FileIcon size={18} color="#475467" />
                                 <Box>
-                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#1F2937" }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: 13,
+                                      fontWeight: 500,
+                                      color: "#1F2937",
+                                    }}
+                                  >
                                     {file.fileName}
                                   </Typography>
                                   {file.size && (
-                                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                                    <Typography
+                                      sx={{ fontSize: 11, color: "#6B7280" }}
+                                    >
                                       {(file.size / 1024).toFixed(1)} KB
                                     </Typography>
                                   )}
@@ -1240,7 +1268,12 @@ const NewControlPane = ({
                                 <Tooltip title="Download">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDownloadFile(file.id.toString(), file.fileName)}
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        file.id.toString(),
+                                        file.fileName
+                                      )
+                                    }
                                     disabled={isEditingDisabled}
                                   >
                                     <DownloadIcon size={16} />
@@ -1249,7 +1282,11 @@ const NewControlPane = ({
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteEvidenceFile(file.id.toString())}
+                                    onClick={() =>
+                                      handleDeleteEvidenceFile(
+                                        file.id.toString()
+                                      )
+                                    }
                                     disabled={isEditingDisabled}
                                   >
                                     <DeleteIcon size={16} />
@@ -1288,14 +1325,28 @@ const NewControlPane = ({
                                   backgroundColor: "#FFFBEB",
                                 }}
                               >
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1.5,
+                                  }}
+                                >
                                   <FileIcon size={18} color="#D97706" />
                                   <Box>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#92400E" }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 13,
+                                        fontWeight: 500,
+                                        color: "#92400E",
+                                      }}
+                                    >
                                       {file.fileName}
                                     </Typography>
                                     {file.size && (
-                                      <Typography sx={{ fontSize: 11, color: "#B45309" }}>
+                                      <Typography
+                                        sx={{ fontSize: 11, color: "#B45309" }}
+                                      >
                                         {(file.size / 1024).toFixed(1)} KB
                                       </Typography>
                                     )}
@@ -1311,7 +1362,9 @@ const NewControlPane = ({
                                           ...prev[currentSubcontrol.id!],
                                           uploadEvidenceFiles: prev[
                                             currentSubcontrol.id!
-                                          ].uploadEvidenceFiles.filter((f) => f.id !== file.id),
+                                          ].uploadEvidenceFiles.filter(
+                                            (f) => f.id !== file.id
+                                          ),
                                         },
                                       }));
                                     }}
@@ -1369,7 +1422,8 @@ const NewControlPane = ({
                           mb: 2,
                         }}
                       >
-                        Upload files related to auditor feedback for this subcontrol.
+                        Upload files related to auditor feedback for this
+                        subcontrol.
                       </Typography>
 
                       {/* Upload Button */}
@@ -1410,17 +1464,21 @@ const NewControlPane = ({
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.feedback_files.length > 0 && (
                             <Typography sx={{ fontSize: 11, color: "#344054" }}>
-                              {currentFormData.feedback_files.length} files attached
+                              {currentFormData.feedback_files.length} files
+                              attached
                             </Typography>
                           )}
                           {currentFormData.uploadFeedbackFiles.length > 0 && (
                             <Typography sx={{ fontSize: 11, color: "#13715B" }}>
-                              +{currentFormData.uploadFeedbackFiles.length} pending upload
+                              +{currentFormData.uploadFeedbackFiles.length}{" "}
+                              pending upload
                             </Typography>
                           )}
-                          {currentFormData.deletedFeedbackFileIds.length > 0 && (
+                          {currentFormData.deletedFeedbackFileIds.length >
+                            0 && (
                             <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
-                              -{currentFormData.deletedFeedbackFileIds.length} pending delete
+                              -{currentFormData.deletedFeedbackFileIds.length}{" "}
+                              pending delete
                             </Typography>
                           )}
                         </Stack>
@@ -1445,14 +1503,28 @@ const NewControlPane = ({
                                 },
                               }}
                             >
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1.5,
+                                }}
+                              >
                                 <FileIcon size={18} color="#475467" />
                                 <Box>
-                                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#1F2937" }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: 13,
+                                      fontWeight: 500,
+                                      color: "#1F2937",
+                                    }}
+                                  >
                                     {file.fileName}
                                   </Typography>
                                   {file.size && (
-                                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                                    <Typography
+                                      sx={{ fontSize: 11, color: "#6B7280" }}
+                                    >
                                       {(file.size / 1024).toFixed(1)} KB
                                     </Typography>
                                   )}
@@ -1462,7 +1534,12 @@ const NewControlPane = ({
                                 <Tooltip title="Download">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDownloadFile(file.id.toString(), file.fileName)}
+                                    onClick={() =>
+                                      handleDownloadFile(
+                                        file.id.toString(),
+                                        file.fileName
+                                      )
+                                    }
                                     disabled={isAuditingDisabled}
                                   >
                                     <DownloadIcon size={16} />
@@ -1471,7 +1548,11 @@ const NewControlPane = ({
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteFeedbackFile(file.id.toString())}
+                                    onClick={() =>
+                                      handleDeleteFeedbackFile(
+                                        file.id.toString()
+                                      )
+                                    }
                                     disabled={isAuditingDisabled}
                                   >
                                     <DeleteIcon size={16} />
@@ -1510,14 +1591,28 @@ const NewControlPane = ({
                                   backgroundColor: "#FFFBEB",
                                 }}
                               >
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1.5,
+                                  }}
+                                >
                                   <FileIcon size={18} color="#D97706" />
                                   <Box>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#92400E" }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 13,
+                                        fontWeight: 500,
+                                        color: "#92400E",
+                                      }}
+                                    >
                                       {file.fileName}
                                     </Typography>
                                     {file.size && (
-                                      <Typography sx={{ fontSize: 11, color: "#B45309" }}>
+                                      <Typography
+                                        sx={{ fontSize: 11, color: "#B45309" }}
+                                      >
                                         {(file.size / 1024).toFixed(1)} KB
                                       </Typography>
                                     )}
@@ -1533,7 +1628,9 @@ const NewControlPane = ({
                                           ...prev[currentSubcontrol.id!],
                                           uploadFeedbackFiles: prev[
                                             currentSubcontrol.id!
-                                          ].uploadFeedbackFiles.filter((f) => f.id !== file.id),
+                                          ].uploadFeedbackFiles.filter(
+                                            (f) => f.id !== file.id
+                                          ),
                                         },
                                       }));
                                     }}
@@ -1619,11 +1716,15 @@ const NewControlPane = ({
                               }}
                             >
                               <Box sx={{ flex: 1 }}>
-                                <Typography sx={{ fontSize: "12px", fontWeight: 500 }}>
+                                <Typography
+                                  sx={{ fontSize: "12px", fontWeight: 500 }}
+                                >
                                   {risk.name}
                                 </Typography>
                                 {risk.level && (
-                                  <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>
+                                  <Typography
+                                    sx={{ fontSize: "11px", color: "#6B7280" }}
+                                  >
                                     Level: {risk.level}
                                   </Typography>
                                 )}
@@ -1659,13 +1760,40 @@ const NewControlPane = ({
                 {showLinkedRisksPopup && (
                   <Suspense fallback={<CircularProgress size={24} />}>
                     <LinkedRisksPopup
-                      open={showLinkedRisksPopup}
                       onClose={() => setShowLinkedRisksPopup(false)}
-                      onSelectRisks={handleAddRisks}
-                      selectedRiskIds={[
-                        ...currentFormData.risks,
-                        ...currentFormData.selectedRisks,
-                      ]}
+                      currentRisks={currentFormData.risks
+                        .concat(currentFormData.selectedRisks)
+                        .filter(
+                          (risk: number) =>
+                            !currentFormData.deletedRisks.includes(risk)
+                        )}
+                      setSelectecRisks={(selectedRisks: number[]) => {
+                        const currentSubcontrol =
+                          controlData.subControls![selectedSubcontrolIndex];
+                        if (!currentSubcontrol.id) return;
+                        const subcontrolId = currentSubcontrol.id;
+                        setSubcontrolFormData((prev) => ({
+                          ...prev,
+                          [subcontrolId]: {
+                            ...prev[subcontrolId],
+                            selectedRisks,
+                          },
+                        }));
+                      }}
+                      _setDeletedRisks={(deletedRisks: number[]) => {
+                        const currentSubcontrol =
+                          controlData.subControls![selectedSubcontrolIndex];
+                        if (!currentSubcontrol.id) return;
+                        const subcontrolId = currentSubcontrol.id;
+                        setSubcontrolFormData((prev) => ({
+                          ...prev,
+                          [subcontrolId]: {
+                            ...prev[subcontrolId],
+                            deletedRisks,
+                          },
+                        }));
+                      }}
+                      projectId={projectId}
                     />
                   </Suspense>
                 )}
@@ -1674,13 +1802,13 @@ const NewControlPane = ({
                 {showRiskDetailModal && selectedRiskForDetail && (
                   <Suspense fallback={<CircularProgress size={24} />}>
                     <AddNewRiskForm
-                      open={showRiskDetailModal}
-                      onClose={() => {
+                      closePopup={() => {
                         setShowRiskDetailModal(false);
                         setSelectedRiskForDetail(null);
                       }}
-                      riskId={selectedRiskForDetail.id}
-                      readOnly={true}
+                      popupStatus="view"
+                      onSuccess={() => {}}
+                      onError={() => {}}
                     />
                   </Suspense>
                 )}

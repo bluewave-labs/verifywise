@@ -1,31 +1,23 @@
 .confirmation-modal {
   width: 485px;
-  max-width: 90vw;
   border-radius: 4px;
   padding: 32px;
   box-shadow: 0px 8px 8px -4px rgba(16, 24, 40, 0.03),
     0px 20px 24px -4px rgba(16, 24, 40, 0.08);
   gap: 32px;
-  box-sizing: border-box;
 }
 
 .confirmation-modal .confirmation-modal-content {
   gap: 16px;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 .confirmation-modal-content .confirmation-modal-title {
   color: #344054;
   font-weight: bolder;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 .confirmation-modal-content .confirmation-modal-body {
   color: #344054;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 .confirmation-modal .confirmation-modal-actions {

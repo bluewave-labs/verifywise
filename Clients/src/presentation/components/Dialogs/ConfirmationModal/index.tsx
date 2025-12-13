@@ -3,7 +3,7 @@ import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";
 
-interface DualButtonModalProps {
+interface ConfirmationModalProps {
   title: string;
   body: React.ReactNode;
   cancelText: string;
@@ -23,7 +23,7 @@ interface DualButtonModalProps {
   isOpen?: boolean;
 }
 
-const DualButtonModal: React.FC<DualButtonModalProps> = ({
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   body,
   cancelText,
@@ -57,13 +57,13 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
         }}
       />
       <Stack
-        className="dual-btn-modal"
+        className="confirmation-modal"
         sx={{
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 1300, // Ensure it appears on top of other components
+          zIndex: 1300,
           backgroundColor: "white",
           padding: "16px",
           borderRadius: "8px",
@@ -71,14 +71,14 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           maxWidth: "440px",
         }}
       >
-        <Stack className="dual-btn-modal-content">
-          <Typography className="dual-btn-modal-title" fontSize={TitleFontSize}>
+        <Stack className="confirmation-modal-content">
+          <Typography className="confirmation-modal-title" fontSize={TitleFontSize}>
             {title}
           </Typography>
           {body}
         </Stack>
         <Stack
-          className="dual-btn-modal-actions"
+          className="confirmation-modal-actions"
           sx={{
             display: "flex",
           }}
@@ -91,8 +91,8 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           />
           <CustomizableButton
             text={proceedText}
-            color={proceedButtonColor} // these are options : "primary" | "secondary" | "success" | "warning" | "error" | "info";
-            variant={proceedButtonVariant} // these are the options : "contained" | "outlined" | "text"
+            color={proceedButtonColor}
+            variant={proceedButtonVariant}
             onClick={onProceed}
             sx={confirmBtnSx}
           />
@@ -102,4 +102,4 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
   );
 };
 
-export default DualButtonModal;
+export default ConfirmationModal;

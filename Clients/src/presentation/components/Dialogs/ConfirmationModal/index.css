@@ -1,4 +1,4 @@
-.dual-btn-modal {
+.confirmation-modal {
   width: 485px;
   border-radius: 4px;
   padding: 32px;
@@ -7,20 +7,20 @@
   gap: 32px;
 }
 
-.dual-btn-modal .dual-btn-modal-content {
+.confirmation-modal .confirmation-modal-content {
   gap: 16px;
 }
 
-.dual-btn-modal-content .dual-btn-modal-title {
+.confirmation-modal-content .confirmation-modal-title {
   color: #344054;
   font-weight: bolder;
 }
 
-.dual-btn-modal-content .dual-btn-modal-body {
+.confirmation-modal-content .confirmation-modal-body {
   color: #344054;
 }
 
-.dual-btn-modal .dual-btn-modal-actions {
+.confirmation-modal .confirmation-modal-actions {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;

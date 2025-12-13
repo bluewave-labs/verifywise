@@ -15,7 +15,8 @@ import {
 } from "@mui/material";
 import { Settings } from "lucide-react";
 import { useState } from "react";
-import BasicModal from "../Modals/Basic";
+import ConfirmationModal from "../Dialogs/ConfirmationModal";
+import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
@@ -420,30 +421,50 @@ const IconButton: React.FC<IconButtonProps> = ({
     <>
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
-      {warningTitle && warningMessage && (
-        <BasicModal
+      {warningTitle && warningMessage && isOpenRemoveModal && (
+        <ConfirmationModal
           isOpen={isOpenRemoveModal}
-          setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) =>
-            checkForRisks && onDeleteWithRisks
-              ? handleDeleteWithRiskCheck(e)
-              : handleDelete(e)
+          title={warningTitle}
+          body={
+            <Typography fontSize={13} color="#344054">
+              {warningMessage}
+            </Typography>
           }
-          warningTitle={warningTitle}
-          warningMessage={warningMessage}
-          onCancel={(e) => handleCancle(e)}
-          type={type}
+          cancelText="Cancel"
+          proceedText={
+            type === "Incident" || type === "Task"
+              ? `Archive ${type.toLowerCase()}`
+              : `Delete ${type}`
+          }
+          onCancel={() => handleCancle()}
+          onProceed={() =>
+            checkForRisks && onDeleteWithRisks
+              ? handleDeleteWithRiskCheck()
+              : handleDelete()
+          }
+          proceedButtonColor={
+            type === "Incident" || type === "Task" ? "warning" : "error"
+          }
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
         />
       )}
-      {hardDeleteWarningTitle && hardDeleteWarningMessage && (
-        <BasicModal
+      {hardDeleteWarningTitle && hardDeleteWarningMessage && isOpenHardDeleteModal && (
+        <ConfirmationModal
           isOpen={isOpenHardDeleteModal}
-          setIsOpen={() => setIsOpenHardDeleteModal(false)}
-          onDelete={handleHardDelete}
-          warningTitle={hardDeleteWarningTitle}
-          warningMessage={hardDeleteWarningMessage}
+          title={hardDeleteWarningTitle}
+          body={
+            <Typography fontSize={13} color="#344054">
+              {hardDeleteWarningMessage}
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete permanently"
           onCancel={() => setIsOpenHardDeleteModal(false)}
-          type={type}
+          onProceed={() => handleHardDelete()}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
         />
       )}
       <ModelRiskConfirmation

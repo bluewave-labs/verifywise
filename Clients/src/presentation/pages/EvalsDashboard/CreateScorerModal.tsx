@@ -195,7 +195,7 @@ export default function CreateScorerModal({
       }
       onSubmit={handleSubmit}
       submitButtonText={isEditing ? "Save changes" : "Save as custom scorer"}
-      isSubmitting={isSubmitting}
+      isSubmitting={isSubmitting || !isValid}
       maxWidth="1100px"
     >
       <Stack direction="row" spacing={3} sx={{ minHeight: "500px" }}>

@@ -13,8 +13,6 @@ import { useTheme } from "@mui/material/styles";
 import {
   AlertCircle,
   Clock,
-  TrendingUp,
-  Calendar,
   AlertTriangle,
 } from "lucide-react";
 import { DeadlineChipProps } from "./types";
@@ -231,7 +229,7 @@ export const DeadlineChip: React.FC<DeadlineChipProps> = ({
         sx={{
           fontWeight: 700,
           fontSize: sizeStyles.fontSize,
-          color: colors.main,
+          color: colors.contrast,
           lineHeight: 1,
         }}
       >
@@ -242,8 +240,8 @@ export const DeadlineChip: React.FC<DeadlineChipProps> = ({
       <Typography
         sx={{
           fontSize: sizeStyles.fontSize,
-          color: colors.main,
-          opacity: 0.85,
+          color: colors.contrast,
+          opacity: 0.9,
           lineHeight: 1,
         }}
       >

@@ -43,9 +43,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   if (!isOpen) return null;
 
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <>
       <Stack
+        onClick={stopPropagation}
         sx={{
           position: "fixed",
           top: 0,
@@ -58,6 +63,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       />
       <Stack
         className="confirmation-modal"
+        onClick={stopPropagation}
         sx={{
           position: "fixed",
           top: "50%",

@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
@@ -47,7 +48,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     e.stopPropagation();
   };
 
-  return (
+  return createPortal(
     <>
       <Stack
         onClick={stopPropagation}
@@ -102,7 +103,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           />
         </Stack>
       </Stack>
-    </>
+    </>,
+    document.body
   );
 };
 

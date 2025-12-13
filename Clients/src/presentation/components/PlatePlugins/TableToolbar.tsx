@@ -8,13 +8,6 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
-import {
-  insertTableRow,
-  insertTableColumn,
-  deleteRow,
-  deleteColumn,
-  deleteTable,
-} from "@platejs/table";
 
 interface TableToolbarProps {
   editor: any;
@@ -31,31 +24,31 @@ const TableToolbar: React.FC<TableToolbarProps> = ({ editor }) => {
   };
 
   const handleInsertRowAbove = () => {
-    insertTableRow(editor, { at: "above" });
+    editor.tf.insert.tableRow({ before: true });
   };
 
   const handleInsertRowBelow = () => {
-    insertTableRow(editor, { at: "below" });
+    editor.tf.insert.tableRow();
   };
 
   const handleInsertColumnLeft = () => {
-    insertTableColumn(editor, { at: "left" });
+    editor.tf.insert.tableColumn({ before: true });
   };
 
   const handleInsertColumnRight = () => {
-    insertTableColumn(editor, { at: "right" });
+    editor.tf.insert.tableColumn();
   };
 
   const handleDeleteRow = () => {
-    deleteRow(editor);
+    editor.tf.remove.tableRow();
   };
 
   const handleDeleteColumn = () => {
-    deleteColumn(editor);
+    editor.tf.remove.tableColumn();
   };
 
   const handleDeleteTable = () => {
-    deleteTable(editor);
+    editor.tf.remove.table();
   };
 
   return (

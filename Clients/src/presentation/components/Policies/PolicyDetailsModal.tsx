@@ -111,7 +111,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     | "align-center"
     | "align-right"
     | "link"
-    | "image";
+    | "image"
+    | "highlight"
+    | "blockquote"
+    | "table";
 
   const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
     {
@@ -128,6 +131,9 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       "align-right": false,
       link: false,
       image: false,
+      highlight: false,
+      blockquote: false,
+      table: false,
     }
   );
 

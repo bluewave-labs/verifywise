@@ -30,7 +30,7 @@ import ButtonToggle from "../../components/ButtonToggle";
 import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import ModalStandard from "../../components/Modals/StandardModal";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import Field from "../../components/Inputs/Field";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
@@ -1242,7 +1242,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       </Popover>
 
       {/* Delete confirmation modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={deleteModalOpen}
         title="Delete this dataset?"
         body={`Are you sure you want to remove "${datasetToDelete?.name || "this dataset"}" from your project? This action cannot be undone.`}
@@ -1258,7 +1258,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       />
 
       {/* Copy template confirmation modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={copyModalOpen}
         title="Copy to my datasets?"
         TitleFontSize={16}

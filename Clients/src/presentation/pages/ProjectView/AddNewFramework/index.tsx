@@ -22,7 +22,7 @@ import {
 import { logEngine } from "../../../../application/utils/log.engine";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface AddFrameworkModalProps {
@@ -261,7 +261,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             })}
         </Stack>
         {isRemoveModalOpen && frameworkToRemove && (
-          <DualButtonModal
+          <ConfirmationModal
             title="Confirm framework removal"
             body={
               <Typography fontSize={13}>

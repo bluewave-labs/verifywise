@@ -46,6 +46,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   useEffect(() => {
     if (dashboard?.projects_list) {
       const demoProjectTitles = [
+        "AI Recruitment Screening Platform",
+        // Legacy demo project names for backwards compatibility
         "AI Compliance Checker",
         "Information Security & AI Governance Framework",
       ];
@@ -279,7 +281,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         onOpenDeleteDemoData={() => setOpenDeleteDemoDataModal(true)}
         hasDemoData={hasDemoData}
       />
-      <Stack sx={{ pr: 14 }}>
+      <Stack>
         <DemoAppBanner />
         {alertState && (
           <Alert
@@ -326,47 +328,21 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             </Typography>
             <Stack gap="4px" sx={{ pl: 2 }}>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • 2 sample use cases/frameworks:
+                • A sample use case:
               </Typography>
               <Stack gap="2px" sx={{ pl: 2 }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "text.secondary", fontSize: "13px" }}
                 >
-                  - "AI Compliance Checker"
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", fontSize: "13px" }}
-                >
-                  - "Information Security & AI Governance Framework"
+                  - "AI Recruitment Screening Platform" with EU AI Act framework
                 </Typography>
               </Stack>
               <Typography
                 variant="body2"
                 sx={{ color: "text.secondary", mt: 1 }}
               >
-                • 2 demo users:
-              </Typography>
-              <Stack gap="2px" sx={{ pl: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", fontSize: "13px" }}
-                >
-                  - John Doe
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", fontSize: "13px" }}
-                >
-                  - Alice Smith
-                </Typography>
-              </Stack>
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", mt: 1 }}
-              >
-                • Sample risks, vendors, and AI Trust Centre data
+                • Sample risks and vendors with realistic compliance scenarios
               </Typography>
             </Stack>
           </Stack>
@@ -445,13 +421,10 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             </Typography>
             <Stack gap="4px" sx={{ pl: 2 }}>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • All demo use cases/frameworks
+                • All demo use cases and frameworks
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • All demo users (John Doe, Alice Smith)
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                • All associated demo risks, vendors, and AI Trust Centre data
+                • All associated demo risks and vendors
               </Typography>
             </Stack>
           </Stack>

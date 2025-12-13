@@ -7,8 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
@@ -105,7 +105,9 @@ const PasswordForm: React.FC = () => {
       setConfirmPassword(value);
 
       if (value !== newPassword) {
-        setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
+        setConfirmPasswordError(
+          "Password confirmation does not match. Please re-enter."
+        );
       } else {
         setConfirmPasswordError(null);
       }
@@ -135,7 +137,9 @@ const PasswordForm: React.FC = () => {
     }
 
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError("Password confirmation does not match. Please re-enter.");
+      setConfirmPasswordError(
+        "Password confirmation does not match. Please re-enter."
+      );
       return;
     }
 
@@ -305,7 +309,7 @@ const PasswordForm: React.FC = () => {
         </Box>
       )}
       {isConfirmationModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm save"
           body={
             <Typography fontSize={13}>

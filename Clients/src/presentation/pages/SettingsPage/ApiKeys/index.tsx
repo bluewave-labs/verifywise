@@ -16,7 +16,7 @@ import {
   Copy as CopyIcon,
 } from "lucide-react";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import {
@@ -453,7 +453,7 @@ const ApiKeys = () => {
 
       {/* Create Token Modal */}
       {isCreateModalOpen && !newlyCreatedToken && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Create New API Key"
           body={
             <Stack spacing={3}>
@@ -619,7 +619,7 @@ const ApiKeys = () => {
 
       {/* Delete Token Modal */}
       {isDeleteModalOpen && tokenToDelete && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Delete API Key"
           body={
             <Typography fontSize={13}>

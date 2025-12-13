@@ -651,10 +651,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         'align-center': align === 'center',
         'align-right': align === 'right' || align === 'end',
         link: !!marks.link,
+        highlight: !!marks.highlight,
+        blockquote: blockType === 'blockquote',
         // These don't have persistent state
         undo: false,
         redo: false,
         image: false,
+        table: false,
       });
     } catch (error) {
       // Silently handle errors during state sync

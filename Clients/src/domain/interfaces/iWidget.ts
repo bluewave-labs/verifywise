@@ -21,7 +21,7 @@ export interface IconButtonProps {
   onDelete: () => void;
   onEdit: () => void;
   warningTitle?: string;
-  warningMessage?: string;
+  warningMessage?: string | React.ReactNode;
   type: string;
   onMouseEvent: (event: React.SyntheticEvent) => void;
   onMakeVisible?: () => void;
@@ -38,7 +38,7 @@ export interface IconButtonProps {
   onRestore?: () => void;
   onHardDelete?: () => void;
   hardDeleteWarningTitle?: string;
-  hardDeleteWarningMessage?: string;
+  hardDeleteWarningMessage?: string | React.ReactNode;
 }
 
 export interface AutoCompleteOption {

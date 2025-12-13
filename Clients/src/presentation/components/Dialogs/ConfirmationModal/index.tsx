@@ -1,9 +1,10 @@
+import { createPortal } from "react-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";
 
-interface DualButtonModalProps {
+interface ConfirmationModalProps {
   title: string;
   body: React.ReactNode;
   cancelText: string;
@@ -23,7 +24,7 @@ interface DualButtonModalProps {
   isOpen?: boolean;
 }
 
-const DualButtonModal: React.FC<DualButtonModalProps> = ({
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   body,
   cancelText,
@@ -43,9 +44,14 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  return createPortal(
     <>
       <Stack
+        onClick={stopPropagation}
         sx={{
           position: "fixed",
           top: 0,
@@ -54,31 +60,30 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           bottom: 0,
           backgroundColor: "rgba(0, 0, 0, 0.5)",
           zIndex: 1299,
+          cursor: "default",
         }}
       />
       <Stack
-        className="dual-btn-modal"
+        className="confirmation-modal"
+        onClick={stopPropagation}
         sx={{
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 1300, // Ensure it appears on top of other components
+          zIndex: 1300,
           backgroundColor: "white",
-          padding: "16px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          maxWidth: "440px",
+          cursor: "default",
         }}
       >
-        <Stack className="dual-btn-modal-content">
-          <Typography className="dual-btn-modal-title" fontSize={TitleFontSize}>
+        <Stack className="confirmation-modal-content">
+          <Typography className="confirmation-modal-title" fontSize={TitleFontSize}>
             {title}
           </Typography>
           {body}
         </Stack>
         <Stack
-          className="dual-btn-modal-actions"
+          className="confirmation-modal-actions"
           sx={{
             display: "flex",
           }}
@@ -91,15 +96,16 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
           />
           <CustomizableButton
             text={proceedText}
-            color={proceedButtonColor} // these are options : "primary" | "secondary" | "success" | "warning" | "error" | "info";
-            variant={proceedButtonVariant} // these are the options : "contained" | "outlined" | "text"
+            color={proceedButtonColor}
+            variant={proceedButtonVariant}
             onClick={onProceed}
             sx={confirmBtnSx}
           />
         </Stack>
       </Stack>
-    </>
+    </>,
+    document.body
   );
 };
 
-export default DualButtonModal;
+export default ConfirmationModal;

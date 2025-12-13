@@ -40,13 +40,9 @@ python main.py --config configs/deepeval_config.yaml
 EvaluationModule/
 ├── src/
 │   └── deepeval_engine/      # Core evaluation logic
-│       ├── deepeval_evaluator.py
-│       ├── evaluation_dataset.py
-│       └── model_runner.py
 ├── configs/
 │   └── deepeval_config.yaml  # Evaluation configuration
-├── artifacts/
-│   └── deepeval_results/     # Evaluation results
+├── artifacts/                # Evaluation results
 ├── data/                     # Datasets
 └── requirements.txt          # Python dependencies
 ```

@@ -20,7 +20,7 @@ class EvaluationLog(Base):
     input_text = Column(Text, nullable=True)
     output_text = Column(Text, nullable=True)
     model_name = Column(String, nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    log_metadata = Column(JSONB, nullable=True)
     latency_ms = Column(Integer, nullable=True)
     token_count = Column(Integer, nullable=True)
     cost = Column(Numeric(10, 6), nullable=True)
@@ -41,7 +41,7 @@ class EvaluationLog(Base):
             "input": self.input_text,
             "output": self.output_text,
             "model_name": self.model_name,
-            "metadata": self.metadata,
+            "metadata": self.log_metadata,
             "latency_ms": self.latency_ms,
             "token_count": self.token_count,
             "cost": float(self.cost) if self.cost else None,

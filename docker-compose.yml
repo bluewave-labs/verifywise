@@ -20,7 +20,7 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - FAIRNESS_AND_BIAS_URL=http://eval_server:8000
       - REDIS_URL=redis://redis:6379/0
       - DO_SPACES_REGION=$DO_SPACES_REGION
       - DO_SPACES_BUCKET=$DO_SPACES_BUCKET
@@ -60,14 +60,11 @@ services:
     networks:
       - verifywise_network
 
-  bias_and_fairness_backend:
-    container_name: verifywise-bias-and-fairness-backend
+  eval_server:
+    container_name: verifywise-eval-server
     depends_on:
       - backend
-    image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
-    # pull_policy: always
-    # ports:
-    #   - "8000"
+    image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
     expose:
       - "8000"
     environment:

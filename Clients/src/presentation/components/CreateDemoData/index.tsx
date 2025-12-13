@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import DualButtonModal from "../Dialogs/DualButtonModal";
+import ConfirmationModal from "../Dialogs/ConfirmationModal";
 
 interface DemoDataProps {
   handleCancelDemoData: () => void;
@@ -24,7 +24,7 @@ const CreateDemoData = ({
         gap: 4,
       }}
     >
-      <DualButtonModal
+      <ConfirmationModal
         title="Do you want to create demo data?"
         TitleFontSize={16}
         body={

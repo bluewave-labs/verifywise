@@ -65,10 +65,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           transform: "translate(-50%, -50%)",
           zIndex: 1300,
           backgroundColor: "white",
-          padding: "16px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          maxWidth: "440px",
         }}
       >
         <Stack className="confirmation-modal-content">

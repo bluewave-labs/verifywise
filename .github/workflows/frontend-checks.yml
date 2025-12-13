@@ -2,9 +2,9 @@ name: Frontend Checks
 
 on:
   pull_request:
-    branches: ['master', 'develop']     
+    branches: ["master", "develop"]
     paths:
-      - 'Clients/**'
+      - "Clients/**"
 
 jobs:
   build-check:
@@ -20,10 +20,13 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Clean TypeScript build
+        run: npx tsc -b --clean || true
 
       - name: Build
         run: npm run build

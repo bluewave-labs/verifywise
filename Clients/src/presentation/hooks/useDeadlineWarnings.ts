@@ -189,20 +189,16 @@ export function useDeadlineWarnings(
   // Computed values - calculate totals from entity data
   const totalOverdue = useMemo(() => {
     if (!data) return 0;
-    const total = Object.values(data).reduce((total, entity: any) => {
+    return Object.values(data).reduce((total, entity: any) => {
       return total + (entity?.overdue || 0);
     }, 0);
-    console.log("🔍 Total overdue calculated:", total, "from data:", data);
-    return total;
   }, [data]);
 
   const totalDueSoon = useMemo(() => {
     if (!data) return 0;
-    const total = Object.values(data).reduce((total, entity: any) => {
+    return Object.values(data).reduce((total, entity: any) => {
       return total + (entity?.dueSoon || 0);
     }, 0);
-    console.log("🔍 Total dueSoon calculated:", total, "from data:", data);
-    return total;
   }, [data]);
 
   const hasWarnings = totalOverdue > 0 || totalDueSoon > 0;
@@ -284,12 +280,10 @@ export function useDeadlineWarnings(
         const duration = performance.now() - startTime;
         updateMetrics("success", duration);
 
-        console.log("🔍 Deadline analytics received:", analytics);
         setData(analytics);
         setError(null);
         setLoadingState("success");
         retryCountRef.current = 0;
-        config.onSuccess?.(analytics);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
           // Request was aborted, don't treat as error

@@ -145,7 +145,6 @@ export async function deleteUserById({
       return {
         data: { message: axiosError.data?.data || "User cannot be deleted" },
         status: 403,
-        statusText: "Forbidden",
       };
     }
     throw error;

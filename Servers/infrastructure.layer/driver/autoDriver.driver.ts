@@ -12,7 +12,7 @@ import {
 import { createRiskQuery } from "../../utils/risk.utils";
 import { createNewVendorQuery } from "../../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../../utils/vendorRisk.utils";
-import { createNewUserQuery } from "../../utils/user.utils";
+import { createNewUserQuery, deleteDemoUsersQuery } from "../../utils/user.utils";
 import { UserModel } from "../../domain.layer/models/user/user.model";
 
 import { createISOFrameworkQuery } from "../../utils/iso42001.utils";
@@ -319,6 +319,8 @@ export async function deleteMockData(tenant: string) {
     }
     // delete vendor related data
     await deleteDemoVendorsData(tenant, transaction);
+    // delete demo users
+    await deleteDemoUsersQuery(transaction);
 
     await transaction.commit();
   } catch (error) {

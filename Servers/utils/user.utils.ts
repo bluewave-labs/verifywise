@@ -607,3 +607,18 @@ export const deleteUserProfilePhotoQuery = async (
 
   return deleted && result[0][0].profile_photo_id === null;
 };
+
+/**
+ * Deletes all demo users from the database.
+ *
+ * @param transaction - The database transaction to use.
+ * @returns A promise that resolves when the demo users are deleted.
+ */
+export const deleteDemoUsersQuery = async (
+  transaction: Transaction
+): Promise<void> => {
+  await sequelize.query(
+    `DELETE FROM users WHERE is_demo = true`,
+    { transaction }
+  );
+};

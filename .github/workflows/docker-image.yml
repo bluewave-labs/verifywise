@@ -64,12 +64,22 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/verifywise-backend:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-backend:latest
 
-      - name: Build and push BiasAndFairnessServers image
+      # - name: Build and push BiasAndFairnessServers image
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: ./BiasAndFairnessServers
+      #     platforms: linux/amd64,linux/arm64
+      #     push: true
+      #     tags: |
+      #       ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}
+      #       ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:latest
+
+      - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:
-          context: ./BiasAndFairnessServers
+          context: ./EvalServer
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}
-            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:latest
+            ghcr.io/${{ github.repository_owner }}/verifywise-eval-server:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-eval-server:latest

@@ -147,9 +147,14 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     onClose();
   }
 
+  // Disable ESC key closing for policy editor to prevent accidental data loss
+  // Users can still close via the X button or Cancel button
   useModalKeyHandling({
     isOpen: true,
     onClose: handleClose,
+    onEscapeKey: () => {
+      // Do nothing on ESC - prevent accidental close with unsaved content
+    },
   });
 
   // Handle image file selection and upload
@@ -300,6 +305,31 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         value: [{ type: "p", children: [{ text: "" }] }],
       }) as any
   );
+
+  // Add error handling for editor operations to prevent crashes from invalid paths
+  useEffect(() => {
+    if (editor) {
+      const originalApply = editor.apply;
+      editor.apply = (operation: any) => {
+        try {
+          // Check for operations that might target invalid paths
+          if (operation.path && operation.path.length === 0) {
+            // Skip operations targeting root path
+            console.warn("Skipping operation targeting root path:", operation.type);
+            return;
+          }
+          originalApply(operation);
+        } catch (e: any) {
+          // Catch and log errors instead of crashing
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("Editor operation failed (root path error):", operation.type);
+          } else {
+            console.error("Editor operation failed:", e);
+          }
+        }
+      };
+    }
+  }, [editor]);
 
   useEffect(() => {
     if (policy) {
@@ -826,11 +856,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       <Drawer
         open={true}
         onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
+          if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
             handleClose();
           }
         }}
         anchor="right"
+        disableEscapeKeyDown
         sx={{
           width: isHistorySidebarOpen ? 1236 : 900,
           "& .MuiDrawer-paper": {

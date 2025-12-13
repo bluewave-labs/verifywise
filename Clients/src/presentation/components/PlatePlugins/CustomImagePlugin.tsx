@@ -112,7 +112,8 @@ export const ImageElement: React.FC<ImageElementProps> = (props) => {
   // Update element properties using Plate's API
   const updateElement = (updates: Partial<typeof element>) => {
     try {
-      if (pathRef.current) {
+      // Ensure path is valid (not empty/root)
+      if (pathRef.current && pathRef.current.length > 0) {
         editor.tf.setNodes(updates, { at: pathRef.current });
       }
     } catch (e) {
@@ -144,7 +145,8 @@ export const ImageElement: React.FC<ImageElementProps> = (props) => {
     const handleMouseUp = () => {
       setIsResizing(false);
       // Save width to element using ref to get current value
-      if (pathRef.current) {
+      // Ensure path is valid (not empty/root)
+      if (pathRef.current && pathRef.current.length > 0) {
         editor.tf.setNodes({ width: widthRef.current }, { at: pathRef.current });
       }
       document.removeEventListener("mousemove", handleMouseMove);
@@ -163,7 +165,8 @@ export const ImageElement: React.FC<ImageElementProps> = (props) => {
   // Handle delete using Plate's API
   const handleDelete = () => {
     try {
-      if (pathRef.current) {
+      // Ensure path is valid (not empty/root)
+      if (pathRef.current && pathRef.current.length > 0) {
         editor.tf.removeNodes({ at: pathRef.current });
       }
     } catch (e) {

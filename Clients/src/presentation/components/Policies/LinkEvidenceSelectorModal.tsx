@@ -12,7 +12,6 @@ import {
     TablePagination,
     TableContainer,
     Box,
-    Stack,
     useTheme,
     Tooltip,
 } from "@mui/material";
@@ -24,10 +23,9 @@ import StandardModal from "../Modals/StandardModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { singleTheme } from "../../themes";
 import {
-    loadingContainerStyle,
     paginationMenuProps,
     paginationSelectStyle,
-    showingTextCellStyle,
+    showingTextCellStyleForPolicyLinked,
     tableFooterRowStyle,
     tableRowHoverStyle,
 } from "../../../presentation/pages/ModelInventory/style";
@@ -36,6 +34,7 @@ import TablePaginationActions from "../TablePagination";
 import { paginationStyle } from "../Table/styles";
 import FileIcon from "../FileIcon";
 import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import CustomizableToast from "../../components/Toast";
 
 const SORT_KEY = "vw_link_evidence_selector_sort";
 
@@ -57,11 +56,11 @@ interface LinkEvidenceSelectorModalProps {
 }
 
 const TABLE_COLUMNS = [
-    { id: "", label: "", sortable: false },
     { id: "evidence_name", label: "EVIDENCE NAME", sortable: true },
     { id: "evidence_type", label: "TYPE", sortable: true },
     { id: "uploaded_by", label: "UPLOADED BY", sortable: true },
     { id: "uploaded_on", label: "UPLOADED ON", sortable: true },
+    { id: "", label: "", sortable: false },
 ];
 
 const SortableTableHead = ({
@@ -162,8 +161,6 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
 
     const theme = useTheme();
 
-    console.log("linkedEvidenceIds", linkedEvidenceIds)
-
     // Sorting
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
         const saved = localStorage.getItem(SORT_KEY);
@@ -188,7 +185,6 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
     const fetchEvidence = useCallback(async () => {
         try {
             const response = await getUserFilesMetaData();
-            console.log("response evidence", response);
             setEvidences(response ?? []);
             
         } catch (err) {
@@ -323,14 +319,6 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
                                         !disabled && toggleSelect(ev.id)
                                     }
                                 >
-                                    <TableCell width={50}>
-                                        <Checkbox
-                                            disabled={disabled}
-                                            checked={selected.includes(ev.id)}
-                                            onChange={() => toggleSelect(ev.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </TableCell>
                                     <TableCell>
                                         <Box
                                             sx={{
@@ -362,6 +350,16 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
                                               ).toLocaleDateString("en-GB")
                                             : "-"}
                                     </TableCell>
+
+                                    <TableCell width={50}>
+                                        <Checkbox
+                                            disabled={disabled}
+                                            checked={selected.includes(ev.id)}
+                                            onChange={() => toggleSelect(ev.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </TableCell>
+
                                 </TableRow>
                             );
                         })
@@ -389,15 +387,7 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
     );
 
     if (loading) {
-        return (
-            <Stack
-                sx={loadingContainerStyle(theme)}
-                alignItems="center"
-                justifyContent="center"
-            >
-                <Typography>Loading...</Typography>
-            </Stack>
-        );
+        return <CustomizableToast />;
     }
 
     return (
@@ -407,6 +397,7 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
             title="Link Evidence"
             description="Select evidence items to link with this policy."
             onSubmit={selected.length > 0 ? handleSubmit : undefined}
+            showCancelButton={false}
         >
             <TableContainer sx={{ maxHeight: 450, overflow: "auto" }}>
                 <Table sx={singleTheme.tableStyles.primary.frame}>
@@ -432,9 +423,9 @@ const LinkEvidenceSelectorModal: React.FC<LinkEvidenceSelectorModalProps> = ({
                     {paginated && visibleEvidence.length > 0 && (
                         <TableFooter>
                             <TableRow sx={tableFooterRowStyle(theme)}>
-                                <TableCell sx={showingTextCellStyle(theme)}>
+                                <TableCell sx={showingTextCellStyleForPolicyLinked(theme)}>
                                     Showing {getRange} of{" "}
-                                    {visibleEvidence.length} item(s)
+                                    {visibleEvidence.length} evidence(s)
                                 </TableCell>
 
                                 <TablePagination

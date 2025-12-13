@@ -12,7 +12,6 @@ import {
     TablePagination,
     TableContainer,
     Box,
-    Stack,
     useTheme,
 } from "@mui/material";
 
@@ -25,10 +24,9 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import { singleTheme } from "../../themes";
 import { useUserMap } from "../../../presentation/hooks/userMap";
 import {
-    loadingContainerStyle,
     paginationMenuProps,
     paginationSelectStyle,
-    showingTextCellStyle,
+    showingTextCellStyleForPolicyLinked,
     tableFooterRowStyle,
     tableRowDeletingStyle,
     tableRowHoverStyle,
@@ -36,6 +34,7 @@ import {
 import EmptyState from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { paginationStyle } from "../Table/styles";
+import CustomizableToast from "../../components/Toast";
 
 const SORT_KEY = "vw_link_risk_selector_sort";
 
@@ -58,7 +57,6 @@ interface LinkRiskSelectorModalProps {
 }
 
 const TABLE_COLUMNS = [
-    { id: "", label: "", sortable: false },
     { id: "risk_name", label: "RISK NAME", sortable: true },
     { id: "likelihood", label: "LIKELIHOOD", sortable: true },
     { id: "severity", label: "SEVERITY", sortable: true },
@@ -362,17 +360,6 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                                         !disabled && toggleSelect(risk.id)
                                     }
                                 >
-                                    {/* Checkbox */}
-                                    <TableCell width={50}>
-                                        <Checkbox
-                                            disabled={disabled}
-                                            checked={selected.includes(risk.id)}
-                                            onChange={() =>
-                                                toggleSelect(risk.id)
-                                            }
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </TableCell>
 
                                     {/* RISK NAME */}
                                     <TableCell>{risk.risk_name}</TableCell>
@@ -395,6 +382,17 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                                                   String(risk.risk_owner)
                                               ) || "-"
                                             : "-"}
+                                    </TableCell>
+                                     {/* Checkbox */}
+                                     <TableCell width={50}>
+                                        <Checkbox
+                                            disabled={disabled}
+                                            checked={selected.includes(risk.id)}
+                                            onChange={() =>
+                                                toggleSelect(risk.id)
+                                            }
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             );
@@ -425,15 +423,7 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
     );
 
     if (loading) {
-        return (
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                sx={loadingContainerStyle(theme)}
-            >
-                <Typography>Loading...</Typography>
-            </Stack>
-        );
+        return <CustomizableToast />;
     }
 
     return (
@@ -443,9 +433,15 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
             title="Link New Risks"
             description="Select risks to link with this policy."
             onSubmit={selected.length > 0 ? handleSubmit : undefined}
+            showCancelButton={false}
         >
             <TableContainer sx={{ maxHeight: 450, overflow: "auto" }}>
-                <Table sx={singleTheme.tableStyles.primary.frame}>
+            <Table
+                    sx={{
+                        ...singleTheme.tableStyles.primary.frame
+                    }}
+                    >
+           
                     <SortableTableHead
                         columns={TABLE_COLUMNS}
                         sortConfig={sortConfig}
@@ -460,9 +456,9 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                         visibleRisks.length > 0 && (
                             <TableFooter>
                                 <TableRow sx={tableFooterRowStyle(theme)}>
-                                    <TableCell sx={showingTextCellStyle(theme)}>
+                                    <TableCell sx={showingTextCellStyleForPolicyLinked(theme)}>
                                         Showing {getRange} of{" "}
-                                        {visibleRisks?.length} model(s)
+                                        {visibleRisks?.length} risk(s)
                                     </TableCell>
                                     <TablePagination
                                         count={visibleRisks?.length ?? 0}

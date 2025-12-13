@@ -111,11 +111,6 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
       }, []);
       
 
-      useEffect(() => {
-        // console.log("Updated risks", risks);
-      }, [risks]);
-      
-
       const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
         handleAlert({
           variant: type,
@@ -183,8 +178,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
           body: `${objectType} linked successfully!`,
         });
       } catch (error) {
-        console.error(error);
-        handleToast("error", `Failed to link ${objectType}.`);
+        handleToast("error", `Failed to link ${objectType} with error ${error}.`);
       }
     };
   
@@ -239,6 +233,7 @@ const LinkedPolicyModal: React.FC<LinkedPolicyModalProps> = ({
             onClose={onClose}
             title="Linked Operational Objects"
             description="View or remove linked items"
+            hideFooter={true}
         >
             <TabContext value={activeTab}>
                 <Box sx={{ mb: 3 }}>

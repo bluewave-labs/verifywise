@@ -49,17 +49,6 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     requiresInput: false,
   },
   {
-    id: 8,
-    title: "Create Your First Demo Project",
-    description: "Let's create a sample project to explore VerifyWise features hands-on.",
-    componentName: "SampleProjectStep",
-    illustration: IllustrationType.GEOMETRIC_SHAPES,
-    showForAdmin: true,
-    showForUser: true,
-    canSkip: true,
-    requiresInput: true,
-  },
-  {
     id: 9,
     title: "Invite Team Members",
     description: "Invite up to 5 people to your organization",

@@ -49,17 +49,6 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     requiresInput: false,
   },
   {
-    id: 6,
-    title: "Set Up Your Organization",
-    description: "Configure your organization settings, invite team members, and enable the frameworks you need.",
-    componentName: "AdminSetupStep",
-    illustration: IllustrationType.ICON_GRID,
-    showForAdmin: true,
-    showForUser: false,
-    canSkip: true,
-    requiresInput: false,
-  },
-  {
     id: 8,
     title: "Create Your First Demo Project",
     description: "Let's create a sample project to explore VerifyWise features hands-on.",

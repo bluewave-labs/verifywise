@@ -1,3 +1,4 @@
 *.zip
 /artifacts
 /.venv/
+/data/uploads/

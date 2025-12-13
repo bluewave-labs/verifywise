@@ -38,6 +38,7 @@ import {
   setPaginationRowCount,
 } from "../../../application/utils/paginationStorage";
 import EmptyState from "../../components/EmptyState";
+import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -106,6 +107,9 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [scorerToDelete, setScorerToDelete] = useState<DeepEvalScorer | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // New comprehensive create scorer modal
+  const [createScorerModalOpen, setCreateScorerModalOpen] = useState(false);
 
   const loadScorers = useCallback(async () => {
     try {
@@ -276,22 +280,44 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     }
   };
 
-  // Create scorer (placeholder - opens modal with empty form)
+  // Create scorer - opens the comprehensive modal
   const handleCreateScorer = () => {
-    setEditingScorer(null);
-    setEditForm({
-      name: "",
-      description: "",
-      metricKey: "",
-      type: "llm",
-      enabled: true,
-      defaultThreshold: "0.7",
-      weight: "1.0",
-      judgeModel: "gpt-4o-mini",
-    });
-    setEditModalOpen(true);
+    setCreateScorerModalOpen(true);
   };
 
+  // Handle submit from the new comprehensive scorer modal
+  const handleNewScorerSubmit = async (config: ScorerConfig) => {
+    try {
+      await deepEvalScorersService.create({
+        projectId,
+        name: config.name,
+        description: `${config.type.toUpperCase()} scorer with ${config.choiceScores.length} choice scores`,
+        metricKey: config.slug,
+        type: config.type === "llm" ? "llm" : "custom",
+        enabled: true,
+        defaultThreshold: config.passThreshold,
+        weight: 1.0,
+        config: {
+          judgeModel: config.model,
+          messages: config.messages,
+          useChainOfThought: config.useChainOfThought,
+          choiceScores: config.choiceScores,
+          inputSchema: config.inputSchema,
+        },
+      });
+      setAlert({ variant: "success", body: "Scorer created successfully" });
+      setTimeout(() => setAlert(null), 3000);
+      setCreateScorerModalOpen(false);
+      void loadScorers();
+    } catch (err) {
+      console.error("Failed to create scorer", err);
+      setAlert({ variant: "error", body: "Failed to create scorer" });
+      setTimeout(() => setAlert(null), 4000);
+      throw err; // Re-throw so the modal knows it failed
+    }
+  };
+
+  // Legacy create submit (for simple edit modal)
   const handleCreateSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -765,6 +791,13 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
         submitButtonText="Delete"
         isSubmitting={isDeleting}
         submitButtonColor="#c62828"
+      />
+
+      {/* New Comprehensive Scorer Modal */}
+      <CreateScorerModal
+        isOpen={createScorerModalOpen}
+        onClose={() => setCreateScorerModalOpen(false)}
+        onSubmit={handleNewScorerSubmit}
       />
     </Box>
   );

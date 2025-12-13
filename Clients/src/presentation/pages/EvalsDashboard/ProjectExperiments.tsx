@@ -99,11 +99,33 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
             const logs = logsData.logs || [];
 
+            // Map display names to camelCase keys for backwards compatibility
+            const displayNameToKey: Record<string, string> = {
+              "Answer Relevancy": "answerRelevancy",
+              "Faithfulness": "faithfulness",
+              "Contextual Relevancy": "contextualRelevancy",
+              "Bias": "bias",
+              "Toxicity": "toxicity",
+              "Hallucination": "hallucination",
+              "Knowledge Retention": "knowledgeRetention",
+              "Conversation Completeness": "conversationCompleteness",
+              "Conversation Relevancy": "conversationRelevancy",
+              "Role Adherence": "roleAdherence",
+              "Task Completion": "taskCompletion",
+              "Tool Correctness": "toolCorrectness",
+              "Answer Correctness": "answerCorrectness",
+              "Coherence": "coherence",
+              "Tonality": "tonality",
+              "Safety": "safety",
+            };
+
             // Calculate average metrics from logs
             const metricsSum: Record<string, { sum: number; count: number }> = {};
             logs.forEach((log: EvaluationLog) => {
               if (log.metadata?.metric_scores) {
-                Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+                Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
+                  // Normalize key: convert display names to camelCase
+                  const key = displayNameToKey[rawKey] || rawKey;
                   if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
                     const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
                     if (typeof scoreValue === "number") {

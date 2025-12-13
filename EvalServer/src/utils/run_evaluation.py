@@ -567,15 +567,51 @@ async def run_evaluation(
             print(f"Gatekeeper error: {ge}")
 
         # 4.5 Persist per-log metric scores to log metadata
+        # Map display names back to camelCase keys for frontend compatibility
+        display_to_camel = {
+            "Answer Relevancy": "answerRelevancy",
+            "Faithfulness": "faithfulness",
+            "Contextual Relevancy": "contextualRelevancy",
+            "Contextual Recall": "contextualRecall",
+            "Contextual Precision": "contextualPrecision",
+            "Bias": "bias",
+            "Toxicity": "toxicity",
+            "Hallucination": "hallucination",
+            "Answer Correctness": "answerCorrectness",
+            "Coherence": "coherence",
+            "Tonality": "tonality",
+            "Safety": "safety",
+            "Knowledge Retention": "knowledgeRetention",
+            "Conversation Completeness": "conversationCompleteness",
+            "Conversation Relevancy": "conversationRelevancy",
+            "Role Adherence": "roleAdherence",
+            "Task Completion": "taskCompletion",
+            "Tool Correctness": "toolCorrectness",
+            "Summarization": "summarization",
+            "RAGAS": "ragas",
+            # G-Eval variants
+            "g_eval_correctness": "answerCorrectness",
+            "g_eval_coherence": "coherence",
+            "g_eval_tonality": "tonality",
+            "g_eval_safety": "safety",
+        }
+        
         try:
             for idx, result in enumerate(results):
                 log_id = test_cases_data[idx]["metadata"].get("log_id")
                 if log_id:
+                    # Normalize metric keys to camelCase
+                    raw_scores = result.get("metric_scores", {})
+                    normalized_scores = {}
+                    for display_name, score_data in raw_scores.items():
+                        camel_key = display_to_camel.get(display_name, display_name)
+                        normalized_scores[camel_key] = score_data
+                    
                     await crud.update_log_metadata(
                         db=db,
                         log_id=log_id,
                         tenant=tenant,
-                        metadata={"metric_scores": result.get("metric_scores", {})},
+                        metadata={"metric_scores": normalized_scores},
                     )
         except Exception as e:
             print(f"⚠️ Failed to update log metadata with metric scores: {e}")
@@ -587,33 +623,36 @@ async def run_evaluation(
         total_prompts = len(results)
         avg_scores = {}
         
-        # Map snake_case keys to the display names used in evaluator results
-        name_map = {
-            "g_eval_correctness": "Answer Correctness",
-            "g_eval_coherence": "Coherence",
-            "g_eval_tonality": "Tonality",
-            "g_eval_safety": "Safety",
-            "answer_relevancy": "Answer Relevancy",
-            "faithfulness": "Faithfulness",
-            "contextual_relevancy": "Contextual Relevancy",
-            "hallucination": "Hallucination",
-            "bias": "Bias",
-            "toxicity": "Toxicity",
-            "contextual_recall": "Contextual Recall",
-            "contextual_precision": "Contextual Precision",
-            "ragas": "RAGAS",
-            "task_completion": "Task Completion",
-            "tool_correctness": "Tool Correctness",
-            "knowledge_retention": "Knowledge Retention",
-            "conversation_completeness": "Conversation Completeness",
-            "conversation_relevancy": "Conversation Relevancy",
-            "role_adherence": "Role Adherence",
-            "summarization": "Summarization",
+        # Map snake_case config keys to display names AND camelCase frontend keys
+        metric_config_map = {
+            "answer_relevancy": {"display": "Answer Relevancy", "camel": "answerRelevancy"},
+            "faithfulness": {"display": "Faithfulness", "camel": "faithfulness"},
+            "contextual_relevancy": {"display": "Contextual Relevancy", "camel": "contextualRelevancy"},
+            "contextual_recall": {"display": "Contextual Recall", "camel": "contextualRecall"},
+            "contextual_precision": {"display": "Contextual Precision", "camel": "contextualPrecision"},
+            "hallucination": {"display": "Hallucination", "camel": "hallucination"},
+            "bias": {"display": "Bias", "camel": "bias"},
+            "toxicity": {"display": "Toxicity", "camel": "toxicity"},
+            "knowledge_retention": {"display": "Knowledge Retention", "camel": "knowledgeRetention"},
+            "conversation_completeness": {"display": "Conversation Completeness", "camel": "conversationCompleteness"},
+            "conversation_relevancy": {"display": "Conversation Relevancy", "camel": "conversationRelevancy"},
+            "role_adherence": {"display": "Role Adherence", "camel": "roleAdherence"},
+            "task_completion": {"display": "Task Completion", "camel": "taskCompletion"},
+            "tool_correctness": {"display": "Tool Correctness", "camel": "toolCorrectness"},
+            "summarization": {"display": "Summarization", "camel": "summarization"},
+            "ragas": {"display": "RAGAS", "camel": "ragas"},
+            # G-Eval variants
+            "g_eval_correctness": {"display": "Answer Correctness", "camel": "answerCorrectness"},
+            "g_eval_coherence": {"display": "Coherence", "camel": "coherence"},
+            "g_eval_tonality": {"display": "Tonality", "camel": "tonality"},
+            "g_eval_safety": {"display": "Safety", "camel": "safety"},
         }
 
         for metric_key, enabled in deepeval_metrics_config.items():
             if enabled:
-                display_name = name_map.get(metric_key, metric_key)
+                mapping = metric_config_map.get(metric_key, {"display": metric_key, "camel": metric_key})
+                display_name = mapping["display"]
+                camel_key = mapping["camel"]
                 scores: list[float] = []
                 for r in results:
                     score_obj = r.get("metric_scores", {}).get(display_name)
@@ -623,11 +662,12 @@ async def run_evaluation(
                             scores.append(float(score_val))
                 if scores:
                     avg_score = sum(scores) / len(scores)
-                    avg_scores[metric_key] = avg_score
+                    # Store with camelCase key for frontend compatibility
+                    avg_scores[camel_key] = avg_score
                     await crud.create_metric(
                         db=db,
                         project_id=config.get("project_id"),
-                        metric_name=metric_key,
+                        metric_name=camel_key,  # Use camelCase for DB too
                         metric_type="quality",
                         value=avg_score,
                         tenant=tenant,

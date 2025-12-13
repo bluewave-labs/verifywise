@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -30,7 +29,6 @@ interface ExperimentDetailContentProps {
 }
 
 export default function ExperimentDetailContent({ experimentId, projectId, onBack }: ExperimentDetailContentProps) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
@@ -123,12 +121,15 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     setEditedDescription("");
   };
 
+  const [rerunSuccess, setRerunSuccess] = useState<string | null>(null);
+
   const handleRerunExperiment = async () => {
     if (!experiment || !projectId) return;
     if (rerunLoading) return;
 
     try {
       setRerunLoading(true);
+      setRerunSuccess(null);
       const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
       const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
 
@@ -145,10 +146,14 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
       const response = await experimentsService.createExperiment(payload);
 
       if (response?.experiment?.id) {
-        navigate(`/evals/${projectId}/experiment/${response.experiment.id}`);
+        // Don't navigate immediately - show success message and let user go back
+        setRerunSuccess(`Rerun started: "${nextName}". View it in the experiments list.`);
+        // Auto-clear after 5 seconds
+        setTimeout(() => setRerunSuccess(null), 5000);
       }
     } catch (err) {
       console.error("Failed to rerun experiment:", err);
+      setRerunSuccess(null);
     } finally {
       setRerunLoading(false);
     }
@@ -300,23 +305,41 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           </Box>
 
           {/* Rerun button */}
-          <Button
-            variant="contained"
-            onClick={handleRerunExperiment}
-            disabled={rerunLoading || experiment.status === "running"}
-            startIcon={<RotateCcw size={16} />}
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0F5A47" },
-              fontSize: "14px",
-              fontWeight: 500,
-              height: 40,
-              px: 3,
-            }}
-          >
-            {rerunLoading ? "Starting…" : "Rerun"}
-          </Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              variant="contained"
+              onClick={handleRerunExperiment}
+              disabled={rerunLoading || experiment.status === "running"}
+              startIcon={<RotateCcw size={16} />}
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#13715B",
+                "&:hover": { backgroundColor: "#0F5A47" },
+                fontSize: "14px",
+                fontWeight: 500,
+                height: 40,
+                px: 3,
+              }}
+            >
+              {rerunLoading ? "Starting…" : "Rerun"}
+            </Button>
+            {rerunSuccess && (
+              <Chip
+                label={rerunSuccess}
+                size="small"
+                onDelete={() => setRerunSuccess(null)}
+                sx={{
+                  backgroundColor: "#D1FAE5",
+                  color: "#065F46",
+                  fontSize: "12px",
+                  "& .MuiChip-deleteIcon": {
+                    color: "#065F46",
+                    "&:hover": { color: "#047857" },
+                  },
+                }}
+              />
+            )}
+          </Stack>
         </Box>
 
         {/* Row 2: Status, Description, Created date */}
@@ -444,11 +467,35 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
       {/* Overall Stats Header */}
       {logs.length > 0 && (() => {
+        // Map display names to camelCase keys for backwards compatibility
+        const displayNameToKey: Record<string, string> = {
+          "Answer Relevancy": "answerRelevancy",
+          "Faithfulness": "faithfulness",
+          "Contextual Relevancy": "contextualRelevancy",
+          "Contextual Recall": "contextualRecall",
+          "Contextual Precision": "contextualPrecision",
+          "Bias": "bias",
+          "Toxicity": "toxicity",
+          "Hallucination": "hallucination",
+          "Knowledge Retention": "knowledgeRetention",
+          "Conversation Completeness": "conversationCompleteness",
+          "Conversation Relevancy": "conversationRelevancy",
+          "Role Adherence": "roleAdherence",
+          "Task Completion": "taskCompletion",
+          "Tool Correctness": "toolCorrectness",
+          "Answer Correctness": "answerCorrectness",
+          "Coherence": "coherence",
+          "Tonality": "tonality",
+          "Safety": "safety",
+        };
+
         // Calculate overall averages and per-sample scores for sparklines
         const metricsSum: Record<string, { sum: number; count: number; scores: number[] }> = {};
         logs.forEach((log) => {
           if (log.metadata?.metric_scores) {
-            Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+            Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
+              // Normalize key: convert display names to camelCase, or keep if already camelCase
+              const key = displayNameToKey[rawKey] || rawKey;
               const score = typeof value === "number" ? value : (value as { score?: number })?.score;
               if (typeof score === "number") {
                 if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0, scores: [] };
@@ -464,14 +511,30 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         const enabled: Record<string, unknown> =
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
-        // Metric definitions with categories
+        // Metric definitions with categories - expanded to include all possible metrics
         const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" }> = {
+          // Standard DeepEval metrics
           answerRelevancy: { label: "Answer Relevancy", category: "quality" },
           faithfulness: { label: "Faithfulness", category: "quality" },
           contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
+          contextualRecall: { label: "Contextual Recall", category: "quality" },
+          contextualPrecision: { label: "Contextual Precision", category: "quality" },
           bias: { label: "Bias", category: "safety" },
           toxicity: { label: "Toxicity", category: "safety" },
           hallucination: { label: "Hallucination", category: "safety" },
+          // Chatbot-specific metrics
+          knowledgeRetention: { label: "Knowledge Retention", category: "quality" },
+          conversationCompleteness: { label: "Conversation Completeness", category: "quality" },
+          conversationRelevancy: { label: "Conversation Relevancy", category: "quality" },
+          roleAdherence: { label: "Role Adherence", category: "quality" },
+          // Agent metrics
+          taskCompletion: { label: "Task Completion", category: "quality" },
+          toolCorrectness: { label: "Tool Correctness", category: "quality" },
+          // G-Eval metrics
+          answerCorrectness: { label: "Answer Correctness", category: "quality" },
+          coherence: { label: "Coherence", category: "quality" },
+          tonality: { label: "Tonality", category: "quality" },
+          safety: { label: "Safety", category: "safety" },
         };
 
         // Get score color based on value thresholds
@@ -524,8 +587,9 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           );
         };
 
+        // Show metrics that are either enabled in config OR have actual data
         const orderedMetrics = Object.keys(metricDefinitions)
-          .filter((k) => !!enabled?.[k])
+          .filter((k) => !!enabled?.[k] || !!metricsSum[k])
           .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
         if (Object.keys(metricsSum).length === 0) return null;
@@ -537,11 +601,25 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         // Get icon for metric type (for background watermark)
         const getMetricIcon = (metricKey: string) => {
           switch (metricKey) {
+            // Quality metrics
             case "answerRelevancy": return Sparkles;
             case "faithfulness": return Check;
             case "contextualRelevancy": return Sparkles;
+            case "contextualRecall": return Sparkles;
+            case "contextualPrecision": return Sparkles;
+            case "answerCorrectness": return Sparkles;
+            case "coherence": return Sparkles;
+            case "tonality": return Sparkles;
+            case "knowledgeRetention": return Sparkles;
+            case "conversationCompleteness": return Sparkles;
+            case "conversationRelevancy": return Sparkles;
+            case "roleAdherence": return Sparkles;
+            case "taskCompletion": return Check;
+            case "toolCorrectness": return Check;
+            // Safety metrics
             case "bias": return Shield;
             case "toxicity": return Shield;
+            case "safety": return Shield;
             case "hallucination": return Shield;
             default: return Sparkles;
           }

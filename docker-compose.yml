@@ -45,7 +45,7 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - FAIRNESS_AND_BIAS_URL=http://eval_server:8000
       - REDIS_URL=redis://redis:6379/0
   frontend:
     depends_on:
@@ -70,24 +70,6 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - REDIS_URL=redis://redis:6379/0
     restart: unless-stopped
-  # bias_and_fairness_backend:
-  #   depends_on:
-  #     - backend
-  #     - redis
-  #   image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
-  #   # pull_policy: always
-  #   # ports:
-  #   #   - "8000"
-  #   expose:
-  #     - "8000"
-  #   environment:
-  #     - DB_HOST=postgresdb
-  #     - DB_USER=$DB_USER
-  #     - DB_PORT=$DB_PORT
-  #     - DB_PASSWORD=$DB_PASSWORD
-  #     - DB_NAME=$DB_NAME
-  #     - BACKEND_URL=http://backend:$BACKEND_PORT
-  #     - REDIS_URL=redis://redis:6379/0
   eval_server:
     depends_on:
       - backend

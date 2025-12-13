@@ -26,7 +26,7 @@ import { User } from "../../../../domain/types/User";
 import { Project } from "../../../../domain/types/Project";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import {
-    Severity,
+    IncidentSeverity,
     IncidentManagementStatus,
     AIIncidentManagementApprovalStatus,
     IncidentType,
@@ -53,7 +53,7 @@ export interface NewIncidentFormValues {
     incident_id?: string;
     ai_project: string;
     type: string;
-    severity: Severity;
+    severity: IncidentSeverity;
     status: IncidentManagementStatus;
     occurred_date: string;
     date_detected: string;
@@ -87,7 +87,7 @@ interface NewIncidentFormErrors {
 const initialState: NewIncidentFormValues = {
     ai_project: "",
     type: "",
-    severity: Severity.MINOR,
+    severity: IncidentSeverity.MINOR,
     status: IncidentManagementStatus.OPEN,
     occurred_date: new Date().toISOString().split("T")[0],
     date_detected: new Date().toISOString().split("T")[0],
@@ -107,9 +107,9 @@ const initialState: NewIncidentFormValues = {
 };
 
 const severityOptions = [
-    { _id: Severity.MINOR, name: "Minor" },
-    { _id: Severity.SERIOUS, name: "Serious" },
-    { _id: Severity.VERY_SERIOUS, name: "Very Serious" },
+    { _id: IncidentSeverity.MINOR, name: "Minor" },
+    { _id: IncidentSeverity.SERIOUS, name: "Serious" },
+    { _id: IncidentSeverity.VERY_SERIOUS, name: "Very Serious" },
 ];
 
 const statusOptions = [

@@ -1,30 +1,11 @@
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import {
-  MitigationFormValues,
-  RiskFormValues,
-} from "../../presentation/components/AddNewRiskForm/interface";
+import { Dispatch, SetStateAction } from "react";
+import { SelectChangeEvent } from "@mui/material";
 import {
   Likelihood,
   RiskLevelSeverity,
   RiskLevelLikelihood,
 } from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
-import { User } from "../types/User";
-import { SelectChangeEvent } from "@mui/material";
-
-export interface AddNewRiskFormProps {
-  closePopup: () => void;
-  popupStatus: string;
-  initialRiskValues?: RiskFormValues; // New prop for initial values
-  initialMitigationValues?: MitigationFormValues; // New prop for initial values
-  onSuccess: () => void;
-  onError?: (message: any) => void;
-  onLoading?: (message: any) => void;
-  users?: User[]; // Optional users data to avoid calling useUsers hook
-  usersLoading?: boolean; // Optional loading state
-  onSubmitRef?: MutableRefObject<(() => void) | null>; // Ref to expose submit function for StandardModal
-  compactMode?: boolean; // When true, use flexible widths for sidebar layout
-}
 
 export interface IRiskSectionProps {
   riskValues: IRiskFormValues;
@@ -68,6 +49,24 @@ export interface IRiskFormErrors {
   reviewNotes?: string;
   applicableProjects?: string;
   applicableFrameworks?: string;
+}
+
+/**
+ * Form values for creating or editing a risk mitigation (domain layer)
+ */
+export interface IMitigationFormValues {
+  mitigationStatus: number;
+  mitigationPlan: string;
+  currentRiskLevel: number;
+  implementationStrategy: string;
+  deadline: string;
+  doc: string;
+  likelihood: Likelihood;
+  riskSeverity: Severity;
+  approver: number;
+  approvalStatus: number;
+  dateOfAssessment: string;
+  recommendations: string;
 }
 
 export interface IAuditRiskModalProps {

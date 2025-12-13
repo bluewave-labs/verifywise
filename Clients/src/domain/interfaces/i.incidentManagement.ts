@@ -1,7 +1,7 @@
 import {
     AIIncidentManagementApprovalStatus,
     IncidentManagementStatus,
-    Severity,
+    IncidentSeverity,
 } from "../enums/aiIncidentManagement.enum";
 
 export interface IAIIncidentManagement {
@@ -9,7 +9,7 @@ export interface IAIIncidentManagement {
     incident_id: string;
     ai_project: string;
     type: string;
-    severity: Severity;
+    severity: IncidentSeverity;
     status: IncidentManagementStatus;
     occurred_date: string;
     date_detected: string;

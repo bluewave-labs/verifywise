@@ -5,7 +5,7 @@ export enum AIIncidentManagementApprovalStatus {
     NOT_REQUIRED = "Not required",
 }
 
-export enum Severity {
+export enum IncidentSeverity {
     MINOR = "Minor",
     SERIOUS = "Serious",
     VERY_SERIOUS = "Very serious",

@@ -1,4 +1,23 @@
 import { Likelihood, Severity } from "../RiskLevel/constants";
+import { MutableRefObject } from "react";
+import { User } from "../../../domain/types/User";
+
+/**
+ * Props for the AddNewRiskForm component
+ */
+export interface AddNewRiskFormProps {
+  closePopup: () => void;
+  popupStatus: string;
+  initialRiskValues?: RiskFormValues; // New prop for initial values
+  initialMitigationValues?: MitigationFormValues; // New prop for initial values
+  onSuccess: () => void;
+  onError?: (message: any) => void;
+  onLoading?: (message: any) => void;
+  users?: User[]; // Optional users data to avoid calling useUsers hook
+  usersLoading?: boolean; // Optional loading state
+  onSubmitRef?: MutableRefObject<(() => void) | null>; // Ref to expose submit function for StandardModal
+  compactMode?: boolean; // When true, use flexible widths for sidebar layout
+}
 
 export type ProjectRisk = {
   riskName: string;

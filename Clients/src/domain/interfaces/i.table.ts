@@ -6,7 +6,7 @@ import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { ITask } from "./i.task";
 import { IUser } from "./i.user";
-import { EventModel } from "../models/Common/EvenTracker/eventTracker.model";
+import { EventModel } from "../models/Common/EventTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;

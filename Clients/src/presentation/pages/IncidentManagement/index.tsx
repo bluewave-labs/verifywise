@@ -35,7 +35,7 @@ import NewIncident from "../../components/Modals/NewIncident";
 import {
   AIIncidentManagementApprovalStatus,
   IncidentManagementStatus,
-  Severity,
+  IncidentSeverity,
 } from "../../../domain/enums/aiIncidentManagement.enum";
 import { createIncidentManagement } from "../../../application/repository/incident_management.repository";
 import HelperIcon from "../../components/HelperIcon";
@@ -165,9 +165,9 @@ const IncidentManagement: React.FC = () => {
         label: "Severity",
         type: "select" as const,
         options: [
-          { value: Severity.MINOR, label: "Minor" },
-          { value: Severity.SERIOUS, label: "Serious" },
-          { value: Severity.VERY_SERIOUS, label: "Very serious" },
+          { value: IncidentSeverity.MINOR, label: "Minor" },
+          { value: IncidentSeverity.SERIOUS, label: "Serious" },
+          { value: IncidentSeverity.VERY_SERIOUS, label: "Very serious" },
         ],
       },
       {

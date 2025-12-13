@@ -17,16 +17,16 @@ import {
  * API endpoints for deadline analytics
  */
 const DEADLINE_ENDPOINTS = {
-  SUMMARY: "/api/deadline-analytics/summary",
-  DETAILS: "/api/deadline-analytics/details",
-  CONFIG: "/api/deadline-analytics/config",
+  SUMMARY: "/deadline-analytics/summary",
+  DETAILS: "/deadline-analytics/details",
+  CONFIG: "/deadline-analytics/config",
 } as const;
 
 /**
  * Cache configuration
  */
 const CACHE_CONFIG = {
-  TTL: 30000, // 30 seconds
+  TTL: 60000, // 60 seconds
   KEY_PREFIX: "deadline_analytics_",
 } as const;
 
@@ -143,7 +143,33 @@ export async function fetchDeadlineAnalytics(
       }
     );
 
-    const analytics = response.data.data;
+    // Based on the actual API response, the structure is:
+    // {
+    //   "message": "OK",
+    //   "data": {
+    //     "success": true,
+    //     "data": {
+    //       "tasks": {
+    //         "overdue": 8,
+    //         "dueSoon": 6,
+    //         "threshold": 14
+    //       }
+    //     }
+    //   }
+    // }
+
+    let analytics = response.data;
+
+    // Extract the actual deadline data from the nested API response
+    if (analytics.data && analytics.data.data && analytics.data.data.tasks) {
+      analytics = analytics.data.data;
+    } else if (analytics.data && analytics.data.tasks) {
+      analytics = analytics.data;
+    } else if (analytics.success && analytics.data) {
+      analytics = analytics.data;
+    } else if (analytics.data) {
+      analytics = analytics.data;
+    }
 
     // Cache the successful response
     if (useCache && analytics) {

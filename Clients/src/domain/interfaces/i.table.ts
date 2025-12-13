@@ -89,11 +89,18 @@ export interface IEventsTableProps {
   paginated?: boolean;
 }
 
+export interface IFairnessRow {
+  id: number;
+  model: string;
+  dataset: string;
+  status: "In Progress" | "Completed" | "Failed";
+}
+
 export interface IFairnessTableBodyProps {
-  rows: any[];
+  rows: IFairnessRow[];
   page: number;
   rowsPerPage: number;
-  onShowDetails: (model: any) => void;
+  onShowDetails: (model: IFairnessRow) => void;
   onRemoveModel: {
     onConfirm: (id: number) => void;
   };

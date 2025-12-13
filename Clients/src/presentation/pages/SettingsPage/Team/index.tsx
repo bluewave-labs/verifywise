@@ -34,7 +34,7 @@ import {
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import ButtonToggle from "../../../components/ButtonToggle";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -213,6 +213,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
       if (response && response.status === 202) {
         showAlert("success", "Success", "User deleted successfully");
         refreshUsers();
+      } else if (response && response.status === 403) {
+        // Demo user cannot be deleted - show info message
+        showAlert("info", "Info", response.data?.message || "This user cannot be deleted");
       } else {
         showAlert("error", "Error", "User deletion failed");
       }
@@ -755,7 +758,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
               </TableContainer>
 
               {open && (
-                <DualButtonModal
+                <ConfirmationModal
                   title="Confirm delete"
                   body={
                     <Typography fontSize={13}>

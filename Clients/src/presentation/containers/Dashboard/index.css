@@ -1,8 +1,11 @@
 .home-layout {
   position: relative;
   min-height: 100vh;
-  max-width: 1400px;
-  margin: 0 auto;
+  /* Remove fixed max-width, let content area handle constraints */
+  margin: 0;
+  /* Reserve space for the help sidebar on the right */
+  margin-right: var(--help-sidebar-padding, 64px);
+  transition: margin-right 300ms ease-in-out;
 }
 
 .home-layout aside {

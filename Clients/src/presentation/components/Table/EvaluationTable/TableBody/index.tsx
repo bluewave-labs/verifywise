@@ -1,8 +1,9 @@
-import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Tooltip } from "@mui/material";
+import { useState } from "react";
+import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { Trash2 as TrashIcon, RotateCcw } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
-import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
-import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
+import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
+import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
 
 const StatusChip: React.FC<{
   status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
@@ -68,6 +69,23 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   onRemoveModel,
   onRerun,
 }) => {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, row: IEvaluationRow) => {
+    e.stopPropagation();
+    setRowToDelete(row);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (rowToDelete && onRemoveModel) {
+      onRemoveModel.onConfirm(String(rowToDelete.id));
+      setDeleteModalOpen(false);
+      setRowToDelete(null);
+    }
+  };
+
   return (
     <TableBody>
       {rows
@@ -200,7 +218,6 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   minWidth: "80px",
                   maxWidth: "80px",
                 }}
-                onClick={(e) => e.stopPropagation()}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   {onRerun && (
@@ -227,14 +244,22 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                     </Tooltip>
                   )}
                   {onRemoveModel && (
-                    <ConfirmableDeleteIconButton
-                      disabled={false}
-                      id={row.id}
-                      onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
-                      title="Delete this evaluation?"
-                      message={`Are you sure you want to delete evaluation "${row.name || row.id}"?`}
-                      customIcon={<TrashIcon size={16} color="#667085" />}
-                    />
+                    <Tooltip title="Delete this evaluation">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleDeleteClick(e, row)}
+                        sx={{
+                          color: "#667085",
+                          padding: "4px",
+                          "&:hover": {
+                            backgroundColor: "rgba(220, 38, 38, 0.1)",
+                            color: "#DC2626",
+                          },
+                        }}
+                      >
+                        <TrashIcon size={16} />
+                      </IconButton>
+                    </Tooltip>
                   )}
                 </Box>
               </TableCell>
@@ -242,6 +267,27 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
           </TableRow>
         );
         })}
+      
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && rowToDelete && (
+        <ConfirmationModal
+          title="Delete this evaluation?"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to delete evaluation "{rowToDelete.name || rowToDelete.id}"? This action cannot be undone.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={() => {
+            setDeleteModalOpen(false);
+            setRowToDelete(null);
+          }}
+          onProceed={handleConfirmDelete}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+        />
+      )}
     </TableBody>
   );
 };

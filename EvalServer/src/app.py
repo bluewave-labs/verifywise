@@ -43,6 +43,10 @@ app.add_middleware(
 
 app.add_middleware(TenantMiddleware)
 
+@app.on_event("startup")
+def startup_event():
+    run_migrations()
+
 @app.get("/")
 def root():
     return {"message": "Welcome to the Bias and Fairness Server!"}

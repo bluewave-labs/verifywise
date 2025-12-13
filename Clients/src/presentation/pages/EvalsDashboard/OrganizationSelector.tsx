@@ -22,7 +22,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { Beaker } from "lucide-react";
 import Alert from "../../components/Alert";
 import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 
 interface Props {
   onSelected: () => void;
@@ -401,7 +401,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
       </StandardModal>
 
       {/* Switch Organization Confirmation Modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={switchModalOpen}
         title="Switch organization?"
         TitleFontSize={16}

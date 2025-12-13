@@ -520,6 +520,22 @@ export const getSubControlsByIdQuery = async (
       ...(transaction && { transaction }),
     }
   )) as [Partial<SubcontrolEUModel | ControlStructEUModel>[], number];
+
+  // Load risks for each subcontrol
+  for (let subControl of subControls[0]) {
+    (subControl as any).risks = [];
+    const risks = (await sequelize.query(
+      `SELECT projects_risks_id FROM "${tenant}".subcontrols_eu__risks WHERE subcontrol_id = :id`,
+      {
+        replacements: { id: subControl.id },
+        ...(transaction && { transaction }),
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of risks[0]) {
+      (subControl as any).risks.push(risk.projects_risks_id);
+    }
+  }
+
   return subControls[0];
 };
 
@@ -905,7 +921,9 @@ export const updateControlEUByIdQuery = async (
 
 export const updateSubcontrolEUByIdQuery = async (
   id: number,
-  subcontrol: Partial<SubcontrolEU>,
+  subcontrol: Partial<
+    SubcontrolEU & { risksDelete?: string; risksMitigated?: string }
+  >,
   evidenceUploadedFiles: {
     id: string;
     fileName: string;
@@ -953,6 +971,10 @@ export const updateSubcontrolEUByIdQuery = async (
     uploaded_time: Date;
   }[];
 
+  // Store original arrays to check for deletions specific to this subcontrol
+  const originalEvidenceFiles = [...currentEvidenceFiles];
+  const originalFeedbackFiles = [...currentFeedbackFiles];
+
   currentEvidenceFiles = currentEvidenceFiles.filter(
     (f) => !deletedFiles.includes(parseInt(f.id))
   );
@@ -962,6 +984,20 @@ export const updateSubcontrolEUByIdQuery = async (
     (f) => !deletedFiles.includes(parseInt(f.id))
   );
   currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
+
+  // Track if files were modified for THIS subcontrol (uploads or deletes)
+  // Check if any deleted files belong to this subcontrol's files
+  const hasEvidenceDeletes = originalEvidenceFiles.some((f) =>
+    deletedFiles.includes(parseInt(f.id))
+  );
+  const hasFeedbackDeletes = originalFeedbackFiles.some((f) =>
+    deletedFiles.includes(parseInt(f.id))
+  );
+
+  const hasEvidenceFileChanges =
+    evidenceUploadedFiles.length > 0 || hasEvidenceDeletes;
+  const hasFeedbackFileChanges =
+    feedbackUploadedFiles.length > 0 || hasFeedbackDeletes;
 
   const updateSubControl: Partial<Record<keyof SubcontrolEU, any>> = {};
   const setClause = [
@@ -978,12 +1014,14 @@ export const updateSubcontrolEUByIdQuery = async (
     "feedback_files",
   ]
     .filter((f) => {
-      if (f == "evidence_files" && currentEvidenceFiles.length > 0) {
+      // Always update evidence_files if there were changes (uploads or deletes)
+      if (f == "evidence_files" && hasEvidenceFileChanges) {
         updateSubControl["evidence_files"] =
           JSON.stringify(currentEvidenceFiles);
         return true;
       }
-      if (f == "feedback_files" && currentFeedbackFiles.length > 0) {
+      // Always update feedback_files if there were changes (uploads or deletes)
+      if (f == "feedback_files" && hasFeedbackFileChanges) {
         updateSubControl["feedback_files"] =
           JSON.stringify(currentFeedbackFiles);
         return true;
@@ -1019,7 +1057,84 @@ export const updateSubcontrolEUByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  const subcontrolResult = result[0] as any;
+  (subcontrolResult as any).risks = [];
+
+  // Handle risks if provided
+  if (
+    subcontrol.risksDelete !== undefined ||
+    subcontrol.risksMitigated !== undefined
+  ) {
+    const risksDeletedRaw = JSON.parse(subcontrol.risksDelete || "[]");
+    const risksMitigatedRaw = JSON.parse(subcontrol.risksMitigated || "[]");
+
+    // Validate that both arrays contain only valid integers
+    const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
+    const risksMitigated = validateRiskArray(
+      risksMitigatedRaw,
+      "risksMitigated"
+    );
+
+    const risks = (await sequelize.query(
+      `SELECT projects_risks_id FROM "${tenant}".subcontrols_eu__risks WHERE subcontrol_id = :id`,
+      {
+        replacements: { id },
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+
+    let currentRisks = risks[0].map((r) => r.projects_risks_id!);
+    currentRisks = currentRisks.filter((r) => !risksDeleted.includes(r));
+    currentRisks = currentRisks.concat(risksMitigated);
+
+    await sequelize.query(
+      `DELETE FROM "${tenant}".subcontrols_eu__risks WHERE subcontrol_id = :id;`,
+      {
+        replacements: { id },
+        transaction,
+      }
+    );
+
+    if (currentRisks.length > 0) {
+      // Create parameterized placeholders for safe insertion
+      const placeholders = currentRisks
+        .map((_, i) => `(:subcontrol_id${i}, :projects_risks_id${i})`)
+        .join(", ");
+      const replacements: { [key: string]: any } = {};
+
+      // Build replacement parameters safely
+      currentRisks.forEach((risk, i) => {
+        replacements[`subcontrol_id${i}`] = id;
+        replacements[`projects_risks_id${i}`] = risk;
+      });
+
+      const subcontrolRisksInsertResult = (await sequelize.query(
+        `INSERT INTO "${tenant}".subcontrols_eu__risks (subcontrol_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
+        {
+          replacements,
+          transaction,
+        }
+      )) as [{ projects_risks_id: number }[], number];
+
+      for (let risk of subcontrolRisksInsertResult[0]) {
+        (subcontrolResult as any).risks.push(risk.projects_risks_id);
+      }
+    }
+  } else {
+    // If no risk updates provided, load existing risks
+    const risks = (await sequelize.query(
+      `SELECT projects_risks_id FROM "${tenant}".subcontrols_eu__risks WHERE subcontrol_id = :id`,
+      {
+        replacements: { id },
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of risks[0]) {
+      (subcontrolResult as any).risks.push(risk.projects_risks_id);
+    }
+  }
+
+  return subcontrolResult;
 };
 
 export const addFileToAnswerEU = async (

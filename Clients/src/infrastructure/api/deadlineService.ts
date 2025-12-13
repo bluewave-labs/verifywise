@@ -11,7 +11,6 @@ import CustomAxios from "./customAxios";
 import {
   DeadlineAnalyticsResponse,
   DeadlineAnalytics,
-  DeadlineError,
 } from "../../presentation/components/DeadlineWarningBox/types";
 
 /**

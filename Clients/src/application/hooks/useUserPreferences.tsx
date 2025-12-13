@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { UserPreferencesModel } from "../../domain/models/Common/userPreferences/userPreferences.model";
+import { UserPreferencesModel } from "../../domain/models/Common/UserPreferences/userPreferences.model";
 import { getUserPreferencesByUserId } from "../repository/userPreferences.repository";
 import { useAuth } from "./useAuth";
-import { UserDateFormat } from "../../domain/enums/userDateFormat.enum";
+import { UserDateFormat } from "../../domain/enums/UserDateFormat.enum";
 
 const defaultUserPreferences: Omit<UserPreferencesModel, "id" | "user_id"> = {
   date_format: UserDateFormat.DD_MM_YYYY_DASH,

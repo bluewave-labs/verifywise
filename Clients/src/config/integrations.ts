@@ -1,4 +1,4 @@
-import { Integration, IntegrationCategory, IntegrationStatus } from '../domain/types/integrations';
+import { Integration, IntegrationCategory, IntegrationStatus } from '../domain/types/Integrations';
 
 /**
  * Available integrations configuration

@@ -20,7 +20,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
 import { RiskFormValues, RiskFormErrors } from "../interface";
-import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
+import { aiLifecyclePhase, riskCategoryItems } from "../ProjectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useProjects } from "../../../../application/hooks/useProjects";

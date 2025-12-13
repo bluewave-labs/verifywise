@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { VendorRisk } from "../../domain/types/VendorRisk";
-import { getAllVendorRisks } from "../repository/vendorRisk.repository";
+import { getAllVendorRisks } from "../repository/VendorRisk.repository";
 
 // Query keys for vendor risks
 export const vendorRiskQueryKeys = {

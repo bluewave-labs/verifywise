@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { UserDateFormat } from "../../domain/enums/userDateFormat.enum";
+import { UserDateFormat } from "../../domain/enums/UserDateFormat.enum";
 
 /**
  * Converts an ISO date string to a formatted date string.

@@ -38,10 +38,10 @@ import {
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
-import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
+import { getVendorRiskById } from "../../../application/repository/VendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
-import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
-import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
+import { VendorModel } from "../../../domain/models/Common/Vendor/vendor.model";
+import { ExistingRisk } from "../../../domain/interfaces/i.Vendor";
 import TabBar from "../../components/TabBar";
 import TipBox from "../../components/TipBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";

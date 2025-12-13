@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import ButtonToggle from "../../../components/ButtonToggle";
 import RisksView from "../../../components/RisksView";
-import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
+import { RiskModel } from "../../../../domain/models/Common/Risks/risk.model";
 import { IFrameworkRisksProps } from "../../../../domain/interfaces/i.risk";
 
 const FrameworkRisks = ({

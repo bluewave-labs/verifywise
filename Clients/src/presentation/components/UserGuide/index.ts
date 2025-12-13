@@ -54,10 +54,10 @@ export { default as SidebarHeader } from './SidebarHeader';
 export { default as HelpSection } from './HelpSection';
 
 // Configuration and content (from shared location)
-export { collections, getCollection, getArticle, fastFinds } from '@user-guide-content/userGuideConfig';
-export { getArticleContent } from '@user-guide-content/content';
-export type { Collection, Article } from '@user-guide-content/userGuideConfig';
-export type { ArticleContent, ContentBlock, TocItem } from '@user-guide-content/contentTypes';
+export { collections, getCollection, getArticle, fastFinds } from '@User-guide-content/userGuideConfig';
+export { getArticleContent } from '@User-guide-content/content';
+export type { Collection, Article } from '@User-guide-content/userGuideConfig';
+export type { ArticleContent, ContentBlock, TocItem } from '@User-guide-content/contentTypes';
 
 // Hook for managing sidebar state
 export { useUserGuideSidebar } from './useUserGuideSidebar';

@@ -7,7 +7,7 @@
  * @module utils/fileTransform
  */
 
-import { FileModel } from "../../domain/models/Common/file/file.model";
+import { FileModel } from "../../domain/models/Common/File/file.model";
 
 /**
  * Transforms raw file data from API to application FileModel format

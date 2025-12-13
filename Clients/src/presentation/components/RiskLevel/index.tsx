@@ -4,7 +4,7 @@ import Select from "../Inputs/Select";
 import {
   riskSeverityItems,
   likelihoodItems,
-} from "../AddNewRiskForm/projectRiskValue";
+} from "../AddNewRiskForm/ProjectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
 import { IRiskLevelProps } from "../../../domain/interfaces/iRiskForm";

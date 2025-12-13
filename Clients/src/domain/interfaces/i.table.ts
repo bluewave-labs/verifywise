@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { VendorModel } from "../models/Common/vendor/vendor.model";
-import { RiskModel } from "../models/Common/risks/risk.model";
-import { FileModel } from "../models/Common/file/file.model";
+import { VendorModel } from "../models/Common/Vendor/vendor.model";
+import { RiskModel } from "../models/Common/Risks/risk.model";
+import { FileModel } from "../models/Common/File/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
-import { ITask } from "./i.task";
+import { ITask } from "./i.Task";
 import { IUser } from "./iUser";
-import { EventModel } from "../models/Common/evenTracker/eventTracker.model";
+import { EventModel } from "../models/Common/EvenTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { FairnessModel } from "../../domain/models/Common/biasFramework/biasFramework.model";
+import { FairnessModel } from "../../domain/models/Common/BiasFramework/biasFramework.model";
 import CustomAxios from "./customAxios";
 import pako from "pako";
 

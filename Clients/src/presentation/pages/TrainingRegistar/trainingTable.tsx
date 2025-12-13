@@ -22,7 +22,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
-import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
+import { TrainingRegistarModel } from "../../../domain/models/Common/TrainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../domain/enums/status.enum";
 import Chip from "../../components/Chip";
 

@@ -10,7 +10,7 @@ import {
   Integration,
   IntegrationStatus,
   IntegrationConnectionHandler,
-} from "../../../domain/types/integrations";
+} from "../../../domain/types/Integrations";
 import Alert from "../../components/Alert";
 import useSlackIntegrations from "../../../application/hooks/useSlackIntegrations";
 import { useAuth } from "../../../application/hooks/useAuth";

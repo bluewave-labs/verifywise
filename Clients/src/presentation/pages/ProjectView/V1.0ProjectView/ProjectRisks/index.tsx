@@ -3,7 +3,7 @@ import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
 import RisksView from "../../../../components/RisksView";
-import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model";
+import { RiskModel } from "../../../../../domain/models/Common/Risks/risk.model";
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();

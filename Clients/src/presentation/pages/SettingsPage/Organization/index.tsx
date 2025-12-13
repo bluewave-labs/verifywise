@@ -14,7 +14,7 @@ import {
   CreateMyOrganization,
   GetMyOrganization,
   UpdateMyOrganization,
-} from "../../../../application/repository/organization.repository";
+} from "../../../../application/repository/Organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
@@ -26,7 +26,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
-import { OrganizationModel } from "../../../../domain/models/Common/organization/organization.model";
+import { OrganizationModel } from "../../../../domain/models/Common/Organization/organization.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";

@@ -20,7 +20,7 @@ import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
-import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { VendorModel } from "../../../../domain/models/Common/Vendor/vendor.model";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
 import { VWLink } from "../../Link";

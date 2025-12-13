@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
 import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { cardStyles } from "../../../themes";
-import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
+import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/CEMarking";
 import VWLink from "../../../components/Link/VWLink";
 import Select from "../../../components/Inputs/Select";
 import CustomizableButton from "../../../components/Button/CustomizableButton";

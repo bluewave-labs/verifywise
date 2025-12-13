@@ -1,5 +1,5 @@
 import { ModelInventoryStatus } from "../enums/modelInventory.enum";
-import { IModelRisk } from "./i.modelRisk";
+import { IModelRisk } from "./i.ModelRisk";
 import { User } from "../types/User";
 
 export interface IModelInventory {

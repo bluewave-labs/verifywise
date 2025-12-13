@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { ChevronRight as ChevronRightIcon, CheckCircle as CheckIcon, AlertCircle as ErrorIcon, XCircle as DisconnectIcon } from 'lucide-react';
 import { cardStyles } from '../../themes/components';
-import { IntegrationCardProps, IntegrationStatus } from '../../../domain/types/integrations';
+import { IntegrationCardProps, IntegrationStatus } from '../../../domain/types/Integrations';
 
 const IntegrationCard: React.FC<IntegrationCardProps> = ({
   integration,

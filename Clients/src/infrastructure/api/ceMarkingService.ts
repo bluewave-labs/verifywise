@@ -2,7 +2,7 @@ import {
   CEMarkingData,
   ConformityStepsUpdatePayload,
   LinkedResourcesUpdatePayload
-} from "../../domain/types/ceMarking";
+} from "../../domain/types/CEMarking";
 import CustomAxios from "./customAxios";
 
 const CE_MARKING_API = `/ce-marking`;

@@ -50,7 +50,7 @@ import {
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { User } from "../../../../domain/types/User";
-import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
+import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.Vendor";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import { 
   DataSensitivity,

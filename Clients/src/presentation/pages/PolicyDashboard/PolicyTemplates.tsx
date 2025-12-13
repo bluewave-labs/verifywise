@@ -12,7 +12,7 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { SearchBox } from "../../components/Search";
-import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
+import { PolicyTemplateCategory } from "../../../domain/enums/Policy.enum";
 import TagChip from "../../components/Tags/TagChip";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";

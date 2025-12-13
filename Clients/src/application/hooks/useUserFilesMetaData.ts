@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { FileModel } from "../../domain/models/Common/file/file.model";
+import { FileModel } from "../../domain/models/Common/File/file.model";
 import { getUserFilesMetaData } from "../repository/file.repository";
 import { transformFilesData } from "../utils/fileTransform.utils";
 

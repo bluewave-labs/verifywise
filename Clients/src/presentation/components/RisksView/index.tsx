@@ -12,7 +12,7 @@ import { deleteEntityById } from "../../../application/repository/entity.reposit
 import CustomizableToast from "../Toast";
 import CustomizableSkeleton from "../Skeletons";
 import useUsers from "../../../application/hooks/useUsers";
-import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
+import { RiskModel } from "../../../domain/models/Common/Risks/risk.model";
 import { IFilterState } from "../../../domain/interfaces/i.filter";
 import { IRiskLoadingStatus, IRisksViewProps } from "../../../domain/interfaces/i.risk";
 

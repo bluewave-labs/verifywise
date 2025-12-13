@@ -4,7 +4,7 @@ import {
   updateVendorRisk,
   deleteVendorRisk,
   getVendorRiskById
-} from '../repository/vendorRisk.repository';
+} from '../repository/VendorRisk.repository';
 import { vendorRiskQueryKeys } from './useVendorRisks';
 
 // Hook to create a new vendor risk

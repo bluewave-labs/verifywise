@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, FileText, GraduationCap, BarChart3, FlaskConical, LucideIcon } from 'lucide-react';
-import { Collection, Article, IconName } from '@user-guide-content/userGuideConfig';
+import { Collection, Article, IconName } from '@User-guide-content/userGuideConfig';
 
 // Map icon names to actual Lucide components
 const iconMap: Record<IconName, LucideIcon> = {
@@ -15,7 +15,7 @@ const iconMap: Record<IconName, LucideIcon> = {
   BarChart3,
   FlaskConical,
 };
-import type { TocItem } from '@user-guide-content/contentTypes';
+import type { TocItem } from '@User-guide-content/contentTypes';
 import { colors, typography, spacing, border } from './styles/theme';
 import './ArticlePage.css';
 

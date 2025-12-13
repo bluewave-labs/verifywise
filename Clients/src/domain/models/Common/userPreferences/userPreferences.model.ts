@@ -1,4 +1,4 @@
-import { UserDateFormat } from "../../../enums/userDateFormat.enum";
+import { UserDateFormat } from "../../../enums/UserDateFormat.enum";
 
 export class UserPreferencesModel {
   id?: number;

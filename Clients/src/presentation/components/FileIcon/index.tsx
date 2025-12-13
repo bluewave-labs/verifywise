@@ -2,22 +2,22 @@ import React from "react";
 import { Box } from "@mui/material";
 
 // Import file type icons
-import pdfIcon from "../../assets/icons/file-types/pdf.svg";
-import docIcon from "../../assets/icons/file-types/doc.svg";
-import docxIcon from "../../assets/icons/file-types/docx.svg";
-import xlsIcon from "../../assets/icons/file-types/xls.svg";
-import xlsxIcon from "../../assets/icons/file-types/xlsx.svg";
-import pptIcon from "../../assets/icons/file-types/ppt.svg";
-import pptxIcon from "../../assets/icons/file-types/pptx.svg";
-import txtIcon from "../../assets/icons/file-types/txt.svg";
-import csvIcon from "../../assets/icons/file-types/csv.svg";
-import zipIcon from "../../assets/icons/file-types/zip.svg";
-import rarIcon from "../../assets/icons/file-types/rar.svg";
-import jpgIcon from "../../assets/icons/file-types/jpg.svg";
-import jpegIcon from "../../assets/icons/file-types/jpeg.svg";
-import pngIcon from "../../assets/icons/file-types/png.svg";
-import gifIcon from "../../assets/icons/file-types/gif.svg";
-import defaultIcon from "../../assets/icons/file-types/default.svg";
+import pdfIcon from "../../assets/icons/File-types/pdf.svg";
+import docIcon from "../../assets/icons/File-types/doc.svg";
+import docxIcon from "../../assets/icons/File-types/docx.svg";
+import xlsIcon from "../../assets/icons/File-types/xls.svg";
+import xlsxIcon from "../../assets/icons/File-types/xlsx.svg";
+import pptIcon from "../../assets/icons/File-types/ppt.svg";
+import pptxIcon from "../../assets/icons/File-types/pptx.svg";
+import txtIcon from "../../assets/icons/File-types/txt.svg";
+import csvIcon from "../../assets/icons/File-types/csv.svg";
+import zipIcon from "../../assets/icons/File-types/zip.svg";
+import rarIcon from "../../assets/icons/File-types/rar.svg";
+import jpgIcon from "../../assets/icons/File-types/jpg.svg";
+import jpegIcon from "../../assets/icons/File-types/jpeg.svg";
+import pngIcon from "../../assets/icons/File-types/png.svg";
+import gifIcon from "../../assets/icons/File-types/gif.svg";
+import defaultIcon from "../../assets/icons/File-types/default.svg";
 
 // Map file extensions to their corresponding icons
 const FILE_ICON_MAP: Record<string, string> = {

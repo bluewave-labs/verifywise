@@ -29,7 +29,7 @@ import {
   riskLevelItems,
   likelihoodItems,
   riskSeverityItems,
-} from "./projectRiskValue";
+} from "./ProjectRiskValue";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
 import { ApiResponse } from "../../../domain/interfaces/iResponse";
 import { checkStringValidation } from "../../../application/validations/stringValidation";

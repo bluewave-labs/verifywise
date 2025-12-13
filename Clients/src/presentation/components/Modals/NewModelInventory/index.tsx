@@ -44,8 +44,8 @@ import {Trash2 as DeleteIconGrey } from "lucide-react";
 
 import TabBar from "../../TabBar";
 import { TabContext } from "@mui/lab";
-import EvidenceHubTable from "../../../pages/ModelInventory/evidenceHubTable";
-import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
+import evidenceHubTable from "../../../pages/ModelInventory/evidenceHubTable";
+import { EvidenceHubModel } from "../../../../domain/models/Common/EvidenceHub/evidenceHub.model";
 import { addNewModelButtonStyle } from "../../../pages/ModelInventory/style";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import VWLink from "../../Link/VWLink";
@@ -1307,7 +1307,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 </Box>
 
                 {/* ------------ EVIDENCE TABLE ------------ */}
-                <EvidenceHubTable
+                <evidenceHubTable
                     data={evidenceForThisModel}
                     isLoading={isEvidenceLoading}
                     onEdit={handleEditEvidence}

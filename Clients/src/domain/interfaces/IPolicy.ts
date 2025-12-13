@@ -1,4 +1,4 @@
-import { PolicyManagerModel } from "../models/Common/policy/policyManager.model";
+import { PolicyManagerModel } from "../models/Common/Policy/policyManager.model";
 import { User } from "../types/User";
 
 export interface PolicyTableProps {

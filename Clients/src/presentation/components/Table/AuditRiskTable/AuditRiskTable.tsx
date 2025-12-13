@@ -5,7 +5,7 @@ import TableHeader from "../TableHead";
 import { AuditRiskTableBody } from "./AuditRiskTableBody";
 import { useEffect, useState } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { RiskModel } from "../../../../domain/models/Common/risks/risk.model";
+import { RiskModel } from "../../../../domain/models/Common/Risks/risk.model";
 import {
   IAuditRiskTableProps,
   ITypeRisk,

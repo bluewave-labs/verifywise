@@ -23,7 +23,7 @@ import {
   mitigationStatusItems,
   riskLevelItems,
   approvalStatusItems,
-} from "../projectRiskValue";
+} from "../ProjectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
 

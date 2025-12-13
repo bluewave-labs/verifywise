@@ -20,7 +20,7 @@ import CustomizableSkeleton from "../../../components/Skeletons";
 import { Project } from "../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { GetMyOrganization } from "../../../../application/repository/Organization.repository";
 import { GroupBy } from "../../../components/Table/GroupBy";
 import {
   useTableGrouping,

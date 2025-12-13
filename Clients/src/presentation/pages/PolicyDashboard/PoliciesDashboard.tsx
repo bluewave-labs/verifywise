@@ -8,11 +8,11 @@ import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";
 import TipBox from "../../components/TipBox";
-import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
+import { PolicyManagerModel } from "../../../domain/models/Common/Policy/policyManager.model";
 import {
   getAllPolicies,
   getAllTags,
-} from "../../../application/repository/policy.repository";
+} from "../../../application/repository/Policy.repository";
 import PolicyManager from "./PolicyManager";
 import PolicyTemplates from "./PolicyTemplates";
 import PolicySteps from "./PolicySteps";

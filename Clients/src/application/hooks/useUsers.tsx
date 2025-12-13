@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from '../../domain/types/User';
-import { getAllUsers } from '../repository/user.repository';
+import { getAllUsers } from "../repository/user.repository";
 import { useAuth } from './useAuth';
 
 interface ApiUser {

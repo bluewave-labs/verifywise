@@ -1,4 +1,4 @@
-import { RiskModel } from "../models/Common/risks/risk.model";
+import { RiskModel } from "../models/Common/Risks/risk.model";
 
 export interface ICategoryGroup {
   name: string;

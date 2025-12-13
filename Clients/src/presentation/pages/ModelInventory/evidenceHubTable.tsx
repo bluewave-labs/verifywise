@@ -24,7 +24,7 @@ import { User } from "../../../domain/types/User";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import EmptyState from "../../components/EmptyState";
 import FileIcon from "../../components/FileIcon";
-import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
+import { EvidenceHubModel } from "../../../domain/models/Common/EvidenceHub/evidenceHub.model";
 import {
     loadingContainerStyle,
     paginationMenuProps,
@@ -52,7 +52,7 @@ const SelectorVertical = (props: any) => (
     <ChevronsUpDown size={16} {...props} />
 );
 
-interface EvidenceHubTableProps {
+interface evidenceHubTableProps {
     data: EvidenceHubModel[];
     isLoading?: boolean;
     onEdit?: (id: number) => void;
@@ -171,7 +171,7 @@ const SortableTableHead: React.FC<{
   );
 };
 
-const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
+const evidenceHubTable: React.FC<evidenceHubTableProps> = ({
     data,
     isLoading,
     onEdit,
@@ -532,4 +532,4 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
     );
 };
 
-export default EvidenceHubTable;
+export default evidenceHubTable;

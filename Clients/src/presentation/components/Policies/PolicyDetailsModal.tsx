@@ -55,7 +55,7 @@ import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChan
 import {
   createPolicy,
   updatePolicy,
-} from "../../../application/repository/policy.repository";
+} from "../../../application/repository/Policy.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";

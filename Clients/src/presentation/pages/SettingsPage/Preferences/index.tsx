@@ -6,7 +6,7 @@ import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { SaveIcon } from "lucide-react";
-import { UserDateFormat } from "../../../../domain/enums/userDateFormat.enum";
+import { UserDateFormat } from "../../../../domain/enums/UserDateFormat.enum";
 import {
   createNewUserPreferences,
   updateUserPreferencesById,

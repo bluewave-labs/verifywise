@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { RiskModel } from "../models/Common/risks/risk.model";
+import { RiskModel } from "../models/Common/Risks/risk.model";
 import { IFilterState } from "./i.filter";
 import { Project } from "../types/Project";
 import { Framework } from "../types/Framework";

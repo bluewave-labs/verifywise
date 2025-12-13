@@ -1021,7 +1021,7 @@ async function deleteUserById(req: Request, res: Response) {
         await transaction.rollback();
         return res
           .status(403)
-          .json(STATUS_CODE[403]("Demo users cannot be deleted"));
+          .json(STATUS_CODE[403]("Demo users cannot be deleted. Remove demo data from Management > Delete demo data"));
       }
 
       const deletedUser = await deleteUserByIdQuery(
@@ -1542,13 +1542,14 @@ async function getUserProfilePhoto(req: Request, res: Response) {
     if (!photo) {
       logStructured(
         "successful",
-        `profile photo not found for user ID ${userId}`,
+        `no profile photo for user ID ${userId}`,
         "getUserProfilePhoto",
         "user.ctrl.ts"
       );
-      return res.status(404).json(
-        STATUS_CODE[404]({
-          message: "Profile photo not found",
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          message: "No profile photo",
+          photo: null,
         })
       );
     }

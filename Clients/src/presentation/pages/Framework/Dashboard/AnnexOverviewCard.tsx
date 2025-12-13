@@ -17,14 +17,14 @@ import {
   ChevronRight
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annexStructIso.repository";
 import { getStatusColor } from "../../ISO/style";
 import { isISO42001, isISO27001 } from "../../../../application/constants/frameworks";
 import {
   processAnnexNumber,
   calculateItemPercentages,
   clampValue
-} from "../../../../application/utils/frameworkDataUtils";
+} from "../../../../application/tools/frameworkDataUtils";
 
 interface FrameworkData {
   frameworkId: number;

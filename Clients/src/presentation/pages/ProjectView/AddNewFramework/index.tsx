@@ -19,7 +19,7 @@ import {
   assignFrameworkToProject,
   deleteEntityById,
 } from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";

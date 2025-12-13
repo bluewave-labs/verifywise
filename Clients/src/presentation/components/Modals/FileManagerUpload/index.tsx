@@ -18,7 +18,7 @@ import {
 import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
 import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB, validateFile } from "../../../../application/constants/fileManager";
-import { formatBytes } from "../../../../application/tools/fileUtil";
+import { formatBytes } from "../../../../application/utils/fileUtil";
 import { getFileErrorMessage } from "../../../../application/utils/fileErrorHandler.utils";
 import { secureLogError } from "../../../../application/utils/secureLogger.utils"; // SECURITY: No PII
 

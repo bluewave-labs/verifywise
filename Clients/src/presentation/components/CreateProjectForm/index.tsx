@@ -19,15 +19,15 @@ import {
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
-import selectValidation from "../../../application/validations/selectValidation";
+import { checkStringValidation } from "../../../application/validations/stringValidation.rule";
+import selectValidation from "../../../application/validations/selectValidation.rule";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
 import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
-} from "../../../domain/interfaces/iForm";
-// import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+} from "../../../domain/interfaces/i.form";
+// import { CreateProjectFormUser } from "../../../domain/interfaces/i.user";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";

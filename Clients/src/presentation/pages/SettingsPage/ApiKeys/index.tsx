@@ -18,7 +18,7 @@ import {
 import Alert from "../../../components/Alert";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Field from "../../../components/Inputs/Field";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import {
   createApiToken,
   deleteApiToken,

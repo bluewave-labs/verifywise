@@ -22,7 +22,7 @@ import {
 import { SlidersHorizontal } from "lucide-react";
 
 const SliderIcon = () => <SlidersHorizontal size={20} />;
-import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
+import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slackIntegration.repository";
 import { Suspense, useCallback, useRef, useState } from "react";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";

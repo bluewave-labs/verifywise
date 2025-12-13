@@ -22,7 +22,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 import { useAuth } from "../../../../application/hooks/useAuth";

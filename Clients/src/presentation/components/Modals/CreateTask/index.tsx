@@ -31,7 +31,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 

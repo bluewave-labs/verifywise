@@ -1,6 +1,6 @@
 import { Typography, Box, Grid } from "@mui/material";
 import { Gauge as SpeedGreenIcon } from "lucide-react";
-import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
+import { RiskMetrics } from "../../../../domain/interfaces/i.riskSummary";
 
 interface RiskMetricsCardProps {
   metrics: RiskMetrics;

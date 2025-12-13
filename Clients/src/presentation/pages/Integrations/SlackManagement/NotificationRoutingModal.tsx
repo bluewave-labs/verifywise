@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ChevronDown as ExpandMoreIcon } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
+import { sendSlackMessage } from "../../../../application/repository/slackIntegration.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useSlackIntegrations, {
   SlackRoutingType,

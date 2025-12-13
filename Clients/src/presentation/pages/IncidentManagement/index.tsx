@@ -14,7 +14,7 @@ import { SearchBox } from "../../components/Search";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { logEngine } from "../../../application/tools/log.engine";
+import { logEngine } from "../../../application/utils/log.engine";
 import {
   archiveIncidentById,
   getAllEntities,

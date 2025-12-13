@@ -18,7 +18,7 @@ import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
 import UppyUploadFile from "../Inputs/FileUpload";
 import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { FileData } from "../../../domain/types/File";

@@ -4,7 +4,7 @@ import { Stack } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import Profile from "./ProFile/index";
+import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import Organization from "./Organization";

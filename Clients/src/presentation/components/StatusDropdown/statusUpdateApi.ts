@@ -12,8 +12,8 @@
  */
 
 import { updateEntityById, getEntityById } from "../../../application/repository/entity.repository";
-import { UpdateAnnexCategoryById } from "../../../application/repository/annexCategory_iso.repository";
-import { isSuccessResponse } from "../../../application/utils/frameworkDataUtils";
+import { UpdateAnnexCategoryById } from "../../../application/repository/annexCategoryIso.repository";
+import { isSuccessResponse } from "../../../application/tools/frameworkDataUtils";
 
 export interface StatusUpdateParams {
   id: number;

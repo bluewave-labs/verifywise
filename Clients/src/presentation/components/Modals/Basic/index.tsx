@@ -13,7 +13,7 @@
  */
 
 import { Button, Modal, Stack, Typography, useTheme, CircularProgress } from "@mui/material";
-import { BasicModalProps } from "../../../../domain/interfaces/iSelect";
+import { BasicModalProps } from "../../../../domain/interfaces/i.select";
 import {
   BasicModalCancelButtonStyle,
   BasicModalDeleteButtonStyle,

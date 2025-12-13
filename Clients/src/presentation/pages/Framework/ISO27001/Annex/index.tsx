@@ -7,16 +7,16 @@ import {
   Typography,
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
-import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
+import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annexStructIso.repository";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { styles } from "../Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../../domain/interfaces/i.alert";
 import { AnnexCategoryISO } from "../../../../../domain/types/AnnexCategoryISO";
 import { AnnexCategoryStructISO } from "../../../../../domain/types/AnnexCategoryStructISO";
-import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategory_iso.repository";
+import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategoryIso.repository";
 import Alert from "../../../../components/Alert";
 import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO27001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";

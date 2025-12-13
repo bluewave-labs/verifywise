@@ -18,7 +18,7 @@ import {
 import {
   GetClausesByProjectFrameworkId,
   Iso27001GetClauseStructByFrameworkID
-} from "../../../../application/repository/clause_struct_iso.repository";
+} from "../../../../application/repository/clauseStructIso.repository";
 import type { LucideIcon } from "lucide-react";
 import { getStatusColor } from "../../ISO/style";
 import { isISO42001, isISO27001 } from "../../../../application/constants/frameworks";
@@ -32,7 +32,7 @@ import {
   type BaseFrameworkData,
   type SubClauseData,
   type ClauseData
-} from "../../../../application/utils/frameworkDataUtils";
+} from "../../../../application/tools/frameworkDataUtils";
 
 interface ControlCategoriesCardProps {
   frameworksData: BaseFrameworkData[];

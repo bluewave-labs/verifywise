@@ -2,7 +2,7 @@ import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk
 import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
 import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
 import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
-import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-User-information.subtopic";
+import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
 import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
 import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
 import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
@@ -11,7 +11,7 @@ import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTrack
 import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
 import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
 import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
-import { ProjectScope } from "../../../structures/AssessmentTracker/Project-scope.subtopic";
+import { ProjectScope } from "../../../structures/AssessmentTracker/project-scope.subtopic";
 
 export const assessments = [
   { id: 0, title: "ProjectScope", component: ProjectScope },

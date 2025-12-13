@@ -4,7 +4,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
 import { ChangeEvent, ComponentType } from "react";
-import { RiskModel } from "../models/Common/Risks/risk.model";
+import { RiskModel } from "../models/Common/Risks/risks.model";
 
 /**
  * Props for the CloseButton component.

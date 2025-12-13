@@ -1,5 +1,5 @@
-import { logEngine } from "../tools/log.engine";
-import { FormValues } from "../validations/formValidation";
+import { logEngine } from "../utils/log.engine";
+import { FormValues } from "../validations/formValidation.rule";
 import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
 import { createNewUser } from "../repository/user.repository";
 import { ApiResponse, User } from "../../domain/types/User";

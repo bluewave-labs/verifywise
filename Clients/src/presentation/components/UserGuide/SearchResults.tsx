@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileText, ArrowRight } from 'lucide-react';
-import { searchArticles, type SearchResult } from '@User-guide-content/userGuideConfig';
+import { searchArticles, type SearchResult } from '@user-guide-content/userGuideConfig';
 import { colors, typography, spacing, border } from './styles/theme';
 import './SearchResults.css';
 

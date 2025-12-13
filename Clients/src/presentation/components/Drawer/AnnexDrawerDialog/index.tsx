@@ -36,12 +36,12 @@ import { User } from "../../../../domain/types/User";
 import {
   GetAnnexCategoriesById,
   UpdateAnnexCategoryById,
-} from "../../../../application/repository/annexCategory_iso.repository";
+} from "../../../../application/repository/annexCategoryIso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";

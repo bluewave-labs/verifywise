@@ -7,7 +7,7 @@ import { formatDate } from "../../../tools/isoDateToString";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
-import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
+import { DropDownsProps } from "../../../../domain/interfaces/i.widget";
 import { inputStyles } from "./style";
 import useUsers from "../../../../application/hooks/useUsers";
 

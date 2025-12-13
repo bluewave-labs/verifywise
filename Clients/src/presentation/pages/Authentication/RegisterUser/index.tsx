@@ -7,14 +7,14 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import {
   validatePassword,
   validateForm,
-} from "../../../../application/validations/formValidation";
+} from "../../../../application/validations/formValidation.rule";
 import type {
   FormValues,
   FormErrors,
-} from "../../../../application/validations/formValidation";
+} from "../../../../application/validations/formValidation.rule";
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 import CustomizableToast from "../../../components/Toast";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSearchParams } from "react-router-dom";

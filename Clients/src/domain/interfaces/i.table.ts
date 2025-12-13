@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VendorModel } from "../models/Common/Vendor/vendor.model";
-import { RiskModel } from "../models/Common/Risks/risk.model";
+import { RiskModel } from "../models/Common/Risks/risks.model";
 import { FileModel } from "../models/Common/File/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
-import { ITask } from "./i.Task";
-import { IUser } from "./iUser";
+import { ITask } from "./i.task";
+import { IUser } from "./i.user";
 import { EventModel } from "../models/Common/EvenTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {

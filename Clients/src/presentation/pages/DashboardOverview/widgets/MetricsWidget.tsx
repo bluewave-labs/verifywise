@@ -13,7 +13,7 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
-import { MetricData, MetricsWidgetProps } from '../../../../domain/interfaces/iDashboard';
+import { MetricData, MetricsWidgetProps } from "../../../../domain/interfaces/i.dashboard";
 
 export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
   loading = false,

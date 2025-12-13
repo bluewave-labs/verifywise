@@ -23,7 +23,7 @@ import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { logEngine } from "../../../application/tools/log.engine";
+import { logEngine } from "../../../application/utils/log.engine";
 import {
   getAllEntities,
   deleteEntityById,
@@ -31,11 +31,11 @@ import {
   updateEntityById,
   createNewUser,
 } from "../../../application/repository/entity.repository";
-import { createModelInventory } from "../../../application/repository/ModelInventory.repository";
+import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
-import ModelInventoryTable from "./ModelInventoryTable";
+import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
@@ -68,8 +68,8 @@ import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { EvidenceHubModel } from "../../../domain/models/Common/EvidenceHub/evidenceHub.model";
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
-import { createEvidenceHub } from "../../../application/repository/EvidenceHub.repository";
-import evidenceHubTable from "./evidenceHubTable";
+import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
+import EvidenceHubTable from "./evidenceHubTable";
 import ShareButton from "../../components/ShareViewDropdown/ShareButton";
 import ShareViewDropdown, {
   ShareViewSettings,
@@ -2250,7 +2250,7 @@ const ModelInventory: React.FC = () => {
               groupedData={groupedEvidenceHub}
               ungroupedData={filteredEvidenceHub}
               renderTable={(data, options) => (
-                <evidenceHubTable
+                <EvidenceHubTable
                   key={tableKey}
                   isLoading={isLoading}
                   data={data}

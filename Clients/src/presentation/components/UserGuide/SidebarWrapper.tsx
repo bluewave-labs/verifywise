@@ -8,9 +8,9 @@ import ArticlePage from './ArticlePage';
 import ContentRenderer from './ContentRenderer';
 import HelpSection from './HelpSection';
 import SearchResults from './SearchResults';
-import { getCollection, getArticle } from '@User-guide-content/userGuideConfig';
-import { getArticleContent } from '@User-guide-content/content';
-import { extractToc } from '@User-guide-content/contentTypes';
+import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
+import { getArticleContent } from '@user-guide-content/content';
+import { extractToc } from '@user-guide-content/contentTypes';
 import './SidebarWrapper.css';
 
 type Tab = 'user-guide' | 'help';

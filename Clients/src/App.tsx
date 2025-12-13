@@ -14,14 +14,14 @@ import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
-import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/iAlert";
+import { componentVisible } from "./application/interfaces/componentVisible";
+import { AlertProps } from "./domain/interfaces/i.alert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
-import { DeploymentManager } from "./application/utils/deploymentHelpers";
+import { DeploymentManager } from "./application/tools/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
@@ -163,14 +163,14 @@ function App() {
   } = useProjectStatus({ userId: userIdForProject });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
-  const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
+  const [componentsVisible, setComponentsVisible] = useState<componentVisible>({
     home: false,
     sidebar: false,
     projectFrameworks: false,
     compliance: false,
   });
   const changeComponentVisibility = useCallback(
-    (component: keyof ComponentVisible, value: boolean) => {
+    (component: keyof componentVisible, value: boolean) => {
       setComponentsVisible((prev) => ({
         ...prev,
         [component]: value,

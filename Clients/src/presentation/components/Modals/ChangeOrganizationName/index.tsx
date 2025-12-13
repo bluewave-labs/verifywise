@@ -18,8 +18,8 @@ import React, { useState, Suspense } from "react";
 import { Stack } from "@mui/material";
 import StandardModal from "../StandardModal";
 import Field from "../../Inputs/Field";
-import { UpdateMyOrganization } from "../../../../application/repository/Organization.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { UpdateMyOrganization } from "../../../../application/repository/organization.repository";
+import { logEngine } from "../../../../application/utils/log.engine";
 import useUsers from "../../../../application/hooks/useUsers";
 import Alert from "../../Alert";
 

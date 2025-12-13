@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ArrowRight, FileText, Rocket, Shield, AlertTriangle, Brain, Settings, Plug, GraduationCap, BarChart3, FlaskConical, LucideIcon } from 'lucide-react';
-import { Collection, IconName } from '@User-guide-content/userGuideConfig';
+import { Collection, IconName } from '@user-guide-content/userGuideConfig';
 
 // Map icon names to actual Lucide components
 const iconMap: Record<IconName, LucideIcon> = {

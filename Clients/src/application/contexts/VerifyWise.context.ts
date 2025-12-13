@@ -1,7 +1,7 @@
 import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
 import { Project } from "../../domain/types/Project";
-import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
+import { componentVisible } from "../../application/interfaces/componentVisible";
 import { User } from "../../domain/types/User";
 import { UIValues, AuthValues, InputValues, DashboardState } from "../interfaces/appStates";
 
@@ -23,9 +23,9 @@ interface VerifyWiseContextProps {
   userId: number | null;
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
-  componentsVisible: ComponentVisible;
+  componentsVisible: componentVisible;
   changeComponentVisibility: (
-    component: keyof ComponentVisible,
+    component: keyof componentVisible,
     value: boolean
   ) => void;
   users: User[];

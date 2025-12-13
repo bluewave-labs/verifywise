@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application/repository/clause_struct_iso.repository";
+import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application/repository/clauseStructIso.repository";
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { styles } from "./style";
@@ -15,7 +15,7 @@ import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../../domain/interfaces/i.alert";
 import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";

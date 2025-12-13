@@ -16,7 +16,7 @@ import EmptyState from "../EmptyState";
 import riskData from "../../assets/MITAIRISKDB.json";
 import StandardModal from "../Modals/StandardModal";
 import { Likelihood, Severity } from "../RiskLevel/constants";
-import { riskCategoryItems } from "../AddNewRiskForm/ProjectRiskValue";
+import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
 import { SearchBox } from "../Search";
 
 // Types

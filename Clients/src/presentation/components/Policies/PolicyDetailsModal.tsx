@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useState, useCallback } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
-import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
+import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/i.policy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import InsertImageUploaderModal from "../Modals/InsertImageModal/InsertImageUploaderModal";
@@ -55,10 +55,10 @@ import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChan
 import {
   createPolicy,
   updatePolicy,
-} from "../../../application/repository/Policy.repository";
+} from "../../../application/repository/policy.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../application/validations/stringValidation.rule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";

@@ -11,7 +11,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { logEngine } from "../../../application/tools/log.engine";
+import { logEngine } from "../../../application/utils/log.engine";
 import {
   getAllEntities,
   deleteEntityById,
@@ -22,7 +22,7 @@ import {
 // Import the table and modal components specific to Training
 import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
-import { createTraining } from "../../../application/repository/trainingregistar.repository";
+import { createTraining } from "../../../application/repository/trainingRegistrar.repository";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";

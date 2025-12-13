@@ -40,7 +40,7 @@ import type {
   ImageBlock,
   ArticleLinksBlock,
   ArticleContent,
-} from '@User-guide-content/contentTypes';
+} from '@user-guide-content/contentTypes';
 import './ContentRenderer.css';
 
 // Icon mapping

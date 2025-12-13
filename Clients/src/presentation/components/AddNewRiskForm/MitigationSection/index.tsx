@@ -23,8 +23,8 @@ import {
   mitigationStatusItems,
   riskLevelItems,
   approvalStatusItems,
-} from "../ProjectRiskValue";
-import { alertState } from "../../../../domain/interfaces/iAlert";
+} from "../projectRiskValue";
+import { alertState } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 
 // Layout constants - matching RisksSection

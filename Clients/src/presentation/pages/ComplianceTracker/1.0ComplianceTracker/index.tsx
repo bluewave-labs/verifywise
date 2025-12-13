@@ -10,9 +10,9 @@ import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
+import { ComplianceData } from "../../../../domain/interfaces/i.compliance";
 import { Project } from "../../../../domain/types/Project";
-import { getComplianceProgress } from "../../../../application/repository/control_eu_act.repository";
+import { getComplianceProgress } from "../../../../application/repository/controlEuAct.repository";
 
 const ComplianceTracker = ({
   project,

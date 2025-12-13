@@ -1,5 +1,5 @@
 import { CommandAction } from './types'
-import { logEngine } from '../tools/log.engine'
+import { logEngine } from '../utils/log.engine'
 
 export interface CommandActionHandlers {
   navigate: (path: string) => void

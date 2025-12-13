@@ -14,7 +14,7 @@ import {
   CreateMyOrganization,
   GetMyOrganization,
   UpdateMyOrganization,
-} from "../../../../application/repository/Organization.repository";
+} from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";

@@ -3,7 +3,7 @@ import { lazy, useCallback, useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Slack as SlackIcon, Plug } from "lucide-react";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { createSlackIntegration } from "../../../../application/repository/slack.integration.repository";
+import { createSlackIntegration } from "../../../../application/repository/slackIntegration.repository";
 import useSlackIntegrations, {
   SlackWebhook,
 } from "../../../../application/hooks/useSlackIntegrations";

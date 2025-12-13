@@ -18,7 +18,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
 import EmptyState from "../../EmptyState";
 import { IVWProjectRisksTable } from "../../../../domain/interfaces/i.risk";
-import { RiskModel } from "../../../../domain/models/Common/Risks/risk.model";
+import { RiskModel } from "../../../../domain/models/Common/Risks/risks.model";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />

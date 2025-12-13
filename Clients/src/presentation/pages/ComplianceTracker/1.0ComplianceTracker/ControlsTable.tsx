@@ -26,7 +26,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import {
   getControlByIdAndProject,
   getControlsByControlCategoryId,
-} from "../../../../application/repository/control_eu_act.repository";
+} from "../../../../application/repository/controlEuAct.repository";
 
 interface Column {
   name: string;

@@ -6,13 +6,13 @@ import policyTemplates from "../../assets/PolicyTemplates.json";
 import {
   PolicyTemplate,
   PolicyTemplatesProps,
-} from "../../../domain/interfaces/IPolicy";
+} from "../../../domain/interfaces/i.policy";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 import { SearchBox } from "../../components/Search";
-import { PolicyTemplateCategory } from "../../../domain/enums/Policy.enum";
+import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import TagChip from "../../components/Tags/TagChip";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";

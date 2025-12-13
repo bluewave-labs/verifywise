@@ -10,7 +10,7 @@ import {
   postAutoDrivers,
   deleteAutoDrivers,
 } from "../../../application/repository/entity.repository";
-import { logEngine } from "../../../application/tools/log.engine";
+import { logEngine } from "../../../application/utils/log.engine";
 import StandardModal from "../../components/Modals/StandardModal";
 import CustomizableToast from "../../components/Toast";
 import CustomizableButton from "../../components/Button/CustomizableButton";

@@ -57,7 +57,7 @@ import PageTour from "../../components/PageTour";
 import DashboardSteps from "./DashboardSteps";
 import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown";
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
-import { MetricCardProps } from "../../../domain/interfaces/iDashboard";
+import { MetricCardProps } from "../../../domain/interfaces/i.dashboard";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
 
@@ -1806,7 +1806,7 @@ const IntegratedDashboard: React.FC = () => {
                 label: widget.title,
               }))}
               selectedValues={Array.from(visibleCards)}
-              onChange={(values) => setVisibleCards(new Set(values))}
+              onChange={(values: (string | number)[]) => setVisibleCards(new Set(values.map(String)))}
               placeholder="Show/hide cards"
               minWidth={120}
               height={32}

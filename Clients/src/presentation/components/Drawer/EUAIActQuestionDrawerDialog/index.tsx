@@ -53,7 +53,7 @@ import {
   EUAIACT_STATUS_OPTIONS,
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
 // Hooks & Utilities
@@ -63,7 +63,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { updateEUAIActAnswerById } from "../../../../application/repository/question.repository";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { getFileById } from "../../../../application/repository/file.repository";
-import { getAssessmentTopicById } from "../../../../application/repository/assesment.repository";
+import { getAssessmentTopicById } from "../../../../application/repository/assessment.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 
 // Type for risk objects

@@ -34,7 +34,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import { User } from "../../../../domain/types/User";
 import { STATUSES } from "../../../../domain/types/Status";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -43,7 +43,7 @@ import {
   getEntityById,
 } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
+import { GetAnnexControlISO27001ById } from "../../../../application/repository/annexStructIso.repository";
 import Alert from "../../Alert";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));

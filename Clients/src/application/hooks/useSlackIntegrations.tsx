@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { getSlackIntegrations } from "../repository/slack.integration.repository";
+import { getSlackIntegrations } from "../repository/slackIntegration.repository";
 
 export enum SlackNotificationRoutingType {
   MEMBERSHIP_AND_ROLES = "Membership and roles",

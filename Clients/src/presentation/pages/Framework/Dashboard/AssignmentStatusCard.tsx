@@ -1,14 +1,14 @@
 import { Box, Typography, Stack } from "@mui/material";
 import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
-import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clauseStructIso.repository";
+import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annexStructIso.repository";
 import { frameworkDashboardCardStyles } from "./styles";
 import {
   validateDataConsistency,
   createErrorLogData,
   type BaseFrameworkData
-} from "../../../../application/utils/frameworkDataUtils";
+} from "../../../../application/tools/frameworkDataUtils";
 
 /**
  * Assignment Status Card Component

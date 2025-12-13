@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import React from "react";
 import StandardModal from "../Modals/StandardModal";
 import Chip from "../Chip";
-import { getVendorRisksByVendorId } from "../../../application/repository/VendorRisk.repository";
+import { getVendorRisksByVendorId } from "../../../application/repository/vendorRisk.repository";
 import AddNewRisk from "../Modals/NewRisk";
 import { useVendors } from "../../../application/hooks/useVendors";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -33,7 +33,7 @@ import { ChevronsUpDown } from "lucide-react";
 import {
   IVendorRisk,
   IVendorRisksDialogProps,
-} from "../../../domain/interfaces/i.Vendor";
+} from "../../../domain/interfaces/i.vendor";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />

@@ -16,9 +16,9 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import validator from "validator";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";

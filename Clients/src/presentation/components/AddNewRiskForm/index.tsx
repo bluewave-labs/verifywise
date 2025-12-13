@@ -29,11 +29,11 @@ import {
   riskLevelItems,
   likelihoodItems,
   riskSeverityItems,
-} from "./ProjectRiskValue";
-import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
-import { ApiResponse } from "../../../domain/interfaces/iResponse";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
-import selectValidation from "../../../application/validations/selectValidation";
+} from "./projectRiskValue";
+import { AddNewRiskFormProps } from "../../../domain/interfaces/i.riskForm";
+import { ApiResponse } from "../../../domain/interfaces/i.response";
+import { checkStringValidation } from "../../../application/validations/stringValidation.rule";
+import selectValidation from "../../../application/validations/selectValidation.rule";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";

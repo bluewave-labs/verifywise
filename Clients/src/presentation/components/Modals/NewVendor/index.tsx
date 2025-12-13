@@ -35,12 +35,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 import StandardModal from "../StandardModal";
 import EnhancedTooltip from "../../EnhancedTooltip";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -50,7 +50,7 @@ import {
 } from "../../../../application/hooks/useVendors";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { User } from "../../../../domain/types/User";
-import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.Vendor";
+import { AddNewVendorProps, VendorFormErrors } from "../../../../domain/interfaces/i.vendor";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 import { 
   DataSensitivity,

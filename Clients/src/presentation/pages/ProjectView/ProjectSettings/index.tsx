@@ -21,15 +21,15 @@ import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import Select from "../../../components/Inputs/Select";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import selectValidation from "../../../../application/validations/selectValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
+import selectValidation from "../../../../application/validations/selectValidation.rule";
 import Alert from "../../../components/Alert";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,
 } from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";

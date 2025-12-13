@@ -1,4 +1,4 @@
-import { checkStringValidation } from "./stringValidation";
+import { checkStringValidation } from "./stringValidation.rule";
 
 // Constants
 const PASSWORD_REGEX = /[!@#$%^&*(),.?":{}|<>]/;

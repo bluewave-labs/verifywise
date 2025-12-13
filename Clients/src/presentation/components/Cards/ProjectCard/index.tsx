@@ -20,8 +20,8 @@ import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 import {
   AssessmentProgress,
   ComplianceProgress,
-} from "../../../../application/interfaces/iprogress";
-import { fetchData } from "../../../../application/hooks/fetchDataHook";
+} from "../../../../application/interfaces/progress";
+import { fetchData } from "../../../../application/hooks/useFetchData";
 import useUsers from "../../../../application/hooks/useUsers";
 
 // Loading skeleton component

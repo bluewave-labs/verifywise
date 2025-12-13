@@ -11,17 +11,17 @@ import dayjs, { Dayjs } from "dayjs";
 import { FC, useState, useContext, useEffect, lazy, Suspense, useCallback, useMemo } from "react";
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
-import selectValidation from "../../../application/validations/selectValidation";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
+import selectValidation from "../../../application/validations/selectValidation.rule";
+import { checkStringValidation } from "../../../application/validations/stringValidation.rule";
 import Select from "../Inputs/Select";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
-import { RiskSectionProps } from "../../../domain/interfaces/iRiskForm";
-import { FormErrors, FormValues } from "../../../domain/interfaces/iForm";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { RiskSectionProps } from "../../../domain/interfaces/i.riskForm";
+import { FormErrors, FormValues } from "../../../domain/interfaces/i.form";
 
 // Types
 interface Vendor {

@@ -1,4 +1,4 @@
-import { extractUserToken } from "./extractToken";
+import { extractUserToken } from "../tools/extractToken";
 import { store } from "../redux/store";
 
 interface LogProps {

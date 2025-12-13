@@ -12,7 +12,7 @@ import {
 } from "../../../../domain/models/Common/TrainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../../domain/enums/status.enum";
 import StandardModal from "../StandardModal";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { logEngine } from "../../../../application/utils/log.engine";
 
 // Constants for validation (DRY + Maintainability)
 const VALIDATION_RULES = {

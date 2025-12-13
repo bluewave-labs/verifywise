@@ -19,7 +19,7 @@ import {
 } from "../../styles";
 import TablePaginationActions from "../../../TablePagination";
 import { IProjectRiskTableBodyProps } from "../../../../../domain/interfaces/i.table";
-import { RiskModel } from "../../../../../domain/models/Common/Risks/risk.model";
+import { RiskModel } from "../../../../../domain/models/Common/Risks/risks.model";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />

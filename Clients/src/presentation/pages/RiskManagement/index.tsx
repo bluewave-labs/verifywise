@@ -27,7 +27,7 @@ import TipBox from "../../components/TipBox";
 import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
-import { RiskModel } from "../../../domain/models/Common/Risks/risk.model";
+import { RiskModel } from "../../../domain/models/Common/Risks/risks.model";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { GroupBy } from "../../components/Table/GroupBy";

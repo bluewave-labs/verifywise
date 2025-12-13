@@ -1,10 +1,12 @@
-import React, { useMemo, memo, useCallback } from 'react';
+import React, { useMemo, memo, useCallback, useEffect } from 'react';
 import { Stack, IconButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Puzzle, Zap } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import { Box } from '@mui/material';
+import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
+import ApprovalButton from './ApprovalButton';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -79,11 +81,16 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   const isMac = useMemo(() => {
     if (typeof navigator !== 'undefined') {
       return navigator.platform?.toLowerCase().includes('mac') ||
-             navigator.userAgent?.toLowerCase().includes('mac');
+        navigator.userAgent?.toLowerCase().includes('mac');
     }
     return false;
   }, []);
 
+  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+  const [isRequestor, setIsRequestor] = React.useState(false);
+
+
+  // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
     () => location.pathname === '/' || location.pathname === '',
     [location.pathname]
@@ -108,6 +115,17 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
+  const [approvalRequestsCount, setApprovalRequestsCount] = React.useState(0);
+  const [requestorRequestsCount, setRequestorRequestsCount] = React.useState(0);
+
+  useEffect(() => {
+    // Fetch counts from API or state management
+    // For demonstration, we'll set static values
+    setApprovalRequestsCount(5);
+    setRequestorRequestsCount(3);
+  }, []);
+
+
   return (
     <Stack
       direction="row"
@@ -126,6 +144,17 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Search size={16} />
         </IconButton>
       </VWTooltip>
+
+      <ApprovalButton
+        label="Approval requests"
+        count={approvalRequestsCount}
+        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(false); }}
+      />
+      <ApprovalButton
+        label="Requestor requests"
+        count={requestorRequestsCount}
+        onClick={() => { setIsRequestModalOpen(true); setIsRequestor(true); }}
+      />
 
       {/* Integrations */}
       <VWTooltip
@@ -152,6 +181,12 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           <Zap size={16} />
         </IconButton>
       </VWTooltip>
+
+
+      <RequestorApprovalModal
+        isOpen={isRequestModalOpen}
+        isRequestor={isRequestor}
+        onClose={() => setIsRequestModalOpen(false)} />
     </Stack>
   );
 });

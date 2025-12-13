@@ -54,6 +54,7 @@ import {
   Users,
   Headphones,
   Trash2,
+  Workflow,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -148,6 +149,11 @@ const getMenuGroups = (): IMenuGroup[] => [
         name: "Incident Management",
         icon: <AlertCircle size={16} strokeWidth={1.5} />,
         path: "/ai-incident-managements",
+      },
+      {
+        name: "Approval Workflows",
+        icon: <Workflow size={16} strokeWidth={1.5} />,
+        path: "/approval-workflows",
       },
     ],
   },

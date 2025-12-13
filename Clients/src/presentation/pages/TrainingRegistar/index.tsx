@@ -32,7 +32,7 @@ import TrainingSteps from "./TrainingSteps";
 import {
   TrainingRegistarModel,
   TrainingRegistarDTO,
-} from "../../../domain/models/Common/TrainingRegistar/trainingRegistar.model";
+} from '../../../domain/models/Common/TrainingRegistar/trainingRegistar.model';
 import { GroupBy } from "../../components/Table/GroupBy";
 import {
   useTableGrouping,

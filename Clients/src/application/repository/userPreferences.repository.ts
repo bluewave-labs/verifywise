@@ -1,4 +1,4 @@
-import { UserPreferencesModel } from "../../domain/models/Common/UserPreferences/userPreferences.model";
+import { UserPreferencesModel } from '../../domain/models/Common/UserPreferences/userPreferences.model';
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 export async function getUserPreferencesByUserId(userId: number): Promise<any> {

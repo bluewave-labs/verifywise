@@ -6,7 +6,7 @@ import {
   ArrowDown as DescendingIcon,
 } from "lucide-react";
 import EmptyState from "../../EmptyState";
-import { FileModel } from "../../../../domain/models/Common/File/file.model";
+import { FileModel } from '../../../../domain/models/Common/File/file.model';
 import { IFileTableProps } from "../../../../domain/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;

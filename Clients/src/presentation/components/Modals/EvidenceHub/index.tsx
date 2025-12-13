@@ -10,7 +10,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import SelectComponent from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { EvidenceHubModel } from "../../../../domain/models/Common/EvidenceHub/evidenceHub.model";
+import { EvidenceHubModel } from '../../../../domain/models/Common/EvidenceHub/evidenceHub.model';
 import { EvidenceType } from "../../../../domain/enums/evidenceHub.enum";
 import Field from "../../Inputs/Field";
 import { useTheme } from "@mui/material";

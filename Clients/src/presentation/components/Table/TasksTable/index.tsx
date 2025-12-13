@@ -26,7 +26,7 @@ import DaysChip from "../../Chip/DaysChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
-import { TaskModel } from "../../../../domain/models/Common/Task/task.model";
+import { TaskModel } from '../../../../domain/models/Common/Task/task.model';
 import { ITaskAssignee } from "../../../../domain/interfaces/i.task";
 
 const SelectorVertical = (props: any) => (

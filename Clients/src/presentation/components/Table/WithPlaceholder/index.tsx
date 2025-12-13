@@ -21,7 +21,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { VendorModel } from "../../../../domain/models/Common/Vendor/vendor.model";
+import { VendorModel } from '../../../../domain/models/Common/Vendor/vendor.model';
 import { User } from "../../../../domain/types/User";
 import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 import { ReviewStatus } from "../../../../domain/enums/status.enum";

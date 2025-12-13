@@ -1,7 +1,7 @@
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
 import { IncidentManagementStatus } from "../../../domain/enums/aiIncidentManagement.enum";
 import { incidentManagementCard, incidentManagementCardKey, incidentManagementCardValue, incidentManagementTileCard } from "./style";
-import { AIIncidentManagementModel } from "../../../domain/models/Common/IncidentManagement/incidentManagement.model";
+import { AIIncidentManagementModel } from '../../../domain/models/Common/IncidentManagement/incidentManagement.model';
 
 interface IncidentStatusCardProps {
   incidents: AIIncidentManagementModel[];

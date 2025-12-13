@@ -40,7 +40,7 @@ import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMut
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 import PageHeader from "../../components/Layout/PageHeader";
-import { VendorModel } from "../../../domain/models/Common/Vendor/vendor.model";
+import { VendorModel } from '../../../domain/models/Common/Vendor/vendor.model';
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
 import TipBox from "../../components/TipBox";

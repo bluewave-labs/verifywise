@@ -14,7 +14,7 @@ import { transformFilesData } from "../../../application/utils/fileTransform.uti
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
-import { FileModel } from "../../../domain/models/Common/File/file.model";
+import { FileModel } from '../../../domain/models/Common/File/file.model';
 import PageHeader from "../../components/Layout/PageHeader";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";

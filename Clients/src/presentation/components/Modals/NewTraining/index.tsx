@@ -9,7 +9,7 @@ import {
   TrainingRegistarDTO,
   NewTrainingProps,
   NewTrainingFormErrors,
-} from "../../../../domain/models/Common/TrainingRegistar/trainingRegistar.model";
+} from '../../../../domain/models/Common/TrainingRegistar/trainingRegistar.model';
 import { TrainingStatus } from "../../../../domain/enums/status.enum";
 import StandardModal from "../StandardModal";
 import { logEngine } from "../../../../application/utils/log.engine";

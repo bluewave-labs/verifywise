@@ -426,9 +426,13 @@ const IconButton: React.FC<IconButtonProps> = ({
           isOpen={isOpenRemoveModal}
           title={warningTitle}
           body={
-            <Typography fontSize={13} color="#344054">
-              {warningMessage}
-            </Typography>
+            typeof warningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {warningMessage}
+              </Typography>
+            ) : (
+              warningMessage
+            )
           }
           cancelText="Cancel"
           proceedText={
@@ -454,9 +458,13 @@ const IconButton: React.FC<IconButtonProps> = ({
           isOpen={isOpenHardDeleteModal}
           title={hardDeleteWarningTitle}
           body={
-            <Typography fontSize={13} color="#344054">
-              {hardDeleteWarningMessage}
-            </Typography>
+            typeof hardDeleteWarningMessage === "string" ? (
+              <Typography fontSize={13} color="#344054">
+                {hardDeleteWarningMessage}
+              </Typography>
+            ) : (
+              hardDeleteWarningMessage
+            )
           }
           cancelText="Cancel"
           proceedText="Delete permanently"

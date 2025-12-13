@@ -1,4 +1,4 @@
-import { TableBody, TableCell, TableRow, Dialog, useTheme } from "@mui/material";
+import { TableBody, TableCell, TableRow, Dialog, useTheme, Typography, Stack } from "@mui/material";
 import { VWLink } from "../../Link";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
@@ -284,7 +284,16 @@ const VWProjectRisksTableBody = ({
                       onDelete={() => handleDeleteRisk(row.id!)}
                       onEdit={() => handleEditRisk(row)}
                       warningTitle="Delete this project risk?"
-                      warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
+                      warningMessage={
+                        <Stack gap={2}>
+                          <Typography fontSize={13} color="#344054">
+                            Are you sure you want to delete this project risk?
+                          </Typography>
+                          <Typography fontSize={13} color="#344054">
+                            This action is non-recoverable.
+                          </Typography>
+                        </Stack>
+                      }
                     />
                   )}
                 </TableCell>

@@ -1,7 +1,7 @@
 import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
 import { Project } from "../../domain/types/Project";
-import { componentVisible } from "../../application/interfaces/componentVisible";
+import { componentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";
 import { UIValues, AuthValues, InputValues, DashboardState } from "../interfaces/appStates";
 

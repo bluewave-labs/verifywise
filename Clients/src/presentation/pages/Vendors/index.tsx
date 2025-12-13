@@ -213,7 +213,7 @@ const Vendors = () => {
         case 'project_id':
           // Vendors can belong to multiple projects - check if selected project is in the array
           // Return the first project id as string for matching, or use a custom approach
-          return item.projects?.map(p => p.toString()).join(',');
+          return item.projects?.map((p: number | string) => p.toString()).join(',');
         case 'vendor_name':
           return item.vendor_name;
         case 'review_status':

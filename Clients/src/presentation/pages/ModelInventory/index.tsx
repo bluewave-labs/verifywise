@@ -451,7 +451,7 @@ const ModelInventory: React.FC = () => {
     const modelIds = new Set<string>();
     evidenceHubData.forEach((item) => {
       if (item.mapped_model_ids) {
-        item.mapped_model_ids.forEach((modelId) => {
+        item.mapped_model_ids.forEach((modelId: number | string) => {
           modelIds.add(modelId.toString());
         });
       }

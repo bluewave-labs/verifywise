@@ -355,7 +355,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
+                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name as string, sortConfig) ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <Box
@@ -372,7 +372,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name as string, sortConfig) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.projectTitle}
@@ -380,7 +380,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name as string, sortConfig) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.getFormattedUploadDate()}
@@ -388,7 +388,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name as string, sortConfig) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {row.uploaderName || row.uploader}
@@ -396,7 +396,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name as string, sortConfig) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <Box
@@ -424,7 +424,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     right: 0,
                     zIndex: 10,
                     minWidth: "50px",
-                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name as string, sortConfig) ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <IconButton

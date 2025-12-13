@@ -128,11 +128,14 @@ const NewTraining: FC<NewTrainingProps> = ({
             }));
           }
         } else {
-          setValues((prev) => ({ ...prev, [prop]: value }));
+          setValues((prev: TrainingFormState) => ({ ...prev, [prop]: value }));
         }
 
         // Clear error for this field
-        setErrors((prev) => ({ ...prev, [prop as FormField]: "" }));
+        setErrors((prev: NewTrainingFormErrors) => ({
+          ...prev,
+          [prop as FormField]: "",
+        }));
       },
     []
   );
@@ -143,8 +146,11 @@ const NewTraining: FC<NewTrainingProps> = ({
     (prop: keyof TrainingRegistarDTO) =>
       (event: SelectChangeEvent<string | number>) => {
         const value = event.target.value as TrainingStatus;
-        setValues((prev) => ({ ...prev, [prop]: value }));
-        setErrors((prev) => ({ ...prev, [prop as FormField]: "" }));
+        setValues((prev: TrainingFormState) => ({ ...prev, [prop]: value }));
+        setErrors((prev: NewTrainingFormErrors) => ({
+          ...prev,
+          [prop as FormField]: "",
+        }));
       },
     []
   );

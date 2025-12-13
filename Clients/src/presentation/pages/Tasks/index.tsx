@@ -14,7 +14,7 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
+import { ITask, TaskSummary, ITaskAssignee } from "../../../domain/interfaces/i.task";
 import {
   getAllTasks,
   createTask,
@@ -165,7 +165,10 @@ const Tasks: React.FC = () => {
     const assigneeIds = new Set<number>();
     tasks.forEach((task) => {
       if (task.assignees && task.assignees.length > 0) {
-        task.assignees.forEach((id) => assigneeIds.add(Number(id)));
+        task.assignees.forEach((id: number | string | ITaskAssignee) => {
+          const assigneeId = typeof id === 'object' ? id.user_id : id;
+          assigneeIds.add(Number(assigneeId));
+        });
       }
     });
     return Array.from(assigneeIds)
@@ -229,7 +232,10 @@ const Tasks: React.FC = () => {
           return item.priority;
         case 'assignee':
           // Return comma-separated assignee IDs for matching
-          return item.assignees?.map(id => id.toString()).join(',');
+          return item.assignees?.map((id: number | string | ITaskAssignee) => {
+            const assigneeId = typeof id === 'object' ? id.user_id : id;
+            return assigneeId.toString();
+          }).join(',');
         case 'due_date':
           return item.due_date;
         default:
@@ -440,8 +446,9 @@ const Tasks: React.FC = () => {
       case 'assignees':
         if (task.assignees && task.assignees.length > 0) {
           // Return array of assignee names - task will appear in multiple groups
-          return task.assignees.map((assigneeId) => {
-            const user = users.find((u) => u.id === Number(assigneeId));
+          return task.assignees.map((assigneeId: number | string | ITaskAssignee) => {
+            const assigneeIdValue = typeof assigneeId === 'object' ? assigneeId.user_id : assigneeId;
+            const user = users.find((u) => u.id === Number(assigneeIdValue));
             return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
           });
         }

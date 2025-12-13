@@ -13,32 +13,44 @@ import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
-import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
-import { componentVisible } from "./application/interfaces/componentVisible";
+import {
+  DashboardState,
+  UIValues,
+  AuthValues,
+  InputValues,
+} from "./application/interfaces/appStates";
+import { componentVisible } from "./application/interfaces/ComponentVisible";
 import { AlertProps } from "./domain/interfaces/i.alert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useLocation } from "react-router-dom";
 import { DeploymentManager } from "./application/tools/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
-import { OnboardingModal, useOnboarding } from "./presentation/components/Onboarding";
-import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
+import {
+  OnboardingModal,
+  useOnboarding,
+} from "./presentation/components/Onboarding";
+import {
+  SidebarWrapper,
+  UserGuideSidebarProvider,
+  useUserGuideSidebarContext,
+} from "./presentation/components/UserGuide";
 
 // Auth routes where the helper sidebar should not be shown
 const AUTH_ROUTES = [
-  '/login',
-  '/admin-reg',
-  '/user-reg',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/set-new-password',
-  '/reset-password-continue',
+  "/login",
+  "/admin-reg",
+  "/user-reg",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/set-new-password",
+  "/reset-password-continue",
 ];
 
 // Component for User Guide Sidebar that uses the context
@@ -47,7 +59,7 @@ const UserGuideSidebarContainer = () => {
   const userGuideSidebar = useUserGuideSidebarContext();
 
   // Don't show the helper sidebar on auth pages
-  const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
+  const isAuthPage = AUTH_ROUTES.some((route) => location.pathname === route);
   if (isAuthPage) {
     return null;
   }
@@ -63,9 +75,13 @@ const UserGuideSidebarContainer = () => {
 };
 
 // Component to conditionally apply theme based on route
-const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
+const ConditionalThemeWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const location = useLocation();
-  const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
+  const isAITrustCentreRoute = location.pathname.includes("/aiTrustCentre");
 
   // For aiTrustCentre routes, don't apply theme (like /public route)
   if (isAITrustCentreRoute) {
@@ -91,13 +107,17 @@ function App() {
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
-  const {userPreferences} = useUserPreferences();
+  const { userPreferences } = useUserPreferences();
   const commandPalette = useCommandPalette();
-  const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+  const {
+    completeOnboarding,
+    state,
+    isLoading: isOnboardingLoading,
+  } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
 
   // Onboarding should ONLY show on the dashboard (/) route
-  const isDashboardRoute = location.pathname === '/';
+  const isDashboardRoute = location.pathname === "/";
 
   // Update modal visibility based on onboarding state and current route
   useEffect(() => {
@@ -106,7 +126,13 @@ function App() {
     // 2. Onboarding state is loaded (not loading)
     // 3. Onboarding is not complete (first login)
     // 4. Currently on dashboard route (/)
-    if (token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute) {
+    if (
+      token &&
+      userId &&
+      !isOnboardingLoading &&
+      !state.isComplete &&
+      isDashboardRoute
+    ) {
       setShowModal(true);
     } else {
       setShowModal(false);
@@ -137,7 +163,10 @@ function App() {
 
   useEffect(() => {
     if (userPreferences) {
-      localStorage.setItem("verifywise_preferences", JSON.stringify(userPreferences));
+      localStorage.setItem(
+        "verifywise_preferences",
+        JSON.stringify(userPreferences)
+      );
     }
   }, [userPreferences]);
 
@@ -171,7 +200,7 @@ function App() {
   });
   const changeComponentVisibility = useCallback(
     (component: keyof componentVisible, value: boolean) => {
-      setComponentsVisible((prev) => ({
+      setComponentsVisible((prev: componentVisible) => ({
         ...prev,
         [component]: value,
       }));
@@ -283,9 +312,7 @@ function App() {
       </Provider>
 
       {/* React Query DevTools - Only in development */}
-      {import.meta.env.DEV && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </CookiesProvider>
   );
 }

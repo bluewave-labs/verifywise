@@ -27,6 +27,7 @@ import DaysChip from "../../Chip/DaysChip";
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/Task/task.model";
+import { ITaskAssignee } from "../../../../domain/interfaces/i.task";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -345,7 +346,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                     </Typography>
                     {task.categories && task.categories.length > 0 && (
                       <Stack direction="row" spacing={0.5} mt={1}>
-                        {task.categories.slice(0, 2).map((category) => (
+                        {task.categories.slice(0, 2).map((category: string) => (
                           <MuiChip
                             key={category}
                             label={category}
@@ -476,9 +477,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                 >
                   {task.assignees && task.assignees.length > 0 ? (
                     <Stack direction="row" spacing={0.5}>
-                      {task.assignees.slice(0, 3).map((assigneeId, idx) => {
+                      {task.assignees.slice(0, 3).map((assigneeId: ITaskAssignee | number | string, idx: number) => {
+                        const assigneeIdValue = typeof assigneeId === 'object' ? assigneeId.user_id : assigneeId;
                         const user = users.find(
-                          (u) => u.id === Number(assigneeId)
+                          (u) => u.id === Number(assigneeIdValue)
                         );
                         const initials = user
                           ? `${user.name.charAt(0)}${user.surname.charAt(

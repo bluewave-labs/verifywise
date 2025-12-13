@@ -392,9 +392,9 @@ const evidenceHubTable: React.FC<evidenceHubTableProps> = ({
                                             evidence.mapped_model_ids?.length
                                                 ? evidence.mapped_model_ids
                                                       .map(
-                                                          (id) =>
+                                                          (id: number | string) =>
                                                               modelMap.get(
-                                                                  id
+                                                                  typeof id === 'string' ? Number(id) : id
                                                               ) || `Model ${id}`
                                                       )
                                                       .join(", ")

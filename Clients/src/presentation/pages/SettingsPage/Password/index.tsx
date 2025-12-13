@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { checkStringValidation } from "../../../../application/validations/stringValidation.rule";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";

@@ -8,7 +8,7 @@
  * @package components/DeadlineWarningBox
  */
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   Box,
   Stack,
@@ -17,12 +17,9 @@ import {
   Slide,
   IconButton,
   Tooltip,
-  Badge,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
-  Bell,
-  BellOff,
   RefreshCw,
   X,
   AlertTriangle,
@@ -69,12 +66,6 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
     activeFilters,
   } = useDeadlineWarnings({
     refreshInterval,
-    onSuccess: (analytics) => {
-      console.log("Deadline analytics loaded:", analytics);
-    },
-    onError: (error) => {
-      console.error("Deadline warning error:", error);
-    },
   });
 
   // Generate deadline chips from analytics data
@@ -127,14 +118,17 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
 
   // Handle chip click
   const handleChipClick = (severity: "overdue" | "dueSoon", entityType: string) => {
-    toggleFilter(entityType, severity);
     onFilterClick?.(severity, entityType);
   };
 
   // Handle retry button click
   const handleRetry = () => {
-    retry();
     onRetry?.();
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    refresh?.();
   };
 
   // Check if a specific chip is selected
@@ -210,37 +204,22 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
             spacing={2}
           >
             <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Badge
-                badgeContent={totalOverdue + totalDueSoon}
-                color="error"
-                max={99}
+              <Box
                 sx={{
-                  "& .MuiBadge-badge": {
-                    fontSize: "0.6rem",
-                    height: 16,
-                    minWidth: 16,
-                  },
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  backgroundColor: totalOverdue > 0
+                    ? theme.palette.error.main
+                    : theme.palette.warning.main,
+                  color: "#ffffff",
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    backgroundColor: totalOverdue > 0
-                      ? theme.palette.error.light
-                      : theme.palette.warning.light,
-                    color: totalOverdue > 0
-                      ? theme.palette.error.dark
-                      : theme.palette.warning.dark,
-                  }}
-                >
-                  <AlertTriangle size={18} />
-                </Box>
-              </Badge>
+                <AlertTriangle size={18} />
+              </Box>
 
               <Typography
                 variant="h6"
@@ -271,7 +250,7 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
               <Tooltip title="Refresh">
                 <IconButton
                   size="small"
-                  onClick={refresh}
+                  onClick={handleRefresh}
                   sx={{
                     color: theme.palette.text.secondary,
                     "&:hover": {
@@ -357,25 +336,6 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
               </Stack>
             </Slide>
           </Stack>
-
-          {/* Summary text */}
-          <Box sx={{ mt: 2 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontSize: "0.8rem",
-              }}
-            >
-              {totalOverdue > 0 && totalDueSoon > 0
-                ? `${totalOverdue} item${totalOverdue !== 1 ? "s" : ""} overdue, ${totalDueSoon} due soon`
-                : totalOverdue > 0
-                ? `${totalOverdue} item${totalOverdue !== 1 ? "s" : ""} overdue`
-                : totalDueSoon > 0
-                ? `${totalDueSoon} item${totalDueSoon !== 1 ? "s" : ""} due soon`
-                : "No deadline warnings"}
-            </Typography>
-          </Box>
         </Box>
 
         {/* Active filters indicator */}

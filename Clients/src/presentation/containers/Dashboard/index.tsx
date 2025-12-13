@@ -17,6 +17,7 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import Alert from "../../components/Alert";
 import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";
+import DeadlineWarningBox from "../../components/DeadlineWarningBox";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -41,6 +42,18 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     useState<boolean>(false);
 
   const { dashboard, fetchDashboard } = useDashboard();
+
+  // Handle deadline filter click
+  const handleDeadlineFilterClick = (severity: "overdue" | "dueSoon", entityType: string) => {
+    console.log(`Deadline filter clicked: ${severity} ${entityType}`);
+
+    // Navigate to tasks page with filters applied
+    // You can enhance this to integrate with your existing filtering system
+    if (location.pathname !== '/tasks') {
+      // For now, just log - in real implementation, you'd navigate and apply filters
+      console.log(`Would navigate to tasks with filters: severity=${severity}, entityType=${entityType}`);
+    }
+  };
 
   // Check for demo data existence
   useEffect(() => {
@@ -281,6 +294,16 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       />
       <Stack sx={{ pr: 14 }}>
         <DemoAppBanner />
+        <Box sx={{ mb: 2 }}>
+          <DeadlineWarningBox
+            refreshInterval={30000} // 30 seconds for testing
+            onFilterClick={handleDeadlineFilterClick}
+            hideWhenEmpty={false} // Show even when empty for testing
+            onRetry={() => {
+              console.log("Manual retry triggered");
+            }}
+          />
+        </Box>
         {alertState && (
           <Alert
             variant={alertState.variant}

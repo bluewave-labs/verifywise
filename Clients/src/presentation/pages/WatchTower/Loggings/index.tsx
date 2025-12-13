@@ -140,14 +140,13 @@ const WatchTowerLogs = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
           <SearchBox
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
             placeholder="Search logs..."
-            sx={{ width: 200 }}
           />
           <Select
             id="state-filter"
             value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
+            onChange={(e) => setStateFilter(String(e.target.value))}
             items={stateOptions}
             sx={{
               minWidth: 140,

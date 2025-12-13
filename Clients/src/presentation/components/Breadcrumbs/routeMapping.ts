@@ -289,12 +289,6 @@ export const getRouteMapping = (path: string): string => {
  */
 export const getRouteIcon = (path: string): React.ReactNode | null => {
   const iconFunction = routeIconMapping[path];
-
-  // Debug logging to help troubleshoot icon matching
-  if (process.env.NODE_ENV === 'development') {
-    console.log('getRouteIcon - path:', path, 'has icon:', !!iconFunction);
-  }
-
   return iconFunction ? iconFunction() : null;
 };
 

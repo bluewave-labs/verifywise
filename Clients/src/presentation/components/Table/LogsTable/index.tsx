@@ -468,7 +468,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
         alignItems="center"
         justifyContent="center"
         sx={{
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           padding: theme.spacing(15, 5),
           minHeight: 200,
@@ -485,7 +485,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
         alignItems="center"
         justifyContent="center"
         sx={{
-          border: "1px solid #EEEEEE",
+          border: "1px solid #d0d5dd",
           borderRadius: "4px",
           padding: theme.spacing(15, 5),
           paddingBottom: theme.spacing(20),
@@ -504,7 +504,13 @@ const LogsTable: React.FC<LogsTableProps> = ({
   return (
     <Stack spacing={0}>
       <TableContainer sx={{ overflowX: "auto" }}>
-        <Table sx={singleTheme.tableStyles.primary.frame}>
+        <Table sx={{
+          ...singleTheme.tableStyles.primary.frame,
+          ...(paginated && {
+            borderRadius: "4px 4px 0 0",
+            borderBottom: "none",
+          }),
+        }}>
           {tableHeader}
           {tableBody}
         </Table>

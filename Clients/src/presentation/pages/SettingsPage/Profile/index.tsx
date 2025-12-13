@@ -869,7 +869,7 @@ const ProfileForm: React.FC = () => {
                 Loading...
               </>
             ) : (
-              "Update"
+              "Change"
             )}
             <input
               type="file"

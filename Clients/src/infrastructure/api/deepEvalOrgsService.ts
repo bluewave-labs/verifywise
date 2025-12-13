@@ -19,8 +19,17 @@ export interface DeepEvalOrg {
 
 class DeepEvalOrgsService {
   async getAllOrgs(): Promise<{ orgs: DeepEvalOrg[] }> {
-    const res = await CustomAxios.get("/deepeval/orgs");
-    return res.data as { orgs: DeepEvalOrg[] };
+    try {
+      const res = await CustomAxios.get("/deepeval/orgs");
+      return res.data as { orgs: DeepEvalOrg[] };
+    } catch (error: unknown) {
+      // Handle 404 (endpoint not available) gracefully - return empty array
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 404) {
+        return { orgs: [] };
+      }
+      throw error;
+    }
   }
 
   async createOrg(name: string, memberIds?: number[]): Promise<{ org: DeepEvalOrg }> {

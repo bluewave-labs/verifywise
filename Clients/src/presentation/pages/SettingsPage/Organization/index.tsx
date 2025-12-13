@@ -582,7 +582,7 @@ const Organization = () => {
                     Loading...
                   </>
                 ) : (
-                  "Update"
+                  "Change"
                 )}
                 <input
                   type="file"

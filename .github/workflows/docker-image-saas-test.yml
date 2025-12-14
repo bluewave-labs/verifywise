@@ -83,6 +83,11 @@ jobs:
       #     tags: |
       #       ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:test
 
+      - name: Clean up after Servers build
+        run: |
+          docker system prune -f
+          docker builder prune -f
+
       - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:

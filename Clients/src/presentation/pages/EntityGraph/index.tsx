@@ -1666,27 +1666,29 @@ const EntityGraphInner: React.FC = () => {
   // Update nodes and edges when data or filters change
   // Phase 7: Uses debouncedSearchQuery for performance
   useEffect(() => {
-    if (entityData) {
-      const { nodes: newNodes, edges: newEdges, entityLookup: newLookup } = generateNodesAndEdges(
-        entityData,
-        visibleEntities,
-        showProblemsOnly,
-        debouncedSearchQuery, // Phase 7: Use debounced value
-        visibleRelationships,
-        activeQuery,
-        gapResults,
-        showGapsOnly
-      );
-      setNodes(newNodes);
-      setEdges(newEdges);
-      setEntityLookup(newLookup);
-
-      // Fit view after updating nodes with smooth animation
-      const timeoutId = setTimeout(() => fitView({ padding: 0.2, duration: 500 }), 100);
-
-      // Cleanup timeout on unmount or re-render
-      return () => clearTimeout(timeoutId);
+    if (!entityData) {
+      return;
     }
+
+    const { nodes: newNodes, edges: newEdges, entityLookup: newLookup } = generateNodesAndEdges(
+      entityData,
+      visibleEntities,
+      showProblemsOnly,
+      debouncedSearchQuery, // Phase 7: Use debounced value
+      visibleRelationships,
+      activeQuery,
+      gapResults,
+      showGapsOnly
+    );
+    setNodes(newNodes);
+    setEdges(newEdges);
+    setEntityLookup(newLookup);
+
+    // Fit view after updating nodes with smooth animation
+    const timeoutId = setTimeout(() => fitView({ padding: 0.2, duration: 500 }), 100);
+
+    // Cleanup timeout on unmount or re-render
+    return () => clearTimeout(timeoutId);
   }, [entityData, visibleEntities, showProblemsOnly, debouncedSearchQuery, visibleRelationships, activeQuery, gapResults, showGapsOnly, setNodes, setEdges, fitView]);
 
   const handleVisibilityChange = useCallback(

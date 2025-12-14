@@ -6,6 +6,16 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Create ENUM type in public schema (shared across tenants)
+      await queryInterface.sequelize.query(
+        `DO $$ BEGIN
+          CREATE TYPE public.enum_file_manager_source AS ENUM ('file_manager', 'policy_editor');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;`,
+        { transaction }
+      );
+
       const queries = [
         // Create file_manager table for organization-wide file storage
         (tenantHash) => `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_manager (
@@ -19,7 +29,7 @@ module.exports = {
           upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
           org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
           is_demo BOOLEAN NOT NULL DEFAULT FALSE,
-          source VARCHAR(50) DEFAULT 'file_manager'
+          source public.enum_file_manager_source DEFAULT 'file_manager'
         );`,
 
         // Create file_access_logs table for audit trail
@@ -81,6 +91,12 @@ module.exports = {
           await queryInterface.sequelize.query(query, { transaction });
         }
       }
+
+      // Drop ENUM type
+      await queryInterface.sequelize.query(
+        `DROP TYPE IF EXISTS public.enum_file_manager_source;`,
+        { transaction }
+      );
 
       await transaction.commit();
     } catch (error) {

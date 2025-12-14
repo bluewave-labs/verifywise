@@ -1185,7 +1185,7 @@ export const createNewTenant = async (
       model_id INTEGER NULL,
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
       is_demo BOOLEAN NOT NULL DEFAULT FALSE,
-      source VARCHAR(50) DEFAULT 'file_manager'
+      source public.enum_file_manager_source DEFAULT 'file_manager'
     );`,
       { transaction }
     );

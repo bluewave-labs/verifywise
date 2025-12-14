@@ -7,36 +7,41 @@ import TableToolbar from "./TableToolbar";
  */
 export const TableElement = (props: any) => {
   const { attributes, children, editor } = props;
-  const [isFocused, setIsFocused] = useState(false);
-  const tableRef = useRef<HTMLDivElement>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (tableRef.current && !tableRef.current.contains(event.target as Node)) {
-        setIsFocused(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowToolbar(false);
       }
     };
 
-    if (isFocused) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    const handleClickInside = (event: MouseEvent) => {
+      if (wrapperRef.current && wrapperRef.current.contains(event.target as Node)) {
+        setShowToolbar(true);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickInside);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickInside);
     };
-  }, [isFocused]);
+  }, []);
 
   return (
     <div
-      {...attributes}
-      ref={tableRef}
+      ref={wrapperRef}
       style={{
         position: "relative",
         margin: "12px 0",
       }}
-      onClick={() => setIsFocused(true)}
     >
       <table
+        {...attributes}
         style={{
           borderCollapse: "collapse",
           width: "100%",
@@ -45,7 +50,7 @@ export const TableElement = (props: any) => {
       >
         <tbody>{children}</tbody>
       </table>
-      {isFocused && (
+      {showToolbar && (
         <div
           contentEditable={false}
           style={{
@@ -54,6 +59,7 @@ export const TableElement = (props: any) => {
             right: "0",
             zIndex: 10,
           }}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <TableToolbar editor={editor} />
         </div>

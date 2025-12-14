@@ -4,7 +4,7 @@ import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
-import { Range, Editor, BaseRange } from "slate";
+import { Range, Editor, BaseRange, Transforms, Path } from "slate";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 import { uploadFileToManager } from "../../../application/repository/file.repository";
 
@@ -496,6 +496,23 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       icon: <Table size={16} />,
       action: () => {
         insertTable(editor, { colCount: 4, rowCount: 3, header: true }, { select: true });
+        // Insert an empty paragraph after the table so users can continue typing below it
+        const { selection } = editor;
+        if (selection) {
+          // Find the table node and insert paragraph after it
+          const tableEntry = Editor.above(editor, {
+            match: (n: any) => n.type === 'table',
+          });
+          if (tableEntry) {
+            const [, tablePath] = tableEntry;
+            const afterTablePath = Path.next(tablePath);
+            Transforms.insertNodes(
+              editor,
+              { type: 'p', children: [{ text: '' }] } as any,
+              { at: afterTablePath }
+            );
+          }
+        }
       },
     },
   ];
@@ -708,21 +725,77 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     return html;
   };
 
-  // Custom HTML serializer that handles images without hooks
+  // Helper to serialize table node to HTML (avoids hooks issue)
+  const serializeTableToHtml = (node: any): string => {
+    let html = '<table style="border-collapse: collapse; width: 100%; margin: 12px 0;">';
+
+    const serializeChildren = (children: any[]): string => {
+      return children.map((child: any) => {
+        if (child.text !== undefined) {
+          let text = child.text;
+          if (child.bold) text = `<strong>${text}</strong>`;
+          if (child.italic) text = `<em>${text}</em>`;
+          if (child.underline) text = `<u>${text}</u>`;
+          return text;
+        }
+        return '';
+      }).join('');
+    };
+
+    if (node.children) {
+      node.children.forEach((row: any) => {
+        if (row.type === 'tr') {
+          html += '<tr>';
+          if (row.children) {
+            row.children.forEach((cell: any) => {
+              const isHeader = cell.type === 'th';
+              const tag = isHeader ? 'th' : 'td';
+              const bgStyle = isHeader ? 'background-color: #f9fafb; font-weight: 600;' : '';
+              html += `<${tag} style="border: 1px solid #d0d5dd; padding: 8px 12px; text-align: left; ${bgStyle}">`;
+              if (cell.children) {
+                cell.children.forEach((content: any) => {
+                  if (content.children) {
+                    html += serializeChildren(content.children);
+                  } else if (content.text !== undefined) {
+                    html += content.text;
+                  }
+                });
+              }
+              html += `</${tag}>`;
+            });
+          }
+          html += '</tr>';
+        }
+      });
+    }
+
+    html += '</table>';
+    return html;
+  };
+
+  // Custom HTML serializer that handles images and tables without hooks
   const serializeToHtml = async (): Promise<string> => {
-    // Get HTML from serializeHtml but replace image placeholders
-    // First, temporarily remove image nodes and track their positions
+    // Get HTML from serializeHtml but replace image/table placeholders
+    // First, temporarily remove special nodes and track their positions
     const editorValue = JSON.parse(JSON.stringify(editor.children));
 
-    // Process nodes recursively to replace images with placeholder markers
+    // Process nodes recursively to replace images and tables with placeholder markers
     const imageMap = new Map<string, any>();
+    const tableMap = new Map<string, any>();
     let imageIndex = 0;
+    let tableIndex = 0;
 
     const processNode = (node: any): any => {
       if (node.type === "image") {
         const placeholder = `__IMAGE_PLACEHOLDER_${imageIndex}__`;
         imageMap.set(placeholder, node);
         imageIndex++;
+        return { type: "p", children: [{ text: placeholder }] };
+      }
+      if (node.type === "table") {
+        const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+        tableMap.set(placeholder, node);
+        tableIndex++;
         return { type: "p", children: [{ text: placeholder }] };
       }
       if (node.children) {
@@ -742,9 +815,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     // Restore original value
     editor.children = originalValue;
 
-    // Replace placeholders with actual image HTML
+    // Replace placeholders with actual HTML
     imageMap.forEach((imageNode, placeholder) => {
       html = html.replace(placeholder, serializeImageToHtml(imageNode));
+    });
+    tableMap.forEach((tableNode, placeholder) => {
+      html = html.replace(placeholder, serializeTableToHtml(tableNode));
     });
 
     return html;

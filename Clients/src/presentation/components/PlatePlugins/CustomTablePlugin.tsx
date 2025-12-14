@@ -1,14 +1,13 @@
+import { useState } from "react";
 import { TablePlugin, TableRowPlugin, TableCellPlugin, TableCellHeaderPlugin } from "@platejs/table/react";
 import TableToolbar from "./TableToolbar";
-import { useEditorRef, useSelected } from "platejs/react";
 
 /**
  * Custom Table Element component with floating toolbar
  */
 export const TableElement = (props: any) => {
-  const { attributes, children } = props;
-  const editor = useEditorRef();
-  const selected = useSelected();
+  const { attributes, children, editor } = props;
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div
@@ -16,6 +15,13 @@ export const TableElement = (props: any) => {
       style={{
         position: "relative",
         margin: "12px 0",
+      }}
+      onFocus={() => setIsFocused(true)}
+      onBlur={(e) => {
+        // Only blur if focus is leaving the table entirely
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsFocused(false);
+        }
       }}
     >
       <table
@@ -27,7 +33,7 @@ export const TableElement = (props: any) => {
       >
         <tbody>{children}</tbody>
       </table>
-      {selected && (
+      {isFocused && (
         <div
           contentEditable={false}
           style={{

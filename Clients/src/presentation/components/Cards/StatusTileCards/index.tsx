@@ -34,8 +34,12 @@ const StatusTileCards: React.FC<StatusTileCardsProps> = ({
     if (tooltipFormat) {
       return tooltipFormat(item);
     }
-    const plural = item.count !== 1 ? "s" : "";
-    return `${item.count} ${item.label.toLowerCase()} ${entityName}${plural}`;
+    const pluralize = (name: string, count: number): string => {
+      if (count === 1) return name;
+      if (name.endsWith("y")) return name.slice(0, -1) + "ies";
+      return name + "s";
+    };
+    return `${item.count} ${item.label.toLowerCase()} ${pluralize(entityName, item.count)}`;
   };
 
   return (

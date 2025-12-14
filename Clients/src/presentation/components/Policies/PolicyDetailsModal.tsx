@@ -334,6 +334,20 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           }
         }
       };
+
+      // Wrap transforms to catch root path errors
+      const originalInsertNodes = Transforms.insertNodes;
+      Transforms.insertNodes = (editor: any, nodes: any, options?: any) => {
+        try {
+          return originalInsertNodes(editor, nodes, options);
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("insertNodes failed (root path error)");
+            return;
+          }
+          throw e;
+        }
+      };
     }
   }, [editor]);
 

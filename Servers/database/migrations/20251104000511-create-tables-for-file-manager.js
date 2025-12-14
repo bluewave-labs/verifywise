@@ -18,7 +18,8 @@ module.exports = {
           uploaded_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
           upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
           org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-          is_demo BOOLEAN NOT NULL DEFAULT FALSE
+          is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+          source VARCHAR(50) DEFAULT 'file_manager'
         );`,
 
         // Create file_access_logs table for audit trail

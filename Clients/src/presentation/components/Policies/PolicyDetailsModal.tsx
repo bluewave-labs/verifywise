@@ -806,14 +806,17 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
     const processedValue = editorValue.map(processNode);
 
-    // Temporarily set processed value
+    // Temporarily set processed value and clear selection to avoid path errors
     const originalValue = editor.children;
+    const originalSelection = editor.selection;
     editor.children = processedValue;
+    editor.selection = null;
 
     let html = await serializeHtml(editor);
 
-    // Restore original value
+    // Restore original value and selection
     editor.children = originalValue;
+    editor.selection = originalSelection;
 
     // Replace placeholders with actual HTML
     imageMap.forEach((imageNode, placeholder) => {

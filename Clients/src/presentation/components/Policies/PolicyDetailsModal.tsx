@@ -335,14 +335,28 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         }
       };
 
-      // Wrap transforms to catch root path errors
-      const originalInsertNodes = Transforms.insertNodes;
-      Transforms.insertNodes = (editor: any, nodes: any, options?: any) => {
+      // Wrap deleteBackward to catch root path errors from list plugin
+      const originalDeleteBackward = editor.deleteBackward;
+      editor.deleteBackward = (unit: any) => {
         try {
-          return originalInsertNodes(editor, nodes, options);
+          return originalDeleteBackward(unit);
         } catch (e: any) {
           if (e.message?.includes("Cannot get the parent path of the root path")) {
-            console.warn("insertNodes failed (root path error)");
+            console.warn("deleteBackward failed (root path error) - this is a known issue with list handling");
+            return;
+          }
+          throw e;
+        }
+      };
+
+      // Wrap deleteForward as well
+      const originalDeleteForward = editor.deleteForward;
+      editor.deleteForward = (unit: any) => {
+        try {
+          return originalDeleteForward(unit);
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("deleteForward failed (root path error)");
             return;
           }
           throw e;

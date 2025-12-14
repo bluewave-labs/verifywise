@@ -9,25 +9,17 @@
 </head>
 <body>
 
-<!-- Cover Page - vertically centered content -->
-<div style="text-align: center; padding-top: 200pt;">
-  <% if (branding.organizationLogo) { %>
-  <div style="margin-bottom: 24pt;">
-    <img src="<%= branding.organizationLogo %>" alt="<%= branding.organizationName %>" style="max-width: 200px; max-height: 80px;">
-  </div>
-  <% } else { %>
-  <div style="font-size: 24pt; font-weight: bold; margin-bottom: 12pt;"><%= branding.organizationName %></div>
-  <% } %>
-  <div style="font-size: 18pt; color: #667085; margin-bottom: 48pt;"><%= metadata.frameworkName %> Report</div>
+<!-- Cover Page -->
+<p class="cover-title"><%= branding.organizationName %></p>
+<p class="cover-subtitle"><%= metadata.frameworkName %> Report</p>
 
-  <div style="margin-top: 48pt;">
-    <% if (!metadata.isOrganizational) { %>
-    <p><strong>Project:</strong> <%= metadata.projectTitle %></p>
-    <p><strong>Owner:</strong> <%= metadata.projectOwner %></p>
-    <% } %>
-    <p><strong>Generated:</strong> <%= metadata.generatedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
-    <p><strong>Prepared by:</strong> <%= metadata.generatedBy %></p>
-  </div>
+<div class="cover-meta">
+  <% if (!metadata.isOrganizational) { %>
+  <p><strong>Project:</strong> <%= metadata.projectTitle %></p>
+  <p><strong>Owner:</strong> <%= metadata.projectOwner %></p>
+  <% } %>
+  <p><strong>Generated:</strong> <%= metadata.generatedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+  <p><strong>Prepared by:</strong> <%= metadata.generatedBy %></p>
 </div>
 
 <div class="page-break"></div>
@@ -43,92 +35,9 @@ const hasOrganization = sections.vendors || sections.models || sections.training
 let sectionNum = 1;
 %>
 
-<p><%= sectionNum++ %>. Executive summary</p>
 <% if (hasRiskAnalysis) { %><p><%= sectionNum++ %>. Risk analysis</p><% } %>
 <% if (hasComplianceGovernance) { %><p><%= sectionNum++ %>. Compliance & governance</p><% } %>
 <% if (hasOrganization) { %><p><%= sectionNum++ %>. Organization</p><% } %>
-
-<div class="page-break"></div>
-
-<!-- Executive Summary -->
-<h2>1. Executive summary</h2>
-
-<table class="summary-table">
-  <tr>
-    <% if (sections.projectRisks) { %>
-    <td>
-      <div class="summary-value"><%= sections.projectRisks.totalRisks %></div>
-      <div class="summary-label">Use Case Risks</div>
-    </td>
-    <% } %>
-    <% if (sections.vendorRisks) { %>
-    <td>
-      <div class="summary-value"><%= sections.vendorRisks.totalRisks %></div>
-      <div class="summary-label">Vendor Risks</div>
-    </td>
-    <% } %>
-    <% if (sections.modelRisks) { %>
-    <td>
-      <div class="summary-value"><%= sections.modelRisks.totalRisks %></div>
-      <div class="summary-label">Model Risks</div>
-    </td>
-    <% } %>
-    <% if (sections.vendors) { %>
-    <td>
-      <div class="summary-value"><%= sections.vendors.totalVendors %></div>
-      <div class="summary-label">Vendors</div>
-    </td>
-    <% } %>
-    <% if (sections.compliance) { %>
-    <td>
-      <div class="summary-value"><%= sections.compliance.overallProgress %>%</div>
-      <div class="summary-label">Compliance</div>
-    </td>
-    <% } %>
-    <% if (sections.models) { %>
-    <td>
-      <div class="summary-value"><%= sections.models.totalModels %></div>
-      <div class="summary-label">AI Models</div>
-    </td>
-    <% } %>
-    <% if (sections.incidentManagement) { %>
-    <td>
-      <div class="summary-value"><%= sections.incidentManagement.totalIncidents %></div>
-      <div class="summary-label">Incidents</div>
-    </td>
-    <% } %>
-  </tr>
-</table>
-
-<% if (charts.riskDistribution && charts.riskDistribution.length > 0) { %>
-<h3>Risk distribution</h3>
-<table class="data-table">
-  <thead>
-    <tr>
-      <th style="width: 30%;">Risk Level</th>
-      <th style="width: 20%;">Count</th>
-      <th style="width: 50%;">Distribution</th>
-    </tr>
-  </thead>
-  <tbody>
-    <%
-      const maxCount = Math.max(...charts.riskDistribution.map(d => d.count));
-      charts.riskDistribution.forEach((item) => {
-        const barWidth = maxCount > 0 ? Math.round((item.count / maxCount) * 100) : 0;
-    %>
-    <tr>
-      <td><span class="status-chip" style="background-color: <%= item.color %>20; color: <%= item.color %>; border: 1px solid <%= item.color %>40;"><%= item.level %></span></td>
-      <td style="text-align: center;"><%= item.count %></td>
-      <td>
-        <div style="background-color: #F2F4F7; border-radius: 4px; height: 16px; width: 100%;">
-          <div style="background-color: <%= item.color %>; border-radius: 4px; height: 16px; width: <%= barWidth %>%;"></div>
-        </div>
-      </td>
-    </tr>
-    <% }); %>
-  </tbody>
-</table>
-<% } %>
 
 <div class="page-break"></div>
 

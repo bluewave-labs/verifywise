@@ -12,10 +12,9 @@ import {
   Collapse,
   useTheme,
 } from "@mui/material";
-import { ChevronDown, ChevronRight, Minus } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   getAvailableSections,
-  EXECUTIVE_SUMMARY_SECTION,
   ReportSectionGroup,
 } from "../constants";
 
@@ -46,7 +45,7 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
 
   // Calculate all available section IDs for "Select All" functionality
   const allSectionIds = useMemo(() => {
-    const ids = [EXECUTIVE_SUMMARY_SECTION.id];
+    const ids: string[] = [];
     availableGroups.forEach((group) => {
       group.sections.forEach((section) => {
         ids.push(section.id);
@@ -149,22 +148,6 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
     },
   };
 
-  // Custom indeterminate icon matching MUI small checkbox icon (20px with 2px border = 16px inner)
-  const IndeterminateIcon = () => (
-    <Box
-      sx={{
-        width: 16,
-        height: 16,
-        borderRadius: "2px",
-        backgroundColor: "#13715B",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Minus size={8} color="white" strokeWidth={3} />
-    </Box>
-  );
 
   const rowStyles = {
     display: "flex",
@@ -208,8 +191,7 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
           onChange={handleSelectAll}
           sx={checkboxStyles}
           size="small"
-          indeterminateIcon={<IndeterminateIcon />}
-        />
+                  />
         <Typography
           sx={{
             fontSize: "13px",
@@ -218,25 +200,6 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
           }}
         >
           Select all
-        </Typography>
-      </Box>
-
-      {/* Executive Summary */}
-      <Box sx={rowStyles} onClick={() => handleSectionToggle(EXECUTIVE_SUMMARY_SECTION.id)}>
-        <Checkbox
-          checked={selection[EXECUTIVE_SUMMARY_SECTION.id] ?? true}
-          onChange={() => handleSectionToggle(EXECUTIVE_SUMMARY_SECTION.id)}
-          sx={checkboxStyles}
-          size="small"
-        />
-        <Typography
-          sx={{
-            fontSize: "13px",
-            fontWeight: 500,
-            color: theme.palette.text.primary,
-          }}
-        >
-          {EXECUTIVE_SUMMARY_SECTION.label}
         </Typography>
       </Box>
 
@@ -262,8 +225,7 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
                   onChange={() => handleGroupToggle(group)}
                   sx={checkboxStyles}
                   size="small"
-                  indeterminateIcon={<IndeterminateIcon />}
-                />
+                                  />
                 <Typography
                   sx={{
                     fontSize: "13px",

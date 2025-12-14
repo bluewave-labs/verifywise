@@ -127,6 +127,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
         projectFrameworkId: matchingFramework.project_framework_id,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.project, values.framework, isOrganizational]);
 
   // Auto-select first framework when project changes (for use case reports)
@@ -139,6 +140,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
         projectFrameworkId: firstFramework.project_framework_id,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.project, isOrganizational]);
 
   const handleOnTextFieldChange = useCallback(
@@ -299,20 +301,6 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
           }}
         >
           <ToggleButton
-            value="docx"
-            aria-label="Word document"
-            sx={{
-              textTransform: "none",
-              fontSize: "13px",
-              fontWeight: 500,
-              height: "34px",
-              gap: 1,
-            }}
-          >
-            <FileText size={16} />
-            Word (.docx)
-          </ToggleButton>
-          <ToggleButton
             value="pdf"
             aria-label="PDF document"
             sx={{
@@ -325,6 +313,20 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
           >
             <FileType size={16} />
             PDF
+          </ToggleButton>
+          <ToggleButton
+            value="docx"
+            aria-label="Word document"
+            sx={{
+              textTransform: "none",
+              fontSize: "13px",
+              fontWeight: 500,
+              height: "34px",
+              gap: 1,
+            }}
+          >
+            <FileText size={16} />
+            Word (.docx)
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>

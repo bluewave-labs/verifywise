@@ -54,7 +54,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     framework: 1,
     projectFrameworkId: 1,
     reportName: "",
-    format: "docx",
+    format: "pdf",
   });
 
   // Section selection for Page 2
@@ -89,7 +89,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     return Object.values(sectionSelection).some((v) => v === true);
   }, [sectionSelection]);
 
-  const handleToast = (type: "success" | "info" | "warning" | "error", message: string) => {
+  const handleToast = useCallback((type: "success" | "info" | "warning" | "error", message: string) => {
     handleAlert({
       variant: type,
       body: message,
@@ -102,7 +102,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
         onClose();
       }
     }, 3000);
-  };
+  }, [onClose]);
 
   const handleGenerateReport = useCallback(async () => {
     // Handle null project case
@@ -131,10 +131,6 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
       basicFormValues.framework,
       isOrganizational
     );
-
-    // Debug: log what sections are being sent
-    console.log("[Report Generation] Section selection:", sectionSelection);
-    console.log("[Report Generation] Sending sections to backend:", selectedSections);
 
     // Save preferences to localStorage
     saveSectionPreferences(sectionSelection);
@@ -176,6 +172,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     users,
     isOrganizational,
     onReportGenerated,
+    handleToast,
   ]);
 
   const handleOnCloseModal = () => {

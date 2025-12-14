@@ -46,7 +46,7 @@ body {
   max-width: 8.5in;
   margin: 0 auto;
   padding: 0.75in;
-  padding-bottom: 0.75in; /* Standard padding, footer is fixed at bottom */
+  padding-bottom: 0.75in;
 }
 
 /* Cover Page */
@@ -57,7 +57,6 @@ body {
   align-items: center;
   min-height: 100vh;
   text-align: center;
-  page-break-after: always;
 }
 
 .cover-logo {
@@ -108,7 +107,7 @@ body {
 
 /* Table of Contents */
 .toc {
-  /* No page break after - sections handle their own page breaks */
+  page-break-after: always;
 }
 
 .toc-title {
@@ -435,10 +434,7 @@ body {
 }
 
 .page-footer {
-  position: fixed;
-  bottom: 0.25in;
-  left: 0.75in;
-  right: 0.75in;
+  margin-top: 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;

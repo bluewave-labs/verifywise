@@ -165,6 +165,7 @@ export async function generatePDFWithOptions(
 
     await page.waitForTimeout(500);
 
+    // Generate PDF
     const pdfBuffer = await page.pdf({
       format: options.format || "A4",
       landscape: options.landscape || false,
@@ -176,6 +177,7 @@ export async function generatePDFWithOptions(
         left: "0.75in",
       },
       printBackground: true,
+      displayHeaderFooter: false,
     });
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);

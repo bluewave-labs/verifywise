@@ -3,7 +3,6 @@ import {
   Box,
   Popover,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { ChevronDown, FileText, Building2 } from "lucide-react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -26,13 +25,13 @@ const REPORT_TYPE_OPTIONS: ReportTypeOption[] = [
     id: "project",
     label: "Use case report",
     description: "Generate a report for a specific AI use case with its associated risks, compliance status, and assessments.",
-    icon: <FileText size={20} strokeWidth={1.5} />,
+    icon: <FileText size={24} strokeWidth={1.5} />,
   },
   {
     id: "organization",
     label: "Organization report",
     description: "Generate a comprehensive report across all use cases, vendors, models, and organization-wide metrics.",
-    icon: <Building2 size={20} strokeWidth={1.5} />,
+    icon: <Building2 size={24} strokeWidth={1.5} />,
   },
 ];
 
@@ -43,7 +42,6 @@ interface GenerateReportProps {
 const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
-  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedReportType, setSelectedReportType] = useState<
@@ -104,73 +102,92 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
             horizontal: "left",
           }}
           sx={{
-            mt: 0.5,
+            mt: 1,
             "& .MuiPopover-paper": {
               borderRadius: "4px",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.12)",
-              border: `1px solid ${theme.palette.border.light}`,
-              overflow: "hidden",
-              minWidth: "320px",
-              maxWidth: "380px",
+              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+              overflow: "visible",
+              backgroundColor: "#fff",
             },
           }}
         >
-          <Box sx={{ p: 1 }}>
-            {REPORT_TYPE_OPTIONS.map((option) => (
-              <Box
-                key={option.id}
-                onClick={() => handleOptionSelect(option)}
-                sx={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 1.5,
-                  p: 1.5,
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  transition: "background-color 0.15s ease",
-                  "&:hover": {
-                    backgroundColor: theme.palette.background.alt,
-                  },
-                }}
-              >
+          <Box
+            role="menu"
+            aria-label="Generate report menu"
+            sx={{
+              p: 2,
+              width: "420px",
+            }}
+          >
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 2,
+              }}
+            >
+              {REPORT_TYPE_OPTIONS.map((option) => (
                 <Box
+                  key={option.id}
+                  role="menuitem"
+                  tabIndex={0}
+                  aria-label={option.label}
+                  onClick={() => handleOptionSelect(option)}
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleOptionSelect(option);
+                    }
+                  }}
                   sx={{
-                    width: 36,
-                    height: 36,
+                    background: "linear-gradient(135deg, rgba(252, 252, 252, 1) 0%, rgba(248, 248, 248, 1) 100%)",
                     borderRadius: "4px",
-                    backgroundColor: theme.palette.background.alt,
+                    padding: "20px 16px",
+                    cursor: "pointer",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    color: "#13715B",
+                    justifyContent: "flex-start",
+                    gap: 1.5,
+                    border: "1px solid rgba(0, 0, 0, 0.04)",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    minHeight: "140px",
+                    "&:hover": {
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
+                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      background: "linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(250, 250, 250, 1) 100%)",
+                    },
+                    "&:active": {
+                      transform: "scale(0.98)",
+                    },
                   }}
                 >
-                  {option.icon}
-                </Box>
-                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ color: "#13715B" }}>{option.icon}</Box>
                   <Typography
+                    variant="body2"
                     sx={{
-                      fontSize: "13px",
                       fontWeight: 600,
-                      color: theme.palette.text.primary,
-                      mb: 0.25,
+                      fontSize: "13px",
+                      color: "rgba(0, 0, 0, 0.85)",
+                      textAlign: "center",
                     }}
                   >
                     {option.label}
                   </Typography>
                   <Typography
+                    variant="caption"
                     sx={{
-                      fontSize: "12px",
-                      color: theme.palette.text.secondary,
+                      fontSize: "11px",
+                      color: "rgba(0, 0, 0, 0.6)",
+                      textAlign: "center",
                       lineHeight: 1.4,
                     }}
                   >
                     {option.description}
                   </Typography>
                 </Box>
-              </Box>
-            ))}
+              ))}
+            </Box>
           </Box>
         </Popover>
 

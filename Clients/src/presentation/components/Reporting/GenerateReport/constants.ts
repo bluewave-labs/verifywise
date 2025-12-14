@@ -53,15 +53,6 @@ export const REPORT_SECTION_GROUPS: ReportSectionGroup[] = [
 ];
 
 /**
- * Executive Summary section (always shown, can be toggled)
- */
-export const EXECUTIVE_SUMMARY_SECTION: ReportSection = {
-  id: "executiveSummary",
-  label: "Executive Summary",
-  backendKey: "executiveSummary",
-};
-
-/**
  * Framework IDs
  */
 export const FRAMEWORK_IDS = {
@@ -135,9 +126,7 @@ export function getDefaultSectionSelection(
   frameworkId: number,
   isOrganizational: boolean
 ): Record<string, boolean> {
-  const selection: Record<string, boolean> = {
-    executiveSummary: true,
-  };
+  const selection: Record<string, boolean> = {};
 
   const availableGroups = getAvailableSections(frameworkId, isOrganizational);
   availableGroups.forEach((group) => {
@@ -185,11 +174,6 @@ export function selectionToBackendFormat(
   isOrganizational: boolean
 ): string[] {
   const backendKeys: string[] = [];
-
-  // Add executive summary if selected
-  if (selection.executiveSummary) {
-    backendKeys.push("executiveSummary");
-  }
 
   const availableGroups = getAvailableSections(frameworkId, isOrganizational);
   availableGroups.forEach((group) => {

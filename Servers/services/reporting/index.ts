@@ -18,7 +18,6 @@ import { generateDOCX } from "./docxGenerator";
  * Valid section keys that can be passed directly from the frontend
  */
 const VALID_SECTION_KEYS = new Set([
-  "executiveSummary",
   "projectRisks",
   "vendorRisks",
   "modelRisks",
@@ -104,10 +103,6 @@ export async function generateReport(
 
     // Determine which sections to include
     const sections = getRequestedSections(request.reportType);
-
-    // Debug logging
-    console.log("[Report Generation] Request reportType:", JSON.stringify(request.reportType));
-    console.log("[Report Generation] Resolved sections:", JSON.stringify(sections));
 
     // Collect all report data
     const reportData = await dataCollector.collectAllData(sections);

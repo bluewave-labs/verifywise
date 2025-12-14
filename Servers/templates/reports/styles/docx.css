@@ -91,23 +91,26 @@ tr:nth-child(even) td {
   font-size: 28pt;
   font-weight: bold;
   text-align: center;
+  color: #1C2130;
+  margin-top: 120pt;
   margin-bottom: 12pt;
 }
 
 .cover-subtitle {
-  font-size: 16pt;
+  font-size: 18pt;
   text-align: center;
   color: #667085;
-  margin-bottom: 24pt;
+  margin-bottom: 48pt;
 }
 
 .cover-meta {
   text-align: center;
-  margin-top: 24pt;
+  margin-top: 48pt;
 }
 
 .cover-meta p {
-  margin-bottom: 6pt;
+  font-size: 11pt;
+  margin-bottom: 8pt;
 }
 
 /* Status indicators using text */

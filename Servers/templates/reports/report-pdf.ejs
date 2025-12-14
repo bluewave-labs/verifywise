@@ -18,11 +18,6 @@
       padding: 16px 24px;
       margin: 32px 0 24px 0;
       border-left: 4px solid var(--color-primary);
-      page-break-before: always;
-    }
-
-    .group-header:first-of-type {
-      page-break-before: avoid;
     }
 
     .group-title {
@@ -36,6 +31,10 @@
 
     .subsection {
       margin-bottom: 32px;
+    }
+
+    .subsection:last-child {
+      margin-bottom: 60px;
     }
 
     .subsection-header {
@@ -85,16 +84,12 @@
     <div class="toc">
       <h2 class="toc-title">Table of contents</h2>
       <ul class="toc-list">
-        <li class="toc-item">
-          <span><span class="toc-item-number">1.</span> Executive summary</span>
-        </li>
-
         <%
         // Determine which groups have content
         const hasRiskAnalysis = sections.projectRisks || sections.vendorRisks || sections.modelRisks;
         const hasComplianceGovernance = sections.compliance || sections.assessment || sections.clausesAndAnnexes || sections.nistSubcategories;
         const hasOrganization = sections.vendors || sections.models || sections.trainingRegistry || sections.policyManager || sections.incidentManagement;
-        let sectionNum = 2;
+        let sectionNum = 1;
         %>
 
         <% if (hasRiskAnalysis) { %>
@@ -115,72 +110,6 @@
         </li>
         <% } %>
       </ul>
-    </div>
-
-    <!-- Executive Summary -->
-    <div class="section" id="executive-summary">
-      <div class="section-header">
-        <h2 class="section-title">Executive summary</h2>
-      </div>
-
-      <div class="executive-summary">
-        <div class="summary-grid">
-          <% if (sections.projectRisks) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.projectRisks.totalRisks %></div>
-            <div class="summary-card-label">Use Case Risks</div>
-          </div>
-          <% } %>
-
-          <% if (sections.vendorRisks) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.vendorRisks.totalRisks %></div>
-            <div class="summary-card-label">Vendor Risks</div>
-          </div>
-          <% } %>
-
-          <% if (sections.modelRisks) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.modelRisks.totalRisks %></div>
-            <div class="summary-card-label">Model Risks</div>
-          </div>
-          <% } %>
-
-          <% if (sections.vendors) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.vendors.totalVendors %></div>
-            <div class="summary-card-label">Vendors</div>
-          </div>
-          <% } %>
-
-          <% if (sections.compliance) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.compliance.overallProgress %>%</div>
-            <div class="summary-card-label">Compliance Progress</div>
-          </div>
-          <% } %>
-
-          <% if (sections.models) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.models.totalModels %></div>
-            <div class="summary-card-label">AI Models</div>
-          </div>
-          <% } %>
-
-          <% if (sections.incidentManagement) { %>
-          <div class="summary-card">
-            <div class="summary-card-value"><%= sections.incidentManagement.totalIncidents %></div>
-            <div class="summary-card-label">Incidents</div>
-          </div>
-          <% } %>
-        </div>
-
-        <% if (renderedCharts.riskDistributionBar) { %>
-        <div class="chart-container" id="risk-distribution-chart">
-          <%- renderedCharts.riskDistributionBar %>
-        </div>
-        <% } %>
-      </div>
     </div>
 
     <!-- ============================================ -->
@@ -751,7 +680,7 @@
     <% } %>
     <% } %>
 
-    <!-- Page Footer -->
+    <!-- Page Footer (rendered as part of content) -->
     <div class="page-footer">
       <span><%= branding.organizationName %></span>
       <span><%= metadata.generatedAt.toLocaleDateString() %></span>

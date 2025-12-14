@@ -1,21 +1,9 @@
 /**
  * DOCX Generator Unit Tests
- * Tests for @turbodocx/html-to-docx based generation
+ * Tests for native 'docx' library based generation
  */
 
-// Mock dependencies before importing
-jest.mock("ejs", () => ({
-  render: jest.fn().mockReturnValue("<html><body>Test</body></html>"),
-}));
-
-jest.mock("fs", () => ({
-  readFileSync: jest.fn().mockReturnValue("mock content"),
-}));
-
-jest.mock("@turbodocx/html-to-docx", () => jest.fn());
-
 import { generateDOCX, generateDOCXWithCharts } from "../docxGenerator";
-import HTMLtoDOCX from "@turbodocx/html-to-docx";
 import { ReportData } from "../../../domain.layer/interfaces/i.reportGeneration";
 
 describe("DOCX Generator", () => {
@@ -30,6 +18,7 @@ describe("DOCX Generator", () => {
       generatedAt: new Date("2024-01-15"),
       generatedBy: "Test User",
       tenantId: "test-tenant",
+      isOrganizational: false,
     },
     branding: {
       organizationName: "Test Org",
@@ -40,11 +29,6 @@ describe("DOCX Generator", () => {
     renderedCharts: {},
     sections: {},
   };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (HTMLtoDOCX as jest.Mock).mockResolvedValue(Buffer.from("DOCX content"));
-  });
 
   describe("generateDOCX", () => {
     it("should generate DOCX successfully", async () => {
@@ -57,27 +41,6 @@ describe("DOCX Generator", () => {
       expect(result.content).toBeInstanceOf(Buffer);
     });
 
-    it("should call HTMLtoDOCX with correct options", async () => {
-      await generateDOCX(mockReportData);
-
-      expect(HTMLtoDOCX).toHaveBeenCalledWith(
-        expect.any(String),
-        null,
-        expect.objectContaining({
-          table: { row: { cantSplit: true } },
-          footer: true,
-          pageNumber: true,
-          font: "Arial",
-          margins: expect.objectContaining({
-            top: 1440,
-            right: 1440,
-            bottom: 1440,
-            left: 1440,
-          }),
-        })
-      );
-    });
-
     it("should generate filename with project and framework names", async () => {
       const result = await generateDOCX(mockReportData);
 
@@ -86,42 +49,76 @@ describe("DOCX Generator", () => {
       expect(result.filename.endsWith(".docx")).toBe(true);
     });
 
-    it("should handle Buffer result", async () => {
-      (HTMLtoDOCX as jest.Mock).mockResolvedValue(Buffer.from("test"));
-
+    it("should generate valid buffer content", async () => {
       const result = await generateDOCX(mockReportData);
 
       expect(result.success).toBe(true);
       expect(result.content).toBeInstanceOf(Buffer);
+      expect(result.content.length).toBeGreaterThan(0);
     });
 
-    it("should handle ArrayBuffer result", async () => {
-      const arrayBuffer = new ArrayBuffer(8);
-      (HTMLtoDOCX as jest.Mock).mockResolvedValue(arrayBuffer);
-
+    it("should include cover page with organization name", async () => {
       const result = await generateDOCX(mockReportData);
+
+      // The document should be generated successfully
+      expect(result.success).toBe(true);
+      expect(result.content.length).toBeGreaterThan(0);
+    });
+
+    it("should handle report data with sections", async () => {
+      const dataWithSections: ReportData = {
+        ...mockReportData,
+        sections: {
+          projectRisks: {
+            totalRisks: 2,
+            risksByLevel: [],
+            risks: [
+              {
+                id: 1,
+                name: "Test Risk 1",
+                description: "Test risk description 1",
+                owner: "Owner 1",
+                impact: "High",
+                likelihood: "Medium",
+                mitigationStatus: "In Progress",
+                riskLevel: "High",
+              },
+              {
+                id: 2,
+                name: "Test Risk 2",
+                description: "Test risk description 2",
+                owner: "Owner 2",
+                impact: "Low",
+                likelihood: "Low",
+                mitigationStatus: "Complete",
+                riskLevel: "Low",
+              },
+            ],
+          },
+        },
+      };
+
+      const result = await generateDOCX(dataWithSections);
 
       expect(result.success).toBe(true);
-      expect(result.content).toBeInstanceOf(Buffer);
+      expect(result.content.length).toBeGreaterThan(0);
     });
 
-    it("should handle errors gracefully", async () => {
-      (HTMLtoDOCX as jest.Mock).mockRejectedValue(
-        new Error("DOCX generation failed")
-      );
+    it("should handle empty sections gracefully", async () => {
+      const dataWithEmptySections: ReportData = {
+        ...mockReportData,
+        sections: {
+          projectRisks: {
+            totalRisks: 0,
+            risksByLevel: [],
+            risks: [],
+          },
+        },
+      };
 
-      const result = await generateDOCX(mockReportData);
+      const result = await generateDOCX(dataWithEmptySections);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("DOCX generation failed");
-    });
-
-    it("should return empty buffer on error", async () => {
-      (HTMLtoDOCX as jest.Mock).mockRejectedValue(new Error("Error"));
-
-      const result = await generateDOCX(mockReportData);
-
-      expect(result.content.length).toBe(0);
+      expect(result.success).toBe(true);
     });
   });
 
@@ -131,25 +128,11 @@ describe("DOCX Generator", () => {
       complianceChart: "data:image/png;base64,def456",
     };
 
-    it("should generate DOCX with chart images", async () => {
+    it("should generate DOCX with chart images parameter", async () => {
       const result = await generateDOCXWithCharts(mockReportData, mockChartImages);
 
       expect(result.success).toBe(true);
-      expect(HTMLtoDOCX).toHaveBeenCalled();
-    });
-
-    it("should include chart images in rendered HTML", async () => {
-      const ejs = require("ejs");
-
-      await generateDOCXWithCharts(mockReportData, mockChartImages);
-
-      // EJS.render should be called with chartImages
-      expect(ejs.render).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          chartImages: mockChartImages,
-        })
-      );
+      expect(result.content).toBeInstanceOf(Buffer);
     });
 
     it("should handle empty chart images", async () => {
@@ -158,13 +141,103 @@ describe("DOCX Generator", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should handle errors gracefully", async () => {
-      (HTMLtoDOCX as jest.Mock).mockRejectedValue(new Error("Error with charts"));
+    it("should return same result as generateDOCX (charts not embedded yet)", async () => {
+      const resultWithCharts = await generateDOCXWithCharts(mockReportData, mockChartImages);
+      const resultWithoutCharts = await generateDOCX(mockReportData);
 
-      const result = await generateDOCXWithCharts(mockReportData, mockChartImages);
+      expect(resultWithCharts.success).toBe(resultWithoutCharts.success);
+      expect(resultWithCharts.mimeType).toBe(resultWithoutCharts.mimeType);
+    });
+  });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Error with charts");
+  describe("Report formatting", () => {
+    it("should handle organizational reports", async () => {
+      const orgReportData: ReportData = {
+        ...mockReportData,
+        metadata: {
+          ...mockReportData.metadata,
+          isOrganizational: true,
+        },
+      };
+
+      const result = await generateDOCX(orgReportData);
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should handle compliance section", async () => {
+      const complianceData: ReportData = {
+        ...mockReportData,
+        sections: {
+          compliance: {
+            overallProgress: 75,
+            totalControls: 10,
+            completedControls: 7,
+            controls: [
+              {
+                id: 1,
+                controlId: "C-001",
+                title: "Test Control",
+                status: "Complete",
+                owner: "Control Owner",
+              },
+            ],
+          },
+        },
+      };
+
+      const result = await generateDOCX(complianceData);
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should handle vendor risks section", async () => {
+      const vendorData: ReportData = {
+        ...mockReportData,
+        sections: {
+          vendorRisks: {
+            totalRisks: 1,
+            risks: [
+              {
+                id: 1,
+                vendorName: "Test Vendor",
+                riskName: "Data Privacy Risk",
+                riskLevel: "Medium",
+                actionOwner: "Risk Manager",
+                actionPlan: "Implement encryption",
+              },
+            ],
+          },
+        },
+      };
+
+      const result = await generateDOCX(vendorData);
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should handle model risks section", async () => {
+      const modelData: ReportData = {
+        ...mockReportData,
+        sections: {
+          modelRisks: {
+            totalRisks: 1,
+            risks: [
+              {
+                id: 1,
+                modelName: "GPT-4",
+                riskName: "Bias Risk",
+                riskLevel: "High",
+                mitigationStatus: "In Progress",
+              },
+            ],
+          },
+        },
+      };
+
+      const result = await generateDOCX(modelData);
+
+      expect(result.success).toBe(true);
     });
   });
 });

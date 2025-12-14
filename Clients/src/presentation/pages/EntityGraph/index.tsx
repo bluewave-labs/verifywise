@@ -2659,6 +2659,13 @@ const EntityGraphInner: React.FC = () => {
                   <Typography sx={{ fontSize: 12, color: '#344054', fontWeight: 500 }}>
                     Gap detection
                   </Typography>
+                  <VWTooltip
+                    content="Identifies entities with missing or incomplete data, such as models without risk assessments, controls without evidence, or vendors without owners."
+                    placement="top"
+                    maxWidth={220}
+                  >
+                    <Info size={12} color="#9CA3AF" style={{ cursor: 'help' }} />
+                  </VWTooltip>
                   {gapCounts.total > 0 && (
                     <Box sx={{ display: 'flex', gap: 0.5 }}>
                       {gapCounts.critical > 0 && (

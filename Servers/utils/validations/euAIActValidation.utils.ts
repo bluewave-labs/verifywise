@@ -5,14 +5,13 @@
 
 import {
   validateString,
-  validateNumber,
   validateEnum,
   validateDate,
   validateForeignKey,
   validateSchema,
   ValidationResult,
-  ValidationError
-} from './validation.utils';
+  ValidationError,
+} from "./validation.utils";
 
 /**
  * Validation constants for EU AI Act
@@ -22,52 +21,56 @@ export const EU_AI_ACT_VALIDATION_LIMITS = {
   RISK_REVIEW: { MIN: 1, MAX: 500 },
   EVIDENCE_DESCRIPTION: { MIN: 1, MAX: 1000 },
   FEEDBACK_DESCRIPTION: { MIN: 1, MAX: 1000 },
-  ANSWER: { MIN: 1, MAX: 5000 }
+  ANSWER: { MIN: 1, MAX: 5000 },
 } as const;
 
 /**
  * EU AI Act validation enums
  */
 export const EU_AI_ACT_ENUMS = {
-  CONTROL_STATUS: ['Waiting', 'In progress', 'Done'] as const,
-  SUBCONTROL_STATUS: ['Waiting', 'In progress', 'Done'] as const,
-  RISK_REVIEW: ['Acceptable risk', 'Residual risk', 'Unacceptable risk'] as const,
-  ANSWER_STATUS: ['Not started', 'In progress', 'Done'] as const
+  CONTROL_STATUS: ["Waiting", "In progress", "Done"] as const,
+  SUBCONTROL_STATUS: ["Waiting", "In progress", "Done"] as const,
+  RISK_REVIEW: [
+    "Acceptable risk",
+    "Residual risk",
+    "Unacceptable risk",
+  ] as const,
+  ANSWER_STATUS: ["Not started", "In progress", "Done"] as const,
 } as const;
 
 /**
  * Validates EU AI Act control/answer ID parameter
  */
 export const validateEUIDAParam = (id: any): ValidationResult => {
-  return validateForeignKey(id, 'EU AI Act ID', true);
+  return validateForeignKey(id, "EU AI Act ID", true);
 };
 
 /**
  * Validates project framework ID parameter
  */
 export const validateProjectFrameworkIdParam = (id: any): ValidationResult => {
-  return validateForeignKey(id, 'Project framework ID', true);
+  return validateForeignKey(id, "Project framework ID", true);
 };
 
 /**
  * Validates topic ID parameter
  */
 export const validateTopicIdParam = (id: any): ValidationResult => {
-  return validateForeignKey(id, 'Topic ID', true);
+  return validateForeignKey(id, "Topic ID", true);
 };
 
 /**
  * Validates control ID parameter
  */
 export const validateControlIdParam = (id: any): ValidationResult => {
-  return validateForeignKey(id, 'Control ID', true);
+  return validateForeignKey(id, "Control ID", true);
 };
 
 /**
  * Validates control category ID parameter
  */
 export const validateControlCategoryIdParam = (id: any): ValidationResult => {
-  return validateForeignKey(id, 'Control category ID', true);
+  return validateForeignKey(id, "Control category ID", true);
 };
 
 // Title and description validation removed - these fields are not updatable in EU AI Act controls
@@ -76,14 +79,14 @@ export const validateControlCategoryIdParam = (id: any): ValidationResult => {
  * Validates implementation details field
  */
 export const validateImplementationDetails = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Allow empty strings for optional fields
   }
-  return validateString(value, 'Implementation details', {
+  return validateString(value, "Implementation details", {
     required: false,
     minLength: EU_AI_ACT_VALIDATION_LIMITS.IMPLEMENTATION_DETAILS.MIN,
     maxLength: EU_AI_ACT_VALIDATION_LIMITS.IMPLEMENTATION_DETAILS.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -91,14 +94,14 @@ export const validateImplementationDetails = (value: any): ValidationResult => {
  * Validates evidence description field
  */
 export const validateEvidenceDescription = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Allow empty strings for optional fields
   }
-  return validateString(value, 'Evidence description', {
+  return validateString(value, "Evidence description", {
     required: false,
     minLength: EU_AI_ACT_VALIDATION_LIMITS.EVIDENCE_DESCRIPTION.MIN,
     maxLength: EU_AI_ACT_VALIDATION_LIMITS.EVIDENCE_DESCRIPTION.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -106,14 +109,14 @@ export const validateEvidenceDescription = (value: any): ValidationResult => {
  * Validates feedback description field
  */
 export const validateFeedbackDescription = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Allow empty strings for optional fields
   }
-  return validateString(value, 'Feedback description', {
+  return validateString(value, "Feedback description", {
     required: false,
     minLength: EU_AI_ACT_VALIDATION_LIMITS.FEEDBACK_DESCRIPTION.MIN,
     maxLength: EU_AI_ACT_VALIDATION_LIMITS.FEEDBACK_DESCRIPTION.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -121,11 +124,11 @@ export const validateFeedbackDescription = (value: any): ValidationResult => {
  * Validates answer field
  */
 export const validateAnswer = (value: any): ValidationResult => {
-  return validateString(value, 'Answer', {
+  return validateString(value, "Answer", {
     required: false, // Optional
     minLength: EU_AI_ACT_VALIDATION_LIMITS.ANSWER.MIN,
     maxLength: EU_AI_ACT_VALIDATION_LIMITS.ANSWER.MAX,
-    trimWhitespace: true
+    trimWhitespace: true,
   });
 };
 
@@ -138,7 +141,12 @@ export const validateControlStatus = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
     return { isValid: true }; // Optional field
   }
-  return validateEnum(value, 'Control status', EU_AI_ACT_ENUMS.CONTROL_STATUS, false);
+  return validateEnum(
+    value,
+    "Control status",
+    EU_AI_ACT_ENUMS.CONTROL_STATUS,
+    false
+  );
 };
 
 /**
@@ -148,7 +156,12 @@ export const validateSubcontrolStatus = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
     return { isValid: true }; // Optional field
   }
-  return validateEnum(value, 'Subcontrol status', EU_AI_ACT_ENUMS.SUBCONTROL_STATUS, false);
+  return validateEnum(
+    value,
+    "Subcontrol status",
+    EU_AI_ACT_ENUMS.SUBCONTROL_STATUS,
+    false
+  );
 };
 
 /**
@@ -158,7 +171,7 @@ export const validateRiskReview = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
     return { isValid: true }; // Optional field
   }
-  return validateEnum(value, 'Risk review', EU_AI_ACT_ENUMS.RISK_REVIEW, false);
+  return validateEnum(value, "Risk review", EU_AI_ACT_ENUMS.RISK_REVIEW, false);
 };
 
 /**
@@ -168,27 +181,32 @@ export const validateAnswerStatus = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
     return { isValid: true }; // Optional field
   }
-  return validateEnum(value, 'Answer status', EU_AI_ACT_ENUMS.ANSWER_STATUS, false);
+  return validateEnum(
+    value,
+    "Answer status",
+    EU_AI_ACT_ENUMS.ANSWER_STATUS,
+    false
+  );
 };
 
 /**
  * Validates user ID (approver, owner, reviewer) field
  */
 export const validateUserId = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
-  return validateForeignKey(value, 'User ID', false);
+  return validateForeignKey(value, "User ID", false);
 };
 
 /**
  * Validates due date field
  */
 export const validateDueDate = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
-  return validateDate(value, 'Due date', { required: false });
+  return validateDate(value, "Due date", { required: false });
 };
 
 // Order number validation removed - this field is not updatable in EU AI Act controls
@@ -197,15 +215,15 @@ export const validateDueDate = (value: any): ValidationResult => {
  * Validates risks delete array
  */
 export const validateRisksDelete = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
 
   let risksArray;
 
   // Handle both string (JSON) and array formats
-  if (typeof value === 'string') {
-    if (value.trim() === '') {
+  if (typeof value === "string") {
+    if (value.trim() === "") {
       return { isValid: true }; // Empty string is valid
     }
     try {
@@ -213,8 +231,8 @@ export const validateRisksDelete = (value: any): ValidationResult => {
     } catch (error) {
       return {
         isValid: false,
-        message: 'Risks delete must be a valid JSON array',
-        code: 'INVALID_JSON'
+        message: "Risks delete must be a valid JSON array",
+        code: "INVALID_JSON",
       };
     }
   } else {
@@ -224,19 +242,23 @@ export const validateRisksDelete = (value: any): ValidationResult => {
   if (!Array.isArray(risksArray)) {
     return {
       isValid: false,
-      message: 'Risks delete must be an array',
-      code: 'INVALID_TYPE'
+      message: "Risks delete must be an array",
+      code: "INVALID_TYPE",
     };
   }
 
   // Validate each risk ID in the array
   for (let i = 0; i < risksArray.length; i++) {
-    const riskIdValidation = validateForeignKey(risksArray[i], `Risk ID at index ${i}`, true);
+    const riskIdValidation = validateForeignKey(
+      risksArray[i],
+      `Risk ID at index ${i}`,
+      true
+    );
     if (!riskIdValidation.isValid) {
       return {
         isValid: false,
         message: `${riskIdValidation.message} at index ${i}`,
-        code: riskIdValidation.code
+        code: riskIdValidation.code,
       };
     }
   }
@@ -248,15 +270,15 @@ export const validateRisksDelete = (value: any): ValidationResult => {
  * Validates risks mitigated array
  */
 export const validateRisksMitigated = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
 
   let risksArray;
 
   // Handle both string (JSON) and array formats
-  if (typeof value === 'string') {
-    if (value.trim() === '') {
+  if (typeof value === "string") {
+    if (value.trim() === "") {
       return { isValid: true }; // Empty string is valid
     }
     try {
@@ -264,8 +286,8 @@ export const validateRisksMitigated = (value: any): ValidationResult => {
     } catch (error) {
       return {
         isValid: false,
-        message: 'Risks mitigated must be a valid JSON array',
-        code: 'INVALID_JSON'
+        message: "Risks mitigated must be a valid JSON array",
+        code: "INVALID_JSON",
       };
     }
   } else {
@@ -275,19 +297,23 @@ export const validateRisksMitigated = (value: any): ValidationResult => {
   if (!Array.isArray(risksArray)) {
     return {
       isValid: false,
-      message: 'Risks mitigated must be an array',
-      code: 'INVALID_TYPE'
+      message: "Risks mitigated must be an array",
+      code: "INVALID_TYPE",
     };
   }
 
   // Validate each risk ID in the array
   for (let i = 0; i < risksArray.length; i++) {
-    const riskIdValidation = validateForeignKey(risksArray[i], `Mitigated risk ID at index ${i}`, true);
+    const riskIdValidation = validateForeignKey(
+      risksArray[i],
+      `Mitigated risk ID at index ${i}`,
+      true
+    );
     if (!riskIdValidation.isValid) {
       return {
         isValid: false,
         message: `${riskIdValidation.message} at index ${i}`,
-        code: riskIdValidation.code
+        code: riskIdValidation.code,
       };
     }
   }
@@ -306,14 +332,14 @@ export const validateFilesDelete = (value: any): ValidationResult => {
   let filesToDelete;
 
   // Handle both string (JSON) and array formats
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     try {
       filesToDelete = JSON.parse(value);
     } catch (error) {
       return {
         isValid: false,
-        message: 'Files delete must be a valid JSON array',
-        code: 'INVALID_JSON'
+        message: "Files delete must be a valid JSON array",
+        code: "INVALID_JSON",
       };
     }
   } else {
@@ -323,19 +349,23 @@ export const validateFilesDelete = (value: any): ValidationResult => {
   if (!Array.isArray(filesToDelete)) {
     return {
       isValid: false,
-      message: 'Files delete must be an array',
-      code: 'INVALID_TYPE'
+      message: "Files delete must be an array",
+      code: "INVALID_TYPE",
     };
   }
 
   // Validate each file ID in the array
   for (let i = 0; i < filesToDelete.length; i++) {
-    const fileIdValidation = validateForeignKey(filesToDelete[i], `File ID at index ${i}`, true);
+    const fileIdValidation = validateForeignKey(
+      filesToDelete[i],
+      `File ID at index ${i}`,
+      true
+    );
     if (!fileIdValidation.isValid) {
       return {
         isValid: false,
         message: `${fileIdValidation.message} at index ${i}`,
-        code: fileIdValidation.code
+        code: fileIdValidation.code,
       };
     }
   }
@@ -347,15 +377,15 @@ export const validateFilesDelete = (value: any): ValidationResult => {
  * Validates subcontrols JSON string
  */
 export const validateSubControls = (value: any): ValidationResult => {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return { isValid: true }; // Optional field
   }
 
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return {
       isValid: false,
-      message: 'SubControls must be a JSON string',
-      code: 'INVALID_TYPE'
+      message: "SubControls must be a JSON string",
+      code: "INVALID_TYPE",
     };
   }
 
@@ -365,16 +395,16 @@ export const validateSubControls = (value: any): ValidationResult => {
   } catch (error) {
     return {
       isValid: false,
-      message: 'SubControls must be valid JSON',
-      code: 'INVALID_JSON'
+      message: "SubControls must be valid JSON",
+      code: "INVALID_JSON",
     };
   }
 
   if (!Array.isArray(subControls)) {
     return {
       isValid: false,
-      message: 'SubControls JSON must contain an array',
-      code: 'INVALID_JSON_STRUCTURE'
+      message: "SubControls JSON must contain an array",
+      code: "INVALID_JSON_STRUCTURE",
     };
   }
 
@@ -383,22 +413,26 @@ export const validateSubControls = (value: any): ValidationResult => {
     const subcontrol = subControls[i];
 
     // Validate subcontrol has required structure
-    if (typeof subcontrol !== 'object' || subcontrol === null) {
+    if (typeof subcontrol !== "object" || subcontrol === null) {
       return {
         isValid: false,
         message: `SubControl at index ${i} must be an object`,
-        code: 'INVALID_SUBCONTROL_TYPE'
+        code: "INVALID_SUBCONTROL_TYPE",
       };
     }
 
     // Validate subcontrol ID if present
     if (subcontrol.id !== undefined) {
-      const idValidation = validateForeignKey(subcontrol.id, `SubControl ID at index ${i}`, false);
+      const idValidation = validateForeignKey(
+        subcontrol.id,
+        `SubControl ID at index ${i}`,
+        false
+      );
       if (!idValidation.isValid) {
         return {
           isValid: false,
           message: `${idValidation.message} at index ${i}`,
-          code: idValidation.code
+          code: idValidation.code,
         };
       }
     }
@@ -410,7 +444,7 @@ export const validateSubControls = (value: any): ValidationResult => {
         return {
           isValid: false,
           message: `SubControl status validation failed at index ${i}: ${statusValidation.message}`,
-          code: statusValidation.code
+          code: statusValidation.code,
         };
       }
     }
@@ -422,13 +456,13 @@ export const validateSubControls = (value: any): ValidationResult => {
         return {
           isValid: false,
           message: `SubControl risk review validation failed at index ${i}: ${riskReviewValidation.message}`,
-          code: riskReviewValidation.code
+          code: riskReviewValidation.code,
         };
       }
     }
 
     // Validate user IDs if present
-    const userFields = ['approver', 'owner', 'reviewer'];
+    const userFields = ["approver", "owner", "reviewer"];
     for (const field of userFields) {
       if (subcontrol[field] !== undefined) {
         const userValidation = validateUserId(subcontrol[field]);
@@ -436,7 +470,7 @@ export const validateSubControls = (value: any): ValidationResult => {
           return {
             isValid: false,
             message: `SubControl ${field} validation failed at index ${i}: ${userValidation.message}`,
-            code: userValidation.code
+            code: userValidation.code,
           };
         }
       }
@@ -449,16 +483,19 @@ export const validateSubControls = (value: any): ValidationResult => {
         return {
           isValid: false,
           message: `SubControl due date validation failed at index ${i}: ${dueDateValidation.message}`,
-          code: dueDateValidation.code
+          code: dueDateValidation.code,
         };
       }
     }
 
     // Validate text fields if present
     const textFields = [
-      { field: 'implementation_details', validator: validateImplementationDetails },
-      { field: 'evidence_description', validator: validateEvidenceDescription },
-      { field: 'feedback_description', validator: validateFeedbackDescription }
+      {
+        field: "implementation_details",
+        validator: validateImplementationDetails,
+      },
+      { field: "evidence_description", validator: validateEvidenceDescription },
+      { field: "feedback_description", validator: validateFeedbackDescription },
     ];
 
     for (const { field, validator } of textFields) {
@@ -468,7 +505,7 @@ export const validateSubControls = (value: any): ValidationResult => {
           return {
             isValid: false,
             message: `SubControl ${field} validation failed at index ${i}: ${fieldValidation.message}`,
-            code: fieldValidation.code
+            code: fieldValidation.code,
           };
         }
       }
@@ -501,8 +538,8 @@ export const updateControlSchema = {
   delete: validateFilesDelete,
 
   // Required for file operations
-  user_id: (value: any) => validateForeignKey(value, 'User ID', true),
-  project_id: (value: any) => validateForeignKey(value, 'Project ID', true)
+  user_id: (value: any) => validateForeignKey(value, "User ID", true),
+  project_id: (value: any) => validateForeignKey(value, "Project ID", true),
 };
 
 /**
@@ -512,7 +549,7 @@ export const updateAnswerSchema = {
   answer: validateAnswer,
   status: validateAnswerStatus,
   risksDelete: validateRisksDelete,
-  risksMitigated: validateRisksMitigated
+  risksMitigated: validateRisksMitigated,
 };
 
 /**
@@ -523,20 +560,28 @@ export const validateUpdateControl = (data: any): ValidationError[] => {
 
   // Check if at least some meaningful data is provided (only actually updatable fields)
   const meaningfulFields = [
-    'status', 'approver', 'risk_review', 'owner', 'reviewer',
-    'due_date', 'implementation_details', 'subControls',
-    'risksDelete', 'risksMitigated'
+    "status",
+    "approver",
+    "risk_review",
+    "owner",
+    "reviewer",
+    "due_date",
+    "implementation_details",
+    "subControls",
+    "risksDelete",
+    "risksMitigated",
   ];
 
-  const hasMeaningfulField = meaningfulFields.some(field =>
-    data[field] !== undefined && data[field] !== null && data[field] !== ''
+  const hasMeaningfulField = meaningfulFields.some(
+    (field) =>
+      data[field] !== undefined && data[field] !== null && data[field] !== ""
   );
 
   if (!hasMeaningfulField) {
     errors.push({
-      field: 'body',
-      message: 'At least one meaningful field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
+      field: "body",
+      message: "At least one meaningful field must be provided for update",
+      code: "NO_UPDATE_FIELDS",
     });
   }
 
@@ -550,17 +595,23 @@ export const validateUpdateAnswer = (data: any): ValidationError[] => {
   const errors = validateSchema(data, updateAnswerSchema);
 
   // Check if at least some meaningful data is provided
-  const meaningfulFields = ['answer', 'status', 'risksDelete', 'risksMitigated'];
+  const meaningfulFields = [
+    "answer",
+    "status",
+    "risksDelete",
+    "risksMitigated",
+  ];
 
-  const hasMeaningfulField = meaningfulFields.some(field =>
-    data[field] !== undefined && data[field] !== null && data[field] !== ''
+  const hasMeaningfulField = meaningfulFields.some(
+    (field) =>
+      data[field] !== undefined && data[field] !== null && data[field] !== ""
   );
 
   if (!hasMeaningfulField) {
     errors.push({
-      field: 'body',
-      message: 'At least one meaningful field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
+      field: "body",
+      message: "At least one meaningful field must be provided for update",
+      code: "NO_UPDATE_FIELDS",
     });
   }
 
@@ -570,7 +621,9 @@ export const validateUpdateAnswer = (data: any): ValidationError[] => {
 /**
  * Validates project framework ID query parameter
  */
-export const validateProjectFrameworkIdQuery = (value: any): ValidationResult => {
+export const validateProjectFrameworkIdQuery = (
+  value: any
+): ValidationResult => {
   return validateProjectFrameworkIdParam(value);
 };
 
@@ -603,10 +656,15 @@ export const validateFileUploads = (files: any[]): ValidationResult => {
   // Check file size and type constraints
   const maxFileSize = 10 * 1024 * 1024; // 10MB
   const allowedTypes = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'application/pdf', 'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain', 'text/csv'
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+    "text/csv",
   ];
 
   for (let i = 0; i < files.length; i++) {
@@ -616,7 +674,7 @@ export const validateFileUploads = (files: any[]): ValidationResult => {
       return {
         isValid: false,
         message: `File "${file.originalname}" exceeds maximum size of 10MB`,
-        code: 'FILE_SIZE_EXCEEDED'
+        code: "FILE_SIZE_EXCEEDED",
       };
     }
 
@@ -624,7 +682,7 @@ export const validateFileUploads = (files: any[]): ValidationResult => {
       return {
         isValid: false,
         message: `File "${file.originalname}" has unsupported format. Allowed formats: images, PDF, Word documents, text files`,
-        code: 'UNSUPPORTED_FILE_TYPE'
+        code: "UNSUPPORTED_FILE_TYPE",
       };
     }
   }
@@ -649,7 +707,10 @@ export const validateEUAnswerIdParam = (id: any): ValidationResult => {
 /**
  * Complete validation for EU AI Act control updates
  */
-export const validateCompleteControlUpdate = (data: any, files?: any[]): ValidationError[] => {
+export const validateCompleteControlUpdate = (
+  data: any,
+  files?: any[]
+): ValidationError[] => {
   const errors = validateUpdateControl(data);
 
   // Add file validation if files are present
@@ -657,9 +718,9 @@ export const validateCompleteControlUpdate = (data: any, files?: any[]): Validat
     const fileValidation = validateFileUploads(files);
     if (!fileValidation.isValid) {
       errors.push({
-        field: 'files',
-        message: fileValidation.message || 'File validation failed',
-        code: fileValidation.code || 'FILE_VALIDATION_FAILED'
+        field: "files",
+        message: fileValidation.message || "File validation failed",
+        code: fileValidation.code || "FILE_VALIDATION_FAILED",
       });
     }
   }

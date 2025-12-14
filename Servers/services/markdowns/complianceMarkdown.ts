@@ -8,27 +8,10 @@
 import { getComplianceReportQuery } from "../../utils/reporting.utils";
 import { ReportBodyData } from "../reportService";
 import { ControlCategoryStructEUModel } from "../../domain.layer/frameworks/EU-AI-Act/controlCategoryStructEU.model";
-import {
-  SubcontrolStructEU,
-  SubcontrolStructEUModel,
-} from "../../domain.layer/frameworks/EU-AI-Act/subControlStructEU.model";
+import { SubcontrolStructEUModel } from "../../domain.layer/frameworks/EU-AI-Act/subControlStructEU.model";
 import { ControlStructEUModel } from "../../domain.layer/frameworks/EU-AI-Act/controlStructEU.model";
 import { ControlEUModel } from "../../domain.layer/frameworks/EU-AI-Act/controlEU.model";
 import { SubcontrolEUModel } from "../../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
-
-type SubControlProps = SubcontrolStructEU & {
-  implementation_details: string;
-};
-
-type ControlProps = {
-  title: string;
-  implementation_details: string;
-  subControls: SubControlProps[];
-};
-
-type SubControlCategory = {
-  data: ControlProps;
-};
 
 export async function getComplianceMarkdown(
   projectFrameworkId: number,
@@ -63,7 +46,10 @@ export async function getComplianceReportData(
 ): Promise<string> {
   let rows: string = ``;
   try {
-    const reportData = await getComplianceReportQuery(projectFrameworkId, tenant);
+    const reportData = await getComplianceReportQuery(
+      projectFrameworkId,
+      tenant
+    );
     if (reportData.length > 0) {
       rows = reportData
         .map((_controlCategories) => {

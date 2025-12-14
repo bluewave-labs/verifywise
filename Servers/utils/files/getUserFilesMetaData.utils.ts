@@ -1,12 +1,11 @@
 import { sequelize } from "../../database/db";
-import { SubcontrolEUModel } from "../../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
 import { FileList } from "../../domain.layer/models/file/file.model";
 
 const getUserFilesMetaDataQuery = async (
   role: string,
   userId: number,
   tenant: string,
-  options?: { limit?: number; offset?: number },
+  options?: { limit?: number; offset?: number }
 ): Promise<FileList[]> => {
   const { limit, offset } = options ?? {}; // Default to empty object
 
@@ -94,7 +93,7 @@ const getUserFilesMetaDataQuery = async (
           let subControl = subControlResult[0][0];
           if (subControl) {
             result.is_evidence = subControl.evidences?.some(
-              (file: any) => Number(file.id) === Number(result.id),
+              (file: any) => Number(file.id) === Number(result.id)
             );
             result.parent_id = subControl.parent_id;
             result.meta_id = subControl.meta_id;
@@ -130,7 +129,7 @@ const getUserFilesMetaDataQuery = async (
             referenceControlQuery,
             {
               replacements: { fileId: result.id },
-            },
+            }
           )) as [any[], number];
 
           let referenceControl = referenceControlResult[0][0];

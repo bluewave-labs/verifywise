@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Typography,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -24,6 +23,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { Beaker, CirclePlus } from "lucide-react";
 import Alert from "../../components/Alert";
 import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 
 interface Props {
   onSelected: () => void;
@@ -67,6 +67,8 @@ export default function OrganizationSelector({ onSelected }: Props) {
   const [editSelectedUserIds, setEditSelectedUserIds] = useState<number[]>([]);
   const [updating, setUpdating] = useState(false);
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const [switchModalOpen, setSwitchModalOpen] = useState(false);
+  const [orgToSwitch, setOrgToSwitch] = useState<Organization | null>(null);
 
   useEffect(() => {
     loadOrgs();
@@ -128,8 +130,16 @@ export default function OrganizationSelector({ onSelected }: Props) {
     }
   };
 
-  const handlePick = async (orgId: string) => {
-    await deepEvalOrgsService.setCurrentOrg(orgId);
+  const handlePick = (org: Organization) => {
+    setOrgToSwitch(org);
+    setSwitchModalOpen(true);
+  };
+
+  const handleConfirmSwitch = async () => {
+    if (!orgToSwitch) return;
+    await deepEvalOrgsService.setCurrentOrg(orgToSwitch.id);
+    setSwitchModalOpen(false);
+    setOrgToSwitch(null);
     onSelected();
   };
 
@@ -200,13 +210,9 @@ export default function OrganizationSelector({ onSelected }: Props) {
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Description + header */}
-      <Stack spacing={2} mb={4}>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Organize your evaluations under an organization. Select an existing organization or create a new one to get started.
-        </Typography>
-        <Divider sx={{ mt: 3 }} />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 2, pb: 2 }}>
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
             Organizations
           </Typography>
@@ -219,6 +225,9 @@ export default function OrganizationSelector({ onSelected }: Props) {
             Create organization
           </CustomizableButton>
         </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Organize your evaluations under an organization. Select an existing organization or create a new one to get started.
+        </Typography>
       </Stack>
 
       {!loading && orgs.length === 0 ? (
@@ -336,7 +345,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
                       <Button
                         variant="outlined"
                         size="small"
-                        onClick={() => handlePick(org.id)}
+                        onClick={() => handlePick(org)}
                         sx={{
                           fontSize: "12px",
                           textTransform: "none",
@@ -452,6 +461,27 @@ export default function OrganizationSelector({ onSelected }: Props) {
           />
         </Stack>
       </StandardModal>
+
+      {/* Switch Organization Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={switchModalOpen}
+        title="Switch organization?"
+        TitleFontSize={16}
+        body={
+          <Typography sx={{ fontSize: 13, color: "#344054" }}>
+            You are about to switch to &quot;{orgToSwitch?.name || "this organization"}&quot;. You will see projects and experiments from this organization.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Switch"
+        onCancel={() => {
+          setSwitchModalOpen(false);
+          setOrgToSwitch(null);
+        }}
+        onProceed={handleConfirmSwitch}
+        proceedButtonColor="primary"
+        proceedButtonVariant="contained"
+      />
     </Box>
   );
 }

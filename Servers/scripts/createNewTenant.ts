@@ -576,6 +576,17 @@ export const createNewTenant = async (
     );
 
     await sequelize.query(
+      `CREATE TABLE "${tenantHash}".subcontrols_eu__risks (
+      subcontrol_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (subcontrol_id, projects_risks_id),
+      FOREIGN KEY (subcontrol_id) REFERENCES "${tenantHash}".subcontrols_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
     (
       id serial NOT NULL,
@@ -819,7 +830,7 @@ export const createNewTenant = async (
         id SERIAL PRIMARY KEY,
         provider_model VARCHAR(255) NOT NULL,
         version VARCHAR(255) NOT NULL,
-        approver INTEGER NOT NULL,
+        approver INTEGER,
         capabilities TEXT NOT NULL,
         security_assessment BOOLEAN NOT NULL DEFAULT false,
         status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,

@@ -9,7 +9,6 @@ import {
   Divider,
   Popover
 } from "@mui/material";
-import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import {
@@ -36,7 +35,7 @@ import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../components/Modals/StandardModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
@@ -112,7 +111,6 @@ const Framework = () => {
   const functionId = searchParams.get("functionId");
   const categoryId = searchParams.get("categoryId");
   const subcategoryId = searchParams.get("subcategoryId");
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
@@ -883,43 +881,6 @@ const Framework = () => {
 
   return (
     <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
-      <HelperDrawer
-        open={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
-        title="Organizational frameworks"
-        description="Navigate compliance frameworks like ISO 27001, ISO 42001, and NIST AI RMF for AI governance"
-        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, annexes, and NIST AI RMF functions for *ISO 27001*, *ISO 42001*, and *NIST AI RMF* frameworks*."
-        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and *regulatory requirements*. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating *due diligence* to stakeholders and regulators."
-        quickActions={[
-          {
-            label: "Explore Framework Requirements",
-            description:
-              "Browse detailed clauses and implementation guidelines for each framework",
-            primary: true,
-          },
-          {
-            label: "Check Compliance Status",
-            description:
-              "Review your organization's current compliance progress and gaps",
-          },
-        ]}
-        useCases={[
-          "*ISO 27001 implementation* for *information security management systems*",
-          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*",
-          "*NIST AI RMF integration* for *AI risk management* and *trustworthy AI development*",
-        ]}
-        keyFeatures={[
-          "**Comprehensive framework navigation** with *hierarchical clause structure*",
-          "*Cross-referencing* between different *standards* and requirements",
-          "*Progress tracking* and *compliance gap analysis* tools for implementation planning",
-          "*AI risk management* through NIST framework functions and categories",
-        ]}
-        tips={[
-          "Start with *gap analysis* to understand your *current compliance position*",
-          "Focus on *foundational clauses* before moving to *specific technical requirements*",
-          "Document your *implementation decisions* and evidence for *audit readiness*",
-        ]}
-      />
       <PageBreadcrumbs />
       <Stack
         sx={{
@@ -934,7 +895,7 @@ const Framework = () => {
           description="This page provides an overview of available AI and data governance frameworks to your organization."
           rightContent={
             <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              articlePath="compliance/assessments"
               size="small"
             />
           }
@@ -1452,7 +1413,7 @@ const Framework = () => {
       )}
 
       {isDeleteModalOpen && organizationalProject && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>

@@ -1,7 +1,6 @@
 import { ClauseStructISOModel } from "../../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
 import { SubClauseStructISO } from "../../domain.layer/frameworks/ISO-42001/subClauseStructISO.model";
 import { getClausesReportQuery } from "../../utils/reporting.utils";
-import { ReportBodyData } from "../reportService";
 
 type SubClauses = SubClauseStructISO & {
   implementation_description: string;

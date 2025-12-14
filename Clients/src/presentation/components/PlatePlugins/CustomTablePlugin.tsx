@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TablePlugin, TableRowPlugin, TableCellPlugin, TableCellHeaderPlugin } from "@platejs/table/react";
 import TableToolbar from "./TableToolbar";
 
@@ -8,21 +8,33 @@ import TableToolbar from "./TableToolbar";
 export const TableElement = (props: any) => {
   const { attributes, children, editor } = props;
   const [isFocused, setIsFocused] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tableRef.current && !tableRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+
+    if (isFocused) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFocused]);
 
   return (
     <div
       {...attributes}
+      ref={tableRef}
       style={{
         position: "relative",
         margin: "12px 0",
       }}
-      onFocus={() => setIsFocused(true)}
-      onBlur={(e) => {
-        // Only blur if focus is leaving the table entirely
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          setIsFocused(false);
-        }
-      }}
+      onClick={() => setIsFocused(true)}
     >
       <table
         style={{

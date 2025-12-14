@@ -1184,7 +1184,8 @@ export const createNewTenant = async (
       upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       model_id INTEGER NULL,
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-      is_demo BOOLEAN NOT NULL DEFAULT FALSE
+      is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+      source VARCHAR(50) DEFAULT 'file_manager'
     );`,
       { transaction }
     );

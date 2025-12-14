@@ -42,12 +42,10 @@ import {
 export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
-  "/test": "Dashboard",
   "/overview": "Use cases",
 
   // Project related
   "/project-view": "Project overview",
-  "/test/project-view": "Project overview",
 
   // Vendor management
   "/vendors": "Vendor Management",
@@ -81,6 +79,7 @@ export const routeMapping: Record<string, string> = {
 
   // Event tracking
   "/event-tracker": "Event Tracker",
+  "/event-tracker/logs": "Logs",
 
   // Automations
   "/automations": "Automations",
@@ -110,8 +109,6 @@ export const routeMapping: Record<string, string> = {
   "/set-new-password": "Set New Password",
   "/reset-password-continue": "Continue Password Reset",
 
-  // Playground
-  "/playground": "Component Playground",
 };
 
 /**
@@ -121,11 +118,9 @@ export const routeMapping: Record<string, string> = {
 export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // Main pages
   "/": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
-  "/test": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
 
   // Project related
   "/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
-  "/test/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
   "/overview": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
 
   // Tasks
@@ -174,6 +169,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Event tracking
   "/event-tracker": () => React.createElement(Telescope, { size: 14, strokeWidth: 1.5 }),
+  "/event-tracker/logs": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
 
   // Policy Manager
   "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
@@ -293,12 +289,6 @@ export const getRouteMapping = (path: string): string => {
  */
 export const getRouteIcon = (path: string): React.ReactNode | null => {
   const iconFunction = routeIconMapping[path];
-
-  // Debug logging to help troubleshoot icon matching
-  if (process.env.NODE_ENV === 'development') {
-    console.log('getRouteIcon - path:', path, 'has icon:', !!iconFunction);
-  }
-
   return iconFunction ? iconFunction() : null;
 };
 

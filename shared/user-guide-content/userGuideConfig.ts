@@ -8,7 +8,8 @@ export type IconName =
   | 'Plug'
   | 'FileText'
   | 'GraduationCap'
-  | 'BarChart3';
+  | 'BarChart3'
+  | 'FlaskConical';
 
 export interface Article {
   id: string;
@@ -73,7 +74,7 @@ export const collections: Collection[] = [
     title: 'AI governance',
     description: 'Manage your AI models, track their lifecycle, and maintain comprehensive documentation.',
     icon: 'Brain',
-    articleCount: 4,
+    articleCount: 7,
     articles: [
       {
         id: 'model-inventory',
@@ -88,6 +89,12 @@ export const collections: Collection[] = [
         keywords: ['lifecycle', 'development', 'deployment', 'retirement'],
       },
       {
+        id: 'task-management',
+        title: 'Task management',
+        description: 'Coordinate AI governance activities and compliance tasks across your teams.',
+        keywords: ['task', 'tasks', 'assignment', 'compliance', 'governance', 'deadline', 'priority'],
+      },
+      {
         id: 'incident-management',
         title: 'AI incident management',
         description: 'Document, track, and resolve AI-related incidents effectively.',
@@ -97,7 +104,52 @@ export const collections: Collection[] = [
         id: 'evidence-collection',
         title: 'Evidence collection',
         description: 'Gather and organize evidence for compliance and audits.',
-        keywords: ['evidence', 'documentation', 'proof', 'audit', 'collection'],
+        keywords: ['evidence', 'documentation', 'proof', 'audit', 'collection', 'file', 'manager'],
+      },
+      {
+        id: 'watchtower',
+        title: 'Event Tracker',
+        description: 'Track user actions, system events, and application logs.',
+        keywords: ['event', 'tracker', 'events', 'logs', 'activity', 'audit', 'troubleshooting'],
+      },
+      {
+        id: 'ai-trust-center',
+        title: 'AI Trust Center',
+        description: 'Public transparency portal for sharing your AI governance practices.',
+        keywords: ['trust', 'center', 'transparency', 'public', 'stakeholders', 'disclosure'],
+      },
+    ],
+  },
+  {
+    id: 'llm-evals',
+    title: 'LLM Evals',
+    description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
+    icon: 'FlaskConical',
+    articleCount: 4,
+    articles: [
+      {
+        id: 'llm-evals-overview',
+        title: 'LLM Evals overview',
+        description: 'Introduction to the LLM evaluation platform and key concepts.',
+        keywords: ['llm', 'evals', 'evaluation', 'benchmark', 'overview', 'introduction'],
+      },
+      {
+        id: 'running-experiments',
+        title: 'Running experiments',
+        description: 'Create and run evaluation experiments to test your models.',
+        keywords: ['experiment', 'run', 'evaluate', 'test', 'wizard', 'model', 'judge'],
+      },
+      {
+        id: 'managing-datasets',
+        title: 'Managing datasets',
+        description: 'Upload, browse, and manage evaluation datasets.',
+        keywords: ['dataset', 'upload', 'prompts', 'data', 'json', 'custom', 'builtin'],
+      },
+      {
+        id: 'configuring-scorers',
+        title: 'Configuring scorers',
+        description: 'Set up evaluation metrics and scoring thresholds.',
+        keywords: ['scorer', 'metric', 'threshold', 'judge', 'llm', 'bias', 'toxicity', 'hallucination'],
       },
     ],
   },

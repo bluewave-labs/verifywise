@@ -269,7 +269,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   }}
                 >
                   <TooltipCell
-                    value={userMap.get(modelInventory.approver.toString())}
+                    value={userMap.get(modelInventory.approver?.toString())}
                   />
                 </TableCell>
                 {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>

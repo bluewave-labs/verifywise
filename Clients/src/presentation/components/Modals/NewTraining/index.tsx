@@ -1,11 +1,5 @@
- 
 import React, { FC, useState, useMemo, useCallback, useEffect } from "react";
-import {
-  useTheme,
-  Stack,
-  Box,
-  SelectChangeEvent,
-} from "@mui/material";
+import { useTheme, Stack, Box, SelectChangeEvent } from "@mui/material";
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
@@ -14,7 +8,7 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import {
   TrainingRegistarDTO,
   NewTrainingProps,
-  NewTrainingFormErrors
+  NewTrainingFormErrors,
 } from "../../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../../domain/enums/status.enum";
 import StandardModal from "../StandardModal";
@@ -28,14 +22,16 @@ const VALIDATION_RULES = {
 
 const ERROR_MESSAGES = {
   REQUIRED_FIELD: (field: string) => `${field} is required.`,
-  INVALID_DURATION: "Invalid duration format. Use formats like '2 hours, 3 days, 4 weeks'.",
-  INVALID_PEOPLE_COUNT: "Number of people is required and must be a positive number.",
+  INVALID_DURATION:
+    "Invalid duration format. Use formats like '2 hours, 3 days, 4 weeks'.",
+  INVALID_PEOPLE_COUNT:
+    "Number of people is required and must be a positive number.",
 } as const;
 
 type FormField = keyof NewTrainingFormErrors;
 
 // Form state: status is always required (has default value), other fields optional during editing
-type TrainingFormState = Omit<Partial<TrainingRegistarDTO>, 'status'> & {
+type TrainingFormState = Omit<Partial<TrainingRegistarDTO>, "status"> & {
   status: TrainingStatus;
 };
 
@@ -56,8 +52,11 @@ const statusOptions: Array<{ _id: string; name: string }> = [
 ];
 
 // Utility: Validate required text field (DRY)
-const validateRequiredField = (value: unknown, fieldName: string): string | undefined => {
-  if (!value || typeof value !== 'string' || !value.trim()) {
+const validateRequiredField = (
+  value: unknown,
+  fieldName: string
+): string | undefined => {
+  if (!value || typeof value !== "string" || !value.trim()) {
     return ERROR_MESSAGES.REQUIRED_FIELD(fieldName);
   }
   return undefined;
@@ -65,13 +64,14 @@ const validateRequiredField = (value: unknown, fieldName: string): string | unde
 
 // Utility: Validate duration format (Single Responsibility)
 const validateDuration = (duration: string): string | undefined => {
-  const requiredError = validateRequiredField(duration, 'Duration');
+  const requiredError = validateRequiredField(duration, "Duration");
   if (requiredError) return requiredError;
 
   // const parts = duration.split(",").map(p => p.trim()).filter(Boolean);
   // const invalidParts = parts.filter(part => !VALIDATION_RULES.DURATION_PATTERN.test(part));
 
   // return invalidParts.length > 0 ? ERROR_MESSAGES.INVALID_DURATION : undefined;
+  return undefined;
 };
 
 // Utility: Validate people count (Single Responsibility)
@@ -154,19 +154,25 @@ const NewTraining: FC<NewTrainingProps> = ({
     const newErrors: NewTrainingFormErrors = {};
 
     // Validate required fields using utility
-    const trainingNameError = validateRequiredField(values.training_name, 'Training name');
+    const trainingNameError = validateRequiredField(
+      values.training_name,
+      "Training name"
+    );
     if (trainingNameError) newErrors.training_name = trainingNameError;
 
-    const durationError = validateDuration(values.duration ?? '');
+    const durationError = validateDuration(values.duration ?? "");
     if (durationError) newErrors.duration = durationError;
 
-    const providerError = validateRequiredField(values.provider, 'Provider');
+    const providerError = validateRequiredField(values.provider, "Provider");
     if (providerError) newErrors.provider = providerError;
 
-    const departmentError = validateRequiredField(values.department, 'Department');
+    const departmentError = validateRequiredField(
+      values.department,
+      "Department"
+    );
     if (departmentError) newErrors.department = departmentError;
 
-    const statusError = validateRequiredField(values.status, 'Status');
+    const statusError = validateRequiredField(values.status, "Status");
     if (statusError) newErrors.status = statusError;
 
     const peopleError = validatePeopleCount(values.numberOfPeople);
@@ -182,49 +188,52 @@ const NewTraining: FC<NewTrainingProps> = ({
 
   // Submit: With error boundary (Defensive Programming)
   // Await the onSuccess callback and only close modal on success
-  const handleSubmit = useCallback(async (event?: React.FormEvent) => {
-    if (event) event.preventDefault();
+  const handleSubmit = useCallback(
+    async (event?: React.FormEvent) => {
+      if (event) event.preventDefault();
 
-    if (!validateForm()) return;
+      if (!validateForm()) return;
 
-    // Defensive: Guard against undefined callback
-    if (!onSuccess) {
-      logEngine({
-        type: "error",
-        message: 'onSuccess callback not provided',
-      });
-      handleClose();
-      return;
-    }
-
-    try {
-      // Call success callback with validated data and await result
-      // Type assertion: After validation, all required fields are guaranteed to exist
-      const success = await onSuccess(values as TrainingRegistarDTO);
-
-      // Only close modal if save was successful
-      if (success) {
-        handleClose();
-      } else {
-        // Failed to save - keep modal open, show generic error if parent didn't set specific one
+      // Defensive: Guard against undefined callback
+      if (!onSuccess) {
         logEngine({
           type: "error",
-          message: 'Save operation failed, keeping modal open',
+          message: "onSuccess callback not provided",
         });
-        // Parent handler is responsible for setting the specific error alert
+        handleClose();
+        return;
       }
-    } catch (error) {
-      // Defensive: Catch errors from parent callback (if they throw instead of returning false)
-      logEngine({
-        type: "error",
-        message: `Error in onSuccess callback: ${error}`,
-      });
-      setErrors({
-        training_name: 'An error occurred while saving. Please try again.',
-      });
-      // Keep modal open to preserve user input
-    }
-  }, [values, onSuccess, handleClose]);
+
+      try {
+        // Call success callback with validated data and await result
+        // Type assertion: After validation, all required fields are guaranteed to exist
+        const success = await onSuccess(values as TrainingRegistarDTO);
+
+        // Only close modal if save was successful
+        if (success) {
+          handleClose();
+        } else {
+          // Failed to save - keep modal open, show generic error if parent didn't set specific one
+          logEngine({
+            type: "error",
+            message: "Save operation failed, keeping modal open",
+          });
+          // Parent handler is responsible for setting the specific error alert
+        }
+      } catch (error) {
+        // Defensive: Catch errors from parent callback (if they throw instead of returning false)
+        logEngine({
+          type: "error",
+          message: `Error in onSuccess callback: ${error}`,
+        });
+        setErrors({
+          training_name: "An error occurred while saving. Please try again.",
+        });
+        // Keep modal open to preserve user input
+      }
+    },
+    [values, onSuccess, handleClose]
+  );
 
   const fieldStyle = useMemo(
     () => ({
@@ -236,10 +245,10 @@ const NewTraining: FC<NewTrainingProps> = ({
     [theme.palette.background.main]
   );
 
-    useModalKeyHandling({
-        isOpen,
-        onClose: handleClose,
-    });
+  useModalKeyHandling({
+    isOpen,
+    onClose: handleClose,
+  });
 
   return (
     <StandardModal
@@ -315,19 +324,19 @@ const NewTraining: FC<NewTrainingProps> = ({
         </Stack>
         <Stack direction="row" spacing={6}>
           <Box sx={{ width: "350px" }}>
-              <Suspense fallback={<div>Loading...</div>}>
-                <Select
-                    items={statusOptions}
-                    value={values.status}
-                    error={errors.status}
-                    sx={{ width: "100%" }}
-                    id="status"
-                    label="Status"
-                    isRequired
-                    onChange={handleOnSelectChange("status")}
-                    placeholder="Select status"
-                />
-              </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                items={statusOptions}
+                value={values.status}
+                error={errors.status}
+                sx={{ width: "100%" }}
+                id="status"
+                label="Status"
+                isRequired
+                onChange={handleOnSelectChange("status")}
+                placeholder="Select status"
+              />
+            </Suspense>
           </Box>
           <Box sx={{ width: "350px" }}>
             <Suspense fallback={<div>Loading...</div>}>

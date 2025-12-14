@@ -7,6 +7,7 @@ import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, 
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
@@ -20,7 +21,7 @@ import { deepEvalScorersService } from "../../../infrastructure/api/deepEvalScor
 import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -698,20 +699,14 @@ export default function EvalsDashboard() {
         ];
 
   return (
-    <Box>
-      <Box sx={{ mb: "8px" }}>
-        <Box>
-          <PageBreadcrumbs items={breadcrumbItems} />
-        </Box>
+    <Stack className="vwhome" gap={"16px"}>
+      <PageBreadcrumbs items={breadcrumbItems} />
 
-        {/* Page header (only for projects list view) */}
-        {!projectId && orgId && (
-          <Box sx={{ mt: 4 }}>
-            <PageHeader title="LLM evals" />
-          </Box>
-        )}
-
-      </Box>
+      <PageHeader
+        title="LLM evals"
+        description="Evaluate and benchmark your LLM applications for quality, safety, and performance using customizable scorers and datasets."
+        rightContent={<HelperIcon articlePath="llm-evals/llm-evals-overview" />}
+      />
 
       <Box sx={{ display: "flex", gap: "16px" }}>
         {/* Left column: Project selector + Sidebar */}
@@ -1561,7 +1556,10 @@ export default function EvalsDashboard() {
       {/* Onboarding Modal - Step 1: Create Organization */}
       <ModalStandard
         isOpen={onboardingStep === "org"}
-        onClose={() => {}} // Cannot be dismissed
+        onClose={() => {
+          setOnboardingStep(null);
+          setOnboardingOrgName("");
+        }}
         title="Welcome to LLM evals"
         description="Let's get started by creating your first organization. Organizations help you group projects and manage access."
         onSubmit={handleOnboardingCreateOrg}
@@ -1582,7 +1580,12 @@ export default function EvalsDashboard() {
       {/* Onboarding Modal - Step 2: Create Project */}
       <ModalStandard
         isOpen={onboardingStep === "project"}
-        onClose={() => {}} // Cannot be dismissed
+        onClose={() => {
+          setOnboardingStep(null);
+          setOnboardingProjectName("");
+          setOnboardingProjectDesc("");
+          setOnboardingProjectUseCase("chatbot");
+        }}
         title="Create your first project"
         description="Projects help you organize your LLM evaluations. Each project can have its own datasets, experiments, and configurations."
         onSubmit={handleOnboardingCreateProject}
@@ -1712,7 +1715,7 @@ export default function EvalsDashboard() {
 
       {/* Delete LLM API Key Modal */}
       {deleteKeyModalOpen && keyToDelete && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Delete API key"
           body={
             <Typography fontSize={13}>
@@ -1787,7 +1790,7 @@ export default function EvalsDashboard() {
           <strong>{allProjects.find((p) => p.id === deleteProjectId)?.name}</strong>
         </Typography>
       </ModalStandard>
-    </Box>
+    </Stack>
   );
 }
 

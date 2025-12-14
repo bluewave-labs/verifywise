@@ -5,8 +5,11 @@ import { dashboardContent } from './getting-started/dashboard';
 import { quickStartContent } from './getting-started/quick-start';
 import { modelInventoryContent } from './ai-governance/model-inventory';
 import { modelLifecycleContent } from './ai-governance/model-lifecycle';
+import { taskManagementContent } from './ai-governance/task-management';
 import { incidentManagementContent } from './ai-governance/incident-management';
 import { evidenceCollectionContent } from './ai-governance/evidence-collection';
+import { watchtowerContent } from './ai-governance/watchtower';
+import { aiTrustCenterContent } from './ai-governance/ai-trust-center';
 import { riskAssessmentContent } from './risk-management/risk-assessment';
 import { riskMitigationContent } from './risk-management/risk-mitigation';
 import { vendorManagementContent } from './risk-management/vendor-management';
@@ -29,6 +32,10 @@ import { notificationsContent } from './settings/notifications';
 import { integrationOverviewContent } from './integrations/integration-overview';
 import { slackIntegrationContent } from './integrations/slack-integration';
 import { apiAccessContent } from './integrations/api-access';
+import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
+import { runningExperimentsContent } from './llm-evals/running-experiments';
+import { managingDatasetsContent } from './llm-evals/managing-datasets';
+import { configuringScorersContent } from './llm-evals/configuring-scorers';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -41,8 +48,11 @@ export const articleContentMap: Record<string, ArticleContent> = {
   // AI Governance
   'ai-governance/model-inventory': modelInventoryContent,
   'ai-governance/model-lifecycle': modelLifecycleContent,
+  'ai-governance/task-management': taskManagementContent,
   'ai-governance/incident-management': incidentManagementContent,
   'ai-governance/evidence-collection': evidenceCollectionContent,
+  'ai-governance/watchtower': watchtowerContent,
+  'ai-governance/ai-trust-center': aiTrustCenterContent,
   // Risk Management
   'risk-management/risk-assessment': riskAssessmentContent,
   'risk-management/risk-mitigation': riskMitigationContent,
@@ -72,6 +82,11 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'integrations/integration-overview': integrationOverviewContent,
   'integrations/slack-integration': slackIntegrationContent,
   'integrations/api-access': apiAccessContent,
+  // LLM Evals
+  'llm-evals/llm-evals-overview': llmEvalsOverviewContent,
+  'llm-evals/running-experiments': runningExperimentsContent,
+  'llm-evals/managing-datasets': managingDatasetsContent,
+  'llm-evals/configuring-scorers': configuringScorersContent,
 };
 
 // Helper to get article content

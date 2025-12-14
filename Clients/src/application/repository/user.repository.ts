@@ -57,11 +57,12 @@ interface UserExistsResponse {
 }
 
 /**
- * Response from profile photo upload
+ * Response from profile photo upload/fetch
  */
 interface ProfilePhotoResponse {
   photoUrl?: string;
   message?: string;
+  photo?: unknown | null;
 }
 
 export async function getUserById({
@@ -82,9 +83,9 @@ export async function createNewUser({
   userData,
 }: {
   userData: CreateUserData;
-}): Promise<ApiResponse<User>> {
+}, headers?: Record<string, string>): Promise<ApiResponse<User>> {
   try {
-    const response = await apiServices.post(`/users/register`, userData);
+    const response = await apiServices.post(`/users/register`, userData, { headers });
     return response as ApiResponse<User>;
   } catch (error: unknown) {
     // Re-throw the error with the response data intact
@@ -134,8 +135,20 @@ export async function deleteUserById({
 }: {
   userId: number | string;
 }): Promise<ApiResponse<DeleteResponse>> {
-  const response = await apiServices.delete(`/users/${userId}`);
-  return response as ApiResponse<DeleteResponse>;
+  try {
+    const response = await apiServices.delete(`/users/${userId}`);
+    return response as ApiResponse<DeleteResponse>;
+  } catch (error: unknown) {
+    // Handle 403 (demo user deletion) as a normal response, not an exception
+    const axiosError = error as { status?: number; data?: { data?: string } };
+    if (axiosError.status === 403) {
+      return {
+        data: { message: axiosError.data?.data || "User cannot be deleted" },
+        status: 403,
+      };
+    }
+    throw error;
+  }
 }
 
 export async function checkUserExists(): Promise<UserExistsResponse> {
@@ -177,10 +190,19 @@ export async function uploadUserProfilePhoto(
 }
 
 export async function getUserProfilePhoto(userId: number | string): Promise<ProfilePhotoResponse> {
-  const response = await apiServices.get<ProfilePhotoResponse>(`/users/${userId}/profile-photo`, {
-    responseType: "json",
-  });
-  return response.data;
+  try {
+    const response = await apiServices.get<ProfilePhotoResponse>(`/users/${userId}/profile-photo`, {
+      responseType: "json",
+    });
+    return response.data;
+  } catch (error: unknown) {
+    // Handle 404 (no profile photo) as a normal response, not an exception
+    const axiosError = error as { status?: number };
+    if (axiosError.status === 404) {
+      return { photo: null } as ProfilePhotoResponse;
+    }
+    throw error;
+  }
 }
 
 /**

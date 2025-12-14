@@ -1,9 +1,10 @@
-import { TableBody, TableRow, TableCell, Box } from "@mui/material";
+import { useState } from "react";
+import { TableBody, TableRow, TableCell, Box, IconButton, Typography } from "@mui/material";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { Trash2 as DeleteIconGrey } from "lucide-react";
 import Button from "../../../../components/Button/index";
-import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
-import { IFairnessTableBodyProps } from "../../../../../domain/interfaces/i.table";
+import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
+import { IFairnessTableBodyProps, IFairnessRow } from "../../../../../domain/interfaces/i.table";
 
 const StatusBadge: React.FC<{
   status: "In Progress" | "Completed" | "Failed";
@@ -46,98 +47,142 @@ const FairnessTableBody: React.FC<IFairnessTableBodyProps> = ({
   onShowDetails,
   onRemoveModel,
 }) => {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<IFairnessRow | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, row: IFairnessRow) => {
+    e.stopPropagation();
+    setRowToDelete(row);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (rowToDelete) {
+      onRemoveModel.onConfirm(rowToDelete.id);
+      setDeleteModalOpen(false);
+      setRowToDelete(null);
+    }
+  };
+
   return (
-    <TableBody>
-      {rows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .map((row) => (
-          <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-                width: "20%",
-              }}
-            >
-              {row.status === "In Progress" ? "Pending..." : row.id}
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-              }}
-            >
-              {row.model}
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-              }}
-            >
-              {row.dataset}
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-                textTransform: "none",
-              }}
-            >
-              <Box sx={{ width: "50%", ml: -4 }}>
-                <StatusBadge status={row.status} />
-              </Box>
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <Box display="flex" justifyContent="left">
-                <Button
-                  onClick={() => onShowDetails(row)}
+    <>
+      <TableBody>
+        {rows
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          .map((row) => (
+            <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  textTransform: "none",
+                  width: "20%",
+                }}
+              >
+                {row.status === "In Progress" ? "Pending..." : row.id}
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  textTransform: "none",
+                }}
+              >
+                {row.model}
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  textTransform: "none",
+                }}
+              >
+                {row.dataset}
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  textTransform: "none",
+                }}
+              >
+                <Box sx={{ width: "50%", ml: -4 }}>
+                  <StatusBadge status={row.status} />
+                </Box>
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                }}
+              >
+                <Box display="flex" justifyContent="left">
+                  <Button
+                    onClick={() => onShowDetails(row)}
+                    sx={{
+                      ml: -2,
+                      fontSize: "18 !important",
+                      backgroundColor: "#13715B", // keep your styling
+                      color: "white",
+                      textTransform: "none",
+                      opacity: row.status !== "Completed" ? 0.5 : 1,
+                      pointerEvents: row.status !== "Completed" ? "none" : "auto",
+                    }}
+                  >
+                    Show
+                  </Button>
+                </Box>
+              </TableCell>
+              <TableCell
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                }}
+              >
+                <IconButton
+                  disabled={row.status !== "Completed"}
+                  onClick={(e) => handleDeleteClick(e, row)}
                   sx={{
-                    ml: -2,
-                    fontSize: "18 !important",
-                    backgroundColor: "#13715B", // keep your styling
-                    color: "white",
-                    textTransform: "none",
+                    padding: 0,
                     opacity: row.status !== "Completed" ? 0.5 : 1,
-                    pointerEvents: row.status !== "Completed" ? "none" : "auto",
                   }}
                 >
-                  Show
-                </Button>
-              </Box>
-            </TableCell>
-            <TableCell
-              sx={{
-                ...singleTheme.tableStyles.primary.body.cell,
-                paddingLeft: "12px",
-                paddingRight: "12px",
-              }}
-            >
-              <ConfirmableDeleteIconButton
-                disabled={row.status !== "Completed"}
-                id={row.id}
-                onConfirm={() => onRemoveModel.onConfirm(row.id)}
-                title={`Delete this fairness check?`}
-                message={`Are you sure you want to delete fairness check ID ${row.id}? This action is non-recoverable.`}
-                customIcon={<DeleteIconGrey size={16} />}
-              />
-            </TableCell>
-          </TableRow>
-        ))}
-    </TableBody>
+                  <DeleteIconGrey size={16} />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+      </TableBody>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && rowToDelete && (
+        <ConfirmationModal
+          isOpen={deleteModalOpen}
+          title="Delete this fairness check?"
+          body={
+            <Typography fontSize={13} color="#344054">
+              Are you sure you want to delete fairness check ID {rowToDelete.id}? This action is non-recoverable.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={() => {
+            setDeleteModalOpen(false);
+            setRowToDelete(null);
+          }}
+          onProceed={handleConfirmDelete}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
+      )}
+    </>
   );
 };
 

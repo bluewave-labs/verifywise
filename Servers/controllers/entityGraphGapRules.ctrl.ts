@@ -20,12 +20,10 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import { EntityGraphGapRulesService } from "../services/entityGraphGapRulesService";
 import {
   ValidationException,
-  BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
 import {
   logFailure,
   logProcessing,
-  logSuccess,
 } from "../utils/logger/logHelper";
 import { sanitizeErrorMessage } from "../utils/entityGraphSecurity.utils";
 
@@ -205,7 +203,7 @@ export async function resetGapRules(req: Request, res: Response): Promise<any> {
  * @returns {Promise<any>} JSON response with default rules
  */
 export async function getDefaultGapRules(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   logProcessing({

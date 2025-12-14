@@ -26,7 +26,6 @@ import {
 import {
   logFailure,
   logProcessing,
-  logSuccess,
 } from "../utils/logger/logHelper";
 import { sanitizeErrorMessage } from "../utils/entityGraphSecurity.utils";
 

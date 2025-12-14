@@ -38,6 +38,7 @@ describe("Report Generation Service", () => {
       generatedAt: new Date(),
       generatedBy: "Test User",
       tenantId: "test-tenant",
+      isOrganizational: false,
     },
     branding: {
       organizationName: "Test Org",

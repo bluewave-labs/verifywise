@@ -47,6 +47,7 @@ describe("PDF Generator", () => {
       generatedAt: new Date("2024-01-15"),
       generatedBy: "Test User",
       tenantId: "test-tenant",
+      isOrganizational: false,
     },
     branding: {
       organizationName: "Test Org",

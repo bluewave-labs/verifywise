@@ -175,7 +175,7 @@ export const getProjectByIdQuery = async (
       replacements: { owner_id: project.owner },
     }
   )) as [{ full_name: string }[], number];
-  (project.dataValues as any)["owner_name"] = projectOwner[0][0].full_name;
+  (project.dataValues as any)["owner_name"] = projectOwner[0]?.[0]?.full_name || "Unknown";
 
   const members = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
@@ -369,7 +369,7 @@ export const createNewProjectQuery = async (
       // Build replacements
       const replacements = buildProjectReplacements({
         ...createdProject.dataValues,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body
@@ -571,7 +571,7 @@ export const updateProjectByIdQuery = async (
       // Build replacements
       const replacements = buildProjectUpdateReplacements(oldProject, {
         ...updatedProject.dataValues,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body
@@ -779,7 +779,7 @@ export const deleteProjectByIdQuery = async (
       // Build replacements
       const replacements = buildProjectReplacements({
         ...deletedProject,
-        owner_name: owner_name[0][0].full_name,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
       });
 
       // Replace variables in subject and body

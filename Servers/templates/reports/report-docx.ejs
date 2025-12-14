@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= metadata.projectTitle %> - <%= metadata.frameworkName %> Report</title>
+  <style>
+    <%- include('./styles/docx.css') %>
+  </style>
+</head>
+<body>
+
+<!-- Cover Page - vertically centered content -->
+<div style="text-align: center; padding-top: 200pt;">
+  <% if (branding.organizationLogo) { %>
+  <div style="margin-bottom: 24pt;">
+    <img src="<%= branding.organizationLogo %>" alt="<%= branding.organizationName %>" style="max-width: 200px; max-height: 80px;">
+  </div>
+  <% } else { %>
+  <div style="font-size: 24pt; font-weight: bold; margin-bottom: 12pt;"><%= branding.organizationName %></div>
+  <% } %>
+  <div style="font-size: 18pt; color: #667085; margin-bottom: 48pt;"><%= metadata.frameworkName %> Report</div>
+
+  <div style="margin-top: 48pt;">
+    <% if (!metadata.isOrganizational) { %>
+    <p><strong>Project:</strong> <%= metadata.projectTitle %></p>
+    <p><strong>Owner:</strong> <%= metadata.projectOwner %></p>
+    <% } %>
+    <p><strong>Generated:</strong> <%= metadata.generatedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+    <p><strong>Prepared by:</strong> <%= metadata.generatedBy %></p>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- Table of Contents -->
+<h1>Table of contents</h1>
+
+<%
+// Determine which groups have content
+const hasRiskAnalysis = sections.projectRisks || sections.vendorRisks || sections.modelRisks;
+const hasComplianceGovernance = sections.compliance || sections.assessment || sections.clausesAndAnnexes || sections.nistSubcategories;
+const hasOrganization = sections.vendors || sections.models || sections.trainingRegistry || sections.policyManager || sections.incidentManagement;
+let sectionNum = 1;
+%>
+
+<p><%= sectionNum++ %>. Executive summary</p>
+<% if (hasRiskAnalysis) { %><p><%= sectionNum++ %>. Risk analysis</p><% } %>
+<% if (hasComplianceGovernance) { %><p><%= sectionNum++ %>. Compliance & governance</p><% } %>
+<% if (hasOrganization) { %><p><%= sectionNum++ %>. Organization</p><% } %>
+
+<div class="page-break"></div>
+
+<!-- Executive Summary -->
+<h2>1. Executive summary</h2>
+
+<table class="summary-table">
+  <tr>
+    <% if (sections.projectRisks) { %>
+    <td>
+      <div class="summary-value"><%= sections.projectRisks.totalRisks %></div>
+      <div class="summary-label">Use Case Risks</div>
+    </td>
+    <% } %>
+    <% if (sections.vendorRisks) { %>
+    <td>
+      <div class="summary-value"><%= sections.vendorRisks.totalRisks %></div>
+      <div class="summary-label">Vendor Risks</div>
+    </td>
+    <% } %>
+    <% if (sections.modelRisks) { %>
+    <td>
+      <div class="summary-value"><%= sections.modelRisks.totalRisks %></div>
+      <div class="summary-label">Model Risks</div>
+    </td>
+    <% } %>
+    <% if (sections.vendors) { %>
+    <td>
+      <div class="summary-value"><%= sections.vendors.totalVendors %></div>
+      <div class="summary-label">Vendors</div>
+    </td>
+    <% } %>
+    <% if (sections.compliance) { %>
+    <td>
+      <div class="summary-value"><%= sections.compliance.overallProgress %>%</div>
+      <div class="summary-label">Compliance</div>
+    </td>
+    <% } %>
+    <% if (sections.models) { %>
+    <td>
+      <div class="summary-value"><%= sections.models.totalModels %></div>
+      <div class="summary-label">AI Models</div>
+    </td>
+    <% } %>
+    <% if (sections.incidentManagement) { %>
+    <td>
+      <div class="summary-value"><%= sections.incidentManagement.totalIncidents %></div>
+      <div class="summary-label">Incidents</div>
+    </td>
+    <% } %>
+  </tr>
+</table>
+
+<% if (charts.riskDistribution && charts.riskDistribution.length > 0) { %>
+<h3>Risk distribution</h3>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th style="width: 30%;">Risk Level</th>
+      <th style="width: 20%;">Count</th>
+      <th style="width: 50%;">Distribution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%
+      const maxCount = Math.max(...charts.riskDistribution.map(d => d.count));
+      charts.riskDistribution.forEach((item) => {
+        const barWidth = maxCount > 0 ? Math.round((item.count / maxCount) * 100) : 0;
+    %>
+    <tr>
+      <td><span class="status-chip" style="background-color: <%= item.color %>20; color: <%= item.color %>; border: 1px solid <%= item.color %>40;"><%= item.level %></span></td>
+      <td style="text-align: center;"><%= item.count %></td>
+      <td>
+        <div style="background-color: #F2F4F7; border-radius: 4px; height: 16px; width: 100%;">
+          <div style="background-color: <%= item.color %>; border-radius: 4px; height: 16px; width: <%= barWidth %>%;"></div>
+        </div>
+      </td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+
+<div class="page-break"></div>
+
+<!-- ============================================ -->
+<!-- RISK ANALYSIS GROUP -->
+<!-- ============================================ -->
+<% if (sections.projectRisks || sections.vendorRisks || sections.modelRisks) { %>
+<h2>Risk analysis</h2>
+
+<!-- Use Case Risks -->
+<% if (sections.projectRisks) { %>
+<h3>Use case risks</h3>
+
+<p><strong>Total Risks:</strong> <%= sections.projectRisks.totalRisks %></p>
+
+<% if (sections.projectRisks.risksByLevel.length > 0) { %>
+<p><strong>Risk distribution:</strong></p>
+<ul>
+  <% sections.projectRisks.risksByLevel.forEach(function(level) { %>
+  <li><%= level.level %>: <%= level.count %></li>
+  <% }); %>
+</ul>
+<% } %>
+
+<% if (sections.projectRisks.risks.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Risk Name</th>
+      <th>Owner</th>
+      <th>Severity</th>
+      <th>Likelihood</th>
+      <th>Mitigation Status</th>
+      <th>Risk Level</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.projectRisks.risks.forEach(function(risk) { %>
+    <tr>
+      <td><strong><%= risk.name %></strong></td>
+      <td><%= risk.owner %></td>
+      <td><%= risk.impact %></td>
+      <td><%= risk.likelihood %></td>
+      <td><%= risk.mitigationStatus %></td>
+      <td class="risk-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No use case risks have been identified.</p>
+<% } %>
+<% } %>
+
+<!-- Vendor Risks -->
+<% if (sections.vendorRisks) { %>
+<h3>Vendor risks (<%= sections.vendorRisks.totalRisks %>)</h3>
+
+<% if (sections.vendorRisks.risks.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Vendor</th>
+      <th>Risk</th>
+      <th>Risk Level</th>
+      <th>Action Owner</th>
+      <th>Action Plan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.vendorRisks.risks.forEach(function(risk) { %>
+    <tr>
+      <td><%= risk.vendorName %></td>
+      <td><%= risk.riskName %></td>
+      <td class="risk-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></td>
+      <td><%= risk.actionOwner || '-' %></td>
+      <td><%= risk.actionPlan || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No vendor risks have been identified.</p>
+<% } %>
+<% } %>
+
+<!-- Model Risks -->
+<% if (sections.modelRisks) { %>
+<h3>Model risks (<%= sections.modelRisks.totalRisks %>)</h3>
+
+<% if (sections.modelRisks.risks.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Risk</th>
+      <th>Risk Level</th>
+      <th>Mitigation Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.modelRisks.risks.forEach(function(risk) { %>
+    <tr>
+      <td><%= risk.modelName %></td>
+      <td><%= risk.riskName %></td>
+      <td class="risk-<%= risk.riskLevel.toLowerCase().replace(/\s+/g, '-') %>"><%= risk.riskLevel %></td>
+      <td><%= risk.mitigationStatus %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No model risks have been identified.</p>
+<% } %>
+<% } %>
+
+<div class="page-break"></div>
+<% } %>
+
+<!-- ============================================ -->
+<!-- COMPLIANCE & GOVERNANCE GROUP -->
+<!-- ============================================ -->
+<% if (sections.compliance || sections.assessment || sections.clausesAndAnnexes || sections.nistSubcategories) { %>
+<h2>Compliance & governance</h2>
+
+<!-- Controls (EU AI Act) -->
+<% if (sections.compliance) { %>
+<h3>Controls</h3>
+
+<p><strong>Overall Progress:</strong> <%= sections.compliance.overallProgress %>%</p>
+<p><strong>Total Controls:</strong> <%= sections.compliance.totalControls %></p>
+<p><strong>Completed:</strong> <%= sections.compliance.completedControls %></p>
+
+<% if (sections.compliance.controls.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Control ID</th>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.compliance.controls.forEach(function(control) { %>
+    <tr>
+      <td><strong><%= control.controlId %></strong></td>
+      <td><%= control.title %></td>
+      <td class="status-<%= control.status.toLowerCase().replace(/\s+/g, '-') %>"><%= control.status %></td>
+      <td><%= control.owner || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+<% } %>
+
+<!-- Assessment Tracker (EU AI Act) -->
+<% if (sections.assessment) { %>
+<h3>Assessment tracker</h3>
+
+<p><strong>Questions Answered:</strong> <%= sections.assessment.answeredQuestions %> / <%= sections.assessment.totalQuestions %></p>
+
+<% sections.assessment.topics.forEach(function(topic) { %>
+<h4><%= topic.title %> (<%= topic.progress %>% complete)</h4>
+
+<% topic.subtopics.forEach(function(subtopic) { %>
+<h5><%= subtopic.title %></h5>
+
+<% if (subtopic.questions.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Question</th>
+      <th>Answer</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% subtopic.questions.forEach(function(q) { %>
+    <tr>
+      <td><%= q.question %></td>
+      <td><%= q.answer || '-' %></td>
+      <td class="status-<%= q.status.toLowerCase() %>"><%= q.status %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+<% }); %>
+<% }); %>
+<% } %>
+
+<!-- Clauses and Annexes (ISO) -->
+<% if (sections.clausesAndAnnexes) { %>
+<h3>Clauses and annexes</h3>
+
+<% if (sections.clausesAndAnnexes.clauses.length > 0) { %>
+<h4>Clauses</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Clause ID</th>
+      <th>Title</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.clausesAndAnnexes.clauses.forEach(function(clause) { %>
+    <tr>
+      <td><strong><%= clause.clauseId %></strong></td>
+      <td><%= clause.title %></td>
+      <td class="status-<%= clause.status.toLowerCase().replace(/\s+/g, '-') %>"><%= clause.status %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+
+<% if (sections.clausesAndAnnexes.annexes.length > 0) { %>
+<h4>Annexes</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Annex ID</th>
+      <th>Title</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.clausesAndAnnexes.annexes.forEach(function(annex) { %>
+    <tr>
+      <td><strong><%= annex.annexId %></strong></td>
+      <td><%= annex.title %></td>
+      <td class="status-<%= annex.status.toLowerCase().replace(/\s+/g, '-') %>"><%= annex.status %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+<% } %>
+
+<!-- NIST AI RMF Subcategories -->
+<% if (sections.nistSubcategories) { %>
+<h3>NIST AI RMF subcategories</h3>
+
+<% sections.nistSubcategories.functions.forEach(function(func) { %>
+<h4><%= func.name %></h4>
+
+<% func.categories.forEach(function(category) { %>
+<h5><%= category.name %></h5>
+
+<% if (category.subcategories.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Subcategory</th>
+      <th>Status</th>
+      <th>Risks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% category.subcategories.forEach(function(sub) { %>
+    <tr>
+      <td><strong><%= sub.subcategoryId %></strong></td>
+      <td><%= sub.name %></td>
+      <td class="status-<%= sub.status.toLowerCase().replace(/\s+/g, '-') %>"><%= sub.status %></td>
+      <td>
+        <% if (sub.risks.length > 0) { %>
+        <%= sub.risks.map(r => r.riskName).join(', ') %>
+        <% } else { %>
+        -
+        <% } %>
+      </td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } %>
+<% }); %>
+<% }); %>
+<% } %>
+
+<div class="page-break"></div>
+<% } %>
+
+<!-- ============================================ -->
+<!-- ORGANIZATION GROUP -->
+<!-- ============================================ -->
+<% if (sections.vendors || sections.models || sections.trainingRegistry || sections.policyManager || sections.incidentManagement) { %>
+<h2>Organization</h2>
+
+<!-- AI Models -->
+<% if (sections.models) { %>
+<h3>AI models (<%= sections.models.totalModels %>)</h3>
+
+<% if (sections.models.models.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Model Name</th>
+      <th>Version</th>
+      <th>Status</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.models.models.forEach(function(model) { %>
+    <tr>
+      <td><strong><%= model.name %></strong></td>
+      <td><%= model.version || '-' %></td>
+      <td><%= model.status %></td>
+      <td><%= model.owner || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No AI models have been registered.</p>
+<% } %>
+<% } %>
+
+<!-- Vendors -->
+<% if (sections.vendors) { %>
+<h3>Vendors (<%= sections.vendors.totalVendors %>)</h3>
+
+<% if (sections.vendors.vendors.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Vendor Name</th>
+      <th>Website</th>
+      <th>Contact</th>
+      <th>Risk Status</th>
+      <th>Assignee</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.vendors.vendors.forEach(function(vendor) { %>
+    <tr>
+      <td><strong><%= vendor.name %></strong></td>
+      <td><%= vendor.website || '-' %></td>
+      <td><%= vendor.contactPerson || '-' %></td>
+      <td><%= vendor.riskStatus %></td>
+      <td><%= vendor.assignee || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No vendors have been added.</p>
+<% } %>
+<% } %>
+
+<!-- Training Registry -->
+<% if (sections.trainingRegistry) { %>
+<h3>Training registry (<%= sections.trainingRegistry.totalRecords %>)</h3>
+
+<% if (sections.trainingRegistry.records.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Training Name</th>
+      <th>Completion Date</th>
+      <th>Status</th>
+      <th>Assignee</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.trainingRegistry.records.forEach(function(record) { %>
+    <tr>
+      <td><strong><%= record.trainingName %></strong></td>
+      <td><%= record.completionDate || '-' %></td>
+      <td class="status-<%= record.status.toLowerCase().replace(/\s+/g, '-') %>"><%= record.status %></td>
+      <td><%= record.assignee || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No training records have been added.</p>
+<% } %>
+<% } %>
+
+<!-- Policy Manager -->
+<% if (sections.policyManager) { %>
+<h3>Policy manager (<%= sections.policyManager.totalPolicies %>)</h3>
+
+<% if (sections.policyManager.policies.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Policy Name</th>
+      <th>Version</th>
+      <th>Status</th>
+      <th>Review Date</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.policyManager.policies.forEach(function(policy) { %>
+    <tr>
+      <td><strong><%= policy.policyName %></strong></td>
+      <td><%= policy.version || '-' %></td>
+      <td class="status-<%= policy.status.toLowerCase().replace(/\s+/g, '-') %>"><%= policy.status %></td>
+      <td><%= policy.reviewDate || '-' %></td>
+      <td><%= policy.owner || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No policies have been created.</p>
+<% } %>
+<% } %>
+
+<!-- Incident Management -->
+<% if (sections.incidentManagement) { %>
+<h3>Incident management (<%= sections.incidentManagement.totalIncidents %>)</h3>
+
+<% if (sections.incidentManagement.incidents.length > 0) { %>
+<table>
+  <thead>
+    <tr>
+      <th>Incident ID</th>
+      <th>Title</th>
+      <th>Type</th>
+      <th>Severity</th>
+      <th>Status</th>
+      <th>Reported</th>
+      <th>Assignee</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% sections.incidentManagement.incidents.forEach(function(incident) { %>
+    <tr>
+      <td><strong><%= incident.incidentId %></strong></td>
+      <td><%= incident.title %></td>
+      <td><%= incident.type %></td>
+      <td><%= incident.severity %></td>
+      <td><%= incident.status %></td>
+      <td><%= incident.reportedDate || '-' %></td>
+      <td><%= incident.assignee || '-' %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty-state">No incidents have been reported.</p>
+<% } %>
+<% } %>
+<% } %>
+
+<!-- Footer -->
+<div class="footer">
+  <p><%= branding.organizationName %> | <%= metadata.generatedAt.toLocaleDateString() %></p>
+</div>
+
+</body>
+</html>

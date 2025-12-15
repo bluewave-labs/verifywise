@@ -676,9 +676,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => navigate(`${item.path}`)}
               sx={{
                 height: "32px",
-                gap: theme.spacing(4),
+                gap: collapsed ? 0 : theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
+                justifyContent: collapsed ? "center" : "flex-start",
                 background:
                   location.pathname === item.path ||
                   item.highlightPaths?.some((p: string) =>
@@ -728,7 +729,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   minWidth: 0,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "flex-start",
+                  justifyContent: "center",
                   width: "16px",
                   mr: 0,
                   "& svg": {
@@ -881,9 +882,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => navigate(`${item.path}`)}
                   sx={{
                     height: "32px",
-                    gap: theme.spacing(4),
+                    gap: collapsed ? 0 : theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
+                    justifyContent: collapsed ? "center" : "flex-start",
                     background:
                       location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
@@ -936,7 +938,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       minWidth: 0,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "flex-start",
+                      justifyContent: "center",
                       width: "16px",
                       mr: 0,
                       "& svg": {

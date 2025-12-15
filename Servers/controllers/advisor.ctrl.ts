@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { runAgent } from "../advisor/agent";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { getLLMKeysQuery } from "../utils/llmKey.utils";
+import { getLLMKeysQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
+import { LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 
 const fileName = "advisor.ctrl.ts";
 
@@ -45,9 +46,10 @@ export async function runAdvisor(req: Request, res: Response) {
     }
 
     const apiKey = clients[0];
+    const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
     const response = await runAgent({
       apiKey: apiKey.key || "",
-      baseURL: apiKey.url,
+      baseURL: url,
       model: apiKey.model,
       advisorType,
       userPrompt: prompt,

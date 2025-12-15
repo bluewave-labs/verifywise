@@ -26,7 +26,7 @@ const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = usePersistedViewMode(
     "projects-view-mode",
-    "card"
+    "table"
   );
 
   const [users, setUsers] = useState<any[]>([]);

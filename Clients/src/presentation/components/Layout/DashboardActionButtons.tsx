@@ -185,7 +185,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 
       <RequestorApprovalModal
         isOpen={isRequestModalOpen}
-        isRequestor={isRequestor}
+        mode={isRequestor ? 'requestor' : 'approver'}
         onClose={() => setIsRequestModalOpen(false)} />
     </Stack>
   );

@@ -270,7 +270,7 @@ const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
                                 sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("status")))}
                             >
 
-                                <Chip label={request.status} 
+                                <Chip label={request.status}
                                 />
                             </TableCell>
                             <TableCell
@@ -289,11 +289,12 @@ const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
                                 <Stack direction="row" spacing={1}>
                                     <CustomIconButton
                                         id={request.id}
-                                        type="workflow"
-                                        onEdit={() => onOpenRequestDetails(request.id.toString())}
+                                        type="viewOnly"
+                                        onView={() => onOpenRequestDetails(request.id.toString())}
                                         onMouseEvent={() => { }}
                                         canDelete={false}
-                                        onDelete={() => { }} />
+                                        onDelete={() => { }}
+                                        onEdit={() => { }} />
                                 </Stack>
                             </TableCell>
                         </TableRow>

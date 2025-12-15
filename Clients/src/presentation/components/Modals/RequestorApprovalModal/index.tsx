@@ -43,11 +43,13 @@ import { getMenuGroups } from './mockData';
 import Field from "../../Inputs/Field";
 import { IMenuItem } from "../../../../domain/interfaces/i.menu";
 
+type ApprovalModalMode = 'approver' | 'requestor' | 'viewOnly';
 
 export interface IRequestorApprovalProps {
     isOpen: boolean;
     onClose: () => void;
-    isRequestor: boolean;
+    mode: ApprovalModalMode;
+    requestId?: number;  // Required when mode is 'viewOnly'
 }
 
 export interface ITimelineStep {
@@ -136,7 +138,8 @@ const getStepDetails = (stepId: number): IStepDetails | null => {
 const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     isOpen,
     onClose,
-    isRequestor
+    mode,
+    requestId
 }) => {
 
     const [isStepDetailsModalOpen, setIsStepDetailsModalOpen] = useState(false);
@@ -205,30 +208,48 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     }
 
     const renderCustomFooter = () => {
-        if (isRequestor) {
+        if (mode === 'viewOnly') {
+            return null;
+        }
+        
+        if (mode === 'requestor') {
             return (
                 <>
                     <Box />
                     <Button onClick={handleWithdrawClick} color="error" variant="contained">Withdraw</Button>
                 </>
             );
-        } else {
-            return (
-                <Stack
-                    direction="row"
-                    justifyContent="flex-end"
-                    spacing={8}
-                    alignItems="center"
-                    width="100%"
-                >
-                    <Button onClick={handleReject} color="error" variant="contained">Reject</Button>
-                    <Button onClick={handleApprove} color="primary" variant="contained">Approve</Button>
-                </Stack>
-            );
         }
+        
+        // mode === 'approver'
+        return (
+            <Stack
+                direction="row"
+                justifyContent="flex-end"
+                spacing={8}
+                alignItems="center"
+                width="100%"
+            >
+                <Button onClick={handleReject} color="error" variant="contained">Reject</Button>
+                <Button onClick={handleApprove} color="primary" variant="contained">Approve</Button>
+            </Stack>
+        );
     };
 
     useEffect(() => {
+        // In viewOnly mode, use the provided requestId
+        if (mode === 'viewOnly' && requestId !== undefined) {
+            // Find the item by requestId across all groups
+            for (const group of menuGroups) {
+                const item = group.items.find(item => item.id === requestId);
+                if (item) {
+                    setSelectedItem(item);
+                    return;
+                }
+            }
+        }
+        
+        // Default behavior: select first item
         const firstGroup = menuGroups[0];
         if (firstGroup && firstGroup.items.length > 0) {
             const firstItem = firstGroup.items[0];
@@ -237,18 +258,19 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 setSelectedItem(firstItem);
             }
         }
-    }, []);
+    }, [mode, requestId, menuGroups]);
 
     return (
         <StandardModal
             isOpen={isOpen}
             onClose={onClose}
-            maxWidth="900px"
-            title={isRequestor ? "Approval requests" : "Approval requests"}
-            description="Manage and review your requestor approvals."
+            maxWidth={mode === 'viewOnly' ? "600px" : "900px"}
+            title={mode === 'viewOnly' ? "Approval timeline" : "Approval requests"}
+            description={mode === 'viewOnly' ? "View approval request timeline." : "Manage and review your requestor approvals."}
             customFooter={renderCustomFooter()}
         >
             <Stack direction="row" spacing={12} >
+                {mode !== 'viewOnly' && (
                 <Box
                     width="250px"
                     sx={sidebarContainer}
@@ -369,11 +391,14 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                         </Stack>
                     </Stack>
                 </Box>
+                )}
+                {mode !== 'viewOnly' && (
                 <Divider
                     orientation="vertical"
                     flexItem
                     sx={verticalDividerStyle(theme)}
                 />
+                )}
                 <Stack spacing={8} direction="column"
                     sx={timelineContainer}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -467,7 +492,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                             </React.Fragment>
                         ))}
                     </Stack>
-                    {!isRequestor && (
+                    {mode === 'approver' && (
                         <Stack spacing={0}>
                             <Field
                                 label="Comment"

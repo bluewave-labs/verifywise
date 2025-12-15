@@ -236,7 +236,11 @@ const IconButton: React.FC<IconButtonProps> = ({
         return ["restore", "delete"];
       }
       return ["edit", "archive", "delete"];
-    } else {
+    }
+    else if (type === "viewOnly") {
+      return ["view"];
+    }
+    else {
       return ["edit", "remove"];
     }
   };

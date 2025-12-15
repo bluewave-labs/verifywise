@@ -11,6 +11,7 @@ import { addNewWorkflowButton, workflowMainStack, filterSearchContainer } from "
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CreateNewApprovalWorkflow from "../../components/Modals/NewApprovalWorkflow";
+import RequestorApprovalModal from "../../components/Modals/RequestorApprovalModal";
 import { ApprovalWorkflowStepModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflowStepModel";
 import { ApprovalStatus } from "../../../domain/enums/aiApprovalWorkflow.enum";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
@@ -26,10 +27,13 @@ const ApprovalWorkflows: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [requestSearchTerm, setRequestSearchTerm] = useState("");
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<string>("workflows");
     const [requestsData, setRequestsData] = useState<ApprovalRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    const [selectedRequestId, setSelectedRequestId] = useState<number | undefined>(undefined);
 
     /** -------------------- FILTERING SETUP -------------------- */
 
@@ -46,16 +50,6 @@ const ApprovalWorkflows: React.FC = () => {
             type: 'select' as const,
             options: [
                 { value: '1', label: 'Use case' },
-            ],
-        },
-        {
-            id: 'approval_status',
-            label: 'Approval Status',
-            type: 'select' as const,
-            options: [
-                { value: ApprovalStatus.PENDING, label: 'Pending' },
-                { value: ApprovalStatus.APPROVED, label: 'Approved' },
-                { value: ApprovalStatus.REJECTED, label: 'Rejected' },
             ],
         },
     ], []);
@@ -80,6 +74,51 @@ const ApprovalWorkflows: React.FC = () => {
     // FilterBy - Initialize hook
     const { filterData: filterWorkflowData, handleFilterChange: handleWorkflowFilterChange } = useFilterBy<ApprovalWorkflowModel>(getWorkflowFieldValue);
 
+    // Requests FilterBy - Filter columns configuration
+    const requestsFilterColumns: FilterColumn[] = useMemo(() => [
+        {
+            id: 'request_name',
+            label: 'Request Name',
+            type: 'text' as const,
+        },
+        {
+            id: 'workflow_name',
+            label: 'Workflow',
+            type: 'text' as const,
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            type: 'select' as const,
+            options: [
+                { value: 'Pending', label: 'Pending' },
+                { value: 'Approved', label: 'Approved' },
+                { value: 'Withdrawn', label: 'Withdrawn' },
+                { value: 'Rejected', label: 'Rejected' },
+            ],
+        },
+    ], []);
+
+    // Requests FilterBy - Field value getter
+    const getRequestFieldValue = useCallback(
+        (item: ApprovalRequest, fieldId: string): string | number | Date | null | undefined => {
+            switch (fieldId) {
+                case 'request_name':
+                    return item.request_name;
+                case 'workflow_name':
+                    return item.workflow_name;
+                case 'status':
+                    return item.status;
+                default:
+                    return null;
+            }
+        },
+        []
+    );
+
+    // Requests FilterBy - Initialize hook
+    const { filterData: filterRequestsData, handleFilterChange: handleRequestsFilterChange } = useFilterBy<ApprovalRequest>(getRequestFieldValue);
+
     /** -------------------- FILTERING -------------------- */
     const filteredData = useMemo(() => {
         // Apply FilterBy conditions
@@ -96,6 +135,24 @@ const ApprovalWorkflows: React.FC = () => {
 
         return result;
     }, [filterWorkflowData, workflowData, searchTerm]);
+
+    /** -------------------- REQUESTS FILTERING -------------------- */
+    const filteredRequestsData = useMemo(() => {
+        // Apply FilterBy conditions
+        let result = filterRequestsData(requestsData);
+
+        // Apply search filter
+        if (requestSearchTerm) {
+            const search = requestSearchTerm.toLowerCase();
+            result = result.filter((r) =>
+                (r.request_name || "").toLowerCase().includes(search) ||
+                (r.workflow_name || "").toLowerCase().includes(search) ||
+                (r.id || "").toString().toLowerCase().includes(search)
+            );
+        }
+
+        return result;
+    }, [filterRequestsData, requestsData, requestSearchTerm]);
 
 
     /** -------------------- FETCHING ON LOAD -------------------- */
@@ -255,6 +312,16 @@ const ApprovalWorkflows: React.FC = () => {
         setActiveTab(newValue);
     }
 
+    const handleOpenRequestDetails = (requestId: string) => {
+        setSelectedRequestId(Number(requestId));
+        setIsRequestModalOpen(true);
+    };
+
+    const handleCloseRequestModal = () => {
+        setIsRequestModalOpen(false);
+        setSelectedRequestId(undefined);
+    };
+
     /** -------------------- RENDER -------------------- */
     return (
         <Stack className="vwhome" gap={"16px"}>
@@ -262,9 +329,9 @@ const ApprovalWorkflows: React.FC = () => {
             <Stack sx={workflowMainStack}>
                 <Stack>
                     <PageHeader
-                        title={activeTab === "Workflows" ? "Approval Workflows" : "Approval Requests"}
+                        title={activeTab === "workflows" ? "Approval Workflows" : "Approval Requests"}
                         description={
-                            activeTab === "worlflows"
+                            activeTab === "workflows"
                                 ? "A structured overview of all approval processes, including steps, conditions, and current status."
                                 : "A list of approval requests created based on workflows."
                         }
@@ -286,7 +353,7 @@ const ApprovalWorkflows: React.FC = () => {
                                     label: "Requests",
                                     value: "requests",
                                     icon: "FileText",
-                                    count: requestsData.length,
+                                    count: filteredRequestsData.length,
                                     isLoading: isLoadingRequests,
                                 },
                             ]}
@@ -350,22 +417,23 @@ const ApprovalWorkflows: React.FC = () => {
                                 sx={filterSearchContainer}
                             >
                                 <Stack direction="row" spacing={2} alignItems="center">
-                                    {/* TODO: Add FilterBy for requests when needed */}
+                                    <FilterBy
+                                        columns={requestsFilterColumns}
+                                        onFilterChange={handleRequestsFilterChange}
+                                    />
                                     <SearchBox
                                         placeholder="Search requests..."
-                                        value={searchTerm}
-                                        onChange={setSearchTerm}
+                                        value={requestSearchTerm}
+                                        onChange={setRequestSearchTerm}
                                         inputProps={{ "aria-label": "Search requests" }}
                                         fullWidth={false}
                                     />
                                 </Stack>
                             </Stack>
                             <ApprovalRequestsTable
-                                
-                                data={requestsData}
-                                isLoading={isLoading} onOpenRequestDetails={function (requestId: string): void {
-                                    throw new Error("Function not implemented.");
-                                } }                               
+                                data={filteredRequestsData}
+                                isLoading={isLoadingRequests}
+                                onOpenRequestDetails={handleOpenRequestDetails}
                             />
                         </Stack>
                     </TabPanel>
@@ -385,6 +453,12 @@ const ApprovalWorkflows: React.FC = () => {
                 }
                 isEdit={!!selectWorkflow}
                 onSuccess={handleWorkflowSuccess}
+            />
+            <RequestorApprovalModal
+                isOpen={isRequestModalOpen}
+                onClose={handleCloseRequestModal}
+                mode="viewOnly"
+                requestId={selectedRequestId}
             />
         </Stack>)
 

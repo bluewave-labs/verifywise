@@ -459,6 +459,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           justifyContent="flex-start"
           gap={theme.spacing(2)}
           className="app-title"
+          sx={{ position: "relative" }}
         >
           <Box onMouseEnter={handleLogoHover} sx={{ position: "relative", display: "flex", alignItems: "center" }}>
             {/* Heart Icon - Rises behind and appears above logo */}
@@ -571,42 +572,42 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Typography>
             </MuiLink>
           )}
-        </Stack>
-        {/* Sidebar Toggle Button - positioned absolutely to stay fixed on right */}
-        <IconButton
-          disableRipple={
-            theme.components?.MuiListItemButton?.defaultProps?.disableRipple
-          }
-          sx={{
-            position: "absolute",
-            right: theme.spacing(8),
-            top: "50%",
-            transform: "translateY(-50%)",
-            p: theme.spacing(2),
-            borderRadius: theme.shape.borderRadius,
-            "& svg": {
-              "& path": {
-                stroke: theme.palette.text.tertiary,
+          {/* Sidebar Toggle Button - positioned absolutely to stay fixed on right */}
+          <IconButton
+            disableRipple={
+              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+            }
+            sx={{
+              position: "absolute",
+              right: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+              p: theme.spacing(2),
+              borderRadius: theme.shape.borderRadius,
+              "& svg": {
+                "& path": {
+                  stroke: theme.palette.text.tertiary,
+                },
               },
-            },
-            "&:focus": { outline: "none" },
-            "&:hover": {
-              backgroundColor: "#F9F9F9",
-            },
-            "&:hover svg path": {
-              stroke: "#13715B",
-            },
-          }}
-          onClick={() => {
-            dispatch(toggleSidebar());
-          }}
-        >
-          {delayedCollapsed ? (
-            <PanelLeftOpen size={16} strokeWidth={1.5} />
-          ) : (
-            <PanelLeftClose size={16} strokeWidth={1.5} />
-          )}
-        </IconButton>
+              "&:focus": { outline: "none" },
+              "&:hover": {
+                backgroundColor: "#F9F9F9",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B",
+              },
+            }}
+            onClick={() => {
+              dispatch(toggleSidebar());
+            }}
+          >
+            {delayedCollapsed ? (
+              <PanelLeftOpen size={16} strokeWidth={1.5} />
+            ) : (
+              <PanelLeftClose size={16} strokeWidth={1.5} />
+            )}
+          </IconButton>
+        </Stack>
       </Stack>
 
       {/* menu */}

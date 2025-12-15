@@ -42,7 +42,7 @@ const titleOfTableColumns = [
   { id: "vendor_name", label: "name", sortable: true },
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
-  { id: "risk", label: "risk", sortable: false },
+  { id: "risk", label: "risks", sortable: false },
   { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },

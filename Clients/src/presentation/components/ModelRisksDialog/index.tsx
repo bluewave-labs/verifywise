@@ -13,7 +13,7 @@ import {
   TableFooter,
   TablePagination,
 } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import React from "react";
 import StandardModal from "../Modals/StandardModal";
 import Chip from "../Chip";
@@ -29,6 +29,7 @@ import TablePaginationActions from "../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { getAllEntities } from "../../../application/repository/entity.repository";
+import { User } from "../../../domain/types/User";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -48,23 +49,42 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
   modelName,
 }) => {
   const [modelRisks, setModelRisks] = useState<IModelRisk[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const theme = useTheme();
 
-  const fetchModelRisks = useCallback(async () => {
+  // Create a mapping of user IDs to user names
+  const userMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users.forEach((user) => {
+      map.set(user.id.toString(), `${user.name} ${user.surname}`.trim());
+    });
+    return map;
+  }, [users]);
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getAllEntities({ routeUrl: "/modelRisks?filter=active" });
-      // Filter risks for this specific model
-      const risksData = Array.isArray(response) ? response : (response.data || []);
+      // Fetch both model risks and users in parallel
+      const [risksResponse, usersResponse] = await Promise.all([
+        getAllEntities({ routeUrl: "/modelRisks?filter=active" }),
+        getAllEntities({ routeUrl: "/users" }),
+      ]);
+
+      // Handle risks data
+      const risksData = Array.isArray(risksResponse) ? risksResponse : (risksResponse.data || []);
       const risks = risksData.filter(
         (risk: IModelRisk) => risk.model_id === modelId && !risk.is_deleted
       );
       setModelRisks(risks);
+
+      // Handle users data
+      const usersData = Array.isArray(usersResponse) ? usersResponse : (usersResponse.data || []);
+      setUsers(usersData);
     } catch (err) {
       console.error("Failed to fetch model risks:", err);
       setError("Failed to load model risks");
@@ -75,9 +95,9 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
 
   useEffect(() => {
     if (open && modelId) {
-      fetchModelRisks();
+      fetchData();
     }
-  }, [open, modelId, fetchModelRisks]);
+  }, [open, modelId, fetchData]);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -223,11 +243,18 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
                             maxWidth: 120,
                           }}
                         >
-                          <Typography variant="body2" noWrap title={risk.owner}>
-                            {risk.owner && risk.owner.length > 15
-                              ? `${risk.owner.slice(0, 15)}...`
-                              : risk.owner || "-"}
-                          </Typography>
+                          {(() => {
+                            const ownerName = risk.owner
+                              ? userMap.get(risk.owner.toString()) || "-"
+                              : "-";
+                            return (
+                              <Typography variant="body2" noWrap title={ownerName}>
+                                {ownerName.length > 15
+                                  ? `${ownerName.slice(0, 15)}...`
+                                  : ownerName}
+                              </Typography>
+                            );
+                          })()}
                         </TableCell>
                       </TableRow>
                     ))}

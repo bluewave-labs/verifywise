@@ -433,13 +433,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
-        pl={theme.spacing(12)}
+        pl={theme.spacing(8)}
+        pr={theme.spacing(8)}
         sx={{ position: "relative" }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          gap={theme.spacing(4)}
+          gap={theme.spacing(2)}
           className="app-title"
         >
           <Box onMouseEnter={handleLogoHover} sx={{ position: "relative" }}>
@@ -450,7 +451,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={handleHeartClick}
                   sx={{
                     position: "absolute",
-                    top: "-20px",
+                    top: "-16px",
                     left: "50%",
                     transform: "translateX(-50%)",
                     padding: 0,
@@ -464,7 +465,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     "@keyframes slideUpFromBehind": {
                       "0%": {
                         opacity: 0,
-                        transform: "translateX(-50%) translateY(35px)",
+                        transform: "translateX(-50%) translateY(28px)",
                         zIndex: -1,
                       },
                       "60%": {
@@ -495,14 +496,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                       },
                       "100%": {
                         opacity: 0,
-                        transform: "translateX(-50%) translateY(35px)",
+                        transform: "translateX(-50%) translateY(28px)",
                         zIndex: -1,
                       },
                     },
                   }}
                 >
                   <Heart
-                    size={18}
+                    size={14}
                     color="#FF1493"
                     strokeWidth={1.5}
                     fill="#FF1493"
@@ -514,8 +515,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               <img
                 src={Logo}
                 alt="Logo"
-                width={32}
-                height={30}
+                width={20}
+                height={18}
                 style={{ position: "relative", zIndex: 1 }}
               />
             </RouterLink>
@@ -527,8 +528,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             <Typography
               component="span"
-              mt={theme.spacing(2)}
-              sx={{ opacity: 0.8, fontWeight: 500 }}
+              mt={theme.spacing(1)}
+              sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px" }}
               className="app-title"
             >
               Verify
@@ -541,55 +542,51 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
               <span
                 style={{
-                  fontSize: "10px",
-                  marginLeft: "6px",
+                  fontSize: "8px",
+                  marginLeft: "4px",
                   opacity: 0.6,
                   fontWeight: 400,
-                  // position: "relative",
-                  // top: "5px",
                 }}
               >
                 {__APP_VERSION__}
               </span>
             </Typography>
           </MuiLink>
+          {/* Sidebar Toggle Button */}
+          <IconButton
+            disableRipple={
+              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+            }
+            sx={{
+              ml: "auto",
+              p: theme.spacing(2),
+              borderRadius: theme.shape.borderRadius,
+              "& svg": {
+                "& path": {
+                  stroke: theme.palette.text.tertiary,
+                },
+              },
+              "&:focus": { outline: "none" },
+              "&:hover": {
+                backgroundColor: "#F9F9F9",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B",
+              },
+            }}
+            onClick={() => {
+              dispatch(toggleSidebar());
+            }}
+          >
+            {collapsed ? (
+              <ChevronRight size={16} strokeWidth={1.5} />
+            ) : (
+              <ChevronLeft size={16} strokeWidth={1.5} />
+            )}
+          </IconButton>
         </Stack>
       </Stack>
 
-      <IconButton
-        disableRipple={
-          theme.components?.MuiListItemButton?.defaultProps?.disableRipple
-        }
-        sx={{
-          position: "absolute",
-          top: 60,
-          right: 0,
-          transform: `translate(50%, 0)`,
-          backgroundColor: theme.palette.background.fill,
-          border: 1,
-          borderColor: theme.palette.border.light,
-          p: theme.spacing(2.5),
-          "& svg": {
-            "& path": {
-              stroke: theme.palette.text.secondary,
-            },
-          },
-          "&:focus": { outline: "none" },
-          "&:hover": {
-            backgroundColor: theme.palette.border,
-            borderColor: theme.palette.border,
-          },
-        }}
-        onClick={() => {
-          dispatch(toggleSidebar());
-        }}
-      >
-        {collapsed ? (
-          <ChevronRight size={16} strokeWidth={1.5} />
-        ) : (
-          <ChevronLeft size={16} strokeWidth={1.5} />
-        )}
-      </IconButton>
       {/* menu */}
       <List
         component="nav"

@@ -1,7 +1,7 @@
 /* SidebarWrapper styles */
 
 .sidebar-container {
-  box-shadow: -4px 0 24px rgba(16, 24, 40, 0.12);
+  box-shadow: -2px 0 8px rgba(16, 24, 40, 0.1);
 }
 
 /* Push main content when sidebar is open */

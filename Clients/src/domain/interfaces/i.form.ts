@@ -1,4 +1,4 @@
-import { CreateProjectFormUserModel } from "../models/Common/user/user.model";
+import { CreateProjectFormUserModel } from "../models/Common/User/user.model";
 
 export interface FormValues {
   vendorName: number;

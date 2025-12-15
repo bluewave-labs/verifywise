@@ -17,7 +17,6 @@ export const flashAnimation = keyframes`
 // Common styles
 export const commonStyles = {
   container: {
-    maxWidth: "1400px",
     marginTop: "14px",
     gap: "20px",
   } as SxProps<Theme>,

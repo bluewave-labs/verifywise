@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import singleTheme from "../../../themes/v1SingleTheme";
 import Field from "../../../components/Inputs/Field";
 

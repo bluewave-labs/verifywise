@@ -12,9 +12,9 @@ import React from "react";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 import { closeIconStyles, iconButtonStyles } from "./style";
-import { CloseIconProps } from "../../../domain/interfaces/iWidget";
+import { CloseIconProps } from "../../../domain/interfaces/i.widget";
 import AlertBody from "./AlertBody";
 
 import { Info as BlueInfoIcon, CheckCircle as GreenSuccessIcon, AlertTriangle as OrangeWarningIcon, XCircle as RedErrorIcon, X as CloseGreyIcon } from "lucide-react";

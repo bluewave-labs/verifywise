@@ -21,7 +21,7 @@ import { updateEUAIActQuestionStatus } from "../../../../application/repository/
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 
 interface AccordionViewProps {
   subtopics: Array<Subtopic & { questions?: Question[] }>;
@@ -125,15 +125,16 @@ const AccordionView = ({
   onQuestionClick,
   flashingQuestionId,
   onStatusUpdate,
-  expanded: expandedProp,
-  onExpandedChange,
+  expanded: _expandedProp,
+  onExpandedChange: _onExpandedChange,
   onFlashingChange,
 }: AccordionViewProps) => {
   const { userId } = useAuth();
-  // Use prop if provided, otherwise fall back to local state
-  const [expandedLocal, setExpandedLocal] = useState<number | false>(false);
-  const expanded = expandedProp !== undefined ? expandedProp : expandedLocal;
-  const setExpanded = onExpandedChange || setExpandedLocal;
+  // Track multiple expanded accordions - default to all expanded
+  const [expandedSet, setExpandedSet] = useState<Set<number>>(() => {
+    // Initialize with all subtopic IDs to expand all by default
+    return new Set(subtopics.map(s => s.id ?? 0));
+  });
   const [updatingQuestionId, setUpdatingQuestionId] = useState<number | null>(
     null
   );
@@ -262,7 +263,15 @@ const AccordionView = ({
   }, [subtopics, filterQuestions]);
 
   const handleAccordionChange = (subtopicId: number) => {
-    setExpanded(expanded === subtopicId ? false : subtopicId);
+    setExpandedSet(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(subtopicId)) {
+        newSet.delete(subtopicId);
+      } else {
+        newSet.add(subtopicId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -277,7 +286,7 @@ const AccordionView = ({
           return (
             <Accordion
               key={subtopic.id}
-              expanded={expanded === subtopic.id}
+              expanded={expandedSet.has(subtopic.id ?? 0)}
               onChange={() => handleAccordionChange(subtopic.id ?? 0)}
               sx={{
                 ...styles.accordion,
@@ -290,7 +299,7 @@ const AccordionView = ({
                 sx={{
                   ...styles.accordionSummary,
                   borderBottom:
-                    expanded === subtopic.id ? "1px solid #d0d5dd" : "none",
+                    expandedSet.has(subtopic.id ?? 0) ? "1px solid #d0d5dd" : "none",
                 }}
               >
                 {/* Arrow Icon */}
@@ -298,7 +307,7 @@ const AccordionView = ({
                   size={16}
                   style={
                     styles.expandIcon(
-                      expanded === subtopic.id
+                      expandedSet.has(subtopic.id ?? 0)
                     ) as React.CSSProperties
                   }
                 />

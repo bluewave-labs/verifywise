@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { FileModel } from "../../domain/models/Common/file/file.model";
+import { FileModel } from "../../domain/models/Common/File/file.model";
 import { getUserFilesMetaData } from "../repository/file.repository";
 import { transformFilesData } from "../utils/fileTransform.utils";
 
@@ -44,7 +44,7 @@ export const useUserFilesMetaData = () => {
           return;
         }
         setError(
-          error instanceof Error ? error : new Error("Unknown error occurred"),
+          error instanceof Error ? error : new Error("Unknown error occurred")
         );
         setFilesData([]);
       } finally {

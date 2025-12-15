@@ -449,13 +449,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
-        px={theme.spacing(8)}
+        pl={theme.spacing(8)}
+        pr={theme.spacing(8)}
         sx={{ position: "relative" }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent={delayedCollapsed ? "center" : "flex-start"}
+          justifyContent="flex-start"
           gap={theme.spacing(2)}
           className="app-title"
         >
@@ -570,39 +571,42 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Typography>
             </MuiLink>
           )}
-          {/* Sidebar Toggle Button */}
-          <IconButton
-            disableRipple={
-              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
-            }
-            sx={{
-              ml: delayedCollapsed ? 0 : "auto",
-              p: theme.spacing(2),
-              borderRadius: theme.shape.borderRadius,
-              "& svg": {
-                "& path": {
-                  stroke: theme.palette.text.tertiary,
-                },
-              },
-              "&:focus": { outline: "none" },
-              "&:hover": {
-                backgroundColor: "#F9F9F9",
-              },
-              "&:hover svg path": {
-                stroke: "#13715B",
-              },
-            }}
-            onClick={() => {
-              dispatch(toggleSidebar());
-            }}
-          >
-            {delayedCollapsed ? (
-              <PanelLeftOpen size={16} strokeWidth={1.5} />
-            ) : (
-              <PanelLeftClose size={16} strokeWidth={1.5} />
-            )}
-          </IconButton>
         </Stack>
+        {/* Sidebar Toggle Button - positioned absolutely to stay fixed on right */}
+        <IconButton
+          disableRipple={
+            theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+          }
+          sx={{
+            position: "absolute",
+            right: theme.spacing(8),
+            top: "50%",
+            transform: "translateY(-50%)",
+            p: theme.spacing(2),
+            borderRadius: theme.shape.borderRadius,
+            "& svg": {
+              "& path": {
+                stroke: theme.palette.text.tertiary,
+              },
+            },
+            "&:focus": { outline: "none" },
+            "&:hover": {
+              backgroundColor: "#F9F9F9",
+            },
+            "&:hover svg path": {
+              stroke: "#13715B",
+            },
+          }}
+          onClick={() => {
+            dispatch(toggleSidebar());
+          }}
+        >
+          {delayedCollapsed ? (
+            <PanelLeftOpen size={16} strokeWidth={1.5} />
+          ) : (
+            <PanelLeftClose size={16} strokeWidth={1.5} />
+          )}
+        </IconButton>
       </Stack>
 
       {/* menu */}

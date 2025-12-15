@@ -459,7 +459,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           justifyContent="flex-start"
           gap={theme.spacing(2)}
           className="app-title"
-          sx={{ position: "relative" }}
+          sx={{ position: "relative", height: "20px" }}
         >
           <Box onMouseEnter={handleLogoHover} sx={{ position: "relative", display: "flex", alignItems: "center" }}>
             {/* Heart Icon - Rises behind and appears above logo */}

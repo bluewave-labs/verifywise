@@ -390,20 +390,24 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <VWLink
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openVendorRisksDialog(row.id!, row.vendor_name);
-                    }}
-                    showIcon={false}
-                  >
-                    {(() => {
-                      const riskCount = getVendorRiskCount(row.id!);
-                      return riskCount > 0
-                        ? `View risks (${riskCount})`
-                        : "View risks";
-                    })()}
-                  </VWLink>
+                  {(() => {
+                    const riskCount = getVendorRiskCount(row.id!);
+                    return riskCount > 0 ? (
+                      <VWLink
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openVendorRisksDialog(row.id!, row.vendor_name);
+                        }}
+                        showIcon={false}
+                      >
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </VWLink>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell
                   sx={{

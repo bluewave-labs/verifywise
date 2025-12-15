@@ -319,23 +319,27 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <VWLink
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openModelRisksDialog(
-                        modelInventory.id || 0,
-                        modelInventory.model || ""
-                      );
-                    }}
-                    showIcon={false}
-                  >
-                    {(() => {
-                      const riskCount = getModelRiskCount(modelInventory.id || 0);
-                      return riskCount > 0
-                        ? `View risks (${riskCount})`
-                        : "View risks";
-                    })()}
-                  </VWLink>
+                  {(() => {
+                    const riskCount = getModelRiskCount(modelInventory.id || 0);
+                    return riskCount > 0 ? (
+                      <VWLink
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModelRisksDialog(
+                            modelInventory.id || 0,
+                            modelInventory.model || ""
+                          );
+                        }}
+                        showIcon={false}
+                      >
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </VWLink>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell
                   sx={{

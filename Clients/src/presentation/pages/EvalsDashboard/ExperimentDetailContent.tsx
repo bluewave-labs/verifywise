@@ -40,6 +40,34 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   const [saving, setSaving] = useState(false);
   const [rerunLoading, setRerunLoading] = useState(false);
 
+  // Helper to extract reason from metric data
+  // Expected format: {"score": 0.85, "reason": "The answer is accurate..."}
+  const parseMetricReason = (reason: string | undefined): string | undefined => {
+    if (!reason) return undefined;
+    
+    // If it's already clean text (doesn't look like JSON), return as-is
+    if (!reason.includes('"reason"') && !reason.includes('{')) {
+      return reason;
+    }
+    
+    // Try to parse as JSON directly
+    try {
+      const parsed = JSON.parse(reason.trim());
+      if (parsed.reason) return parsed.reason;
+    } catch {
+      // Not valid JSON, try regex extraction
+    }
+    
+    // Regex to extract reason value (handles escaped quotes)
+    const reasonMatch = reason.match(/"reason"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    if (reasonMatch && reasonMatch[1]) {
+      return reasonMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+    }
+    
+    // Return original if nothing worked
+    return reason;
+  };
+
   useEffect(() => {
     loadExperimentData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -592,7 +620,16 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           .filter((k) => !!enabled?.[k] || !!metricsSum[k])
           .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
-        if (Object.keys(metricsSum).length === 0) return null;
+        // Find custom scorer metrics (those not in metricDefinitions but have data)
+        const customScorerMetrics = Object.keys(metricsSum)
+          .filter((k) => !metricDefinitions[k] && !displayNameToKey[k])
+          .map((k) => ({
+            key: k,
+            label: k.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+            category: "scorer" as const,
+          }));
+
+        if (Object.keys(metricsSum).length === 0 && customScorerMetrics.length === 0) return null;
 
         // Group metrics by category
         const qualityMetrics = orderedMetrics.filter((m) => m.category === "quality");
@@ -621,6 +658,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             case "toxicity": return Shield;
             case "safety": return Shield;
             case "hallucination": return Shield;
+            // Custom scorers use Sparkles as default
             default: return Sparkles;
           }
         };
@@ -754,6 +792,18 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 </Typography>
                 <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
                   {safetyMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
+
+            {/* Custom Scorers Section */}
+            {customScorerMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Custom scorers
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {customScorerMetrics.map(renderMetricCard)}
                 </Box>
               </Box>
             )}
@@ -937,7 +987,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                        {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
                         const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
                         const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
-                        const reason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                        const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                        const reason = parseMetricReason(rawReason);
                         const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
 
                          return (

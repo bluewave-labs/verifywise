@@ -1,12 +1,22 @@
 import { TableHead, TableRow, TableCell } from "@mui/material";
-import singleTheme from "../../../themes/v1SingleTheme";
+import singleTheme from "../../../../themes/v1SingleTheme";
 
-/**
- * Generic TableHeader component used by various tables.
- * Columns receive dynamic widths based on the table theme.
- * For custom column widths, create a dedicated TableHead in your table's directory.
- */
+// Column width definitions for consistent spacing
+const columnWidths: Record<string, string> = {
+  "EXPERIMENT ID": "18%",
+  "MODEL": "10%",
+  "JUDGE": "14%",
+  "# PROMPTS": "7%",
+  "DATASET": "12%",
+  "STATUS": "9%",
+  "DATE": "14%", // Wider to fit date + time
+  "ACTION": "60px",
+};
+
 const TableHeader = ({ columns }: { columns: string[] }) => {
+  // Columns that should be center-aligned
+  const centerAlignedColumns = ["MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
+
   return (
     <TableHead
       sx={{
@@ -17,15 +27,23 @@ const TableHeader = ({ columns }: { columns: string[] }) => {
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
         {columns.map((column, index) => {
           const isActionColumn = column === "ACTION" || column === "Actions";
+          const isCenterAligned = centerAlignedColumns.includes(column);
+          const width = columnWidths[column];
           return (
             <TableCell
               key={index}
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
+                width: width || "auto",
                 ...(isActionColumn
                   ? {
-                      minWidth: "80px",
-                      maxWidth: "80px",
+                      minWidth: "60px",
+                      maxWidth: "60px",
+                    }
+                  : {}),
+                ...(isCenterAligned
+                  ? {
+                      textAlign: "center",
                     }
                   : {}),
               }}
@@ -40,3 +58,4 @@ const TableHeader = ({ columns }: { columns: string[] }) => {
 };
 
 export default TableHeader;
+

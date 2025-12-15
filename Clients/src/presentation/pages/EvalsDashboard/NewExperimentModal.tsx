@@ -348,10 +348,25 @@ export default function NewExperimentModal({
       await Promise.allSettled(saveApiKeyPromises);
       
       // Prepare experiment configuration
+      // Create experiment name with model name + date/time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const dateTimeStr = `${dateStr}, ${timeStr}`;
+      const modelName = config.model.name || "Unknown Model";
+      
       const experimentConfig = {
         project_id: projectId,
-        name: `${config.model.name} - ${new Date().toLocaleDateString()}`,
-        description: `Evaluating ${config.model.name} with ${datasetPrompts.length} prompts`,
+        name: `${modelName} - ${dateTimeStr}`,
+        description: `Evaluating ${modelName} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
           model: {
@@ -381,6 +396,10 @@ export default function NewExperimentModal({
           evaluationMode: judgeMode,
           dataset: {
             useBuiltin: config.dataset.useBuiltin,
+            // Include dataset name and path for display in experiments table
+            name: selectedUserDataset?.name || (selectedPresetPath ? selectedPresetPath.split("/").pop()?.replace(/\.json$/i, "").split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : undefined),
+            path: selectedUserDataset?.path || selectedPresetPath || undefined,
+            datasetId: selectedUserDataset?.id || undefined,
             prompts: datasetPrompts,
             count: datasetPrompts.length,
           },
@@ -1566,6 +1585,30 @@ export default function NewExperimentModal({
 
       case 3:
         // Step 4: Metrics - organized by use case
+        // If using scorer-only mode, don't show metrics selection
+        if (judgeMode === "scorer") {
+          return (
+            <Stack spacing={3}>
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  backgroundColor: "#F9FAFB",
+                }}
+              >
+                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: "#374151", mb: 1 }}>
+                  No metrics available
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
+                  Standard metrics require a Judge LLM to evaluate model outputs. Since you selected "Custom Scorer Only", your experiment will use only your custom scorer ({selectedScorer?.name || "selected scorer"}) for evaluation.
+                </Typography>
+              </Box>
+            </Stack>
+          );
+        }
+
         return (
           <Stack spacing={3}>
             <Box>

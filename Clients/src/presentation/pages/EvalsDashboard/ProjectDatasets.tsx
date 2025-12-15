@@ -102,6 +102,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [templateToCopy, setTemplateToCopy] = useState<BuiltInDataset | null>(null);
 
+  // Expanded prompt rows in template preview
+  const [expandedPromptIds, setExpandedPromptIds] = useState<Set<string>>(new Set());
+
   // Template drawer state
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false);
 
@@ -311,6 +314,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const handleViewTemplate = (template: BuiltInDataset) => {
     setSelectedTemplate(template);
     setTemplateDrawerOpen(true);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Close template drawer
@@ -318,6 +322,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     setTemplateDrawerOpen(false);
     setSelectedTemplate(null);
     setTemplatePrompts([]);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Load data based on active tab
@@ -1884,65 +1889,99 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {templatePrompts.map((prompt, index) => (
-                    <TableRow key={prompt.id || index} sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "default" }}>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%" }}>
-                        <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden" }}>
-                        <Chip
-                          label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
-                          title={prompt.category}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "10px",
-                            backgroundColor: "#E5E7EB",
-                            color: "#374151",
-                            borderRadius: "4px",
-                            maxWidth: "100%",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden" }}>
-                        <Typography
-                          sx={{
-                            fontSize: "13px",
-                            color: theme.palette.text.primary,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: "100%",
-                          }}
-                          title={prompt.prompt}
-                        >
-                          {prompt.prompt.length > 40 ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%" }}>
-                        {prompt.difficulty && (
+                  {templatePrompts.map((prompt, index) => {
+                    const promptKey = prompt.id || `prompt-${index}`;
+                    const isExpanded = expandedPromptIds.has(promptKey);
+                    const isLongPrompt = prompt.prompt.length > 40;
+                    
+                    return (
+                      <TableRow 
+                        key={promptKey} 
+                        onClick={() => {
+                          if (isLongPrompt) {
+                            setExpandedPromptIds(prev => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(promptKey)) {
+                                newSet.delete(promptKey);
+                              } else {
+                                newSet.add(promptKey);
+                              }
+                              return newSet;
+                            });
+                          }
+                        }}
+                        sx={{ 
+                          ...singleTheme.tableStyles.primary.body.row, 
+                          cursor: isLongPrompt ? "pointer" : "default",
+                          "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
+                          verticalAlign: "top",
+                        }}
+                      >
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                           <Chip
-                            label={prompt.difficulty}
+                            label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
+                            title={prompt.category}
                             size="small"
                             sx={{
-                              height: 20,
+                              height: 22,
                               fontSize: "10px",
-                              fontWeight: 500,
-                              backgroundColor:
-                                prompt.difficulty === "easy" ? "#D1FAE5" :
-                                prompt.difficulty === "medium" ? "#FEF3C7" :
-                                prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                              color:
-                                prompt.difficulty === "easy" ? "#065F46" :
-                                prompt.difficulty === "medium" ? "#92400E" :
-                                prompt.difficulty === "hard" ? "#991B1B" : "#374151",
+                              backgroundColor: "#E5E7EB",
+                              color: "#374151",
                               borderRadius: "4px",
+                              maxWidth: "100%",
                             }}
                           />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography
+                            sx={{
+                              fontSize: "13px",
+                              color: theme.palette.text.primary,
+                              overflow: isExpanded ? "visible" : "hidden",
+                              textOverflow: isExpanded ? "clip" : "ellipsis",
+                              whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                              maxWidth: "100%",
+                              wordBreak: isExpanded ? "break-word" : "normal",
+                              lineHeight: 1.5,
+                            }}
+                            title={isExpanded ? undefined : prompt.prompt}
+                          >
+                            {isExpanded ? prompt.prompt : (isLongPrompt ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt)}
+                          </Typography>
+                          {isLongPrompt && (
+                            <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                              {isExpanded ? "Collapse" : "Expand"}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", verticalAlign: "top", pt: 1.5 }}>
+                          {prompt.difficulty && (
+                            <Chip
+                              label={prompt.difficulty}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "10px",
+                                fontWeight: 500,
+                                backgroundColor:
+                                  prompt.difficulty === "easy" ? "#D1FAE5" :
+                                  prompt.difficulty === "medium" ? "#FEF3C7" :
+                                  prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
+                                color:
+                                  prompt.difficulty === "easy" ? "#065F46" :
+                                  prompt.difficulty === "medium" ? "#92400E" :
+                                  prompt.difficulty === "hard" ? "#991B1B" : "#374151",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

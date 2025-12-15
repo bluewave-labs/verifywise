@@ -12,30 +12,36 @@ function addHeaders(req: Request, _res: Response, next: NextFunction) {
 }
 
 /**
- * Middleware to inject API key for custom scorers in experiment creation
+ * Middleware to inject API keys for experiment creation
+ * Handles both custom scorers and standard judge LLM
  * This modifies req.body before the proxy forwards it
  */
-async function injectScorerApiKey(req: Request, _res: Response, next: NextFunction) {
+async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
   // Only process POST requests to experiments endpoint
   if (req.method !== "POST" || !req.url.includes("/experiments")) {
     return next();
   }
 
-  console.log(`[DeepEval Proxy] Processing experiment creation request`);
-  console.log(`[DeepEval Proxy] Body config: ${JSON.stringify(req.body?.config ? { useCustomScorer: req.body.config.useCustomScorer, scorerId: req.body.config.scorerId } : 'no config')}`);
+  const evaluationMode = req.body?.config?.evaluationMode || "standard";
+  console.log(`[DeepEval Proxy] Processing experiment creation request (mode: ${evaluationMode})`);
+  console.log(`[DeepEval Proxy] Body config: ${JSON.stringify(req.body?.config ? { 
+    useCustomScorer: req.body.config.useCustomScorer, 
+    scorerId: req.body.config.scorerId,
+    evaluationMode: req.body.config.evaluationMode,
+    judgeLlm: req.body.config.judgeLlm ? { provider: req.body.config.judgeLlm.provider, hasKey: !!req.body.config.judgeLlm.apiKey } : null
+  } : 'no config')}`);
 
   try {
     const body = req.body;
+    const organizationId = req.organizationId;
     
-    // Check if this is an experiment with a custom scorer
-    if (body?.config?.useCustomScorer && !body?.config?.scorerApiKey) {
-      const organizationId = req.organizationId;
-      
-      if (!organizationId) {
-        console.log("[DeepEval Proxy] No organization ID for scorer API key lookup");
-        return next();
-      }
+    if (!organizationId) {
+      console.log("[DeepEval Proxy] No organization ID for API key lookup");
+      return next();
+    }
 
+    // 1. Inject API key for custom scorers (scorer or both mode)
+    if (body?.config?.useCustomScorer && !body?.config?.scorerApiKey) {
       // Try to determine the provider - default to OpenAI for now
       // TODO: In the future, fetch scorer config from EvalServer to get the actual provider
       const provider = "openai";
@@ -56,8 +62,32 @@ async function injectScorerApiKey(req: Request, _res: Response, next: NextFuncti
         }
       }
     }
+
+    // 2. Inject API key for standard judge LLM (standard or both mode)
+    if ((evaluationMode === "standard" || evaluationMode === "both") && body?.config?.judgeLlm) {
+      const judgeProvider = body.config.judgeLlm.provider?.toLowerCase();
+      const hasJudgeApiKey = body.config.judgeLlm.apiKey && body.config.judgeLlm.apiKey !== "***" && body.config.judgeLlm.apiKey !== "";
+      
+      if (judgeProvider && !hasJudgeApiKey && VALID_PROVIDERS.includes(judgeProvider as LLMProvider)) {
+        console.log(`[DeepEval Proxy] Standard judge detected (${judgeProvider}), looking up API key for org ${organizationId}`);
+        
+        const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
+          organizationId,
+          judgeProvider as LLMProvider
+        );
+        
+        if (apiKey) {
+          console.log(`[DeepEval Proxy] ✅ Injecting ${judgeProvider} API key for judge LLM (key length: ${apiKey.length})`);
+          req.body.config.judgeLlm.apiKey = apiKey;
+        } else {
+          console.log(`[DeepEval Proxy] ⚠️ No ${judgeProvider} API key found for organization ${organizationId}`);
+        }
+      } else if (hasJudgeApiKey) {
+        console.log(`[DeepEval Proxy] Judge LLM already has API key`);
+      }
+    }
   } catch (error) {
-    console.error("[DeepEval Proxy] Error injecting scorer API key:", error);
+    console.error("[DeepEval Proxy] Error injecting API keys:", error);
   }
   
   next();
@@ -106,7 +136,7 @@ function deepEvalRoutes() {
     },
   });
 
-  return [authenticateJWT, addHeaders, injectScorerApiKey, proxy];
+  return [authenticateJWT, addHeaders, injectApiKeys, proxy];
 }
 
 export default deepEvalRoutes;

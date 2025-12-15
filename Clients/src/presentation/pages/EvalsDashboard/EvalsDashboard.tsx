@@ -193,26 +193,65 @@ export default function EvalsDashboard() {
   // Track experiment as recent when viewed
   useEffect(() => {
     if (selectedExperimentId && projectId) {
-      // We'll need to fetch the experiment name - for now use the ID
-      // The name will be updated when ExperimentDetailContent loads
+      // Fetch the experiment to get its name
       experimentsService.getExperiment(selectedExperimentId).then((data) => {
-        if (data.experiment) {
+        if (data.experiment && data.experiment.name) {
           addRecentExperiment({
             id: selectedExperimentId,
-            name: data.experiment.name || selectedExperimentId,
+            name: data.experiment.name,
             projectId: projectId,
           });
         }
+        // If no name, don't add to recent - wait until experiment has a proper name
       }).catch(() => {
-        // If fetch fails, still add with ID as name
-        addRecentExperiment({
-          id: selectedExperimentId,
-          name: selectedExperimentId,
-          projectId: projectId,
-        });
+        // If fetch fails, don't add to recent experiments
+        console.error("Failed to fetch experiment for recent list:", selectedExperimentId);
       });
     }
   }, [selectedExperimentId, projectId, addRecentExperiment]);
+
+  // Auto-fix recent experiments that have ID-like names by re-fetching
+  useEffect(() => {
+    const fixRecentExperimentNames = async () => {
+      const needsUpdate: RecentExperiment[] = [];
+      
+      for (const exp of recentExperiments) {
+        // Check if name looks like an experiment ID (starts with "exp_")
+        if (exp.name.startsWith("exp_")) {
+          try {
+            const data = await experimentsService.getExperiment(exp.id);
+            if (data.experiment && data.experiment.name && !data.experiment.name.startsWith("exp_")) {
+              needsUpdate.push({
+                id: exp.id,
+                name: data.experiment.name,
+                projectId: exp.projectId,
+              });
+            }
+          } catch {
+            // Experiment might be deleted, skip it
+          }
+        }
+      }
+      
+      // Update the entries that need fixing
+      if (needsUpdate.length > 0) {
+        setRecentExperiments((prev) => {
+          const updated = prev.map((exp) => {
+            const fix = needsUpdate.find((n) => n.id === exp.id);
+            return fix || exp;
+          });
+          localStorage.setItem(RECENT_EXPERIMENTS_KEY, JSON.stringify(updated));
+          return updated;
+        });
+      }
+    };
+    
+    // Only run once on mount if there are experiments to check
+    if (recentExperiments.some((exp) => exp.name.startsWith("exp_"))) {
+      fixRecentExperimentNames();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   // Load LLM API keys when configuration tab is active
   const fetchLlmApiKeys = async () => {

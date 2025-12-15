@@ -81,12 +81,18 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       // Load metrics for each experiment (skip for running/pending experiments)
       const experimentsWithMetrics = await Promise.all(
         (data.experiments || []).map(async (exp: Experiment) => {
+          // Get prompt count from config (available immediately)
+          const configPromptCount = exp.config?.dataset?.count || 
+                                    exp.config?.dataset?.prompts?.length || 
+                                    exp.results?.total_prompts || 
+                                    0;
+          
           // Skip log fetching for running/pending experiments to avoid timeout
           if (exp.status === "running" || exp.status === "pending") {
             return {
               ...exp,
               avgMetrics: {},
-              sampleCount: 0,
+              sampleCount: configPromptCount,
             };
           }
 
@@ -154,7 +160,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
             return {
               ...exp,
               avgMetrics: {},
-              sampleCount: 0,
+              sampleCount: configPromptCount,
             };
           }
         })
@@ -187,7 +193,17 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
     try {
       const baseConfig = originalExp.config || {};
-      const nextName = `${originalExp.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const nextName = `${originalExp.name || "Eval"} (rerun ${dateStr}, ${timeStr})`;
 
       const payload = {
         project_id: projectId,
@@ -235,11 +251,19 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   };
 
   const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
-    const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } };
+    const cfg = exp.config as { 
+      model?: { name?: string }; 
+      judgeLlm?: { model?: string; provider?: string };
+      dataset?: { count?: number; prompts?: unknown[] };
+    };
     const cfgForState: Record<string, unknown> = {
       model: { name: cfg.model?.name },
       judgeLlm: { model: cfg.judgeLlm?.model, provider: cfg.judgeLlm?.provider },
+      dataset: cfg.dataset,
     };
+    // Get prompt count from config
+    const promptCount = cfg.dataset?.count || cfg.dataset?.prompts?.length || 0;
+    
     setExperiments((prev) => [
       ({
         id: exp.id,
@@ -258,7 +282,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
         tenant: "",
         created_by: undefined,
         avgMetrics: {},
-        sampleCount: 0,
+        sampleCount: promptCount,
       } as unknown as ExperimentWithMetrics),
       ...prev,
     ]);
@@ -290,6 +314,8 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       const cfg = exp.config as {
         model?: { name?: string };
         judgeLlm?: { model?: string; provider?: string };
+        evaluationMode?: string;
+        scorerName?: string;
       } | undefined;
 
       switch (fieldId) {
@@ -299,8 +325,14 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
           return exp.status;
         case "model":
           return cfg?.model?.name || "";
-        case "judge":
-          return cfg?.judgeLlm?.model || cfg?.judgeLlm?.provider || "";
+        case "judge": {
+          const evaluationMode = cfg?.evaluationMode || "standard";
+          const judgeModel = cfg?.judgeLlm?.model || cfg?.judgeLlm?.provider || "";
+          const scorerName = cfg?.scorerName || "";
+          if (evaluationMode === "scorer") return scorerName;
+          if (evaluationMode === "both") return `${judgeModel} + ${scorerName}`;
+          return judgeModel;
+        }
         default:
           return "";
       }
@@ -340,26 +372,64 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
-    // Get dataset name from config
-    const datasetName = exp.config?.dataset?.name || 
-                        exp.config?.dataset?.datasetId || 
-                        exp.config?.dataset?.categories?.[0] || 
-                        "Built-in";
+    // Get dataset name from config - try multiple sources
+    let datasetName = "Dataset";
+    const datasetConfig = exp.config?.dataset;
+    if (datasetConfig) {
+      if (datasetConfig.name) {
+        datasetName = datasetConfig.name;
+      } else if (datasetConfig.path) {
+        // Extract friendly name from path like "chatbot/chatbot_coding_helper.json"
+        const pathParts = datasetConfig.path.split("/");
+        const fileName = pathParts[pathParts.length - 1]?.replace(/\.json$/i, "") || "";
+        // Convert snake_case to Title Case
+        datasetName = fileName
+          .split("_")
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      } else if (datasetConfig.datasetId) {
+        datasetName = datasetConfig.datasetId;
+      } else if (datasetConfig.categories?.[0]) {
+        datasetName = datasetConfig.categories[0];
+      } else if (datasetConfig.useBuiltin) {
+        datasetName = "Template";
+      }
+    }
     
-    // Format the date
+    // Format the date with time
     const createdDate = exp.created_at 
       ? new Date(exp.created_at).toLocaleDateString("en-US", { 
           month: "short", 
           day: "numeric", 
-          year: "numeric" 
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         })
       : "-";
+
+    // Determine judge display based on evaluation mode
+    const evaluationMode = exp.config?.evaluationMode || "standard";
+    const judgeModel = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const scorerName = exp.config?.scorerName || "";
+    
+    let judgeDisplay = "-";
+    if (evaluationMode === "scorer" && scorerName) {
+      judgeDisplay = `${scorerName}`;
+    } else if (evaluationMode === "standard" && judgeModel) {
+      judgeDisplay = judgeModel;
+    } else if (evaluationMode === "both" && judgeModel && scorerName) {
+      judgeDisplay = `${judgeModel} + ${scorerName}`;
+    } else if (judgeModel) {
+      judgeDisplay = judgeModel;
+    } else if (scorerName) {
+      judgeDisplay = `${scorerName}`;
+    }
 
     return {
       id: exp.id,
       name: exp.name,
       model: exp.config?.model?.name || "Unknown",
-      judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
+      judge: judgeDisplay,
       dataset: datasetName,
       prompts: exp.sampleCount || 0,
       date: createdDate,

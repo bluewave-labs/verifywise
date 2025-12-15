@@ -5,8 +5,6 @@ import {
   Typography,
   Stack,
   Divider,
-  Switch,
-  FormControlLabel,
   IconButton,
   Slider,
   Select,
@@ -67,6 +65,115 @@ interface CreateScorerModalProps {
   projectId: string;
 }
 
+// Score input component with up/down buttons
+function ScoreInput({ value, onChange }: { value: number; onChange: (val: number) => void }) {
+  const [inputValue, setInputValue] = useState(value.toString());
+  
+  // Sync with external value changes (always use dot)
+  useEffect(() => {
+    setInputValue(value.toString());
+  }, [value]);
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow typing any valid decimal pattern, convert comma to dot
+    const raw = e.target.value.replace(",", ".");
+    // Allow empty, digits, and one decimal point
+    if (raw === "" || /^[0-9]*\.?[0-9]*$/.test(raw)) {
+      setInputValue(raw);
+    }
+  };
+  
+  const handleBlur = () => {
+    // On blur, validate and update parent
+    const numVal = parseFloat(inputValue);
+    if (inputValue === "" || isNaN(numVal)) {
+      setInputValue("0");
+      onChange(0);
+    } else {
+      // Clamp between 0 and 1
+      const clamped = Math.min(1, Math.max(0, Math.round(numVal * 100) / 100));
+      setInputValue(clamped.toString());
+      onChange(clamped);
+    }
+  };
+  
+  const increment = () => {
+    const newVal = Math.min(1, Math.round((value + 0.1) * 10) / 10);
+    setInputValue(newVal.toString());
+    onChange(newVal);
+  };
+  
+  const decrement = () => {
+    const newVal = Math.max(0, Math.round((value - 0.1) * 10) / 10);
+    setInputValue(newVal.toString());
+    onChange(newVal);
+  };
+  
+  return (
+    <Box sx={{ display: "flex", alignItems: "stretch", width: 100 }}>
+      <TextField
+        size="small"
+        value={inputValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        sx={{
+          flex: 1,
+          "& .MuiInputBase-input": { 
+            fontSize: "13px", 
+            textAlign: "center",
+          },
+          "& .MuiOutlinedInput-root": {
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+          },
+        }}
+      />
+      <Box sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        border: "1px solid #E5E7EB",
+        borderLeft: "none",
+        borderRadius: "0 4px 4px 0",
+        overflow: "hidden",
+      }}>
+        <Box
+          onClick={increment}
+          sx={{ 
+            cursor: "pointer", 
+            px: 0.75, 
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "10px",
+            color: "#6B7280",
+            "&:hover": { backgroundColor: "#F3F4F6" },
+            borderBottom: "1px solid #E5E7EB",
+          }}
+        >
+          ▲
+        </Box>
+        <Box
+          onClick={decrement}
+          sx={{ 
+            cursor: "pointer", 
+            px: 0.75, 
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "10px",
+            color: "#6B7280",
+            "&:hover": { backgroundColor: "#F3F4F6" },
+          }}
+        >
+          ▼
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
 const DEFAULT_INPUT_SCHEMA = `{
   "input": "",
   "output": "",
@@ -93,8 +200,8 @@ export default function CreateScorerModal({
     provider: initialConfig?.provider || "",
     model: initialConfig?.model || "",
     modelParams: initialConfig?.modelParams || {
-      temperature: 0,
-      maxTokens: 256,
+      temperature: 0.7,
+      maxTokens: 2048,
       topP: 1,
     },
     messages: initialConfig?.messages || [
@@ -129,8 +236,8 @@ export default function CreateScorerModal({
         provider: initialConfig.provider || "",
         model: initialConfig.model || "",
         modelParams: initialConfig.modelParams || {
-          temperature: 0,
-          maxTokens: 256,
+          temperature: 0.7,
+          maxTokens: 2048,
           topP: 1,
         },
         messages: initialConfig.messages || [
@@ -150,8 +257,8 @@ export default function CreateScorerModal({
         provider: "",
         model: "",
         modelParams: {
-          temperature: 0,
-          maxTokens: 256,
+          temperature: 0.7,
+          maxTokens: 2048,
           topP: 1,
         },
         messages: [
@@ -869,43 +976,14 @@ export default function CreateScorerModal({
                 onClick={handleAddMessage}
                 sx={{
                   alignSelf: "flex-start",
-                  color: "#6B7280",
+                  color: "#13715B",
                   fontSize: "13px",
+                  fontWeight: 600,
                   textTransform: "none",
-                  "&:hover": { backgroundColor: "#F3F4F6" },
+                  "&:hover": { backgroundColor: "#E8F5F1" },
                 }}
               />
             </Stack>
-
-            {/* Chain of Thought */}
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={config.useChainOfThought}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      useChainOfThought: e.target.checked,
-                    }))
-                  }
-                  size="small"
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#13715B",
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#13715B",
-                    },
-                  }}
-                />
-              }
-              label={
-                <Typography sx={{ fontSize: "13px", color: "#374151" }}>
-                  Use chain of thought (CoT)
-                </Typography>
-              }
-              sx={{ mt: 2 }}
-            />
           </Box>
 
           <Divider />
@@ -939,7 +1017,7 @@ export default function CreateScorerModal({
                   Choice
                 </Typography>
                 <Typography
-                  sx={{ width: 100, fontSize: "12px", color: "#6B7280" }}
+                  sx={{ width: 100, fontSize: "12px", color: "#6B7280", textAlign: "center" }}
                 >
                   Score (0 to 1)
                 </Typography>
@@ -961,22 +1039,9 @@ export default function CreateScorerModal({
                       "& .MuiInputBase-input": { fontSize: "13px" },
                     }}
                   />
-                  <TextField
-                    size="small"
-                    type="number"
-                    inputProps={{ min: 0, max: 1, step: 0.1 }}
+                  <ScoreInput
                     value={cs.score}
-                    onChange={(e) =>
-                      handleUpdateChoiceScore(
-                        index,
-                        "score",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    sx={{
-                      width: 100,
-                      "& .MuiInputBase-input": { fontSize: "13px" },
-                    }}
+                    onChange={(newScore) => handleUpdateChoiceScore(index, "score", newScore)}
                   />
                   <IconButton
                     size="small"
@@ -999,6 +1064,7 @@ export default function CreateScorerModal({
               <CustomizableButton
                 variant="text"
                 text="Add choice score"
+                icon={<Plus size={14} />}
                 onClick={handleAddChoiceScore}
                 sx={{
                   alignSelf: "flex-start",

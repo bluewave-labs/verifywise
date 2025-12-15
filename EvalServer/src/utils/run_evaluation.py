@@ -125,6 +125,10 @@ async def run_evaluation(
                 os.environ["G_EVAL_PROVIDER"] = provider
             if judge_config.get("model"):
                 os.environ["G_EVAL_MODEL"] = str(judge_config["model"])
+            # Set max tokens for judge (default 512, but user can set higher)
+            max_tokens = judge_config.get("maxTokens", 512)
+            os.environ["G_EVAL_MAX_TOKENS"] = str(max_tokens)
+            print(f"✅ G_EVAL_MAX_TOKENS set to {max_tokens}")
         
         # Model API keys (for the model being tested)
         if model_config.get("apiKey") and model_config["apiKey"] != "***":
@@ -557,16 +561,18 @@ async def run_evaluation(
         else:
             print(f"\n⏭️ Skipping DeepEval metrics (mode: {evaluation_mode})")
             # Still need to create empty results structure for consistency
-            results = [
-                {
-                    "input": tc["input"],
-                    "output": tc["actual_output"],
-                    "expected": tc.get("expected_output"),
-                    "context": tc.get("retrieval_context"),
-                    "metric_scores": {},
-                }
-                for tc in test_cases_data
-            ]
+            # test_cases_data is a list of {"test_case": LLMTestCase, "metadata": {...}}
+            results = []
+            for tc_data in test_cases_data:
+                test_case = tc_data.get("test_case")
+                if test_case:
+                    results.append({
+                        "input": getattr(test_case, "input", ""),
+                        "output": getattr(test_case, "actual_output", ""),
+                        "expected": getattr(test_case, "expected_output", None),
+                        "context": getattr(test_case, "retrieval_context", None),
+                        "metric_scores": {},
+                    })
 
         # 4.1 Run Custom LLM Judge Scorers (if mode is "scorer" or "both")
         print(f"\n{'='*50}")
@@ -604,7 +610,7 @@ async def run_evaluation(
                         print(f"\n🎯 Running Scorer: {scorer_name}")
                         print(f"   ID: {scorer_id}")
                         print(f"   Metric Key: {metric_key}")
-                        print(f"   Judge Model: {scorer_config.get('judgeModel', 'gpt-4o-mini')}")
+                        print(f"   Judge Model: {scorer_config.get('judgeModel', 'NOT CONFIGURED')}")
                         print(f"   Messages: {len(scorer_config.get('messages', []))} template(s)")
                         print(f"   Choice Scores: {scorer_config.get('choiceScores', [])}")
                         print(f"   Threshold: {scorer.get('defaultThreshold', 0.5)}")
@@ -678,7 +684,6 @@ async def run_evaluation(
                     
             except Exception as scorer_load_err:
                 print(f"⚠️ Error loading/running custom scorers: {scorer_load_err}")
-                import traceback
                 traceback.print_exc()
         
         print(f"\n{'='*50}\n")

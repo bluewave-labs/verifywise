@@ -110,7 +110,7 @@ async def run_custom_scorer(
     Args:
         scorer_config: Scorer configuration from database, including:
             - id, name, metricKey
-            - config.judgeModel: model name (e.g. "gpt-4o-mini")
+            - config.judgeModel: model config object with name/params/provider
             - config.messages: list of message templates
             - config.choiceScores: list of {label, score} mappings
             - defaultThreshold: pass/fail threshold
@@ -129,8 +129,23 @@ async def run_custom_scorer(
     scorer_name = scorer_config.get("name", "Custom Scorer")
     config = scorer_config.get("config", {})
     
-    # Get judge model settings
-    judge_model = config.get("judgeModel", "gpt-4o-mini")
+    # Get judge model settings - handle both object and string formats
+    judge_model_config = config.get("judgeModel", {})
+    if isinstance(judge_model_config, dict):
+        model_name = judge_model_config.get("name")
+        model_params = judge_model_config.get("params", {})
+    else:
+        # Legacy: judgeModel is just a string
+        model_name = judge_model_config
+        model_params = {}
+    
+    if not model_name:
+        raise ValueError(f"Scorer {scorer_name} has no judge model configured")
+    
+    # Get temperature and max_tokens from params, with defaults
+    temperature = model_params.get("temperature", 0.0)
+    max_tokens = model_params.get("max_tokens", 256)
+    
     messages_templates = config.get("messages", [])
     choice_scores = config.get("choiceScores", [])
     threshold = scorer_config.get("defaultThreshold", 0.5)
@@ -157,10 +172,10 @@ async def run_custom_scorer(
     
     try:
         response = client.chat.completions.create(
-            model=judge_model,
+            model=model_name,
             messages=rendered_messages,
-            temperature=0.0,  # Deterministic for judging
-            max_tokens=256,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
         
         raw_response = response.choices[0].message.content.strip()

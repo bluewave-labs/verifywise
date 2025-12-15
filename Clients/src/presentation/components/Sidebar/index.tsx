@@ -783,13 +783,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 {item.name}
               </ListItemText>
-              {item.taskCount && item.taskCount > 0 && (
+              {!collapsed && item.taskCount && item.taskCount > 0 && (
                 <Chip
                   label={item.taskCount > 99 ? "99+" : item.taskCount}
                   size="small"
                   sx={{
-                    height: collapsed ? "14px" : "18px",
-                    fontSize: collapsed ? "8px" : "10px",
+                    height: "18px",
+                    fontSize: "10px",
                     fontWeight: 500,
                     backgroundColor:
                       location.pathname === item.path ||
@@ -801,20 +801,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                         ? "#f8fafc"
                         : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
-                    borderRadius: collapsed ? "7px" : "9px",
-                    minWidth: collapsed ? "14px" : "18px", // ensure minimum width
-                    maxWidth: collapsed ? "28px" : "36px", // cap maximum width
+                    borderRadius: "9px",
+                    minWidth: "18px",
+                    maxWidth: "36px",
                     "& .MuiChip-label": {
-                      px: collapsed ? "4px" : "6px",
+                      px: "6px",
                       py: 0,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     },
                     ml: "auto",
-                    position: collapsed ? "absolute" : "static",
-                    top: collapsed ? "6px" : "auto",
-                    right: collapsed ? "4px" : "auto",
                   }}
                 />
               )}

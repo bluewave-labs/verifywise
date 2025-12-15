@@ -37,6 +37,7 @@ import rateLimit from "express-rate-limit";
 import {
   checkUserExists,
   createNewUser,
+  registerNewUser,
   deleteUserById,
   getAllUsers,
   getUserByEmail,
@@ -99,7 +100,7 @@ router.get("/:id", authenticateJWT, getUserById);
 /**
  * POST /users/register
  *
- * Creates a new user.
+ * Creates a new user (legacy - requires invitation token).
  *
  * @name post/register
  * @function
@@ -109,6 +110,20 @@ router.get("/:id", authenticateJWT, getUserById);
  * @param {express.Response} res - Express response object
  */
 router.post("/register", registerJWT, createNewUser);
+
+/**
+ * POST /users/signup
+ *
+ * Simplified user registration - creates new organization and user.
+ *
+ * @name post/signup
+ * @function
+ * @memberof module:routes/user.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ */
+router.post("/signup", registerNewUser);
 
 /**
  * POST /users/login

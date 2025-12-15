@@ -58,9 +58,10 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const response = await getAllEntities({ routeUrl: "/model-risks" });
+      const response = await getAllEntities({ routeUrl: "/modelRisks?filter=active" });
       // Filter risks for this specific model
-      const risks = (response.data || []).filter(
+      const risksData = Array.isArray(response) ? response : (response.data || []);
+      const risks = risksData.filter(
         (risk: IModelRisk) => risk.model_id === modelId && !risk.is_deleted
       );
       setModelRisks(risks);

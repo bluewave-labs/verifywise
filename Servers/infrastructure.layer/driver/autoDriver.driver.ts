@@ -34,6 +34,9 @@ export async function insertMockData(
   try {
     let users = (await getData("users", "public", transaction)) as UserModel[];
     if (users.length < 2) {
+      const { getTenantHash } = require("../../tools/getTenantHash");
+      const tenantHash = getTenantHash(organization);
+      
       let u1 = await createNewUserQuery(
         await UserModel.createNewUser(
           "John",
@@ -43,6 +46,7 @@ export async function insertMockData(
           1,
           organization
         ),
+        tenantHash,
         transaction,
         true // is demo
       );
@@ -55,6 +59,7 @@ export async function insertMockData(
           2,
           organization
         ),
+        tenantHash,
         transaction,
         true // is demo
       );

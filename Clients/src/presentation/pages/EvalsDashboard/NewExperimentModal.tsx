@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -14,7 +13,7 @@ import {
   FormControl,
   CircularProgress,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, KeyRound } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
@@ -33,7 +32,7 @@ import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
 import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
-import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import { evaluationLlmApiKeysService, type LLMApiKey, type LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 import { PROVIDERS, type ModelInfo } from "../../utils/providers";
 
 interface NewExperimentModalProps {
@@ -93,7 +92,6 @@ export default function NewExperimentModal({
   const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
   
-  const navigate = useNavigate();
 
   // Configuration state
   const [config, setConfig] = useState({
@@ -312,6 +310,43 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Auto-save any new API keys entered
+      const saveApiKeyPromises: Promise<void>[] = [];
+      
+      // Save model provider API key if entered (only for cloud providers with saved model lists)
+      const modelProvider = config.model.accessMethod;
+      if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
+        saveApiKeyPromises.push(
+          evaluationLlmApiKeysService.addKey({
+            provider: modelProvider as LLMProvider,
+            apiKey: config.model.apiKey,
+          }).then((newKey) => {
+            // Update local state so we know it's configured now
+            setConfiguredApiKeys((prev) => [...prev, newKey]);
+          }).catch((err) => {
+            console.warn("Failed to save model API key:", err);
+          })
+        );
+      }
+      
+      // Save judge provider API key if entered
+      const judgeProvider = config.judgeLlm.provider;
+      if (config.judgeLlm.apiKey && judgeProvider && PROVIDERS[judgeProvider] && !hasApiKey(judgeProvider)) {
+        saveApiKeyPromises.push(
+          evaluationLlmApiKeysService.addKey({
+            provider: judgeProvider as LLMProvider,
+            apiKey: config.judgeLlm.apiKey,
+          }).then((newKey) => {
+            setConfiguredApiKeys((prev) => [...prev, newKey]);
+          }).catch((err) => {
+            console.warn("Failed to save judge API key:", err);
+          })
+        );
+      }
+      
+      // Wait for API keys to be saved (don't block if they fail)
+      await Promise.allSettled(saveApiKeyPromises);
+      
       // Prepare experiment configuration
       const experimentConfig = {
         project_id: projectId,
@@ -492,11 +527,8 @@ export default function NewExperimentModal({
     { id: "ollama" as ProviderType, name: "Ollama", Logo: OllamaLogo, needsApiKey: false },
   ];
 
-  // Cloud providers with configured API keys
-  const configuredCloudProviders = cloudProviders.filter((p) => hasApiKey(p.id));
-  
-  // All available providers for judge selection (only configured cloud + local)
-  const availableJudgeProviders = [...configuredCloudProviders, ...localProviders];
+  // All available providers for judge selection (all cloud + local)
+  const availableJudgeProviders = [...cloudProviders, ...localProviders];
 
   const selectedProvider = availableJudgeProviders.find(p => p.id === config.judgeLlm.provider);
   
@@ -529,7 +561,7 @@ export default function NewExperimentModal({
     }
   }, [activeStep, config.dataset.useBuiltin, datasetLoaded, handleLoadBuiltinDataset]);
 
-  // Model providers - includes configured cloud providers plus local options
+  // Model providers - show ALL providers (cloud + local)
   const allModelProviders = [
     ...cloudProviders.map(p => ({ ...p, needsUrl: false })),
     ...localProviders.map(p => ({ ...p, needsUrl: false })),
@@ -537,15 +569,8 @@ export default function NewExperimentModal({
     { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, needsApiKey: true, needsUrl: true },
   ];
   
-  // Filter to only show configured cloud providers + always-available local options
-  const availableModelProviders = allModelProviders.filter(p => {
-    // Local providers (Ollama, Local, Custom API, HuggingFace) are always available
-    if (!p.needsApiKey || p.id === "local" || p.id === "custom_api" || p.id === "ollama" || p.id === "huggingface") {
-      return true;
-    }
-    // Cloud providers need a configured API key
-    return hasApiKey(p.id);
-  });
+  // Show all providers - we'll handle missing API keys with a message
+  const availableModelProviders = allModelProviders;
 
   const selectedModelProvider = availableModelProviders.find(p => p.id === config.model.accessMethod);
 
@@ -574,7 +599,7 @@ export default function NewExperimentModal({
                   Model Provider
                 </Typography>
                 <Grid container spacing={1.5}>
-                  {/* Show configured cloud providers */}
+                  {/* Show all providers */}
                   {availableModelProviders.map((provider) => {
                     const { Logo } = provider;
                     const isSelected = config.model.accessMethod === provider.id;
@@ -676,67 +701,6 @@ export default function NewExperimentModal({
                       </Grid>
                     );
                   })}
-
-                  {/* Add API Key Card - to configure new providers */}
-                  <Grid item xs={4} sm={3}>
-                    <Card
-                      onClick={() => {
-                        onClose();
-                        navigate(`/evals/${projectId}#configuration`);
-                      }}
-                      sx={{
-                        cursor: "pointer",
-                        border: "1px dashed #D1D5DB",
-                        backgroundColor: "#FAFAFA",
-                        boxShadow: "none",
-                        transition: "all 0.2s ease",
-                        height: "100%",
-                        "&:hover": {
-                          borderColor: "#13715B",
-                          backgroundColor: "#F0FDF4",
-                        },
-                      }}
-                    >
-                      <CardContent
-                        sx={{
-                          textAlign: "center",
-                          py: 3,
-                          px: 2,
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          "&:last-child": { pb: 3 },
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: "50%",
-                            backgroundColor: "#E5E7EB",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            mb: 1.5,
-                          }}
-                        >
-                          <KeyRound size={20} color="#6B7280" />
-                        </Box>
-                        <Typography
-                          sx={{
-                            fontSize: "12px",
-                            fontWeight: 500,
-                            color: "#6B7280",
-                            textAlign: "center",
-                          }}
-                        >
-                          Add API Key
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
                 </Grid>
               </Box>
             )}
@@ -832,33 +796,33 @@ export default function NewExperimentModal({
                     />
                   )}
 
-                  {/* API Key info for cloud providers - show that key is configured */}
-                  {selectedModelProvider?.needsApiKey && hasApiKey(config.model.accessMethod) && (
-                    <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Check size={16} color="#059669" />
-                        <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
-                          API key configured in organization settings
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  )}
-
-                  {/* API Key field only for Custom API (not using saved keys) */}
-                  {config.model.accessMethod === "custom_api" && (
-                    <Field
-                      label="API Key"
-                      type="password"
-                      value={config.model.apiKey}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          model: { ...prev.model, apiKey: e.target.value },
-                        }))
-                      }
-                      placeholder="Enter your API key"
-                      autoComplete="off"
-                    />
+                  {/* API Key - show configured status OR input field */}
+                  {selectedModelProvider?.needsApiKey && (
+                    hasApiKey(config.model.accessMethod) ? (
+                      <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Check size={16} color="#059669" />
+                          <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                            API key configured — will be saved for future experiments
+                          </Typography>
+                        </Stack>
+                      </Box>
+                    ) : (
+                      <Field
+                        label="API Key"
+                        type="password"
+                        value={config.model.apiKey}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            model: { ...prev.model, apiKey: e.target.value },
+                          }))
+                        }
+                        placeholder={`Enter your ${selectedModelProvider.name} API key`}
+                        autoComplete="off"
+                        helperText="Your key will be saved securely for future experiments"
+                      />
+                    )
                   )}
                 </Stack>
               </Box>
@@ -1363,214 +1327,115 @@ export default function NewExperimentModal({
                     Providers and frameworks
                   </Typography>
                   
-                  {availableJudgeProviders.length === 0 ? (
-                    <Box sx={{ p: 3, backgroundColor: "#FEF3C7", borderRadius: "8px", border: "1px solid #F59E0B", textAlign: "center" }}>
-                      <Typography sx={{ fontSize: "13px", color: "#92400E", mb: 1 }}>
-                        No API keys configured for judge LLM
-                      </Typography>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<KeyRound size={14} />}
-                        onClick={() => {
-                          onClose();
-                          navigate(`/evals/${projectId}#configuration`);
-                        }}
-                        sx={{
-                          textTransform: "none",
-                          fontSize: "12px",
-                          color: "#92400E",
-                          borderColor: "#92400E",
-                          "&:hover": { borderColor: "#78350F", backgroundColor: "#FEF3C7" },
-                        }}
-                      >
-                        Add API Key in Configuration
-                      </Button>
-                    </Box>
-                  ) : (
-                    <Grid container spacing={1.5}>
-                      {availableJudgeProviders.map((provider) => {
-                        const { Logo } = provider;
-                        const isSelected = config.judgeLlm.provider === provider.id;
-                        
-                        return (
-                          <Grid item xs={4} sm={3} key={provider.id}>
-                            <Card
-                              onClick={() =>
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  judgeLlm: {
-                                    ...prev.judgeLlm,
-                                    provider: provider.id,
-                                    model: "", // Reset model when changing provider
-                                  },
-                                }))
-                              }
-                              sx={{
-                                cursor: "pointer",
-                                border: "1px solid",
-                                borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                                backgroundColor: "#FFFFFF",
-                                boxShadow: "none",
-                                transition: "all 0.2s ease",
-                                position: "relative",
-                                height: "100%",
-                                "&:hover": {
-                                  borderColor: "#13715B",
-                                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                  <Grid container spacing={1.5}>
+                    {availableJudgeProviders.map((provider) => {
+                      const { Logo } = provider;
+                      const isSelected = config.judgeLlm.provider === provider.id;
+                      
+                      return (
+                        <Grid item xs={4} sm={3} key={provider.id}>
+                          <Card
+                            onClick={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: {
+                                  ...prev.judgeLlm,
+                                  provider: provider.id,
+                                  model: "", // Reset model when changing provider
                                 },
+                              }))
+                            }
+                            sx={{
+                              cursor: "pointer",
+                              border: "1px solid",
+                              borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                              backgroundColor: "#FFFFFF",
+                              boxShadow: "none",
+                              transition: "all 0.2s ease",
+                              position: "relative",
+                              height: "100%",
+                              "&:hover": {
+                                borderColor: "#13715B",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                              },
+                            }}
+                          >
+                            <CardContent
+                              sx={{
+                                textAlign: "center",
+                                py: 3,
+                                px: 2,
+                                height: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                "&:last-child": { pb: 3 },
                               }}
                             >
-                              <CardContent
-                                sx={{
-                                  textAlign: "center",
-                                  py: 3,
-                                  px: 2,
-                                  height: "100%",
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  "&:last-child": { pb: 3 },
-                                }}
-                              >
-                                {isSelected && (
-                                  <Box
-                                    sx={{
-                                      position: "absolute",
-                                      top: 8,
-                                      right: 8,
-                                      backgroundColor: "#13715B",
-                                      borderRadius: "50%",
-                                      width: 20,
-                                      height: 20,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                    }}
-                                  >
-                                    <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                                  </Box>
-                                )}
-                                
-                                {/* Provider Logo */}
+                              {isSelected && (
                                 <Box
                                   sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    backgroundColor: "#13715B",
+                                    borderRadius: "50%",
+                                    width: 20,
+                                    height: 20,
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    width: "100%",
-                                    height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
-                                    mb: 1.5,
-                                    "& svg": {
-                                      maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                      maxHeight: "100%",
-                                      width: "auto",
-                                      height: "auto",
-                                      objectFit: "contain",
-                                    },
                                   }}
                                 >
-                                  <Logo />
+                                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
                                 </Box>
-                                
-                                {/* Provider Name */}
-                                <Typography
-                                  sx={{
-                                    fontSize: "12px",
-                                    fontWeight: 500,
-                                    color: "#374151",
-                                    lineHeight: 1.3,
-                                    mt: "auto",
-                                  }}
-                                >
-                                  {provider.name}
-                                </Typography>
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                        );
-                      })}
-                      
-                      {/* Add API Key Card */}
-                      <Grid item xs={4} sm={3}>
-                        <Card
-                          onClick={() => {
-                            onClose();
-                            navigate(`/evals/${projectId}#configuration`);
-                          }}
-                          sx={{
-                            cursor: "pointer",
-                            border: "1px dashed #D1D5DB",
-                            backgroundColor: "#FAFAFA",
-                            boxShadow: "none",
-                            transition: "all 0.2s ease",
-                            height: "100%",
-                            "&:hover": {
-                              borderColor: "#13715B",
-                              backgroundColor: "#F0FDF4",
-                            },
-                          }}
-                        >
-                          <CardContent
-                            sx={{
-                              textAlign: "center",
-                              py: 3,
-                              px: 2,
-                              height: "100%",
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              "&:last-child": { pb: 3 },
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: "50%",
-                                backgroundColor: "#E5E7EB",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                mb: 1.5,
-                              }}
-                            >
-                              <KeyRound size={20} color="#6B7280" />
-                            </Box>
-                            <Typography
-                              sx={{
-                                fontSize: "12px",
-                                fontWeight: 500,
-                                color: "#6B7280",
-                                textAlign: "center",
-                              }}
-                            >
-                              Add API Key
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  )}
+                              )}
+                              
+                              {/* Provider Logo */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "100%",
+                                  height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                  mb: 1.5,
+                                  "& svg": {
+                                    maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
+                                    maxHeight: "100%",
+                                    width: "auto",
+                                    height: "auto",
+                                    objectFit: "contain",
+                                  },
+                                }}
+                              >
+                                <Logo />
+                              </Box>
+                              
+                              {/* Provider Name */}
+                              <Typography
+                                sx={{
+                                  fontSize: "12px",
+                                  fontWeight: 500,
+                                  color: "#374151",
+                                  lineHeight: 1.3,
+                                  mt: "auto",
+                                }}
+                              >
+                                {provider.name}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
                 </Box>
 
                 {config.judgeLlm.provider && (
                   <Box ref={formFieldsRef}>
                     <Stack spacing={3}>
-                      {/* API Key info for cloud providers */}
-                      {selectedProvider?.needsApiKey && hasApiKey(config.judgeLlm.provider) && (
-                        <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <Check size={16} color="#059669" />
-                            <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
-                              API key configured in organization settings
-                            </Typography>
-                          </Stack>
-                        </Box>
-                      )}
-
                       {/* Model Selection - Dropdown for cloud providers, text input for local */}
                       {PROVIDERS[config.judgeLlm.provider] ? (
                         <Box>
@@ -1636,6 +1501,35 @@ export default function NewExperimentModal({
                               : "e.g., gpt-4, claude-3-opus"
                           }
                         />
+                      )}
+
+                      {/* API Key - show configured status OR input field */}
+                      {selectedProvider?.needsApiKey && (
+                        hasApiKey(config.judgeLlm.provider) ? (
+                          <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <Check size={16} color="#059669" />
+                              <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                                API key configured — will be saved for future experiments
+                              </Typography>
+                            </Stack>
+                          </Box>
+                        ) : (
+                          <Field
+                            label="API Key"
+                            type="password"
+                            value={config.judgeLlm.apiKey}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, apiKey: e.target.value },
+                              }))
+                            }
+                            placeholder={`Enter your ${selectedProvider.name} API key`}
+                            autoComplete="off"
+                            helperText="Your key will be saved securely for future experiments"
+                          />
+                        )
                       )}
 
                       <Stack direction="row" spacing={3}>

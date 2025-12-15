@@ -258,14 +258,6 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                         width: "110px",
                                         maxWidth: "110px",
                                     }),
-                                    ...(column.id === "actions" && {
-                                        position: "sticky",
-                                        right: 0,
-                                        zIndex: 10,
-                                        backgroundColor:
-                                            singleTheme.tableStyles.primary.header
-                                                .backgroundColors,
-                                    }),
                                     ...(!isLastColumn && sortable
                                         ? {
                                             cursor: "pointer",

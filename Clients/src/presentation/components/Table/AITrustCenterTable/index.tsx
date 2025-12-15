@@ -182,13 +182,6 @@ const AITrustCenterTable = <T extends { id: number }>({
                   minWidth: "auto",
                   width: (column as any).width || "auto",
                   maxWidth: (column as any).width || "auto",
-                  ...(isLastColumn && {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }),
                   ...(!isLastColumn && sortable
                     ? {
                         cursor: "pointer",

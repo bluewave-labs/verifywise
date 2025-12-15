@@ -490,13 +490,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             key={column.id}
                             sx={{
                               ...singleTheme.tableStyles.primary.header.cell,
-                              ...(isLastColumn && {
-                                position: "sticky",
-                                right: 0,
-                                backgroundColor:
-                                  singleTheme.tableStyles.primary.header
-                                    .backgroundColors,
-                              }),
                               ...(!isLastColumn && sortable
                                 ? {
                                     cursor: "pointer",
@@ -650,8 +643,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                position: "sticky",
-                                right: 0,
                                 minWidth: "50px",
                                 backgroundColor:
                                   sortConfig.key &&

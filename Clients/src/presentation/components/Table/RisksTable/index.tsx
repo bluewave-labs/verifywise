@@ -65,20 +65,11 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <TableCell
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(index === columns.length - 1
-                ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                : {}),
               ...(column.sortable
                 ? {
                     cursor: "pointer",
@@ -578,9 +569,6 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "50px",
                   }}
                 >

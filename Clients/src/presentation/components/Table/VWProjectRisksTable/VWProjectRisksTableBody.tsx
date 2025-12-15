@@ -266,8 +266,6 @@ const VWProjectRisksTableBody = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
                     minWidth: "50px",
                     backgroundColor: flashRow === row.id
                       ? "#e3f5e6"

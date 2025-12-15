@@ -147,7 +147,7 @@ const VWProjectView = () => {
   };
 
   return (
-    <Stack className="vw-project-view" overflow={"hidden"}>
+    <Stack className="vw-project-view">
       <PageBreadcrumbs
         items={breadcrumbItems}
         autoGenerate={false}

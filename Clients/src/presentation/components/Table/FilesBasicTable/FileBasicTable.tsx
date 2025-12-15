@@ -84,13 +84,6 @@ const SortableTableHead: React.FC<{
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...col.sx,
-                ...(isLastColumn && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
                 ...(!isLastColumn && sortable
                   ? {
                       cursor: "pointer",
@@ -420,9 +413,6 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "50px",
                     backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
                   }}

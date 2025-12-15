@@ -68,13 +68,6 @@ const SortableTableHead: React.FC<{
               key={index}
               sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
-                ...(isLastColumn && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
                 ...(!isLastColumn && sortable
                   ? {
                       cursor: "pointer",

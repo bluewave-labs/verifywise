@@ -8,6 +8,8 @@ export const containerStyle: SxProps<Theme> = {
 
 export const headerContainerStyle: SxProps<Theme> = {
   ...layoutStyles.flexBetween(),
+  flexWrap: "wrap",
+  gap: 2,
   mb: 2,
 };
 

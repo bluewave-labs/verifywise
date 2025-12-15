@@ -45,7 +45,7 @@ import {
 } from "../../../../application/repository/user.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { UserModel } from "../../../../domain/models/Common/User/user.model";
+import { UserModel } from "../../../../domain/models/Common/user/user.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";

@@ -1,7 +1,6 @@
 import { generateReport } from "../repository/entity.repository";
 import { downloadFileFromManager } from "../repository/file.repository";
 import { triggerBrowserDownload, extractFilenameFromHeaders } from "../../presentation/utils/browserDownload.utils";
-import { ReportFormat } from "../../domain/interfaces/iWidget";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -11,7 +10,6 @@ interface GenerateReportProps {
   reportName: string;
   frameworkId: number;
   projectFrameworkId: number;
-  format?: ReportFormat;
 }
 
 /**
@@ -50,12 +48,8 @@ export const handleDownload = async (fileId: string, fileName: string, source?: 
  */
 export const handleAutoDownload = async (requestBody: GenerateReportProps): Promise<number> => {
   try {
-    // Use v2 endpoint when format is specified (new reporting system)
-    const useV2 = requestBody.format !== undefined;
-    const routeUrl = useV2 ? `/reporting/v2/generate-report` : `/reporting/generate-report`;
-
     const response = await generateReport({
-      routeUrl,
+      routeUrl: `/reporting/generate-report`,
       body: requestBody
     });
 
@@ -70,6 +64,7 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
       // Create blob and trigger download
       const blob = new Blob([blobFileContent], { type: responseType || undefined });
       triggerBrowserDownload(blob, fileName);
+
 
       return response.status;
     } else {

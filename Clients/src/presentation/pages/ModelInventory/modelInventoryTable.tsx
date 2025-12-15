@@ -343,13 +343,6 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
               key={column.id}
               sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
-                ...(column.id === "actions" && {
-                  position: "sticky",
-                  right: 0,
-                  zIndex: 10,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }),
                 ...(column.sortable && {
                   cursor: "pointer",
                   userSelect: "none",
@@ -532,9 +525,6 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "50px",
                   }}
                   onClick={(e) => {

@@ -883,7 +883,7 @@ const Vendors = () => {
         }}
         tourKey="vendor-tour"
       />
-      <Stack gap={"16px"} maxWidth={1400}>
+      <Stack gap={"16px"}>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
             <Alert

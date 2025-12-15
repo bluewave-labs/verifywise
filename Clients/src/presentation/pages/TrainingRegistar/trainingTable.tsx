@@ -84,13 +84,6 @@ const SortableTableHead: React.FC<{
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(column.id === "actions" && {
-                position: "sticky",
-                right: 0,
-                zIndex: 10,
-                backgroundColor:
-                  singleTheme.tableStyles.primary.header.backgroundColors,
-              }),
               ...(column.sortable
                 ? {
                     cursor: "pointer",
@@ -393,9 +386,6 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
                       minWidth: "50px",
                       backgroundColor: sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
                     }}

@@ -108,13 +108,6 @@ const SortableTableHead: React.FC<{
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(column.id === "actions" && {
-                position: "sticky",
-                right: 0,
-                zIndex: 10,
-                backgroundColor:
-                  singleTheme.tableStyles.primary.header.backgroundColors,
-              }),
               ...(column.sortable
                 ? {
                     cursor: "pointer",

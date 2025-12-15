@@ -449,106 +449,109 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
-        pl={theme.spacing(8)}
-        pr={theme.spacing(8)}
-        sx={{ position: "relative" }}
+        sx={{
+          position: "relative",
+          pl: delayedCollapsed ? theme.spacing(8) : `calc(${theme.spacing(8)} + ${theme.spacing(4)})`,
+          pr: theme.spacing(8),
+        }}
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent="flex-start"
+          justifyContent={delayedCollapsed ? "center" : "flex-start"}
           gap={theme.spacing(2)}
           className="app-title"
           sx={{ position: "relative", height: "20px" }}
         >
-          <Box onMouseEnter={handleLogoHover} sx={{ position: "relative", display: "flex", alignItems: "center" }}>
-            {/* Heart Icon - Rises behind and appears above logo */}
-            {showHeartIcon && (
-              <Tooltip title="Spread some love!">
-                <IconButton
-                  onClick={handleHeartClick}
-                  sx={{
-                    position: "absolute",
-                    top: "-16px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    padding: 0,
-                    zIndex: 10,
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                    },
-                    animation: heartReturning
-                      ? "slideDownBehind 0.5s ease-in forwards"
-                      : "slideUpFromBehind 0.5s ease-out",
-                    "@keyframes slideUpFromBehind": {
-                      "0%": {
-                        opacity: 0,
-                        transform: "translateX(-50%) translateY(28px)",
-                        zIndex: -1,
+          {!delayedCollapsed && (
+            <Box onMouseEnter={handleLogoHover} sx={{ position: "relative", display: "flex", alignItems: "center" }}>
+              {/* Heart Icon - Rises behind and appears above logo */}
+              {showHeartIcon && (
+                <Tooltip title="Spread some love!">
+                  <IconButton
+                    onClick={handleHeartClick}
+                    sx={{
+                      position: "absolute",
+                      top: "-16px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      padding: 0,
+                      zIndex: 10,
+                      "&:hover": {
+                        backgroundColor: "transparent",
                       },
-                      "60%": {
-                        zIndex: -1,
+                      animation: heartReturning
+                        ? "slideDownBehind 0.5s ease-in forwards"
+                        : "slideUpFromBehind 0.5s ease-out",
+                      "@keyframes slideUpFromBehind": {
+                        "0%": {
+                          opacity: 0,
+                          transform: "translateX(-50%) translateY(28px)",
+                          zIndex: -1,
+                        },
+                        "60%": {
+                          zIndex: -1,
+                        },
+                        "70%": {
+                          opacity: 1,
+                          zIndex: 10,
+                        },
+                        "100%": {
+                          opacity: 1,
+                          transform: "translateX(-50%) translateY(0)",
+                          zIndex: 10,
+                        },
                       },
-                      "70%": {
-                        opacity: 1,
-                        zIndex: 10,
+                      "@keyframes slideDownBehind": {
+                        "0%": {
+                          opacity: 1,
+                          transform: "translateX(-50%) translateY(0)",
+                          zIndex: 10,
+                        },
+                        "30%": {
+                          opacity: 0.7,
+                          zIndex: 10,
+                        },
+                        "40%": {
+                          zIndex: -1,
+                        },
+                        "100%": {
+                          opacity: 0,
+                          transform: "translateX(-50%) translateY(28px)",
+                          zIndex: -1,
+                        },
                       },
-                      "100%": {
-                        opacity: 1,
-                        transform: "translateX(-50%) translateY(0)",
-                        zIndex: 10,
-                      },
-                    },
-                    "@keyframes slideDownBehind": {
-                      "0%": {
-                        opacity: 1,
-                        transform: "translateX(-50%) translateY(0)",
-                        zIndex: 10,
-                      },
-                      "30%": {
-                        opacity: 0.7,
-                        zIndex: 10,
-                      },
-                      "40%": {
-                        zIndex: -1,
-                      },
-                      "100%": {
-                        opacity: 0,
-                        transform: "translateX(-50%) translateY(28px)",
-                        zIndex: -1,
-                      },
-                    },
-                  }}
-                >
-                  <Heart
-                    size={14}
-                    color="#FF1493"
-                    strokeWidth={1.5}
-                    fill="#FF1493"
-                  />
-                </IconButton>
-              </Tooltip>
-            )}
-            <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
-              <img
-                src={Logo}
-                alt="Logo"
-                width={20}
-                height={20}
-                style={{ position: "relative", zIndex: 1, display: "block" }}
-              />
-            </RouterLink>
-          </Box>
+                    }}
+                  >
+                    <Heart
+                      size={14}
+                      color="#FF1493"
+                      strokeWidth={1.5}
+                      fill="#FF1493"
+                    />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
+                <img
+                  src={Logo}
+                  alt="Logo"
+                  width={20}
+                  height={20}
+                  style={{ position: "relative", zIndex: 1, display: "block" }}
+                />
+              </RouterLink>
+            </Box>
+          )}
           {!delayedCollapsed && (
             <MuiLink
               component={RouterLink}
               to="/"
-              sx={{ textDecoration: "none" }}
+              sx={{ textDecoration: "none", display: "flex", alignItems: "center" }}
             >
               <Typography
                 component="span"
-                mt={theme.spacing(1)}
-                sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px" }}
+                sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px", lineHeight: 1 }}
                 className="app-title"
               >
                 Verify
@@ -572,21 +575,24 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Typography>
             </MuiLink>
           )}
-          {/* Sidebar Toggle Button - positioned absolutely to stay fixed on right */}
+          {/* Sidebar Toggle Button */}
           <IconButton
             disableRipple={
               theme.components?.MuiListItemButton?.defaultProps?.disableRipple
             }
             sx={{
               position: "absolute",
-              right: 0,
+              right: delayedCollapsed ? "50%" : 0,
+              transform: delayedCollapsed ? "translateX(50%)" : "none",
               top: 0,
               bottom: 0,
               display: "flex",
               alignItems: "center",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
+              transition: "right 0.65s cubic-bezier(0.36, -0.01, 0, 0.77), transform 0.65s cubic-bezier(0.36, -0.01, 0, 0.77)",
               "& svg": {
+                opacity: 0.9,
                 "& path": {
                   stroke: theme.palette.text.tertiary,
                 },
@@ -680,6 +686,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
                 justifyContent: collapsed ? "center" : "flex-start",
+                "& .MuiListItemText-root": {
+                  display: collapsed ? "none" : "block",
+                },
                 background:
                   location.pathname === item.path ||
                   item.highlightPaths?.some((p: string) =>
@@ -826,18 +835,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Group header */}
             <Typography
               variant="overline"
+              className="sidebar-group-header"
               sx={{
                 px: theme.spacing(4),
-                pt: theme.spacing(6), // Even more space above (increased from 4 to 6)
-                pb: theme.spacing(2),
-                mt: theme.spacing(4), // Same extra space for all groups
-                color: theme.palette.text.disabled,
-                fontSize: "7px", // Further reduced from 8px to 7px
-                fontWeight: 400, // Changed from 600 to 400 (lighter)
-                letterSpacing: "0.3px", // Reduced from 1px to 0.3px for tighter spacing
+                pt: theme.spacing(4.5),
+                pb: theme.spacing(1.5),
+                mt: theme.spacing(3),
+                color: "#a0a0a0 !important",
+                fontSize: "11px !important",
+                fontWeight: 400,
+                letterSpacing: "0.5px",
                 textTransform: "uppercase",
-                display: "block",
-                opacity: 0.7, // Make it even lighter
+                display: collapsed ? "none" : "block",
               }}
             >
               {group.name}
@@ -886,6 +895,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
                     justifyContent: collapsed ? "center" : "flex-start",
+                    "& .MuiListItemText-root": {
+                      display: collapsed ? "none" : "block",
+                    },
                     background:
                       location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>

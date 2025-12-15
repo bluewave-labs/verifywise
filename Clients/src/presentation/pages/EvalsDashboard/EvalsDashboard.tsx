@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, TextField, Button, List, ListItemButton, ListItemText, useTheme } from "@mui/material";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
@@ -94,9 +94,6 @@ export default function EvalsDashboard() {
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({ name: "", description: "", useCase: "chatbot" });
   const [loading, setLoading] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [orgCreateOpen, setOrgCreateOpen] = useState(false);
-  const [orgCreating, setOrgCreating] = useState(false);
-  const [newOrgName, setNewOrgName] = useState("");
   const [experimentsCount, setExperimentsCount] = useState<number>(0);
   const [datasetsCount, setDatasetsCount] = useState<number>(0);
   const [scorersCount, setScorersCount] = useState<number>(0);
@@ -134,12 +131,12 @@ export default function EvalsDashboard() {
   const [deleteKeyModalOpen, setDeleteKeyModalOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<LLMApiKey | null>(null);
 
-  // Onboarding state: "org" | "project" | null (null = completed)
-  const [onboardingStep, setOnboardingStep] = useState<"org" | "project" | null>(null);
-  const [onboardingOrgName, setOnboardingOrgName] = useState("");
+  // Onboarding state: "project" | null (null = completed) - org is auto-created
+  const [onboardingStep, setOnboardingStep] = useState<"project" | null>(null);
   const [onboardingProjectName, setOnboardingProjectName] = useState("");
   const [onboardingProjectDesc, setOnboardingProjectDesc] = useState("");
   const [onboardingProjectUseCase, setOnboardingProjectUseCase] = useState<"chatbot" | "rag" | "agent">("chatbot");
+  const [serverConnectionError, setServerConnectionError] = useState(false);
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
 
   // Project actions state (rename, delete)
@@ -160,14 +157,14 @@ export default function EvalsDashboard() {
   const preventCloseRef = useRef(false);
 
   // Helper function to add a recent experiment
-  const addRecentExperiment = (experiment: RecentExperiment) => {
+  const addRecentExperiment = useCallback((experiment: RecentExperiment) => {
     setRecentExperiments((prev) => {
       const filtered = prev.filter((e) => e.id !== experiment.id);
       const updated = [experiment, ...filtered].slice(0, 10); // Keep max 10
       localStorage.setItem(RECENT_EXPERIMENTS_KEY, JSON.stringify(updated));
       return updated;
     });
-  };
+  }, []);
 
   // Helper function to add a recent project
   const addRecentProject = (project: RecentProject) => {
@@ -209,8 +206,7 @@ export default function EvalsDashboard() {
         });
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedExperimentId, projectId]);
+  }, [selectedExperimentId, projectId, addRecentExperiment]);
 
   // Load LLM API keys when configuration tab is active
   const fetchLlmApiKeys = async () => {
@@ -249,7 +245,7 @@ export default function EvalsDashboard() {
         setDeletingKeyProvider(null);
         setKeyToDelete(null);
       }, 300);
-    } catch (err) {
+    } catch {
       setDeletingKeyProvider(null);
       setApiKeyAlert({ variant: "error", body: "Failed to delete API key" });
       setTimeout(() => setApiKeyAlert(null), 5000);
@@ -275,74 +271,81 @@ export default function EvalsDashboard() {
     }
   };
 
-  // Load current org on mount and check if onboarding is needed
+  // Load current org on mount and auto-create default org if needed
   useEffect(() => {
     const loadAndCheckOnboarding = async () => {
       try {
         // Check if there are any organizations
-        const { orgs } = await deepEvalOrgsService.getAllOrgs();
+        let { orgs } = await deepEvalOrgsService.getAllOrgs();
 
         if (!orgs || orgs.length === 0) {
-          // No organizations - start onboarding
-          setOnboardingStep("org");
-          setOrgId(null);
-        } else {
-          // Has organizations - check for current org
-          const { org } = await deepEvalOrgsService.getCurrentOrg();
-          if (org) {
-            setOrgId(org.id);
-          } else {
-            // Has orgs but none selected - select first one
-            await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
-            setOrgId(orgs[0].id);
-          }
-
-          // Check for last project - try to redirect regardless of org association
-          const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
-          if (lastProjectId) {
-            // Verify the project still exists
-            try {
-              const projectData = await deepEvalProjectsService.getProject(lastProjectId);
-              if (projectData?.project) {
-                navigate(`/evals/${lastProjectId}#overview`, { replace: true });
-                return;
-              }
-            } catch {
-              // Project doesn't exist anymore, clear from localStorage
-              localStorage.removeItem(LAST_PROJECT_KEY);
-            }
-          }
-
-          // No last project - check current org's projects for onboarding
-          const currentOrgId = org?.id || orgs[0].id;
-          const projectIds = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
-          if (!projectIds || projectIds.length === 0) {
-            // Org exists but no projects - go to project step
-            setOnboardingStep("project");
-          } else if (projectIds.length > 0) {
-            // Redirect to first project in org
-            navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+          // No organizations - auto-create a default one
+          try {
+            const { org: newOrg } = await deepEvalOrgsService.createOrg("Default Organization");
+            await deepEvalOrgsService.setCurrentOrg(newOrg.id);
+            setOrgId(newOrg.id);
+            orgs = [newOrg];
+          } catch (createErr) {
+            console.error("Failed to create default organization:", createErr);
+            setServerConnectionError(true);
+            setOnboardingStep(null);
             return;
           }
         }
+
+        // Has organizations - check for current org
+        const { org } = await deepEvalOrgsService.getCurrentOrg();
+        if (org) {
+          setOrgId(org.id);
+        } else {
+          // Has orgs but none selected - select first one
+          await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+          setOrgId(orgs[0].id);
+        }
+
+        // Check for last project - try to redirect regardless of org association
+        const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+        if (lastProjectId) {
+          // Verify the project still exists
+          try {
+            const projectData = await deepEvalProjectsService.getProject(lastProjectId);
+            if (projectData?.project) {
+              navigate(`/evals/${lastProjectId}#overview`, { replace: true });
+              return;
+            }
+          } catch {
+            // Project doesn't exist anymore, clear from localStorage
+            localStorage.removeItem(LAST_PROJECT_KEY);
+          }
+        }
+
+        // No last project - check current org's projects for onboarding
+        const currentOrgId = org?.id || orgs[0].id;
+        const projectIds = await deepEvalOrgsService.getProjectsForOrg(currentOrgId);
+        if (!projectIds || projectIds.length === 0) {
+          // Org exists but no projects - go to project step
+          setOnboardingStep("project");
+        } else if (projectIds.length > 0) {
+          // Redirect to first project in org
+          navigate(`/evals/${projectIds[0]}#overview`, { replace: true });
+          return;
+        }
       } catch (err) {
         console.error("Failed to check onboarding:", err);
-        // On error, show org creation
-        setOnboardingStep("org");
+        // On error, set server connection error instead of forcing onboarding
+        setServerConnectionError(true);
+        setOnboardingStep(null);
       } finally {
         setInitialLoading(false);
       }
     };
 
     // Only run onboarding check when not viewing a specific project
-    // Skip redirect if explicitly on organizations tab (check both hash and tab state)
-    const hash = location.hash.replace("#", "");
-    if (!projectId && hash !== "organizations" && tab !== "organizations") {
+    if (!projectId) {
       loadAndCheckOnboarding();
     } else {
       setInitialLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, navigate]);
 
   // Load all projects for the dropdown and current project
@@ -500,22 +503,43 @@ export default function EvalsDashboard() {
     }
   };
 
-  // Organization selection is handled in ProjectsList; keep org state here only
+  // Organization is auto-created, no user interaction needed
 
-  // Onboarding: Create organization
-  const handleOnboardingCreateOrg = async () => {
-    if (!onboardingOrgName.trim()) return;
-    setOnboardingSubmitting(true);
+  const handleSkipOnboarding = () => {
+    setOnboardingStep(null);
+    navigate("/evals");
+  };
+
+  const handleRetryConnection = async () => {
+    setServerConnectionError(false);
+    setInitialLoading(true);
     try {
-      const { org } = await deepEvalOrgsService.createOrg(onboardingOrgName.trim());
-      await deepEvalOrgsService.setCurrentOrg(org.id);
-      setOrgId(org.id);
-      setOnboardingStep("project");
-      setOnboardingOrgName("");
-    } catch (err) {
-      console.error("Failed to create organization:", err);
+      let { orgs } = await deepEvalOrgsService.getAllOrgs();
+      if (!orgs || orgs.length === 0) {
+        // Auto-create default org
+        try {
+          const { org: newOrg } = await deepEvalOrgsService.createOrg("Default Organization");
+          await deepEvalOrgsService.setCurrentOrg(newOrg.id);
+          setOrgId(newOrg.id);
+          orgs = [newOrg];
+        } catch {
+          setServerConnectionError(true);
+          return;
+        }
+      }
+      
+      const { org } = await deepEvalOrgsService.getCurrentOrg();
+      if (org) {
+        setOrgId(org.id);
+      } else {
+        await deepEvalOrgsService.setCurrentOrg(orgs[0].id);
+        setOrgId(orgs[0].id);
+      }
+      setOnboardingStep(null);
+    } catch {
+      setServerConnectionError(true);
     } finally {
-      setOnboardingSubmitting(false);
+      setInitialLoading(false);
     }
   };
 
@@ -607,7 +631,7 @@ export default function EvalsDashboard() {
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
-      organizations: { label: "Organizations", icon: <Building2 size={14} strokeWidth={1.5} /> },
+      organizations: { label: "Organization", icon: <Building2 size={14} strokeWidth={1.5} /> },
     };
     return tabMap[tabValue] || { label: tabValue, icon: <Workflow size={14} strokeWidth={1.5} /> };
   };
@@ -701,6 +725,59 @@ export default function EvalsDashboard() {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs items={breadcrumbItems} />
+
+      {/* Server Connection Error Banner */}
+      {serverConnectionError && (
+        <Box
+          sx={{
+            p: 2,
+            backgroundColor: "#FEF2F2",
+            borderRadius: "8px",
+            border: "1px solid #FECACA",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: "#FEE2E2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography sx={{ fontSize: "16px" }}>⚠️</Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#DC2626" }}>
+                Unable to connect to the evaluation server
+              </Typography>
+              <Typography sx={{ fontSize: "13px", color: "#7F1D1D" }}>
+                Please make sure the backend server is running and try again.
+              </Typography>
+            </Box>
+          </Stack>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleRetryConnection}
+            disabled={initialLoading}
+            sx={{
+              textTransform: "none",
+              borderColor: "#DC2626",
+              color: "#DC2626",
+              "&:hover": { borderColor: "#B91C1C", backgroundColor: "#FEE2E2" },
+            }}
+          >
+            {initialLoading ? "Retrying..." : "Retry Connection"}
+          </Button>
+        </Box>
+      )}
 
       <PageHeader
         title="LLM evals"
@@ -1086,15 +1163,8 @@ export default function EvalsDashboard() {
               }
             }} />
           ) : !projectId ? (
-            /* No project selected - show projects list (or org selector if no org) */
-            !orgId ? (
-              <OrganizationSelector onSelected={async () => {
-                const { org } = await deepEvalOrgsService.getCurrentOrg();
-                setOrgId(org?.id || null);
-              }} />
-            ) : (
-              <ProjectsList />
-            )
+            /* No project selected - show projects list */
+            <ProjectsList />
           ) : (
             /* Project selected - show tab content */
             <>
@@ -1115,6 +1185,7 @@ export default function EvalsDashboard() {
                 selectedExperimentId ? (
                   <ExperimentDetailContent
                     experimentId={selectedExperimentId}
+                    projectId={projectId || ""}
                     onBack={() => setSelectedExperimentId(null)}
                   />
                 ) : (
@@ -1520,72 +1591,10 @@ export default function EvalsDashboard() {
         </Stack>
       </ModalStandard>
       
-      {/* Create Organization Modal (inline) */}
-      <ModalStandard
-        isOpen={orgCreateOpen}
-        onClose={() => {
-          setOrgCreateOpen(false);
-          setNewOrgName("");
-        }}
-        title="Create organization"
-        description="Name your organization to begin organizing projects and experiments."
-        onSubmit={async () => {
-          if (!newOrgName.trim()) return;
-          setOrgCreating(true);
-          const { org } = await deepEvalOrgsService.createOrg(newOrgName.trim());
-          setOrgCreating(false);
-          setOrgCreateOpen(false);
-          setNewOrgName("");
-          setOrgId(org.id);
-          navigate("/evals");
-        }}
-        submitButtonText="Create organization"
-        isSubmitting={orgCreating || !newOrgName.trim()}
-      >
-        <Stack spacing={3}>
-          <Field
-            label="Organization name"
-            value={newOrgName}
-            onChange={(e) => setNewOrgName(e.target.value)}
-            placeholder="e.g., VerifyEvals"
-            isRequired
-          />
-        </Stack>
-      </ModalStandard>
-
-      {/* Onboarding Modal - Step 1: Create Organization */}
-      <ModalStandard
-        isOpen={onboardingStep === "org"}
-        onClose={() => {
-          setOnboardingStep(null);
-          setOnboardingOrgName("");
-        }}
-        title="Welcome to LLM evals"
-        description="Let's get started by creating your first organization. Organizations help you group projects and manage access."
-        onSubmit={handleOnboardingCreateOrg}
-        submitButtonText="Create organization"
-        isSubmitting={onboardingSubmitting || !onboardingOrgName.trim()}
-      >
-        <Stack spacing={3}>
-          <Field
-            label="Organization name"
-            value={onboardingOrgName}
-            onChange={(e) => setOnboardingOrgName(e.target.value)}
-            placeholder="e.g., My Company"
-            isRequired
-          />
-        </Stack>
-      </ModalStandard>
-
-      {/* Onboarding Modal - Step 2: Create Project */}
+      {/* Onboarding Modal: Create First Project (org is auto-created) */}
       <ModalStandard
         isOpen={onboardingStep === "project"}
-        onClose={() => {
-          setOnboardingStep(null);
-          setOnboardingProjectName("");
-          setOnboardingProjectDesc("");
-          setOnboardingProjectUseCase("chatbot");
-        }}
+        onClose={handleSkipOnboarding}
         title="Create your first project"
         description="Projects help you organize your LLM evaluations. Each project can have its own datasets, experiments, and configurations."
         onSubmit={handleOnboardingCreateProject}

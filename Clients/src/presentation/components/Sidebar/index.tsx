@@ -292,6 +292,22 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
+  // Delayed collapsed state for icon - waits for sidebar animation to complete
+  const [delayedCollapsed, setDelayedCollapsed] = useState(collapsed);
+
+  useEffect(() => {
+    if (collapsed) {
+      // When collapsing, change icon immediately
+      setDelayedCollapsed(true);
+    } else {
+      // When expanding, wait for animation to complete (650ms)
+      const timer = setTimeout(() => {
+        setDelayedCollapsed(false);
+      }, 650);
+      return () => clearTimeout(timer);
+    }
+  }, [collapsed]);
+
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
   const menuGroups = getMenuGroups();
@@ -580,7 +596,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               dispatch(toggleSidebar());
             }}
           >
-            {collapsed ? (
+            {delayedCollapsed ? (
               <PanelLeftOpen size={16} strokeWidth={1.5} />
             ) : (
               <PanelLeftClose size={16} strokeWidth={1.5} />

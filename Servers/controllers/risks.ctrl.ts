@@ -5,6 +5,7 @@ import {
   createRiskQuery,
   deleteRiskByIdQuery,
   getAllRisksQuery,
+  getOrganizationalRisksQuery,
   getRiskByIdQuery,
   getRisksByFrameworkQuery,
   getRisksByProjectQuery,
@@ -178,6 +179,58 @@ export async function getRisksByFramework(
       `Failed to retrieve risks for framework ID: ${frameworkId}`
     );
     logger.error("❌ Error in getRisksByFramework:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getOrganizationalRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+
+  logStructured(
+    "processing",
+    `fetching organizational risks with filter: ${filter}`,
+    "getOrganizationalRisks",
+    "risks.ctrl.ts"
+  );
+  logger.debug(`🔍 Fetching organizational risks with filter: ${filter}`);
+  try {
+    const risks = await getOrganizationalRisksQuery(
+      req.tenantId!,
+      filter
+    );
+
+    if (risks && risks.length > 0) {
+      logStructured(
+        "successful",
+        `organizational risks found with filter: ${filter}`,
+        "getOrganizationalRisks",
+        "risks.ctrl.ts"
+      );
+      return res.status(200).json(STATUS_CODE[200](risks));
+    }
+
+    logStructured(
+      "successful",
+      `no organizational risks found with filter: ${filter}`,
+      "getOrganizationalRisks",
+      "risks.ctrl.ts"
+    );
+    return res.status(200).json(STATUS_CODE[200]([]));
+  } catch (error) {
+    logStructured(
+      "error",
+      `failed to fetch organizational risks`,
+      "getOrganizationalRisks",
+      "risks.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to retrieve organizational risks`
+    );
+    logger.error("❌ Error in getOrganizationalRisks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

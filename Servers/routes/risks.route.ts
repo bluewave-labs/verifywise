@@ -9,12 +9,14 @@ import {
   deleteRiskById,
   getRisksByProject,
   getRisksByFramework,
+  getOrganizationalRisks,
 } from "../controllers/risks.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", authenticateJWT, getAllRisks);
+router.get("/organizational", authenticateJWT, getOrganizationalRisks);
 router.get("/by-projid/:id", authenticateJWT, getRisksByProject);
 router.get("/by-frameworkid/:id", authenticateJWT, getRisksByFramework);
 router.get("/:id", authenticateJWT, getRiskById);

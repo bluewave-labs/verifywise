@@ -277,6 +277,51 @@ export const getRisksByFrameworkQuery = async (
   return result[0];
 };
 
+export const getOrganizationalRisksQuery = async (
+  tenant: string,
+  filter: "active" | "deleted" | "all" = "active"
+): Promise<IRisk[]> => {
+  let whereClause = "";
+  switch (filter) {
+    case "active":
+      whereClause = "AND r.is_deleted = false";
+      break;
+    case "deleted":
+      whereClause = "AND r.is_deleted = true";
+      break;
+    case "all":
+      whereClause = "";
+      break;
+  }
+
+  // Get all risks that have at least one organizational framework linked
+  // Organizational frameworks are: NIST AI RMF (4), ISO 42001 (2), ISO 27001 (3)
+  const result = (await sequelize.query(
+    `SELECT
+      r.*,
+      COALESCE(
+        JSON_AGG(DISTINCT p.id) FILTER (WHERE p.id IS NOT NULL),
+        '[]'
+      ) AS projects,
+      COALESCE(
+        JSON_AGG(DISTINCT f.id) FILTER (WHERE f.id IS NOT NULL),
+        '[]'
+      ) AS frameworks
+    FROM "${tenant}".risks r
+    INNER JOIN "${tenant}".frameworks_risks fr_filter ON r.id = fr_filter.risk_id
+    INNER JOIN public.frameworks pf ON fr_filter.framework_id = pf.id AND pf.is_organizational = true
+    LEFT JOIN "${tenant}".projects_risks pr ON r.id = pr.risk_id
+    LEFT JOIN "${tenant}".projects p ON pr.project_id = p.id
+    LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
+    LEFT JOIN public.frameworks f ON fr.framework_id = f.id
+    WHERE 1=1 ${whereClause}
+    GROUP BY r.id
+    ORDER BY r.created_at DESC, r.id ASC;
+    `
+  )) as [IRisk[], number];
+  return result[0];
+};
+
 export const getRiskByIdQuery = async (
   id: number,
   tenant: string,

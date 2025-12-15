@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
-import { getAllRisksByFrameworkId } from "../../../application/repository/projectRisk.repository";
+import { getAllOrganizationalRisks } from "../../../application/repository/projectRisk.repository";
 import LinkedRisksTable from "../Table/LinkedRisksTable";
 import { useSearchParams } from "react-router-dom";
 import StandardModal from "../Modals/StandardModal";
@@ -23,30 +23,34 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   const pId = searchParams.get("projectId");
   const projectId = propProjectId || parseInt(pId ?? "0");
 
-  // State for framework-based risks
-  const [frameworkRisks, setFrameworkRisks] = useState<any[]>([]);
+  // State for organizational risks (for NIST, ISO 42001, ISO 27001)
+  const [organizationalRisks, setOrganizationalRisks] = useState<any[]>([]);
+  const [loadingOrgRisks, setLoadingOrgRisks] = useState(false);
 
-  // Use project-based risks hook
+  // Use project-based risks hook (for EU AI Act)
   const { projectRisks } = useProjectRisks({ projectId });
 
-  // Fetch framework-based risks when needed
+  // Fetch organizational risks when needed (for organizational frameworks)
   useEffect(() => {
-    if (isOrganizational && frameworkId) {
-      const fetchFrameworkRisks = async () => {
+    if (isOrganizational) {
+      const fetchOrganizationalRisks = async () => {
+        setLoadingOrgRisks(true);
         try {
-          const response = await getAllRisksByFrameworkId({ frameworkId });
-          setFrameworkRisks(response.data || []);
+          const response = await getAllOrganizationalRisks({});
+          setOrganizationalRisks(response.data || []);
         } catch (error) {
-          console.error("Error fetching framework risks:", error);
-          setFrameworkRisks([]);
+          console.error("Error fetching organizational risks:", error);
+          setOrganizationalRisks([]);
+        } finally {
+          setLoadingOrgRisks(false);
         }
       };
-      fetchFrameworkRisks();
+      fetchOrganizationalRisks();
     }
-  }, [isOrganizational, frameworkId]);
+  }, [isOrganizational]);
 
   // Determine which risks to use
-  const risks = isOrganizational ? frameworkRisks : projectRisks;
+  const risks = isOrganizational ? organizationalRisks : projectRisks;
   const [searchInput, setSearchInput] = useState<string>("");
   const [checkedRows, setCheckedRows] = useState<number[]>(currentRisks);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);

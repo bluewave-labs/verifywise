@@ -56,6 +56,19 @@ export async function getAllRisksByFrameworkId({
   return response.data;
 }
 
+export async function getAllOrganizationalRisks({
+  signal,
+  filter = 'active',
+}: {
+  signal?: AbortSignal;
+  filter?: 'active' | 'deleted' | 'all';
+}): Promise<any> {
+  const response = await apiServices.get(`/projectRisks/organizational?filter=${filter}`, {
+    signal,
+  });
+  return response.data;
+}
+
 export async function getNonMitigatedProjectRisks({
   projectId,
   signal,

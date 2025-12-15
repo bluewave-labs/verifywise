@@ -95,6 +95,7 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
 
   useEffect(() => {
     if (open && modelId) {
+      setPage(0); // Reset pagination when dialog opens or model changes
       fetchData();
     }
   }, [open, modelId, fetchData]);

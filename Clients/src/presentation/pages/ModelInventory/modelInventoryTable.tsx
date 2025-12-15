@@ -426,6 +426,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "provider" ? "#e8e8e8" : "#fafafa",
                   }}
                 >
                   <TooltipCell value={modelInventory.provider} />
@@ -434,6 +435,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "model" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <TooltipCell value={modelInventory.model} />
@@ -442,6 +444,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "version" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <TooltipCell value={modelInventory.version} />
@@ -450,6 +453,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "approver" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <TooltipCell
@@ -463,6 +467,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "security_assessment" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <SecurityAssessmentBadge
@@ -473,6 +478,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "risks" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   {(() => {
@@ -501,6 +507,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <StatusBadge status={modelInventory.status} />
@@ -509,6 +516,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     whiteSpace: "nowrap",
+                    backgroundColor: sortConfig.key === "status_date" ? "#f5f5f5" : "inherit",
                   }}
                 >
                   <TooltipCell
@@ -583,6 +591,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
     ),
     [
       sortedData,
+      sortConfig,
       page,
       rowsPerPage,
       isDeletingAllowed,

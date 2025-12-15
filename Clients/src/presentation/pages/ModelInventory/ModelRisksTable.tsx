@@ -331,22 +331,34 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
               >
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: "#fafafa",
+                  backgroundColor: sortConfig.key === "risk_name" ? "#e8e8e8" : "#fafafa",
                 }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
                   </Typography>
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "model_name" ? "#f5f5f5" : "inherit",
+                }}>
                   {getModelName(row.model_id)}
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "risk_category" ? "#f5f5f5" : "inherit",
+                }}>
                   {row.risk_category}
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
+                }}>
                   <Chip label={row.risk_level} />
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                }}>
                   <Box
                     sx={{
                       display: "inline-flex",
@@ -371,10 +383,16 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "owner" ? "#f5f5f5" : "inherit",
+                }}>
                   {getOwnerName(row.owner)}
                 </TableCell>
-                <TableCell sx={getCellStyle(row)}>
+                <TableCell sx={{
+                  ...getCellStyle(row),
+                  backgroundColor: sortConfig.key === "target_date" ? "#f5f5f5" : "inherit",
+                }}>
                   {formatDate(row.target_date)}
                 </TableCell>
                 <TableCell
@@ -402,6 +420,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
     ),
     [
       sortedData,
+      sortConfig,
       page,
       rowsPerPage,
       getCellStyle,

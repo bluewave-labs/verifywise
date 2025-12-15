@@ -19,7 +19,7 @@ import IconButton from "../../IconButton";
 import FileIcon from "../../FileIcon";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
-import { FileModel } from "../../../../domain/models/Common/file/file.model";
+import { FileModel } from "../../../../domain/models/Common/File/file.model";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -40,7 +40,10 @@ const navigteToNewTab = (url: string) => {
 };
 
 // Helper function to match column name with sort key
-const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boolean => {
+const getSortMatchForColumn = (
+  columnName: string,
+  sortConfig?: SortConfig
+): boolean => {
   if (!sortConfig?.key || !columnName) return false;
 
   const sortKey = sortConfig.key.toLowerCase().trim();
@@ -51,9 +54,12 @@ const getSortMatchForColumn = (columnName: string, sortConfig?: SortConfig): boo
     sortKey === colName ||
     (sortKey.includes("file") && colName.includes("name")) ||
     (sortKey.includes("project") && colName.includes("project")) ||
-    (sortKey.includes("date") || sortKey.includes("upload")) && (colName.includes("date") || colName.includes("upload")) ||
-    (sortKey.includes("uploader") || sortKey.includes("user")) && (colName.includes("uploader") || colName.includes("user")) ||
-    (sortKey.includes("source") || sortKey.includes("type")) && (colName.includes("source") || colName.includes("type"))
+    ((sortKey.includes("date") || sortKey.includes("upload")) &&
+      (colName.includes("date") || colName.includes("upload"))) ||
+    ((sortKey.includes("uploader") || sortKey.includes("user")) &&
+      (colName.includes("uploader") || colName.includes("user"))) ||
+    ((sortKey.includes("source") || sortKey.includes("type")) &&
+      (colName.includes("source") || colName.includes("type")))
   );
 };
 
@@ -269,7 +275,10 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
 
   const paginatedRows = hidePagination
     ? sortedBodyData
-    : sortedBodyData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    : sortedBodyData.slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      );
 
   const handleRowClick = (item: FileModel, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -348,7 +357,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[0]?.name, sortConfig) ? "#e8e8e8" : "#fafafa",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[0]?.name,
+                      sortConfig
+                    )
+                      ? "#e8e8e8"
+                      : "#fafafa",
                   }}
                 >
                   <Box
@@ -365,7 +379,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[1]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.projectTitle}
@@ -373,7 +392,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[2]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[2]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.getFormattedUploadDate()}
@@ -381,7 +405,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[3]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[3]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   {row.uploaderName || row.uploader}
@@ -389,7 +418,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(data.cols[4]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[4]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   <Box
@@ -414,14 +448,21 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     minWidth: "50px",
-                    backgroundColor: getSortMatchForColumn(data.cols[data.cols.length - 1]?.name, sortConfig) ? "#f5f5f5" : "inherit",
+                    backgroundColor: getSortMatchForColumn(
+                      data.cols[data.cols.length - 1]?.name,
+                      sortConfig
+                    )
+                      ? "#f5f5f5"
+                      : "inherit",
                   }}
                 >
                   <IconButton
                     id={Number(row.id)}
                     type="report"
                     onEdit={() => {}}
-                    onDownload={() => handleDownload(row.id, row.fileName, row.source)}
+                    onDownload={() =>
+                      handleDownload(row.id, row.fileName, row.source)
+                    }
                     onDelete={createDeleteHandler(row.id, row.source)}
                     warningTitle="Delete this file?"
                     warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."

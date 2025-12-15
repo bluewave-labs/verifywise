@@ -27,9 +27,10 @@ import {
 import EmptyState from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
-import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.modelRisk";
+import { getAllEntities, updateEntityById } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
+import NewModelRisk from "../Modals/NewModelRisk";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -54,6 +55,8 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selectedRisk, setSelectedRisk] = useState<IModelRisk | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const theme = useTheme();
 
   // Create a mapping of user IDs to user names
@@ -111,7 +114,57 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
     setPage(0);
   };
 
+  const handleRiskClick = (risk: IModelRisk) => {
+    setSelectedRisk(risk);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedRisk(null);
+  };
+
+  const handleEditSuccess = async (formData: IModelRiskFormData) => {
+    if (!selectedRisk?.id) return;
+
+    try {
+      await updateEntityById({
+        routeUrl: `/modelRisks/${selectedRisk.id}`,
+        body: formData,
+      });
+      handleEditModalClose();
+      // Refresh the risks table after edit
+      if (open && modelId) {
+        fetchData();
+      }
+    } catch (err) {
+      console.error("Failed to update model risk:", err);
+      setError("Failed to update model risk");
+    }
+  };
+
+  // Convert IModelRisk to IModelRiskFormData for the edit modal
+  const selectedRiskFormData: IModelRiskFormData | undefined = selectedRisk
+    ? {
+        risk_name: selectedRisk.risk_name,
+        risk_category: selectedRisk.risk_category,
+        risk_level: selectedRisk.risk_level,
+        status: selectedRisk.status,
+        owner: selectedRisk.owner?.toString() || "",
+        target_date: selectedRisk.target_date,
+        description: selectedRisk.description,
+        mitigation_plan: selectedRisk.mitigation_plan,
+        impact: selectedRisk.impact,
+        likelihood: selectedRisk.likelihood,
+        key_metrics: selectedRisk.key_metrics,
+        current_values: selectedRisk.current_values,
+        threshold: selectedRisk.threshold,
+        model_id: selectedRisk.model_id,
+      }
+    : undefined;
+
   return (
+    <>
     <StandardModal
       isOpen={open}
       onClose={onClose}
@@ -200,7 +253,12 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
                         key={risk.id}
                         sx={{
                           ...singleTheme.tableStyles.primary.body.row,
+                          cursor: "pointer",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          },
                         }}
+                        onClick={() => handleRiskClick(risk)}
                       >
                         <TableCell
                           sx={{
@@ -330,6 +388,18 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
         </TableContainer>
       )}
     </StandardModal>
+
+    {/* Edit Risk Modal */}
+    {isEditModalOpen && selectedRisk && selectedRiskFormData && (
+      <NewModelRisk
+        isOpen={isEditModalOpen}
+        setIsOpen={handleEditModalClose}
+        initialData={selectedRiskFormData}
+        isEdit={true}
+        onSuccess={handleEditSuccess}
+      />
+    )}
+  </>
   );
 };
 

@@ -14,7 +14,7 @@ export const createApiToken = async (req: Request, res: Response) => {
   logStructured('processing', `starting API token creation for ${name}`, 'createApiToken', 'tokens.ctrl.ts');
   logger.debug(`🛠️ Creating API token: ${name}`);
   try {
-    const user = await getUserByIdQuery(req.userId!, transaction);
+    const user = await getUserByIdQuery(req.userId!, req.tenantId!);
     logStructured('processing', `fetched user ${user.id} for API token creation`, 'createApiToken', 'tokens.ctrl.ts');
     logger.debug(`🔍 Fetched user: ${user.id}`);
 

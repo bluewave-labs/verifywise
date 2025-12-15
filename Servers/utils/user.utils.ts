@@ -52,12 +52,11 @@ import { AutomationModel } from "../domain.layer/models/automation/automation.mo
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getAllUsersQuery = async (
-  organization_id: number,
+  tenant: string,
 ): Promise<UserModel[]> => {
   const users = await sequelize.query(
-    "SELECT * FROM users WHERE organization_id = :organization_id ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".users ORDER BY created_at DESC, id ASC`,
     {
-      replacements: { organization_id }, // Assuming you want to fetch users without filtering by organization
       mapToModel: true,
       model: UserModel,
     },
@@ -79,13 +78,17 @@ export const getAllUsersQuery = async (
  */
 export const getUserByEmailQuery = async (
   email: string,
+  tenant?: string,
 ): Promise<(UserModel & { role_name: string | null }) | null> => {
   try {
+    // If tenant is provided, search in tenant schema, otherwise search in public schema (for backward compatibility)
+    const usersTable = tenant ? `"${tenant}".users` : 'users';
+    
     const [userObj] = await sequelize.query(
       `
       SELECT users.*, roles.name AS role_name
-      FROM users
-      LEFT JOIN roles ON users.role_id = roles.id
+      FROM ${usersTable} users
+      LEFT JOIN public.roles roles ON users.role_id = roles.id
       WHERE LOWER(users.email) = LOWER(:email)
       LIMIT 1
       `,
@@ -135,10 +138,14 @@ export const getUserByEmailQuery = async (
  */
 export const getUserByIdQuery = async (
   id: number,
+  tenant?: string,
   transaction: Transaction | null = null,
 ): Promise<UserModel> => {
+  // If tenant is provided, search in tenant schema, otherwise search in public schema (for backward compatibility)
+  const usersTable = tenant ? `"${tenant}".users` : 'public.users';
+  
   const users = await sequelize.query<UserModel>(
-    "SELECT * FROM public.users WHERE id = :id",
+    `SELECT * FROM ${usersTable} WHERE id = :id`,
     {
       replacements: { id },
       model: UserModel,
@@ -179,13 +186,21 @@ export const doesUserBelongsToOrganizationQuery = async (
   userId: number,
   organizationId: number,
 ) => {
-  const result = (await sequelize.query(
-    "SELECT COUNT(*) > 0 AS belongs FROM public.users WHERE id = :userId AND organization_id = :organizationId",
-    {
-      replacements: { userId, organizationId },
-    },
-  )) as [{ belongs: boolean }[], number];
-  return result[0][0];
+  const { getTenantHash } = require("../tools/getTenantHash");
+  const tenantHash = getTenantHash(organizationId);
+  
+  try {
+    const result = (await sequelize.query(
+      `SELECT COUNT(*) > 0 AS belongs FROM "${tenantHash}".users WHERE id = :userId`,
+      {
+        replacements: { userId },
+      },
+    )) as [{ belongs: boolean }[], number];
+    return result[0][0];
+  } catch (error) {
+    // Tenant table might not exist
+    return { belongs: false };
+  }
 };
 
 /**
@@ -210,18 +225,18 @@ export const doesUserBelongsToOrganizationQuery = async (
  */
 export const createNewUserQuery = async (
   user: Omit<UserModel, "id">,
+  tenant: string,
   transaction: Transaction,
   is_demo: boolean = false,
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id, organization_id } =
-    user;
+  const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)
-        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id) RETURNING *`,
+      `INSERT INTO "${tenant}".users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
       {
         replacements: {
           name,
@@ -232,11 +247,9 @@ export const createNewUserQuery = async (
           created_at,
           last_login,
           is_demo,
-          organization_id,
         },
         mapToModel: true,
         model: UserModel,
-        // type: QueryTypes.INSERT
         transaction,
       },
     );
@@ -260,10 +273,11 @@ export const createNewUserQuery = async (
 export const resetPasswordQuery = async (
   email: string,
   newPassword: string,
+  tenant: string,
   transaction: Transaction,
 ): Promise<UserModel> => {
   const result = await sequelize.query(
-    `UPDATE users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
+    `UPDATE "${tenant}".users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
     {
       replacements: {
         password_hash: newPassword,
@@ -271,7 +285,6 @@ export const resetPasswordQuery = async (
       },
       mapToModel: true,
       model: UserModel,
-      // type: QueryTypes.UPDATE
       transaction,
     },
   );
@@ -298,6 +311,7 @@ export const resetPasswordQuery = async (
 export const updateUserByIdQuery = async (
   id: number,
   user: Partial<UserModel>,
+  tenant: string,
   transaction: Transaction,
 ): Promise<UserModel> => {
   const updateUser: Partial<Record<keyof UserModel, any>> = {};
@@ -314,7 +328,7 @@ export const updateUserByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE users SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".users SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateUser.id = id;
 
@@ -322,7 +336,6 @@ export const updateUserByIdQuery = async (
     replacements: updateUser,
     mapToModel: true,
     model: UserModel,
-    // type: QueryTypes.UPDATE,
     transaction,
   });
 
@@ -396,7 +409,7 @@ export const deleteUserByIdQuery = async (
     },
   );
   const result = await sequelize.query(
-    "DELETE FROM users WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".users WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -423,13 +436,32 @@ export const deleteUserByIdQuery = async (
  */
 export const checkUserExistsQuery = async (): Promise<boolean> => {
   try {
-    const result = await sequelize.query<{ count: number }>(
-      "SELECT COUNT(*) FROM users",
-      {
-        type: QueryTypes.SELECT,
-      },
+    // Check if any organization has users in their tenant schema
+    const organizations = await sequelize.query(
+      `SELECT id FROM organizations;`,
+      { type: QueryTypes.SELECT }
     );
-    return result[0].count > 0;
+    
+    for (const org of organizations as any[]) {
+      const { getTenantHash } = require("../tools/getTenantHash");
+      const tenantHash = getTenantHash(org.id);
+      
+      try {
+        const result = await sequelize.query<{ count: number }>(
+          `SELECT COUNT(*) as count FROM "${tenantHash}".users`,
+          { type: QueryTypes.SELECT }
+        );
+        
+        if (result[0].count > 0) {
+          return true;
+        }
+      } catch (tableError) {
+        // Table might not exist for this tenant, continue checking others
+        continue;
+      }
+    }
+    
+    return false;
   } catch (error) {
     console.error("Error checking user existence:", error);
     throw error;
@@ -541,7 +573,7 @@ export const uploadUserProfilePhotoQuery = async (
   transaction: Transaction,
 ) => {
   // Get current profile photo ID if exists
-  const getPhotoQuery = `SELECT profile_photo_id FROM users WHERE id = :userId;`;
+  const getPhotoQuery = `SELECT profile_photo_id FROM "${tenant}".users WHERE id = :userId;`;
   const currentPhoto = (await sequelize.query(getPhotoQuery, {
     replacements: { userId },
     transaction,
@@ -549,7 +581,7 @@ export const uploadUserProfilePhotoQuery = async (
   const deleteFileId = currentPhoto[0][0]?.profile_photo_id;
 
   // Update user's profile_photo_id
-  const updatePhotoQuery = `UPDATE users SET profile_photo_id = :fileId WHERE id = :userId RETURNING profile_photo_id;`;
+  const updatePhotoQuery = `UPDATE "${tenant}".users SET profile_photo_id = :fileId WHERE id = :userId RETURNING profile_photo_id;`;
   const result = (await sequelize.query(updatePhotoQuery, {
     replacements: { fileId, userId },
     transaction,
@@ -569,7 +601,7 @@ export const getUserProfilePhotoQuery = async (
 ) => {
   const result = (await sequelize.query(
     `SELECT f.content, f.type
-     FROM users u
+     FROM "${tenant}".users u
      INNER JOIN "${tenant}".files f ON u.profile_photo_id = f.id
      WHERE u.id = :userId
      LIMIT 1;`,
@@ -586,7 +618,7 @@ export const deleteUserProfilePhotoQuery = async (
 ) => {
   // Get current profile photo ID
   const currentPhoto = (await sequelize.query(
-    `SELECT profile_photo_id FROM users WHERE id = :userId;`,
+    `SELECT profile_photo_id FROM "${tenant}".users WHERE id = :userId;`,
     { replacements: { userId }, transaction },
   )) as [{ profile_photo_id: number | null }[], number];
 
@@ -594,7 +626,7 @@ export const deleteUserProfilePhotoQuery = async (
 
   // Set profile_photo_id to NULL
   const result = (await sequelize.query(
-    `UPDATE users SET profile_photo_id = NULL WHERE id = :userId RETURNING profile_photo_id;`,
+    `UPDATE "${tenant}".users SET profile_photo_id = NULL WHERE id = :userId RETURNING profile_photo_id;`,
     { replacements: { userId }, transaction },
   )) as [{ profile_photo_id: number | null }[], number];
 

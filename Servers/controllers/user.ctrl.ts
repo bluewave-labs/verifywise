@@ -63,7 +63,7 @@ import {
   ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
 import { getTenantHash } from "../tools/getTenantHash";
-import { Transaction } from "sequelize";
+import { Transaction, QueryTypes } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
@@ -104,7 +104,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 
   try {
     const users = (await getAllUsersQuery(
-      req.organizationId!
+      req.tenantId!
     )) as UserModel[];
 
     if (users && users.length > 0) {
@@ -129,7 +129,7 @@ async function getUserByEmail(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with email: ${email}`);
 
   try {
-    const user = (await getUserByEmailQuery(email)) as UserModel & {
+    const user = (await getUserByEmailQuery(email, req.tenantId)) as UserModel & {
       role_name: string;
     };
 
@@ -153,11 +153,7 @@ async function getUserById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with ID: ${id}`);
 
   try {
-    const user = (await getUserByIdQuery(id)) as UserModel;
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'getUserById', 'user.ctrl.ts');
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = (await getUserByIdQuery(id, req.tenantId)) as UserModel;
 
     if (user) {
       logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
@@ -186,8 +182,13 @@ async function createNewUserWrapper(
 ) {
   const { name, surname, email, password, roleId, organizationId } = body;
 
+  // Note: This function should be updated for new registration flow
+  // For now, maintaining compatibility
+  const { getTenantHash } = require("../tools/getTenantHash");
+  const tenant = getTenantHash(organizationId);
+  
   // Check if user already exists
-  const existingUser = await getUserByEmailQuery(email);
+  const existingUser = await getUserByEmailQuery(email, tenant);
   if (existingUser) {
     throw new ConflictException("User with this email already exists",)
   }
@@ -213,6 +214,7 @@ async function createNewUserWrapper(
 
   const user = (await createNewUserQuery(
     userModel,
+    tenant,
     transaction
   )) as UserModel;
   return user;
@@ -272,8 +274,13 @@ async function createNewUser(req: Request, res: Response) {
   logger.debug(`🛠️ Creating user: ${email}`);
 
   try {
+    // Note: This function should be updated for new registration flow
+    // For now, maintaining compatibility
+    const { getTenantHash } = require("../tools/getTenantHash");
+    const tenant = getTenantHash(organizationId);
+    
     // Check for existing user
-    const existingUser = await getUserByEmailQuery(email);
+    const existingUser = await getUserByEmailQuery(email, tenant);
     if (existingUser) {
       logStructured('error', `user already exists: ${email}`, 'createNewUser', 'user.ctrl.ts');
       await logEvent('Error', `Attempted to create duplicate user: ${email}`);
@@ -296,7 +303,7 @@ async function createNewUser(req: Request, res: Response) {
       return res.status(409).json(STATUS_CODE[409]('Email already exists'));
     }
 
-    const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
+    const user = (await createNewUserQuery(userModel, tenant, transaction)) as UserModel;
 
     if (user) {
       await transaction.commit();
@@ -379,52 +386,64 @@ async function loginUser(req: Request, res: Response): Promise<any> {
   logger.debug(`🔐 Login attempt for ${email}`);
 
   try {
-    const userData = await getUserByEmailQuery(email);
-
-    if (userData) {
-      let user: UserModel;
-      if (userData instanceof UserModel) {
-        user = userData;
-      } else {
-        user = new UserModel();
-        Object.assign(user, userData);
-      }
-
-      // Verify password with fallback for backwards compatibility
-      let passwordIsMatched = false;
-      try {
-        passwordIsMatched = await user.comparePassword(password);
-      } catch (modelError) {
-        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
-      }
-
-      if (passwordIsMatched) {
-        user.updateLastLogin();
-
-        // Generate JWT tokens (access + refresh)
-        const { accessToken } = generateUserTokens({
-          id: user.id!,
-          email: email,
-          roleName: (userData as any).role_name,
-          organizationId: (userData as any).organization_id,
-        }, res);
-
-        logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-
-
-        return res.status(202).json(
-          STATUS_CODE[202]({
-            token: accessToken,
-          })
-        );
-      } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
-        return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
-      }
+    // Search for user across all tenant schemas
+    const userCheck = await findUserInAllTenants(email);
+    
+    if (!userCheck.userData) {
+      logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
+      return res.status(404).json(STATUS_CODE[404]('User not found'));
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
-    return res.status(404).json(STATUS_CODE[404]({}));
+    const { userData, organizationId, tenantId } = userCheck;
+    
+    let user: UserModel;
+    if (userData instanceof UserModel) {
+      user = userData;
+    } else {
+      user = new UserModel();
+      Object.assign(user, userData);
+    }
+
+    // Verify password with fallback for backwards compatibility
+    let passwordIsMatched = false;
+    try {
+      passwordIsMatched = await user.comparePassword(password);
+    } catch (modelError) {
+      passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+    }
+
+    if (passwordIsMatched) {
+      user.updateLastLogin();
+
+      // Generate JWT tokens (access + refresh)
+      const { accessToken } = generateUserTokens({
+        id: user.id!,
+        email: email,
+        roleName: (userData as any).role_name,
+        organizationId: organizationId!,
+      }, res);
+
+      logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
+
+      return res.status(202).json(
+        STATUS_CODE[202]({
+          token: accessToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            surname: user.surname,
+          },
+          organization: {
+            id: organizationId,
+          }
+        })
+      );
+    } else {
+      logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
+      return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
+    }
+
   } catch (error) {
     logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);
@@ -517,10 +536,12 @@ async function resetPassword(req: Request, res: Response) {
   logger.debug(`🔁 Password reset requested for ${email}`);
 
   try {
+    // Note: This function needs to be updated for new architecture
+    // For now, searching without tenant specification
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, 1); // Default org for now
 
     if (user) {
       await user.updatePassword(newPassword);
@@ -528,6 +549,7 @@ async function resetPassword(req: Request, res: Response) {
       const updatedUser = (await resetPasswordQuery(
         email,
         user.password_hash,
+        req.tenantId!,
         transaction
       )) as UserModel;
 
@@ -577,13 +599,7 @@ async function updateUserById(req: Request, res: Response) {
   try {
     // Check permissions (if user context is available)
     const currentUserId = (req as any).user?.id;
-    const user = await getUserByIdQuery(id);
-
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-      await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = await getUserByIdQuery(id, req.tenantId);
 
     if (user) {
       // Capture the old role before updating (if roleId is being changed)
@@ -600,12 +616,13 @@ async function updateUserById(req: Request, res: Response) {
           last_login: last_login ?? user.last_login,
           role_id: roleId ?? user.role_id,
         },
+        req.tenantId!,
         transaction
       )) as UserModel;
 
       await transaction.commit();
 
-      const actor = await getUserByIdQuery(req.userId!);
+      const actor = await getUserByIdQuery(req.userId!, req.tenantId);
       const role = await getRoleByIdQuery(updatedUser.role_id);
 
       await sendSlackNotification(
@@ -699,13 +716,7 @@ async function deleteUserById(req: Request, res: Response) {
   logger.debug(`🗑️ Delete request for user ID ${id}`);
 
   try {
-    const user = await getUserByIdQuery(id);
-
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-      await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = await getUserByIdQuery(id, req.tenantId);
 
     if (user) {
       if (user.isDemoUser()) {
@@ -859,7 +870,7 @@ async function ChangePassword(req: Request, res: Response) {
   logger.debug(`🔐 Password change requested for user ID ${id}`);
 
   try {
-    const user = await getUserByIdQuery(id);
+    const user = await getUserByIdQuery(id, req.tenantId);
 
     if (!user) {
       logStructured('error', `user not found: ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
@@ -873,6 +884,7 @@ async function ChangePassword(req: Request, res: Response) {
     const updatedUser = (await resetPasswordQuery(
       user.email,
       user.password_hash,
+      req.tenantId!,
       transaction
     )) as UserModel;
 
@@ -921,7 +933,7 @@ async function updateUserRole(req: Request, res: Response) {
   logger.debug(`🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`);
 
   try {
-    const targetUser = await getUserByIdQuery(parseInt(id));
+    const targetUser = await getUserByIdQuery(parseInt(id), req.tenantId);
     if (!targetUser) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
@@ -930,7 +942,7 @@ async function updateUserRole(req: Request, res: Response) {
     }
 
 
-    const currentUser = await getUserByIdQuery(currentUserId);
+    const currentUser = await getUserByIdQuery(currentUserId, req.tenantId);
     if (!currentUser) {
       logStructured('error', `admin user not found: ID ${currentUserId}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`);
@@ -946,6 +958,7 @@ async function updateUserRole(req: Request, res: Response) {
     const updatedUser = (await updateUserByIdQuery(
       parseInt(id),
       { role_id: targetUser.role_id },
+      req.tenantId!,
       transaction
     )) as UserModel;
 
@@ -1028,12 +1041,7 @@ async function uploadUserProfilePhoto(req: any, res: Response) {
   logger.debug(`📸 Uploading profile photo for user ID ${userId}`);
 
   try {
-    const user = await getUserByIdQuery(userId);
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'uploadUserProfilePhoto', 'user.ctrl.ts');
-      await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = await getUserByIdQuery(userId, req.tenantId);
 
     if (!attachment) {
       await transaction.rollback();
@@ -1145,11 +1153,7 @@ async function getUserProfilePhoto(req: Request, res: Response) {
   logger.debug(`📸 Fetching profile photo for user ID ${userId}`);
 
   try {
-    const user = await getUserByIdQuery(userId);
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'getUserProfilePhoto', 'user.ctrl.ts');
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = await getUserByIdQuery(userId, req.tenantId);
 
     const photo = await getUserProfilePhotoQuery(userId, req.tenantId!);
 
@@ -1204,12 +1208,7 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
   logger.debug(`🗑️ Deleting profile photo for user ID ${userId}`);
 
   try {
-    const user = await getUserByIdQuery(userId);
-    if (user.organization_id !== req.organizationId) {
-      logStructured('error', `access denied to user ID ${userId}`, 'deleteUserProfilePhoto', 'user.ctrl.ts');
-      await transaction.rollback();
-      return res.status(403).json(STATUS_CODE[403]("Forbidden: Access to this user is denied"));
-    }
+    const user = await getUserByIdQuery(userId, req.tenantId);
 
     const isDeleted = await deleteUserProfilePhotoQuery(
       userId,
@@ -1266,12 +1265,187 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
   }
 }
 
+/**
+ * Simplified user registration flow for new users
+ * 
+ * Creates a new user with minimal information:
+ * 1. Creates default organization ("My Organization")
+ * 2. Creates tenant schema for organization
+ * 3. Creates user in tenant-specific users table
+ * 4. Returns authentication tokens
+ * 
+ * @param req Express request with user data in body
+ * @param res Express response object
+ * @returns Created user object with auth tokens
+ */
+async function registerNewUser(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  const { name, surname, email, password } = req.body;
+
+  logStructured('processing', `starting new user registration for ${email}`, 'registerNewUser', 'user.ctrl.ts');
+  logger.debug(`🆕 New user registration: ${email}`);
+
+  try {
+    // Check if email already exists across all tenant schemas
+    const existingUserCheck = await checkEmailExistsInAllTenants(email);
+    if (existingUserCheck.exists) {
+      logStructured('error', `user already exists: ${email}`, 'registerNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Attempted to register duplicate user: ${email}`);
+      await transaction.rollback();
+      return res
+        .status(409)
+        .json(STATUS_CODE[409]('User with this email already exists'));
+    }
+
+    // 1. Create default organization
+    const { createOrganizationQuery } = require('../utils/organization.utils');
+    const organization = await createOrganizationQuery({
+      name: 'My Organization',
+      logo: null,
+      created_at: new Date()
+    }, transaction);
+
+    logStructured('processing', `created organization: ${organization.id}`, 'registerNewUser', 'user.ctrl.ts');
+
+    // 2. Create tenant schema for organization
+    const { createNewTenant } = require('../scripts/createNewTenant');
+    await createNewTenant(organization.id);
+
+    logStructured('processing', `created tenant for organization: ${organization.id}`, 'registerNewUser', 'user.ctrl.ts');
+
+    // 3. Create user in tenant schema
+    const { getTenantHash } = require('../tools/getTenantHash');
+    const tenantHash = getTenantHash(organization.id);
+
+    // Create user model with automatic password hashing - assign Admin role (1) as first user
+    const userModel = await UserModel.createNewUser(name, surname, email, password, 1, organization.id);
+    await userModel.validateUserData();
+
+    const user = await createNewUserQuery(userModel, tenantHash, transaction, false);
+
+    await transaction.commit();
+
+    // 4. Generate authentication tokens
+    const { accessToken } = generateUserTokens({
+      id: user.id!,
+      email: user.email,
+      roleName: 'Admin',
+      organizationId: organization.id,
+    }, res);
+
+    logStructured('successful', `new user registered: ${email}`, 'registerNewUser', 'user.ctrl.ts');
+    await logEvent('Create', `New user registered: ${email}, organization: ${organization.id}`);
+
+    return res.status(201).json(
+      STATUS_CODE[201]({
+        user: user.toSafeJSON(),
+        organization: {
+          id: organization.id,
+          name: organization.name,
+        },
+        token: accessToken,
+      })
+    );
+
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation failed: ${error.message}`, 'registerNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during registration: ${error.message}`);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'registerNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during registration: ${error.message}`);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error: ${email}`, 'registerNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during registration: ${(error as Error).message}`);
+    logger.error('❌ Error in registerNewUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Helper function to check if email exists in any tenant schema
+ */
+async function checkEmailExistsInAllTenants(email: string): Promise<{ exists: boolean, tenantId?: string }> {
+  try {
+    // Get all organizations
+    const organizations = await sequelize.query(
+      `SELECT id FROM organizations;`,
+      { type: QueryTypes.SELECT }
+    );
+    
+    for (const org of organizations as any[]) {
+      const { getTenantHash } = require("../tools/getTenantHash");
+      const tenantHash = getTenantHash(org.id);
+      
+      try {
+        const existingUser = await getUserByEmailQuery(email, tenantHash);
+        if (existingUser) {
+          return { exists: true, tenantId: tenantHash };
+        }
+      } catch (error) {
+        // Tenant table might not exist, continue checking others
+        continue;
+      }
+    }
+    
+    return { exists: false };
+  } catch (error) {
+    console.error('Error checking email across tenants:', error);
+    throw error;
+  }
+}
+
+/**
+ * Helper function to find user data in any tenant schema
+ */
+async function findUserInAllTenants(email: string): Promise<{ 
+  userData: (UserModel & { role_name: string | null }) | null, 
+  organizationId?: number, 
+  tenantId?: string 
+}> {
+  try {
+    // Get all organizations
+    const organizations = await sequelize.query(
+      `SELECT id FROM organizations;`,
+      { type: QueryTypes.SELECT }
+    );
+    
+    for (const org of organizations as any[]) {
+      const { getTenantHash } = require("../tools/getTenantHash");
+      const tenantHash = getTenantHash(org.id);
+      
+      try {
+        const userData = await getUserByEmailQuery(email, tenantHash);
+        if (userData) {
+          return { userData, organizationId: org.id, tenantId: tenantHash };
+        }
+      } catch (error) {
+        // Tenant table might not exist, continue checking others
+        continue;
+      }
+    }
+    
+    return { userData: null };
+  } catch (error) {
+    console.error('Error finding user across tenants:', error);
+    throw error;
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
   getUserById,
   createNewUserWrapper,
   createNewUser,
+  registerNewUser,
   loginUser,
   resetPassword,
   updateUserById,

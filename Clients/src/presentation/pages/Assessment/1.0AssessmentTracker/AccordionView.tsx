@@ -125,8 +125,8 @@ const AccordionView = ({
   onQuestionClick,
   flashingQuestionId,
   onStatusUpdate,
-  expanded: expandedProp,
-  onExpandedChange,
+  expanded: _expandedProp,
+  onExpandedChange: _onExpandedChange,
   onFlashingChange,
 }: AccordionViewProps) => {
   const { userId } = useAuth();

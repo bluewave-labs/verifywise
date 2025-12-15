@@ -65,7 +65,7 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <TableCell
             key={column.id}
             sx={{

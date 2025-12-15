@@ -245,7 +245,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
         }}
       >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {titleOfTableColumns.map((column, index) => (
+          {titleOfTableColumns.map((column) => (
             <TableCell
               key={column.id}
               sx={{

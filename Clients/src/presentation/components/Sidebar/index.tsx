@@ -299,6 +299,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (collapsed) {
       // When collapsing, change icon immediately
       setDelayedCollapsed(true);
+      return;
     } else {
       // When expanding, wait for animation to complete (650ms)
       const timer = setTimeout(() => {

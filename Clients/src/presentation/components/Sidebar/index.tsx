@@ -516,7 +516,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 src={Logo}
                 alt="Logo"
                 width={20}
-                height={18}
+                height={20}
                 style={{ position: "relative", zIndex: 1 }}
               />
             </RouterLink>

@@ -775,17 +775,15 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 {item.icon}
               </ListItemIcon>
-              {!collapsed && (
-                <ListItemText
-                  sx={{
-                    "& .MuiListItemText-primary": {
-                      fontSize: "13px",
-                    },
-                  }}
-                >
-                  {item.name}
-                </ListItemText>
-              )}
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
               {!collapsed && item.taskCount && item.taskCount > 0 && (
                 <Chip
                   label={item.taskCount > 99 ? "99+" : item.taskCount}
@@ -986,17 +984,15 @@ const Sidebar: React.FC<SidebarProps> = ({
                   >
                     {item.icon}
                   </ListItemIcon>
-                  {!collapsed && (
-                    <ListItemText
-                      sx={{
-                        "& .MuiListItemText-primary": {
-                          fontSize: "13px",
-                        },
-                      }}
-                    >
-                      {item.name}
-                    </ListItemText>
-                  )}
+                  <ListItemText
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  >
+                    {item.name}
+                  </ListItemText>
                 </ListItemButton>
               </Tooltip>
             ))}

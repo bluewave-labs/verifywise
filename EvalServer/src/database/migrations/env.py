@@ -18,10 +18,10 @@ config.set_main_option(
 )
 
 # The current head migration revision
-CURRENT_HEAD = "20251121_prompt_count"
+CURRENT_HEAD = "20251215_cleanup"
 
 # Old revisions that should be auto-migrated to current head
-# These are revisions that existed temporarily and need to be fixed
+# These are revisions that no longer exist in the migration chain
 LEGACY_REVISIONS = {
     "20251212_initial",  # Temporary consolidated migration that was removed
 }

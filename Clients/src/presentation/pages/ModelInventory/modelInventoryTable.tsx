@@ -56,6 +56,7 @@ const TABLE_COLUMNS = [
   { id: "approver", label: "APPROVER" },
   // { id: "capabilities", label: "CAPABILITIES" },
   { id: "security_assessment", label: "SECURITY ASSESSMENT" },
+  { id: "risks", label: "RISKS" },
   { id: "status", label: "STATUS" },
   { id: "status_date", label: "STATUS DATE" },
   { id: "actions", label: "" },
@@ -123,6 +124,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   paginated = true,
   deletingId,
   hidePagination = false,
+  modelRisks = [],
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -159,6 +161,11 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
 
   const isDeletingAllowed =
     allowedRoles.modelInventory?.delete?.includes(userRoleName);
+
+  // Get risk count for a specific model
+  const getModelRiskCount = useCallback((modelId: number) => {
+    return modelRisks.filter(risk => risk.model_id === modelId).length;
+  }, [modelRisks]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -290,6 +297,25 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     whiteSpace: "nowrap",
                   }}
                 >
+                  {(() => {
+                    const riskCount = getModelRiskCount(modelInventory.id || 0);
+                    return riskCount > 0 ? (
+                      <Typography variant="body2" sx={{ color: "#344054" }}>
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <StatusBadge status={modelInventory.status} />
                 </TableCell>
                 <TableCell
@@ -377,6 +403,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       onDelete,
       deletingId,
       userMap,
+      getModelRiskCount,
+      hidePagination,
     ]
   );
 

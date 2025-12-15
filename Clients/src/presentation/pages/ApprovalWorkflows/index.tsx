@@ -1,6 +1,8 @@
 import { Box, Stack } from "@mui/material"
+import { TabContext, TabPanel } from "@mui/lab";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
+import TabBar from "../../components/TabBar";
 import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
@@ -15,6 +17,8 @@ import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { SearchBox } from "../../components/Search";
 import { MOCK_WORKFLOWS } from "./mockData";
+import { MOCK_REQUESTS, ApprovalRequest } from "./mockRequestsData";
+import ApprovalRequestsTable from "./ApprovalRequestsTable";
 
 const ApprovalWorkflows: React.FC = () => {
 
@@ -23,7 +27,11 @@ const ApprovalWorkflows: React.FC = () => {
     const [selectWorkflow, setSelectWorkflow] = useState<ApprovalWorkflowModel | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<string>("workflows");
+    const [requestsData, setRequestsData] = useState<ApprovalRequest[]>([]);
+    const [isLoadingRequests, setIsLoadingRequests] = useState(true);
 
+    /** -------------------- FILTERING SETUP -------------------- */
 
     // FilterBy - Filter columns configuration
     const workflowFilterColumns: FilterColumn[] = useMemo(() => [
@@ -145,9 +153,25 @@ const ApprovalWorkflows: React.FC = () => {
         }
     };
 
+    const fetchRequestsData = async () => {
+        setIsLoadingRequests(true);
+        try {
+            //TO-DO: fetch approval requests from API
+            setRequestsData(MOCK_REQUESTS);
+        } catch (error) {
+            logEngine({
+                type: "error",
+                message: `Failed to fetch approval requests: ${error}`,
+            });
+        } finally {
+            setIsLoadingRequests(false);
+        }
+    };
+
     /** -------------------- INITIAL LOAD -------------------- */
     useEffect(() => {
         fetchApprovalWorkflowData();
+        fetchRequestsData();
     }, []);
 
     /** -------------------- WORKFLOW MODAL HANDLERS -------------------- */
@@ -227,55 +251,125 @@ const ApprovalWorkflows: React.FC = () => {
         setSelectWorkflow(null);
     }
 
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+        setActiveTab(newValue);
+    }
+
     /** -------------------- RENDER -------------------- */
     return (
         <Stack className="vwhome" gap={"16px"}>
             <PageBreadcrumbs />
-
             <Stack sx={workflowMainStack}>
                 <Stack>
                     <PageHeader
-                        title="Approval Workflows"
-                        description="A structured overview of all approval processes, including steps, conditions, and current status."
+                        title={activeTab === "Workflows" ? "Approval Workflows" : "Approval Requests"}
+                        description={
+                            activeTab === "worlflows"
+                                ? "A structured overview of all approval processes, including steps, conditions, and current status."
+                                : "A list of approval requests created based on workflows."
+                        }
                     />
                 </Stack>
-                <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    spacing={2}
-                    sx={filterSearchContainer}
-                >
-                    <Stack direction="row" spacing={2} alignItems="center">
-                        <FilterBy
-                            columns={workflowFilterColumns}
-                            onFilterChange={handleWorkflowFilterChange}
+                {/* Tab Bar */}
+                <Box sx={{ mt: 2 }}>
+                    <TabContext value={activeTab}>
+                        <TabBar
+                            tabs={[
+                                {
+                                    label: "Workflows",
+                                    value: "workflows",
+                                    icon: "Workflow",
+                                    count: filteredData.length,
+                                    isLoading: isLoading,
+                                },
+                                {
+                                    label: "Requests",
+                                    value: "requests",
+                                    icon: "FileText",
+                                    count: requestsData.length,
+                                    isLoading: isLoadingRequests,
+                                },
+                            ]}
+                            activeTab={activeTab}
+                            onChange={handleTabChange}
+                            dataJoyrideId="approval-workflows-tabs"
                         />
-                        <SearchBox
-                            placeholder="Search workflows..."
-                            value={searchTerm}
-                            onChange={setSearchTerm}
-                            inputProps={{ "aria-label": "Search workflows" }}
-                            fullWidth={false}
-                        />
-                       
-                    </Stack>
-                    <Box data-joyride-id="add-workflow-button">
-                        <CustomizableButton
-                            variant="contained"
-                            sx={addNewWorkflowButton}
-                            text="Add new workflow"
-                            icon={<AddCircleOutlineIcon />}
-                            onClick={handleNewWorkflowClick}
-                        />
-                    </Box>
-                </Stack>
-                {/* Approval Table */}
-                <ApprovalWorkflowsTable
-                    data={filteredData}
-                    isLoading={isLoading}
-                    onEdit={handleEditWorkflowClick}
-                />
+                    </TabContext>
+                </Box>
+                {/* Workflows Tab Content */}
+                <TabContext value={activeTab}>
+                    <TabPanel value="workflows" sx={{ p: 0, mt: 2 }}>
+                        <Stack spacing={2}>
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                spacing={2}
+                                sx={filterSearchContainer}
+                            >
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                    <FilterBy
+                                        columns={workflowFilterColumns}
+                                        onFilterChange={handleWorkflowFilterChange}
+                                    />
+                                    <SearchBox
+                                        placeholder="Search workflows..."
+                                        value={searchTerm}
+                                        onChange={setSearchTerm}
+                                        inputProps={{ "aria-label": "Search workflows" }}
+                                        fullWidth={false}
+                                    />
+
+                                </Stack>
+                                <Box data-joyride-id="add-workflow-button">
+                                    <CustomizableButton
+                                        variant="contained"
+                                        sx={addNewWorkflowButton}
+                                        text="Add new workflow"
+                                        icon={<AddCircleOutlineIcon />}
+                                        onClick={handleNewWorkflowClick}
+                                    />
+                                </Box>
+                            </Stack>
+                            {/* Approval Table */}
+                            <ApprovalWorkflowsTable
+                                data={filteredData}
+                                isLoading={isLoading}
+                                onEdit={handleEditWorkflowClick}
+                            />
+                        </Stack>
+                    </TabPanel>
+                    {/* Requests Tab Content */}
+                    <TabPanel value="requests" sx={{ p: 0, mt: 2 }}>
+                        <Stack spacing={2}>
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                spacing={2}
+                                sx={filterSearchContainer}
+                            >
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                    {/* TODO: Add FilterBy for requests when needed */}
+                                    <SearchBox
+                                        placeholder="Search requests..."
+                                        value={searchTerm}
+                                        onChange={setSearchTerm}
+                                        inputProps={{ "aria-label": "Search requests" }}
+                                        fullWidth={false}
+                                    />
+                                </Stack>
+                            </Stack>
+                            <ApprovalRequestsTable
+                                
+                                data={requestsData}
+                                isLoading={isLoading} onOpenRequestDetails={function (requestId: string): void {
+                                    throw new Error("Function not implemented.");
+                                } }                               
+                            />
+                        </Stack>
+                    </TabPanel>
+                </TabContext>
             </Stack>
             <CreateNewApprovalWorkflow
                 isOpen={isNewWorkflowModalOpen}
@@ -292,8 +386,8 @@ const ApprovalWorkflows: React.FC = () => {
                 isEdit={!!selectWorkflow}
                 onSuccess={handleWorkflowSuccess}
             />
-        </Stack>
-    )
+        </Stack>)
+
 }
 
 export default ApprovalWorkflows;

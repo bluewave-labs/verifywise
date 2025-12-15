@@ -14,7 +14,6 @@ import {
 
 import {
     workflowRowHover,
-    workflowTableRowDeletingStyle,
     workflowFooterRow,
     workflowShowingText,
     workflowPaginationMenu,
@@ -44,16 +43,15 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
+import { ApprovalRequest } from "./mockRequestsData";
 import TablePaginationActions from "../../components/TablePagination";
-import { entities } from "./arrays";
-import { TABLE_COLUMNS } from "./arrays";
+import { REQUESTS_TABLE_COLUMNS } from "./requestsArray";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-const WORKFLOW_TABLE_SORTING_KEY = "verifywise_workflow_table_sorting";
+const REQUESTS_TABLE_SORTING_KEY = "verifywise_requests_table_sorting";
 const DEFAULT_ROWS_PER_PAGE = 10;
-const STORAGE_KEY = 'workflow-table-rows-per-page';
+const STORAGE_KEY = 'requests-table-rows-per-page';
 
 type SortDirection = "asc" | "desc" | null;
 type SortConfig = {
@@ -61,26 +59,16 @@ type SortConfig = {
     direction: SortDirection;
 };
 
-interface TableColumn {
-    id: string;
-    label: string;
-}
 
-interface ApprovalWorkflowTableProps {
-    data: ApprovalWorkflowModel[];
+interface ApprovalRequestsTableProps {
+    data: ApprovalRequest[];
     isLoading?: boolean;
-    onEdit?: (id: string, mode: string) => void;
-    onArchive?: (id: string, mode: string) => void;
-    archivedId?: string | null;
-    columns?: TableColumn[];
+    onOpenRequestDetails: (requestId: string) => void;
 }
 
-const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
+const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
     data,
-    onEdit,
-    onArchive,
-    archivedId,
-    columns = TABLE_COLUMNS,
+    onOpenRequestDetails,
 }) => {
 
     const theme = useTheme();
@@ -94,7 +82,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 
     // Initialize sorting state from localStorage or default to no sorting
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
-        const saved = localStorage.getItem(WORKFLOW_TABLE_SORTING_KEY);
+        const saved = localStorage.getItem(REQUESTS_TABLE_SORTING_KEY);
         if (saved) {
             try {
                 return JSON.parse(saved);
@@ -107,7 +95,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 
     // Save sorting state to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem(WORKFLOW_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
+        localStorage.setItem(REQUESTS_TABLE_SORTING_KEY, JSON.stringify(sortConfig));
     }, [sortConfig]);
 
     // Pagination handlers
@@ -142,7 +130,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
         });
     }, []);
 
-    // Sort the workflow data based on current sort configuration
+    // Sort the requests data based on current sort configuration
     const sortedData = useMemo(() => {
         if (!data || !sortConfig.key || !sortConfig.direction) {
             return data || [];
@@ -150,27 +138,25 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 
         const sortableData = [...data];
 
-        return sortableData.sort((a: ApprovalWorkflowModel, b: ApprovalWorkflowModel) => {
+        return sortableData.sort((a: ApprovalRequest, b: ApprovalRequest) => {
             let aValue: string | number;
             let bValue: string | number;
 
             const sortKey = sortConfig.key.trim().toLowerCase();
 
-            // Handle different column types for workflows
-            if (sortKey.includes("title")) {
-                aValue = a.workflow_title?.toLowerCase() || "";
-                bValue = b.workflow_title?.toLowerCase() || "";
-            } else if (sortKey.includes("entity")) {
-                const aEntity = entities.find(e => e._id === a.entity)?.name || "";
-                const bEntity = entities.find(e => e._id === b.entity)?.name || "";
-                aValue = aEntity.toLowerCase();
-                bValue = bEntity.toLowerCase();
-            } else if (sortKey.includes("steps")) {
-                aValue = a.steps?.length || 0;
-                bValue = b.steps?.length || 0;
-            } else if (sortKey.includes("date") && sortKey.includes("updated")) {
-                aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
-                bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+            // Handle different column types for requests
+            if (sortKey.includes("request") && sortKey.includes("name")) {
+                aValue = a.request_name?.toLowerCase() || "";
+                bValue = b.request_name?.toLowerCase() || "";
+            } else if (sortKey.includes("workflow") && sortKey.includes("name")) {
+                aValue = a.workflow_name?.toLowerCase() || "";
+                bValue = b.workflow_name?.toLowerCase() || "";
+            } else if (sortKey.includes("status")) {
+                aValue = a.status?.toLowerCase() || "";
+                bValue = b.status?.toLowerCase() || "";
+            } else if (sortKey.includes("date") && sortKey.includes("requested")) {
+                aValue = a.date_requested ? new Date(a.date_requested).getTime() : 0;
+                bValue = b.date_requested ? new Date(b.date_requested).getTime() : 0;
             } else {
                 return 0;
             }
@@ -197,7 +183,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 }}
             >
                 <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {columns.map((column) => {
+                    {REQUESTS_TABLE_COLUMNS.map((column) => {
                         const isLastColumn = column.id === "actions";
                         const sortable = !["actions"].includes(column.id);
 
@@ -207,9 +193,9 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                                 key={column.id}
                                 sx={{
                                     ...singleTheme.tableStyles.primary.header.cell,
-                                    ...(column.id === "entity_name" && headerCellEntityStyle),
-                                    ...(column.id === "steps" && headerCellStepsStyle),
-                                    ...(column.id === "date_updated" && headerCellDateStyle),
+                                    ...(column.id === "workflow_name" && headerCellEntityStyle),
+                                    ...(column.id === "status" && headerCellStepsStyle),
+                                    ...(column.id === "date_requested" && headerCellDateStyle),
                                     ...(column.id === "actions" && headerCellActionsStyle(singleTheme.tableStyles.primary.header.backgroundColors)),
                                     ...(!isLastColumn && sortable && sortableHeaderStyle),
                                 }}
@@ -261,62 +247,50 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
         () => (
             <TableBody>
                 {paginatedData?.length > 0 ? (
-                    paginatedData.map((workflow) => (
+                    paginatedData.map((request) => (
                         <TableRow
-                            key={workflow.id}
+                            key={request.id}
                             sx={{
                                 ...singleTheme.tableStyles.primary.body.row,
                                 ...workflowRowHover,
-                                ...(archivedId ===
-                                    workflow.id?.toString() &&
-                                    workflowTableRowDeletingStyle),
                             }}
                         >
                             <TableCell
-                                sx={bodyCellTitleStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("title")))}
+                                sx={bodyCellTitleStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("request")))}
                             >
-                                {workflow.workflow_title}
+                                {request.request_name}
                             </TableCell>
                             <TableCell
-                                sx={bodyCellEntityStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("entity")))}
+                                sx={bodyCellEntityStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("workflow")))}
                             >
-                                {entities.find(e => e._id === workflow.entity)?.name}
+                                {request.workflow_name}
                             </TableCell>
                             <TableCell
-                                sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("steps")))}
+                                sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("status")))}
                             >
-                                {workflow.steps?.length}
+                                {request.status}
                             </TableCell>
                             <TableCell
-                                sx={bodyCellDateStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("updated")))}
+                                sx={bodyCellDateStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("requested")))}
                             >
-                                {workflow.date_updated
+                                {request.date_requested
                                     ? dayjs
-                                        .utc(workflow.date_updated)
+                                        .utc(request.date_requested)
                                         .format("YYYY-MM-DD HH:mm")
                                     : "-"}
                             </TableCell>
+                     
                             <TableCell
                                 sx={bodyCellActionsStyle(cellStyle)}
                             >
                                 <Stack direction="row" spacing={1}>
                                     <CustomIconButton
-                                        id={workflow.id}
+                                        id={request.id}
                                         type="workflow"
-                                        onEdit={() =>
-                                            onEdit?.(
-                                                workflow.id.toString(), "edit"
-                                            )
-                                        }
-                                        onDelete={() =>
-                                            onArchive?.(
-                                                workflow.id.toString(), "archive"
-                                            )
-                                        }
-                                        onMouseEvent={() => { }}
-                                        warningTitle="Are you sure?"
-                                        warningMessage="You are about to archive this workflow. This action cannot be undone. You can also choose to edit or view the workflow instead."
-                                    />
+                                        onEdit={() => onOpenRequestDetails(request.id.toString())}
+                                        onMouseEvent={() => { } }
+                                        canDelete={false} 
+                                        onDelete={() => { }}                                                                        />
                                 </Stack>
                             </TableCell>
                         </TableRow>
@@ -324,17 +298,17 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 ) : (
                     <TableRow>
                         <TableCell
-                            colSpan={columns.length}
+                            colSpan={REQUESTS_TABLE_COLUMNS.length}
                             align="center"
                             sx={emptyTableCellStyle}
                         >
-                            No approval workflow data available.
+                            No approval requests data available.
                         </TableCell>
                     </TableRow>
                 )}
             </TableBody>
         ),
-        [paginatedData, archivedId, onEdit, onArchive, sortConfig]
+        [paginatedData, onOpenRequestDetails, sortConfig]
     );
 
     return (
@@ -345,7 +319,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
                 <TableFooter>
                     <TableRow sx={workflowFooterRow(theme)}>
                         <TableCell colSpan={3} sx={workflowShowingText(theme)}>
-                            Showing {getRange} of {sortedData?.length} workflow(s)
+                            Showing {getRange} of {sortedData?.length} request(s)
                         </TableCell>
                         <TablePagination
                             count={sortedData?.length ?? 0}
@@ -380,4 +354,4 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
     )
 }
 
-export default ApprovalWorkflowsTable;
+export default ApprovalRequestsTable;

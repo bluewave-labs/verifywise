@@ -443,7 +443,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           gap={theme.spacing(2)}
           className="app-title"
         >
-          <Box onMouseEnter={handleLogoHover} sx={{ position: "relative" }}>
+          <Box onMouseEnter={handleLogoHover} sx={{ position: "relative", display: "flex", alignItems: "center" }}>
             {/* Heart Icon - Rises behind and appears above logo */}
             {showHeartIcon && (
               <Tooltip title="Spread some love!">
@@ -511,13 +511,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </IconButton>
               </Tooltip>
             )}
-            <RouterLink to="/">
+            <RouterLink to="/" style={{ display: "flex", alignItems: "center" }}>
               <img
                 src={Logo}
                 alt="Logo"
                 width={20}
                 height={20}
-                style={{ position: "relative", zIndex: 1 }}
+                style={{ position: "relative", zIndex: 1, display: "block" }}
               />
             </RouterLink>
           </Box>

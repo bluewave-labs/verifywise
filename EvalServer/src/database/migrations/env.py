@@ -17,15 +17,13 @@ config.set_main_option(
     settings.sqlalchemy_database_url
 )
 
-# The current consolidated migration revision
-CURRENT_HEAD = "20251212_initial"
+# The current head migration revision
+CURRENT_HEAD = "20251121_prompt_count"
 
 # Old revisions that should be auto-migrated to current head
+# These are revisions that existed temporarily and need to be fixed
 LEGACY_REVISIONS = {
-    "20251121_prompt_count",
-    "20251130_member_ids",
-    "20251130_experiment_meta",
-    "20251207_llm_api_keys",
+    "20251212_initial",  # Temporary consolidated migration that was removed
 }
 
 # Interpret the config file for Python logging.

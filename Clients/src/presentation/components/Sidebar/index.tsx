@@ -24,8 +24,6 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
 // Lucide Icons
 import {
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   Home,
   Flag,
@@ -54,6 +52,8 @@ import {
   Users,
   Headphones,
   Trash2,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -581,9 +581,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             {collapsed ? (
-              <ChevronRight size={16} strokeWidth={1.5} />
+              <PanelLeftOpen size={16} strokeWidth={1.5} />
             ) : (
-              <ChevronLeft size={16} strokeWidth={1.5} />
+              <PanelLeftClose size={16} strokeWidth={1.5} />
             )}
           </IconButton>
         </Stack>

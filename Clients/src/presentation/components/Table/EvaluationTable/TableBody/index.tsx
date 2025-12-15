@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Typography } from "@mui/material";
-import { Trash2 as TrashIcon } from "lucide-react";
+import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Trash2 as TrashIcon, RotateCcw } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
@@ -67,6 +67,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rowsPerPage,
   onShowDetails,
   onRemoveModel,
+  onRerun,
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
@@ -86,108 +87,194 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   };
 
   return (
-    <>
-      <TableBody>
-        {rows
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((row) => (
-            <TableRow
-              key={row.id}
-              onClick={() => onShowDetails(row)}
+    <TableBody>
+      {rows
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((row) => {
+          const isRunning = row.status === "Running" || row.status === "In Progress" || row.status === "Pending";
+          
+          return (
+          <TableRow
+            key={row.id}
+            onClick={() => onShowDetails(row)}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+              },
+            }}
+          >
+            {/* EXPERIMENT ID */}
+            <TableCell
               sx={{
-                ...singleTheme.tableStyles.primary.body.row,
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                },
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                width: "18%",
               }}
             >
+              {isRunning ? "Pending..." : row.id}
+            </TableCell>
+
+            {/* MODEL - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                textAlign: "center",
+                width: "14%",
+              }}
+            >
+              {row.model}
+            </TableCell>
+
+            {/* JUDGE - center aligned */}
+            {row.judge !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
-                  width: "20%",
+                  textAlign: "center",
+                  width: "10%",
                 }}
               >
-                {row.status === "Running" || row.status === "In Progress"
-                  ? "Pending..."
-                  : row.id}
+                {row.judge || "-"}
               </TableCell>
+            )}
+
+            {/* # PROMPTS - center aligned */}
+            {row.prompts !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
+                  textAlign: "center",
+                  width: "14%",
                 }}
               >
-                {row.model}
+                {row.prompts}
               </TableCell>
+            )}
+
+            {/* DATASET */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                width: "8%",
+              }}
+            >
+              {row.dataset}
+            </TableCell>
+
+            {/* STATUS - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                textAlign: "center",
+                width: "14%",
+              }}
+            >
+              <StatusChip status={row.status} />
+            </TableCell>
+
+            {/* DATE - center aligned */}
+            {row.date !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
+                  textAlign: "center",
+                  width: "14%",
                 }}
               >
-                {row.judge}
+                {row.date}
               </TableCell>
+            )}
+
+            {/* ACTION */}
+            {(onRerun || onRemoveModel) && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
-                  textTransform: "none",
+                  width: "80px",
+                  minWidth: "80px",
+                  maxWidth: "80px",
                 }}
               >
-                {row.dataset}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  paddingLeft: "12px",
-                  paddingRight: "12px",
-                  textTransform: "none",
-                }}
-              >
-                <Box sx={{ width: "50%", ml: -4 }}>
-                  <StatusChip status={row.status} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  {onRerun && (
+                    <Tooltip title={isRunning ? "Evaluation in progress" : "Rerun this evaluation"}>
+                      <span>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRerun(row);
+                          }}
+                          disabled={isRunning}
+                          sx={{
+                            color: isRunning ? "#d0d5dd" : "#13715B",
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: isRunning ? "transparent" : "rgba(19, 113, 91, 0.1)",
+                            },
+                          }}
+                        >
+                          <RotateCcw size={16} />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  )}
+                  {onRemoveModel && (
+                    <Tooltip title="Delete this evaluation">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleDeleteClick(e, row)}
+                        sx={{
+                          color: "#667085",
+                          padding: "4px",
+                          "&:hover": {
+                            backgroundColor: "rgba(220, 38, 38, 0.1)",
+                            color: "#DC2626",
+                          },
+                        }}
+                      >
+                        <TrashIcon size={16} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
               </TableCell>
-              {onRemoveModel && (
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <IconButton
-                      onClick={(e) => handleDeleteClick(e, row)}
-                      sx={{ padding: 0 }}
-                    >
-                      <TrashIcon size={18} color="#667085" />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-      </TableBody>
-
+            )}
+          </TableRow>
+        );
+        })}
+      
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (
         <ConfirmationModal
-          isOpen={deleteModalOpen}
           title="Delete this evaluation?"
           body={
-            <Typography fontSize={13} color="#344054">
-              Are you sure you want to delete evaluation "{rowToDelete.name || rowToDelete.id}"?
+            <Typography fontSize={13}>
+              Are you sure you want to delete evaluation "{rowToDelete.name || rowToDelete.id}"? This action cannot be undone.
             </Typography>
           }
           cancelText="Cancel"
@@ -199,10 +286,9 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
           onProceed={handleConfirmDelete}
           proceedButtonColor="error"
           proceedButtonVariant="contained"
-          TitleFontSize={0}
         />
       )}
-    </>
+    </TableBody>
   );
 };
 

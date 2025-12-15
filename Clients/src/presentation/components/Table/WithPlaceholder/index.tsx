@@ -42,7 +42,7 @@ const titleOfTableColumns = [
   { id: "vendor_name", label: "name", sortable: true },
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
-  { id: "risk", label: "risk", sortable: false },
+  { id: "risk", label: "risks", sortable: true },
   { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },
@@ -144,6 +144,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   onDelete,
   onEdit,
   hidePagination = false,
+  vendorRisks = [],
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -188,6 +189,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+
+  // Get risk count for a specific vendor
+  const getVendorRiskCount = useCallback((vendorId: number) => {
+    return vendorRisks.filter(risk => risk.vendor_id === vendorId).length;
+  }, [vendorRisks]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -263,6 +269,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           bValue = b.risk_score ?? 0;
           break;
 
+        case "risk":
+          aValue = getVendorRiskCount(a.id!);
+          bValue = getVendorRiskCount(b.id!);
+          break;
+
         default:
           return 0;
       }
@@ -278,7 +289,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [vendors, sortConfig]);
+  }, [vendors, sortConfig, getVendorRiskCount]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -384,15 +395,24 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     backgroundColor: sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                   }}
                 >
-                  <VWLink
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openVendorRisksDialog(row.id!, row.vendor_name);
-                    }}
-                    showIcon={false}
-                  >
-                    View risks
-                  </VWLink>
+                  {(() => {
+                    const riskCount = getVendorRiskCount(row.id!);
+                    return riskCount > 0 ? (
+                      <VWLink
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openVendorRisksDialog(row.id!, row.vendor_name);
+                        }}
+                        showIcon={false}
+                      >
+                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
+                      </VWLink>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                        No risks
+                      </Typography>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -478,8 +498,9 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       onEdit,
       onDelete,
       isDeletingAllowed,
-      theme,
       sortConfig.key,
+      getVendorRiskCount,
+      hidePagination,
     ]
   );
 

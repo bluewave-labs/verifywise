@@ -169,13 +169,20 @@ export const getProjectByIdQuery = async (
     (project.dataValues as any)["framework"].push(pf);
   }
 
-  const projectOwner = (await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-    {
-      replacements: { owner_id: project.owner },
+  // Handle case where project owner might be null or user doesn't exist
+  let ownerName = "Unassigned";
+  if (project.owner) {
+    const projectOwner = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+      {
+        replacements: { owner_id: project.owner },
+      }
+    )) as [{ full_name: string }[], number];
+    if (projectOwner[0] && projectOwner[0][0]) {
+      ownerName = projectOwner[0][0].full_name;
     }
-  )) as [{ full_name: string }[], number];
-  (project.dataValues as any)["owner_name"] = projectOwner[0]?.[0]?.full_name || "Unknown";
+  }
+  (project.dataValues as any)["owner_name"] = ownerName;
 
   const members = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,

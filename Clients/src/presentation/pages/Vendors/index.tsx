@@ -741,14 +741,15 @@ const Vendors = () => {
 
   // Define how to get the group key for each vendor
   const getVendorGroupKey = (vendor: VendorModel, field: string): string | string[] => {
+    const statusMap: Record<ReviewStatus, string> = {
+      [ReviewStatus.NotStarted]: 'Not started',
+      [ReviewStatus.InReview]: 'In review',
+      [ReviewStatus.Reviewed]: 'Reviewed',
+      [ReviewStatus.RequiresFollowUp]: 'Requires follow-up',
+    };
+
     switch (field) {
       case 'review_status':
-        const statusMap: Record<ReviewStatus, string> = {
-          [ReviewStatus.NotStarted]: 'Not started',
-          [ReviewStatus.InReview]: 'In review',
-          [ReviewStatus.Reviewed]: 'Reviewed',
-          [ReviewStatus.RequiresFollowUp]: 'Requires follow-up',
-        };
         return statusMap[vendor.review_status as ReviewStatus] || 'Unknown';
       case 'data_sensitivity':
         return vendor.data_sensitivity || 'Unknown';
@@ -1118,6 +1119,7 @@ const Vendors = () => {
                     onDelete={handleDeleteVendor}
                     onEdit={handleEditVendor}
                     hidePagination={options?.hidePagination}
+                    vendorRisks={vendorRisks}
                   />
                 )}
               />

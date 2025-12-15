@@ -555,6 +555,17 @@ export async function deleteProjectById(
   });
 
   try {
+    // Record deletion in change history BEFORE deleting the project
+    // (due to foreign key constraint on use_case_change_history table)
+    if (req.userId) {
+      await recordUseCaseDeletion(
+        projectId,
+        req.userId,
+        req.tenantId!,
+        transaction
+      );
+    }
+
     const deletedProject = await deleteProjectByIdQuery(
       projectId,
       req.tenantId!,
@@ -562,16 +573,6 @@ export async function deleteProjectById(
     );
 
     if (deletedProject) {
-      // Record deletion in change history
-      if (req.userId) {
-        await recordUseCaseDeletion(
-          projectId,
-          req.userId,
-          req.tenantId!,
-          transaction
-        );
-      }
-
       await transaction.commit();
 
       await logSuccess({

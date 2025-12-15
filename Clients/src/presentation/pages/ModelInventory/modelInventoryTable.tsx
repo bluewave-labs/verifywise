@@ -45,6 +45,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import Chip from "../../components/Chip";
+import { VWLink } from "../../components/Link";
+import ModelRisksDialog from "../../components/ModelRisksDialog";
 
 dayjs.extend(utc);
 
@@ -134,6 +136,13 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   );
   const [users, setUsers] = useState<User[]>([]);
 
+  // Model risks dialog state
+  const [showModelRisks, setShowModelRisks] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
   // Fetch users when component mounts
   useEffect(() => {
     fetchUsers();
@@ -166,6 +175,19 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   const getModelRiskCount = useCallback((modelId: number) => {
     return modelRisks.filter(risk => risk.model_id === modelId).length;
   }, [modelRisks]);
+
+  const openModelRisksDialog = useCallback(
+    (modelId: number, modelName: string) => {
+      setSelectedModel({ id: modelId, name: modelName });
+      setShowModelRisks(true);
+    },
+    []
+  );
+
+  const closeModelRisksDialog = useCallback(() => {
+    setShowModelRisks(false);
+    setSelectedModel(null);
+  }, []);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -297,18 +319,23 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {(() => {
-                    const riskCount = getModelRiskCount(modelInventory.id || 0);
-                    return riskCount > 0 ? (
-                      <Typography variant="body2" sx={{ color: "#344054" }}>
-                        {riskCount} risk{riskCount !== 1 ? "s" : ""}
-                      </Typography>
-                    ) : (
-                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
-                        No risks
-                      </Typography>
-                    );
-                  })()}
+                  <VWLink
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModelRisksDialog(
+                        modelInventory.id || 0,
+                        modelInventory.model || ""
+                      );
+                    }}
+                    showIcon={false}
+                  >
+                    {(() => {
+                      const riskCount = getModelRiskCount(modelInventory.id || 0);
+                      return riskCount > 0
+                        ? `View risks (${riskCount})`
+                        : "View risks";
+                    })()}
+                  </VWLink>
                 </TableCell>
                 <TableCell
                   sx={{
@@ -406,6 +433,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       userMap,
       getModelRiskCount,
       hidePagination,
+      openModelRisksDialog,
     ]
   );
 
@@ -426,48 +454,60 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   return (
-    <TableContainer sx={{ overflowX: "auto" }}>
-      <Table sx={singleTheme.tableStyles.primary.frame}>
-        {tableHeader}
-        {tableBody}
-        {paginated && !hidePagination && (
-          <TableFooter>
-            <TableRow sx={tableFooterRowStyle(theme)}>
-              <TableCell sx={showingTextCellStyle(theme)}>
-                Showing {getRange} of {data?.length} model(s)
-              </TableCell>
-              <TablePagination
-                count={data?.length ?? 0}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[5, 10, 15, 25]}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                ActionsComponent={(props) => (
-                  <TablePaginationActions {...props} />
-                )}
-                labelRowsPerPage="Rows per page"
-                labelDisplayedRows={({ page, count }) =>
-                  `Page ${page + 1} of ${Math.max(
-                    0,
-                    Math.ceil(count / rowsPerPage)
-                  )}`
-                }
-                slotProps={{
-                  select: {
-                    MenuProps: paginationMenuProps(theme),
-                    inputProps: { id: "pagination-dropdown" },
-                    IconComponent: SelectorVertical,
-                    sx: paginationSelectStyle(theme),
-                  },
-                }}
-                sx={paginationStyle(theme)}
-              />
-            </TableRow>
-          </TableFooter>
-        )}
-      </Table>
-    </TableContainer>
+    <>
+      <TableContainer sx={{ overflowX: "auto" }}>
+        <Table sx={singleTheme.tableStyles.primary.frame}>
+          {tableHeader}
+          {tableBody}
+          {paginated && !hidePagination && (
+            <TableFooter>
+              <TableRow sx={tableFooterRowStyle(theme)}>
+                <TableCell sx={showingTextCellStyle(theme)}>
+                  Showing {getRange} of {data?.length} model(s)
+                </TableCell>
+                <TablePagination
+                  count={data?.length ?? 0}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  rowsPerPageOptions={[5, 10, 15, 25]}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={(props) => (
+                    <TablePaginationActions {...props} />
+                  )}
+                  labelRowsPerPage="Rows per page"
+                  labelDisplayedRows={({ page, count }) =>
+                    `Page ${page + 1} of ${Math.max(
+                      0,
+                      Math.ceil(count / rowsPerPage)
+                    )}`
+                  }
+                  slotProps={{
+                    select: {
+                      MenuProps: paginationMenuProps(theme),
+                      inputProps: { id: "pagination-dropdown" },
+                      IconComponent: SelectorVertical,
+                      sx: paginationSelectStyle(theme),
+                    },
+                  }}
+                  sx={paginationStyle(theme)}
+                />
+              </TableRow>
+            </TableFooter>
+          )}
+        </Table>
+      </TableContainer>
+
+      {/* Model Risks Dialog */}
+      {showModelRisks && selectedModel && (
+        <ModelRisksDialog
+          open={showModelRisks}
+          onClose={closeModelRisksDialog}
+          modelId={selectedModel.id}
+          modelName={selectedModel.name}
+        />
+      )}
+    </>
   );
 };
 

@@ -1,11 +1,12 @@
-import React, { CSSProperties, useEffect, useState, useCallback } from "react";
+import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../../domain/interfaces/IPolicy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
-import InsertImageUploaderModal from "../Modals/InsertImageModal/InsertImageUploaderModal";
+import { Range, Editor, BaseRange, Transforms, Path } from "slate";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
+import { uploadFileToManager } from "../../../application/repository/file.repository";
 
 import {
   BoldPlugin,
@@ -15,6 +16,8 @@ import {
   H2Plugin,
   H3Plugin,
   StrikethroughPlugin,
+  BlockquotePlugin,
+  HighlightPlugin,
 } from "@platejs/basic-nodes/react";
 import {
   ListPlugin,
@@ -24,6 +27,8 @@ import {
   ListItemContentPlugin,
 } from "@platejs/list-classic/react";
 import { TextAlignPlugin } from "@platejs/basic-styles/react";
+import { insertTable } from "@platejs/table";
+import { tablePlugin, tableRowPlugin, tableCellPlugin, tableCellHeaderPlugin } from "../PlatePlugins/CustomTablePlugin";
 import { serializeHtml } from "platejs";
 import {
   Underline,
@@ -36,17 +41,22 @@ import {
   AlignLeft,
   AlignCenter,
   Link,
+  Unlink,
   AlignRight,
   Image,
   Redo2,
   Undo2,
   History as HistoryIcon,
+  Quote,
+  Highlighter,
+  Table,
 } from "lucide-react";
 
 const FormatUnderlined = () => <Underline size={16} />;
 const FormatBold = () => <Bold size={16} />;
 const FormatItalic = () => <Italic size={16} />;
-import { IconButton, Tooltip, useTheme, Box, Select, MenuItem } from "@mui/material";
+import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
+import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
@@ -60,9 +70,8 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
+import { linkPlugin, insertLink, removeLink, isLinkActive } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
-import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
 
 
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
@@ -77,8 +86,11 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const theme = useTheme();
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [openLink, setOpenLink] = useState(false);
-  const [openImage, setOpenImage] = useState(false);
+  const [selectedTextForLink, setSelectedTextForLink] = useState("");
+  const [savedSelection, setSavedSelection] = useState<BaseRange | null>(null);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Prefetch history data when drawer opens in edit mode
   usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);
@@ -99,7 +111,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     | "align-center"
     | "align-right"
     | "link"
-    | "image";
+    | "image"
+    | "highlight"
+    | "blockquote"
+    | "table";
 
   const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
     {
@@ -116,6 +131,9 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       "align-right": false,
       link: false,
       image: false,
+      highlight: false,
+      blockquote: false,
+      table: false,
     }
   );
 
@@ -135,10 +153,55 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     onClose();
   }
 
+  // Disable ESC key closing for policy editor to prevent accidental data loss
+  // Users can still close via the X button or Cancel button
   useModalKeyHandling({
     isOpen: true,
     onClose: handleClose,
+    onEscapeKey: () => {
+      // Do nothing on ESC - prevent accidental close with unsaved content
+    },
   });
+
+  // Handle image file selection and upload
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Reset the input so the same file can be selected again
+    event.target.value = "";
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      console.error("Selected file is not an image");
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      console.error("Image file is too large (max 10MB)");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadFileToManager({
+        file,
+        model_id: null,
+        source: "policy_editor",
+        signal: undefined,
+      });
+
+      const fileId = response.data.id;
+      // Use relative /api path - Vite dev server proxies this to backend
+      const imageUrl = `/api/file-manager/${fileId}?isFileManagerFile=true`;
+      insertImage(editor, imageUrl, file.name);
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: PolicyFormErrors = {};
@@ -204,6 +267,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           H2Plugin,
           H3Plugin,
           StrikethroughPlugin,
+          HighlightPlugin,
+          BlockquotePlugin,
+          tablePlugin,
+          tableRowPlugin,
+          tableCellPlugin,
+          tableCellHeaderPlugin,
           imagePlugin,
           linkPlugin,
           ListPlugin,
@@ -230,7 +299,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   "justify",
                 ],
               },
-              targetPlugins: ["h1", "h2", "h3", "p"],
+              targetPlugins: ["h1", "h2", "h3", "p", "blockquote"],
             },
           }),
           AutoformatPlugin.configure({
@@ -242,6 +311,59 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         value: [{ type: "p", children: [{ text: "" }] }],
       }) as any
   );
+
+  // Add error handling for editor operations to prevent crashes from invalid paths
+  useEffect(() => {
+    if (editor) {
+      const originalApply = editor.apply;
+      editor.apply = (operation: any) => {
+        try {
+          // Check for operations that might target invalid paths
+          if (operation.path && operation.path.length === 0) {
+            // Skip operations targeting root path
+            console.warn("Skipping operation targeting root path:", operation.type);
+            return;
+          }
+          originalApply(operation);
+        } catch (e: any) {
+          // Catch and log errors instead of crashing
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("Editor operation failed (root path error):", operation.type);
+          } else {
+            console.error("Editor operation failed:", e);
+          }
+        }
+      };
+
+      // Wrap deleteBackward to catch root path errors from list plugin
+      const originalDeleteBackward = editor.deleteBackward;
+      editor.deleteBackward = (unit: any) => {
+        try {
+          return originalDeleteBackward(unit);
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("deleteBackward failed (root path error) - this is a known issue with list handling");
+            return;
+          }
+          throw e;
+        }
+      };
+
+      // Wrap deleteForward as well
+      const originalDeleteForward = editor.deleteForward;
+      editor.deleteForward = (unit: any) => {
+        try {
+          return originalDeleteForward(unit);
+        } catch (e: any) {
+          if (e.message?.includes("Cannot get the parent path of the root path")) {
+            console.warn("deleteForward failed (root path error)");
+            return;
+          }
+          throw e;
+        }
+      };
+    }
+  }, [editor]);
 
   useEffect(() => {
     if (policy) {
@@ -352,15 +474,74 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     },
     {
       key: "link",
-      title: "Insert Link",
-      icon: <Link size={16} />,
-      action: () => setOpenLink(true),
+      title: isLinkActive(editor) ? "Remove Link" : "Insert Link",
+      icon: isLinkActive(editor) ? <Unlink size={16} /> : <Link size={16} />,
+      action: () => {
+        // If cursor is in a link, remove the link
+        if (isLinkActive(editor)) {
+          removeLink(editor);
+          return;
+        }
+        // Otherwise, open the insert link modal
+        const { selection } = editor;
+        if (selection && !Range.isCollapsed(selection)) {
+          const selectedText = Editor.string(editor, selection);
+          setSelectedTextForLink(selectedText);
+          // Save the selection range so we can restore it after modal closes
+          setSavedSelection(selection);
+        } else {
+          setSelectedTextForLink("");
+          setSavedSelection(selection);
+        }
+        setOpenLink(true);
+      },
     },
     {
       key: "image",
-      title: "Insert Image",
+      title: isUploadingImage ? "Uploading..." : "Insert Image",
       icon: <Image size={16} />,
-      action: () => setOpenImage(true),
+      action: () => {
+        if (!isUploadingImage) {
+          imageInputRef.current?.click();
+        }
+      },
+    },
+    {
+      key: "highlight",
+      title: "Highlight",
+      icon: <Highlighter size={16} />,
+      action: () => editor.tf.highlight.toggle(),
+    },
+    {
+      key: "blockquote",
+      title: "Blockquote",
+      icon: <Quote size={16} />,
+      action: () => editor.tf.blockquote.toggle(),
+    },
+    {
+      key: "table",
+      title: "Insert Table",
+      icon: <Table size={16} />,
+      action: () => {
+        insertTable(editor, { colCount: 4, rowCount: 3, header: true }, { select: true });
+        // Insert an empty paragraph after the table so users can continue typing below it
+        const { selection } = editor;
+        if (selection) {
+          // Find the table node and insert paragraph after it
+          const tableEntry = Editor.above(editor, {
+            match: (n: any) => n.type === 'table',
+          });
+          if (tableEntry) {
+            const [, tablePath] = tableEntry;
+            const afterTablePath = Path.next(tablePath);
+            Transforms.insertNodes(
+              editor,
+              { type: 'p', children: [{ text: '' }] } as any,
+              { at: afterTablePath }
+            );
+          }
+        }
+      },
     },
   ];
 
@@ -368,11 +549,17 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     if ((policy || template) && editor) {
       const api = editor.api.html;
       const content = policy?.content_html || template?.content;
+      // Replace img src with data-src to prevent browser from loading images during deserialization
+      // The browser automatically tries to fetch <img src="..."> when setting innerHTML,
+      // which fails for authenticated API URLs. Our ImageElement component handles the auth fetch.
+      const processedContent = typeof content === "string"
+        ? content.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
+        : content;
       const nodes =
-        typeof content === "string"
+        typeof processedContent === "string"
           ? api.deserialize({
               element: Object.assign(document.createElement("div"), {
-                innerHTML: DOMPurify.sanitize(content, {
+                innerHTML: DOMPurify.sanitize(processedContent, {
                   ALLOWED_TAGS: [
                     "p",
                     "br",
@@ -398,17 +585,27 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "img",
                     "span",
                     "div",
+                    "mark",
+                    "table",
+                    "thead",
+                    "tbody",
+                    "tr",
+                    "th",
+                    "td",
                   ],
                   ALLOWED_ATTR: [
                     "href",
                     "title",
                     "alt",
                     "src",
+                    "data-src",
                     "class",
                     "id",
                     "style",
                     "target",
                     "rel",
+                    "colspan",
+                    "rowspan",
                   ],
                   ALLOWED_URI_REGEXP:
                     /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
@@ -437,6 +634,12 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
       editor.tf.reset();
       editor.tf.setValue(nodes);
+      // Clear undo history so the initial content is the baseline
+      // and undo doesn't revert to an empty editor
+      if (editor.history) {
+        editor.history.undos = [];
+        editor.history.redos = [];
+      }
     }
   }, [policy, template, editor]);
 
@@ -451,12 +654,33 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       // Get current marks (bold, italic, etc.)
       const marks = editor.marks || {};
 
-      // Get current block type
-      const [block] = editor.api.block.getBlockAbove() || [];
-      const blockType = block?.type || 'p';
+      // Get current block type - traverse up to find a block element
+      let blockType = 'p';
+      let align = 'left';
 
-      // Get text alignment
-      const align = block?.align || 'left';
+      try {
+        // Get the current block using editor.api.block()
+        const blockEntry = editor.api.block();
+        if (blockEntry && blockEntry[0]) {
+          const block = blockEntry[0];
+          const type = block.type as string;
+          if (type === 'h1' || type === 'heading-one') {
+            blockType = 'h1';
+          } else if (type === 'h2' || type === 'heading-two') {
+            blockType = 'h2';
+          } else if (type === 'h3' || type === 'heading-three') {
+            blockType = 'h3';
+          } else if (type === 'blockquote') {
+            blockType = 'blockquote';
+          } else {
+            blockType = 'p';
+          }
+          align = (block as any).align || 'left';
+        }
+      } catch {
+        // Fallback to paragraph
+        blockType = 'p';
+      }
 
       // Update block type for dropdown
       setCurrentBlockType(blockType);
@@ -472,10 +696,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         'align-center': align === 'center',
         'align-right': align === 'right' || align === 'end',
         link: !!marks.link,
+        highlight: !!marks.highlight,
+        blockquote: blockType === 'blockquote',
         // These don't have persistent state
         undo: false,
         redo: false,
         image: false,
+        table: false,
       });
     } catch (error) {
       // Silently handle errors during state sync
@@ -484,8 +711,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   }, [editor]);
 
   // Handle block type change from dropdown
-  const handleBlockTypeChange = (event: any) => {
-    const newType = event.target.value;
+  const handleBlockTypeChange = (event: { target: { value: string | number } }) => {
+    const newType = String(event.target.value);
     setCurrentBlockType(newType);
 
     if (!editor) return;
@@ -506,12 +733,136 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     setTimeout(() => updateToolbarState(), 0);
   };
 
+  // Helper to serialize image node to HTML (avoids hooks issue)
+  const serializeImageToHtml = (node: any): string => {
+    const url = node.url || node.src || "";
+    const alt = node.alt || "";
+    const width = node.width || "100%";
+    const align = node.align || "center";
+    const caption = node.caption || "";
+
+    const alignItems = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+    const widthStyle = typeof width === "number" ? `${width}px` : width;
+
+    let html = `<div style="display: flex; flex-direction: column; align-items: ${alignItems}; margin: 12px 0;">`;
+    html += `<img src="${url}" alt="${alt}" style="width: ${widthStyle}; max-width: 100%; border-radius: 8px;" />`;
+    if (caption) {
+      html += `<div style="margin-top: 8px; font-size: 0.85rem; color: #667085; font-style: italic; text-align: center;">${caption}</div>`;
+    }
+    html += `</div>`;
+    return html;
+  };
+
+  // Helper to serialize table node to HTML (avoids hooks issue)
+  const serializeTableToHtml = (node: any): string => {
+    let html = '<table style="border-collapse: collapse; width: 100%; margin: 12px 0;">';
+
+    const serializeChildren = (children: any[]): string => {
+      return children.map((child: any) => {
+        if (child.text !== undefined) {
+          let text = child.text;
+          if (child.bold) text = `<strong>${text}</strong>`;
+          if (child.italic) text = `<em>${text}</em>`;
+          if (child.underline) text = `<u>${text}</u>`;
+          return text;
+        }
+        return '';
+      }).join('');
+    };
+
+    if (node.children) {
+      node.children.forEach((row: any) => {
+        if (row.type === 'tr') {
+          html += '<tr>';
+          if (row.children) {
+            row.children.forEach((cell: any) => {
+              const isHeader = cell.type === 'th';
+              const tag = isHeader ? 'th' : 'td';
+              const bgStyle = isHeader ? 'background-color: #f9fafb; font-weight: 600;' : '';
+              html += `<${tag} style="border: 1px solid #d0d5dd; padding: 8px 12px; text-align: left; ${bgStyle}">`;
+              if (cell.children) {
+                cell.children.forEach((content: any) => {
+                  if (content.children) {
+                    html += serializeChildren(content.children);
+                  } else if (content.text !== undefined) {
+                    html += content.text;
+                  }
+                });
+              }
+              html += `</${tag}>`;
+            });
+          }
+          html += '</tr>';
+        }
+      });
+    }
+
+    html += '</table>';
+    return html;
+  };
+
+  // Custom HTML serializer that handles images and tables without hooks
+  const serializeToHtml = async (): Promise<string> => {
+    // Get HTML from serializeHtml but replace image/table placeholders
+    // First, temporarily remove special nodes and track their positions
+    const editorValue = JSON.parse(JSON.stringify(editor.children));
+
+    // Process nodes recursively to replace images and tables with placeholder markers
+    const imageMap = new Map<string, any>();
+    const tableMap = new Map<string, any>();
+    let imageIndex = 0;
+    let tableIndex = 0;
+
+    const processNode = (node: any): any => {
+      if (node.type === "image") {
+        const placeholder = `__IMAGE_PLACEHOLDER_${imageIndex}__`;
+        imageMap.set(placeholder, node);
+        imageIndex++;
+        return { type: "p", children: [{ text: placeholder }] };
+      }
+      if (node.type === "table") {
+        const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+        tableMap.set(placeholder, node);
+        tableIndex++;
+        return { type: "p", children: [{ text: placeholder }] };
+      }
+      if (node.children) {
+        return { ...node, children: node.children.map(processNode) };
+      }
+      return node;
+    };
+
+    const processedValue = editorValue.map(processNode);
+
+    // Temporarily set processed value and clear selection to avoid path errors
+    const originalValue = editor.children;
+    const originalSelection = editor.selection;
+    editor.children = processedValue;
+    editor.selection = null;
+
+    let html = await serializeHtml(editor);
+
+    // Restore original value and selection
+    editor.children = originalValue;
+    editor.selection = originalSelection;
+
+    // Replace placeholders with actual HTML
+    imageMap.forEach((imageNode, placeholder) => {
+      html = html.replace(placeholder, serializeImageToHtml(imageNode));
+    });
+    tableMap.forEach((tableNode, placeholder) => {
+      html = html.replace(placeholder, serializeTableToHtml(tableNode));
+    });
+
+    return html;
+  };
+
   const save = async () => {
     if (!validateForm()) {
       return;
     }
     // setIsSubmitting(true);
-    const html = await serializeHtml(editor);
+    const html = await serializeToHtml();
     const assignedReviewers = formData.assignedReviewers.map((user) => user.id);
     const payload = {
       title: formData.title,
@@ -594,23 +945,39 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       )} */}
       <InsertLinkModal
         open={openLink}
-        onClose={() => setOpenLink(false)}
-        onInsert={(url, text) => insertLink(editor, url, text)}
+        onClose={() => {
+          setOpenLink(false);
+          setSelectedTextForLink("");
+          setSavedSelection(null);
+        }}
+        onInsert={(url, text) => {
+          // Restore the saved selection before inserting the link
+          if (savedSelection) {
+            editor.select(savedSelection);
+          }
+          insertLink(editor, url, text);
+          setSavedSelection(null);
+        }}
+        selectedText={selectedTextForLink}
       />
 
-      <InsertImageUploaderModal
-        open={openImage}
-        onClose={() => setOpenImage(false)}
-        onInsert={(url, alt) => insertImage(editor, url, alt)}
+      {/* Hidden file input for native OS file picker */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleImageFileChange}
       />
       <Drawer
         open={true}
         onClose={(_event, reason) => {
-          if (reason !== "backdropClick") {
+          if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
             handleClose();
           }
         }}
         anchor="right"
+        disableEscapeKeyDown
         sx={{
           width: isHistorySidebarOpen ? 1236 : 900,
           "& .MuiDrawer-paper": {
@@ -695,34 +1062,23 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
               }}
             >
               {/* Block Type Dropdown */}
-              <Select
-                value={currentBlockType}
-                onChange={handleBlockTypeChange}
-                size="small"
-                sx={{
-                  minWidth: 120,
-                  height: "32px",
-                  fontSize: "13px",
-                  backgroundColor: "#FFFFFF",
-                  "& .MuiSelect-select": {
-                    padding: "6px 32px 6px 10px",
-                  },
-                  "& fieldset": {
-                    borderColor: "#D0D5DD",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#13715B",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#13715B",
-                  },
-                }}
-              >
-                <MenuItem value="p" sx={{ fontSize: "13px" }}>Text</MenuItem>
-                <MenuItem value="h1" sx={{ fontSize: "13px" }}>Header 1</MenuItem>
-                <MenuItem value="h2" sx={{ fontSize: "13px" }}>Header 2</MenuItem>
-                <MenuItem value="h3" sx={{ fontSize: "13px" }}>Header 3</MenuItem>
-              </Select>
+              <Box sx={{ marginRight: "8px" }}>
+                <Select
+                  id="block-type-select"
+                  value={currentBlockType}
+                  onChange={handleBlockTypeChange}
+                  items={[
+                    { _id: "p", name: "Text" },
+                    { _id: "h1", name: "Header 1" },
+                    { _id: "h2", name: "Header 2" },
+                    { _id: "h3", name: "Header 3" },
+                  ]}
+                  sx={{
+                    width: 120,
+                    height: "34px",
+                  }}
+                />
+              </Box>
 
               {/* Toolbar */}
               {toolbarConfig.map(({ key, title, icon, action }) => (
@@ -783,6 +1139,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   // Update toolbar state when editor content changes
                   updateToolbarState();
                 }}
+                onSelectionChange={() => {
+                  // Update toolbar state when selection/cursor changes
+                  updateToolbarState();
+                }}
               >
                 <PlateContent
                   style={
@@ -797,10 +1157,45 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                       color: theme.palette.text.primary,
                       boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
                       outline: "none",
+                      "--plate-highlight-bg": "#fef08a",
+                      "--plate-blockquote-border": "#d0d5dd",
                     } as CSSProperties
                   }
                   placeholder="Start typing..."
                 />
+                <style>{`
+                  [data-slate-editor] mark {
+                    background-color: #fef08a;
+                    padding: 0 2px;
+                    border-radius: 2px;
+                  }
+                  [data-slate-editor] blockquote {
+                    border-left: 3px solid #d0d5dd;
+                    margin: 8px 0;
+                    padding: 8px 16px;
+                    color: #475467;
+                    background-color: #f9fafb;
+                    border-radius: 0 4px 4px 0;
+                  }
+                  [data-slate-editor] table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 12px 0;
+                  }
+                  [data-slate-editor] th,
+                  [data-slate-editor] td {
+                    border: 1px solid #d0d5dd;
+                    padding: 8px 12px;
+                    text-align: left;
+                  }
+                  [data-slate-editor] th {
+                    background-color: #f9fafb;
+                    font-weight: 600;
+                  }
+                  [data-slate-editor] tr:hover td {
+                    background-color: #f9fafb;
+                  }
+                `}</style>
               </Plate>
             </Box>
             {errors.content && (

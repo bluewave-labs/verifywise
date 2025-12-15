@@ -64,6 +64,7 @@ const Field = forwardRef(
       onInput,
       onFocus,
       onBlur,
+      onKeyDown,
       error,
       disabled,
       width,
@@ -142,6 +143,7 @@ const Field = forwardRef(
           onChange={onChange}
           onFocus={onFocus}
           onBlur={onBlur}
+          onKeyDown={onKeyDown}
           disabled={disabled}
           inputRef={ref}
           inputProps={{

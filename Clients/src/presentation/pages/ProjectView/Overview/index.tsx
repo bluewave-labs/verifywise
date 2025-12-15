@@ -106,7 +106,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   }
 
   return (
-    <Stack direction="row" sx={{ width: "100%" }}>
+    <Stack direction="row" sx={{ width: "100%", alignItems: "flex-start" }}>
       {/* Main Content */}
       <Stack sx={{ flex: 1, minWidth: 0 }}>
         {isLoading && (
@@ -172,7 +172,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
             sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}
           ></Stack>
         </Stack>
-        <Stack sx={{ mb: "37px" }} data-joyride-id="risk-summary">
+        <Stack sx={{ mb: 0 }} data-joyride-id="risk-summary">
           <Typography
             sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
           >
@@ -187,7 +187,6 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         isOpen={isHistorySidebarOpen}
         entityType="use_case"
         entityId={parseInt(projectId)}
-        height="450px"
       />
     </Stack>
   );

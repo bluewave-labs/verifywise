@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { VendorModel } from "../models/Common/vendor/vendor.model";
+import { VendorModel } from "../models/Common/Vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
 import { FileModel } from "../models/Common/File/file.model";
 import { User } from "../types/User";

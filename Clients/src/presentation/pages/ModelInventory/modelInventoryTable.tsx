@@ -13,6 +13,7 @@ import {
   Typography,
   TableFooter,
   Tooltip,
+  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -20,7 +21,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import EmptyState from "../../components/EmptyState";
@@ -50,18 +51,27 @@ import ModelRisksDialog from "../../components/ModelRisksDialog";
 
 dayjs.extend(utc);
 
+// LocalStorage keys
+const MODEL_INVENTORY_SORTING_KEY = "verifywise_model_inventory_sorting";
+
+// Types for sorting
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = {
+  key: string;
+  direction: SortDirection;
+};
+
 // Constants for table
 const TABLE_COLUMNS = [
-  { id: "provider", label: "PROVIDER" },
-  { id: "model", label: "MODEL" },
-  { id: "version", label: "VERSION" },
-  { id: "approver", label: "APPROVER" },
-  // { id: "capabilities", label: "CAPABILITIES" },
-  { id: "security_assessment", label: "SECURITY ASSESSMENT" },
-  { id: "risks", label: "RISKS" },
-  { id: "status", label: "STATUS" },
-  { id: "status_date", label: "STATUS DATE" },
-  { id: "actions", label: "" },
+  { id: "provider", label: "PROVIDER", sortable: true },
+  { id: "model", label: "MODEL", sortable: true },
+  { id: "version", label: "VERSION", sortable: true },
+  { id: "approver", label: "APPROVER", sortable: true },
+  { id: "security_assessment", label: "SECURITY ASSESSMENT", sortable: true },
+  { id: "risks", label: "RISKS", sortable: true },
+  { id: "status", label: "STATUS", sortable: true },
+  { id: "status_date", label: "STATUS DATE", sortable: true },
+  { id: "actions", label: "", sortable: false },
 ];
 
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -136,6 +146,24 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   );
   const [users, setUsers] = useState<User[]>([]);
 
+  // Initialize sorting state from localStorage or default to no sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(MODEL_INVENTORY_SORTING_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { key: "", direction: null };
+      }
+    }
+    return { key: "", direction: null };
+  });
+
+  // Save sorting state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(MODEL_INVENTORY_SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
   // Model risks dialog state
   const [showModelRisks, setShowModelRisks] = useState(false);
   const [selectedModel, setSelectedModel] = useState<{
@@ -175,6 +203,96 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   const getModelRiskCount = useCallback((modelId: number) => {
     return modelRisks.filter(risk => risk.model_id === modelId).length;
   }, [modelRisks]);
+
+  // Sorting handler
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === columnId) {
+        if (prevConfig.direction === "asc") {
+          return { key: columnId, direction: "desc" };
+        } else if (prevConfig.direction === "desc") {
+          return { key: "", direction: null };
+        }
+      }
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
+
+  // Status order for sorting
+  const getStatusOrder = useCallback((status: ModelInventoryStatus) => {
+    switch (status) {
+      case ModelInventoryStatus.APPROVED:
+        return 1;
+      case ModelInventoryStatus.PENDING:
+        return 2;
+      case ModelInventoryStatus.RESTRICTED:
+        return 3;
+      case ModelInventoryStatus.BLOCKED:
+        return 4;
+      default:
+        return 5;
+    }
+  }, []);
+
+  // Sort the data based on current sort configuration
+  const sortedData = useMemo(() => {
+    if (!data || !sortConfig.key || !sortConfig.direction) {
+      return data || [];
+    }
+
+    const sortableData = [...data];
+
+    return sortableData.sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case "provider":
+          aValue = (a.provider || "").toLowerCase();
+          bValue = (b.provider || "").toLowerCase();
+          break;
+        case "model":
+          aValue = (a.model || "").toLowerCase();
+          bValue = (b.model || "").toLowerCase();
+          break;
+        case "version":
+          aValue = (a.version || "").toLowerCase();
+          bValue = (b.version || "").toLowerCase();
+          break;
+        case "approver":
+          aValue = (userMap.get(a.approver?.toString()) || "").toLowerCase();
+          bValue = (userMap.get(b.approver?.toString()) || "").toLowerCase();
+          break;
+        case "security_assessment":
+          aValue = a.security_assessment ? 1 : 0;
+          bValue = b.security_assessment ? 1 : 0;
+          break;
+        case "risks":
+          aValue = getModelRiskCount(a.id || 0);
+          bValue = getModelRiskCount(b.id || 0);
+          break;
+        case "status":
+          aValue = getStatusOrder(a.status);
+          bValue = getStatusOrder(b.status);
+          break;
+        case "status_date":
+          aValue = a.status_date ? new Date(a.status_date).getTime() : 0;
+          bValue = b.status_date ? new Date(b.status_date).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortConfig, userMap, getModelRiskCount, getStatusOrder]);
 
   const openModelRisksDialog = useCallback(
     (modelId: number, modelName: string) => {
@@ -232,25 +350,63 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   backgroundColor:
                     singleTheme.tableStyles.primary.header.backgroundColors,
                 }),
+                ...(column.sortable && {
+                  cursor: "pointer",
+                  userSelect: "none",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 0, 0, 0.04)",
+                  },
+                }),
               }}
+              onClick={() => column.sortable && handleSort(column.id)}
             >
-              {column.label}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                {column.label}
+                {column.sortable && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      color:
+                        sortConfig.key === column.id
+                          ? theme.palette.text.primary
+                          : theme.palette.text.disabled,
+                    }}
+                  >
+                    {sortConfig.key === column.id ? (
+                      sortConfig.direction === "asc" ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )
+                    ) : (
+                      <ChevronsUpDown size={16} />
+                    )}
+                  </Box>
+                )}
+              </Box>
             </TableCell>
           ))}
         </TableRow>
       </TableHead>
     ),
-    []
+    [sortConfig, handleSort, theme]
   );
 
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {data?.length > 0 ? (
-          data
+        {sortedData?.length > 0 ? (
+          sortedData
             .slice(
               hidePagination ? 0 : page * rowsPerPage,
-              hidePagination ? Math.min(data.length, 100) : page * rowsPerPage + rowsPerPage
+              hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
             )
             .map((modelInventory) => (
               <TableRow
@@ -426,7 +582,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       </TableBody>
     ),
     [
-      data,
+      sortedData,
       page,
       rowsPerPage,
       isDeletingAllowed,

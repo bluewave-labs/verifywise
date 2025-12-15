@@ -42,7 +42,7 @@ const titleOfTableColumns = [
   { id: "vendor_name", label: "name", sortable: true },
   { id: "assignee", label: "assignee", sortable: true },
   { id: "review_status", label: "status", sortable: true },
-  { id: "risk", label: "risks", sortable: false },
+  { id: "risk", label: "risks", sortable: true },
   { id: "scorecard", label: "scorecard", sortable: true },
   { id: "review_date", label: "review date", sortable: true },
   { id: "actions", label: "", sortable: false },
@@ -269,6 +269,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
           bValue = b.risk_score ?? 0;
           break;
 
+        case "risk":
+          aValue = getVendorRiskCount(a.id!);
+          bValue = getVendorRiskCount(b.id!);
+          break;
+
         default:
           return 0;
       }
@@ -284,7 +289,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [vendors, sortConfig]);
+  }, [vendors, sortConfig, getVendorRiskCount]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);

@@ -36,7 +36,7 @@ import { createProjectFormStyles } from "./styles";
 import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
 import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
 import { getAutocompleteStyles } from "../../utils/inputStyles";
-import { CreateProjectFormUserModel } from "../../../domain/models/Common/user/user.model";
+import { CreateProjectFormUserModel } from "../../../domain/models/Common/User/user.model";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -244,7 +244,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUserModel[]) => {
+      (
+        _event: React.SyntheticEvent,
+        newValue: CreateProjectFormUserModel[]
+      ) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,

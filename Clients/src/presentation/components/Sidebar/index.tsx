@@ -580,8 +580,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             sx={{
               position: "absolute",
               right: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
+              top: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
               "& svg": {

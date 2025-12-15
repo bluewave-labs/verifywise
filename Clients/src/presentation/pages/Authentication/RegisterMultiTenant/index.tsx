@@ -9,13 +9,10 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import {
   validatePassword,
   validateForm,
-  validateOrganizationForm,
 } from "../../../../application/validations/formValidation";
 import type {
   FormValues,
   FormErrors,
-  OrganizationFormValues,
-  OrganizationFormErrors,
 } from "../../../../application/validations/formValidation";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -25,7 +22,7 @@ import {
   setAuthToken,
   setExpiration,
 } from "../../../../application/redux/auth/authSlice";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import useSignupUser from "../../../../application/hooks/useSignupUser";
 import useUsers from "../../../../application/hooks/useUsers";
 
 // Initial state for form values
@@ -38,30 +35,18 @@ const initialState: FormValues = {
   roleId: 1,
 };
 
-// Initial state for organization form values
-const initialOrganizationState: OrganizationFormValues = {
-  organizationName: "",
-};
+// Remove organization form - no longer needed
 
 const RegisterMultiTenant: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { users } = useUsers();
+  const { signup } = useSignupUser();
 
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-
-  // State for organization form values
-  const [organizationValues, setOrganizationValues] =
-    useState<OrganizationFormValues>(initialOrganizationState);
-  // State for organization form errors
-  const [organizationErrors, setOrganizationErrors] =
-    useState<OrganizationFormErrors>({});
-
-  // State to track which form to show
-  const [showOrganizationForm, setShowOrganizationForm] = useState(true);
 
   //state for overlay modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,33 +88,7 @@ const RegisterMultiTenant: React.FC = () => {
     }
   };
 
-  // Handle input field changes for organization form
-  const handleOrganizationChange =
-    (prop: keyof OrganizationFormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setOrganizationValues({
-        ...organizationValues,
-        [prop]: event.target.value,
-      });
-      setOrganizationErrors({ ...organizationErrors, [prop]: "" }); // Clear error for the specific field
-    };
-
-  // Handle organization form submission (Next button)
-  const handleOrganizationSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    const { isFormValid, errors } =
-      validateOrganizationForm(organizationValues);
-    if (!isFormValid) {
-      setOrganizationErrors(errors);
-      return;
-    }
-
-    // Store organization data and proceed to user registration form
-    setShowOrganizationForm(false);
-  };
+  // Remove organization form handlers - no longer needed
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -143,105 +102,83 @@ const RegisterMultiTenant: React.FC = () => {
       return;
     }
 
-    // Include organization data in the request
-    const requestBody = {
-      name: organizationValues.organizationName,
-      userName: values.name,
-      userSurname: values.surname,
-      userEmail: values.email,
-      userPassword: values.password,
-      userRoleId: values.roleId,
-    };
+    const { isSuccess, response } = await signup({
+      userData: {
+        name: values.name,
+        surname: values.surname,
+        email: values.email,
+        password: values.password,
+      },
+      setIsSubmitting,
+    });
 
-    const response = (await apiServices.post(
-      "organizations",
-      requestBody
-    )) as any;
     setValues(initialState);
     setErrors({});
-    setOrganizationValues(initialOrganizationState);
-    setOrganizationErrors({});
 
-    if (response.status === 201) {
+    if (isSuccess === 201) {
       logEngine({
         type: "info",
-        message: "Organization and account created successfully.",
+        message: "Account created successfully.",
         users,
       });
-      const token = response.data.data.token;
-      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
-      dispatch(setAuthToken(token));
-      dispatch(setExpiration(expirationDate));
+      
+      // Extract token from response if available
+      const token = response?.data?.data?.token;
+      if (token) {
+        const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+        dispatch(setAuthToken(token));
+        dispatch(setExpiration(expirationDate));
+        localStorage.setItem("token", token);
+      }
+      
+      setAlert({
+        variant: "success",
+        body: "Welcome to VerifyWise! Your account has been created successfully.",
+      });
+      
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
         localStorage.setItem("root_version", __APP_VERSION__);
         navigate("/");
       }, 3000);
-    } else if (response.status === 400) {
+    } else if (isSuccess === 409) {
       logEngine({
         type: "error",
-        message: "Bad request. Please check your input.",
+        message: "User already exists.",
         users,
       });
       setIsSubmitting(false);
-      setShowOrganizationForm(true);
       setAlert({
         variant: "error",
-        body: "Bad request. Please check your input.",
+        body: "An account with this email already exists. Please try logging in instead.",
       });
-      setTimeout(() => setAlert(null), 3000);
-    } else if (response.status === 409) {
-      logEngine({
-        type: "event",
-        message: "Organization or account already exists.",
-        users,
-      });
-      setIsSubmitting(false);
-      setShowOrganizationForm(true);
-      setAlert({
-        variant: "error",
-        body: "Organization or account already exists.",
-      });
-      setTimeout(() => setAlert(null), 3000);
-    } else if (response.status === 500) {
-      logEngine({
-        type: "error",
-        message: "Internal server error. Please try again later.",
-        users,
-      });
-      setIsSubmitting(false);
-      if (
-        (response.data as { message: string; error: string })?.error ===
-        "User with this email already exists"
-      ) {
-        setAlert({
-          variant: "error",
-          body: "User with this email already exists. Please use a different email.",
-        });
-        setTimeout(() => {
-          setAlert(null);
-          navigate("/login");
-        }, 3000);
-      } else {
-        setShowOrganizationForm(true);
-        setAlert({
-          variant: "error",
-          body: "Internal server error. Please try again later.",
-        });
-        setTimeout(() => setAlert(null), 3000);
-      }
+      setTimeout(() => {
+        setAlert(null);
+        navigate("/login");
+      }, 3000);
     } else {
       logEngine({
         type: "error",
-        message: "Unexpected response. Please try again.",
+        message: "Registration failed.",
         users,
       });
       setIsSubmitting(false);
-      setShowOrganizationForm(true);
+      
+      let errorMessage = "Registration failed. Please check your information and try again.";
+      if (response?.data) {
+        errorMessage = response.data;
+      } else if (response?.response?.data?.data) {
+        errorMessage = response.response.data.data;
+      } else if (response?.response?.data?.message) {
+        errorMessage = response.response.data.message;
+      } else if (response?.message) {
+        errorMessage = response.message;
+      }
+      
       setAlert({
         variant: "error",
-        body: "Unexpected response. Please try again.",
+        body: errorMessage,
       });
       setTimeout(() => setAlert(null), 3000);
     }
@@ -291,73 +228,7 @@ const RegisterMultiTenant: React.FC = () => {
         }}
       />
 
-      {/* Organization form */}
-      {showOrganizationForm && (
-        <form onSubmit={handleOrganizationSubmit}>
-          <Stack
-            className="org-form"
-            sx={{
-              width: 360,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-              margin: "auto",
-              mt: 40,
-              gap: theme.spacing(10),
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 40,
-              }}
-            >
-              Verify
-              <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-              Create your organization
-            </Typography>
-            <Typography
-              sx={{
-                color: singleTheme.buttons.primary.contained.backgroundColor,
-                fontSize: 14,
-                fontWeight: "bold",
-                cursor: "pointer",
-                textAlign: "center",
-              }}
-              onClick={() => navigate("/login")}
-            >
-              ← Back to Login
-            </Typography>
-            <Stack sx={{ gap: theme.spacing(7.5) }}>
-              <Field
-                label="Organization name"
-                isRequired
-                placeholder="Your organization name"
-                sx={fieldStyles}
-                value={organizationValues.organizationName}
-                onChange={handleOrganizationChange("organizationName")}
-                error={organizationErrors.organizationName}
-              />
-              <Button
-                type="submit"
-                disableRipple
-                variant="contained"
-                sx={{
-                  ...singleTheme.buttons.primary.contained,
-                  mt: theme.spacing(5),
-                }}
-              >
-                Next
-              </Button>
-            </Stack>
-          </Stack>
-        </form>
-      )}
-
       {/* User registration form */}
-      {!showOrganizationForm && (
         <form onSubmit={handleSubmit}>
           <Stack
             className="reg-admin-form"
@@ -491,7 +362,6 @@ const RegisterMultiTenant: React.FC = () => {
             </Stack>
           </Stack>
         </form>
-      )}
     </Stack>
   );
 };

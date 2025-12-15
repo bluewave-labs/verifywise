@@ -36,6 +36,32 @@ export async function createNewUser({
   }
 }
 
+export async function signupNewUser({
+  userData,
+}: {
+  userData: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+  };
+}): Promise<ApiResponse<User>> {
+  try {
+    const response = await apiServices.post(`/users/signup`, userData);
+    return response as ApiResponse<User>;
+  } catch (error: any) {
+    // Re-throw the error with the response data intact
+    if (error.response) {
+      throw {
+        ...error,
+        status: error.response.status,
+        data: error.response.data,
+      };
+    }
+    throw error;
+  }
+}
+
 export async function updateUserById({
   userId,
   userData,

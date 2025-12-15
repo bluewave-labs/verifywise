@@ -433,13 +433,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
-        pl={theme.spacing(8)}
-        pr={theme.spacing(8)}
+        px={theme.spacing(8)}
         sx={{ position: "relative" }}
       >
         <Stack
           direction="row"
           alignItems="center"
+          justifyContent={collapsed ? "center" : "flex-start"}
           gap={theme.spacing(2)}
           className="app-title"
         >
@@ -521,44 +521,46 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             </RouterLink>
           </Box>
-          <MuiLink
-            component={RouterLink}
-            to="/"
-            sx={{ textDecoration: "none" }}
-          >
-            <Typography
-              component="span"
-              mt={theme.spacing(1)}
-              sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px" }}
-              className="app-title"
+          {!collapsed && (
+            <MuiLink
+              component={RouterLink}
+              to="/"
+              sx={{ textDecoration: "none" }}
             >
-              Verify
-              <span
-                style={{
-                  color: "#0f604d",
-                }}
+              <Typography
+                component="span"
+                mt={theme.spacing(1)}
+                sx={{ opacity: 0.8, fontWeight: 500, fontSize: "13px" }}
+                className="app-title"
               >
-                Wise
-              </span>
-              <span
-                style={{
-                  fontSize: "8px",
-                  marginLeft: "4px",
-                  opacity: 0.6,
-                  fontWeight: 400,
-                }}
-              >
-                {__APP_VERSION__}
-              </span>
-            </Typography>
-          </MuiLink>
+                Verify
+                <span
+                  style={{
+                    color: "#0f604d",
+                  }}
+                >
+                  Wise
+                </span>
+                <span
+                  style={{
+                    fontSize: "8px",
+                    marginLeft: "4px",
+                    opacity: 0.6,
+                    fontWeight: 400,
+                  }}
+                >
+                  {__APP_VERSION__}
+                </span>
+              </Typography>
+            </MuiLink>
+          )}
           {/* Sidebar Toggle Button */}
           <IconButton
             disableRipple={
               theme.components?.MuiListItemButton?.defaultProps?.disableRipple
             }
             sx={{
-              ml: "auto",
+              ml: collapsed ? 0 : "auto",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
               "& svg": {

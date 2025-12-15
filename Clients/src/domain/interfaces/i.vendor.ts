@@ -1,4 +1,4 @@
-import { VendorModel } from "../models/Common/vendor/vendor.model";
+import { VendorModel } from "../models/Common/Vendor/vendor.model";
 
 export interface ExistingRisk {
   id?: number;
@@ -56,4 +56,3 @@ export interface VendorFormErrors {
   pastIssues?: string;
   regulatoryExposure?: string;
 }
-

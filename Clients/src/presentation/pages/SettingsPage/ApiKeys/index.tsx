@@ -26,7 +26,7 @@ import {
 } from "../../../../application/repository/tokens.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
+import { ApiTokenModel } from "../../../../domain/models/Common/ApiToken/apiToken.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -227,7 +227,7 @@ const ApiKeys = () => {
   }, []);
 
   return (
-    <Stack sx={{ mt: 3, maxWidth: 1000 }}>
+    <Stack sx={{ mt: 3 }}>
       {alert && (
         <Alert
           variant={alert.variant}

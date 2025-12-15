@@ -30,7 +30,7 @@
 
 import { Autocomplete, TextField, Typography, useTheme, Stack } from "@mui/material";
 import "./index.css";
-import { AutoCompleteFieldProps, AutoCompleteOption } from "../../../../domain/interfaces/iWidget";
+import { AutoCompleteFieldProps, AutoCompleteOption } from "../../../../domain/interfaces/i.widget";
 import { getAutocompleteStyles } from "../../../utils/inputStyles";
 
 const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({

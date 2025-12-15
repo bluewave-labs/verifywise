@@ -9,7 +9,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import ProjectForm from "../../../components/Forms/ProjectForm";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { deleteProject } from "../../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
@@ -421,7 +421,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
       )}
 
       {isDeleteModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm delete"
           body={
             <Typography fontSize={13}>
@@ -441,7 +441,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
       )}
 
       {isRemoveModalOpen && frameworkToRemove && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm framework removal"
           body={
             <Typography fontSize={13}>

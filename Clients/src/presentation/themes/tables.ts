@@ -35,7 +35,7 @@ export const tableStyles = {
     body: {
       backgroundColor: "white",
       row: {
-        textTransform: "capitalize",
+        textTransform: "none",
         borderBottom: "1px solid #d0d5dd",
         backgroundColor: "white",
         transition: "background-color 0.3s ease-in-out",

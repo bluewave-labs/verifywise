@@ -582,7 +582,7 @@ const RiskManagement = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
-      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"

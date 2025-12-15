@@ -32,7 +32,7 @@ interface AlertState {
 export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
-  const [_loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
@@ -99,11 +99,33 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
             const logs = logsData.logs || [];
 
+            // Map display names to camelCase keys for backwards compatibility
+            const displayNameToKey: Record<string, string> = {
+              "Answer Relevancy": "answerRelevancy",
+              "Faithfulness": "faithfulness",
+              "Contextual Relevancy": "contextualRelevancy",
+              "Bias": "bias",
+              "Toxicity": "toxicity",
+              "Hallucination": "hallucination",
+              "Knowledge Retention": "knowledgeRetention",
+              "Conversation Completeness": "conversationCompleteness",
+              "Conversation Relevancy": "conversationRelevancy",
+              "Role Adherence": "roleAdherence",
+              "Task Completion": "taskCompletion",
+              "Tool Correctness": "toolCorrectness",
+              "Answer Correctness": "answerCorrectness",
+              "Coherence": "coherence",
+              "Tonality": "tonality",
+              "Safety": "safety",
+            };
+
             // Calculate average metrics from logs
             const metricsSum: Record<string, { sum: number; count: number }> = {};
             logs.forEach((log: EvaluationLog) => {
               if (log.metadata?.metric_scores) {
-                Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+                Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
+                  // Normalize key: convert display names to camelCase
+                  const key = displayNameToKey[rawKey] || rawKey;
                   if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
                     const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
                     if (typeof scoreValue === "number") {
@@ -151,6 +173,52 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       onViewExperiment(row.id);
     } else {
       navigate(`/evals/${projectId}/experiment/${row.id}`);
+    }
+  };
+
+  const handleRerunExperiment = async (row: IEvaluationRow) => {
+    // Find the original experiment to get its config
+    const originalExp = experiments.find((e) => e.id === row.id);
+    if (!originalExp) {
+      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
+      setTimeout(() => setAlert(null), 4000);
+      return;
+    }
+
+    try {
+      const baseConfig = originalExp.config || {};
+      const nextName = `${originalExp.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
+
+      const payload = {
+        project_id: projectId,
+        name: nextName,
+        description: originalExp.description || "",
+        config: {
+          ...baseConfig,
+          project_id: projectId,
+        },
+      };
+
+      setAlert({ variant: "success", body: "Starting new evaluation run..." });
+      
+      const response = await experimentsService.createExperiment(payload);
+
+      if (response?.experiment?.id) {
+        // Add the new experiment to the list optimistically
+        handleStarted({
+          id: response.experiment.id,
+          config: payload.config as Record<string, unknown>,
+          status: "running",
+          created_at: new Date().toISOString(),
+        });
+        
+        setAlert({ variant: "success", body: `Rerun started: ${nextName}` });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to rerun experiment:", err);
+      setAlert({ variant: "error", body: "Failed to start rerun" });
+      setTimeout(() => setAlert(null), 5000);
     }
   };
 
@@ -268,21 +336,40 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     });
   }, [experiments, filterData, searchTerm]);
 
-  // Transform to table format (exact match to Bias & Fairness structure)
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "ACTION"];
+  // Transform to table format
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
-  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => ({
-    id: exp.id,
-    name: exp.name,
-    model: exp.config?.model?.name || exp.name || "Unknown",
-    judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
-    dataset: `${exp.sampleCount || 0} samples`,
-    status:
-      exp.status === "completed" ? "Completed" :
-      exp.status === "failed" ? "Failed" :
-      exp.status === "running" ? "Running" :
-      "Pending",
-  }));
+  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
+    // Get dataset name from config
+    const datasetName = exp.config?.dataset?.name || 
+                        exp.config?.dataset?.datasetId || 
+                        exp.config?.dataset?.categories?.[0] || 
+                        "Built-in";
+    
+    // Format the date
+    const createdDate = exp.created_at 
+      ? new Date(exp.created_at).toLocaleDateString("en-US", { 
+          month: "short", 
+          day: "numeric", 
+          year: "numeric" 
+        })
+      : "-";
+
+    return {
+      id: exp.id,
+      name: exp.name,
+      model: exp.config?.model?.name || "Unknown",
+      judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
+      dataset: datasetName,
+      prompts: exp.sampleCount || 0,
+      date: createdDate,
+      status:
+        exp.status === "completed" ? "Completed" :
+        exp.status === "failed" ? "Failed" :
+        exp.status === "running" ? "Running" :
+        "Pending",
+    };
+  });
 
   return (
     <Box>
@@ -383,6 +470,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
           page={currentPage}
           setCurrentPagingation={setCurrentPage}
           onShowDetails={handleViewExperiment}
+          onRerun={handleRerunExperiment}
         />
       </Box>
 

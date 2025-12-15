@@ -335,6 +335,8 @@ export async function saveControls(
             implementation_details: subcontrol.implementation_details,
             evidence_description: subcontrol.evidence_description,
             feedback_description: subcontrol.feedback_description,
+            risksDelete: subcontrol.risksDelete,
+            risksMitigated: subcontrol.risksMitigated,
           },
           evidenceUploadedFiles,
           feedbackUploadedFiles,

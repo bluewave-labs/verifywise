@@ -11,7 +11,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import {
   IGenerateReportProps,
   IInputProps,
-} from "../../../../domain/interfaces/iWidget";
+} from "../../../../domain/interfaces/i.widget";
 
 const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   onClose,

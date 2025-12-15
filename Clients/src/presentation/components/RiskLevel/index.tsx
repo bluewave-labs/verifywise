@@ -7,7 +7,7 @@ import {
 } from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
-import { IRiskLevelProps } from "../../../domain/interfaces/iRiskForm";
+import { IRiskLevelProps } from "../../../domain/interfaces/i.riskForm";
 import Chip from "../Chip";
 
 /**

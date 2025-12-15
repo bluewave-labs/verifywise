@@ -15,7 +15,7 @@ import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../../domain/interfaces/i.alert";
 import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDrawerDialog";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";

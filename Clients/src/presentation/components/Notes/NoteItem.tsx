@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import DualButtonModal from "../Dialogs/DualButtonModal";
+import ConfirmationModal from "../Dialogs/ConfirmationModal";
 
 dayjs.extend(relativeTime);
 
@@ -270,7 +270,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm delete"
           body={
             <Typography

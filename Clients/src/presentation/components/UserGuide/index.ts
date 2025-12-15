@@ -63,4 +63,10 @@ export type { ArticleContent, ContentBlock, TocItem } from '@user-guide-content/
 export { useUserGuideSidebar } from './useUserGuideSidebar';
 
 // Context for sharing sidebar state across components
-export { UserGuideSidebarProvider, useUserGuideSidebarContext } from './UserGuideSidebarContext';
+export {
+  UserGuideSidebarProvider,
+  useUserGuideSidebarContext,
+  TAB_BAR_WIDTH,
+  DEFAULT_CONTENT_WIDTH,
+  MIN_GAP,
+} from './UserGuideSidebarContext';

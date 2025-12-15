@@ -10,7 +10,7 @@ import { Stack, Box, Typography } from "@mui/material";
 const ReportTable = lazy(() => import("../../../components/Table/ReportTable"));
 import { TITLE_OF_COLUMNS } from "./constants";
 import useGeneratedReports from "../../../../application/hooks/useGeneratedReports";
-import { GeneratedReports } from "../../../../domain/interfaces/iReports";
+import { GeneratedReports } from "../../../../domain/interfaces/i.reports";
 import { styles, reportTablePlaceholder } from "./styles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";

@@ -15,15 +15,14 @@ import {
 } from "@mui/material";
 import { deepEvalOrgsService, type OrgMember } from "../../../infrastructure/api/deepEvalOrgsService";
 import { getAllUsers } from "../../../application/repository/user.repository";
-import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import IconButtonComponent from "../../components/IconButton";
 import singleTheme from "../../themes/v1SingleTheme";
-import { Beaker, CirclePlus } from "lucide-react";
+import { Beaker } from "lucide-react";
 import Alert from "../../components/Alert";
 import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 
 interface Props {
   onSelected: () => void;
@@ -58,9 +57,6 @@ export default function OrganizationSelector({ onSelected }: Props) {
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [newOrg, setNewOrg] = useState<{ name: string; selectedUserIds: number[] }>({ name: "", selectedUserIds: [] });
   const [editOpen, setEditOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [editName, setEditName] = useState("");
@@ -212,21 +208,11 @@ export default function OrganizationSelector({ onSelected }: Props) {
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Organizations
-          </Typography>
-          <CustomizableButton
-            variant="contained"
-            onClick={() => setCreateOpen(true)}
-            startIcon={<CirclePlus size={18} />}
-            sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
-          >
-            Create organization
-          </CustomizableButton>
-        </Stack>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Organization
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Organize your evaluations under an organization. Select an existing organization or create a new one to get started.
+          Your organization manages all projects and evaluations. You can edit the organization name below.
         </Typography>
       </Stack>
 
@@ -250,19 +236,18 @@ export default function OrganizationSelector({ onSelected }: Props) {
             <Beaker size={64} color="#9CA3AF" strokeWidth={1.5} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: "18px", color: "#111827" }}>
-            No organizations yet
+            Setting up your organization...
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4, fontSize: "14px", maxWidth: 480, lineHeight: 1.6, color: "#6B7280" }}>
-            Create your first organization to start managing projects and experiments.
+            A default organization is being created. Please wait a moment and refresh the page.
           </Typography>
-          <CustomizableButton
-            variant="contained"
-            onClick={() => setCreateOpen(true)}
-            startIcon={<CirclePlus size={18} />}
-            sx={{ textTransform: "none", backgroundColor: "#13715B", "&:hover": { backgroundColor: "#0f5a47" } }}
+          <Button
+            variant="outlined"
+            onClick={() => window.location.reload()}
+            sx={{ textTransform: "none" }}
           >
-            Create your first organization
-          </CustomizableButton>
+            Refresh page
+          </Button>
         </Box>
       ) : (
         <TableContainer>
@@ -379,53 +364,6 @@ export default function OrganizationSelector({ onSelected }: Props) {
         </TableContainer>
       )}
 
-      {/* Create Organization Modal */}
-      <StandardModal
-        isOpen={createOpen}
-        onClose={() => {
-          setCreateOpen(false);
-          setNewOrg({ name: "", selectedUserIds: [] });
-        }}
-        title="Create organization"
-        description="Name your organization and select members to begin organizing projects and experiments."
-        onSubmit={async () => {
-          if (!newOrg.name.trim()) return;
-          setCreating(true);
-          try {
-            const { org } = await deepEvalOrgsService.createOrg(newOrg.name.trim(), newOrg.selectedUserIds);
-            // Persist as current org and close modal
-            await deepEvalOrgsService.setCurrentOrg(org.id);
-            setCreateOpen(false);
-            setNewOrg({ name: "", selectedUserIds: [] });
-            onSelected();
-          } finally {
-            setCreating(false);
-          }
-        }}
-        submitButtonText="Create organization"
-        isSubmitting={creating || !newOrg.name.trim()}
-      >
-        <Stack spacing={3}>
-          <Field
-            label="Organization name"
-            value={newOrg.name}
-            onChange={(e) => setNewOrg({ ...newOrg, name: e.target.value })}
-            placeholder="e.g., VerifyEvals"
-            isRequired
-          />
-          <CustomizableMultiSelect
-            label="Members"
-            items={users.map(u => ({ _id: u.id, name: u.name, surname: u.surname, email: u.email }))}
-            value={newOrg.selectedUserIds}
-            onChange={(event: SelectChangeEvent<string | number | (string | number)[]>) => {
-              const selected = event.target.value as number[];
-              setNewOrg({ ...newOrg, selectedUserIds: selected });
-            }}
-            placeholder="Select members..."
-          />
-        </Stack>
-      </StandardModal>
-
       {/* Edit Organization Modal */}
       <StandardModal
         isOpen={editOpen}
@@ -463,7 +401,7 @@ export default function OrganizationSelector({ onSelected }: Props) {
       </StandardModal>
 
       {/* Switch Organization Confirmation Modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={switchModalOpen}
         title="Switch organization?"
         TitleFontSize={16}

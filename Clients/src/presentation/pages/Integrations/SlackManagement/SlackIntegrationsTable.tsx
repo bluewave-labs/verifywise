@@ -256,12 +256,6 @@ const SlackIntegrationsTable = ({
                   key={column.id}
                   sx={{
                     ...singleTheme.tableStyles.primary.header.cell,
-                    ...(column.id === "action" && {
-                      position: "sticky",
-                      right: 0,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }),
                   }}
                 >
                   {column.label}
@@ -311,8 +305,6 @@ const SlackIntegrationsTable = ({
                       sx={{
                         ...singleTheme.tableStyles.primary.body.cell,
                         textTransform: "none",
-                        position: "sticky",
-                        right: 0,
                       }}
                     >
                       <IconButton

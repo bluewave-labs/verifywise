@@ -237,4 +237,5 @@ export interface ITableWithPlaceholderProps {
   onDelete: (vendorId?: number) => void;
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
+  vendorRisks?: VendorRisk[];
 }

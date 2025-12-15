@@ -144,6 +144,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   onDelete,
   onEdit,
   hidePagination = false,
+  vendorRisks = [],
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -188,6 +189,11 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+
+  // Get risk count for a specific vendor
+  const getVendorRiskCount = useCallback((vendorId: number) => {
+    return vendorRisks.filter(risk => risk.vendor_id === vendorId).length;
+  }, [vendorRisks]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -391,7 +397,12 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     }}
                     showIcon={false}
                   >
-                    View risks
+                    {(() => {
+                      const riskCount = getVendorRiskCount(row.id!);
+                      return riskCount > 0
+                        ? `View risks (${riskCount})`
+                        : "View risks";
+                    })()}
                   </VWLink>
                 </TableCell>
                 <TableCell
@@ -480,6 +491,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       isDeletingAllowed,
       theme,
       sortConfig.key,
+      getVendorRiskCount,
+      hidePagination,
     ]
   );
 

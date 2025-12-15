@@ -1118,6 +1118,7 @@ const Vendors = () => {
                     onDelete={handleDeleteVendor}
                     onEdit={handleEditVendor}
                     hidePagination={options?.hidePagination}
+                    vendorRisks={vendorRisks}
                   />
                 )}
               />

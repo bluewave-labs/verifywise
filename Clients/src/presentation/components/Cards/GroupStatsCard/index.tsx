@@ -2,7 +2,7 @@ import { Stack, Typography } from "@mui/material";
 import { GroupStatsCardFrame, GroupStatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import { useMemo } from "react";
-import { GroupStatsCardProps } from "../../../../domain/interfaces/iGroupStatsCard";
+import { GroupStatsCardProps } from "../../../../domain/interfaces/i.groupStatsCard";
 
 const GroupStatsCard = ({ title, completed, total }: GroupStatsCardProps) => {
   const stats = useMemo(() => {

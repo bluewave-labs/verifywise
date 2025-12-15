@@ -20,8 +20,8 @@ import { Typography } from "@mui/material";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-import { IconButtonProps } from "../../../domain/interfaces/iWidget";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { IconButtonProps } from "../../../domain/interfaces/i.widget";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,

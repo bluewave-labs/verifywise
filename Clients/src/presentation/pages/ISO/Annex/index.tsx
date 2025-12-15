@@ -15,7 +15,7 @@ import { GetAnnexCategoriesById } from "../../../../application/repository/annex
 import { AnnexCategoryStructISO } from "../../../../domain/types/AnnexCategoryStructISO";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";

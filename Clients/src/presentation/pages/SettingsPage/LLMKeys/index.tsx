@@ -15,7 +15,7 @@ import {
   Edit as EditIcon,
 } from "lucide-react";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -393,7 +393,7 @@ const LLMKeys = () => {
 
       {/* Create Key Modal */}
       {(isCreateModalOpen || isEditModalOpen) && (
-        <DualButtonModal
+        <ConfirmationModal
           title={isCreateModalOpen ? "Create New API Key" : "Edit API Key"}
           body={
             <Stack spacing={3}>
@@ -452,13 +452,13 @@ const LLMKeys = () => {
 
       {/* Delete Key Modal */}
       {isDeleteModalOpen && keyToDelete && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Delete API Key"
           body={
             <Typography fontSize={13}>
               Are you sure you want to delete the API key "{keyToDelete.name}"?
-              This action cannot be undone and any applications using this key
-              will lose access.
+              This action cannot be undone and any advisor using this key will
+              lose access.
             </Typography>
           }
           cancelText="Cancel"

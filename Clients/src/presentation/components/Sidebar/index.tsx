@@ -455,7 +455,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent={collapsed ? "center" : "flex-start"}
+          justifyContent={delayedCollapsed ? "center" : "flex-start"}
           gap={theme.spacing(2)}
           className="app-title"
         >
@@ -537,7 +537,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             </RouterLink>
           </Box>
-          {!collapsed && (
+          {!delayedCollapsed && (
             <MuiLink
               component={RouterLink}
               to="/"
@@ -576,7 +576,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               theme.components?.MuiListItemButton?.defaultProps?.disableRipple
             }
             sx={{
-              ml: collapsed ? 0 : "auto",
+              ml: delayedCollapsed ? 0 : "auto",
               p: theme.spacing(2),
               borderRadius: theme.shape.borderRadius,
               "& svg": {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
+import { AssessmentProgress } from "../../domain/interfaces/i.assessment";
 import { getAssessmentProgress } from "../repository/assesment.repository";
 
 /**

@@ -21,7 +21,7 @@ import { updateEUAIActQuestionStatus } from "../../../../application/repository/
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 
 interface AccordionViewProps {
   subtopics: Array<Subtopic & { questions?: Question[] }>;

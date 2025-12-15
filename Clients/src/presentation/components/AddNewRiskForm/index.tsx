@@ -30,8 +30,8 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
-import { ApiResponse } from "../../../domain/interfaces/iResponse";
+import { AddNewRiskFormProps } from "../../../domain/interfaces/i.riskForm";
+import { ApiResponse } from "../../../domain/interfaces/i.response";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { apiServices } from "../../../infrastructure/api/networkServices";

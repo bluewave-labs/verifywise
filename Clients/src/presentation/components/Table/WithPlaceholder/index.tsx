@@ -489,7 +489,6 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       onEdit,
       onDelete,
       isDeletingAllowed,
-      theme,
       sortConfig.key,
       getVendorRiskCount,
       hidePagination,

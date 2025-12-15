@@ -401,6 +401,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       isDeletingAllowed,
       onEdit,
       onDelete,
+      onCheckModelHasRisks,
       deletingId,
       userMap,
       getModelRiskCount,

@@ -18,7 +18,7 @@ export const MOCK_REQUESTS: ApprovalRequest[] = [
         id: 2,
         request_name: "Medical AI platform",
         workflow_name: "Use case intake v1",
-        status: "Active",
+        status: 'Approved',
         date_requested: new Date("2025-11-10"),
     },
 ];

@@ -9,7 +9,7 @@ import {
     TableCell,
     Box,
     useTheme,
-    Stack,
+    Stack
 } from "@mui/material";
 
 import {
@@ -46,6 +46,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { ApprovalRequest } from "./mockRequestsData";
 import TablePaginationActions from "../../components/TablePagination";
 import { REQUESTS_TABLE_COLUMNS } from "./requestsArray";
+import Chip from "../../components/Chip";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -268,7 +269,9 @@ const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
                             <TableCell
                                 sx={bodyCellStepsStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("status")))}
                             >
-                                {request.status}
+
+                                <Chip label={request.status} 
+                                />
                             </TableCell>
                             <TableCell
                                 sx={bodyCellDateStyle(cellStyle, !!(sortConfig.key && sortConfig.key.toLowerCase().includes("date") && sortConfig.key.toLowerCase().includes("requested")))}
@@ -279,7 +282,7 @@ const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
                                         .format("YYYY-MM-DD HH:mm")
                                     : "-"}
                             </TableCell>
-                     
+
                             <TableCell
                                 sx={bodyCellActionsStyle(cellStyle)}
                             >
@@ -288,9 +291,9 @@ const ApprovalRequestsTable: React.FC<ApprovalRequestsTableProps> = ({
                                         id={request.id}
                                         type="workflow"
                                         onEdit={() => onOpenRequestDetails(request.id.toString())}
-                                        onMouseEvent={() => { } }
-                                        canDelete={false} 
-                                        onDelete={() => { }}                                                                        />
+                                        onMouseEvent={() => { }}
+                                        canDelete={false}
+                                        onDelete={() => { }} />
                                 </Stack>
                             </TableCell>
                         </TableRow>

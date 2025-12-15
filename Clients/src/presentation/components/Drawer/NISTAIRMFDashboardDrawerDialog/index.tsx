@@ -24,7 +24,7 @@ import {
   NISTAIRMFDrawerProps,
   NISTAIRMFStatus,
 } from "../../../pages/Framework/NIST-AI-RMF/types";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { updateEntityById, getEntityById } from "../../../../application/repository/entity.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";

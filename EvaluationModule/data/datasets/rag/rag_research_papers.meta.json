@@ -1,0 +1,4 @@
+{
+  "description": "Tests RAG systems on academic research papers, evaluating citation accuracy, context understanding, and technical information retrieval.",
+  "tags": ["RAG", "academic", "research", "technical"]
+}

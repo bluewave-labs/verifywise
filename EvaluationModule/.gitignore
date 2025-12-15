@@ -1,0 +1,5 @@
+*.zip
+/artifacts
+/.venv/
+/data/uploads/
+*.ipynb

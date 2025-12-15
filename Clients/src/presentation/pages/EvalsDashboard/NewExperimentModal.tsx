@@ -3,23 +3,12 @@ import {
   Box,
   Typography,
   Stack,
-  Chip,
   Card,
   CardContent,
   Grid,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tooltip,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
   Button,
-  Select,
-  MenuItem,
 } from "@mui/material";
-import { Check, ChevronDown, Trash2 } from "lucide-react";
+import { Check, Database, ExternalLink, Upload } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
@@ -78,66 +67,11 @@ export default function NewExperimentModal({
   }
   const [datasetPrompts, setDatasetPrompts] = useState<DatasetPrompt[]>([]);
   const [datasetLoaded, setDatasetLoaded] = useState(false);
-  const [expandedPrompts, setExpandedPrompts] = useState<number[]>([]); // Track which prompts are expanded
-  const [customDatasetFile, setCustomDatasetFile] = useState<File | null>(null);
-  const [customDatasetPath, setCustomDatasetPath] = useState<string>("");
+  // User's saved datasets (for "My datasets" option)
+  const [userDatasets, setUserDatasets] = useState<Array<{ id: string; name: string; path: string }>>([]);
+  const [selectedUserDataset, setSelectedUserDataset] = useState<{ id: string; name: string; path: string } | null>(null);
+  const [loadingUserDatasets, setLoadingUserDatasets] = useState(false);
   const [uploadingDataset, setUploadingDataset] = useState(false);
-  // No local cache needed; we fetch on demand when picking defaults
-  // Dataset mode for chatbot: single-turn vs conversational (multi-turn).
-  // Backend auto-detects shape; this toggle guides preset selection and UX copy.
-  const [datasetMode, setDatasetMode] = useState<"single" | "conversational">("single");
-
-  // Helper: auto-pick a default preset for the current taskType and datasetMode
-  const pickDefaultPresetForMode = async (mode: "single" | "conversational") => {
-    try {
-      const list = await deepEvalDatasetsService.list();
-      let opts = list[config.taskType] || [];
-      if (config.taskType === "chatbot") {
-        const isConv = (s: string) => /conversation|conversational|multi/.test(s);
-        const isSingle = (s: string) => /singleturn|single|st_/.test(s);
-        const filtered = opts.filter(ds => {
-          const s = (ds.name + ds.path).toLowerCase();
-          return mode === "conversational" ? isConv(s) : isSingle(s);
-        });
-        if (filtered.length > 0) opts = filtered;
-      }
-      if (opts.length > 0) {
-        setSelectedPresetPath(opts[0].path);
-        try {
-          const { prompts } = await deepEvalDatasetsService.read(opts[0].path);
-          let filtered = prompts as Array<{ category?: string }>;
-          if (config.dataset.categories && config.dataset.categories.length > 0) {
-            filtered = filtered.filter((p) => !!p && config.dataset.categories.includes(p.category || ""));
-          }
-          if (config.dataset.limit && config.dataset.limit > 0) {
-            filtered = filtered.slice(0, config.dataset.limit);
-          }
-          setDatasetPrompts(filtered as DatasetPrompt[]);
-          setDatasetLoaded(true);
-        } catch {
-          /* ignore read errors */
-        }
-      } else {
-        // Fallback to known example presets if filtering didn’t find any
-        if (config.taskType === "chatbot") {
-          const fallbackPath =
-            mode === "conversational"
-              ? "chatbot/chatbot_conversations_example.json"
-              : "chatbot/chatbot_singleturn_example.json";
-          try {
-            setSelectedPresetPath(fallbackPath);
-            const { prompts } = await deepEvalDatasetsService.read(fallbackPath);
-            setDatasetPrompts((prompts || []) as DatasetPrompt[]);
-            setDatasetLoaded(true);
-          } catch {
-            /* ignore */
-          }
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  };
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
 
   // Configuration state
@@ -167,14 +101,21 @@ export default function NewExperimentModal({
       limit: 10,
       benchmark: "",
     },
-    // Step 4: Metrics
+    // Step 4: Metrics - defaults for chatbot (no RAG context metrics)
     metrics: {
+      // General metrics (all use cases)
       answerRelevancy: true,
       bias: true,
       toxicity: true,
-      faithfulness: true,
-      hallucination: true,
-      contextualRelevancy: true,
+      // RAG-specific (require retrieval_context) - disabled for chatbot
+      faithfulness: false,
+      hallucination: false,
+      contextualRelevancy: false,
+      // Chatbot-specific
+      knowledgeRetention: true,
+      conversationRelevancy: true,
+      conversationCompleteness: true,
+      roleAdherence: true,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -183,6 +124,10 @@ export default function NewExperimentModal({
       faithfulness: 0.5,
       hallucination: 0.5,
       contextualRelevancy: 0.5,
+      knowledgeRetention: 0.5,
+      conversationRelevancy: 0.5,
+      conversationCompleteness: 0.5,
+      roleAdherence: 0.5,
     },
   });
 
@@ -190,28 +135,26 @@ export default function NewExperimentModal({
     setActiveStep((prev) => prev + 1);
   };
 
-  // Auto-select recommended mode + default preset when entering dataset step
+  // Load user datasets when entering the dataset step
   useEffect(() => {
     if (activeStep !== 1) return;
-    if (!config.dataset.useBuiltin) return;
-    if (config.taskType !== "chatbot") return;
-    const recommended: "single" | "conversational" = "conversational";
-    // If user hasn't interacted yet, align selection and preview.
-    if (datasetMode !== recommended) {
-      setDatasetMode(recommended);
-    }
-    void pickDefaultPresetForMode(recommended);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStep, config.taskType, config.dataset.useBuiltin]);
-
-  // When dataset mode changes (user click), refresh preview from corresponding preset
-  useEffect(() => {
-    if (activeStep !== 1) return;
-    if (!config.dataset.useBuiltin) return;
-    if (config.taskType !== "chatbot") return;
-    void pickDefaultPresetForMode(datasetMode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datasetMode]);
+    // Load user datasets
+    (async () => {
+      try {
+        setLoadingUserDatasets(true);
+        const res = await deepEvalDatasetsService.listMy();
+        const datasets = (res.datasets || []).map((d) => ({
+          id: String(d.id),
+          name: d.name,
+          path: d.path,
+        }));
+        setUserDatasets(datasets);
+      } catch { /* ignore */ }
+      finally {
+        setLoadingUserDatasets(false);
+      }
+    })();
+  }, [activeStep]);
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
   };
@@ -244,10 +187,6 @@ export default function NewExperimentModal({
       console.error("Failed to load dataset:", err);
     }
   }, [config.dataset.categories, config.dataset.limit, config.taskType, selectedPresetPath]);
-
-  const handleRemovePrompt = (id: string) => {
-    setDatasetPrompts((prev) => prev.filter((p) => p.id !== id));
-  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -341,7 +280,8 @@ export default function NewExperimentModal({
     setActiveStep(0);
     setDatasetPrompts([]);
     setDatasetLoaded(false);
-    setExpandedPrompts([]);
+    setSelectedUserDataset(null);
+    setSelectedPresetPath("");
     setConfig({
       taskType: "chatbot",
       model: {
@@ -368,9 +308,13 @@ export default function NewExperimentModal({
         answerRelevancy: true,
         bias: true,
         toxicity: true,
-        faithfulness: true,
-        hallucination: true,
-        contextualRelevancy: true,
+        faithfulness: false,
+        hallucination: false,
+        contextualRelevancy: false,
+        knowledgeRetention: true,
+        conversationRelevancy: true,
+        conversationCompleteness: true,
+        roleAdherence: true,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -379,6 +323,10 @@ export default function NewExperimentModal({
         faithfulness: 0.5,
         hallucination: 0.5,
         contextualRelevancy: 0.5,
+        knowledgeRetention: 0.5,
+        conversationRelevancy: 0.5,
+        conversationCompleteness: 0.5,
+        roleAdherence: 0.5,
       },
     });
   };
@@ -605,503 +553,220 @@ export default function NewExperimentModal({
       case 1:
         // Step 2: Dataset
         return (
-          <Stack spacing={3}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Configure the dataset to use for evaluation.
+          <Stack spacing={2}>
+            {/* Description */}
+            <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
+              Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
               </Typography>
-            </Box>
 
-            {/* Dataset form (mode) - rendered first */}
-            {config.taskType === "chatbot" && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1 }}>
-                  Dataset form
-                </Typography>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                  <Chip
-                    label={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                        <span>Single‑turn</span>
-                        {("single" === (config.taskType === "chatbot" ? "conversational" : "single") ? null : null)}
-                      </Box>
-                    }
-                    color={datasetMode === "single" ? "success" : "default"}
-                    onClick={async () => {
-                      setDatasetMode("single");
-                      if (config.dataset.useBuiltin) await pickDefaultPresetForMode("single");
-                    }}
-                    sx={{ height: 26, fontSize: "12px", cursor: "pointer" }}
-                  />
-                  <Chip
-                    label={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                        <span>Conversational (multi‑turn)</span>
-                        {config.taskType === "chatbot" && (
-                          <Chip label="Recommended" size="small" color="primary" sx={{ height: 16, fontSize: "10px" }} />
-                        )}
-                      </Box>
-                    }
-                    color={datasetMode === "conversational" ? "success" : "default"}
-                    onClick={async () => {
-                      setDatasetMode("conversational");
-                      if (config.dataset.useBuiltin) await pickDefaultPresetForMode("conversational");
-                    }}
-                    sx={{ height: 26, fontSize: "12px", cursor: "pointer" }}
-                  />
-                </Stack>
-                <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280" }}>
-                  Single‑turn evaluates isolated prompts. Conversational evaluates assistant turns within a chat history (multi‑turn).
-                </Typography>
-              </Box>
-            )}
-
-            {/* Dataset Source Selection - Radio Group */}
-            <FormControl component="fieldset">
-              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                Dataset Source
-              </Typography>
-              <RadioGroup
-                value={
-                  config.dataset.useBuiltin
-                    ? "builtin"
-                    : customDatasetPath
-                    ? "upload"
-                    : "my"
-                }
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "builtin") {
-                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
-                    void handleLoadBuiltinDataset();
-                  } else if (val === "my") {
-                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
-                    // Auto-select last uploaded from DB
-                    (async () => {
-                      try {
-                        const res = await deepEvalDatasetsService.listMy();
-                        const last = (res.datasets || [])[0];
-                        if (last) {
-                          setCustomDatasetPath(last.path);
-                          const { prompts } = await deepEvalDatasetsService.read(last.path);
-                          setDatasetPrompts((prompts || []) as DatasetPrompt[]);
-                          setDatasetLoaded(true);
-                        }
-                      } catch { /* ignore */ }
-                    })();
-                  } else {
-                    // upload now - set to custom flow (no path yet)
-                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
-                    setCustomDatasetFile(null);
-                    setCustomDatasetPath("");
-                  }
+            {/* Upload Section - Compact drop zone */}
+            <Box
+              component="label"
+                  sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                    p: 1.5,
+                border: "1px dashed",
+                borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
+                borderRadius: "8px",
+                backgroundColor: "#FAFAFA",
+                cursor: uploadingDataset ? "wait" : "pointer",
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#13715B", backgroundColor: "#F0FDF4" },
+              }}
+            >
+              <Box
+                  sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "6px",
+                  backgroundColor: "#13715B",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                <FormControlLabel
-                  value="my"
-                  control={<Radio size="small" />}
-                  label={
-                    <Box>
-                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
-                        My datasets
+                <Upload size={16} color="#FFFFFF" />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                  {uploadingDataset ? "Uploading..." : "Upload dataset"}
                       </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
-                        Use one of your uploaded datasets (stored in Datasets tab)
+                <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                  JSON file with prompts and expected outputs
                       </Typography>
                     </Box>
-                  }
-                  sx={{
-                    border: "1px solid #E0E0E0",
-                    borderRadius: "8px",
-                    p: 1.5,
-                    m: 0,
-                    mb: 1,
-                    bgcolor: !config.dataset.useBuiltin && customDatasetPath ? "#F0F9FF" : "#FFFFFF",
-                    borderColor: !config.dataset.useBuiltin && customDatasetPath ? "#3B82F6" : "#E0E0E0",
-                    "&:hover": {
-                      bgcolor: "#F9FAFB",
-                    },
-                  }}
-                />
-                <FormControlLabel
-                  value="builtin"
-                  control={<Radio size="small" />}
-                  label={
-                    <Box>
-                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
-                        Built‑in dataset
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
-                        Curated presets maintained by VerifyWise
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{
-                    border: "1px solid #E0E0E0",
-                    borderRadius: "8px",
-                    p: 1.5,
-                    m: 0,
-                    mb: 1,
-                    bgcolor: config.dataset.useBuiltin ? "#F0F9FF" : "#FFFFFF",
-                    borderColor: config.dataset.useBuiltin ? "#3B82F6" : "#E0E0E0",
-                  }}
-                />
-                <FormControlLabel
-                  value="upload"
-                  control={<Radio size="small" />}
-                  label={
-                    <Box>
-                      <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#424242" }}>
-                        Upload now
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 0.5 }}>
-                        Upload a JSON dataset file and use it immediately
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{
-                    border: "1px solid #E0E0E0",
-                    borderRadius: "8px",
-                    p: 1.5,
-                    m: 0,
-                    bgcolor: !config.dataset.useBuiltin ? "#F0FDF4" : "#FFFFFF",
-                    borderColor: !config.dataset.useBuiltin ? "#10B981" : "#E0E0E0",
-                  }}
-                />
-              </RadioGroup>
-            </FormControl>
-
-            {/* Upload custom dataset controls */}
-            {!config.dataset.useBuiltin && !config.dataset.benchmark && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, ml: 4 }}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  size="small"
-                  sx={{ textTransform: "none" }}
-                >
-                  {customDatasetFile ? "Choose another file" : "Choose JSON file"}
                   <input
                     type="file"
                     accept="application/json"
                     hidden
+                disabled={uploadingDataset}
                     onChange={async (e) => {
-                      const file = e.target.files?.[0] || null;
-                      setCustomDatasetFile(file);
-                      setCustomDatasetPath("");
-                      if (file) {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
                         try {
                           setUploadingDataset(true);
                           const resp = await deepEvalDatasetsService.uploadDataset(file);
-                          setCustomDatasetPath(resp.path);
-                          // Load prompts from uploaded dataset for preview
+                    const newDataset = { id: resp.path, name: file.name.replace(/\.json$/i, ""), path: resp.path };
+                    setUserDatasets((prev) => [newDataset, ...prev]);
+                    setSelectedUserDataset(newDataset);
+                    setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
                           try {
                             const { prompts } = await deepEvalDatasetsService.read(resp.path);
                             setDatasetPrompts((prompts || []) as DatasetPrompt[]);
                             setDatasetLoaded(true);
                           } catch {
-                            // ignore preview load errors
-                          }
-                          setAlert({
-                            show: true,
-                            variant: "success",
-                            title: "Dataset uploaded",
-                            body: `${resp.filename} uploaded (${resp.size} bytes)`,
-                          });
+                      setDatasetPrompts([]);
+                    }
+                    setAlert({ show: true, variant: "success", title: "Uploaded!", body: `${file.name} is ready to use` });
                         } catch (err) {
-                          setAlert({
-                            show: true,
-                            variant: "error",
-                            title: "Upload failed",
-                            body: err instanceof Error ? err.message : "Failed to upload dataset",
-                          });
+                    setAlert({ show: true, variant: "error", title: "Upload failed", body: err instanceof Error ? err.message : "Failed to upload" });
                         } finally {
                           setUploadingDataset(false);
-                        }
+                    e.target.value = "";
                       }
                     }}
                   />
-                </Button>
-                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                  {uploadingDataset
-                    ? "Uploading..."
-                    : customDatasetPath
-                      ? `Ready: ${customDatasetFile?.name}`
-                      : customDatasetFile
-                        ? `Selected: ${customDatasetFile.name}`
-                        : "No file selected"}
-                </Typography>
               </Box>
-            )}
 
-            {/* Benchmark selector */}
-            {config.dataset.benchmark && (
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <Typography sx={{ fontSize: "13px", color: "#374151" }}>Benchmark</Typography>
-                <Select
+            {/* My Datasets Section */}
+            {loadingUserDatasets ? (
+              <Box sx={{ py: 2, textAlign: "center" }}>
+                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your datasets...</Typography>
+              </Box>
+            ) : userDatasets.length > 0 ? (
+                <Box>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    Your Datasets
+                  </Typography>
+                  <Button
                   size="small"
-                  value={config.dataset.benchmark}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      dataset: { ...prev.dataset, benchmark: String(e.target.value) },
-                    }))
-                  }
-                  sx={{ minWidth: 200 }}
-                >
-                  <MenuItem value="mt-bench">MT-Bench</MenuItem>
-                  <MenuItem value="summeval">SummEval</MenuItem>
-                </Select>
-              </Box>
-            )}
-
-            {/* Built-in preset selector removed; we auto-pick based on dataset mode */}
-
-            {/* Dataset Category Selection and Limit */}
-            {config.dataset.useBuiltin && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.0 }}>
-                  Dataset categories
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                  {["coding", "mathematics", "reasoning", "creative", "knowledge"].map((cat) => {
-                    const selected = config.dataset.categories.includes(cat);
+                    variant="text"
+                    startIcon={<ExternalLink size={12} />}
+                    onClick={() => window.open(`/evals/${projectId}#datasets`, "_blank")}
+                    sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                  >
+                    Manage
+                  </Button>
+                </Stack>
+                <Stack spacing={0.5}>
+                  {userDatasets.slice(0, 4).map((dataset) => {
+                    const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
                     return (
-                      <Chip
-                        key={cat}
-                        label={cat}
-                        size="small"
-                        onClick={() =>
-                          setConfig((prev) => {
-                            const has = prev.dataset.categories.includes(cat);
-                            const categories = has
-                              ? prev.dataset.categories.filter((c) => c !== cat)
-                              : [...prev.dataset.categories, cat];
-                            return { ...prev, dataset: { ...prev.dataset, categories } };
-                          })
-                        }
-                        sx={{
-                          textTransform: "capitalize",
-                          fontSize: "12px",
-                          height: 24,
-                          bgcolor: selected ? "#E3F2FD" : "#F3F4F6",
-                          color: selected ? "#1976D2" : "#374151",
-                          border: selected ? "1px solid #90CAF9" : "1px solid #E5E7EB",
-                          cursor: "pointer",
+                      <Box
+                        key={dataset.id}
+                        onClick={async () => {
+                          setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
+                          setSelectedUserDataset(dataset);
+                          setSelectedPresetPath("");
+                          try {
+                            const { prompts } = await deepEvalDatasetsService.read(dataset.path);
+                            setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                            setDatasetLoaded(true);
+                          } catch {
+                            setDatasetPrompts([]);
+                          }
                         }}
-                      />
+                        sx={{
+                          p: 1,
+                          border: "1px solid",
+                          borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          transition: "all 0.15s ease",
+                          "&:hover": { borderColor: "#13715B", backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB" },
+                        }}
+                      >
+                        <Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />
+                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", flex: 1 }}>{dataset.name}</Typography>
+                        {isSelected && <Check size={14} color="#13715B" />}
+                      </Box>
                     );
                   })}
                 </Stack>
-
-                <Stack direction="row" spacing={2} sx={{ mt: 2, alignItems: "center" }}>
-                  <Field
-                    label="Limit prompts"
-                    type="number"
-                    value={String(config.dataset.limit)}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        dataset: { ...prev.dataset, limit: Math.max(1, parseInt(e.target.value) || 1) },
-                      }))
-                    }
-                    sx={{ maxWidth: 160 }}
-                  />
-                </Stack>
               </Box>
-            )}
+            ) : null}
 
-            {/* Dataset Prompts Display (Editable) - With Border */}
-            {datasetLoaded && config.dataset.useBuiltin && (
-              <Box
-                sx={{
-                  border: "2px solid #E5E7EB",
-                  borderRadius: "12px",
-                  p: 3,
-                  bgcolor: "#FAFBFC",
-                }}
-              >
-                <Box sx={{ mb: 2 }}>
-                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1F2937" }}>
-                    Dataset Prompts ({datasetPrompts.length} prompts)
+            {/* Template Datasets Section */}
+            <Box>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} Templates
                   </Typography>
-                </Box>
-
-                {/* Prompts list */}
-                <Stack spacing={0}>
-                  {datasetPrompts.map((prompt, index) => (
-                    <Accordion
-                      key={prompt.id}
-                      expanded={expandedPrompts.includes(index)}
-                      onChange={() => {
-                        setExpandedPrompts((prev) =>
-                          prev.includes(index)
-                            ? prev.filter((i) => i !== index)
-                            : [...prev, index]
-                        );
-                      }}
-                      sx={{
-                        boxShadow: "none",
-                        "&:before": {
-                          display: "none",
-                        },
-                        border: "1px solid #E0E0E0",
-                        borderRadius: "8px !important",
-                        mb: 1,
-                        bgcolor: "#FFFFFF",
-                        "&:last-child": {
-                          mb: 0,
-                        },
-                      }}
-                    >
-                      <AccordionSummary expandIcon={<ChevronDown size={18} />}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-                          <Chip
-                            label={prompt.category}
-                            size="small"
-                            sx={{
-                              backgroundColor: "#bbdefb",
-                              color: "#1976d2",
-                              fontWeight: 500,
-                              fontSize: "11px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              borderRadius: "4px",
-                              "& .MuiChip-label": {
-                                padding: "4px 8px",
-                              },
-                            }}
-                          />
-                          <Chip
-                            label={prompt.difficulty}
-                            size="small"
-                            sx={{
-                              backgroundColor: "#fff3e0",
-                              color: "#ef6c00",
-                              fontWeight: 500,
-                              fontSize: "11px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              borderRadius: "4px",
-                              "& .MuiChip-label": {
-                                padding: "4px 8px",
-                              },
-                            }}
-                          />
-                          <Typography sx={{ fontSize: "13px", flex: 1, color: "#424242" }}>
-                            {index + 1}. {prompt.prompt.substring(0, 50)}...
-                          </Typography>
-                          <Tooltip title="Remove prompt">
-                            <Box
-                              component="span"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemovePrompt(prompt.id);
+              <Stack spacing={0.5}>
+                {[
+                  ...(config.taskType === "chatbot" ? [
+                    { name: "General Q&A", path: "chatbot/chatbot_singleturn_example.json", desc: "Standard question-answer pairs" },
+                    { name: "Conversational", path: "chatbot/chatbot_conversations_example.json", desc: "Multi-turn dialogue samples" },
+                    { name: "Knowledge Test", path: "chatbot/chatbot_knowledge_example.json", desc: "Factual knowledge evaluation" },
+                  ] : []),
+                  ...(config.taskType === "rag" ? [
+                    { name: "Document QA", path: "rag/document_qa_example.json", desc: "Questions with retrieval context" },
+                    { name: "Technical Docs", path: "rag/technical_docs_example.json", desc: "Technical documentation queries" },
+                    { name: "Research Papers", path: "rag/research_papers_example.json", desc: "Academic content retrieval" },
+                  ] : []),
+                  ...(config.taskType === "agent" ? [
+                    { name: "Tool Usage", path: "agent/tool_usage_example.json", desc: "Tasks requiring tool calls" },
+                    { name: "Multi-step Tasks", path: "agent/multistep_example.json", desc: "Complex multi-step reasoning" },
+                    { name: "API Interactions", path: "agent/api_interactions_example.json", desc: "External API orchestration" },
+                  ] : []),
+                ].map((template) => {
+                  const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
+                  return (
+                    <Box
+                      key={template.path}
+                      onClick={async () => {
+                        setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
+                        setSelectedUserDataset(null);
+                        setSelectedPresetPath(template.path);
+                        try {
+                          const { prompts } = await deepEvalDatasetsService.read(template.path);
+                          setDatasetPrompts((prompts || []) as DatasetPrompt[]);
+                          setDatasetLoaded(true);
+                        } catch {
+                          setDatasetPrompts([]);
+                        }
                               }}
                               sx={{
-                                ml: 1,
+                        p: 1,
+                        border: "1px solid",
+                        borderColor: isSelected ? "#6366F1" : "#E5E7EB",
+                        borderRadius: "6px",
                                 cursor: "pointer",
+                        backgroundColor: isSelected ? "#EEF2FF" : "#FFFFFF",
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "center",
-                                padding: "4px",
-                                borderRadius: "4px",
-                                "&:hover": {
-                                  backgroundColor: "#FFEBEE",
-                                },
-                              }}
-                            >
-                              <Trash2 size={16} color="#D32F2F" />
+                        gap: 1,
+                        transition: "all 0.15s ease",
+                        "&:hover": { borderColor: "#6366F1", backgroundColor: isSelected ? "#EEF2FF" : "#F9FAFB" },
+                      }}
+                    >
+                      <Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{template.name}</Typography>
+                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{template.desc}</Typography>
                             </Box>
-                          </Tooltip>
+                      {isSelected && <Check size={14} color="#6366F1" />}
                         </Box>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ bgcolor: "#FAFAFA", pt: 2 }}>
-                        <Stack spacing={2}>
-                          {/* Editable Prompt */}
-                          <Field
-                            type="description"
-                            label="Prompt"
-                            value={prompt.prompt}
-                            onChange={(e) => {
-                              setDatasetPrompts((prev) =>
-                                prev.map((p) =>
-                                  p.id === prompt.id ? { ...p, prompt: e.target.value } : p
-                                )
-                              );
-                            }}
-                            rows={3}
-                          />
-
-                          {/* Editable Expected Output */}
-                          <Field
-                            type="description"
-                            label="Expected output"
-                            value={prompt.expected_output}
-                            onChange={(e) => {
-                              setDatasetPrompts((prev) =>
-                                prev.map((p) =>
-                                  p.id === prompt.id
-                                    ? { ...p, expected_output: e.target.value }
-                                    : p
-                                )
-                              );
-                            }}
-                            rows={2}
-                          />
-
-                          {/* Metadata Row */}
-                          <Stack direction="row" spacing={2}>
-                            <Field
-                              label="Category"
-                              value={prompt.category}
-                              onChange={(e) => {
-                                setDatasetPrompts((prev) =>
-                                  prev.map((p) =>
-                                    p.id === prompt.id ? { ...p, category: e.target.value } : p
-                                  )
-                                );
-                              }}
-                              sx={{ flex: 1 }}
-                            />
-                            <Field
-                              label="Difficulty"
-                              value={prompt.difficulty}
-                              onChange={(e) => {
-                                setDatasetPrompts((prev) =>
-                                  prev.map((p) =>
-                                    p.id === prompt.id ? { ...p, difficulty: e.target.value } : p
-                                  )
-                                );
-                              }}
-                              sx={{ flex: 1 }}
-                            />
+                  );
+                })}
                           </Stack>
+            </Box>
 
-                          {/* Keywords (comma-separated) */}
-                          <Field
-                            label="Expected Keywords (comma-separated)"
-                            value={prompt.expected_keywords.join(", ")}
-                            onChange={(e) => {
-                              setDatasetPrompts((prev) =>
-                                prev.map((p) =>
-                                  p.id === prompt.id
-                                    ? {
-                                        ...p,
-                                        expected_keywords: e.target.value
-                                          .split(",")
-                                          .map((k) => k.trim())
-                                          .filter((k) => k),
-                                      }
-                                    : p
-                                )
-                              );
-                            }}
-                          />
-                        </Stack>
-                      </AccordionDetails>
-                    </Accordion>
-                  ))}
+            {/* Selected dataset confirmation */}
+            {(selectedUserDataset || (config.dataset.useBuiltin && selectedPresetPath)) && datasetPrompts.length > 0 && (
+              <Box sx={{ p: 1.5, backgroundColor: "#ECFDF5", borderRadius: "8px", border: "1px solid #A7F3D0" }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Check size={16} color="#059669" />
+                  <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 500 }}>
+                    {datasetPrompts.length} prompts ready
+                  </Typography>
                 </Stack>
               </Box>
             )}
@@ -1288,69 +953,178 @@ export default function NewExperimentModal({
         );
 
       case 3:
-        // Step 4: Metrics (all enabled by default, no thresholds UI)
+        // Step 4: Metrics - organized by use case
         return (
           <Stack spacing={3}>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Choose which metrics to include. All are enabled by default.
+                Select metrics for your evaluation. Metrics are organized by use case.
               </Typography>
             </Box>
 
-            {Object.entries({
-              answerRelevancy: {
-                label: "Answer Relevancy",
-                desc: "Measures how relevant the model's answer is to the input.",
-              },
-              bias: {
-                label: "Bias Detection",
-                desc: "Detects biased or discriminatory content in responses.",
-              },
-              toxicity: {
-                label: "Toxicity Detection",
-                desc: "Flags toxic or harmful language in outputs.",
-              },
-              faithfulness: {
-                label: "Faithfulness",
-                desc: "Checks if the answer aligns with provided context.",
-              },
-              hallucination: {
-                label: "Hallucination Detection",
-                desc: "Identifies unsupported or fabricated statements.",
-              },
-              contextualRelevancy: {
-                label: "Contextual Relevancy",
-                desc: "Measures whether retrieved/used context is relevant.",
-              },
-            }).map(([key, meta]) => (
-              <Box key={key} sx={{ mb: 1.5 }}>
-                <Stack spacing={0.5}>
-                  <Checkbox
-                    id={`metric-${key}`}
-                    label={(meta as { label: string }).label}
-                    size="small"
-                    value={key}
-                    isChecked={config.metrics[key as keyof typeof config.metrics]}
-                    onChange={() =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        metrics: {
-                          ...prev.metrics,
-                          [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                        },
-                      }))
-                    }
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                  >
-                    {(meta as { desc: string }).desc}
-                  </Typography>
-                </Stack>
+            {/* General Metrics - All Use Cases */}
+            <Box>
+              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                General Metrics
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                Available for all evaluation types
+              </Typography>
+              {Object.entries({
+                answerRelevancy: {
+                  label: "Answer Relevancy",
+                  desc: "Measures how relevant the model's answer is to the input.",
+                },
+                bias: {
+                  label: "Bias Detection",
+                  desc: "Detects biased or discriminatory content in responses.",
+                },
+                toxicity: {
+                  label: "Toxicity Detection",
+                  desc: "Flags toxic or harmful language in outputs.",
+                },
+              }).map(([key, meta]) => (
+                <Box key={key} sx={{ mb: 1.5 }}>
+                  <Stack spacing={0.5}>
+                    <Checkbox
+                      id={`metric-${key}`}
+                      label={(meta as { label: string }).label}
+                      size="small"
+                      value={key}
+                      isChecked={config.metrics[key as keyof typeof config.metrics]}
+                      onChange={() =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          metrics: {
+                            ...prev.metrics,
+                            [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                          },
+                        }))
+                      }
+                    />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                    >
+                      {(meta as { desc: string }).desc}
+                    </Typography>
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Chatbot-Specific Metrics */}
+            {config.taskType === "chatbot" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                  Chatbot Metrics
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                  Specifically designed for conversational AI evaluation
+                </Typography>
+                {Object.entries({
+                  knowledgeRetention: {
+                    label: "Knowledge Retention",
+                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                  },
+                  conversationRelevancy: {
+                    label: "Conversation Relevancy",
+                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                  },
+                  conversationCompleteness: {
+                    label: "Conversation Completeness",
+                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
+                  },
+                  roleAdherence: {
+                    label: "Role Adherence",
+                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
               </Box>
-            ))}
+            )}
+
+            {/* RAG-Specific Metrics */}
+            {config.taskType === "rag" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                  RAG Metrics
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                  Requires retrieval_context in your dataset
+                </Typography>
+                {Object.entries({
+                  faithfulness: {
+                    label: "Faithfulness",
+                    desc: "Checks if the answer aligns with provided retrieval context.",
+                  },
+                  hallucination: {
+                    label: "Hallucination Detection",
+                    desc: "Identifies unsupported or fabricated statements not in context.",
+                  },
+                  contextualRelevancy: {
+                    label: "Contextual Relevancy",
+                    desc: "Measures whether retrieved context is relevant to the query.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Stack>
         );
 

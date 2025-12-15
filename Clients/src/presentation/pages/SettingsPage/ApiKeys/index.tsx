@@ -16,7 +16,7 @@ import {
   Copy as CopyIcon,
 } from "lucide-react";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -26,7 +26,7 @@ import {
 } from "../../../../application/repository/tokens.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
+import { ApiTokenModel } from "../../../../domain/models/Common/ApiToken/apiToken.model";
 import LLMKeys from "../LLMKeys";
 
 interface AlertState {
@@ -46,14 +46,14 @@ const ApiKeys = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tokenToDelete, setTokenToDelete] = useState<ApiTokenModel | null>(
-    null
+    null,
   );
   const [newTokenName, setNewTokenName] = useState("");
   const [newTokenNameError, setNewTokenNameError] = useState<string | null>(
-    null
+    null,
   );
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(
-    null
+    null,
   );
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null);
@@ -64,7 +64,7 @@ const ApiKeys = () => {
     (variant: AlertState["variant"], title: string, body: string) => {
       setAlert({ variant, title, body, isToast: false });
     },
-    []
+    [],
   );
 
   const fetchTokens = useCallback(async () => {
@@ -73,7 +73,7 @@ const ApiKeys = () => {
       const response = await getApiTokens({ routeUrl: "/tokens" });
       if (response && response.data && response.data.data) {
         const tokenModels = response.data.data.map((tokenData: any) =>
-          ApiTokenModel.createNewApiToken(tokenData)
+          ApiTokenModel.createNewApiToken(tokenData),
         );
         setTokens(tokenModels);
       }
@@ -107,11 +107,11 @@ const ApiKeys = () => {
         3,
         50,
         false,
-        false
+        false,
       );
       setNewTokenNameError(validation.accepted ? null : validation.message);
     },
-    []
+    [],
   );
 
   const handleCreateToken = useCallback(async () => {
@@ -228,7 +228,7 @@ const ApiKeys = () => {
   }, []);
 
   return (
-    <Stack sx={{ mt: 3, maxWidth: 1000 }}>
+    <Stack sx={{ mt: 3 }}>
       {alert && (
         <Alert
           variant={alert.variant}
@@ -454,7 +454,7 @@ const ApiKeys = () => {
 
       {/* Create Token Modal */}
       {isCreateModalOpen && !newlyCreatedToken && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Create New API Key"
           body={
             <Stack spacing={3}>
@@ -620,7 +620,7 @@ const ApiKeys = () => {
 
       {/* Delete Token Modal */}
       {isDeleteModalOpen && tokenToDelete && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Delete API Key"
           body={
             <Typography fontSize={13}>

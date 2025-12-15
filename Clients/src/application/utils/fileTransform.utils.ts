@@ -7,7 +7,7 @@
  * @module utils/fileTransform
  */
 
-import { FileModel } from "../../domain/models/Common/file/file.model";
+import { FileModel } from "../../domain/models/Common/File/file.model";
 
 /**
  * Transforms raw file data from API to application FileModel format
@@ -20,30 +20,31 @@ import { FileModel } from "../../domain/models/Common/file/file.model";
  * @returns {FileModel} Formatted file data for application use
  */
 export const transformFileData = (file: any): FileModel => {
-    // Server sends 'upload_date' not 'uploaded_time'
-    const uploadDate = file.upload_date || file.uploaded_time;
+  // Server sends 'upload_date' not 'uploaded_time'
+  const uploadDate = file.upload_date || file.uploaded_time;
 
-    // Construct uploader name from uploader_name and uploader_surname fields
-    const uploaderName = file.uploader_name && file.uploader_surname
-        ? `${file.uploader_name} ${file.uploader_surname}`
-        : file.uploader_name || file.uploader_surname || "Unknown";
+  // Construct uploader name from uploader_name and uploader_surname fields
+  const uploaderName =
+    file.uploader_name && file.uploader_surname
+      ? `${file.uploader_name} ${file.uploader_surname}`
+      : file.uploader_name || file.uploader_surname || "Unknown";
 
-    return FileModel.fromApiData({
-        id: file.id ?? "",
-        fileName: file.filename ?? "Unknown",
-        uploadDate: uploadDate ? new Date(uploadDate) : new Date(),
-        uploader: file.uploaded_by || "unknown",
-        uploaderName: uploaderName,
-        source: file.source ?? "File Manager",
-        projectTitle: file.project_title ?? "N/A",
-        projectId: file.project_id != null ? String(file.project_id) : "0",
-        parentId: file.parent_id ?? null,
-        subId: file.sub_id ?? null,
-        metaId: file.meta_id ?? null,
-        isEvidence: file.is_evidence ?? false,
-        type: file.mimetype || file.type,
-        size: file.size,
-    });
+  return FileModel.fromApiData({
+    id: file.id ?? "",
+    fileName: file.filename ?? "Unknown",
+    uploadDate: uploadDate ? new Date(uploadDate) : new Date(),
+    uploader: file.uploaded_by || "unknown",
+    uploaderName: uploaderName,
+    source: file.source ?? "File Manager",
+    projectTitle: file.project_title ?? "N/A",
+    projectId: file.project_id != null ? String(file.project_id) : "0",
+    parentId: file.parent_id ?? null,
+    subId: file.sub_id ?? null,
+    metaId: file.meta_id ?? null,
+    isEvidence: file.is_evidence ?? false,
+    type: file.mimetype || file.type,
+    size: file.size,
+  });
 };
 
 /**
@@ -53,8 +54,8 @@ export const transformFileData = (file: any): FileModel => {
  * @returns {FileModel[]} Array of formatted file data
  */
 export const transformFilesData = (files: any[]): FileModel[] => {
-    if (!Array.isArray(files)) {
-        return [];
-    }
-    return files.map(transformFileData);
+  if (!Array.isArray(files)) {
+    return [];
+  }
+  return files.map(transformFileData);
 };

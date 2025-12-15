@@ -24,7 +24,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { clearAuthState, setAuthToken } from "../../application/redux/auth/authSlice";
-import { AlertProps } from "../../domain/interfaces/iAlert";
+import { AlertProps } from "../../domain/interfaces/i.alert";
 
 const performLogout = () => {
   store.dispatch(clearAuthState());

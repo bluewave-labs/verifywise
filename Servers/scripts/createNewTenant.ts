@@ -185,6 +185,31 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create use_case_change_history table for tracking project/use case changes
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".use_case_change_history (
+        id SERIAL PRIMARY KEY,
+        use_case_id INTEGER NOT NULL REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for use_case_change_history
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_id ON "${tenantHash}".use_case_change_history(use_case_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_changed_at ON "${tenantHash}".use_case_change_history(changed_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_changed ON "${tenantHash}".use_case_change_history(use_case_id, changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
     (
@@ -576,6 +601,17 @@ export const createNewTenant = async (
     );
 
     await sequelize.query(
+      `CREATE TABLE "${tenantHash}".subcontrols_eu__risks (
+      subcontrol_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (subcontrol_id, projects_risks_id),
+      FOREIGN KEY (subcontrol_id) REFERENCES "${tenantHash}".subcontrols_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
     (
       id serial NOT NULL,
@@ -811,6 +847,31 @@ export const createNewTenant = async (
         FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
       );`,
       { transaction }
+    );
+
+    // Create policy_change_history table for tracking policy changes
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".policy_change_history (
+        id SERIAL PRIMARY KEY,
+        policy_id INTEGER NOT NULL REFERENCES "${tenantHash}".policy_manager(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for policy_change_history
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_policy_id ON "${tenantHash}".policy_change_history(policy_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_changed_at ON "${tenantHash}".policy_change_history(changed_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_policy_changed ON "${tenantHash}".policy_change_history(policy_id, changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
     );
 
     await sequelize.query(
@@ -1148,7 +1209,8 @@ export const createNewTenant = async (
       upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       model_id INTEGER NULL,
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-      is_demo BOOLEAN NOT NULL DEFAULT FALSE
+      is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+      source public.enum_file_manager_source DEFAULT 'file_manager'
     );`,
       { transaction }
     );

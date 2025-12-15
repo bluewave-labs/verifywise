@@ -14,7 +14,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -813,7 +813,7 @@ const AITrustCenterSettings: React.FC = () => {
 
       {/* Remove Logo Confirmation Modal */}
       {isRemoveLogoModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm logo removal"
           body={
             <Typography fontSize={13}>

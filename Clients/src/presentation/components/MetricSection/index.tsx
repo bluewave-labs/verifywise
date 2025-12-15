@@ -1,7 +1,7 @@
 import { FC, memo } from "react";
 import { Typography, Stack } from "@mui/material";
 import { StyledStack, styles } from "./styles";
-import { MetricSectionProps } from "../../../domain/interfaces/iMetricSection";
+import { MetricSectionProps } from "../../../domain/interfaces/i.metricSection";
 
 /**
  * MetricSection component displays a section with metrics based on the provided metric type.

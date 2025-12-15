@@ -11,6 +11,7 @@ import SearchResults from './SearchResults';
 import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
+import { useUserGuideSidebarContext, DEFAULT_CONTENT_WIDTH } from './UserGuideSidebarContext';
 import './SidebarWrapper.css';
 import AdvisorChat from '../AdvisorChat';
 
@@ -25,7 +26,6 @@ interface SidebarWrapperProps {
 }
 
 const STORAGE_KEY = 'verifywise-sidebar-state';
-const DEFAULT_CONTENT_WIDTH = 400;
 const MIN_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH;
 const MAX_CONTENT_WIDTH = DEFAULT_CONTENT_WIDTH * 2; // 100% wider
 
@@ -36,17 +36,30 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   initialPath,
   onOpenInNewTab,
 }) => {
+  const { setContentWidth: setContextContentWidth } = useUserGuideSidebarContext();
   const [activeTab, setActiveTab] = useState<Tab>('user-guide');
   const [collectionId, setCollectionId] = useState<string | undefined>();
   const [articleId, setArticleId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [contentWidth, setContentWidth] = useState(DEFAULT_CONTENT_WIDTH);
+  const [contentWidth, setContentWidthLocal] = useState(DEFAULT_CONTENT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handleRef = useRef<HTMLDivElement>(null);
+
+  // Sync content width with context whenever it changes
+  const setContentWidth = useCallback((width: number) => {
+    setContentWidthLocal(width);
+    setContextContentWidth(width);
+  }, [setContextContentWidth]);
+
+  // Initialize context with current width on mount
+  useEffect(() => {
+    setContextContentWidth(DEFAULT_CONTENT_WIDTH);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - intentionally excluding deps
 
   // Navigation history
   type HistoryEntry = { collectionId?: string; articleId?: string };
@@ -323,7 +336,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     const deltaX = resizeRef.current.startX - e.clientX;
     const newWidth = Math.min(MAX_CONTENT_WIDTH, Math.max(MIN_CONTENT_WIDTH, resizeRef.current.startWidth + deltaX));
     setContentWidth(newWidth);
-  }, [isResizing]);
+  }, [isResizing, setContentWidth]);
 
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);

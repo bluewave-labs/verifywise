@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import { ILLMKey } from "../../interfaces/i.llmKey";
+import { ILLMKey, LLMProvider } from "../../interfaces/i.llmKey";
 
 @Table({
   tableName: "llm_keys",
@@ -19,16 +19,16 @@ export class LLMKeyModel extends Model<LLMKeyModel> implements ILLMKey {
   key!: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.ENUM("Anthropic", "OpenAI", "OpenRouter"),
     allowNull: false,
   })
-  name!: string;
+  name!: LLMProvider;
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
   })
-  url!: string;
+  url!: string | null;
 
   @Column({
     type: DataType.STRING,

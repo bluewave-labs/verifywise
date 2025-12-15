@@ -17,7 +17,7 @@ import {
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import {
   uploadAITrustCentreLogo,
   deleteAITrustCentreLogo,
@@ -26,7 +26,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
-import { OrganizationModel } from "../../../../domain/models/Common/organization/organization.model";
+import { OrganizationModel } from "../../../../domain/models/Common/Organization/organization.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -582,7 +582,7 @@ const Organization = () => {
                     Loading...
                   </>
                 ) : (
-                  "Update"
+                  "Change"
                 )}
                 <input
                   type="file"
@@ -612,7 +612,7 @@ const Organization = () => {
 
       {/* Remove Logo Confirmation Modal */}
       {isRemoveLogoModalOpen && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm logo removal"
           body={
             <Typography fontSize={13}>

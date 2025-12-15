@@ -1,64 +1,66 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { ILLMKey } from "../domain.layer/interfaces/i.llmKey";
+import { ILLMKey, LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 import { LLMKeyModel } from "../domain.layer/models/llmKey/llmKey.model";
 
-export const getLLMKeysQuery = async (
-  tenant: string
-) => {
-  const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,) as [LLMKeyModel[], number];
+export const getLLMKeysQuery = async (tenant: string) => {
+  const result = (await sequelize.query(
+    `SELECT * FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
+  )) as [LLMKeyModel[], number];
   return result[0];
-}
+};
 
-export const getLLMKeyQuery = async (
-  tenant: string,
-  name: string
-) => {
-  const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".llm_keys WHERE name = :name;`, {
-    replacements: { name },
-    }) as [LLMKeyModel[], number];
+export const getLLMKeyQuery = async (tenant: string, name: string) => {
+  const result = (await sequelize.query(
+    `SELECT * FROM "${tenant}".llm_keys WHERE name = :name;`,
+    {
+      replacements: { name },
+    },
+  )) as [LLMKeyModel[], number];
   return result[0];
-}
+};
 
 export const createLLMKeyQuery = async (
   data: ILLMKey,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ) => {
   // Check if a LLM key with this name already exists
-  const llmKey = await sequelize.query(
+  const llmKey = (await sequelize.query(
     `SELECT id FROM "${tenant}".llm_keys WHERE name = :name;`,
     {
       replacements: { name: data.name },
-      transaction
-    }
-  ) as [{ id: number }[], number];
+      transaction,
+    },
+  )) as [{ id: number }[], number];
 
   if (llmKey[0].length > 0) {
-    throw new ValidationException("A key with this name already exists. Please use a different name.");
+    throw new ValidationException(
+      "A key with this name already exists. Please use a different name.",
+    );
   }
 
-  const result = await sequelize.query(
-    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING *;`, {
-    replacements: {
-      key: data.key,
-      name: data.name,
-      url: data.url,
-      model: data.model,
+  const result = (await sequelize.query(
+    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING *;`,
+    {
+      replacements: {
+        key: data.key,
+        name: data.name,
+        url: data.url,
+        model: data.model,
+      },
+      transaction,
     },
-    transaction
-  }) as [ILLMKey[], number];
+  )) as [ILLMKey[], number];
   return result[0][0];
-}
+};
 
 export const updateLLMKeyByIdQuery = async (
   id: number,
   data: Partial<LLMKeyModel>,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
 ): Promise<LLMKeyModel | null> => {
   const updateData: Partial<Record<keyof ILLMKey, any>> = {};
   const setClause = ["name", "key", "url", "model"]
@@ -86,16 +88,31 @@ export const updateLLMKeyByIdQuery = async (
   return result[0];
 };
 
-export const deleteLLMKeyQuery = async (
-  id: number,
-  tenant: string
-) => {
+export const deleteLLMKeyQuery = async (id: number, tenant: string) => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".llm_keys WHERE id = :id RETURNING *;`, {
-    replacements: { id },
-    mapToModel: true,
-    model: LLMKeyModel,
-    type: QueryTypes.DELETE
-  });
+    `DELETE FROM "${tenant}".llm_keys WHERE id = :id RETURNING *;`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: LLMKeyModel,
+      type: QueryTypes.DELETE,
+    },
+  );
   return result.length > 0;
-}
+};
+
+export const getLLMProviderUrl = (provider: LLMProvider): string => {
+  const urls: Record<LLMProvider, string> = {
+    Anthropic: "https://api.anthropic.com/v1",
+    OpenAI: "https://api.openai.com/v1/",
+    OpenRouter: "https://openrouter.ai/api/v1/",
+  };
+
+  return urls[provider];
+};
+
+export const isValidLLMProvider = (
+  provider: string,
+): provider is LLMProvider => {
+  return ["Anthropic", "OpenAI", "OpenRouter"].includes(provider);
+};

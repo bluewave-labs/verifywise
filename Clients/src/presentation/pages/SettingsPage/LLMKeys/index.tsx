@@ -9,14 +9,27 @@ import {
 } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { Plus as PlusIcon, Trash2 as DeleteIcon, Edit as EditIcon } from "lucide-react";
+import {
+  Plus as PlusIcon,
+  Trash2 as DeleteIcon,
+  Edit as EditIcon,
+} from "lucide-react";
 import Alert from "../../../components/Alert";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Field from "../../../components/Inputs/Field";
+import Select from "../../../components/Inputs/Select";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { LLMKeysFormData, LLMKeysModel } from "../../../../domain/models/Common/llmKeys/llmKeys.model";
-import { createLLMKey, deleteLLMKey, editLLMKey, getLLMKeys } from "../../../../application/repository/llmKeys.repository";
+import {
+  LLMKeysFormData,
+  LLMKeysModel,
+} from "../../../../domain/models/Common/llmKeys/llmKeys.model";
+import {
+  createLLMKey,
+  deleteLLMKey,
+  editLLMKey,
+  getLLMKeys,
+} from "../../../../application/repository/llmKeys.repository";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -26,10 +39,9 @@ interface AlertState {
 }
 
 const LLMKeys = () => {
-  const initialFormData = {
-    name: "",
+  const initialFormData: LLMKeysFormData = {
+    name: "Anthropic",
     key: "",
-    url: "",
     model: "",
   };
   const { userRoleName } = useAuth();
@@ -52,7 +64,7 @@ const LLMKeys = () => {
     (variant: AlertState["variant"], title: string, body: string) => {
       setAlert({ variant, title, body, isToast: false });
     },
-    []
+    [],
   );
 
   const fetchLLMKeys = useCallback(async () => {
@@ -60,8 +72,8 @@ const LLMKeys = () => {
     try {
       const response = await getLLMKeys();
       if (response && response.data && response.data.data) {
-        const llmKeyModel = response.data.data.map((item: any) => 
-          LLMKeysModel.createNewKey(item)
+        const llmKeyModel = response.data.data.map((item: any) =>
+          LLMKeysModel.createNewKey(item),
         );
         setKeys(llmKeyModel);
       }
@@ -87,7 +99,16 @@ const LLMKeys = () => {
     return undefined;
   }, [alert]);
 
-  const isCreateButtonDisabled =  !formData.key || !formData.model || !formData.name || !formData.url || isLoading;
+  const isCreateButtonDisabled =
+    !formData.key || !formData.model || !formData.name || isLoading;
+
+  // Provider options for the dropdown
+  const providerOptions = LLMKeysModel.getAvailableProviders().map(
+    (provider) => ({
+      _id: provider,
+      name: provider,
+    }),
+  );
 
   const handleCreateKey = useCallback(async () => {
     setIsLoading(true);
@@ -104,7 +125,6 @@ const LLMKeys = () => {
       handleCloseCreateModal();
     }
   }, [fetchLLMKeys, formData, showAlert]);
-
 
   const handleEditKey = useCallback(async () => {
     setIsLoading(true);
@@ -153,16 +173,14 @@ const LLMKeys = () => {
     setFormData({
       name: data.name,
       key: data.key,
-      url: data.url,
       model: data.model,
     });
     setIsEditModalOpen(true);
   }, []);
 
   const handleFormChange = (name: string, value: string) => {
-    setFormData({...formData, [name]: value});
-  }
-
+    setFormData({ ...formData, [name]: value });
+  };
 
   return (
     <Stack sx={{ mt: 3, maxWidth: 1000 }}>
@@ -177,30 +195,39 @@ const LLMKeys = () => {
       )}
 
       <Stack sx={{ pt: theme.spacing(20) }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-            <Box>
-              <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}>
-                LLM Keys
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
-                Manage your LLM keys for access to VerifyWise Advisor.
-              </Typography>
-            </Box>
-            {keys.length > 0 && (
-              <CustomizableButton
-                variant="contained"
-                text="Create new LLM key"
-                icon={<PlusIcon size={16} />}
-                onClick={() => setIsCreateModalOpen(true)}
-                isDisabled={isDisabled}
-                sx={{
-                  backgroundColor: "#13715B",
-                  color: "#fff",
-                  "&:hover": { backgroundColor: "#0e5c47" },
-                }}
-              />
-            )}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}
+            >
+              LLM Keys
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
+              Manage your LLM keys for access to VerifyWise Advisor.
+            </Typography>
           </Box>
+          {keys.length > 0 && (
+            <CustomizableButton
+              variant="contained"
+              text="Create new LLM key"
+              icon={<PlusIcon size={16} />}
+              onClick={() => setIsCreateModalOpen(true)}
+              isDisabled={isDisabled}
+              sx={{
+                backgroundColor: "#13715B",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#0e5c47" },
+              }}
+            />
+          )}
+        </Box>
 
         {isLoading && keys.length === 0 ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -231,11 +258,14 @@ const LLMKeys = () => {
             >
               <PlusIcon size={24} color="#13715B" />
             </Box>
-            <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}>
+            <Typography
+              sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}
+            >
               No LLM keys yet
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
-              Add your first LLM API key to enable access to your VerifyWise Advisor.
+              Add your first LLM API key to enable access to your VerifyWise
+              Advisor.
             </Typography>
             <CustomizableButton
               text="Add API key"
@@ -264,81 +294,97 @@ const LLMKeys = () => {
                     border: "1.5px solid #eaecf0",
                     borderRadius: "4px",
                     p: 4,
-                    backgroundColor: hoveredKeyId === key.id ? "#f8fffe" : "#ffffff",
+                    backgroundColor:
+                      hoveredKeyId === key.id ? "#f8fffe" : "#ffffff",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     transition: "all 0.3s ease-in-out",
                     cursor: "default",
-                    boxShadow: hoveredKeyId === key.id ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
+                    boxShadow:
+                      hoveredKeyId === key.id
+                        ? "0 2px 8px rgba(19, 113, 91, 0.08)"
+                        : "none",
                     opacity: deletingKeyId === key.id ? 0 : 1,
-                    transform: deletingKeyId === key.id ? "translateY(-20px)" : "translateY(0)",
+                    transform:
+                      deletingKeyId === key.id
+                        ? "translateY(-20px)"
+                        : "translateY(0)",
                   }}
                 >
-                <Box sx={{ flex: 1 }}>
-                  <Typography sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#000000",
-                    mb: 2,
-                    letterSpacing: "0.01em",
-                  }}>
-                    {key.name}
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                      Created{" "}
-                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
-                        {key.getFormattedCreatedDate()}
-                      </Typography>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography
+                      sx={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#000000",
+                        mb: 2,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {key.name}
                     </Typography>
+                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                        Created{" "}
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#000000",
+                          }}
+                        >
+                          {key.getFormattedCreatedDate()}
+                        </Typography>
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditButtonClick(key);
+                      }}
+                      disableRipple
+                      disabled={isDisabled}
+                      sx={{
+                        opacity: hoveredKeyId === key.id ? 1 : 0.6,
+                        transition: "opacity 0.2s ease-in-out",
+                        "&:hover": {
+                          backgroundColor: "#FEF2F2",
+                        },
+                        "&:disabled": {
+                          opacity: 0.3,
+                        },
+                      }}
+                    >
+                      <EditIcon size={18} />
+                    </IconButton>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setKeyToDelete(key);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      disableRipple
+                      disabled={isDisabled}
+                      sx={{
+                        color: "#DC2626",
+                        opacity: hoveredKeyId === key.id ? 1 : 0.6,
+                        transition: "opacity 0.2s ease-in-out",
+                        "&:hover": {
+                          backgroundColor: "#FEF2F2",
+                        },
+                        "&:disabled": {
+                          opacity: 0.3,
+                        },
+                      }}
+                    >
+                      <DeleteIcon size={18} />
+                    </IconButton>
                   </Box>
                 </Box>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditButtonClick(key);
-                    }}
-                    disableRipple
-                    disabled={isDisabled}
-                    sx={{
-                      opacity: hoveredKeyId === key.id ? 1 : 0.6,
-                      transition: "opacity 0.2s ease-in-out",
-                      "&:hover": {
-                        backgroundColor: "#FEF2F2",
-                      },
-                      "&:disabled": {
-                        opacity: 0.3,
-                      },
-                    }}
-                  >
-                    <EditIcon size={18} />
-                  </IconButton>
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setKeyToDelete(key);
-                      setIsDeleteModalOpen(true);
-                    }}
-                    disableRipple
-                    disabled={isDisabled}
-                    sx={{
-                      color: "#DC2626",
-                      opacity: hoveredKeyId === key.id ? 1 : 0.6,
-                      transition: "opacity 0.2s ease-in-out",
-                      "&:hover": {
-                        backgroundColor: "#FEF2F2",
-                      },
-                      "&:disabled": {
-                        opacity: 0.3,
-                      },
-                    }}
-                  >
-                    <DeleteIcon size={18} />
-                  </IconButton>
-                </Box>
-              </Box>
               </Collapse>
             ))}
           </Box>
@@ -352,14 +398,19 @@ const LLMKeys = () => {
           body={
             <Stack spacing={3}>
               <Typography sx={{ fontSize: 13, color: "#000000", mb: 1 }}>
-                {isCreateModalOpen ? 'Create a new API key for access to your Verifywise Advisor.': "Edit your AI API key details below."} 
+                {isCreateModalOpen
+                  ? "Create a new API key for access to your Verifywise Advisor."
+                  : "Edit your AI API key details below."}
               </Typography>
-              <Field
+              <Select
                 id="llm-form-name"
-                label="Name"
+                label="Provider"
                 value={formData.name}
-                onChange={(e) => handleFormChange("name", e.target.value)}
-                placeholder="e.g. Anthropic"
+                items={providerOptions}
+                onChange={(e) =>
+                  handleFormChange("name", e.target.value as string)
+                }
+                placeholder="Select a provider"
                 isRequired
               />
               <Field
@@ -367,14 +418,6 @@ const LLMKeys = () => {
                 label="Key"
                 value={formData.key}
                 onChange={(e) => handleFormChange("key", e.target.value)}
-                isRequired
-              />
-              <Field
-                id="llm-form-url"
-                label="URL"
-                value={formData.url}
-                onChange={(e) => handleFormChange("url", e.target.value)}
-                placeholder="e.g. https://api.anthropic.com"
                 isRequired
               />
               <Field
@@ -387,9 +430,11 @@ const LLMKeys = () => {
             </Stack>
           }
           cancelText="Cancel"
-          proceedText={isLoading ? "Creating..." : isCreateModalOpen ? "Create": "Edit"}
+          proceedText={
+            isLoading ? "Creating..." : isCreateModalOpen ? "Create" : "Edit"
+          }
           onCancel={handleCloseCreateModal}
-          onProceed={isCreateModalOpen ? handleCreateKey: handleEditKey}
+          onProceed={isCreateModalOpen ? handleCreateKey : handleEditKey}
           proceedButtonColor="primary"
           proceedButtonVariant="contained"
           TitleFontSize={0}
@@ -411,7 +456,9 @@ const LLMKeys = () => {
           title="Delete API Key"
           body={
             <Typography fontSize={13}>
-              Are you sure you want to delete the API key "{keyToDelete.name}"? This action cannot be undone and any applications using this key will lose access.
+              Are you sure you want to delete the API key "{keyToDelete.name}"?
+              This action cannot be undone and any applications using this key
+              will lose access.
             </Typography>
           }
           cancelText="Cancel"

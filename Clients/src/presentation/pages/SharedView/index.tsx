@@ -254,7 +254,7 @@ const SharedView: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
-      <Box sx={{ maxWidth: 1200, mx: "auto", px: 3 }}>
+      <Box sx={{ mx: "auto", px: 3 }}>
         {/* Header */}
         <Paper sx={{ p: 3, mb: 3 }}>
           <Box

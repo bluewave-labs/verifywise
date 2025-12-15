@@ -15,7 +15,7 @@ import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState, UIValues, AuthValues, InputValues } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
-import { AlertProps } from "./domain/interfaces/iAlert";
+import { AlertProps } from "./domain/interfaces/i.alert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
@@ -179,6 +179,8 @@ function App() {
     []
   );
 
+  const [photoRefreshFlag, setPhotoRefreshFlag] = useState(false);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -203,7 +205,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     }),
     [
       uiValues,
@@ -228,7 +232,9 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
-      organizationId
+      organizationId,
+      photoRefreshFlag,
+      setPhotoRefreshFlag,
     ]
   );
 

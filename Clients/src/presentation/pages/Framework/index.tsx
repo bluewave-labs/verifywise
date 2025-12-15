@@ -35,7 +35,7 @@ import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../components/Modals/StandardModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
@@ -1413,7 +1413,7 @@ const Framework = () => {
       )}
 
       {isDeleteModalOpen && organizationalProject && (
-        <DualButtonModal
+        <ConfirmationModal
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>

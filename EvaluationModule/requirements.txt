@@ -22,6 +22,7 @@ pyarrow>=21.0.0
 # Utilities
 tqdm>=4.67.0
 textblob>=0.17.1
+python-dotenv>=1.0.0
 
 # LLM API Clients
 openai>=1.0.0

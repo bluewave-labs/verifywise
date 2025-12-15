@@ -16,7 +16,7 @@ import {
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deepEvalDatasetsService, DatasetPromptRecord } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
-import { ArrowLeft, ChevronDown, Save as SaveIcon } from "lucide-react";
+import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2 } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 export default function DatasetEditorPage() {
@@ -50,7 +50,9 @@ export default function DatasetEditorPage() {
     })();
   }, [path]);
 
-  const isValidToSave = useMemo(() => prompts && prompts.length > 0, [prompts]);
+  const isValidToSave = useMemo(() => {
+    return prompts && prompts.length > 0 && prompts.some((p) => p.prompt.trim());
+  }, [prompts]);
 
   const handleSave = async () => {
     try {
@@ -82,6 +84,22 @@ export default function DatasetEditorPage() {
 
   const handleBack = () => {
     navigate(`/evals/${projectId}#datasets`);
+  };
+
+  const handleAddPrompt = () => {
+    const newPrompt: DatasetPromptRecord = {
+      id: `prompt_${Date.now()}`,
+      category: "General",
+      prompt: "",
+      expected_output: "",
+      expected_keywords: [],
+      retrieval_context: [],
+    };
+    setPrompts((prev) => [...prev, newPrompt]);
+  };
+
+  const handleDeletePrompt = (idx: number) => {
+    setPrompts((prev) => prev.filter((_, i) => i !== idx));
   };
 
   if (loading) {
@@ -145,81 +163,186 @@ export default function DatasetEditorPage() {
       {/* Prompts editor */}
       <Stack spacing={1.25}>
         {prompts.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
-            No prompts found in this dataset.
-          </Typography>
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              textAlign: "center", 
+              py: 4, 
+              px: 2,
+              borderStyle: "dashed",
+              borderColor: "#D1D5DB",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              No prompts in this dataset yet.
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<Plus size={16} />}
+              onClick={handleAddPrompt}
+              sx={{
+                color: "#13715B",
+                borderColor: "#13715B",
+                "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+              }}
+            >
+              Add your first prompt
+            </Button>
+          </Paper>
         ) : (
           prompts.map((p, idx) => (
-            <Accordion key={p.id || idx} disableGutters>
+            <Accordion key={p.id || idx} disableGutters defaultExpanded={!p.prompt}>
               <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-                <Stack direction="row" alignItems="center" spacing={1}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, mr: 1 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: "13px" }}>{`Prompt ${idx + 1}`}</Typography>
                   <Chip size="small" label={p.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
+                  {p.prompt && (
+                    <Typography 
+                      sx={{ 
+                        fontSize: "12px", 
+                        color: "#9CA3AF", 
+                        ml: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: "300px",
+                      }}
+                    >
+                      {p.prompt.substring(0, 50)}{p.prompt.length > 50 ? "..." : ""}
+                    </Typography>
+                  )}
                 </Stack>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeletePrompt(idx);
+                  }}
+                  sx={{ 
+                    color: "#9CA3AF",
+                    "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                  }}
+                >
+                  <Trash2 size={14} />
+                </IconButton>
               </AccordionSummary>
               <AccordionDetails>
-                <Paper variant="outlined" sx={{ p: 1.25 }}>
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt</Typography>
-                  <TextField
-                    size="small"
-                    value={p.prompt}
-                    onChange={(e) => {
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], prompt: e.target.value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
+                <Paper variant="outlined" sx={{ p: 1.5 }}>
+                  <Stack spacing={2}>
+                    {/* Category */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Category</Typography>
+                      <TextField
+                        size="small"
+                        value={p.category || ""}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], category: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        placeholder="e.g., General, Safety, Factual"
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Expected output</Typography>
-                  <TextField
-                    size="small"
-                    value={p.expected_output || ""}
-                    onChange={(e) => {
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], expected_output: e.target.value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
+                    {/* Prompt */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt *</Typography>
+                      <TextField
+                        size="small"
+                        value={p.prompt}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], prompt: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Enter the prompt text..."
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Keywords</Typography>
-                  <TextField
-                    size="small"
-                    value={(p.expected_keywords || []).join(", ")}
-                    onChange={(e) => {
-                      const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], expected_keywords: value };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    placeholder="Comma separated"
-                  />
+                    {/* Expected output */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Expected output</Typography>
+                      <TextField
+                        size="small"
+                        value={p.expected_output || ""}
+                        onChange={(e) => {
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], expected_output: e.target.value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Expected model response..."
+                      />
+                    </Box>
 
-                  <Typography sx={{ fontSize: "12px", color: "#6B7280", mt: 1, mb: 0.5 }}>Retrieval context</Typography>
-                  <TextField
-                    size="small"
-                    value={(p.retrieval_context || []).join("\n")}
-                    onChange={(e) => {
-                      const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
-                      const next = [...prompts];
-                      next[idx] = { ...next[idx], retrieval_context: lines };
-                      setPrompts(next);
-                    }}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="One entry per line"
-                  />
+                    {/* Keywords */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Keywords</Typography>
+                      <TextField
+                        size="small"
+                        value={(p.expected_keywords || []).join(", ")}
+                        onChange={(e) => {
+                          const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], expected_keywords: value };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        placeholder="Comma separated keywords"
+                      />
+                    </Box>
+
+                    {/* Retrieval context */}
+                    <Box>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Retrieval context</Typography>
+                      <TextField
+                        size="small"
+                        value={(p.retrieval_context || []).join("\n")}
+                        onChange={(e) => {
+                          const lines = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                          const next = [...prompts];
+                          next[idx] = { ...next[idx], retrieval_context: lines };
+                          setPrompts(next);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="One context entry per line"
+                      />
+                    </Box>
+                  </Stack>
                 </Paper>
               </AccordionDetails>
             </Accordion>
           ))
+        )}
+
+        {/* Add prompt button */}
+        {prompts.length > 0 && (
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={16} />}
+            onClick={handleAddPrompt}
+            sx={{
+              color: "#13715B",
+              borderColor: "#E5E7EB",
+              borderStyle: "dashed",
+              py: 1.5,
+              "&:hover": { 
+                borderColor: "#13715B", 
+                backgroundColor: "#E8F5F1",
+                borderStyle: "dashed",
+              },
+            }}
+          >
+            Add prompt
+          </Button>
         )}
       </Stack>
     </Box>

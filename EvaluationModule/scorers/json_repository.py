@@ -108,7 +108,7 @@ class JsonScorerRepository:
         judge_raw = raw.get("judge_model", {}) or {}
         judge_model = JudgeModelConfig(
             provider=judge_raw.get("provider", "openai"),
-            name=judge_raw.get("name", "gpt-4.1-mini"),
+            name=judge_raw.get("name", "gpt-4o-mini"),
             params=judge_raw.get("params", {}) or {},
         )
 

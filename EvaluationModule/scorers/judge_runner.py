@@ -63,7 +63,7 @@ class LLMJudgeRunner:
     Flow:
       1) Load scorer config by slug.
       2) Render messages with {input, output, expected}.
-      3) Call gpt-4.1-mini via OpenAI client.
+      3) Call judge model (e.g. gpt-4o-mini) via OpenAI client.
       4) Parse label from response (e.g. "PASS"/"FAIL").
       5) Map label -> numeric score using scorer choices.
     """

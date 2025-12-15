@@ -375,6 +375,16 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Experiments
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
+        </Typography>
+      </Stack>
+
       {/* Performance Chart */}
       <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
         <CardContent>

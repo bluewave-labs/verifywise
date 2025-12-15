@@ -43,6 +43,25 @@ class DeepEvalScorersService {
     const res = await CustomAxios.delete(`/deepeval/scorers/${id}`);
     return res.data as { message: string; id: string };
   }
+
+  async test(id: string, payload: { input: string; output: string; expected?: string }): Promise<ScorerTestResult> {
+    const res = await CustomAxios.post(`/deepeval/scorers/${id}/test`, payload);
+    return res.data as ScorerTestResult;
+  }
+}
+
+export interface ScorerTestResult {
+  scorerId: string;
+  scorerName: string;
+  label: string;
+  score: number;
+  passed: boolean;
+  rawResponse: string;
+  tokenUsage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
 export const deepEvalScorersService = new DeepEvalScorersService();

@@ -9,7 +9,7 @@ description: >
 # For v1 we hard-code this model, but we still keep the structure
 judge_model:
   provider: openai
-  name: gpt-4.1-mini
+  name: gpt-4o-mini
   params:
     temperature: 0.0
     max_tokens: 256

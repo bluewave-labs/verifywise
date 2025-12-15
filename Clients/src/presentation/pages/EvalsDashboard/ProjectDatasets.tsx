@@ -495,7 +495,34 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     }
   };
 
-  const isValidToSave = useMemo(() => editablePrompts && editablePrompts.length > 0 && editDatasetName.trim(), [editablePrompts, editDatasetName]);
+  const isValidToSave = useMemo(() => {
+    return editablePrompts && editablePrompts.length > 0 && editablePrompts.some((p) => p.prompt.trim()) && editDatasetName.trim();
+  }, [editablePrompts, editDatasetName]);
+
+  const handleAddPrompt = () => {
+    const newPrompt: DatasetPromptRecord = {
+      id: `prompt_${Date.now()}`,
+      category: "General",
+      prompt: "",
+      expected_output: "",
+      expected_keywords: [],
+      retrieval_context: [],
+    };
+    setEditablePrompts((prev) => [...prev, newPrompt]);
+    // Open the drawer with the new prompt
+    setSelectedPromptIndex(editablePrompts.length);
+    setPromptDrawerOpen(true);
+  };
+
+  const handleDeletePrompt = (idx: number) => {
+    setEditablePrompts((prev) => prev.filter((_, i) => i !== idx));
+    if (selectedPromptIndex === idx) {
+      setPromptDrawerOpen(false);
+      setSelectedPromptIndex(null);
+    } else if (selectedPromptIndex !== null && selectedPromptIndex > idx) {
+      setSelectedPromptIndex(selectedPromptIndex - 1);
+    }
+  };
 
   const handleRemoveDataset = (dataset: BuiltInDataset) => {
     handleActionMenuClose();
@@ -729,15 +756,28 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Prompt</TableCell>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>Category</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {editablePrompts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} sx={{ textAlign: "center", py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No prompts found in this dataset.
+                  <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      No prompts in this dataset yet.
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Plus size={16} />}
+                      onClick={handleAddPrompt}
+                      sx={{
+                        color: "#13715B",
+                        borderColor: "#13715B",
+                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                      }}
+                    >
+                      Add your first prompt
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -768,9 +808,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
+                          color: p.prompt ? "#374151" : "#9CA3AF",
+                          fontStyle: p.prompt ? "normal" : "italic",
                         }}
                       >
-                        {p.prompt}
+                        {p.prompt || "Empty prompt - click to edit"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -786,12 +828,51 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         }}
                       />
                     </TableCell>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePrompt(idx);
+                        }}
+                        sx={{
+                          color: "#9CA3AF",
+                          "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Add prompt button */}
+        {editablePrompts.length > 0 && (
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={16} />}
+            onClick={handleAddPrompt}
+            fullWidth
+            sx={{
+              mt: 2,
+              color: "#13715B",
+              borderColor: "#E5E7EB",
+              borderStyle: "dashed",
+              py: 1.5,
+              "&:hover": { 
+                borderColor: "#13715B", 
+                backgroundColor: "#E8F5F1",
+                borderStyle: "dashed",
+              },
+            }}
+          >
+            Add prompt
+          </Button>
+        )}
 
         {/* Prompt Edit Drawer */}
         <Drawer
@@ -880,21 +961,43 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   type="description"
                 />
 
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setPromptDrawerOpen(false);
-                    setSelectedPromptIndex(null);
-                  }}
-                  sx={{
-                    bgcolor: "#13715B",
-                    "&:hover": { bgcolor: "#0F5E4B" },
-                    height: "34px",
-                    mt: 2,
-                  }}
-                >
-                  Done
-                </Button>
+                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Trash2 size={14} />}
+                    onClick={() => {
+                      if (selectedPromptIndex !== null) {
+                        handleDeletePrompt(selectedPromptIndex);
+                      }
+                    }}
+                    sx={{
+                      color: "#EF4444",
+                      borderColor: "#FCA5A5",
+                      "&:hover": { 
+                        borderColor: "#EF4444", 
+                        backgroundColor: "#FEE2E2" 
+                      },
+                      height: "34px",
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setPromptDrawerOpen(false);
+                      setSelectedPromptIndex(null);
+                    }}
+                    sx={{
+                      bgcolor: "#13715B",
+                      "&:hover": { bgcolor: "#0F5E4B" },
+                      height: "34px",
+                      flex: 1,
+                    }}
+                  >
+                    Done
+                  </Button>
+                </Stack>
               </Stack>
             )}
           </Stack>
@@ -907,6 +1010,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Datasets
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
+        </Typography>
+      </Stack>
 
       {/* Hidden file input for uploads */}
       <input

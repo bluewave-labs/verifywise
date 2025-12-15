@@ -22,7 +22,9 @@ class SimpleLLMProviderRegistry:
     def __init__(self, allowed_models: Iterable[ModelInfo] | None = None) -> None:
         if allowed_models is None:
             allowed_models = [
-                ModelInfo(provider="openai", name="gpt-4.1-mini"),
+                ModelInfo(provider="openai", name="gpt-4o-mini"),
+                ModelInfo(provider="openai", name="gpt-4o"),
+                ModelInfo(provider="openai", name="gpt-4-turbo"),
             ]
         self._models = {(m.provider, m.name): m for m in allowed_models}
     

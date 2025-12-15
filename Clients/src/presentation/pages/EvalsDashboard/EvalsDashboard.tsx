@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, TextField, Button, List, ListItemButton, ListItemText, useTheme } from "@mui/material";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, TextField, Button, List, ListItemButton, ListItemText, useTheme, Card, CardContent, Grid } from "@mui/material";
+import { ChevronDown, ChevronRight, Plus, Check } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
 import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -10,7 +10,6 @@ import PageHeader from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
-import Select from "../../components/Inputs/Select";
 import Alert from "../../components/Alert";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomAxios from "../../../infrastructure/api/customAxios";
@@ -22,6 +21,14 @@ import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastruc
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+
+// Import provider logos
+import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
+import { ReactComponent as AnthropicLogo } from "../../assets/icons/anthropic_logo.svg";
+import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg";
+import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
+import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
+import { ReactComponent as HuggingFaceLogo } from "../../assets/icons/huggingface_logo.svg";
 
 // Tab components
 import ProjectsList from "./ProjectsList";
@@ -35,12 +42,12 @@ import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 const LLM_PROVIDERS = [
-  { _id: "openai", name: "OpenAI" },
-  { _id: "anthropic", name: "Anthropic" },
-  { _id: "google", name: "Google (Gemini)" },
-  { _id: "xai", name: "xAI" },
-  { _id: "mistral", name: "Mistral" },
-  { _id: "huggingface", name: "Hugging Face" },
+  { _id: "openai", name: "OpenAI", Logo: OpenAILogo },
+  { _id: "anthropic", name: "Anthropic", Logo: AnthropicLogo },
+  { _id: "google", name: "Google (Gemini)", Logo: GeminiLogo },
+  { _id: "xai", name: "xAI", Logo: XAILogo },
+  { _id: "mistral", name: "Mistral", Logo: MistralLogo },
+  { _id: "huggingface", name: "Hugging Face", Logo: HuggingFaceLogo },
 ];
 
 const LAST_PROJECT_KEY = "evals_last_project_id";
@@ -126,7 +133,6 @@ export default function EvalsDashboard() {
   // LLM API keys list state (for Settings-style display)
   const [llmApiKeys, setLlmApiKeys] = useState<LLMApiKey[]>([]);
   const [llmApiKeysLoading, setLlmApiKeysLoading] = useState(false);
-  const [hoveredKeyProvider, setHoveredKeyProvider] = useState<string | null>(null);
   const [deletingKeyProvider, setDeletingKeyProvider] = useState<string | null>(null);
   const [deleteKeyModalOpen, setDeleteKeyModalOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<LLMApiKey | null>(null);
@@ -215,7 +221,7 @@ export default function EvalsDashboard() {
       const keys = await evaluationLlmApiKeysService.getAllKeys();
       setLlmApiKeys(keys);
     } catch (err) {
-      console.error("Failed to fetch LLM API keys:", err);
+      console.error("Failed to fetch Provider API keys:", err);
     } finally {
       setLlmApiKeysLoading(false);
     }
@@ -1206,6 +1212,16 @@ export default function EvalsDashboard() {
 
               {tab === "configuration" && (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+                  {/* Header + description */}
+                  <Stack spacing={1} mb={2}>
+                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                      Configuration
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+                      Configure your project's LLM use case and manage API keys for running evaluations.
+                    </Typography>
+                  </Stack>
+
                   {/* LLM Use Case Card */}
                   <Box
                     sx={{
@@ -1277,9 +1293,30 @@ export default function EvalsDashboard() {
                           }
                           label={
                             <Box>
-                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbots</Typography>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbot</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ alignItems: "flex-start", mb: 1.5 }}
+                        />
+                        <FormControlLabel
+                          value="agent"
+                          control={
+                            <Radio
+                              sx={{
+                                color: "#d0d5dd",
+                                "&.Mui-checked": { color: "#13715B" },
+                                "& .MuiSvgIcon-root": { fontSize: 20 },
+                              }}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
+                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                                Evaluate AI agents for task completion, tool usage correctness, and multi-step reasoning.
                               </Typography>
                             </Box>
                           }
@@ -1302,7 +1339,7 @@ export default function EvalsDashboard() {
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                       <Box>
                         <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
-                          LLM API keys
+                          Provider API keys
                         </Typography>
                         <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
                           Encrypted keys for running evaluations
@@ -1372,99 +1409,154 @@ export default function EvalsDashboard() {
                       </Box>
                     ) : (
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        {llmApiKeys.map((key) => (
+                        {llmApiKeys.map((key) => {
+                          const providerConfig = LLM_PROVIDERS.find(p => p._id === key.provider);
+                          const ProviderLogo = providerConfig?.Logo;
+                          return (
                           <Collapse
                             key={key.provider}
                             in={deletingKeyProvider !== key.provider}
                             timeout={300}
                           >
                             <Box
-                              onMouseEnter={() => setHoveredKeyProvider(key.provider)}
-                              onMouseLeave={() => setHoveredKeyProvider(null)}
                               sx={{
                                 border: "1.5px solid #eaecf0",
-                                borderRadius: "4px",
-                                p: 3,
-                                backgroundColor: hoveredKeyProvider === key.provider ? "#f8fffe" : "#ffffff",
+                                borderRadius: "10px",
+                                p: 2,
+                                pl: 2.5,
+                                backgroundColor: "#ffffff",
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
-                                transition: "all 0.3s ease-in-out",
                                 cursor: "default",
-                                boxShadow: hoveredKeyProvider === key.provider ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
                                 opacity: deletingKeyProvider === key.provider ? 0 : 1,
                                 transform: deletingKeyProvider === key.provider ? "translateY(-20px)" : "translateY(0)",
+                                transition: "opacity 0.3s ease, transform 0.3s ease",
                               }}
                             >
-                              <Box sx={{ flex: 1 }}>
-                                <Typography sx={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  color: "#000000",
-                                  mb: 1.5,
-                                  letterSpacing: "0.01em",
-                                }}>
-                                  {getProviderDisplayName(key.provider)}
-                                </Typography>
-                                <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                                  <Chip
-                                    label="ACTIVE"
+                              <Stack direction="row" alignItems="center" spacing={2.5} sx={{ flex: 1 }}>
+                                {/* Provider Logo */}
+                                <Box
+                                  sx={{
+                                    width: 56,
+                                    height: 56,
+                                    minWidth: 56,
+                                    minHeight: 56,
+                                    borderRadius: "12px",
+                                    backgroundColor: "#FAFAFA",
+                                    border: "1px solid #E5E7EB",
+                                    flexShrink: 0,
+                                    overflow: "hidden",
+                                    position: "relative",
+                                  }}
+                                >
+                                  <Box
                                     sx={{
-                                      backgroundColor: "#dcfce7",
-                                      color: "#166534",
-                                      fontWeight: 500,
-                                      fontSize: "11px",
-                                      height: "20px",
-                                      borderRadius: "4px",
-                                      "& .MuiChip-label": {
-                                        padding: "0 8px",
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.5px",
+                                      position: "absolute",
+                                      top: "50%",
+                                      left: "50%",
+                                      transform: "translate(-50%, -50%)",
+                                      width: 32,
+                                      height: 32,
+                                      "& svg": {
+                                        width: "32px !important",
+                                        height: "32px !important",
+                                        maxWidth: "32px !important",
+                                        maxHeight: "32px !important",
+                                        display: "block !important",
                                       },
                                     }}
-                                  />
-                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                                    •
-                                  </Typography>
-                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                                    Key{" "}
-                                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, color: "#000000", fontFamily: "monospace" }}>
-                                      {key.maskedKey}
-                                    </Typography>
-                                  </Typography>
-                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                                    •
-                                  </Typography>
-                                  <Typography sx={{ fontSize: 12, color: "#999999" }}>
-                                    Added{" "}
-                                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
-                                      {formatKeyDate(key.createdAt)}
-                                    </Typography>
-                                  </Typography>
+                                  >
+                                    {ProviderLogo && <ProviderLogo />}
+                                  </Box>
                                 </Box>
-                              </Box>
-                              <Box sx={{ display: "flex", gap: 1 }}>
+                                
+                                {/* Provider Info - Better formatted */}
+                                <Box sx={{ flex: 1 }}>
+                                  <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: "10px" }}>
+                                    <Typography sx={{
+                                      fontSize: 15,
+                                      fontWeight: 600,
+                                      color: "#111827",
+                                    }}>
+                                      {getProviderDisplayName(key.provider)}
+                                    </Typography>
+                                    <Chip
+                                      label="ACTIVE"
+                                      sx={{
+                                        backgroundColor: "#dcfce7",
+                                        color: "#166534",
+                                        fontWeight: 600,
+                                        fontSize: "9px",
+                                        height: "18px",
+                                        borderRadius: "4px",
+                                        "& .MuiChip-label": {
+                                          padding: "0 6px",
+                                          textTransform: "uppercase",
+                                          letterSpacing: "0.5px",
+                                        },
+                                      }}
+                                    />
+                                  </Stack>
+                                  <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
+                                    <Box>
+                                      <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
+                                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
+                                        {key.maskedKey}
+                                      </Typography>
+                                    </Box>
+                                    <Box>
+                                      <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
+                                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+                                        {formatKeyDate(key.createdAt)}
+                                      </Typography>
+                                    </Box>
+                                  </Stack>
+                                </Box>
+                              </Stack>
+                              
+                              {/* Action buttons */}
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <IconButton
+                                  onClick={() => {
+                                    setSelectedProvider(key.provider);
+                                    setNewApiKey("");
+                                    setApiKeyModalOpen(true);
+                                  }}
+                                  sx={{
+                                    color: "#6B7280",
+                                    padding: "8px",
+                                    "&:hover": {
+                                      backgroundColor: "#F3F4F6",
+                                      color: "#374151",
+                                    },
+                                  }}
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                  </svg>
+                                </IconButton>
                                 <IconButton
                                   onClick={() => {
                                     setKeyToDelete(key);
                                     setDeleteKeyModalOpen(true);
                                   }}
-                                  disableRipple
                                   sx={{
                                     color: "#DC2626",
-                                    opacity: hoveredKeyProvider === key.provider ? 1 : 0.6,
-                                    transition: "opacity 0.2s ease-in-out",
+                                    padding: "8px",
                                     "&:hover": {
                                       backgroundColor: "#FEF2F2",
+                                      color: "#B91C1C",
                                     },
                                   }}
                                 >
                                   <DeleteIcon size={18} />
                                 </IconButton>
-                              </Box>
+                              </Stack>
                             </Box>
                           </Collapse>
-                        ))}
+                        );})}
                       </Box>
                     )}
                   </Box>
@@ -1579,7 +1671,7 @@ export default function EvalsDashboard() {
                     <Bot size={20} color="#13715B" />
                   </Box>
                   <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
                     <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
                       Evaluate conversational experiences for coherence, correctness and safety.
                     </Box>
@@ -1674,7 +1766,7 @@ export default function EvalsDashboard() {
                     <Bot size={20} color="#13715B" />
                   </Box>
                   <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbots</Box>
+                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>Chatbot</Box>
                     <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
                       Evaluate conversational experiences
                     </Box>
@@ -1686,7 +1778,7 @@ export default function EvalsDashboard() {
         </Stack>
       </ModalStandard>
 
-      {/* Add API Key Modal */}
+      {/* Add API Key Modal - Using ModalStandard like experiment creation */}
       <ModalStandard
         isOpen={apiKeyModalOpen}
         onClose={() => {
@@ -1696,29 +1788,160 @@ export default function EvalsDashboard() {
           setApiKeyAlert(null);
         }}
         title="Add API key"
-        description="Add an LLM provider API key to use for running evaluations."
+        description="Configure API keys for LLM providers to run evaluations. Your keys are encrypted and stored securely."
         onSubmit={handleAddApiKey}
-        submitButtonText="Add API key"
+        submitButtonText={apiKeySaving ? "Adding..." : "Add API key"}
         isSubmitting={apiKeySaving || !selectedProvider || !newApiKey.trim()}
       >
         <Stack spacing={3}>
-          <Select
-            id="provider-select"
-            label="Select provider"
-            placeholder="Select a provider from the list"
-            value={selectedProvider}
-            onChange={(e) => setSelectedProvider(e.target.value as string)}
-            items={LLM_PROVIDERS}
-          />
-          <Field
-            label="API key"
-            value={newApiKey}
-            onChange={(e) => setNewApiKey(e.target.value)}
-            placeholder="Enter your API key..."
-            type="text"
-            autoComplete="one-time-code"
-            disabled={!selectedProvider}
-          />
+          {/* Provider Selection Grid - show ALL providers */}
+          <Box>
+            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+              Select Provider
+            </Typography>
+            <Grid container spacing={1.5}>
+              {LLM_PROVIDERS.map((provider) => {
+                const { Logo } = provider;
+                const isSelected = selectedProvider === provider._id;
+                const hasKey = llmApiKeys.some(k => k.provider === provider._id);
+                
+                return (
+                  <Grid item xs={4} sm={4} key={provider._id}>
+                    <Card
+                      onClick={() => setSelectedProvider(provider._id)}
+                      sx={{
+                        cursor: "pointer",
+                        border: "1px solid",
+                        borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                        backgroundColor: "#FFFFFF",
+                        boxShadow: "none",
+                        transition: "all 0.2s ease",
+                        position: "relative",
+                        height: "100%",
+                        "&:hover": {
+                          borderColor: "#13715B",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                        },
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          textAlign: "center",
+                          py: 3,
+                          px: 2,
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          "&:last-child": { pb: 3 },
+                        }}
+                      >
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                              backgroundColor: "#13715B",
+                              borderRadius: "50%",
+                              width: 20,
+                              height: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                          </Box>
+                        )}
+                        
+                        {/* Configured badge */}
+                        {hasKey && !isSelected && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: 6,
+                              left: 6,
+                              backgroundColor: "#dcfce7",
+                              borderRadius: "4px",
+                              px: 0.75,
+                              py: 0.25,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: "9px", fontWeight: 600, color: "#166534", textTransform: "uppercase" }}>
+                              Active
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {/* Provider Logo */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            height: provider._id === "huggingface" || provider._id === "xai" ? 56 : 48,
+                            mb: 1.5,
+                            "& svg": {
+                              maxWidth: provider._id === "huggingface" || provider._id === "xai" ? "100%" : "90%",
+                              maxHeight: "100%",
+                              width: "auto",
+                              height: "auto",
+                              objectFit: "contain",
+                            },
+                          }}
+                        >
+                          <Logo />
+                        </Box>
+                        
+                        {/* Provider Name */}
+                        <Typography
+                          sx={{
+                            fontSize: "12px",
+                            fontWeight: isSelected ? 600 : 500,
+                            color: isSelected ? "#13715B" : "#374151",
+                            textAlign: "center",
+                          }}
+                        >
+                          {provider.name}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+
+          {/* API Key Input */}
+          {selectedProvider && (
+            <Box>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                  API key for {LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name}
+                </Typography>
+                {llmApiKeys.some(k => k.provider === selectedProvider) && (
+                  <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>
+                    This will replace the existing key
+                  </Typography>
+                )}
+              </Stack>
+              <Field
+                label=""
+                value={newApiKey}
+                onChange={(e) => setNewApiKey(e.target.value)}
+                placeholder="Enter your API key..."
+                type="password"
+                autoComplete="one-time-code"
+              />
+            </Box>
+          )}
+
+          {apiKeyAlert && (
+            <Alert variant={apiKeyAlert.variant} body={apiKeyAlert.body} />
+          )}
         </Stack>
       </ModalStandard>
 

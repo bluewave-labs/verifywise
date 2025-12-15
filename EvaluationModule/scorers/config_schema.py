@@ -11,7 +11,7 @@ class JudgeModelConfig:
     """Configuration for the judge LLM model."""
 
     provider: str = "openai"
-    name: str = "gpt-4.1-mini"
+    name: str = "gpt-4o-mini"
     params: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -68,7 +68,7 @@ def load_llm_judge_scorer_config(path: Path) -> LLMJudgeScorerConfig:
 
     judge_model = JudgeModelConfig(
         provider=judge_model_raw.get("provider", "openai"),
-        name=judge_model_raw.get("name", "gpt-4.1-mini"),
+        name=judge_model_raw.get("name", "gpt-4o-mini"),
         params=judge_model_raw.get("params", {}) or {},
     )
 

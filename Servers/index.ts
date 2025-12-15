@@ -114,11 +114,13 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (
-      req.url.includes("/api/bias_and_fairness/") ||
-      req.url.includes("/api/deepeval/")
-    ) {
-      // Let the proxy handle the raw body
+    if (req.url.includes("/api/bias_and_fairness/")) {
+      // Let the proxy handle the raw body for bias/fairness
+      return next();
+    }
+    // For deepeval experiment creation, we need to parse body to inject API keys
+    // For other deepeval routes, let proxy handle raw body
+    if (req.url.includes("/api/deepeval/") && !req.url.includes("/experiments")) {
       return next();
     }
     express.json()(req, res, next);

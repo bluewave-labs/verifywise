@@ -12,7 +12,7 @@ import {
   update as updateVendor,
   deleteVendor,
 } from "../repository/vendor.repository";
-import { VendorModel } from "../../domain/models/Common/Vendor/vendor.model";
+import { VendorModel } from "../../domain/models/Common/vendor/vendor.model";
 
 // Query keys for vendors
 export const vendorQueryKeys = {

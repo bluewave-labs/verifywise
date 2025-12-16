@@ -19,7 +19,7 @@ import IconButton from "../../IconButton";
 import FileIcon from "../../FileIcon";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
-import { FileModel } from "../../../../domain/models/Common/File/file.model";
+import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import {
   getPaginationRowCount,
   setPaginationRowCount,

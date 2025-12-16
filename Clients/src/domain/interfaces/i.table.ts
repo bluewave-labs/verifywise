@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { VendorModel } from "../models/Common/Vendor/vendor.model";
+import { VendorModel } from "../models/Common/vendor/vendor.model";
 import { RiskModel } from "../models/Common/risks/risk.model";
-import { FileModel } from "../models/Common/File/file.model";
+import { FileModel } from "../models/Common/file/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { ITask } from "./i.task";
@@ -98,33 +98,6 @@ export interface IEventsTableProps {
   paginated?: boolean;
 }
 
-export interface IFairnessRow {
-  id: number;
-  model: string;
-  dataset: string;
-  status: "In Progress" | "Completed" | "Failed";
-}
-
-export interface IFairnessTableBodyProps {
-  rows: IFairnessRow[];
-  page: number;
-  rowsPerPage: number;
-  onShowDetails: (model: IFairnessRow) => void;
-  onRemoveModel: {
-    onConfirm: (id: number) => void;
-  };
-}
-
-export interface IFairnessTableProps {
-  columns: any[];
-  rows: any[];
-  removeModel: {
-    onConfirm: (id: number) => void; // actually deletes
-  };
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  onShowDetails: (model: any) => void;
-}
 export interface IColumn {
   id: number;
   name: keyof FileModel | string;

@@ -6,7 +6,7 @@ import {
   incidentManagementCardValue,
   incidentManagementTileCard,
 } from "./style";
-import { AIIncidentManagementModel } from "../../../domain/models/Common/IncidentManagement/incidentManagement.model";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 
 interface IncidentStatusCardProps {
   incidents: AIIncidentManagementModel[];

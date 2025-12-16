@@ -26,7 +26,7 @@ import DaysChip from "../../Chip/DaysChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
-import { TaskModel } from "../../../../domain/models/Common/Task/task.model";
+import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />

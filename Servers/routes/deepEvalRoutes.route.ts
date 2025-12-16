@@ -23,20 +23,12 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
   }
 
   const evaluationMode = req.body?.config?.evaluationMode || "standard";
-  console.log(`[DeepEval Proxy] Processing experiment creation request (mode: ${evaluationMode})`);
-  console.log(`[DeepEval Proxy] Body config: ${JSON.stringify(req.body?.config ? { 
-    useCustomScorer: req.body.config.useCustomScorer, 
-    scorerId: req.body.config.scorerId,
-    evaluationMode: req.body.config.evaluationMode,
-    judgeLlm: req.body.config.judgeLlm ? { provider: req.body.config.judgeLlm.provider, hasKey: !!req.body.config.judgeLlm.apiKey } : null
-  } : 'no config')}`);
 
   try {
     const body = req.body;
     const organizationId = req.organizationId;
     
     if (!organizationId) {
-      console.log("[DeepEval Proxy] No organization ID for API key lookup");
       return next();
     }
 
@@ -46,8 +38,6 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       // TODO: In the future, fetch scorer config from EvalServer to get the actual provider
       const provider = "openai";
       
-      console.log(`[DeepEval Proxy] Custom scorer detected, looking up ${provider} API key for org ${organizationId}`);
-      
       if (VALID_PROVIDERS.includes(provider as LLMProvider)) {
         const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
           organizationId,
@@ -55,10 +45,7 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
         );
         
         if (apiKey) {
-          console.log(`[DeepEval Proxy] ✅ Injecting ${provider} API key for custom scorer (key length: ${apiKey.length})`);
           req.body.config.scorerApiKey = apiKey;
-        } else {
-          console.log(`[DeepEval Proxy] ⚠️ No ${provider} API key found for organization ${organizationId}`);
         }
       }
     }
@@ -69,25 +56,18 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       const hasJudgeApiKey = body.config.judgeLlm.apiKey && body.config.judgeLlm.apiKey !== "***" && body.config.judgeLlm.apiKey !== "";
       
       if (judgeProvider && !hasJudgeApiKey && VALID_PROVIDERS.includes(judgeProvider as LLMProvider)) {
-        console.log(`[DeepEval Proxy] Standard judge detected (${judgeProvider}), looking up API key for org ${organizationId}`);
-        
         const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
           organizationId,
           judgeProvider as LLMProvider
         );
         
         if (apiKey) {
-          console.log(`[DeepEval Proxy] ✅ Injecting ${judgeProvider} API key for judge LLM (key length: ${apiKey.length})`);
           req.body.config.judgeLlm.apiKey = apiKey;
-        } else {
-          console.log(`[DeepEval Proxy] ⚠️ No ${judgeProvider} API key found for organization ${organizationId}`);
         }
-      } else if (hasJudgeApiKey) {
-        console.log(`[DeepEval Proxy] Judge LLM already has API key`);
       }
     }
   } catch (error) {
-    console.error("[DeepEval Proxy] Error injecting API keys:", error);
+    console.error("[DeepEval Proxy] Error in API key injection");
   }
   
   next();
@@ -96,7 +76,6 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
 function deepEvalRoutes() {
   const targetUrl =
     process.env.FAIRNESS_AND_BIAS_URL || "http://127.0.0.1:8000";
-  console.log(`[DeepEval Proxy] Initializing proxy to target: ${targetUrl}`);
 
   const proxy = createProxyMiddleware({
     target: targetUrl,
@@ -104,18 +83,9 @@ function deepEvalRoutes() {
     pathRewrite: { "^/": "/deepeval/" },
     on: {
       proxyReq: (proxyReq, req) => {
-        console.log(
-          `[DeepEval Proxy] Proxying ${req.method} ${req.url} -> ${targetUrl}${proxyReq.path}`
-        );
-        
         // Fix request body - this re-streams the parsed body to the proxy target
         // Required because body-parser consumed the original stream
         fixRequestBody(proxyReq, req as Request);
-      },
-      proxyRes: (proxyRes, req) => {
-        console.log(
-          `[DeepEval Proxy] Response for ${req.url}: ${proxyRes.statusCode}`
-        );
       },
       error: (err, req, res) => {
         const errAny = err as any;

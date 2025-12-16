@@ -107,24 +107,32 @@ export async function getUserFilesMetaData({
  * Upload a file to the file manager
  *
  * @param {File} file - The file to upload
+ * @param {string} model_id - Optional model ID to associate with the file
+ * @param {string} source - Optional source identifier (e.g., "policy_editor", "evidence")
  * @param {AbortSignal} signal - Optional abort signal for cancellation
  * @returns {Promise<FileUploadResponse>} Upload response with file metadata
  */
 export async function uploadFileToManager({
   file,
-  model_id, // add this
+  model_id,
+  source,
   signal,
 }: {
   file: File;
-  model_id?: string | number | undefined | null; // allow all safe cases
+  model_id?: string | number | undefined | null;
+  source?: string;
   signal?: AbortSignal;
 }): Promise<FileUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
-   // Append model_id only if it's defined and valid
-  formData.append("model_id", model_id ? String(model_id) : ""); // ✅ always present
+  // Append model_id only if it's defined and valid
+  formData.append("model_id", model_id ? String(model_id) : "");
 
+  // Append source to identify where the file was uploaded from
+  if (source) {
+    formData.append("source", source);
+  }
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary
   const response = await apiServices.post<FileUploadResponse>("/file-manager", formData, {

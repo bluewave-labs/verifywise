@@ -12,8 +12,7 @@
 
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
-import { FileManagerModel, FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
-import { FileAccessLogModel } from "../domain.layer/models/fileManager/fileAccessLog.model";
+import { FileManagerMetadata } from "../domain.layer/models/fileManager/fileManager.model";
 import sanitizeFilename from "sanitize-filename"; // Industry-standard filename sanitization
 
 /**
@@ -30,19 +29,21 @@ export const uploadFileToManager = async (
   userId: number,
   orgId: number,
   tenant: string,
-  modelId?: number
+  modelId?: number,
+  source?: string
 ): Promise<any> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   // Sanitize filename to remove dangerous characters
   const safeName = sanitizeFilename(file.originalname) || "file";
 
-    // Insert file metadata and content into database
-    const query = `
+  // Insert file metadata and content into database
+  const query = `
     INSERT INTO "${tenant}".file_manager
-      (filename, size, mimetype, file_path, uploaded_by, upload_date, model_id,  org_id, is_demo)
+      (filename, size, mimetype, file_path, content, uploaded_by, upload_date, model_id, org_id, is_demo, source)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :uploaded_by, NOW(), :model_id, :org_id, false)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source)
     RETURNING *
     `;
 
@@ -53,8 +54,10 @@ export const uploadFileToManager = async (
       mimetype: file.mimetype,
       uploaded_by: userId,
       org_id: orgId,
-      model_id: modelId !== undefined ? modelId : null, 
-      file_path: safeName
+      model_id: modelId !== undefined ? modelId : null,
+      file_path: safeName,
+      content: file.buffer, // Store the actual file content
+      source: source || null,
     },
     type: QueryTypes.SELECT,
   });
@@ -69,9 +72,13 @@ export const uploadFileToManager = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<any>} File metadata
  */
-export const getFileById = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<any> => {
-
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+export const getFileById = async (
+  fileId: number,
+  tenant: string,
+  isFileManagerFile: boolean = false
+): Promise<any> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   let query = `
     SELECT * FROM "${tenant}".file_manager
@@ -105,11 +112,13 @@ export const getFilesByOrganization = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<{ files: FileManagerMetadata[]; total: number }> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const { limit, offset } = options;
 
   // Get files with uploader info (files are now stored in database)
+  // Exclude files with source='policy_editor' as they are embedded images, not evidence
   let query = `
     SELECT
       fm.id,
@@ -123,6 +132,7 @@ export const getFilesByOrganization = async (
     FROM "${tenant}".file_manager fm
     JOIN public.users u ON fm.uploaded_by = u.id
     WHERE fm.org_id = :orgId
+      AND (fm.source IS NULL OR fm.source != 'policy_editor')
     ORDER BY fm.upload_date DESC
   `;
 
@@ -138,11 +148,12 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  // Get total count for pagination
+  // Get total count for pagination (excluding policy_editor files)
   const totalCountQuery = `
     SELECT COUNT(*) as count
     FROM "${tenant}".file_manager
     WHERE org_id = :orgId
+      AND (source IS NULL OR source != 'policy_editor')
   `;
 
   const countResult = await sequelize.query(totalCountQuery, {
@@ -172,7 +183,8 @@ export const logFileAccess = async (
   action: "download" | "view",
   tenant: string
 ): Promise<void> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const query = `
     INSERT INTO "${tenant}".file_access_logs
@@ -199,8 +211,13 @@ export const logFileAccess = async (
  * @param {string} tenant - Tenant hash
  * @returns {Promise<boolean>} True if file was deleted successfully
  */
-export const deleteFile = async (fileId: number, tenant: string, isFileManagerFile: boolean = false): Promise<boolean> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+export const deleteFile = async (
+  fileId: number,
+  tenant: string,
+  isFileManagerFile: boolean = false
+): Promise<boolean> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   // Delete from database (file content is stored in database)
   let query = `
@@ -238,7 +255,8 @@ export const getFileAccessLogs = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<any[]> => {
-  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant))
+    throw new Error("Invalid tenant identifier");
 
   const { limit, offset } = options;
 

@@ -1,4 +1,11 @@
-import React, { useState, useCallback, useMemo, lazy, Suspense, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  lazy,
+  Suspense,
+  useEffect,
+} from "react";
 import {
   Box,
   Typography,
@@ -27,7 +34,7 @@ import {
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
-import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import ButtonToggle from "../../../components/ButtonToggle";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -90,6 +97,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [alert]);
 
   const roleItems = useMemo(
@@ -168,12 +176,20 @@ const TeamManagement: React.FC = (): JSX.Element => {
             refreshUsers();
           }, 500);
         } else {
-          showAlert("error", "Error", (response as any)?.data?.message || "An error occurred.");
+          showAlert(
+            "error",
+            "Error",
+            (response as any)?.data?.message || "An error occurred."
+          );
         }
       } catch (error) {
-        showAlert("error", "Error", `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`);
+        showAlert(
+          "error",
+          "Error",
+          `An error occurred: ${
+            (error as Error).message || "Please try again."
+          }`
+        );
       }
     },
     [teamUsers, refreshUsers, showAlert]
@@ -197,13 +213,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
       if (response && response.status === 202) {
         showAlert("success", "Success", "User deleted successfully");
         refreshUsers();
+      } else if (response && response.status === 403) {
+        // Demo user cannot be deleted - show info message
+        showAlert(
+          "info",
+          "Info",
+          response.data?.message || "This user cannot be deleted"
+        );
       } else {
         showAlert("error", "Error", "User deletion failed");
       }
     } catch (error) {
-      showAlert("error", "Error", `An error occurred: ${
-        (error as Error).message || "Please try again."
-      }`);
+      showAlert(
+        "error",
+        "Error",
+        `An error occurred: ${(error as Error).message || "Please try again."}`
+      );
     }
 
     handleClose();
@@ -276,8 +301,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
       // Handle different column types for team members
       if (sortKey.includes("name")) {
-        const aFullName = [a.name, a.surname].filter(Boolean).join(" ").toLowerCase();
-        const bFullName = [b.name, b.surname].filter(Boolean).join(" ").toLowerCase();
+        const aFullName = [a.name, a.surname]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        const bFullName = [b.name, b.surname]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
         aValue = aFullName;
         bValue = bFullName;
       } else if (sortKey.includes("email")) {
@@ -285,8 +316,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
         bValue = b.email?.toLowerCase() || "";
       } else if (sortKey.includes("role")) {
         // Get role names for sorting
-        const aRole = roles.find((r) => r.id.toString() === a.roleId?.toString());
-        const bRole = roles.find((r) => r.id.toString() === b.roleId?.toString());
+        const aRole = roles.find(
+          (r) => r.id.toString() === a.roleId?.toString()
+        );
+        const bRole = roles.find(
+          (r) => r.id.toString() === b.roleId?.toString()
+        );
         aValue = aRole?.name?.toLowerCase() || "";
         bValue = bRole?.name?.toLowerCase() || "";
       } else {
@@ -342,11 +377,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
     link: string | undefined = undefined
   ) => {
     if (status === 200) {
-      showAlert("success", "Success", `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`);
+      showAlert(
+        "success",
+        "Success",
+        `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`
+      );
     } else if (status === 206) {
-      showAlert("info", "Info", `Invitation sent to ${email}. Please use this link: ${link} to create an account.`);
+      showAlert(
+        "info",
+        "Info",
+        `Invitation sent to ${email}. Please use this link: ${link} to create an account.`
+      );
     } else {
-      showAlert("error", "Error", `Failed to send invitation to ${email}. Please try again.`);
+      showAlert(
+        "error",
+        "Error",
+        `Failed to send invitation to ${email}. Please try again.`
+      );
     }
 
     setInviteUserModalOpen(false);
@@ -401,7 +448,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   ...roleItems.map((role) => ({
                     value: role._id.toString(),
                     label: role.name,
-                    count: teamUsers.filter((user) => user.roleId === role._id).length,
+                    count: teamUsers.filter((user) => user.roleId === role._id)
+                      .length,
                   })),
                 ]}
                 value={filter}
@@ -446,13 +494,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             key={column.id}
                             sx={{
                               ...singleTheme.tableStyles.primary.header.cell,
-                              ...(isLastColumn && {
-                                position: "sticky",
-                                right: 0,
-                                backgroundColor:
-                                  singleTheme.tableStyles.primary.header
-                                    .backgroundColors,
-                              }),
                               ...(!isLastColumn && sortable
                                 ? {
                                     cursor: "pointer",
@@ -477,7 +518,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 variant="body2"
                                 sx={{
                                   fontWeight: 500,
-                                  color: sortConfig.key === column.label ? "primary.main" : "inherit",
+                                  color:
+                                    sortConfig.key === column.label
+                                      ? "primary.main"
+                                      : "inherit",
                                   textTransform: "uppercase",
                                 }}
                               >
@@ -488,15 +532,20 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                   sx={{
                                     display: "flex",
                                     alignItems: "center",
-                                    color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                                    color:
+                                      sortConfig.key === column.label
+                                        ? "primary.main"
+                                        : "#9CA3AF",
                                   }}
                                 >
-                                  {sortConfig.key === column.label && sortConfig.direction === "asc" && (
-                                    <ChevronUp size={16} />
-                                  )}
-                                  {sortConfig.key === column.label && sortConfig.direction === "desc" && (
-                                    <ChevronDown size={16} />
-                                  )}
+                                  {sortConfig.key === column.label &&
+                                    sortConfig.direction === "asc" && (
+                                      <ChevronUp size={16} />
+                                    )}
+                                  {sortConfig.key === column.label &&
+                                    sortConfig.direction === "desc" && (
+                                      <ChevronDown size={16} />
+                                    )}
                                   {sortConfig.key !== column.label && (
                                     <ChevronsUpDown size={16} />
                                   )}
@@ -523,7 +572,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("name") ? "#e8e8e8" : "#fafafa",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("name")
+                                    ? "#e8e8e8"
+                                    : "#fafafa",
                               }}
                             >
                               {[member.name, member.surname]
@@ -534,7 +587,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
                                 textTransform: "none",
-                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("email") ? "#f5f5f5" : "inherit",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("email")
+                                    ? "#f5f5f5"
+                                    : "inherit",
                               }}
                             >
                               {member.email}
@@ -542,7 +599,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("role") ? "#f5f5f5" : "inherit",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key.toLowerCase().includes("role")
+                                    ? "#f5f5f5"
+                                    : "inherit",
                               }}
                             >
                               <Select
@@ -586,10 +647,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                position: "sticky",
-                                right: 0,
                                 minWidth: "50px",
-                                backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("action") ? "#f5f5f5" : "inherit",
+                                backgroundColor:
+                                  sortConfig.key &&
+                                  sortConfig.key
+                                    .toLowerCase()
+                                    .includes("action")
+                                    ? "#f5f5f5"
+                                    : "inherit",
                               }}
                             >
                               <IconButton
@@ -688,7 +753,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
               </TableContainer>
 
               {open && (
-                <DualButtonModal
+                <ConfirmationModal
                   title="Confirm delete"
                   body={
                     <Typography fontSize={13}>

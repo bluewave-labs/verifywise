@@ -15,7 +15,7 @@ import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../../domain/interfaces/i.alert";
 import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDrawerDialog";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
@@ -27,7 +27,7 @@ import { Project } from "../../../../../domain/types/Project";
 import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO42001Clause = ({
-  project,
+  project: _project,
   projectFrameworkId,
   statusFilter,
   ownerFilter,
@@ -68,7 +68,7 @@ const ISO42001Clause = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [_selectedIndex, setSelectedIndex] = useState<number>(0);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -451,14 +451,12 @@ const ISO42001Clause = ({
             }
             handleDrawerClose();
           }}
-          subClause={selectedSubClause}
+          subclause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}
-          project_id={Number(project.id)}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
-          index={selectedIndex}
         />
       )}
     </Stack>

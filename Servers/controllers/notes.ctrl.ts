@@ -23,11 +23,7 @@ import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
-import {
-  logFailure,
-  logProcessing,
-  logSuccess,
-} from "../utils/logger/logHelper";
+import { logFailure, logProcessing } from "../utils/logger/logHelper";
 
 /**
  * Create a new note

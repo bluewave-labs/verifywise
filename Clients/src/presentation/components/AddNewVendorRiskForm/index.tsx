@@ -19,9 +19,9 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
-import { RiskSectionProps } from "../../../domain/interfaces/iRiskForm";
-import { FormErrors, FormValues } from "../../../domain/interfaces/iForm";
+import { AlertProps } from "../../../domain/interfaces/i.alert";
+import { RiskSectionProps } from "../../../domain/interfaces/i.riskForm";
+import { FormErrors, FormValues } from "../../../domain/interfaces/i.form";
 
 // Types
 interface Vendor {

@@ -1,6 +1,5 @@
 import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
-import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
 import Integrations from "../../presentation/pages/Integrations";
 import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
@@ -17,14 +16,12 @@ import SetNewPassword from "../../presentation/pages/Authentication/SetNewPasswo
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
-import Playground from "../../presentation/pages";
 import VWHome from "../../presentation/pages/Home/1.0Home";
 import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
 import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import EvalsDashboard from "../../presentation/pages/EvalsDashboard/EvalsDashboard";
 import OrgSettings from "../../presentation/pages/EvalsDashboard/OrgSettings";
-import BuiltInDatasetsPage from "../../presentation/pages/EvalsDashboard/BuiltInDatasetsPage";
 import DatasetEditorPage from "../../presentation/pages/EvalsDashboard/DatasetEditorPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
@@ -47,7 +44,7 @@ const isDev = import.meta.env.DEV;
 
 export const createRoutes = (
   triggerSidebar: boolean,
-  triggerSidebarReload: () => void
+  _triggerSidebarReload: () => void
 ) => [
   <Route
     key="dashboard"
@@ -56,10 +53,6 @@ export const createRoutes = (
       <ProtectedRoute Component={Dashboard} reloadTrigger={triggerSidebar} />
     }
   >
-    <Route
-      path="/test"
-      element={<Home onProjectUpdate={triggerSidebarReload} />}
-    />
     <Route path="/vendors" element={<Vendors />}>
       <Route index element={<Vendors />} /> {/* Default tab */}
       <Route path="risks" element={<Vendors />} /> {/* Risks tab */}
@@ -80,7 +73,6 @@ export const createRoutes = (
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/evals" element={<EvalsDashboard />} />
     <Route path="/evals/:projectId" element={<EvalsDashboard />} />
-    <Route path="/evals/:projectId/datasets/built-in" element={<BuiltInDatasetsPage />} />
     <Route path="/evals/:projectId/datasets/editor" element={<DatasetEditorPage />} />
     <Route path="/evals/settings" element={<OrgSettings />} />
     <Route path="/training" element={<Training />} />
@@ -141,8 +133,7 @@ export const createRoutes = (
     path="/reset-password-continue"
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
   />,
-  <Route key="playground" path="/playground" element={<Playground />} />,
-  // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
+// <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   // Style Guide - Development only

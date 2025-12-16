@@ -28,6 +28,8 @@
  * - ISO_42001_ANNEX: ISO 42001 annexes
  * - ISO_27001_CLAUSE: ISO 27001 clauses
  * - ISO_27001_ANNEX: ISO 27001 annexes
+ * - EU_AI_ACT_QUESTION: EU AI Act assessment questions
+ * - EU_AI_ACT_SUBCONTROL: EU AI Act subcontrols
  * - VENDOR: Vendor entities
  * - RISK: Risk entities
  * - CONTROL: Control entities
@@ -54,6 +56,8 @@ export enum NotesAttachedToEnum {
   ISO_42001_ANNEX = "ISO_42001_ANNEX",
   ISO_27001_CLAUSE = "ISO_27001_CLAUSE",
   ISO_27001_ANNEX = "ISO_27001_ANNEX",
+  EU_AI_ACT_QUESTION = "EU_AI_ACT_QUESTION",
+  EU_AI_ACT_SUBCONTROL = "EU_AI_ACT_SUBCONTROL",
   VENDOR = "VENDOR",
   RISK = "RISK",
   CONTROL = "CONTROL",
@@ -95,6 +99,8 @@ export class NotesModel extends Model<NotesModel> {
       NotesAttachedToEnum.ISO_42001_ANNEX,
       NotesAttachedToEnum.ISO_27001_CLAUSE,
       NotesAttachedToEnum.ISO_27001_ANNEX,
+      NotesAttachedToEnum.EU_AI_ACT_QUESTION,
+      NotesAttachedToEnum.EU_AI_ACT_SUBCONTROL,
       NotesAttachedToEnum.VENDOR,
       NotesAttachedToEnum.RISK,
       NotesAttachedToEnum.CONTROL

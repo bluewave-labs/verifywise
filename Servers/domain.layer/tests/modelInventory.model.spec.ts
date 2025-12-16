@@ -1,5 +1,4 @@
 import { ModelInventoryStatus } from "../enums/model-inventory-status.enum";
-import { ValidationException } from "../exceptions/custom.exception";
 
 // Mock sequelize-typescript completely
 jest.mock("sequelize-typescript", () => ({

@@ -4,12 +4,17 @@ import {
   Typography,
   CircularProgress,
   Chip,
+  Card,
+  CardContent,
+  useTheme,
+  Stack,
 } from "@mui/material";
-import { Play, Beaker, ChevronRight } from "lucide-react";
+import { Play, Beaker, ChevronRight, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
+import { cardStyles } from "../../themes";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import VWLink from "../../components/Link/VWLink";
 import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalProjectsService";
-import { experimentsService, type Experiment } from "../../../infrastructure/api/evaluationLogsService";
+import { experimentsService, monitoringService, type Experiment, type MonitorDashboard } from "../../../infrastructure/api/evaluationLogsService";
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +26,109 @@ interface ProjectOverviewProps {
   onViewExperiment?: (experimentId: string) => void;
 }
 
+// Stat card component matching IntegratedDashboard MetricCard style
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  Icon: LucideIcon;
+  subtitle?: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => {
+  const theme = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Card
+      elevation={0}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      sx={{
+        ...(cardStyles.base(theme) as any),
+        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+        border: "1px solid #DCDFE3",
+        height: "100%",
+        minHeight: "90px",
+        position: "relative",
+        transition: "all 0.2s ease",
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+        borderRadius: "4px",
+        overflow: "hidden",
+        "&:hover": {
+          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+        },
+      }}
+    >
+      <CardContent
+        sx={{
+          p: 2,
+          position: "relative",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          overflow: "hidden",
+          "&:last-child": { pb: 2 },
+        }}
+      >
+        {/* Background Icon */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-24px",
+            right: "-24px",
+            opacity: isHovered ? 0.06 : 0.025,
+            transform: isHovered ? "translateY(-5px)" : "translateY(0px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            transition: "opacity 0.2s ease, transform 0.3s ease",
+          }}
+        >
+          <Icon size={80} />
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontSize: "12px",
+              fontWeight: 400,
+              mb: 1,
+            }}
+          >
+            {title}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "28px",
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              lineHeight: 1.2,
+            }}
+          >
+            {value}
+          </Typography>
+          {subtitle && (
+            <Typography
+              sx={{
+                fontSize: "11px",
+                color: theme.palette.text.secondary,
+                mt: 0.5,
+              }}
+            >
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function ProjectOverview({
   projectId,
   project,
@@ -30,6 +138,7 @@ export default function ProjectOverview({
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [experiments, setExperiments] = useState<Experiment[]>([]);
+  const [dashboardData, setDashboardData] = useState<MonitorDashboard | null>(null);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
   const loadOverviewData = useCallback(async () => {
@@ -42,9 +151,14 @@ export default function ProjectOverview({
         onProjectUpdate(projectData.project);
       }
 
-      // Load experiments
-      const experimentsData = await experimentsService.getExperiments({ project_id: projectId, limit: 10 });
+      // Load experiments and dashboard data in parallel
+      const [experimentsData, dashboardResponse] = await Promise.all([
+        experimentsService.getExperiments({ project_id: projectId, limit: 10 }),
+        monitoringService.getDashboard(projectId).catch(() => ({ data: null })),
+      ]);
+
       setExperiments(experimentsData.experiments || []);
+      setDashboardData(dashboardResponse.data);
     } catch (err) {
       console.error("Failed to load overview data:", err);
     } finally {
@@ -65,6 +179,31 @@ export default function ProjectOverview({
     loadOverviewData();
   };
 
+  // Format numbers for display
+  const formatNumber = (num: number | undefined, decimals = 0): string => {
+    if (num === undefined || num === null || isNaN(num)) return "-";
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toFixed(decimals);
+  };
+
+  const formatLatency = (ms: number | undefined): string => {
+    if (ms === undefined || ms === null || isNaN(ms)) return "-";
+    if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
+    return `${Math.round(ms)}ms`;
+  };
+
+  const formatPercentage = (rate: number | undefined): string => {
+    if (rate === undefined || rate === null || isNaN(rate)) return "-";
+    const successRate = 100 - rate;
+    return `${successRate.toFixed(1)}%`;
+  };
+
+  const formatScore = (score: number | undefined): string => {
+    if (score === undefined || score === null || isNaN(score)) return "-";
+    return score.toFixed(2);
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" py={8}>
@@ -75,18 +214,35 @@ export default function ProjectOverview({
 
   const hasExperiments = experiments.length > 0;
 
+  // Extract metrics from dashboard data
+  const totalEvals = dashboardData?.logs?.total ?? 0;
+  const successRate = dashboardData?.logs?.error_rate !== undefined
+    ? formatPercentage(dashboardData.logs.error_rate)
+    : "-";
+  const avgLatency = dashboardData?.metrics?.latency?.average !== undefined
+    ? formatLatency(dashboardData.metrics.latency.average)
+    : "-";
+  const avgScore = dashboardData?.metrics?.score_average?.average !== undefined
+    ? formatScore(dashboardData.metrics.score_average.average)
+    : "-";
+  const totalTokens = dashboardData?.metrics?.token_count?.average !== undefined && dashboardData?.logs?.total
+    ? formatNumber(dashboardData.metrics.token_count.average * dashboardData.logs.total)
+    : "-";
+
   return (
     <Box>
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Overview
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
+        </Typography>
+      </Stack>
+
       {/* Header with New Experiment button */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Box>
-          <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 600 }}>
-            Project overview
-          </Typography>
-          <Typography variant="body2" sx={{ fontSize: "13px", color: "#6B7280", mt: 0.5 }}>
-            Track your LLM evaluation experiments and monitor performance metrics
-          </Typography>
-        </Box>
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
         <CustomizableButton
           onClick={handleNewExperiment}
           variant="contained"
@@ -103,17 +259,36 @@ export default function ProjectOverview({
         />
       </Box>
 
-      {/* Two-column layout */}
-      <Box sx={{ display: "flex", gap: "16px" }}>
-        {/* Column 1: Recent experiments */}
-        <Box
-          sx={{
-            flex: 1,
-            borderRadius: 2,
-          }}
-        >
-          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "15px" }}>
+      {/* Top row: 4 stat cards */}
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", mb: "16px" }}>
+        <StatCard
+          title="Total evaluations"
+          value={formatNumber(totalEvals)}
+          Icon={Activity}
+        />
+        <StatCard
+          title="Success rate"
+          value={successRate}
+          Icon={CheckCircle}
+        />
+        <StatCard
+          title="Avg latency"
+          value={avgLatency}
+          Icon={Clock}
+        />
+        <StatCard
+          title="Avg score"
+          value={avgScore}
+          Icon={Star}
+        />
+      </Box>
+
+      {/* Bottom row: Experiments table (left 50%) + Stats cards (right 50%) */}
+      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        {/* Recent experiments */}
+        <Box sx={{ flex: 1 }}>
+          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: "14px" }}>
               Recent experiments
             </Typography>
             {hasExperiments && (
@@ -122,18 +297,19 @@ export default function ProjectOverview({
                 showIcon={false}
                 sx={{ fontSize: "12px" }}
               >
-                View all experiments
+                View all
               </VWLink>
             )}
           </Box>
 
-          {/* Recent experiments list - always show this layout */}
+          {/* Recent experiments list */}
           <Box sx={{
             display: "flex",
             flexDirection: "column",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             overflow: "hidden",
+            backgroundColor: "#FFFFFF",
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */
@@ -259,23 +435,21 @@ export default function ProjectOverview({
           </Box>
         </Box>
 
-        {/* Column 2: Placeholder for future content */}
-        <Box
-          sx={{
-            flex: 1,
-            borderRadius: 2,
-            p: 4,
-            backgroundColor: "#FFFFFF",
-            border: "1px dashed #d0d5dd",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 200,
-          }}
-        >
-          <Typography sx={{ color: "#9CA3AF", fontSize: "14px" }}>
-            Coming soon
-          </Typography>
+        {/* Right side: Two stat cards stacked */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <Box sx={{ height: 24 }} /> {/* Spacer to align with table header */}
+          <StatCard
+            title="Total tokens"
+            value={totalTokens}
+            Icon={Coins}
+            subtitle="Across all evaluations"
+          />
+          <StatCard
+            title="Experiments"
+            value={formatNumber(experiments.length)}
+            Icon={Beaker}
+            subtitle="Total experiments run"
+          />
         </Box>
       </Box>
 

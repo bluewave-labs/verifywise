@@ -17,4 +17,5 @@ export type Subcontrol = {
   feedback_description?: string;
   evidence_files?: FileData[];
   feedback_files?: FileData[];
+  risks?: number[];
 };

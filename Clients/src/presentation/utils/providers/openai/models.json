@@ -1,0 +1,25 @@
+{
+  "provider": "openai",
+  "displayName": "OpenAI",
+  "models": [
+    { "id": "gpt-5.2", "name": "GPT-5.2", "description": "Latest flagship model", "inputCost": 1.75, "outputCost": 14.00 },
+    { "id": "gpt-5.1", "name": "GPT-5.1", "description": "Previous flagship", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5", "name": "GPT-5", "description": "Fifth generation", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5-mini", "name": "GPT-5 Mini", "description": "Compact GPT-5", "inputCost": 0.25, "outputCost": 2.00 },
+    { "id": "gpt-5-nano", "name": "GPT-5 Nano", "description": "Smallest GPT-5", "inputCost": 0.05, "outputCost": 0.40 },
+    { "id": "gpt-5.2-chat-latest", "name": "GPT-5.2 Chat", "description": "Latest chat optimized", "inputCost": 1.75, "outputCost": 14.00 },
+    { "id": "gpt-5.1-chat-latest", "name": "GPT-5.1 Chat", "description": "Chat optimized", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5-chat-latest", "name": "GPT-5 Chat", "description": "Chat optimized", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5.1-codex-max", "name": "GPT-5.1 Codex Max", "description": "Max code generation", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5.1-codex", "name": "GPT-5.1 Codex", "description": "Code generation", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5-codex", "name": "GPT-5 Codex", "description": "Code generation", "inputCost": 1.25, "outputCost": 10.00 },
+    { "id": "gpt-5.2-pro", "name": "GPT-5.2 Pro", "description": "Pro tier flagship", "inputCost": 21.00, "outputCost": 168.00 },
+    { "id": "gpt-5-pro", "name": "GPT-5 Pro", "description": "Pro tier", "inputCost": 15.00, "outputCost": 120.00 },
+    { "id": "gpt-4.1", "name": "GPT-4.1", "description": "Updated GPT-4", "inputCost": 2.00, "outputCost": 8.00 },
+    { "id": "gpt-4.1-mini", "name": "GPT-4.1 Mini", "description": "Compact GPT-4.1", "inputCost": 0.40, "outputCost": 1.60 },
+    { "id": "gpt-4.1-nano", "name": "GPT-4.1 Nano", "description": "Smallest GPT-4.1", "inputCost": 0.10, "outputCost": 0.40 },
+    { "id": "gpt-4o", "name": "GPT-4o", "description": "Omni model", "inputCost": 2.50, "outputCost": 10.00 },
+    { "id": "gpt-4o-2024-05-13", "name": "GPT-4o (May 2024)", "description": "Dated snapshot", "inputCost": 5.00, "outputCost": 15.00 },
+    { "id": "gpt-4o-mini", "name": "GPT-4o Mini", "description": "Fast and affordable", "inputCost": 0.15, "outputCost": 0.60 }
+  ]
+}

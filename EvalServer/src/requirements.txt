@@ -20,7 +20,7 @@ eval_type_backport==0.2.2
 execnet==2.1.1
 fairlearn==0.13.0
 fastapi==0.121.0
-filelock==3.20.0
+filelock==3.20.1
 frozenlist==1.8.0
 fsspec==2025.10.0
 google-ai-generativelanguage==0.6.15

@@ -39,8 +39,8 @@ async def create_project(
         result = await db.execute(
             text(f'''
                 INSERT INTO "{schema_name}".deepeval_projects
-                (id, name, description, org_id, created_by)
-                VALUES (:id, :name, :description, :org_id, :created_by)
+                (id, name, description, org_id, tenant, created_by)
+                VALUES (:id, :name, :description, :org_id, :tenant, :created_by)
                 RETURNING id, name, description, org_id, created_at, updated_at, created_by
             '''),
             {
@@ -48,6 +48,7 @@ async def create_project(
                 "name": name,
                 "description": description,
                 "org_id": org_id,
+                "tenant": schema_name,
                 "created_by": created_by
             }
         )
@@ -55,14 +56,15 @@ async def create_project(
         result = await db.execute(
             text(f'''
                 INSERT INTO "{schema_name}".deepeval_projects
-                (id, name, description, created_by)
-                VALUES (:id, :name, :description, :created_by)
+                (id, name, description, tenant, created_by)
+                VALUES (:id, :name, :description, :tenant, :created_by)
                 RETURNING id, name, description, NULL::varchar as org_id, created_at, updated_at, created_by
             '''),
             {
                 "id": project_id,
                 "name": name,
                 "description": description,
+                "tenant": schema_name,
                 "created_by": created_by
             }
         )

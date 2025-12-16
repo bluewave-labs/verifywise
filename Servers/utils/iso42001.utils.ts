@@ -279,7 +279,7 @@ export const getSubClausesByClauseIdQuery = async (
 
 export const getSubClauseByIdForProjectQuery = async (
   subClauseId: number,
-  projectFrameworkId: number,
+  _projectFrameworkId: number,
   tenant: string
 ) => {
   const subClause = await getSubClauseByIdQuery(subClauseId, tenant);

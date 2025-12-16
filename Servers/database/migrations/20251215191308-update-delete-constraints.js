@@ -12,7 +12,7 @@ module.exports = {
         (tenantHash) => `ALTER TABLE "${tenantHash}".policy_manager DROP CONSTRAINT policy_manager_author_id_fkey, ADD CONSTRAINT policy_manager_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users (id) ON DELETE SET NULL;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".model_risks DROP CONSTRAINT model_risks_model_id_fkey, ADD CONSTRAINT model_risks_model_id_fkey FOREIGN KEY (model_id) REFERENCES "${tenantHash}".model_inventories(id) ON DELETE SET NULL;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".file_manager DROP CONSTRAINT file_manager_uploaded_by_fkey, ADD CONSTRAINT file_manager_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id) ON DELETE SET NULL;`,
-        (tenantHash) => `ALTER TABLE "${tenantHash}".shared_links DROP CONSTRAINT shared_links_created_by_fkey, ADD CONSTRAINT shared_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;`,
+        (tenantHash) => `ALTER TABLE "${tenantHash}".share_links DROP CONSTRAINT share_links_created_by_fkey, ADD CONSTRAINT share_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".notes DROP CONSTRAINT notes_author_id_fkey, ADD CONSTRAINT notes_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE SET NULL;`,
       ]
 
@@ -49,7 +49,7 @@ module.exports = {
         (tenantHash) => `ALTER TABLE "${tenantHash}".policy_manager DROP CONSTRAINT policy_manager_author_id_fkey, ADD CONSTRAINT policy_manager_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users (id) ON DELETE CASCADE;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".model_risks DROP CONSTRAINT model_risks_model_id_fkey, ADD CONSTRAINT model_risks_model_id_fkey FOREIGN KEY (model_id) REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".file_manager DROP CONSTRAINT file_manager_uploaded_by_fkey, ADD CONSTRAINT file_manager_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(id) ON DELETE CASCADE;`,
-        (tenantHash) => `ALTER TABLE "${tenantHash}".shared_links DROP CONSTRAINT shared_links_created_by_fkey, ADD CONSTRAINT shared_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE CASCADE;`,
+        (tenantHash) => `ALTER TABLE "${tenantHash}".share_links DROP CONSTRAINT share_links_created_by_fkey, ADD CONSTRAINT share_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE CASCADE;`,
         (tenantHash) => `ALTER TABLE "${tenantHash}".notes DROP CONSTRAINT notes_author_id_fkey, ADD CONSTRAINT notes_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE CASCADE;`,
       ]
 

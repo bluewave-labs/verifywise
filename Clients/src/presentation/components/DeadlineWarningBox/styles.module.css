@@ -4,33 +4,52 @@
 
 /* Main Container */
 .deadlineWarningBox {
-    margin-bottom: 1rem;
-    animation: slideDown 0.3s ease-out;
+    margin-bottom: 1.5rem;
+    animation: slideDown 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-12px) scale(0.98);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 /* Info Box Override */
 .infoBox {
-    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
-    border: 1px solid #fcd34d;
-    border-radius: 8px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.2s ease;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.infoBox::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
 }
 
 .infoBox:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
 }
 
 /* Header */
@@ -38,54 +57,79 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .warningTitle {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: #78350f;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    gap: 10px;
+    color: #f1f5f9;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.warningTitle h3 {
+    margin: 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .titleIcon {
-    color: #d97706;
+    color: #fbbf24;
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.3));
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .menuButton {
-    background: none;
-    border: none;
-    padding: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px;
     cursor: pointer;
-    color: #92400e;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
+    color: #cbd5e1;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
 }
 
 .menuButton:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #f1f5f9;
+    transform: scale(1.05);
 }
 
 .menuButton:focus-visible {
-    outline: 2px solid #d97706;
+    outline: 2px solid #fbbf24;
     outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2);
 }
 
 /* Content */
 .warningContent {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 /* Chip Container */
 .chipContainer {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
     align-items: center;
 }
 
@@ -93,73 +137,118 @@
 .deadlineChip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 6px;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 2px solid transparent;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.deadlineChip::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s;
+}
+
+.deadlineChip:hover::before {
+    left: 100%;
 }
 
 .deadlineChip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .deadlineChip:focus-visible {
-    outline: 2px solid #d97706;
-    outline-offset: 2px;
+    outline: 2px solid #fbbf24;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.2);
 }
 
 .deadlineChip.chipSelected {
-    border-color: #78350f;
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.15);
+    transform: scale(1.02);
 }
 
 /* Overdue Chip */
 .deadlineChip.overdue {
-    background-color: #fee2e2;
-    color: #dc2626;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 50%, rgba(185, 28, 28, 0.9) 100%);
+    color: #ffffff;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .deadlineChip.overdue:hover {
-    background-color: #fca5a5;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 1) 0%, rgba(220, 38, 38, 1) 50%, rgba(185, 28, 28, 1) 100%);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
 }
 
 /* Due Soon Chip */
 .deadlineChip.dueSoon {
-    background-color: #fef3c7;
-    color: #d97706;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(234, 179, 8, 0.9) 50%, rgba(202, 138, 4, 0.9) 100%);
+    color: #ffffff;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .deadlineChip.dueSoon:hover {
-    background-color: #fcd34d;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 1) 0%, rgba(234, 179, 8, 1) 50%, rgba(202, 138, 4, 1) 100%);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
 }
 
 .chipIcon {
     font-size: 16px;
     line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .chipCount {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 700;
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .chipLabel {
-    font-size: 13px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
 }
 
 /* Filter Hint */
 .filterHint {
-    font-size: 12px;
-    color: #92400e;
+    font-size: 13px;
+    color: #cbd5e1;
     margin: 0;
-    padding: 8px 12px;
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ==========================================

@@ -1,705 +1,409 @@
-/**
- * @fileoverview DeadlineWarningBox Styles
- *
- * CSS module for deadline warning box component styling.
- * Provides responsive design, animations, and visual enhancements.
- *
- * This module complements Material-UI styling with custom animations
- * and responsive behavior for optimal user experience.
- */
+/* ==========================================
+   Deadline Warning Box Styles
+   ========================================== */
 
-/* Container Styles */
+/* Main Container */
 .deadlineWarningBox {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.5;
+    margin-bottom: 1rem;
+    animation: slideDown 0.3s ease-out;
 }
 
-.deadlineWarningBox * {
-  box-sizing: border-box;
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Header Styles */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
-  border-bottom: 1px solid #e0e0e0;
-  min-height: 72px;
+/* Info Box Override */
+.infoBox {
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
 }
 
-.headerContent {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.infoBox:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.title {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1a1a1a;
-  margin: 0;
+/* Header */
+.warningHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
 
-.subtitle {
-  font-size: 0.75rem;
-  color: #666;
-  font-weight: 400;
-  opacity: 0.8;
+.warningTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #78350f;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
-.badgeIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  position: relative;
-  transition: all 0.2s ease;
+.titleIcon {
+    color: #d97706;
 }
 
-.badgeIcon:hover {
-  transform: scale(1.05);
+.menuButton {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #92400e;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
 }
 
-.badgeIcon.overdue {
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-  color: #c62828;
+.menuButton:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
-.badgeIcon.dueSoon {
-  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-  color: #f57c00;
+.menuButton:focus-visible {
+    outline: 2px solid #d97706;
+    outline-offset: 2px;
 }
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* Content */
+.warningContent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.actionButton {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: #666;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
+/* Chip Container */
+.chipContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
 }
 
-.actionButton:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: #333;
+/* Deadline Chip */
+.deadlineChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
 }
 
-.actionButton:active {
-  background: rgba(0, 0, 0, 0.08);
-  transform: scale(0.95);
+.deadlineChip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Chips Container */
-.chipsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  padding: 16px 24px;
-  min-height: 60px;
+.deadlineChip:focus-visible {
+    outline: 2px solid #d97706;
+    outline-offset: 2px;
 }
 
-.chipsWrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  flex: 1;
+.deadlineChip.chipSelected {
+    border-color: #78350f;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
 }
 
-/* Chip Styles */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border: 1.5px solid;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 200px;
+/* Overdue Chip */
+.deadlineChip.overdue {
+    background-color: #fee2e2;
+    color: #dc2626;
 }
 
-.chip::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s ease;
+.deadlineChip.overdue:hover {
+    background-color: #fca5a5;
 }
 
-.chip:hover::before {
-  left: 100%;
+/* Due Soon Chip */
+.deadlineChip.dueSoon {
+    background-color: #fef3c7;
+    color: #d97706;
 }
 
-.chip:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.deadlineChip.dueSoon:hover {
+    background-color: #fcd34d;
 }
 
-.chip:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.chip.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Chip Severity Styles */
-.chip.overdue {
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-  border-color: #f44336;
-  color: #c62828;
-}
-
-.chip.overdue.selected {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-  border-color: #c62828;
-  color: white;
-}
-
-.chip.overdue:hover:not(.disabled) {
-  background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%);
-  border-color: #d32f2f;
-}
-
-.chip.overdue.selected:hover:not(.disabled) {
-  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
-}
-
-.chip.dueSoon {
-  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-  border-color: #ff9800;
-  color: #f57c00;
-}
-
-.chip.dueSoon.selected {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  border-color: #e65100;
-  color: white;
-}
-
-.chip.dueSoon:hover:not(.disabled) {
-  background: linear-gradient(135deg, #ffecb3 0%, #ffe082 100%);
-  border-color: #f57c00;
-}
-
-.chip.dueSoon.selected:hover:not(.disabled) {
-  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
-}
-
-/* Chip Icon Styles */
 .chipIcon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .chipCount {
-  font-weight: 700;
-  font-size: 0.85em;
-  line-height: 1;
+    font-weight: 600;
+    font-size: 15px;
 }
 
-.chipText {
-  opacity: 0.9;
-  font-size: 0.9em;
-  line-height: 1;
+.chipLabel {
+    font-size: 13px;
 }
 
-/* Summary Section */
-.summary {
-  padding: 0 24px 16px;
-  margin-top: 8px;
+/* Filter Hint */
+.filterHint {
+    font-size: 12px;
+    color: #92400e;
+    margin: 0;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
-.summaryText {
-  font-size: 0.8rem;
-  color: #666;
-  line-height: 1.4;
-  margin: 0;
-}
+/* ==========================================
+   Loading State
+   ========================================== */
 
-/* Filters Indicator */
-.filtersIndicator {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border-top: 1px solid #e0e0e0;
-}
-
-.filtersContent {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filtersIcon {
-  flex-shrink: 0;
-}
-
-.filtersText {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #1976d2;
-  margin: 0;
-}
-
-/* Loading State */
 .loadingState {
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  min-height: 100px;
+    margin-bottom: 1rem;
 }
 
-.loadingHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.loadingSpinner {
-  animation: spin 1s linear infinite;
-}
-
-.loadingText {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #666;
-  margin: 0;
-}
-
-.skeletonChips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.skeletonChip {
-  height: 32px;
-  border-radius: 16px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  min-width: 80px;
-}
-
-/* Error State */
-.errorState {
-  padding: 20px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #991b1b;
-}
-
-.errorHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.errorIcon {
-  flex-shrink: 0;
-}
-
-.errorTitle {
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin: 0;
-}
-
-.errorMessage {
-  font-size: 0.8rem;
-  line-height: 1.4;
-  margin-bottom: 12px;
-  opacity: 0.9;
-}
-
-.retryButton {
-  background: white;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.retryButton:hover {
-  background: #fef2f2;
-  border-color: #991b1b;
-}
-
-/* Animations */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.loadingSkeleton {
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 16px 20px;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-/* Animation Classes */
-.animateInUp {
-  animation: slideInUp 0.3s ease-out;
-}
-
-.animateInDown {
-  animation: slideInDown 0.3s ease-out;
-}
-
-.animateIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animatePulse {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.animateBounce {
-  animation: bounce 2s ease-in-out infinite;
-}
-
-/* Staggered animations */
-.staggeredChip:nth-child(1) { animation-delay: 0ms; }
-.staggeredChip:nth-child(2) { animation-delay: 50ms; }
-.staggeredChip:nth-child(3) { animation-delay: 100ms; }
-.staggeredChip:nth-child(4) { animation-delay: 150ms; }
-.staggeredChip:nth-child(5) { animation-delay: 200ms; }
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .header {
-    padding: 12px 16px;
-    flex-direction: column;
-    align-items: flex-start;
+.skeletonHeader {
+    display: flex;
+    align-items: center;
     gap: 8px;
-    min-height: auto;
-  }
+    margin-bottom: 12px;
+}
 
-  .headerContent {
-    width: 100%;
-  }
+.skeletonIcon {
+    width: 20px;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+}
 
-  .title {
-    font-size: 0.9rem;
-  }
+.skeletonTitle {
+    width: 120px;
+    height: 16px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
 
-  .subtitle {
-    font-size: 0.7rem;
-  }
+.skeletonChips {
+    display: flex;
+    gap: 12px;
+}
 
-  .headerActions {
-    align-self: flex-end;
-  }
+.skeletonChip {
+    width: 140px;
+    height: 34px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+}
 
-  .chipsContainer {
-    padding: 12px 16px;
-  }
+/* ==========================================
+   Error State
+   ========================================== */
 
-  .chip {
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    gap: 4px;
-    max-width: 150px;
-  }
+.errorState {
+    margin-bottom: 1rem;
+}
 
-  .summary {
-    padding: 0 16px 12px;
-  }
+.errorContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+}
 
-  .summaryText {
-    font-size: 0.75rem;
-  }
+.errorIcon {
+    color: #dc2626;
+    flex-shrink: 0;
+}
 
-  .filtersIndicator {
+.errorText {
+    flex: 1;
+}
+
+.errorTitle {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #991b1b;
+}
+
+.errorMessage {
+    margin: 0;
+    font-size: 13px;
+    color: #b91c1c;
+}
+
+.retryButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 16px;
-  }
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
 }
 
-@media (max-width: 480px) {
-  .header {
-    padding: 8px 12px;
-  }
-
-  .headerContent {
-    gap: 8px;
-  }
-
-  .title {
-    font-size: 0.85rem;
-  }
-
-  .chipsContainer {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-
-  .chipsWrapper {
-    gap: 8px;
-  }
-
-  .chip {
-    font-size: 0.7rem;
-    padding: 3px 6px;
-    max-width: 120px;
-  }
-
-  .chipCount {
-    font-size: 0.8em;
-  }
-
-  .chipText {
-    font-size: 0.85em;
-  }
+.retryButton:hover {
+    background-color: #b91c1c;
 }
 
-/* Dark mode support */
+.retryButton:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   Snoozed State
+   ========================================== */
+
+.snoozedState {
+    margin-bottom: 1rem;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #f9fafb 100%);
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+.snoozedContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.snoozedIcon {
+    font-size: 24px;
+}
+
+.snoozedText {
+    flex: 1;
+}
+
+.snoozedTitle {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.snoozedTime {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ==========================================
+   Responsive Design
+   ========================================== */
+
+@media (max-width: 640px) {
+    .chipContainer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .deadlineChip {
+        justify-content: center;
+    }
+
+    .errorContent {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .retryButton {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================
+   Dark Mode Support
+   ========================================== */
+
 @media (prefers-color-scheme: dark) {
-  .deadlineWarningBox {
-    color-scheme: dark;
-  }
+    .infoBox {
+        background: linear-gradient(
+                135deg,
+                rgba(254, 243, 199, 0.1) 0%,
+                rgba(255, 251, 235, 0.05) 100%
+        );
+        border-color: rgba(252, 211, 77, 0.3);
+    }
 
-  .header {
-    background: linear-gradient(135deg, #2d2d2d 0%, #242424 100%);
-    border-bottom-color: #404040;
-  }
+    .warningTitle {
+        color: #fef3c7;
+    }
 
-  .title {
-    color: #ffffff;
-  }
+    .menuButton {
+        color: #fde68a;
+    }
 
-  .subtitle {
-    color: #b0b0b0;
-  }
+    .deadlineChip.overdue {
+        background-color: rgba(254, 226, 226, 0.15);
+        color: #fca5a5;
+    }
 
-  .badgeIcon.overdue {
-    background: linear-gradient(135deg, #4a1a1a 0%, #662222 100%);
-    color: #ff6b6b;
-  }
+    .deadlineChip.dueSoon {
+        background-color: rgba(254, 243, 199, 0.15);
+        color: #fcd34d;
+    }
 
-  .badgeIcon.dueSoon {
-    background: linear-gradient(135deg, #4a3a1a 0%, #664422 100%);
-    color: #ffa726;
-  }
-
-  .actionButton {
-    color: #b0b0b0;
-  }
-
-  .actionButton:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-  }
-
-  .actionButton:active {
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .chip.overdue {
-    background: linear-gradient(135deg, #4a1a1a 0%, #662222 100%);
-    border-color: #ff6b6b;
-    color: #ff8787;
-  }
-
-  .chip.overdue.selected {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
-    border-color: #ff8787;
-    color: white;
-  }
-
-  .chip.dueSoon {
-    background: linear-gradient(135deg, #4a3a1a 0%, #664422 100%);
-    border-color: #ffa726;
-    color: #ffb74d;
-  }
-
-  .chip.dueSoon.selected {
-    background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
-    border-color: #ffb74d;
-    color: white;
-  }
-
-  .summaryText {
-    color: #b0b0b0;
-  }
-
-  .filtersIndicator {
-    background: linear-gradient(135deg, #1a3a52 0%, #2d4a6d 100%);
-    border-top-color: #404040;
-  }
-
-  .filtersText {
-    color: #64b5f6;
-  }
-
-  .loadingState {
-    background: #2d2d2d;
-    border-color: #404040;
-  }
-
-  .loadingText {
-    color: #b0b0b0;
-  }
-
-  .skeletonChip {
-    background: linear-gradient(90deg, #3d3d3d 25%, #484848 50%, #3d3d3d 75%);
-  }
+    .filterHint {
+        color: #fde68a;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .chip {
-    border-width: 2px;
-  }
+/* ==========================================
+   Accessibility
+   ========================================== */
 
-  .chip.overdue {
-    background: #fff;
-    border-color: #000;
-    color: #000;
-  }
-
-  .chip.overdue.selected {
-    background: #000;
-    color: #fff;
-  }
-
-  .chip.dueSoon {
-    background: #fff;
-    border-color: #000;
-    color: #000;
-  }
-
-  .chip.dueSoon.selected {
-    background: #000;
-    color: #fff;
-  }
-}
-
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .chip,
-  .chip::before,
-  .loadingSpinner,
-  .skeletonChip,
-  .animateInUp,
-  .animateInDown,
-  .animateIn,
-  .animatePulse,
-  .animateBounce {
-    animation: none;
-    transition: none;
-  }
-
-  .chip:hover {
-    transform: none;
-  }
-
-  .chip:active {
-    transform: none;
-  }
+    .deadlineWarningBox,
+    .deadlineChip,
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
-/* Print styles */
-@media print {
-  .deadlineWarningBox {
-    border: 1px solid #000;
-    break-inside: avoid;
-  }
-
-  .headerActions,
-  .actionButton {
-    display: none;
-  }
-
-  .chip {
-    border: 2px solid #000;
-    background: #fff !important;
-    color: #000 !important;
-  }
-
-  .filtersIndicator {
-    border: 1px solid #000;
-    background: #f0f0f0 !important;
-  }
+/* Focus visible improvements */
+*:focus-visible {
+    outline: 2px solid #d97706;
+    outline-offset: 2px;
 }

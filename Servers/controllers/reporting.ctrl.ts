@@ -72,8 +72,6 @@ export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {
-  // Add format: "docx" to ensure v2 system is used with DOCX output
-  req.body.format = "docx";
   return generateReportsV2(req, res);
 }
 

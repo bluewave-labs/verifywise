@@ -7,17 +7,16 @@
  * @module repository/deadlineAnalytics.repository
  */
 
-import { fetchDeadlineAnalytics, clearDeadlineCache } from '../../infrastructure/api/deadlineService';
-import { DeadlineAnalytics } from '../../presentation/components/DeadlineWarningBox/types';
+import { deadlineAPI } from '../../infrastructure/api/deadlineService';
+import { DeadlineSummary } from '../../presentation/components/DeadlineWarningBox/types';
 
 /**
  * Fetch deadline analytics data
  */
-export async function getDeadlineAnalytics(options?: {
-  useCache?: boolean;
-  signal?: AbortSignal;
-}): Promise<{ data: DeadlineAnalytics }> {
-  const analytics = await fetchDeadlineAnalytics(options);
+export async function getDeadlineAnalytics(
+  entityType: "tasks" | "vendors" | "policies" | "risks"
+): Promise<{ data: DeadlineSummary }> {
+  const analytics = await deadlineAPI.getSummary(entityType);
   return { data: analytics };
 }
 
@@ -25,5 +24,7 @@ export async function getDeadlineAnalytics(options?: {
  * Clear deadline analytics cache
  */
 export async function clearDeadlineAnalyticsCache(): Promise<void> {
-  clearDeadlineCache();
+  // Note: deadlineAPI doesn't have a clear cache method yet
+  // This can be implemented when needed
+  console.log('Clear deadline analytics cache - not implemented yet');
 }

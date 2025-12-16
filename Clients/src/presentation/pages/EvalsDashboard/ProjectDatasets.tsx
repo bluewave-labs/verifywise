@@ -27,7 +27,7 @@ import {
 import { Upload, Download, X, MoreVertical, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown, Plus } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import ModalStandard from "../../components/Modals/StandardModal";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -46,6 +46,7 @@ type BuiltInDataset = ListedDataset & {
   promptCount?: number;
   isUserDataset?: boolean;
   createdAt?: string;
+  datasetType?: DatasetType;
   // Additional metadata for templates
   test_count?: number;
   categories?: string[];
@@ -141,7 +142,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         key: `user_${ud.id}`,
         name: ud.name,
         path: ud.path,
-        use_case: "chatbot" as const,
+        use_case: (ud.datasetType || "chatbot") as "chatbot" | "rag" | "agent" | "safety",
+        datasetType: ud.datasetType || "chatbot",
         isUserDataset: true,
         createdAt: ud.createdAt,
       }));
@@ -450,10 +452,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       setLoadingEditor(true);
       const res = await deepEvalDatasetsService.read(dataset.path);
       setEditablePrompts(res.prompts || []);
-      // Derive name from path
-      const base = dataset.path.split("/").pop() || "dataset";
-      const derivedName = base.replace(/\.json$/i, "").replace(/[_-]+/g, " ").replace(/^\d+\s+/, "");
-      setEditDatasetName(derivedName);
+      // Use the dataset name directly (already cleaned by backend)
+      setEditDatasetName(dataset.name);
       setEditingDataset(dataset);
       setEditorOpen(true);
     } catch (err) {
@@ -480,7 +480,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const slug = editDatasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
-      await deepEvalDatasetsService.uploadDataset(file);
+      const datasetType = editingDataset?.datasetType || "chatbot";
+      await deepEvalDatasetsService.uploadDataset(file, datasetType);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -684,7 +685,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -760,7 +761,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Prompt</TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>Category</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "90px" }}>Difficulty</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px" }}>Category</TableCell>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
               </TableRow>
             </TableHead>
@@ -819,6 +821,28 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       >
                         {p.prompt || "Empty prompt - click to edit"}
                       </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      {p.difficulty && (
+                        <Chip
+                          label={p.difficulty}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: "10px",
+                            fontWeight: 500,
+                            backgroundColor:
+                              p.difficulty === "easy" ? "#D1FAE5" :
+                              p.difficulty === "medium" ? "#FEF3C7" :
+                              p.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
+                            color:
+                              p.difficulty === "easy" ? "#065F46" :
+                              p.difficulty === "medium" ? "#92400E" :
+                              p.difficulty === "hard" ? "#991B1B" : "#374151",
+                            borderRadius: "4px",
+                          }}
+                        />
+                      )}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip
@@ -941,6 +965,63 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   type="description"
                 />
 
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
+                    Difficulty
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    {(["easy", "medium", "hard"] as const).map((diff) => (
+                      <Chip
+                        key={diff}
+                        label={diff.charAt(0).toUpperCase() + diff.slice(1)}
+                        onClick={() => {
+                          const next = [...editablePrompts];
+                          next[selectedPromptIndex] = { ...next[selectedPromptIndex], difficulty: diff };
+                          setEditablePrompts(next);
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          height: 28,
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          backgroundColor: editablePrompts[selectedPromptIndex].difficulty === diff
+                            ? diff === "easy" ? "#D1FAE5"
+                              : diff === "medium" ? "#FEF3C7"
+                              : "#FEE2E2"
+                            : "#F3F4F6",
+                          color: editablePrompts[selectedPromptIndex].difficulty === diff
+                            ? diff === "easy" ? "#065F46"
+                              : diff === "medium" ? "#92400E"
+                              : "#991B1B"
+                            : "#6B7280",
+                          border: editablePrompts[selectedPromptIndex].difficulty === diff ? "1px solid" : "1px solid transparent",
+                          borderColor: editablePrompts[selectedPromptIndex].difficulty === diff
+                            ? diff === "easy" ? "#10B981"
+                              : diff === "medium" ? "#F59E0B"
+                              : "#EF4444"
+                            : "transparent",
+                          "&:hover": {
+                            backgroundColor: diff === "easy" ? "#D1FAE5"
+                              : diff === "medium" ? "#FEF3C7"
+                              : "#FEE2E2",
+                          },
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+
+                <Field
+                  label="Category"
+                  value={editablePrompts[selectedPromptIndex].category || ""}
+                  onChange={(e) => {
+                    const next = [...editablePrompts];
+                    next[selectedPromptIndex] = { ...next[selectedPromptIndex], category: e.target.value };
+                    setEditablePrompts(next);
+                  }}
+                  placeholder="e.g., general_knowledge, coding, etc."
+                />
+
                 <Field
                   label="Keywords"
                   value={(editablePrompts[selectedPromptIndex].expected_keywords || []).join(", ")}
@@ -953,18 +1034,21 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   placeholder="Comma separated keywords"
                 />
 
-                <Field
-                  label="Retrieval context"
-                  value={(editablePrompts[selectedPromptIndex].retrieval_context || []).join("\n")}
-                  onChange={(e) => {
-                    const lines = e.target.value.split("\n");
-                    const next = [...editablePrompts];
-                    next[selectedPromptIndex] = { ...next[selectedPromptIndex], retrieval_context: lines };
-                    setEditablePrompts(next);
-                  }}
-                  placeholder="One entry per line"
-                  type="description"
-                />
+                {/* Only show retrieval context for RAG datasets */}
+                {editingDataset?.datasetType === "rag" && (
+                  <Field
+                    label="Retrieval context"
+                    value={(editablePrompts[selectedPromptIndex].retrieval_context || []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n");
+                      const next = [...editablePrompts];
+                      next[selectedPromptIndex] = { ...next[selectedPromptIndex], retrieval_context: lines };
+                      setEditablePrompts(next);
+                    }}
+                    placeholder="One entry per line"
+                    type="description"
+                  />
+                )}
 
                 <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
                   <Button
@@ -2074,7 +2158,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       expected_output: "",
                     }]);
                     setEditDatasetName("");
-                    setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: "chatbot" });
+                    setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: exampleDatasetType, datasetType: exampleDatasetType });
                     setEditorOpen(true);
                   }}
                   sx={{

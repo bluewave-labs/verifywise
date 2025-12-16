@@ -19,7 +19,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   setSelectecRisks,
   _setDeletedRisks,
   projectId: propProjectId,
-  frameworkId,
+  _frameworkId,
   isOrganizational = false,
 }) => {
   const [searchParams] = useSearchParams();

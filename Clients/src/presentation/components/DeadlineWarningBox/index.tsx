@@ -52,7 +52,7 @@ export const DeadlineWarningBox: React.FC<DeadlineWarningBoxProps> = ({
 }) => {
   const theme = useTheme();
 
-  // Use the deadline warnings hook
+  // Use the deadline warnings hook with React Query
   const {
     data,
     loadingState,

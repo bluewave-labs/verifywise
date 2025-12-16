@@ -2062,6 +2062,7 @@ const NewControlPane = ({
                         }));
                       }}
                       projectId={projectId}
+                      frameworkId={1}
                     />
                   </Suspense>
                 )}

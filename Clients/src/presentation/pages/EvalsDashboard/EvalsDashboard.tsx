@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, TextField, Button, List, ListItemButton, ListItemText, useTheme, Card, CardContent, Grid } from "@mui/material";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Select as MuiSelect, MenuItem, Divider, Popover, Button, List, ListItemButton, ListItemText, useTheme, Card, CardContent, Grid } from "@mui/material";
 import { ChevronDown, ChevronRight, Plus, Check } from "lucide-react";
 import { getSelectStyles } from "../../utils/inputStyles";
-import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Building2, Save, Workflow } from "lucide-react";
+import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import EvalsSidebar from "./EvalsSidebar";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -38,7 +38,6 @@ import { ProjectDatasets } from "./ProjectDatasets";
 import ProjectScorers from "./ProjectScorers";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import type { DeepEvalProject } from "./types";
-import OrganizationSelector from "./OrganizationSelector";
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 
 const LLM_PROVIDERS = [
@@ -74,9 +73,9 @@ export default function EvalsDashboard() {
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
     const hash = location.hash.replace("#", "");
-    // When no projectId, default to "overview" to show projects list (unless explicitly on organizations)
+    // When no projectId, default to "overview" to show projects list
     if (!projectId) {
-      return hash === "organizations" ? "organizations" : "overview";
+      return "overview";
     }
     return hash || "overview";
   });
@@ -158,8 +157,6 @@ export default function EvalsDashboard() {
   // Project selector state (for dropdown above sidebar)
   const [selectOpen, setSelectOpen] = useState(false);
   const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
-  const [createProjectAnchor, setCreateProjectAnchor] = useState<HTMLElement | null>(null);
-  const [newProjectName, setNewProjectName] = useState("");
   const preventCloseRef = useRef(false);
 
   // Helper function to add a recent experiment
@@ -676,7 +673,6 @@ export default function EvalsDashboard() {
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
-      organizations: { label: "Organization", icon: <Building2 size={14} strokeWidth={1.5} /> },
     };
     return tabMap[tabValue] || { label: tabValue, icon: <Workflow size={14} strokeWidth={1.5} /> };
   };
@@ -848,7 +844,7 @@ export default function EvalsDashboard() {
                 open={selectOpen}
                 onOpen={() => setSelectOpen(true)}
                 onClose={() => {
-                  if (!actionsAnchor && !createProjectAnchor && !preventCloseRef.current) {
+                  if (!actionsAnchor && !preventCloseRef.current) {
                     setSelectOpen(false);
                   }
                   preventCloseRef.current = false;
@@ -961,8 +957,8 @@ export default function EvalsDashboard() {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    preventCloseRef.current = true;
-                    setCreateProjectAnchor(e.currentTarget as HTMLElement);
+                    setSelectOpen(false);
+                    setCreateProjectModalOpen(true);
                   }}
                   sx={{
                     fontSize: 13,
@@ -1059,107 +1055,6 @@ export default function EvalsDashboard() {
                 </List>
               </Popover>
 
-              {/* Create project popover */}
-              <Popover
-                open={Boolean(createProjectAnchor)}
-                anchorEl={createProjectAnchor}
-                onClose={() => {
-                  setCreateProjectAnchor(null);
-                  setSelectOpen(false);
-                  setNewProjectName("");
-                }}
-                anchorOrigin={{
-                  vertical: "center",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "center",
-                  horizontal: "left",
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      borderRadius: "4px",
-                      boxShadow: theme.shadows[3],
-                      ml: 0.5,
-                      minWidth: 240,
-                      p: 2,
-                    },
-                  },
-                }}
-              >
-                <Stack spacing={2}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary }}>
-                    Create new project
-                  </Typography>
-                  <TextField
-                    size="small"
-                    placeholder="Project name"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newProjectName.trim()) {
-                        handleProjectChange("create_new:" + newProjectName.trim());
-                        setCreateProjectAnchor(null);
-                        setSelectOpen(false);
-                        setNewProjectName("");
-                      }
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: 13,
-                        height: 34,
-                        borderRadius: "4px",
-                      },
-                    }}
-                  />
-                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setCreateProjectAnchor(null);
-                        setSelectOpen(false);
-                        setNewProjectName("");
-                      }}
-                      sx={{
-                        fontSize: 12,
-                        textTransform: "none",
-                        color: theme.palette.text.secondary,
-                        height: 28,
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      disabled={!newProjectName.trim()}
-                      onClick={() => {
-                        if (newProjectName.trim()) {
-                          handleProjectChange("create_new:" + newProjectName.trim());
-                          setCreateProjectAnchor(null);
-                          setSelectOpen(false);
-                          setNewProjectName("");
-                        }
-                      }}
-                      sx={{
-                        fontSize: 12,
-                        textTransform: "none",
-                        backgroundColor: "#13715B",
-                        height: 28,
-                        "&:hover": { backgroundColor: "#0f5a47" },
-                        "&.Mui-disabled": {
-                          backgroundColor: "#e0e0e0",
-                          color: "#9e9e9e",
-                        },
-                      }}
-                    >
-                      Create
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Popover>
             </Box>
           )}
 
@@ -1196,18 +1091,7 @@ export default function EvalsDashboard() {
         <Box sx={{ flex: 1, margin: 0, padding: 0 }}>
           {/* Show nothing while initially loading to prevent flash */}
           {initialLoading && !projectId ? null : (
-          /* Organizations tab - always accessible, shows org management */
-          tab === "organizations" ? (
-            <OrganizationSelector onSelected={async () => {
-              const { org } = await deepEvalOrgsService.getCurrentOrg();
-              setOrgId(org?.id || null);
-              // Navigate back to projects list after selecting an org
-              if (!projectId) {
-                setTab("overview");
-                navigate("/evals#overview", { replace: true });
-              }
-            }} />
-          ) : !projectId ? (
+          !projectId ? (
             /* No project selected - show projects list */
             <ProjectsList />
           ) : (
@@ -1335,27 +1219,6 @@ export default function EvalsDashboard() {
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbot</Typography>
                               <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
                                 Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
-                              </Typography>
-                            </Box>
-                          }
-                          sx={{ alignItems: "flex-start", mb: 1.5 }}
-                        />
-                        <FormControlLabel
-                          value="agent"
-                          control={
-                            <Radio
-                              sx={{
-                                color: "#d0d5dd",
-                                "&.Mui-checked": { color: "#13715B" },
-                                "& .MuiSvgIcon-root": { fontSize: 20 },
-                              }}
-                            />
-                          }
-                          label={
-                            <Box>
-                              <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                Evaluate AI agents for task completion, tool usage correctness, and multi-step reasoning.
                               </Typography>
                             </Box>
                           }
@@ -1646,13 +1509,6 @@ export default function EvalsDashboard() {
             isRequired
           />
 
-          <Field
-            label="Description"
-            value={newProject.description}
-            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            placeholder="Brief description of this project..."
-          />
-
           {/* LLM Use Case - card selection */}
           <Box>
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
@@ -1739,13 +1595,6 @@ export default function EvalsDashboard() {
             onChange={(e) => setOnboardingProjectName(e.target.value)}
             placeholder="e.g., Coding Tasks Evaluation"
             isRequired
-          />
-
-          <Field
-            label="Description"
-            value={onboardingProjectDesc}
-            onChange={(e) => setOnboardingProjectDesc(e.target.value)}
-            placeholder="Brief description of this project..."
           />
 
           {/* LLM Use Case - card selection */}

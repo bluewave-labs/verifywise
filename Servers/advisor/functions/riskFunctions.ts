@@ -1,10 +1,10 @@
-import { IRisk } from "../domain.layer/interfaces/I.risk";
+import { IRisk } from "../../domain.layer/interfaces/I.risk";
 import {
   getAllRisksQuery,
   getRisksByProjectQuery,
   getRisksByFrameworkQuery,
-} from "../utils/risk.utils";
-import { getTimeseriesForTimeframe } from "../utils/history/riskHistory.utils";
+} from "../../utils/risk.utils";
+import { getTimeseriesForTimeframe } from "../../utils/history/riskHistory.utils";
 
 export interface FetchRisksParams {
   projectId?: number;
@@ -390,11 +390,11 @@ const getRiskHistoryTimeseries = async (
   }
 };
 
-const availableTools: any = {
+const availableRiskTools: any = {
   fetch_risks: fetchRisks,
   get_risk_analytics: getRiskAnalytics,
   get_executive_summary: getExecutiveSummary,
   get_risk_history_timeseries: getRiskHistoryTimeseries,
 };
 
-export { availableTools };
+export { availableRiskTools };

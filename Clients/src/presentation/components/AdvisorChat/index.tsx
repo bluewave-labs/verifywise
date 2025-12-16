@@ -5,7 +5,7 @@ import { CustomThread } from './CustomThread';
 
 const AdvisorChat = () => {
   const theme = useTheme();
-  const runtime: AssistantRuntime = useAdvisorRuntime();
+  const runtime: AssistantRuntime = useAdvisorRuntime(); 
 
   return (
     <Paper

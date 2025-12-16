@@ -69,7 +69,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
 
   // To display adivsor in the sidebar, add a path to that particular page here
-  const advisorEligiblePaths = ['/risk-management'];
+  const advisorEligiblePaths = ['/risk-management', '/model-inventory'];
   const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
 
   // Parse initial path on mount

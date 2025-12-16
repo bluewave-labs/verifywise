@@ -4,8 +4,34 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { getLLMKeysQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
 import { LLMProvider } from "../domain.layer/interfaces/i.llmKey";
+import { availableRiskTools } from "../advisor/functions/riskFunctions";
+import { availableModelInventoryTools } from "../advisor/functions/modelInventoryFunctions";
+import { toolsDefinition as riskToolsDefinition } from "../advisor/tools/riskTools";
+import { toolsDefinition as modelInventoryToolsDefinition } from "../advisor/tools/modelInventoryTools";
 
 const fileName = "advisor.ctrl.ts";
+
+const getAvailableTools = (type: string): any => {
+  switch (type) {
+    case "risk":
+      return availableRiskTools;
+    case "model":
+      return availableModelInventoryTools;
+    default:
+      return {};
+  }
+}
+
+const getToolsDefinition = (type: string): any[] => {
+  switch (type) {
+    case "risk":
+      return riskToolsDefinition;
+    case "model":
+      return modelInventoryToolsDefinition;
+    default:
+      return [];
+  }
+}
 
 export async function runAdvisor(req: Request, res: Response) {
   const functionName = "runAdvisor";
@@ -47,6 +73,9 @@ export async function runAdvisor(req: Request, res: Response) {
 
     const apiKey = clients[0];
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
+    const availableTools = getAvailableTools(advisorType);
+    const toolsDefinition = getToolsDefinition(advisorType);
+
     const response = await runAgent({
       apiKey: apiKey.key || "",
       baseURL: url,
@@ -54,6 +83,8 @@ export async function runAdvisor(req: Request, res: Response) {
       advisorType,
       userPrompt: prompt,
       tenant: tenantId,
+      availableTools,
+      toolsDefinition,
     });
 
     logStructured(
@@ -65,28 +96,26 @@ export async function runAdvisor(req: Request, res: Response) {
 
     // Parse the structured response for risk advisor
     let parsedResponse: any = response;
-    if (advisorType === "risk") {
-      try {
-        // Try to parse JSON response from LLM
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedResponse = JSON.parse(jsonMatch[0]);
-        } else {
-          // Fallback: if LLM didn't return JSON, wrap the response
-          parsedResponse = {
-            markdown: response,
-            chartData: null,
-          };
-        }
-      } catch (error) {
-        logger.warn(
-          `Failed to parse structured response, using raw response: ${error}`,
-        );
+    try {
+      // Try to parse JSON response from LLM
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResponse = JSON.parse(jsonMatch[0]);
+      } else {
+        // Fallback: if LLM didn't return JSON, wrap the response
         parsedResponse = {
           markdown: response,
           chartData: null,
         };
       }
+    } catch (error) {
+      logger.warn(
+        `Failed to parse structured response, using raw response: ${error}`,
+      );
+      parsedResponse = {
+        markdown: response,
+        chartData: null,
+      };
     }
 
     return res.status(200).json({ prompt, response: parsedResponse });

@@ -3,6 +3,17 @@ import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
 import { runAdvisorAPI } from '../../../application/repository/advisor.repository';
 
+export const getAdvisorType = (pathname: string): string => {
+  switch(pathname) {
+    case "/risk-management":
+      return "risk";
+    case "/model-inventory":
+      return "model";
+    default:
+      return "";
+  }
+}
+
 export const useAdvisorRuntime = () => {
   // Memoize the chat adapter to prevent recreation on every render
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
@@ -58,7 +69,7 @@ export const useAdvisorRuntime = () => {
         // Call the advisor API with the user's message
         const response = await runAdvisorAPI({
           prompt: userMessage,
-        }, 'risk');
+        }, getAdvisorType(location.pathname));
 
         // Extract the assistant's response
         const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
@@ -105,11 +116,11 @@ export const useAdvisorRuntime = () => {
       content: [
         {
           type: 'text' as const,
-          text: `Hello! I'm your VerifyWise AI Risk Management Advisor. I can help you analyze risks, understand risk distributions, and provide insights about your risk landscape. What would you like to know?`,
+          text: 'Hello! I\'m your Verifywise AI Advisor. I can help you analyze and manage your AI governance needs. What would you like to know?',
         },
       ],
     },
-  ], []); // Only recreate if risk count changes
+  ], []);
 
   const runtime = useLocalRuntime(chatModelAdapter, {
     initialMessages,

@@ -1,6 +1,4 @@
 import { OpenAI } from "openai";
-import { toolsDefinition } from "./tools";
-import { availableTools } from "./functions";
 import { getAdvisorPrompt } from "./prompts";
 import logger from "../utils/logger/fileLogger";
 
@@ -11,6 +9,8 @@ interface AdvisorParams {
   advisorType: string;
   userPrompt: string;
   tenant: string;
+  availableTools: any;
+  toolsDefinition: any[];
 }
 
 export const runAgent = async ({
@@ -20,6 +20,8 @@ export const runAgent = async ({
   advisorType,
   userPrompt,
   tenant,
+  availableTools,
+  toolsDefinition,
 }: AdvisorParams) => {
   const agentStartTime = Date.now();
   logger.info(

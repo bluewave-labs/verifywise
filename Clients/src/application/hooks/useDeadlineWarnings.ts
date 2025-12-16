@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../application/hooks/useAuth";
+import { useAuth } from "./useAuth";
 import { deadlineAPI } from "../../infrastructure/api/deadlineService";
 import type {
     DeadlineSummary,

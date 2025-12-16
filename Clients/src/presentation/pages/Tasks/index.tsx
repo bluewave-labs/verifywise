@@ -36,7 +36,7 @@ import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
 import TasksSteps from "./TasksSteps";
-import { TaskModel } from "../../../domain/models/Common/Task/task.model";
+import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { GroupBy } from "../../components/Table/GroupBy";
 import {
   useTableGrouping,

@@ -9,13 +9,11 @@ import { TenantAutomationActionModel } from "../../domain.layer/models/tenantAut
 import { buildVendorReplacements } from "../../utils/automation/vendor.automation.utils";
 import { replaceTemplateVariables } from "../../utils/automation/automation.utils";
 import { enqueueAutomationAction } from "./automationProducer";
-import { getFormattedReportName, getReportData } from "../reportService";
-import { marked } from "marked";
 import { uploadFile } from "../../utils/fileUpload.utils";
 import { mapReportTypeToFileSource } from "../../controllers/reporting.ctrl";
 import { buildReportingReplacements } from "../../utils/automation/reporting.automation.utils";
 import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
-const htmlDocx = require("html-to-docx-lite");
+import { generateReport } from "../reporting";
 
 const handlers = {
   send_email: sendEmail,
@@ -81,28 +79,45 @@ async function sendVendorReviewDateNotification() {
   }
 }
 
-async function uploadReport(
-  markdownData: string,
+async function generateAndUploadReport(
   reportType: string,
   userId: number,
   projectId: number,
-  tenantId: string
+  frameworkId: number,
+  projectFrameworkId: number,
+  tenantId: string,
+  organizationName: string
 ) {
-  const markdownDoc = await marked.parse(markdownData); // markdown file
-  const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
-
-  let defaultFileName = getFormattedReportName("", reportType);
-  const docFile = {
-    originalname: `${defaultFileName}.docx`,
-    buffer: generatedDoc,
-    fieldname: "file",
-    mimetype:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  };
-
-  let uploadedFile;
   try {
-    uploadedFile = await uploadFile(
+    // Use the new v2 reporting system
+    const result = await generateReport(
+      {
+        projectId,
+        frameworkId,
+        projectFrameworkId,
+        reportType,
+        format: "docx",
+        branding: {
+          organizationName,
+        },
+      },
+      userId,
+      tenantId
+    );
+
+    if (!result.success) {
+      console.error("Report generation failed:", result.error);
+      return undefined;
+    }
+
+    const docFile = {
+      originalname: result.filename,
+      buffer: result.content,
+      fieldname: "file",
+      mimetype: result.mimeType,
+    };
+
+    const uploadedFile = await uploadFile(
       docFile,
       userId,
       projectId,
@@ -111,7 +126,7 @@ async function uploadReport(
     );
     return uploadedFile;
   } catch (error) {
-    console.error("File upload error:", error);
+    console.error("Report generation/upload error:", error);
     return undefined;
   }
 }
@@ -263,24 +278,15 @@ async function sendReportNotificationEmail(jobData: any) {
   }[] = [];
 
   for (let reportType of automation_params.reportType) {
-    const markdownData = await getReportData(
-      parseInt(automation_params.projectId),
-      projectDetails.framework_id,
-      reportType,
-      {
-        projectTitle: projectDetails.project_title,
-        projectOwner: full_name,
-        organizationName: organization_name,
-      },
-      projectDetails.project_framework_id,
-      tenantHash
-    );
-    const uploadedFile = await uploadReport(
-      markdownData,
+    // Use the new v2 reporting system
+    const uploadedFile = await generateAndUploadReport(
       reportType,
       automation.user_id,
       parseInt(automation_params.projectId),
-      tenantHash
+      projectDetails.framework_id,
+      projectDetails.project_framework_id,
+      tenantHash,
+      organization_name
     );
 
     // Add report file as email attachment

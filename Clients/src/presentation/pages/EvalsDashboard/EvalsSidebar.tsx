@@ -1,5 +1,5 @@
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Chip, useTheme, Typography } from "@mui/material";
-import { LayoutDashboard, FlaskConical, Database, Award, Settings, Building2 } from "lucide-react";
+import { LayoutDashboard, FlaskConical, Database, Award, Settings } from "lucide-react";
 
 interface RecentExperiment {
   id: string;
@@ -54,7 +54,6 @@ export default function EvalsSidebar({
     { label: "Datasets", value: "datasets", icon: <Database size={16} strokeWidth={1.5} />, count: datasetsCount, disabledWhenNoProject: true },
     { label: "Scorers", value: "scorers", icon: <Award size={16} strokeWidth={1.5} />, count: scorersCount, disabledWhenNoProject: true },
     { label: "Configuration", value: "configuration", icon: <Settings size={16} strokeWidth={1.5} />, disabledWhenNoProject: true },
-    { label: "Organization", value: "organizations", icon: <Building2 size={16} strokeWidth={1.5} />, disabledWhenNoProject: false },
   ];
 
   return (

@@ -1,0 +1,64 @@
+name: Summarization quality judge
+slug: summarization-quality
+type: llm_judge
+
+description: >
+  Binary pass/fail scorer that judges the quality of a summary
+  against a source document using GPT-4.1-mini as an LLM judge.
+
+# For v1 we hard-code this model, but we still keep the structure
+judge_model:
+  provider: openai
+  name: gpt-4o-mini
+  params:
+    temperature: 0.0
+    max_tokens: 256
+
+# Whether we ask the judge model to reason before picking a label
+use_chain_of_thought: true
+
+# Allowed placeholders that can appear in templates (for later checks)
+placeholders:
+  - input
+  - output
+  - expected
+
+messages:
+  - role: system
+    template: |
+      You are a strict judge of summarization quality.
+      Given a SOURCE document and a proposed SUMMARY, you must decide
+      whether the summary is faithful, concise, and covers the key points
+      of the source without adding incorrect information.
+
+      You must choose exactly one label from: PASS, FAIL.
+
+  - role: user
+    template: |
+      SOURCE:
+      {{input}}
+
+      SUMMARY:
+      {{output}}
+
+      Expected (optional reference answer):
+      {{expected}}
+
+      Decide if the SUMMARY is an acceptable summary of the SOURCE,
+      according to the instructions. Respond with exactly one label:
+      PASS or FAIL.
+
+choices:
+  - label: PASS
+    score: 1.0
+  - label: FAIL
+    score: 0.0
+
+# Score threshold that counts as "passing" this scorer
+pass_threshold: 0.5
+
+metadata:
+  task: summarization
+  domain: generic
+  owner: eval-team
+  version: 1

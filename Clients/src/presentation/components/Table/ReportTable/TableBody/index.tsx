@@ -107,7 +107,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
                   onEdit={() => {}}
                   onDownload={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
-                  warningMessage={`Are you sure you want to remove this report. This action is non-recoverable.`}
+                  warningMessage={`Are you sure you want to remove this report? This action is non-recoverable.`}
                 ></IconButton>
               </TableCell>
             </TableRow>

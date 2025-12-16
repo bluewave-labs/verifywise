@@ -282,17 +282,8 @@ export const getSubClauseByIdForProjectQuery = async (
   projectFrameworkId: number,
   tenant: string
 ) => {
-  const _subClauseId = (await sequelize.query(
-    `SELECT id FROM "${tenant}".subclauses_iso WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
-    {
-      replacements: {
-        id: subClauseId,
-        projects_frameworks_id: projectFrameworkId,
-      },
-    }
-  )) as [{ id: number }[], number];
-  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
-  return subClauses;
+  const subClause = await getSubClauseByIdQuery(subClauseId, tenant);
+  return subClause;
 };
 
 export const getSubClauseByIdQuery = async (

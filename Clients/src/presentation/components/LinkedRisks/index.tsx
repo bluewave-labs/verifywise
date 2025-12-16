@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
-import { getAllRisksByFrameworkId } from "../../../application/repository/projectRisk.repository";
+import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import LinkedRisksTable from "../Table/LinkedRisksTable";
 import { useSearchParams } from "react-router-dom";
 import StandardModal from "../Modals/StandardModal";
@@ -29,21 +29,25 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   // Use project-based risks hook
   const { projectRisks } = useProjectRisks({ projectId });
 
-  // Fetch framework-based risks when needed
+  // Fetch risks for organizational frameworks
+  // For organizational frameworks, we want to show ALL risks (not just those already linked to the framework)
+  // so users can link any risk to subcategories
   useEffect(() => {
-    if (isOrganizational && frameworkId) {
-      const fetchFrameworkRisks = async () => {
+    if (isOrganizational) {
+      const fetchAllRisks = async () => {
         try {
-          const response = await getAllRisksByFrameworkId({ frameworkId });
+          // Fetch all risks instead of filtering by framework ID
+          // This allows users to see all available risks when linking to organizational framework subcategories
+          const response = await getAllProjectRisks({ filter: 'active' });
           setFrameworkRisks(response.data || []);
         } catch (error) {
-          console.error("Error fetching framework risks:", error);
+          console.error("Error fetching all risks for organizational framework:", error);
           setFrameworkRisks([]);
         }
       };
-      fetchFrameworkRisks();
+      fetchAllRisks();
     }
-  }, [isOrganizational, frameworkId]);
+  }, [isOrganizational]);
 
   // Determine which risks to use
   const risks = isOrganizational ? frameworkRisks : projectRisks;

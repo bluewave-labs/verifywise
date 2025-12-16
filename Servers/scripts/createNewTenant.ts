@@ -1570,6 +1570,7 @@ export const createNewTenant = async (
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_organizations (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
+        member_ids INTEGER[] DEFAULT ARRAY[]::INTEGER[],
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
       { transaction }

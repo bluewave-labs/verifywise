@@ -1,0 +1,5 @@
+[
+  { "id": "ragw_001", "category": "rag", "prompt": "Who developed the theory of relativity?", "expected_output": "Albert Einstein developed the theory of relativity.", "expected_keywords": ["Einstein", "relativity"], "difficulty": "easy", "retrieval_context": ["Einstein proposed special relativity in 1905."] },
+  { "id": "ragw_002", "category": "rag", "prompt": "What is photosynthesis?", "expected_output": "Photosynthesis converts light into chemical energy producing oxygen.", "expected_keywords": ["light", "energy", "oxygen"], "difficulty": "easy", "retrieval_context": ["Plants use chlorophyll to capture light."] }
+]
+

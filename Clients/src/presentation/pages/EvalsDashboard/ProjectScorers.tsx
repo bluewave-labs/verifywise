@@ -15,6 +15,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Typography,
   useTheme,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -32,12 +33,12 @@ import TableHeader from "../../components/Table/TableHead";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
 import StandardModal from "../../components/Modals/StandardModal";
-import Field from "../../components/Inputs/Field";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../application/utils/paginationStorage";
 import EmptyState from "../../components/EmptyState";
+import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -87,25 +88,18 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [menuScorer, setMenuScorer] = useState<DeepEvalScorer | null>(null);
 
-  // Edit modal state
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  // Edit modal state - using comprehensive CreateScorerModal
+  const [editScorerModalOpen, setEditScorerModalOpen] = useState(false);
   const [editingScorer, setEditingScorer] = useState<DeepEvalScorer | null>(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    description: "",
-    metricKey: "",
-    type: "llm" as "llm" | "builtin" | "custom",
-    enabled: true,
-    defaultThreshold: "",
-    weight: "",
-    judgeModel: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editInitialConfig, setEditInitialConfig] = useState<Partial<ScorerConfig> | undefined>(undefined);
 
   // Delete confirmation modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [scorerToDelete, setScorerToDelete] = useState<DeepEvalScorer | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // New comprehensive create scorer modal
+  const [createScorerModalOpen, setCreateScorerModalOpen] = useState(false);
 
   const loadScorers = useCallback(async () => {
     try {
@@ -197,21 +191,38 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
 
   const handleEditClick = () => {
     if (menuScorer) {
-      setEditingScorer(menuScorer);
-      setEditForm({
-        name: menuScorer.name,
-        description: menuScorer.description || "",
-        metricKey: menuScorer.metricKey,
-        type: menuScorer.type,
-        enabled: menuScorer.enabled,
-        defaultThreshold:
-          menuScorer.defaultThreshold != null
-            ? String(menuScorer.defaultThreshold)
-            : "",
-        weight: menuScorer.weight != null ? String(menuScorer.weight) : "",
-        judgeModel: menuScorer.config?.judgeModel || "",
-      });
-      setEditModalOpen(true);
+      try {
+        const scorerConfig = typeof menuScorer.config === 'object' && menuScorer.config !== null ? menuScorer.config : {};
+        
+        // Convert scorer to ScorerConfig format for the comprehensive modal
+        const judgeModel = scorerConfig.judgeModel;
+        const provider = typeof judgeModel === 'object' ? judgeModel?.provider : scorerConfig.provider || "openai";
+        const model = typeof judgeModel === 'object' ? judgeModel?.name : (typeof judgeModel === 'string' ? judgeModel : scorerConfig.model || "");
+        const modelParams = typeof judgeModel === 'object' && judgeModel?.params ? {
+          temperature: judgeModel.params.temperature ?? 0,
+          maxTokens: judgeModel.params.max_tokens ?? 256,
+          topP: judgeModel.params.top_p ?? 1,
+        } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
+        
+        setEditInitialConfig({
+          name: menuScorer.name || "",
+          slug: menuScorer.metricKey || "",
+          provider: provider || "",
+          model: model || "",
+          modelParams,
+          messages: scorerConfig.messages || [{ role: "system", content: "You are a helpful assistant" }],
+          useChainOfThought: scorerConfig.useChainOfThought ?? true,
+          choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
+          passThreshold: menuScorer.defaultThreshold ?? 0.5,
+        });
+        
+        setEditingScorer(menuScorer);
+        setEditScorerModalOpen(true);
+      } catch (err) {
+        console.error("Error opening scorer edit modal:", err);
+        setAlert({ variant: "error", body: "Failed to open scorer for editing" });
+        setTimeout(() => setAlert(null), 4000);
+      }
     }
     handleMenuClose();
   };
@@ -242,86 +253,96 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     }
   };
 
-  // Edit modal submit
-  const handleEditSubmit = async () => {
+  // Edit scorer submit (using comprehensive modal)
+  const handleEditScorerSubmit = async (config: ScorerConfig) => {
     if (!editingScorer) return;
-    setIsSubmitting(true);
     try {
       await deepEvalScorersService.update(editingScorer.id, {
-        name: editForm.name,
-        description: editForm.description || undefined,
-        metricKey: editForm.metricKey,
-        type: editForm.type,
-        enabled: editForm.enabled,
-        defaultThreshold: editForm.defaultThreshold
-          ? parseFloat(editForm.defaultThreshold)
-          : undefined,
-        weight: editForm.weight ? parseFloat(editForm.weight) : undefined,
+        name: config.name,
+        description: `LLM scorer using ${config.provider}/${config.model}`,
+        metricKey: config.slug,
+        type: "llm",
+        enabled: true,
+        defaultThreshold: config.passThreshold,
+        weight: 1.0,
         config: {
-          ...editingScorer.config,
-          judgeModel: editForm.judgeModel || undefined,
+          provider: config.provider,
+          judgeModel: {
+            name: config.model,
+            provider: config.provider,
+            params: {
+              temperature: config.modelParams.temperature,
+              max_tokens: config.modelParams.maxTokens,
+              top_p: config.modelParams.topP,
+            },
+          },
+          messages: config.messages,
+          useChainOfThought: config.useChainOfThought,
+          choiceScores: config.choiceScores,
+          inputSchema: config.inputSchema,
+          modelParams: config.modelParams,
         },
       });
-      setAlert({ variant: "success", body: "Scorer updated" });
+      setAlert({ variant: "success", body: "Scorer updated successfully" });
       setTimeout(() => setAlert(null), 3000);
-      setEditModalOpen(false);
+      setEditScorerModalOpen(false);
       setEditingScorer(null);
+      setEditInitialConfig(undefined);
       void loadScorers();
     } catch (err) {
       console.error("Failed to update scorer", err);
       setAlert({ variant: "error", body: "Failed to update scorer" });
       setTimeout(() => setAlert(null), 4000);
-    } finally {
-      setIsSubmitting(false);
+      throw err; // Re-throw so modal knows it failed
     }
   };
 
-  // Create scorer (placeholder - opens modal with empty form)
+  // Create scorer - opens the comprehensive modal
   const handleCreateScorer = () => {
-    setEditingScorer(null);
-    setEditForm({
-      name: "",
-      description: "",
-      metricKey: "",
-      type: "llm",
-      enabled: true,
-      defaultThreshold: "0.7",
-      weight: "1.0",
-      judgeModel: "gpt-4o-mini",
-    });
-    setEditModalOpen(true);
+    setCreateScorerModalOpen(true);
   };
 
-  const handleCreateSubmit = async () => {
-    setIsSubmitting(true);
+  // Handle submit from the new comprehensive scorer modal
+  const handleNewScorerSubmit = async (config: ScorerConfig) => {
     try {
       await deepEvalScorersService.create({
         projectId,
-        name: editForm.name,
-        description: editForm.description || undefined,
-        metricKey: editForm.metricKey,
-        type: editForm.type,
-        enabled: editForm.enabled,
-        defaultThreshold: editForm.defaultThreshold
-          ? parseFloat(editForm.defaultThreshold)
-          : undefined,
-        weight: editForm.weight ? parseFloat(editForm.weight) : undefined,
+        name: config.name,
+        description: `LLM scorer using ${config.provider}/${config.model}`,
+        metricKey: config.slug,
+        type: "llm",
+        enabled: true,
+        defaultThreshold: config.passThreshold,
+        weight: 1.0,
         config: {
-          judgeModel: editForm.judgeModel || undefined,
+          provider: config.provider,
+          judgeModel: {
+            provider: config.provider,
+            name: config.model,
+            params: {
+              temperature: config.modelParams.temperature,
+              max_tokens: config.modelParams.maxTokens,
+              top_p: config.modelParams.topP,
+            },
+          },
+          messages: config.messages,
+          useChainOfThought: config.useChainOfThought,
+          choiceScores: config.choiceScores,
+          inputSchema: config.inputSchema,
         },
       });
-      setAlert({ variant: "success", body: "Scorer created" });
+      setAlert({ variant: "success", body: "Scorer created successfully" });
       setTimeout(() => setAlert(null), 3000);
-      setEditModalOpen(false);
+      setCreateScorerModalOpen(false);
       void loadScorers();
     } catch (err) {
       console.error("Failed to create scorer", err);
       setAlert({ variant: "error", body: "Failed to create scorer" });
       setTimeout(() => setAlert(null), 4000);
-    } finally {
-      setIsSubmitting(false);
+      throw err; // Re-throw so the modal knows it failed
     }
   };
+
 
   // Pagination
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
@@ -350,6 +371,16 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Scorers
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Scorers are custom LLM judges that evaluate model outputs using your own criteria. Unlike built-in metrics (Relevancy, Bias, Toxicity), scorers let you define domain-specific evaluation prompts like "Is this response compliant with our guidelines?" or "Does the code follow best practices?". Each scorer calls an LLM (e.g., GPT-4) to judge the model's responses based on your prompt.
+        </Typography>
+      </Stack>
 
       {/* Controls row */}
       <Stack
@@ -392,7 +423,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
 
       {/* Scorers table */}
       <Box mb={4}>
-        <TableContainer sx={{ mt: 10 }}>
+        <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
             <TableHeader columns={tableColumns} />
             {filteredScorers.length !== 0 ? (
@@ -404,21 +435,40 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
                       <TableRow
                         key={scorer.id}
                         onClick={() => {
-                          setEditingScorer(scorer);
-                          setEditForm({
-                            name: scorer.name,
-                            description: scorer.description || "",
-                            metricKey: scorer.metricKey,
-                            type: scorer.type,
-                            enabled: scorer.enabled,
-                            defaultThreshold:
-                              scorer.defaultThreshold != null
-                                ? String(scorer.defaultThreshold)
-                                : "",
-                            weight: scorer.weight != null ? String(scorer.weight) : "",
-                            judgeModel: scorer.config?.judgeModel || "",
-                          });
-                          setEditModalOpen(true);
+                          try {
+                            const scorerConfig = typeof scorer.config === 'object' && scorer.config !== null ? scorer.config : {};
+                            // Convert scorer to ScorerConfig format for comprehensive modal
+                            const judgeModel = scorerConfig.judgeModel;
+                            const provider = typeof judgeModel === 'object' ? judgeModel?.provider : scorerConfig.provider || "openai";
+                            const model = typeof judgeModel === 'object' ? judgeModel?.name : (typeof judgeModel === 'string' ? judgeModel : scorerConfig.model || "");
+                            const modelParams = typeof judgeModel === 'object' && judgeModel?.params ? {
+                              temperature: judgeModel.params.temperature ?? 0,
+                              maxTokens: judgeModel.params.max_tokens ?? 256,
+                              topP: judgeModel.params.top_p ?? 1,
+                            } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
+                            
+                            setEditInitialConfig({
+                              name: scorer.name || "",
+                              slug: scorer.metricKey || "",
+                              provider: provider || "",
+                              model: model || "",
+                              modelParams,
+                              messages: scorerConfig.messages || [{ role: "system", content: "You are a helpful assistant" }],
+                              useChainOfThought: scorerConfig.useChainOfThought ?? true,
+                              choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
+                              passThreshold: scorer.defaultThreshold ?? 0.5,
+                              inputSchema: scorerConfig.inputSchema || `{
+                                "input": "",
+                                "output": "",
+                                "expected": "",
+                                "metadata": {}
+                              }`,
+                            });
+                            setEditingScorer(scorer);
+                            setEditScorerModalOpen(true);
+                          } catch (err) {
+                            console.error("Error opening scorer edit modal:", err);
+                          }
                         }}
                         sx={{
                           ...singleTheme.tableStyles.primary.body.row,
@@ -444,10 +494,15 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
                             textTransform: "none",
                           }}
                         >
-                          {scorer.config?.judgeModel ||
-                            scorer.config?.model ||
-                            scorer.metricKey ||
-                            "Scorer"}
+                          {/* judgeModel can be string or object {name, params, provider} */}
+                          {typeof scorer.config?.judgeModel === 'string' 
+                            ? scorer.config.judgeModel 
+                            : scorer.config?.judgeModel?.name ||
+                              (typeof scorer.config?.model === 'string' 
+                                ? scorer.config.model 
+                                : scorer.config?.model?.name) ||
+                              scorer.metricKey ||
+                              "Scorer"}
                         </TableCell>
                         <TableCell
                           sx={{
@@ -650,107 +705,18 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
         </MenuItem>
       </Popover>
 
-      {/* Edit/Create Modal */}
-      <StandardModal
-        isOpen={editModalOpen}
+      {/* Edit Scorer Modal - uses comprehensive CreateScorerModal */}
+      <CreateScorerModal
+        isOpen={editScorerModalOpen}
         onClose={() => {
-          setEditModalOpen(false);
+          setEditScorerModalOpen(false);
           setEditingScorer(null);
+          setEditInitialConfig(undefined);
         }}
-        title={editingScorer ? "Edit scorer" : "New scorer"}
-        description={
-          editingScorer
-            ? "Update the scorer configuration"
-            : "Create a new scorer for this project"
-        }
-        onSubmit={editingScorer ? handleEditSubmit : handleCreateSubmit}
-        submitButtonText={editingScorer ? "Save" : "Create"}
-        isSubmitting={isSubmitting}
-        maxWidth="600px"
-      >
-        <Stack spacing={6}>
-          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Name"
-                placeholder="Scorer name"
-                value={editForm.name}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Metric key"
-                placeholder="e.g. answer_correctness"
-                value={editForm.metricKey}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, metricKey: e.target.value }))
-                }
-              />
-            </Box>
-          </Stack>
-          <Field
-            label="Description"
-            placeholder="Optional description"
-            value={editForm.description}
-            onChange={(e) =>
-              setEditForm((prev) => ({ ...prev, description: e.target.value }))
-            }
-          />
-          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Type"
-                placeholder="llm, builtin, custom"
-                value={editForm.type}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    type: e.target.value as "llm" | "builtin" | "custom",
-                  }))
-                }
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Judge model"
-                placeholder="e.g. gpt-4o-mini"
-                value={editForm.judgeModel}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, judgeModel: e.target.value }))
-                }
-              />
-            </Box>
-          </Stack>
-          <Stack direction="row" spacing={4} sx={{ width: "100%" }}>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Default threshold"
-                placeholder="0.7"
-                value={editForm.defaultThreshold}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    defaultThreshold: e.target.value,
-                  }))
-                }
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Weight"
-                placeholder="1.0"
-                value={editForm.weight}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, weight: e.target.value }))
-                }
-              />
-            </Box>
-          </Stack>
-        </Stack>
-      </StandardModal>
+        onSubmit={handleEditScorerSubmit}
+        initialConfig={editInitialConfig}
+        projectId={projectId}
+      />
 
       {/* Delete Confirmation Modal */}
       <StandardModal
@@ -765,6 +731,14 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
         submitButtonText="Delete"
         isSubmitting={isDeleting}
         submitButtonColor="#c62828"
+      />
+
+      {/* New Comprehensive Scorer Modal */}
+      <CreateScorerModal
+        isOpen={createScorerModalOpen}
+        onClose={() => setCreateScorerModalOpen(false)}
+        onSubmit={handleNewScorerSubmit}
+        projectId={projectId}
       />
     </Box>
   );

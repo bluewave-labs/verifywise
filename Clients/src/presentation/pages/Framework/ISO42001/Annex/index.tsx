@@ -13,7 +13,7 @@ import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../../domain/interfaces/i.alert";
 import Alert from "../../../../components/Alert";
 import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";

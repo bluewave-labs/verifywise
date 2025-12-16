@@ -11,7 +11,12 @@ import { IFileTableProps } from "../../../../domain/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;
 
-const FileTable: React.FC<IFileTableProps> = ({ cols, files, onFileDeleted, hidePagination = false }) => {
+const FileTable: React.FC<IFileTableProps> = ({
+  cols,
+  files,
+  onFileDeleted,
+  hidePagination = false,
+}) => {
   const [sortField, setSortField] = useState<keyof FileModel | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 

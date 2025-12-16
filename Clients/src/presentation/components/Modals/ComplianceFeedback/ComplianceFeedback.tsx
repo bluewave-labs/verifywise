@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { FileData } from "../../../../domain/types/File";
 import Uppy from "@uppy/core";

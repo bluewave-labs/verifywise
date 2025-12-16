@@ -9,6 +9,7 @@ import StandardModal from "../Modals/StandardModal";
 
 import { textfieldStyle } from "./styles";
 import { LinkedRisksModalProps } from "../../../domain/interfaces/i.table";
+import { debug } from "console";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,
@@ -19,6 +20,11 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   frameworkId,
   isOrganizational = false,
 }) => {
+  if (frameworkId) {
+    debug("frameworkId", frameworkId);
+  } else {
+    debug("no frameworkId");
+  }
   const [searchParams] = useSearchParams();
   const pId = searchParams.get("projectId");
   const projectId = propProjectId || parseInt(pId ?? "0");
@@ -38,10 +44,13 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
         try {
           // Fetch all risks instead of filtering by framework ID
           // This allows users to see all available risks when linking to organizational framework subcategories
-          const response = await getAllProjectRisks({ filter: 'active' });
+          const response = await getAllProjectRisks({ filter: "active" });
           setFrameworkRisks(response.data || []);
         } catch (error) {
-          console.error("Error fetching all risks for organizational framework:", error);
+          console.error(
+            "Error fetching all risks for organizational framework:",
+            error
+          );
           setFrameworkRisks([]);
         }
       };

@@ -33,9 +33,12 @@ export async function getPolicyManagerReportData(
 ): Promise<string> {
     let policyManagerRows: string = ``;
     try {
-        const policyManagerData = await getAllPoliciesQuery(tenant);
-        policyManagerRows = policyManagerData.map((policyManager) => {
-            return `| ${policyManager.title} | ${policyManager.status} | ${policyManager.next_review_date?.toLocaleDateString()} |`;
+        const policyManagerData = await getAllPoliciesQuery(tenant) as any[];
+        policyManagerRows = policyManagerData.map((policyManager: any) => {
+            const nextReviewDate = policyManager.next_review_date
+                ? new Date(policyManager.next_review_date).toLocaleDateString()
+                : 'N/A';
+            return `| ${policyManager.title} | ${policyManager.status} | ${nextReviewDate} |`;
         }).join("\n");
     } catch (error) {
         throw new Error(`Error while fetching the policy manager report data`);

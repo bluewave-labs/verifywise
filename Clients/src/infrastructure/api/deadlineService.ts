@@ -16,7 +16,9 @@ export const deadlineAPI = {
         const response = await CustomAxios.get("/deadline-analytics/summary", {
             params: { entityType },
         });
-        return response.data.data;
+
+        // Extract the actual data from the response structure
+        return response.data?.data?.data || response.data?.data || response.data;
     },
 
     /**

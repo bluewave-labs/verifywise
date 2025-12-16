@@ -13,7 +13,7 @@ export const deadlineAPI = {
     async getSummary(
         entityType: "tasks" | "vendors" | "policies" | "risks"
     ): Promise<DeadlineSummary> {
-        const response = await CustomAxios.get("/deadlines/summary", {
+        const response = await CustomAxios.get("/deadline-analytics/summary", {
             params: { entityType },
         });
         return response.data.data;
@@ -28,7 +28,7 @@ export const deadlineAPI = {
         entityType: string,
         category?: "overdue" | "dueSoon"
     ): Promise<any[]> {
-        const response = await CustomAxios.get("/deadlines/details", {
+        const response = await CustomAxios.get("/deadline-analytics/details", {
             params: { entityType, category },
         });
         return response.data.data;

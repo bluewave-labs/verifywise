@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Tooltip, Typography } from "@mui/material";
-import { Trash2 as TrashIcon, RotateCcw } from "lucide-react";
+import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
@@ -71,11 +71,33 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuRow, setMenuRow] = useState<IEvaluationRow | null>(null);
 
-  const handleDeleteClick = (e: React.MouseEvent, row: IEvaluationRow) => {
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: IEvaluationRow) => {
     e.stopPropagation();
-    setRowToDelete(row);
-    setDeleteModalOpen(true);
+    setMenuAnchorEl(e.currentTarget);
+    setMenuRow(row);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuRow(null);
+  };
+
+  const handleRerunClick = () => {
+    if (menuRow && onRerun) {
+      onRerun(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteClick = () => {
+    if (menuRow) {
+      setRowToDelete(menuRow);
+      setDeleteModalOpen(true);
+    }
+    handleMenuClose();
   };
 
   const handleConfirmDelete = () => {
@@ -126,7 +148,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingRight: "12px",
                 textTransform: "none",
                 textAlign: "center",
-                width: "14%",
+                width: "10%",
               }}
             >
               {row.model}
@@ -141,7 +163,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   paddingRight: "12px",
                   textTransform: "none",
                   textAlign: "center",
-                  width: "10%",
+                  width: "14%",
                 }}
               >
                 {row.judge || "-"}
@@ -157,21 +179,22 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   paddingRight: "12px",
                   textTransform: "none",
                   textAlign: "center",
-                  width: "14%",
+                  width: "7%",
                 }}
               >
                 {row.prompts}
               </TableCell>
             )}
 
-            {/* DATASET */}
+            {/* DATASET - center aligned */}
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
                 paddingLeft: "12px",
                 paddingRight: "12px",
                 textTransform: "none",
-                width: "8%",
+                textAlign: "center",
+                width: "12%",
               }}
             >
               {row.dataset}
@@ -185,7 +208,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 paddingRight: "12px",
                 textTransform: "none",
                 textAlign: "center",
-                width: "14%",
+                width: "9%",
               }}
             >
               <StatusChip status={row.status} />
@@ -201,6 +224,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   textTransform: "none",
                   textAlign: "center",
                   width: "14%",
+                  fontSize: "12px",
                 }}
               >
                 {row.date}
@@ -214,60 +238,80 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
-                  width: "80px",
-                  minWidth: "80px",
-                  maxWidth: "80px",
+                  width: "60px",
+                  minWidth: "60px",
+                  maxWidth: "60px",
+                  textAlign: "center",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  {onRerun && (
-                    <Tooltip title={isRunning ? "Evaluation in progress" : "Rerun this evaluation"}>
-                      <span>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRerun(row);
-                          }}
-                          disabled={isRunning}
-                          sx={{
-                            color: isRunning ? "#d0d5dd" : "#13715B",
-                            padding: "4px",
-                            "&:hover": {
-                              backgroundColor: isRunning ? "transparent" : "rgba(19, 113, 91, 0.1)",
-                            },
-                          }}
-                        >
-                          <RotateCcw size={16} />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  )}
-                  {onRemoveModel && (
-                    <Tooltip title="Delete this evaluation">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleDeleteClick(e, row)}
-                        sx={{
-                          color: "#667085",
-                          padding: "4px",
-                          "&:hover": {
-                            backgroundColor: "rgba(220, 38, 38, 0.1)",
-                            color: "#DC2626",
-                          },
-                        }}
-                      >
-                        <TrashIcon size={16} />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Box>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, row)}
+                  sx={{
+                    color: "#667085",
+                    padding: "6px",
+                    "&:hover": {
+                      backgroundColor: "#F3F4F6",
+                    },
+                  }}
+                >
+                  <MoreVertical size={18} />
+                </IconButton>
               </TableCell>
             )}
           </TableRow>
         );
         })}
       
+      {/* Action Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            minWidth: 160,
+            borderRadius: "8px",
+            border: "1px solid #E5E7EB",
+            "& .MuiMenuItem-root": {
+              fontSize: "13px",
+              py: 1,
+              px: 2,
+            },
+          },
+        }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      >
+        {onRerun && (
+          <MenuItem
+            onClick={handleRerunClick}
+            disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
+          >
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <RotateCcw size={16} color="#13715B" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Rerun"
+              primaryTypographyProps={{ fontSize: "13px" }}
+            />
+          </MenuItem>
+        )}
+        {onRemoveModel && (
+          <MenuItem onClick={handleDeleteClick}>
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <TrashIcon size={16} color="#DC2626" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Delete"
+              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
+            />
+          </MenuItem>
+        )}
+      </Menu>
+
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (
         <ConfirmationModal

@@ -26,7 +26,7 @@ import {
 } from "../../../../application/repository/tokens.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { ApiTokenModel } from "../../../../domain/models/Common/ApiToken/apiToken.model";
+import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";

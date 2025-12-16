@@ -1,4 +1,4 @@
-import { TierFeatureModel } from "../TierFeature/tierFeature.model";
+import { TierFeatureModel } from "../tierFeature/tierFeature.model";
 
 export class TierModel {
   id?: number;

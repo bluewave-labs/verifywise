@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   useTheme,
+  Stack,
 } from "@mui/material";
 import { Play, Beaker, ChevronRight, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
 import { cardStyles } from "../../themes";
@@ -230,6 +231,16 @@ export default function ProjectOverview({
 
   return (
     <Box>
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Overview
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
+        </Typography>
+      </Stack>
+
       {/* Header with New Experiment button */}
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
         <CustomizableButton

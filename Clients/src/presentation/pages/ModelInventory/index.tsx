@@ -2117,6 +2117,7 @@ const ModelInventory: React.FC = () => {
                   onCheckModelHasRisks={handleCheckModelHasRisks}
                   deletingId={deletingId}
                   hidePagination={options?.hidePagination}
+                  modelRisks={modelRisksData}
                 />
               )}
             />

@@ -21,7 +21,10 @@ import allowedRoles from "../../../application/constants/permissions";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../application/utils/paginationStorage";
 import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../domain/enums/status.enum";
 import Chip from "../../components/Chip";
@@ -84,13 +87,6 @@ const SortableTableHead: React.FC<{
             key={column.id}
             sx={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(column.id === "actions" && {
-                position: "sticky",
-                right: 0,
-                zIndex: 10,
-                backgroundColor:
-                  singleTheme.tableStyles.primary.header.backgroundColors,
-              }),
               ...(column.sortable
                 ? {
                     cursor: "pointer",
@@ -115,7 +111,8 @@ const SortableTableHead: React.FC<{
                 variant="body2"
                 sx={{
                   fontWeight: 500,
-                  color: sortConfig.key === column.id ? "primary.main" : "inherit",
+                  color:
+                    sortConfig.key === column.id ? "primary.main" : "inherit",
                 }}
               >
                 {column.label}
@@ -125,18 +122,17 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color:
+                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
                   }}
                 >
-                  {sortConfig.key === column.id && sortConfig.direction === "asc" && (
-                    <ChevronUp size={16} />
-                  )}
-                  {sortConfig.key === column.id && sortConfig.direction === "desc" && (
-                    <ChevronDown size={16} />
-                  )}
-                  {sortConfig.key !== column.id && (
-                    <ChevronsUpDown size={16} />
-                  )}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "asc" && <ChevronUp size={16} />}
+                  {sortConfig.key === column.id &&
+                    sortConfig.direction === "desc" && (
+                      <ChevronDown size={16} />
+                    )}
+                  {sortConfig.key !== column.id && <ChevronsUpDown size={16} />}
                 </Box>
               )}
             </Box>
@@ -147,9 +143,7 @@ const SortableTableHead: React.FC<{
   );
 };
 
-const StatusBadge: React.FC<{ status: TrainingStatus }> = ({
-  status,
-}) => {
+const StatusBadge: React.FC<{ status: TrainingStatus }> = ({ status }) => {
   return <Chip label={status} />;
 };
 
@@ -167,7 +161,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
 
   // Initialize rowsPerPage from localStorage utility
   const [rowsPerPage, setRowsPerPage] = useState(() =>
-    getPaginationRowCount('trainingRegistry', DEFAULT_ROWS_PER_PAGE)
+    getPaginationRowCount("trainingRegistry", DEFAULT_ROWS_PER_PAGE)
   );
 
   // Initialize sorting state from localStorage or default to no sorting
@@ -215,7 +209,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('trainingRegistry', newRowsPerPage);
+      setPaginationRowCount("trainingRegistry", newRowsPerPage);
       setPage(0);
     },
     []
@@ -248,67 +242,71 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
       }
     };
 
-    return sortableData.sort((a: TrainingRegistarModel, b: TrainingRegistarModel) => {
-      let aValue: string | number;
-      let bValue: string | number;
+    return sortableData.sort(
+      (a: TrainingRegistarModel, b: TrainingRegistarModel) => {
+        let aValue: string | number;
+        let bValue: string | number;
 
-      switch (sortConfig.key) {
-        case "training_name":
-          aValue = a.training_name.toLowerCase();
-          bValue = b.training_name.toLowerCase();
-          break;
+        switch (sortConfig.key) {
+          case "training_name":
+            aValue = a.training_name.toLowerCase();
+            bValue = b.training_name.toLowerCase();
+            break;
 
-        case "duration":
-          // Parse duration for numeric sorting (e.g., "2 hours", "30 minutes")
-          aValue = parseDuration(a.duration);
-          bValue = parseDuration(b.duration);
-          break;
+          case "duration":
+            // Parse duration for numeric sorting (e.g., "2 hours", "30 minutes")
+            aValue = parseDuration(a.duration);
+            bValue = parseDuration(b.duration);
+            break;
 
-        case "provider":
-          aValue = a.provider.toLowerCase();
-          bValue = b.provider.toLowerCase();
-          break;
+          case "provider":
+            aValue = a.provider.toLowerCase();
+            bValue = b.provider.toLowerCase();
+            break;
 
-        case "department":
-          aValue = a.department.toLowerCase();
-          bValue = b.department.toLowerCase();
-          break;
+          case "department":
+            aValue = a.department.toLowerCase();
+            bValue = b.department.toLowerCase();
+            break;
 
-        case "status":
-          // Status order: In Progress > Planned > Completed
-          aValue = getStatusValue(a.status);
-          bValue = getStatusValue(b.status);
-          break;
+          case "status":
+            // Status order: In Progress > Planned > Completed
+            aValue = getStatusValue(a.status);
+            bValue = getStatusValue(b.status);
+            break;
 
-        case "numberOfPeople":
-          aValue = a.numberOfPeople;
-          bValue = b.numberOfPeople;
-          break;
+          case "numberOfPeople":
+            aValue = a.numberOfPeople;
+            bValue = b.numberOfPeople;
+            break;
 
-        default:
-          return 0;
+          default:
+            return 0;
+        }
+
+        // Handle string comparisons
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          const comparison = aValue.localeCompare(bValue);
+          return sortConfig.direction === "asc" ? comparison : -comparison;
+        }
+
+        // Handle number comparisons
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
       }
-
-      // Handle string comparisons
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      // Handle number comparisons
-      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
+    );
   }, [data, sortConfig]);
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, sortedData?.length ?? 0);
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      sortedData?.length ?? 0
+    );
     return `${start} - ${end}`;
   }, [page, rowsPerPage, sortedData?.length]);
 
-  
   const tableBody = useMemo(
     () => (
       <TableBody>
@@ -316,13 +314,18 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
           sortedData
             .slice(
               hidePagination ? 0 : page * rowsPerPage,
-              hidePagination ? Math.min(sortedData.length, 100) : page * rowsPerPage + rowsPerPage
+              hidePagination
+                ? Math.min(sortedData.length, 100)
+                : page * rowsPerPage + rowsPerPage
             )
             // Defensive: Filter out invalid records early (fail fast)
             .filter((training) => {
               const isValid = training.id !== undefined && training.id !== null;
               if (!isValid) {
-                console.error('[TrainingTable] Invalid training record without ID:', training);
+                console.error(
+                  "[TrainingTable] Invalid training record without ID:",
+                  training
+                );
               }
               return isValid;
             })
@@ -336,68 +339,91 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   key={trainingId}
                   sx={{
                     ...singleTheme.tableStyles.primary.body.row,
-                    "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                    "&:hover": {
+                      backgroundColor: "#FBFBFB",
+                      cursor: "pointer",
+                    },
                   }}
                   onClick={() => {
                     onEdit?.(trainingIdStr);
                   }}
                 >
-                  <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                  backgroundColor: sortConfig.key === "training_name" ? "#e8e8e8" : "#fafafa",
-                }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "training_name"
+                          ? "#e8e8e8"
+                          : "#fafafa",
+                    }}
+                  >
                     {training.training_name}
                   </TableCell>
-                  <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                  backgroundColor: sortConfig.key === "duration" ? "#f5f5f5" : "inherit",
-                }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "duration" ? "#f5f5f5" : "inherit",
+                    }}
+                  >
                     {training.duration}
                   </TableCell>
-                  <TableCell  sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  cursor: "pointer",
-                  textTransform: "none !important",
-                  backgroundColor: sortConfig.key === "provider" ? "#f5f5f5" : "inherit",
-                }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "provider" ? "#f5f5f5" : "inherit",
+                    }}
+                  >
                     {training.provider}
                   </TableCell>
-                  <TableCell  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    cursor: "pointer",
-                    textTransform: "none !important",
-                    backgroundColor: sortConfig.key === "department" ? "#f5f5f5" : "inherit",
-                  }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "department" ? "#f5f5f5" : "inherit",
+                    }}
+                  >
                     {training.department}
                   </TableCell>
-                  <TableCell  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    cursor: "pointer",
-                    textTransform: "none !important",
-                    backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
-                  }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                    }}
+                  >
                     <StatusBadge status={training.status} />
                   </TableCell>
-                  <TableCell  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    cursor: "pointer",
-                    textTransform: "none !important",
-                    backgroundColor: sortConfig.key === "numberOfPeople" ? "#f5f5f5" : "inherit",
-                  }}>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.body.cell,
+                      cursor: "pointer",
+                      textTransform: "none !important",
+                      backgroundColor:
+                        sortConfig.key === "numberOfPeople"
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
                     {training.numberOfPeople}
                   </TableCell>
                   <TableCell
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
                       minWidth: "50px",
-                      backgroundColor: sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
+                      backgroundColor:
+                        sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
                     }}
                   >
                     {isDeletingAllowed && (
@@ -411,7 +437,9 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                           e?.stopPropagation();
                           onEdit?.(trainingIdStr);
                         }}
-                        onMouseEvent={(e: React.SyntheticEvent) => e.stopPropagation()}
+                        onMouseEvent={(e: React.SyntheticEvent) =>
+                          e.stopPropagation()
+                        }
                         warningTitle="Delete this training?"
                         warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
                         type="Training"

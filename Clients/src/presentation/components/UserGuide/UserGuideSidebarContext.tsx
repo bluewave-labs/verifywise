@@ -5,9 +5,8 @@ const SIDEBAR_STATE_KEY = 'verifywise-sidebar-open';
 // Constants for sidebar dimensions
 export const TAB_BAR_WIDTH = 40;
 export const DEFAULT_CONTENT_WIDTH = 400;
-// Note: The content area already has padding in CSS (.home-layout > div)
-// Negative value compensates for existing padding to achieve 24px gap
-export const MIN_GAP = -16;
+// Additional gap beyond the sidebar width (content already has 24px padding)
+export const MIN_GAP = 0;
 
 interface UserGuideSidebarContextValue {
   isOpen: boolean;

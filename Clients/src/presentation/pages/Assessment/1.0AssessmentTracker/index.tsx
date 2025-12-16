@@ -259,7 +259,7 @@ const AssessmentTracker = ({
         }}
       >
         <Stack
-          sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
+          sx={{ marginTop: "10px", gap: theme.spacing(10) }}
           data-joyride-id="assessment-progress-bar"
           ref={refs[0]}
         >
@@ -289,7 +289,7 @@ const AssessmentTracker = ({
           Assessments status overview
         </Typography>
         <Divider sx={{ marginY: 2 }} />
-        <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
+        <Box sx={{ display: "flex", width: "100%", height: "100vh", paddingLeft: "8px", paddingRight: 0 }}>
           <Stack sx={topicsListStyle}>
             <Typography
               sx={subHeadingStyle}
@@ -319,11 +319,11 @@ const AssessmentTracker = ({
           </Stack>
           <Divider orientation="vertical" flexItem />
           <Stack
-            minWidth={"60%"}
-            width={"100%"}
-            maxWidth={1400}
+            flex={1}
+            minWidth={0}
             paddingY={2}
-            paddingX={8}
+            paddingLeft={8}
+            paddingRight={0}
             sx={{ overflowY: "auto" }}
           >
             {loadingAssessmentSubtopic ? (

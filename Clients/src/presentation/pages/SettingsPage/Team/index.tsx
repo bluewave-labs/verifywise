@@ -214,7 +214,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
         refreshUsers();
       } else if (response && response.status === 403) {
         // Demo user cannot be deleted - show info message
-        showAlert("info", "Info", response.data?.message || "This user cannot be deleted");
+        showAlert(
+          "info",
+          "Info",
+          response.data?.message || "This user cannot be deleted"
+        );
       } else {
         showAlert("error", "Error", "User deletion failed");
       }
@@ -495,13 +499,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             key={column.id}
                             sx={{
                               ...singleTheme.tableStyles.primary.header.cell,
-                              ...(isLastColumn && {
-                                position: "sticky",
-                                right: 0,
-                                backgroundColor:
-                                  singleTheme.tableStyles.primary.header
-                                    .backgroundColors,
-                              }),
                               ...(!isLastColumn && sortable
                                 ? {
                                     cursor: "pointer",
@@ -655,8 +652,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.cell,
-                                position: "sticky",
-                                right: 0,
                                 minWidth: "50px",
                                 backgroundColor:
                                   sortConfig.key &&

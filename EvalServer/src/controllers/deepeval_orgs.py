@@ -28,6 +28,20 @@ async def get_all_orgs_controller(tenant: str) -> JSONResponse:
     try:
         async with get_db() as db:
             orgs = await get_all_orgs(tenant=tenant, db=db)
+            
+            # Auto-create a default organization if none exists
+            if not orgs:
+                org_id = f"org_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+                default_org = await create_org(
+                    org_id=org_id,
+                    name="My Organization",
+                    tenant=tenant,
+                    db=db
+                )
+                await db.commit()
+                if default_org:
+                    orgs = [default_org]
+            
             return JSONResponse(status_code=200, content={"orgs": orgs})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch organizations: {e}")

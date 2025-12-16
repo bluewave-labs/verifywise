@@ -1,0 +1,4 @@
+{
+  "description": "Small-scale RAG evaluation using Wikipedia articles, testing factual accuracy and information synthesis across diverse topics.",
+  "tags": ["RAG", "wikipedia", "factual", "general-knowledge"]
+}

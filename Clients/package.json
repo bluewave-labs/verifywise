@@ -34,6 +34,7 @@
     "@platejs/list-classic": "^49.1.0",
     "@platejs/media": "^49.0.0",
     "@platejs/suggestion": "^49.0.0",
+    "@platejs/table": "^49.1.13",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-separator": "^1.1.7",

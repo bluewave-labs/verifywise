@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, Chip, Box, IconButton, Typography } from "@mui/material";
-import { Trash2 as TrashIcon } from "lucide-react";
+import { TableBody, TableRow, TableCell, Chip, IconButton, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Trash2 as TrashIcon, RotateCcw, MoreVertical } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../../domain/interfaces/i.table";
@@ -67,14 +67,37 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rowsPerPage,
   onShowDetails,
   onRemoveModel,
+  onRerun,
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuRow, setMenuRow] = useState<IEvaluationRow | null>(null);
 
-  const handleDeleteClick = (e: React.MouseEvent, row: IEvaluationRow) => {
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, row: IEvaluationRow) => {
     e.stopPropagation();
-    setRowToDelete(row);
-    setDeleteModalOpen(true);
+    setMenuAnchorEl(e.currentTarget);
+    setMenuRow(row);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuRow(null);
+  };
+
+  const handleRerunClick = () => {
+    if (menuRow && onRerun) {
+      onRerun(menuRow);
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteClick = () => {
+    if (menuRow) {
+      setRowToDelete(menuRow);
+      setDeleteModalOpen(true);
+    }
+    handleMenuClose();
   };
 
   const handleConfirmDelete = () => {
@@ -86,108 +109,216 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   };
 
   return (
-    <>
-      <TableBody>
-        {rows
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((row) => (
-            <TableRow
-              key={row.id}
-              onClick={() => onShowDetails(row)}
+    <TableBody>
+      {rows
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((row) => {
+          const isRunning = row.status === "Running" || row.status === "In Progress" || row.status === "Pending";
+          
+          return (
+          <TableRow
+            key={row.id}
+            onClick={() => onShowDetails(row)}
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+              },
+            }}
+          >
+            {/* EXPERIMENT ID */}
+            <TableCell
               sx={{
-                ...singleTheme.tableStyles.primary.body.row,
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                },
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                width: "18%",
               }}
             >
+              {isRunning ? "Pending..." : row.id}
+            </TableCell>
+
+            {/* MODEL - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                textAlign: "center",
+                width: "10%",
+              }}
+            >
+              {row.model}
+            </TableCell>
+
+            {/* JUDGE - center aligned */}
+            {row.judge !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
-                  width: "20%",
+                  textAlign: "center",
+                  width: "14%",
                 }}
               >
-                {row.status === "Running" || row.status === "In Progress"
-                  ? "Pending..."
-                  : row.id}
+                {row.judge || "-"}
               </TableCell>
+            )}
+
+            {/* # PROMPTS - center aligned */}
+            {row.prompts !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
+                  textAlign: "center",
+                  width: "7%",
                 }}
               >
-                {row.model}
+                {row.prompts}
               </TableCell>
+            )}
+
+            {/* DATASET - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                textAlign: "center",
+                width: "12%",
+              }}
+            >
+              {row.dataset}
+            </TableCell>
+
+            {/* STATUS - center aligned */}
+            <TableCell
+              sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                textTransform: "none",
+                textAlign: "center",
+                width: "9%",
+              }}
+            >
+              <StatusChip status={row.status} />
+            </TableCell>
+
+            {/* DATE - center aligned */}
+            {row.date !== undefined && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
                   textTransform: "none",
+                  textAlign: "center",
+                  width: "14%",
+                  fontSize: "12px",
                 }}
               >
-                {row.judge}
+                {row.date}
               </TableCell>
+            )}
+
+            {/* ACTION */}
+            {(onRerun || onRemoveModel) && (
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   paddingLeft: "12px",
                   paddingRight: "12px",
-                  textTransform: "none",
+                  width: "60px",
+                  minWidth: "60px",
+                  maxWidth: "60px",
+                  textAlign: "center",
                 }}
               >
-                {row.dataset}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  paddingLeft: "12px",
-                  paddingRight: "12px",
-                  textTransform: "none",
-                }}
-              >
-                <Box sx={{ width: "50%", ml: -4 }}>
-                  <StatusChip status={row.status} />
-                </Box>
-              </TableCell>
-              {onRemoveModel && (
-                <TableCell
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, row)}
                   sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
+                    color: "#667085",
+                    padding: "6px",
+                    "&:hover": {
+                      backgroundColor: "#F3F4F6",
+                    },
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <IconButton
-                      onClick={(e) => handleDeleteClick(e, row)}
-                      sx={{ padding: 0 }}
-                    >
-                      <TrashIcon size={18} color="#667085" />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-      </TableBody>
+                  <MoreVertical size={18} />
+                </IconButton>
+              </TableCell>
+            )}
+          </TableRow>
+        );
+        })}
+      
+      {/* Action Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            minWidth: 160,
+            borderRadius: "8px",
+            border: "1px solid #E5E7EB",
+            "& .MuiMenuItem-root": {
+              fontSize: "13px",
+              py: 1,
+              px: 2,
+            },
+          },
+        }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      >
+        {onRerun && (
+          <MenuItem
+            onClick={handleRerunClick}
+            disabled={menuRow?.status === "Running" || menuRow?.status === "In Progress" || menuRow?.status === "Pending"}
+          >
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <RotateCcw size={16} color="#13715B" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Rerun"
+              primaryTypographyProps={{ fontSize: "13px" }}
+            />
+          </MenuItem>
+        )}
+        {onRemoveModel && (
+          <MenuItem onClick={handleDeleteClick}>
+            <ListItemIcon sx={{ minWidth: "32px !important" }}>
+              <TrashIcon size={16} color="#DC2626" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Delete"
+              primaryTypographyProps={{ fontSize: "13px", color: "#DC2626" }}
+            />
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && rowToDelete && (
         <ConfirmationModal
-          isOpen={deleteModalOpen}
           title="Delete this evaluation?"
           body={
-            <Typography fontSize={13} color="#344054">
-              Are you sure you want to delete evaluation "{rowToDelete.name || rowToDelete.id}"?
+            <Typography fontSize={13}>
+              Are you sure you want to delete evaluation "{rowToDelete.name || rowToDelete.id}"? This action cannot be undone.
             </Typography>
           }
           cancelText="Cancel"
@@ -199,10 +330,9 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
           onProceed={handleConfirmDelete}
           proceedButtonColor="error"
           proceedButtonVariant="contained"
-          TitleFontSize={0}
         />
       )}
-    </>
+    </TableBody>
   );
 };
 

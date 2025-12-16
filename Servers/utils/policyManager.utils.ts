@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Transaction, QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
 import {
   IPolicy,
@@ -16,11 +16,19 @@ import {
 
 export const getAllPoliciesQuery = async (tenant: string) => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".policy_manager`,
+    `SELECT
+      pm.*,
+      COALESCE(
+        ARRAY_AGG(DISTINCT pmr.user_id) FILTER (WHERE pmr.user_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) as assigned_reviewer_ids
+    FROM "${tenant}".policy_manager pm
+    LEFT JOIN "${tenant}".policy_manager__assigned_reviewer_ids pmr
+      ON pm.id = pmr.policy_manager_id
+    GROUP BY pm.id`,
     {
       replacements: { tenant },
-      mapToModel: true,
-      model: PolicyManagerModel,
+      type: QueryTypes.SELECT,
     }
   );
 
@@ -49,24 +57,22 @@ export const getAllPoliciesDueSoonQuery = async (
 
 export const getPolicyByIdQuery = async (tenant: string, id: number) => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".policy_manager WHERE id = :id`,
+    `SELECT
+      pm.*,
+      COALESCE(
+        ARRAY_AGG(DISTINCT pmr.user_id) FILTER (WHERE pmr.user_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) as assigned_reviewer_ids
+    FROM "${tenant}".policy_manager pm
+    LEFT JOIN "${tenant}".policy_manager__assigned_reviewer_ids pmr
+      ON pm.id = pmr.policy_manager_id
+    WHERE pm.id = :id
+    GROUP BY pm.id`,
     {
       replacements: { tenant, id },
-      mapToModel: true,
-      model: PolicyManagerModel,
+      type: QueryTypes.SELECT,
     }
-  );
-  const reviewer_names = (await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
-    {
-      replacements: {
-        reviewer_ids: result[0].dataValues.assigned_reviewer_ids,
-      },
-    }
-  )) as [{ full_name: string }[], number];
-  (result[0].dataValues as any)["reviewer_names"] = reviewer_names[0].map(
-    (r) => r.full_name
-  );
+  ) as any[];
 
   return result;
 };
@@ -87,14 +93,12 @@ export const createPolicyQuery = async (
 ) => {
   verifyPolicyTags(policy.tags || []);
 
-  // create a new table for policy reviewers and add assigned_reviewer_ids
-  // to that just like project members and add transaction
-
+  // Insert policy without assigned_reviewer_ids
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".policy_manager (
-      title, content_html, status, tags, next_review_date, author_id, assigned_reviewer_ids, last_updated_by, last_updated_at
+      title, content_html, status, tags, next_review_date, author_id, last_updated_by, last_updated_at
     ) VALUES (
-      :title, :content_html, :status, ARRAY[:tags], :next_review_date, :author_id, ARRAY[:assigned_reviewer_ids], :last_updated_by, :last_updated_at
+      :title, :content_html, :status, ARRAY[:tags], :next_review_date, :author_id, :last_updated_by, :last_updated_at
     ) RETURNING *`,
     {
       replacements: {
@@ -104,16 +108,34 @@ export const createPolicyQuery = async (
         tags: policy.tags,
         next_review_date: policy.next_review_date,
         author_id: userId,
-        assigned_reviewer_ids: policy.assigned_reviewer_ids,
         last_updated_by: userId,
         last_updated_at: new Date(),
       },
       transaction,
-      mapToModel: true,
-      model: PolicyManagerModel,
+      type: QueryTypes.INSERT,
     }
-  );
-  const createdPolicy = result[0];
+  ) as any;
+
+  const createdPolicy = result[0][0] as any;
+  const policyId = createdPolicy.id;
+
+  // Insert assigned reviewers into mapping table
+  if (policy.assigned_reviewer_ids && policy.assigned_reviewer_ids.length > 0) {
+    for (const reviewerId of policy.assigned_reviewer_ids) {
+      await sequelize.query(
+        `INSERT INTO "${tenant}".policy_manager__assigned_reviewer_ids
+         (policy_manager_id, user_id)
+         VALUES (:policyId, :userId)`,
+        {
+          replacements: { policyId, userId: reviewerId },
+          transaction,
+        }
+      );
+    }
+  }
+
+  // Add assigned_reviewer_ids to the returned object for consistency
+  createdPolicy.assigned_reviewer_ids = policy.assigned_reviewer_ids || [];
 
   const automations = (await sequelize.query(
     `SELECT
@@ -138,18 +160,19 @@ export const createPolicyQuery = async (
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
-            reviewer_ids: createdPolicy.dataValues.assigned_reviewer_ids,
+            reviewer_ids: createdPolicy.assigned_reviewer_ids || [],
           },
           transaction,
+          type: QueryTypes.SELECT,
         }
-      )) as [{ full_name: string }[], number];
+      )) as { full_name: string }[];
 
       const params = automation.params!;
 
       // Build replacements
       const replacements = buildPolicyReplacements({
-        ...createdPolicy.dataValues,
-        reviewer_names: reviewer_names[0].map((r) => r.full_name).join(", "),
+        ...createdPolicy,
+        reviewer_names: reviewer_names.map((r) => r.full_name).join(", "),
       });
 
       // Replace variables in subject and body
@@ -190,7 +213,6 @@ export const updatePolicyByIdQuery = async (
     "status",
     "tags",
     "next_review_date",
-    "assigned_reviewer_ids",
     "last_updated_by",
     "last_updated_at",
   ]
@@ -212,7 +234,7 @@ export const updatePolicyByIdQuery = async (
       return false;
     })
     .map((f) => {
-      if (f === "tags" || f === "assigned_reviewer_ids") {
+      if (f === "tags") {
         return `${f} = ARRAY[:${f}]`;
       }
       return `${f} = :${f}`;
@@ -225,14 +247,46 @@ export const updatePolicyByIdQuery = async (
   updatePolicy.last_updated_by = userId;
   updatePolicy.last_updated_at = new Date();
 
-  const result = await sequelize.query(query, {
+  await sequelize.query(query, {
     replacements: updatePolicy,
-    mapToModel: true,
-    model: PolicyManagerModel,
     transaction,
-    // type: QueryTypes.UPDATE,
+    type: QueryTypes.UPDATE,
   });
-  const updatedPolicy = result[0];
+
+  // Handle assigned_reviewer_ids update
+  if (policy.assigned_reviewer_ids !== undefined) {
+    // Delete existing reviewer mappings
+    await sequelize.query(
+      `DELETE FROM "${tenant}".policy_manager__assigned_reviewer_ids
+       WHERE policy_manager_id = :policyId`,
+      {
+        replacements: { policyId: id },
+        transaction,
+      }
+    );
+
+    // Insert new reviewer mappings
+    if (policy.assigned_reviewer_ids && policy.assigned_reviewer_ids.length > 0) {
+      for (const reviewerId of policy.assigned_reviewer_ids) {
+        await sequelize.query(
+          `INSERT INTO "${tenant}".policy_manager__assigned_reviewer_ids
+           (policy_manager_id, user_id)
+           VALUES (:policyId, :userId)`,
+          {
+            replacements: { policyId: id, userId: reviewerId },
+            transaction,
+          }
+        );
+      }
+    }
+  }
+
+  // Get the updated policy with reviewer IDs
+  const updatedPolicyResult = await getPolicyByIdQuery(tenant, id);
+  if (!updatedPolicyResult || updatedPolicyResult.length === 0) {
+    throw new Error('Policy not found after update');
+  }
+  const updatedPolicy = updatedPolicyResult[0];
   const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
@@ -256,18 +310,19 @@ export const updatePolicyByIdQuery = async (
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
-            reviewer_ids: updatedPolicy.dataValues.assigned_reviewer_ids,
+            reviewer_ids: (updatedPolicy as any).assigned_reviewer_ids || [],
           },
           transaction,
+          type: QueryTypes.SELECT,
         }
-      )) as [{ full_name: string }[], number];
+      )) as { full_name: string }[];
 
       const params = automation.params!;
 
       // Build replacements
       const replacements = buildPolicyUpdateReplacements(existingPolicy[0], {
-        ...updatedPolicy.dataValues,
-        reviewer_names: reviewer_names[0].map((r) => r.full_name).join(", "),
+        ...updatedPolicy,
+        reviewer_names: reviewer_names.map((r) => r.full_name).join(", "),
       });
 
       // Replace variables in subject and body
@@ -297,16 +352,25 @@ export const deletePolicyByIdQuery = async (
   id: number,
   transaction: Transaction
 ) => {
-  const result = await sequelize.query(
+  // Get policy data with reviewer IDs BEFORE deleting (CASCADE will delete mappings)
+  const policyToDelete = await getPolicyByIdQuery(tenant, id);
+
+  if (!policyToDelete || policyToDelete.length === 0) {
+    return false;
+  }
+
+  const deletedPolicyData = policyToDelete[0] as any;
+
+  // Delete the policy (CASCADE will handle mapping table deletion)
+  await sequelize.query(
     `DELETE FROM "${tenant}".policy_manager WHERE id = :id RETURNING *`,
     {
       replacements: { tenant, id },
       transaction,
-      mapToModel: true,
-      model: PolicyManagerModel,
+      type: QueryTypes.DELETE,
     }
   );
-  const deletedPolicy = result[0];
+
   const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
@@ -330,18 +394,19 @@ export const deletePolicyByIdQuery = async (
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
-            reviewer_ids: deletedPolicy.dataValues.assigned_reviewer_ids,
+            reviewer_ids: deletedPolicyData.assigned_reviewer_ids || [],
           },
           transaction,
+          type: QueryTypes.SELECT,
         }
-      )) as [{ full_name: string }[], number];
+      )) as { full_name: string }[];
 
       const params = automation.params!;
 
       // Build replacements
       const replacements = buildPolicyReplacements({
-        ...deletedPolicy.dataValues,
-        reviewer_names: reviewer_names[0].map((r) => r.full_name).join(", "),
+        ...deletedPolicyData,
+        reviewer_names: reviewer_names.map((r) => r.full_name).join(", "),
       });
 
       // Replace variables in subject and body
@@ -364,5 +429,5 @@ export const deletePolicyByIdQuery = async (
     }
   }
 
-  return result.length > 0;
+  return true;
 };

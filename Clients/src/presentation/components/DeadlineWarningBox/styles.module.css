@@ -72,15 +72,16 @@
 }
 
 .warningTitle h3 {
+    color: #787777;
     margin: 0;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, #787777FF 0%, #787777FF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .titleIcon {
-    color: #fbbf24;
+    color: #f1ac08;
     filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.3));
     animation: pulse 2s infinite;
 }
@@ -458,7 +459,7 @@
     }
 
     .menuButton {
-        color: #fde68a;
+        color: #ecc10a;
     }
 
     .deadlineChip.overdue {
@@ -472,7 +473,7 @@
     }
 
     .filterHint {
-        color: #fde68a;
+        color: #0c0b01;
         background-color: rgba(255, 255, 255, 0.05);
     }
 }

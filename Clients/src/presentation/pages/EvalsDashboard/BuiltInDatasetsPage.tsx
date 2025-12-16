@@ -466,7 +466,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
 
       {/* Benchmarks Section */}
       {activeSection === "benchmarks" && !embed && (
-        <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+        <Box>
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px", mb: 1 }}>
               Standard Benchmarks
@@ -729,7 +729,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             </Box>
           ) : (
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ maxWidth: 1000, mx: "auto" }}>
+              <Box>
                 {(["chatbot", "rag", "agent", "safety"] as const).map((uc) => (
                   <Box key={uc} sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: "13px", textTransform: "capitalize", mb: 1 }}>

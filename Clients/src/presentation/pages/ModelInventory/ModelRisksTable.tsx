@@ -245,20 +245,11 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
         }}
       >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {titleOfTableColumns.map((column, index) => (
+          {titleOfTableColumns.map((column) => (
             <TableCell
               key={column.id}
               sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
-                ...(index === titleOfTableColumns.length - 1
-                  ? {
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }
-                  : {}),
                 ...(column.sortable && {
                   cursor: "pointer",
                   userSelect: "none",
@@ -398,9 +389,6 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
                     minWidth: "50px",
                   }}
                 >

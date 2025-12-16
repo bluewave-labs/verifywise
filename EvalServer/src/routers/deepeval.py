@@ -25,6 +25,7 @@ from controllers.deepeval import (
     create_deepeval_scorer_controller,
     update_deepeval_scorer_controller,
     delete_deepeval_scorer_controller,
+    test_deepeval_scorer_controller,
 )
 
 router = APIRouter()
@@ -325,4 +326,20 @@ async def delete_scorer_endpoint(request: Request, scorer_id: str):
     """
     tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
     return await delete_deepeval_scorer_controller(scorer_id, tenant=tenant)
+
+
+@router.post("/scorers/{scorer_id}/test")
+async def test_scorer_endpoint(request: Request, scorer_id: str, payload: dict = Body(...)):
+    """
+    Test a scorer with sample input/output.
+    
+    Expected payload:
+    {
+      "input": "The source text...",
+      "output": "The model's output...",
+      "expected": "Optional expected output..."
+    }
+    """
+    tenant = getattr(request.state, "tenant", request.headers.get("x-tenant-id", "default"))
+    return await test_deepeval_scorer_controller(scorer_id, tenant=tenant, payload=payload)
 

@@ -747,11 +747,13 @@ const ProjectForm = ({
                         : "No options"
                     }
                     renderOption={(props, option) => {
+                      const { key, ...optionProps } = props;
                       const isComingSoon = option.name.includes("coming soon");
                       return (
                         <Box
+                          key={key}
                           component="li"
-                          {...props}
+                          {...optionProps}
                           sx={{
                             opacity: isComingSoon ? 0.5 : 1,
                             cursor: isComingSoon ? "not-allowed" : "pointer",
@@ -860,11 +862,13 @@ const ProjectForm = ({
                     : "No options"
                 }
                 renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
                   const isComingSoon = option.name.includes("coming soon");
                   return (
                     <Box
+                      key={key}
                       component="li"
-                      {...props}
+                      {...optionProps}
                       sx={{
                         opacity: isComingSoon ? 0.5 : 1,
                         cursor: isComingSoon ? "not-allowed" : "pointer",

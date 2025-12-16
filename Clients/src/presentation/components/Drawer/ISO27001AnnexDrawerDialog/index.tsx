@@ -34,7 +34,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { Save as SaveIcon } from "lucide-react";
 import { User } from "../../../../domain/types/User";
 import { STATUSES } from "../../../../domain/types/Status";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { AlertProps } from "../../../../domain/interfaces/i.alert";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -710,12 +710,7 @@ const VWISO27001AnnexDrawerDialog = ({
               </Stack>
             </Stack>
 
-            <Stack
-              sx={{
-                padding: "15px 20px",
-              }}
-              gap={"24px"}
-            >
+            <Stack gap={"24px"} sx={{ marginTop: "15px" }}>
               <Select
                 id="status"
                 label="Status:"

@@ -40,7 +40,7 @@ class GEvalLikeMetric:
         threshold: float = 0.5,
         model_name: str | None = None,
         provider: str | None = None,
-        max_tokens: int = 300,
+        max_tokens: int = 512,
         temperature: float = 0.0,
     ) -> None:
         self.threshold = threshold
@@ -69,8 +69,7 @@ class GEvalLikeMetric:
 
     def _build_prompt(self, *, input_text: str, actual_output: str, expected_output: str | None = None) -> str:
         rubric = (
-            "You are an impartial judge. Score the model's answer for overall quality, correctness, and usefulness. "
-            "Return a JSON object with keys: score (0.0-1.0) and reason (string)."
+            "You are an impartial judge. Score the model's answer for overall quality, correctness, and usefulness."
         )
         expected_clause = (
             f"\nExpected (reference):\n{expected_output}\n" if expected_output else "\n(Reference expected output not provided)\n"
@@ -80,7 +79,9 @@ class GEvalLikeMetric:
             f"Input:\n{input_text}\n\n"
             f"Model Answer:\n{actual_output}\n"
             f"{expected_clause}\n"
-            "Only output a valid JSON object with keys 'score' and 'reason'."
+            "Respond with ONLY a raw JSON object (no markdown, no code fences, no extra text).\n"
+            "Format: {\"score\": <0.0-1.0>, \"reason\": \"<your explanation>\"}\n"
+            "Example: {\"score\": 0.85, \"reason\": \"The answer is accurate and well-structured.\"}"
         )
 
     def measure(self, test_case) -> None:  # test_case: deepeval.test_case.LLMTestCase
@@ -393,7 +394,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("g_eval_correctness", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -405,7 +406,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("g_eval_coherence", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -417,7 +418,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("g_eval_tonality", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -429,7 +430,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("g_eval_safety", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -442,7 +443,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("contextual_recall", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -453,7 +454,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("contextual_precision", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -464,7 +465,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("ragas", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -477,7 +478,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("task_completion", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -488,7 +489,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("tool_correctness", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -501,7 +502,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("knowledge_retention", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -512,7 +513,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("conversation_completeness", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -523,7 +524,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("conversation_relevancy", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -534,7 +535,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("role_adherence", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))
@@ -547,7 +548,7 @@ class DeepEvalEvaluator:
                     threshold=self.metric_thresholds.get("summarization", 0.5),
                     model_name=os.getenv("G_EVAL_MODEL", os.getenv("OPENAI_G_EVAL_MODEL", "gpt-4o-mini")),
                     provider=os.getenv("G_EVAL_PROVIDER", os.getenv("EVAL_PROVIDER", "openai")),
-                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "300")),
+                    max_tokens=int(os.getenv("G_EVAL_MAX_TOKENS", "512")),
                     temperature=float(os.getenv("G_EVAL_TEMPERATURE", "0.0")),
                 )
             ))

@@ -9,7 +9,7 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, Workflow, FileSearch, Bot } from "lucide-react";
+import { CirclePlus, Beaker, Calendar, ChevronRight, Pencil, Trash2, FileSearch, Bot } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -538,10 +538,6 @@ export default function ProjectsList() {
         isSubmitting={loading || !newProject.name}
       >
         <Stack spacing={3}>
-          <Typography variant="body2" color="text.secondary">
-            Projects help you organize your LLM evaluations. You'll configure the model, dataset, and metrics when creating individual evaluation runs within the project.
-          </Typography>
-
           <Field
             label="Project name"
             value={newProject.name}
@@ -550,41 +546,12 @@ export default function ProjectsList() {
             isRequired
           />
 
-          <Field
-            label="Description"
-            value={newProject.description}
-            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            placeholder="Brief description of this project..."
-          />
-
           {/* LLM Use Case - card selection */}
           <Box>
             <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
               LLM Use Case
             </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }, gap: 2 }}>
-              <Box
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 2,
-                  p: 2,
-                  cursor: "not-allowed",
-                  backgroundColor: "#FFFFFF",
-                  opacity: 0.6,
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                  <Box sx={{ mt: 0.25 }}>
-                    <Workflow size={20} color="#13715B" />
-                  </Box>
-                  <Box>
-                    <Box sx={{ fontWeight: 700, fontSize: "13.5px", mb: 0.5 }}>AI Agents (coming soon)</Box>
-                    <Box sx={{ fontSize: "12.5px", color: "#6B7280", lineHeight: 1.6 }}>
-                      Agentic workflows and end-to-end task completion will be available shortly.
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <Box
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
                 sx={{

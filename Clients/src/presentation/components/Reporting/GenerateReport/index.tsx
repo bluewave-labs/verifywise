@@ -1,4 +1,12 @@
-import React, { useState, lazy, Suspense, useRef, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  lazy,
+  Suspense,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { Box, Stack } from "@mui/material";
 import StandardModal from "../../Modals/StandardModal";
 import CustomizableButton from "../../Button/CustomizableButton";
@@ -58,7 +66,9 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   });
 
   // Section selection for Page 2
-  const [sectionSelection, setSectionSelection] = useState<Record<string, boolean>>({});
+  const [sectionSelection, setSectionSelection] = useState<
+    Record<string, boolean>
+  >({});
 
   // Determine if this is an organizational report
   const isOrganizational = reportType === "organization";
@@ -68,7 +78,10 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     const savedPrefs = loadSectionPreferences();
     if (savedPrefs) {
       // Merge saved preferences with defaults for current framework
-      const defaults = getDefaultSectionSelection(basicFormValues.framework, isOrganizational);
+      const defaults = getDefaultSectionSelection(
+        basicFormValues.framework,
+        isOrganizational
+      );
       const merged = { ...defaults };
       // Only apply saved preferences for sections that exist in current framework
       Object.keys(savedPrefs).forEach((key) => {
@@ -89,20 +102,23 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     return Object.values(sectionSelection).some((v) => v === true);
   }, [sectionSelection]);
 
-  const handleToast = useCallback((type: "success" | "info" | "warning" | "error", message: string) => {
-    handleAlert({
-      variant: type,
-      body: message,
-      setAlert,
-    });
-    clearTimerRef.current = setTimeout(() => {
-      setAlert(null);
-      // Only close modal on success, not on errors
-      if (type === "success") {
-        onClose();
-      }
-    }, 3000);
-  }, [onClose]);
+  const handleToast = useCallback(
+    (type: "success" | "info" | "warning" | "error", message: string) => {
+      handleAlert({
+        variant: type,
+        body: message,
+        setAlert,
+      });
+      clearTimerRef.current = setTimeout(() => {
+        setAlert(null);
+        // Only close modal on success, not on errors
+        if (type === "success") {
+          onClose();
+        }
+      }, 3000);
+    },
+    [onClose]
+  );
 
   const handleGenerateReport = useCallback(async () => {
     // Handle null project case
@@ -122,7 +138,9 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
 
     setCurrentPage("status");
 
-    const owner = users.find((user: { id: number }) => user.id === currentProject.owner);
+    const owner = users.find(
+      (user: { id: number }) => user.id === currentProject.owner
+    );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
 
     // Convert section selection to backend format

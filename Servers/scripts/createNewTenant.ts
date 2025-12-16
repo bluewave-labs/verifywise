@@ -185,6 +185,31 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create use_case_change_history table for tracking project/use case changes
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".use_case_change_history (
+        id SERIAL PRIMARY KEY,
+        use_case_id INTEGER NOT NULL REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for use_case_change_history
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_id ON "${tenantHash}".use_case_change_history(use_case_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_changed_at ON "${tenantHash}".use_case_change_history(changed_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_changed ON "${tenantHash}".use_case_change_history(use_case_id, changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
     (
@@ -1489,9 +1514,230 @@ export const createNewTenant = async (
       { transaction }
     );
 
+
+    // Add risk query optimization indexes
+    await Promise.all(
+      [
+        // Index on risks table for filtering and sorting
+        `CREATE INDEX IF NOT EXISTS idx_risks_is_deleted ON "${tenantHash}".risks(is_deleted);`,
+        `CREATE INDEX IF NOT EXISTS idx_risks_created_at_id ON "${tenantHash}".risks(created_at DESC, id ASC);`,
+        `CREATE INDEX IF NOT EXISTS idx_risks_severity_likelihood ON "${tenantHash}".risks(severity, likelihood);`,
+
+        // Indexes on junction tables for risk_id lookups
+        `CREATE INDEX IF NOT EXISTS idx_projects_risks_risk_id ON "${tenantHash}".projects_risks(risk_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_frameworks_risks_risk_id ON "${tenantHash}".frameworks_risks(risk_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso_risks_risk_id ON "${tenantHash}".subclauses_iso__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcategories_iso_risks_risk_id ON "${tenantHash}".annexcategories_iso__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_controls_eu_risks_risk_id ON "${tenantHash}".controls_eu__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_answers_eu_risks_risk_id ON "${tenantHash}".answers_eu__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subcontrols_eu_risks_risk_id ON "${tenantHash}".subcontrols_eu__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcontrols_iso27001_risks_risk_id ON "${tenantHash}".annexcontrols_iso27001__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso27001_risks_risk_id ON "${tenantHash}".subclauses_iso27001__risks(projects_risks_id);`,
+
+        // Foreign key indexes for joins
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso_subclause_id ON "${tenantHash}".subclauses_iso__risks(subclause_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcategories_iso_annexcategory_id ON "${tenantHash}".annexcategories_iso__risks(annexcategory_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_controls_eu_control_id ON "${tenantHash}".controls_eu__risks(control_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_answers_eu_answer_id ON "${tenantHash}".answers_eu__risks(answer_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subcontrols_eu_subcontrol_id ON "${tenantHash}".subcontrols_eu__risks(subcontrol_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcontrols_iso27001_annexcontrol_id ON "${tenantHash}".annexcontrols_iso27001__risks(annexcontrol_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso27001_subclause_id ON "${tenantHash}".subclauses_iso27001__risks(subclause_id);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     // NIST AI RMF FRAMEWORK TABLES CREATION
     console.log(`🏗️ Creating NIST AI RMF tables for new tenant: ${tenantHash}`);
     await createNistAiRmfTablesForTenant(tenantHash, transaction);
+
+    // ========================================
+    // EVALSERVER TABLES
+    // ========================================
+    console.log(`🔬 Creating EvalServer (LLM Evals) tables for tenant: ${tenantHash}`);
+
+    // 1. deepeval_organizations table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_organizations (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        member_ids INTEGER[] DEFAULT ARRAY[]::INTEGER[],
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );`,
+      { transaction }
+    );
+
+    // 2. deepeval_projects table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_projects (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        tenant VARCHAR(255) NOT NULL,
+        org_id VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255)
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for deepeval_projects
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_tenant ON "${tenantHash}".deepeval_projects(tenant);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_created_at ON "${tenantHash}".deepeval_projects(created_at DESC);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_deepeval_projects_org_id ON "${tenantHash}".deepeval_projects(org_id);`,
+        { transaction }
+      ),
+    ]);
+
+    // 3. deepeval_user_datasets table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_user_datasets (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        path TEXT NOT NULL,
+        size BIGINT NOT NULL DEFAULT 0,
+        prompt_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );`,
+      { transaction }
+    );
+
+    // 4. deepeval_scorers table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".deepeval_scorers (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        type VARCHAR(255) NOT NULL,
+        metric_key VARCHAR(255) NOT NULL,
+        config JSONB DEFAULT '{}',
+        enabled BOOLEAN DEFAULT true,
+        default_threshold DOUBLE PRECISION,
+        weight DOUBLE PRECISION,
+        tenant VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255)
+      );`,
+      { transaction }
+    );
+
+    // 5. experiments table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".experiments (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        config JSONB NOT NULL,
+        baseline_experiment_id VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'pending',
+        results JSONB,
+        error_message TEXT,
+        started_at TIMESTAMP WITH TIME ZONE,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        tenant VARCHAR(255) NOT NULL,
+        created_by INTEGER
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for experiments
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_experiments_project_id ON "${tenantHash}".experiments(project_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_experiments_status ON "${tenantHash}".experiments(status);`,
+        { transaction }
+      ),
+    ]);
+
+    // 6. evaluation_logs table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_logs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id VARCHAR(255) NOT NULL,
+        experiment_id VARCHAR(255),
+        trace_id UUID,
+        parent_trace_id UUID,
+        span_name VARCHAR(255),
+        input_text TEXT,
+        output_text TEXT,
+        model_name VARCHAR(255),
+        metadata JSONB DEFAULT '{}',
+        latency_ms INTEGER,
+        token_count INTEGER,
+        cost NUMERIC(10, 6),
+        status VARCHAR(50),
+        error_message TEXT,
+        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        tenant VARCHAR(255) NOT NULL,
+        created_by INTEGER
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for evaluation_logs
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_logs_project_id ON "${tenantHash}".evaluation_logs(project_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_logs_experiment_id ON "${tenantHash}".evaluation_logs(experiment_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON "${tenantHash}".evaluation_logs(timestamp DESC);`,
+        { transaction }
+      ),
+    ]);
+
+    // 7. evaluation_metrics table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_metrics (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id VARCHAR(255) NOT NULL,
+        experiment_id VARCHAR(255),
+        metric_name VARCHAR(255) NOT NULL,
+        metric_type VARCHAR(255) NOT NULL,
+        value DOUBLE PRECISION NOT NULL,
+        dimensions JSONB,
+        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        tenant VARCHAR(255) NOT NULL
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for evaluation_metrics
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_metrics_project_id ON "${tenantHash}".evaluation_metrics(project_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_metrics_metric_name ON "${tenantHash}".evaluation_metrics(metric_name);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON "${tenantHash}".evaluation_metrics(timestamp DESC);`,
+        { transaction }
+      ),
+    ]);
+
+    console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
   } catch (error) {
     throw error;
   }

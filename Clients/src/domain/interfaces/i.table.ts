@@ -5,7 +5,7 @@ import { FileModel } from "../models/Common/file/file.model";
 import { User } from "../types/User";
 import { VendorRisk } from "../types/VendorRisk";
 import { ITask } from "./i.task";
-import { IUser } from "./iUser";
+import { IUser } from "./i.user";
 import { EventModel } from "../models/Common/evenTracker/eventTracker.model";
 
 export interface IAITrustCenterTableColumn {
@@ -18,7 +18,10 @@ export interface IAITrustCenterTableProps<T> {
   isLoading?: boolean;
   paginated?: boolean;
   emptyStateText?: string;
-  renderRow: (item: T, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
+  renderRow: (
+    item: T,
+    sortConfig?: { key: string; direction: "asc" | "desc" | null }
+  ) => React.ReactNode;
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;
@@ -56,7 +59,13 @@ export interface IEvaluationRow {
   dataset: string;
   prompts?: number;
   date?: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" | "Available";
+  status:
+    | "In Progress"
+    | "Completed"
+    | "Failed"
+    | "Pending"
+    | "Running"
+    | "Available";
 }
 
 export interface IEvaluationTableBodyProps {
@@ -89,33 +98,6 @@ export interface IEventsTableProps {
   paginated?: boolean;
 }
 
-export interface IFairnessRow {
-  id: number;
-  model: string;
-  dataset: string;
-  status: "In Progress" | "Completed" | "Failed";
-}
-
-export interface IFairnessTableBodyProps {
-  rows: IFairnessRow[];
-  page: number;
-  rowsPerPage: number;
-  onShowDetails: (model: IFairnessRow) => void;
-  onRemoveModel: {
-    onConfirm: (id: number) => void;
-  };
-}
-
-export interface IFairnessTableProps {
-  columns: any[];
-  rows: any[];
-  removeModel: {
-    onConfirm: (id: number) => void; // actually deletes
-  };
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  onShowDetails: (model: any) => void;
-}
 export interface IColumn {
   id: number;
   name: keyof FileModel | string;
@@ -186,7 +168,10 @@ export interface ITableProps {
   label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any, sortConfig?: { key: string; direction: "asc" | "desc" | null }) => React.ReactNode;
+  renderRow?: (
+    row: any,
+    sortConfig?: { key: string; direction: "asc" | "desc" | null }
+  ) => React.ReactNode;
   hidePagination?: boolean;
 }
 

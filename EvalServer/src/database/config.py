@@ -1,4 +1,12 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
+import dotenv
+
+# Load .env from EvalServer root (parent of src/)
+env_path = Path(__file__).parent.parent.parent / ".env"
+if env_path.exists():
+    dotenv.load_dotenv(env_path)
 
 class Settings(BaseSettings):
     db_user: str

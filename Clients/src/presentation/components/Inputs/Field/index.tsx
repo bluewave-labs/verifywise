@@ -36,7 +36,7 @@ import "./index.css";
 import { forwardRef, useState } from "react";
 import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ForwardedRef } from "react";
-import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
+import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/i.widget";
 import { getInputStyles } from "../../../utils/inputStyles";
 
 // Extend FieldProps to add optional rows

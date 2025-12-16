@@ -520,12 +520,12 @@ const CreateTask: FC<ICreateTaskProps> = ({
           </Suspense>
         </Stack>
 
-        {/* Row 4: Description (full width) */}
+        {/* Row 4: Description (full width = 350px + 350px + 48px gap) */}
         <Suspense fallback={<div>Loading...</div>}>
           <Field
             id="description"
             label="Description"
-            width="100%"
+            width="748px"
             type="description"
             value={values.description}
             onChange={handleOnTextFieldChange("description")}

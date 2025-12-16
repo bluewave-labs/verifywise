@@ -22,7 +22,7 @@ import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { singleTheme } from "../../themes";
-import { AIIncidentManagementModel } from "../../../domain/models/Common/IncidentManagement/incidentManagement.model";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import {
   incidentRowHover,
   incidentLoadingContainer,

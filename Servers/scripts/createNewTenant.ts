@@ -1558,8 +1558,13 @@ export const createNewTenant = async (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
         member_ids INTEGER[] DEFAULT ARRAY[]::INTEGER[],
+        tenant VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_deepeval_organizations_tenant ON "${tenantHash}".deepeval_organizations(tenant);`,
       { transaction }
     );
 
@@ -1602,8 +1607,13 @@ export const createNewTenant = async (
         path TEXT NOT NULL,
         size BIGINT NOT NULL DEFAULT 0,
         prompt_count INTEGER DEFAULT 0,
+        tenant VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_deepeval_user_datasets_tenant ON "${tenantHash}".deepeval_user_datasets(tenant);`,
       { transaction }
     );
 

@@ -8,6 +8,13 @@ import uuid
 import json
 
 
+def _get_schema_name(tenant: str) -> str:
+    """
+    Resolve the underlying Postgres schema for a given tenant.
+    """
+    return "a4ayc80OGd" if tenant == "default" else tenant
+
+
 # ==================== LOGS ====================
 
 async def create_log(
@@ -30,7 +37,7 @@ async def create_log(
     created_by: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new evaluation log entry"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     log_id = str(uuid.uuid4())
     trace = trace_id or str(uuid.uuid4())
     
@@ -90,7 +97,7 @@ async def update_log_metadata(
     metadata: Dict[str, Any],
 ) -> bool:
     """Merge/replace metadata for a specific log id"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     metadata_json = json.dumps(metadata) if metadata else '{}'
     result = await db.execute(
         text(f'''
@@ -115,7 +122,7 @@ async def get_logs(
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
     """Get logs with optional filtering"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     
     where_clauses = ["tenant = :tenant"]
     params = {"tenant": tenant, "limit": limit, "offset": offset}
@@ -175,7 +182,7 @@ async def get_log_count(
     status: Optional[str] = None,
 ) -> int:
     """Get total count of logs"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     
     where_clauses = ["tenant = :tenant"]
     params = {"tenant": tenant}
@@ -211,7 +218,7 @@ async def create_metric(
     dimensions: Optional[Dict] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new metric entry"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     metric_id = str(uuid.uuid4())
     dimensions_json = json.dumps(dimensions) if dimensions else '{}'
     
@@ -257,7 +264,7 @@ async def get_metric_aggregates(
     end_date: Optional[datetime] = None,
 ) -> Dict[str, float]:
     """Get aggregated statistics for a metric"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     
     where_clauses = ["tenant = :tenant", "project_id = :project_id", "metric_name = :metric_name"]
     params = {
@@ -314,7 +321,7 @@ async def create_experiment(
     created_by: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new experiment"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     experiment_id = f"exp_{timestamp}"
     
@@ -371,7 +378,7 @@ async def get_experiment_by_id(
     tenant: str,
 ) -> Optional[Dict[str, Any]]:
     """Get a specific experiment by ID"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     
     result = await db.execute(
         text(f'''
@@ -416,10 +423,10 @@ async def get_experiments(
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
     """Get experiments with optional filtering"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
 
-    where_clauses = []
-    params = {"limit": limit, "offset": offset}
+    where_clauses = ["tenant = :tenant"]
+    params = {"tenant": tenant, "limit": limit, "offset": offset}
     
     if project_id:
         where_clauses.append("project_id = :project_id")
@@ -428,14 +435,14 @@ async def get_experiments(
         where_clauses.append("status = :status")
         params["status"] = status
 
-    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    where_clause = " AND ".join(where_clauses)
 
     result = await db.execute(
         text(f'''
             SELECT id, project_id, name, description, config, status,
-                   results, created_at, updated_at, started_at, completed_at
+                   results, created_at, updated_at, started_at, completed_at, tenant
             FROM "{schema_name}".experiments
-            {where_clause}
+            WHERE {where_clause}
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
         '''),
@@ -456,6 +463,7 @@ async def get_experiments(
             "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None,
             "started_at": row["started_at"].isoformat() if row["started_at"] else None,
             "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
+            "tenant": row["tenant"],
         })
     
     return experiments
@@ -467,19 +475,19 @@ async def get_experiment_count(
     project_id: Optional[str] = None
 ) -> int:
     """Get total count of experiments"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
 
-    where_clauses = []
-    params = {}
+    where_clauses = ["tenant = :tenant"]
+    params = {"tenant": tenant}
 
     if project_id:
         where_clauses.append("project_id = :project_id")
         params["project_id"] = project_id
 
-    where_clause = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    where_clause = " AND ".join(where_clauses)
 
     result = await db.execute(
-        text(f'SELECT COUNT(*) as count FROM "{schema_name}".experiments {where_clause}'),
+        text(f'SELECT COUNT(*) as count FROM "{schema_name}".experiments WHERE {where_clause}'),
         params
     )
 
@@ -496,7 +504,7 @@ async def update_experiment_status(
     error_message: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Update experiment status and results"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
     
     # Build update fields
     updates = ["status = :status", "updated_at = CURRENT_TIMESTAMP"]
@@ -547,7 +555,7 @@ async def update_experiment(
     description: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Update experiment name and/or description"""
-    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    schema_name = _get_schema_name(tenant)
 
     # Build update fields dynamically
     updates = ["updated_at = CURRENT_TIMESTAMP"]
@@ -600,7 +608,7 @@ async def delete_experiment(
     Returns:
         True if deleted successfully, False if not found
     """
-    schema_name = tenant
+    schema_name = _get_schema_name(tenant)
     
     try:
         # First, delete associated evaluation logs

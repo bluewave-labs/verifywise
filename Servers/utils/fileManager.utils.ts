@@ -29,7 +29,8 @@ export const uploadFileToManager = async (
   userId: number,
   orgId: number,
   tenant: string,
-  modelId?: number
+  modelId?: number,
+  source?: string
 ): Promise<any> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant))
     throw new Error("Invalid tenant identifier");
@@ -40,9 +41,9 @@ export const uploadFileToManager = async (
   // Insert file metadata and content into database
   const query = `
     INSERT INTO "${tenant}".file_manager
-      (filename, size, mimetype, file_path, uploaded_by, upload_date, model_id,  org_id, is_demo)
+      (filename, size, mimetype, file_path, content, uploaded_by, upload_date, model_id, org_id, is_demo, source)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :uploaded_by, NOW(), :model_id, :org_id, false)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source)
     RETURNING *
     `;
 
@@ -55,6 +56,8 @@ export const uploadFileToManager = async (
       org_id: orgId,
       model_id: modelId !== undefined ? modelId : null,
       file_path: safeName,
+      content: file.buffer, // Store the actual file content
+      source: source || null,
     },
     type: QueryTypes.SELECT,
   });
@@ -115,6 +118,7 @@ export const getFilesByOrganization = async (
   const { limit, offset } = options;
 
   // Get files with uploader info (files are now stored in database)
+  // Exclude files with source='policy_editor' as they are embedded images, not evidence
   let query = `
     SELECT
       fm.id,
@@ -128,6 +132,7 @@ export const getFilesByOrganization = async (
     FROM "${tenant}".file_manager fm
     JOIN public.users u ON fm.uploaded_by = u.id
     WHERE fm.org_id = :orgId
+      AND (fm.source IS NULL OR fm.source != 'policy_editor')
     ORDER BY fm.upload_date DESC
   `;
 
@@ -143,11 +148,12 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  // Get total count for pagination
+  // Get total count for pagination (excluding policy_editor files)
   const totalCountQuery = `
     SELECT COUNT(*) as count
     FROM "${tenant}".file_manager
     WHERE org_id = :orgId
+      AND (source IS NULL OR source != 'policy_editor')
   `;
 
   const countResult = await sequelize.query(totalCountQuery, {

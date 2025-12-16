@@ -6,7 +6,14 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
@@ -46,10 +53,17 @@ import TabBar from "../../components/TabBar";
 import TipBox from "../../components/TipBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
 import { GroupBy } from "../../components/Table/GroupBy";
-import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
+import {
+  useTableGrouping,
+  useGroupByState,
+} from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
-import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
+import {
+  FilterBy,
+  FilterColumn,
+  FilterCondition,
+} from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { Project } from "../../../domain/types/Project";
 
@@ -71,11 +85,13 @@ const Vendors = () => {
   const { users } = useUsers();
 
   const [selectedVendor, setSelectedVendor] = useState<VendorModel | null>(
-    null,
+    null
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
+  const [filterStatus, setFilterStatus] = useState<
+    "active" | "deleted" | "all"
+  >("active");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [risksSearchTerm, setRisksSearchTerm] = useState<string>("");
 
@@ -83,7 +99,11 @@ const Vendors = () => {
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   // GroupBy state - risks tab
-  const { groupBy: groupByRisk, groupSortOrder: groupSortOrderRisk, handleGroupChange: handleGroupChangeRisk } = useGroupByState();
+  const {
+    groupBy: groupByRisk,
+    groupSortOrder: groupSortOrderRisk,
+    handleGroupChange: handleGroupChangeRisk,
+  } = useGroupByState();
 
   const currentPath = location.pathname;
   const isRisksTab = currentPath.includes("/vendors/risks");
@@ -91,7 +111,11 @@ const Vendors = () => {
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
-  const { data: vendors = [], isLoading: isVendorsLoading, refetch: refetchVendors } = useVendors({
+  const {
+    data: vendors = [],
+    isLoading: isVendorsLoading,
+    refetch: refetchVendors,
+  } = useVendors({
     projectId: selectedProjectId,
   });
   const {
@@ -117,7 +141,9 @@ const Vendors = () => {
       .sort()
       .map((assigneeId) => {
         const user = users.find((u) => u.id.toString() === assigneeId);
-        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${assigneeId}`;
+        const userName = user
+          ? `${user.name} ${user.surname}`.trim()
+          : `User ${assigneeId}`;
         return { value: assigneeId, label: userName };
       });
   }, [vendors, users]);
@@ -133,100 +159,108 @@ const Vendors = () => {
       .sort()
       .map((reviewerId) => {
         const user = users.find((u) => u.id.toString() === reviewerId);
-        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${reviewerId}`;
+        const userName = user
+          ? `${user.name} ${user.surname}`.trim()
+          : `User ${reviewerId}`;
         return { value: reviewerId, label: userName };
       });
   }, [vendors, users]);
 
   // FilterBy - Filter columns configuration for Vendors tab
-  const vendorFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: 'project_id',
-      label: 'Use case',
-      type: 'select' as const,
-      options: projects.map((project: Project) => ({
-        value: project.id.toString(),
-        label: project.project_title,
-      })),
-    },
-    {
-      id: 'vendor_name',
-      label: 'Vendor name',
-      type: 'text' as const,
-    },
-    {
-      id: 'review_status',
-      label: 'Status',
-      type: 'select' as const,
-      options: [
-        { value: ReviewStatus.NotStarted, label: 'Not started' },
-        { value: ReviewStatus.InReview, label: 'In review' },
-        { value: ReviewStatus.Reviewed, label: 'Reviewed' },
-        { value: ReviewStatus.RequiresFollowUp, label: 'Requires follow-up' },
-      ],
-    },
-    {
-      id: 'assignee',
-      label: 'Assignee',
-      type: 'select' as const,
-      options: getUniqueVendorAssignees(),
-    },
-    {
-      id: 'reviewer',
-      label: 'Reviewer',
-      type: 'select' as const,
-      options: getUniqueVendorReviewers(),
-    },
-    {
-      id: 'data_sensitivity',
-      label: 'Data sensitivity',
-      type: 'select' as const,
-      options: [
-        { value: 'Low', label: 'Low' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'High', label: 'High' },
-        { value: 'Critical', label: 'Critical' },
-      ],
-    },
-    {
-      id: 'business_criticality',
-      label: 'Business criticality',
-      type: 'select' as const,
-      options: [
-        { value: 'Low', label: 'Low' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'High', label: 'High' },
-        { value: 'Critical', label: 'Critical' },
-      ],
-    },
-    {
-      id: 'review_date',
-      label: 'Review date',
-      type: 'date' as const,
-    },
-  ], [projects, getUniqueVendorAssignees, getUniqueVendorReviewers]);
+  const vendorFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "project_id",
+        label: "Use case",
+        type: "select" as const,
+        options: projects.map((project: Project) => ({
+          value: project.id.toString(),
+          label: project.project_title,
+        })),
+      },
+      {
+        id: "vendor_name",
+        label: "Vendor name",
+        type: "text" as const,
+      },
+      {
+        id: "review_status",
+        label: "Status",
+        type: "select" as const,
+        options: [
+          { value: ReviewStatus.NotStarted, label: "Not started" },
+          { value: ReviewStatus.InReview, label: "In review" },
+          { value: ReviewStatus.Reviewed, label: "Reviewed" },
+          { value: ReviewStatus.RequiresFollowUp, label: "Requires follow-up" },
+        ],
+      },
+      {
+        id: "assignee",
+        label: "Assignee",
+        type: "select" as const,
+        options: getUniqueVendorAssignees(),
+      },
+      {
+        id: "reviewer",
+        label: "Reviewer",
+        type: "select" as const,
+        options: getUniqueVendorReviewers(),
+      },
+      {
+        id: "data_sensitivity",
+        label: "Data sensitivity",
+        type: "select" as const,
+        options: [
+          { value: "Low", label: "Low" },
+          { value: "Medium", label: "Medium" },
+          { value: "High", label: "High" },
+          { value: "Critical", label: "Critical" },
+        ],
+      },
+      {
+        id: "business_criticality",
+        label: "Business criticality",
+        type: "select" as const,
+        options: [
+          { value: "Low", label: "Low" },
+          { value: "Medium", label: "Medium" },
+          { value: "High", label: "High" },
+          { value: "Critical", label: "Critical" },
+        ],
+      },
+      {
+        id: "review_date",
+        label: "Review date",
+        type: "date" as const,
+      },
+    ],
+    [projects, getUniqueVendorAssignees, getUniqueVendorReviewers]
+  );
 
   // FilterBy - Field value getter for Vendors tab
   const getVendorFieldValue = useCallback(
-    (item: VendorModel, fieldId: string): string | number | Date | null | undefined => {
+    (
+      item: VendorModel,
+      fieldId: string
+    ): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case 'project_id':
+        case "project_id":
           // Vendors can belong to multiple projects - check if selected project is in the array
           // Return the first project id as string for matching, or use a custom approach
-          return item.projects?.map(p => p.toString()).join(',');
-        case 'vendor_name':
+          return item.projects?.map((p) => p.toString()).join(",");
+        case "vendor_name":
           return item.vendor_name;
-        case 'review_status':
+        case "review_status":
           return item.review_status;
-        case 'assignee':
+        case "assignee":
           return item.assignee?.toString();
-        case 'reviewer':
+        case "reviewer":
           return item.reviewer?.toString();
-        case 'data_sensitivity':
+        case "data_sensitivity":
           return item.data_sensitivity;
-        case 'business_criticality':
+        case "business_criticality":
           return item.business_criticality;
-        case 'review_date':
+        case "review_date":
           return item.review_date;
         default:
           return null;
@@ -236,20 +270,32 @@ const Vendors = () => {
   );
 
   // FilterBy - Initialize hook for Vendors tab
-  const { filterData: filterVendorData, handleFilterChange: handleVendorFilterChangeBase } = useFilterBy<VendorModel>(getVendorFieldValue);
+  const {
+    filterData: filterVendorData,
+    handleFilterChange: handleVendorFilterChangeBase,
+  } = useFilterBy<VendorModel>(getVendorFieldValue);
 
   // Wrapper to extract project_id from filter conditions and update API filter
-  const handleVendorFilterChange = useCallback((conditions: FilterCondition[], logic: 'and' | 'or') => {
-    // Extract project_id from conditions
-    const projectCondition = conditions.find(c => c.columnId === 'project_id');
-    if (projectCondition && projectCondition.operator === 'is' && projectCondition.value) {
-      setSelectedProjectId(projectCondition.value);
-    } else {
-      setSelectedProjectId('all');
-    }
-    // Pass to base handler for client-side filtering
-    handleVendorFilterChangeBase(conditions, logic);
-  }, [handleVendorFilterChangeBase]);
+  const handleVendorFilterChange = useCallback(
+    (conditions: FilterCondition[], logic: "and" | "or") => {
+      // Extract project_id from conditions
+      const projectCondition = conditions.find(
+        (c) => c.columnId === "project_id"
+      );
+      if (
+        projectCondition &&
+        projectCondition.operator === "is" &&
+        projectCondition.value
+      ) {
+        setSelectedProjectId(projectCondition.value);
+      } else {
+        setSelectedProjectId("all");
+      }
+      // Pass to base handler for client-side filtering
+      handleVendorFilterChangeBase(conditions, logic);
+    },
+    [handleVendorFilterChangeBase]
+  );
 
   // FilterBy - Dynamic options generators for Vendor Risks tab
   const getUniqueRiskVendors = useCallback(() => {
@@ -262,7 +308,9 @@ const Vendors = () => {
     return Array.from(vendorIds)
       .sort()
       .map((vendorId) => {
-        const vendor = vendors.find((v: VendorModel) => v.id?.toString() === vendorId);
+        const vendor = vendors.find(
+          (v: VendorModel) => v.id?.toString() === vendorId
+        );
         const vendorName = vendor ? vendor.vendor_name : `Vendor ${vendorId}`;
         return { value: vendorId, label: vendorName };
       });
@@ -279,92 +327,97 @@ const Vendors = () => {
       .sort()
       .map((ownerId) => {
         const user = users.find((u) => u.id.toString() === ownerId);
-        const userName = user ? `${user.name} ${user.surname}`.trim() : `User ${ownerId}`;
+        const userName = user
+          ? `${user.name} ${user.surname}`.trim()
+          : `User ${ownerId}`;
         return { value: ownerId, label: userName };
       });
   }, [vendorRisks, users]);
 
   // FilterBy - Filter columns configuration for Vendor Risks tab
-  const vendorRiskFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: 'project_id',
-      label: 'Use case',
-      type: 'select' as const,
-      options: projects.map((project: Project) => ({
-        value: project.id.toString(),
-        label: project.project_title,
-      })),
-    },
-    {
-      id: 'risk_description',
-      label: 'Risk description',
-      type: 'text' as const,
-    },
-    {
-      id: 'vendor_id',
-      label: 'Vendor',
-      type: 'select' as const,
-      options: getUniqueRiskVendors(),
-    },
-    {
-      id: 'risk_severity',
-      label: 'Risk severity',
-      type: 'select' as const,
-      options: [
-        { value: 'Low', label: 'Low' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'High', label: 'High' },
-        { value: 'Critical', label: 'Critical' },
-      ],
-    },
-    {
-      id: 'likelihood',
-      label: 'Likelihood',
-      type: 'select' as const,
-      options: [
-        { value: 'Rare', label: 'Rare' },
-        { value: 'Unlikely', label: 'Unlikely' },
-        { value: 'Possible', label: 'Possible' },
-        { value: 'Likely', label: 'Likely' },
-        { value: 'Almost Certain', label: 'Almost Certain' },
-      ],
-    },
-    {
-      id: 'risk_level',
-      label: 'Risk level',
-      type: 'select' as const,
-      options: [
-        { value: 'Low', label: 'Low' },
-        { value: 'Medium', label: 'Medium' },
-        { value: 'High', label: 'High' },
-        { value: 'Critical', label: 'Critical' },
-      ],
-    },
-    {
-      id: 'action_owner',
-      label: 'Action owner',
-      type: 'select' as const,
-      options: getUniqueRiskActionOwners(),
-    },
-  ], [projects, getUniqueRiskVendors, getUniqueRiskActionOwners]);
+  const vendorRiskFilterColumns: FilterColumn[] = useMemo(
+    () => [
+      {
+        id: "project_id",
+        label: "Use case",
+        type: "select" as const,
+        options: projects.map((project: Project) => ({
+          value: project.id.toString(),
+          label: project.project_title,
+        })),
+      },
+      {
+        id: "risk_description",
+        label: "Risk description",
+        type: "text" as const,
+      },
+      {
+        id: "vendor_id",
+        label: "Vendor",
+        type: "select" as const,
+        options: getUniqueRiskVendors(),
+      },
+      {
+        id: "risk_severity",
+        label: "Risk severity",
+        type: "select" as const,
+        options: [
+          { value: "Low", label: "Low" },
+          { value: "Medium", label: "Medium" },
+          { value: "High", label: "High" },
+          { value: "Critical", label: "Critical" },
+        ],
+      },
+      {
+        id: "likelihood",
+        label: "Likelihood",
+        type: "select" as const,
+        options: [
+          { value: "Rare", label: "Rare" },
+          { value: "Unlikely", label: "Unlikely" },
+          { value: "Possible", label: "Possible" },
+          { value: "Likely", label: "Likely" },
+          { value: "Almost Certain", label: "Almost Certain" },
+        ],
+      },
+      {
+        id: "risk_level",
+        label: "Risk level",
+        type: "select" as const,
+        options: [
+          { value: "Low", label: "Low" },
+          { value: "Medium", label: "Medium" },
+          { value: "High", label: "High" },
+          { value: "Critical", label: "Critical" },
+        ],
+      },
+      {
+        id: "action_owner",
+        label: "Action owner",
+        type: "select" as const,
+        options: getUniqueRiskActionOwners(),
+      },
+    ],
+    [projects, getUniqueRiskVendors, getUniqueRiskActionOwners]
+  );
 
   // FilterBy - Field value getter for Vendor Risks tab
   const getVendorRiskFieldValue = useCallback(
     (item: any, fieldId: string): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case 'project_id':
+        case "project_id":
           return item.project_id?.toString();
-        case 'risk_description':
+        case "risk_description":
           return item.risk_description;
-        case 'vendor_id':
+        case "vendor_id":
           return item.vendor_id?.toString();
-        case 'risk_severity':
+        case "risk_severity":
           return item.risk_severity;
-        case 'likelihood':
+        case "likelihood":
           return item.likelihood;
-        case 'risk_level':
+        case "risk_level":
           return item.risk_level;
-        case 'action_owner':
+        case "action_owner":
           return item.action_owner?.toString();
         default:
           return null;
@@ -374,20 +427,32 @@ const Vendors = () => {
   );
 
   // FilterBy - Initialize hook for Vendor Risks tab
-  const { filterData: filterVendorRiskData, handleFilterChange: handleVendorRiskFilterChangeBase } = useFilterBy<any>(getVendorRiskFieldValue);
+  const {
+    filterData: filterVendorRiskData,
+    handleFilterChange: handleVendorRiskFilterChangeBase,
+  } = useFilterBy<any>(getVendorRiskFieldValue);
 
   // Wrapper to extract project_id from filter conditions and update API filter for vendor risks
-  const handleVendorRiskFilterChange = useCallback((conditions: FilterCondition[], logic: 'and' | 'or') => {
-    // Extract project_id from conditions
-    const projectCondition = conditions.find(c => c.columnId === 'project_id');
-    if (projectCondition && projectCondition.operator === 'is' && projectCondition.value) {
-      setSelectedProjectId(projectCondition.value);
-    } else {
-      setSelectedProjectId('all');
-    }
-    // Pass to base handler for client-side filtering
-    handleVendorRiskFilterChangeBase(conditions, logic);
-  }, [handleVendorRiskFilterChangeBase]);
+  const handleVendorRiskFilterChange = useCallback(
+    (conditions: FilterCondition[], logic: "and" | "or") => {
+      // Extract project_id from conditions
+      const projectCondition = conditions.find(
+        (c) => c.columnId === "project_id"
+      );
+      if (
+        projectCondition &&
+        projectCondition.operator === "is" &&
+        projectCondition.value
+      ) {
+        setSelectedProjectId(projectCondition.value);
+      } else {
+        setSelectedProjectId("all");
+      }
+      // Pass to base handler for client-side filtering
+      handleVendorRiskFilterChangeBase(conditions, logic);
+    },
+    [handleVendorRiskFilterChangeBase]
+  );
 
   // Mutation hooks
   const deleteVendorMutation = useDeleteVendor();
@@ -696,7 +761,7 @@ const Vendors = () => {
 
   const handleFilterStatusChange = (
     event: SelectChangeEvent<string | number>,
-    _child: React.ReactNode,
+    _child: React.ReactNode
   ) => {
     const status = event.target.value as "active" | "deleted" | "all";
     setFilterStatus(status);
@@ -715,7 +780,7 @@ const Vendors = () => {
     if (risksSearchTerm.trim()) {
       const query = risksSearchTerm.toLowerCase();
       filtered = filtered.filter((risk) =>
-        risk.risk_description?.toLowerCase().includes(query),
+        risk.risk_description?.toLowerCase().includes(query)
       );
     }
 
@@ -729,10 +794,17 @@ const Vendors = () => {
 
     // Then apply search filter
     if (searchQuery) {
-      filtered = filtered.filter((vendor: VendorModel) =>
-        vendor.vendor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        vendor.vendor_provides.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        vendor.vendor_contact_person.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (vendor: VendorModel) =>
+          vendor.vendor_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          vendor.vendor_provides
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          vendor.vendor_contact_person
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
       );
     }
 
@@ -740,34 +812,38 @@ const Vendors = () => {
   }, [filterVendorData, vendors, searchQuery]);
 
   // Define how to get the group key for each vendor
-  const getVendorGroupKey = (vendor: VendorModel, field: string): string | string[] => {
+  const getVendorGroupKey = (
+    vendor: VendorModel,
+    field: string
+  ): string | string[] => {
+    const statusMap: Record<ReviewStatus, string> = {
+      [ReviewStatus.NotStarted]: "Not started",
+      [ReviewStatus.InReview]: "In review",
+      [ReviewStatus.Reviewed]: "Reviewed",
+      [ReviewStatus.RequiresFollowUp]: "Requires follow-up",
+    };
+
     switch (field) {
-      case 'review_status':
-        const statusMap: Record<ReviewStatus, string> = {
-          [ReviewStatus.NotStarted]: 'Not started',
-          [ReviewStatus.InReview]: 'In review',
-          [ReviewStatus.Reviewed]: 'Reviewed',
-          [ReviewStatus.RequiresFollowUp]: 'Requires follow-up',
-        };
-        return statusMap[vendor.review_status as ReviewStatus] || 'Unknown';
-      case 'data_sensitivity':
-        return vendor.data_sensitivity || 'Unknown';
-      case 'business_criticality':
-        return vendor.business_criticality || 'Unknown';
-      case 'assignee':
+      case "review_status":
+        return statusMap[vendor.review_status as ReviewStatus] || "Unknown";
+      case "data_sensitivity":
+        return vendor.data_sensitivity || "Unknown";
+      case "business_criticality":
+        return vendor.business_criticality || "Unknown";
+      case "assignee":
         if (vendor.assignee) {
           const user = users.find((u) => u.id === Number(vendor.assignee));
-          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+          return user ? `${user.name} ${user.surname}`.trim() : "Unknown";
         }
-        return 'Unassigned';
-      case 'reviewer':
+        return "Unassigned";
+      case "reviewer":
         if (vendor.reviewer) {
           const user = users.find((u) => u.id === Number(vendor.reviewer));
-          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+          return user ? `${user.name} ${user.surname}`.trim() : "Unknown";
         }
-        return 'No Reviewer';
+        return "No Reviewer";
       default:
-        return 'Other';
+        return "Other";
     }
   };
 
@@ -780,24 +856,27 @@ const Vendors = () => {
   });
 
   // Define how to get the group key for each vendor risk
-  const getVendorRiskGroupKey = (risk: any, field: string): string | string[] => {
+  const getVendorRiskGroupKey = (
+    risk: any,
+    field: string
+  ): string | string[] => {
     switch (field) {
-      case 'risk_severity':
-        return risk.risk_severity || 'Unknown';
-      case 'likelihood':
-        return risk.likelihood || 'Unknown';
-      case 'risk_level':
-        return risk.risk_level || 'Unknown';
-      case 'vendor_name':
-        return risk.vendor_name || 'Unknown Vendor';
-      case 'action_owner':
+      case "risk_severity":
+        return risk.risk_severity || "Unknown";
+      case "likelihood":
+        return risk.likelihood || "Unknown";
+      case "risk_level":
+        return risk.risk_level || "Unknown";
+      case "vendor_name":
+        return risk.vendor_name || "Unknown Vendor";
+      case "action_owner":
         if (risk.action_owner) {
           const user = users.find((u) => u.id === Number(risk.action_owner));
-          return user ? `${user.name} ${user.surname}`.trim() : 'Unknown';
+          return user ? `${user.name} ${user.surname}`.trim() : "Unknown";
         }
-        return 'Unassigned';
+        return "Unassigned";
       default:
-        return 'Other';
+        return "Other";
     }
   };
 
@@ -812,11 +891,11 @@ const Vendors = () => {
   // Define export columns for vendor table
   const exportColumns = useMemo(() => {
     return [
-      { id: 'vendor_name', label: 'Name' },
-      { id: 'assignee', label: 'Assignee' },
-      { id: 'review_status', label: 'Status' },
-      { id: 'scorecard', label: 'Scorecard' },
-      { id: 'review_date', label: 'Review Date' },
+      { id: "vendor_name", label: "Name" },
+      { id: "assignee", label: "Assignee" },
+      { id: "review_status", label: "Status" },
+      { id: "scorecard", label: "Scorecard" },
+      { id: "review_date", label: "Review Date" },
     ];
   }, []);
 
@@ -824,14 +903,19 @@ const Vendors = () => {
   const exportData = useMemo(() => {
     return filteredVendors.map((vendor: VendorModel) => {
       const assigneeUser = users.find((user) => user.id === vendor.assignee);
-      const assigneeName = assigneeUser ? `${assigneeUser.name} ${assigneeUser.surname}` : 'Unassigned';
+      const assigneeName = assigneeUser
+        ? `${assigneeUser.name} ${assigneeUser.surname}`
+        : "Unassigned";
 
       return {
         vendor_name: vendor.vendor_name,
         assignee: assigneeName,
-        review_status: vendor.review_status || 'Not started',
-        scorecard: vendor.risk_score !== null && vendor.risk_score !== undefined ? `${vendor.risk_score}%` : 'N/A',
-        review_date: vendor.review_date || 'N/A',
+        review_status: vendor.review_status || "Not started",
+        scorecard:
+          vendor.risk_score !== null && vendor.risk_score !== undefined
+            ? `${vendor.risk_score}%`
+            : "N/A",
+        review_date: vendor.review_date || "N/A",
       };
     });
   }, [filteredVendors, users]);
@@ -839,13 +923,13 @@ const Vendors = () => {
   // Define export columns for vendor risks table
   const vendorRisksExportColumns = useMemo(() => {
     return [
-      { id: 'risk_description', label: 'Risk Description' },
-      { id: 'vendor_name', label: 'Vendor' },
-      { id: 'project_titles', label: 'Use Case' },
-      { id: 'action_owner', label: 'Action Owner' },
-      { id: 'risk_severity', label: 'Risk Severity' },
-      { id: 'likelihood', label: 'Likelihood' },
-      { id: 'risk_level', label: 'Risk Level' },
+      { id: "risk_description", label: "Risk Description" },
+      { id: "vendor_name", label: "Vendor" },
+      { id: "project_titles", label: "Use Case" },
+      { id: "action_owner", label: "Action Owner" },
+      { id: "risk_severity", label: "Risk Severity" },
+      { id: "likelihood", label: "Likelihood" },
+      { id: "risk_level", label: "Risk Level" },
     ];
   }, []);
 
@@ -853,19 +937,23 @@ const Vendors = () => {
   const vendorRisksExportData = useMemo(() => {
     return vendorRisks.map((risk: any) => {
       const vendor = vendors.find((v) => v.id === risk.vendor_id);
-      const vendorName = vendor ? vendor.vendor_name : '-';
+      const vendorName = vendor ? vendor.vendor_name : "-";
 
-      const actionOwnerUser = users.find((user) => user.id === risk.action_owner);
-      const actionOwnerName = actionOwnerUser ? `${actionOwnerUser.name} ${actionOwnerUser.surname}` : '-';
+      const actionOwnerUser = users.find(
+        (user) => user.id === risk.action_owner
+      );
+      const actionOwnerName = actionOwnerUser
+        ? `${actionOwnerUser.name} ${actionOwnerUser.surname}`
+        : "-";
 
       return {
-        risk_description: risk.risk_description || '-',
+        risk_description: risk.risk_description || "-",
         vendor_name: vendorName,
-        project_titles: risk.project_titles || '-',
+        project_titles: risk.project_titles || "-",
         action_owner: actionOwnerName,
-        risk_severity: risk.risk_severity || '-',
-        likelihood: risk.likelihood || '-',
-        risk_level: risk.risk_level || '-',
+        risk_severity: risk.risk_severity || "-",
+        likelihood: risk.likelihood || "-",
+        risk_level: risk.risk_level || "-",
       };
     });
   }, [vendorRisks, vendors, users]);
@@ -882,7 +970,7 @@ const Vendors = () => {
         }}
         tourKey="vendor-tour"
       />
-      <Stack gap={"16px"} maxWidth={1400}>
+      <Stack gap={"16px"}>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
             <Alert
@@ -971,11 +1059,14 @@ const Vendors = () => {
                     />
                     <GroupBy
                       options={[
-                        { id: 'review_status', label: 'Status' },
-                        { id: 'assignee', label: 'Assignee' },
-                        { id: 'reviewer', label: 'Reviewer' },
-                        { id: 'data_sensitivity', label: 'Data sensitivity' },
-                        { id: 'business_criticality', label: 'Business criticality' },
+                        { id: "review_status", label: "Status" },
+                        { id: "assignee", label: "Assignee" },
+                        { id: "reviewer", label: "Reviewer" },
+                        { id: "data_sensitivity", label: "Data sensitivity" },
+                        {
+                          id: "business_criticality",
+                          label: "Business criticality",
+                        },
                       ]}
                       onGroupChange={handleGroupChange}
                     />
@@ -1053,11 +1144,11 @@ const Vendors = () => {
                     />
                     <GroupBy
                       options={[
-                        { id: 'risk_severity', label: 'Risk severity' },
-                        { id: 'likelihood', label: 'Likelihood' },
-                        { id: 'risk_level', label: 'Risk level' },
-                        { id: 'vendor_name', label: 'Vendor' },
-                        { id: 'action_owner', label: 'Action owner' },
+                        { id: "risk_severity", label: "Risk severity" },
+                        { id: "likelihood", label: "Likelihood" },
+                        { id: "risk_level", label: "Risk level" },
+                        { id: "vendor_name", label: "Vendor" },
+                        { id: "action_owner", label: "Action owner" },
                       ]}
                       onGroupChange={handleGroupChangeRisk}
                     />
@@ -1118,6 +1209,7 @@ const Vendors = () => {
                     onDelete={handleDeleteVendor}
                     onEdit={handleEditVendor}
                     hidePagination={options?.hidePagination}
+                    vendorRisks={vendorRisks}
                   />
                 )}
               />

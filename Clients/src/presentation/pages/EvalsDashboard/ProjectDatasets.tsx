@@ -24,13 +24,13 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, MoreVertical, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Upload, Download, X, MoreVertical, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown, Plus } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
 import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import ModalStandard from "../../components/Modals/StandardModal";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import Field from "../../components/Inputs/Field";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
@@ -102,6 +102,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [templateToCopy, setTemplateToCopy] = useState<BuiltInDataset | null>(null);
 
+  // Expanded prompt rows in template preview
+  const [expandedPromptIds, setExpandedPromptIds] = useState<Set<string>>(new Set());
+
   // Template drawer state
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false);
 
@@ -124,6 +127,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // Prompt edit drawer state (for inline editor)
   const [promptDrawerOpen, setPromptDrawerOpen] = useState(false);
   const [selectedPromptIndex, setSelectedPromptIndex] = useState<number | null>(null);
+
+  // Create dataset modal state
+  const [createDatasetModalOpen, setCreateDatasetModalOpen] = useState(false);
 
   // Load user's datasets (My datasets tab)
   const loadMyDatasets = useCallback(async () => {
@@ -308,6 +314,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const handleViewTemplate = (template: BuiltInDataset) => {
     setSelectedTemplate(template);
     setTemplateDrawerOpen(true);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Close template drawer
@@ -315,6 +322,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     setTemplateDrawerOpen(false);
     setSelectedTemplate(null);
     setTemplatePrompts([]);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Load data based on active tab
@@ -379,12 +387,6 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const filterColumns: FilterColumn[] = useMemo(
     () => [
       { id: "name", label: "Dataset name", type: "text" },
-      { id: "use_case", label: "Use case", type: "select", options: [
-        { value: "chatbot", label: "Chatbot" },
-        { value: "rag", label: "RAG" },
-        { value: "agent", label: "Agent" },
-        { value: "safety", label: "Safety" },
-      ]},
     ],
     []
   );
@@ -498,7 +500,34 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     }
   };
 
-  const isValidToSave = useMemo(() => editablePrompts && editablePrompts.length > 0 && editDatasetName.trim(), [editablePrompts, editDatasetName]);
+  const isValidToSave = useMemo(() => {
+    return editablePrompts && editablePrompts.length > 0 && editablePrompts.some((p) => p.prompt.trim()) && editDatasetName.trim();
+  }, [editablePrompts, editDatasetName]);
+
+  const handleAddPrompt = () => {
+    const newPrompt: DatasetPromptRecord = {
+      id: `prompt_${Date.now()}`,
+      category: "General",
+      prompt: "",
+      expected_output: "",
+      expected_keywords: [],
+      retrieval_context: [],
+    };
+    setEditablePrompts((prev) => [...prev, newPrompt]);
+    // Open the drawer with the new prompt
+    setSelectedPromptIndex(editablePrompts.length);
+    setPromptDrawerOpen(true);
+  };
+
+  const handleDeletePrompt = (idx: number) => {
+    setEditablePrompts((prev) => prev.filter((_, i) => i !== idx));
+    if (selectedPromptIndex === idx) {
+      setPromptDrawerOpen(false);
+      setSelectedPromptIndex(null);
+    } else if (selectedPromptIndex !== null && selectedPromptIndex > idx) {
+      setSelectedPromptIndex(selectedPromptIndex - 1);
+    }
+  };
 
   const handleRemoveDataset = (dataset: BuiltInDataset) => {
     handleActionMenuClose();
@@ -559,32 +588,89 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     fileInputRef.current?.click();
   };
 
-  const handleDownloadExample = () => {
-    const exampleData = [
-      {
-        id: "example_001",
-        category: "general_knowledge",
-        prompt: "What is the capital of France?",
-        expected_output: "The capital of France is Paris.",
-        expected_keywords: ["Paris", "capital", "France"],
-        difficulty: "easy",
-        retrieval_context: ["France is a country in Western Europe. Its capital city is Paris, which is also the largest city in France."]
-      },
-      {
-        id: "example_002",
-        category: "coding",
-        prompt: "Write a Python function to reverse a string.",
-        expected_output: "def reverse_string(s):\n    return s[::-1]",
-        expected_keywords: ["def", "return", "[::-1]"],
-        difficulty: "medium"
-      }
-    ];
+  // Example dataset type for download
+  const [exampleDatasetType, setExampleDatasetType] = useState<"chatbot" | "rag" | "agent">("chatbot");
+
+  const handleDownloadExample = (type: "chatbot" | "rag" | "agent" = exampleDatasetType) => {
+    const exampleDatasets = {
+      chatbot: [
+        {
+          id: "chatbot_001",
+          category: "general_knowledge",
+          prompt: "What is the capital of France?",
+          expected_output: "The capital of France is Paris.",
+          expected_keywords: ["Paris", "capital", "France"],
+          difficulty: "easy"
+        },
+        {
+          id: "chatbot_002",
+          category: "coding",
+          prompt: "Write a Python function to reverse a string.",
+          expected_output: "def reverse_string(s):\n    return s[::-1]",
+          expected_keywords: ["def", "return"],
+          difficulty: "medium"
+        }
+      ],
+      rag: [
+        {
+          id: "rag_001",
+          category: "document_qa",
+          prompt: "What are the key benefits of renewable energy?",
+          expected_output: "The key benefits of renewable energy include reduced carbon emissions, energy independence, and long-term cost savings.",
+          expected_keywords: ["carbon emissions", "energy independence", "cost savings"],
+          difficulty: "medium",
+          retrieval_context: [
+            "Renewable energy sources such as solar, wind, and hydropower offer significant environmental benefits by reducing greenhouse gas emissions.",
+            "Countries that invest in renewable energy often achieve greater energy independence and security.",
+            "While initial costs may be higher, renewable energy systems typically provide long-term cost savings through reduced fuel and maintenance costs."
+          ]
+        },
+        {
+          id: "rag_002",
+          category: "technical_docs",
+          prompt: "How does the authentication system handle expired tokens?",
+          expected_output: "When a token expires, the system returns a 401 status code and the client must refresh the token using the refresh endpoint.",
+          expected_keywords: ["401", "refresh", "token"],
+          difficulty: "hard",
+          retrieval_context: [
+            "The authentication middleware validates JWT tokens on each request. If the token has expired, it returns HTTP 401 Unauthorized.",
+            "Clients should implement automatic token refresh by calling POST /auth/refresh with a valid refresh token.",
+            "Refresh tokens have a longer expiry (7 days) compared to access tokens (15 minutes)."
+          ]
+        }
+      ],
+      agent: [
+        {
+          id: "agent_001",
+          category: "task_execution",
+          prompt: "Search for the weather in New York and summarize it.",
+          expected_output: "I searched for the current weather in New York. The temperature is 72°F with partly cloudy skies.",
+          expected_keywords: ["weather", "New York", "temperature"],
+          difficulty: "medium",
+          tools_available: ["web_search", "calculator", "calendar"],
+          expected_tools: ["web_search"]
+        },
+        {
+          id: "agent_002",
+          category: "multi_step",
+          prompt: "Calculate the total cost of 3 items at $25.99 each plus 8% tax.",
+          expected_output: "The subtotal is $77.97 and with 8% tax ($6.24), the total is $84.21.",
+          expected_keywords: ["77.97", "6.24", "84.21"],
+          difficulty: "easy",
+          tools_available: ["calculator", "web_search"],
+          expected_tools: ["calculator"]
+        }
+      ]
+    };
+
+    const exampleData = exampleDatasets[type];
+    const filename = `example_${type}_dataset.json`;
 
     const blob = new Blob([JSON.stringify(exampleData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "example_dataset.json";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -675,15 +761,28 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Prompt</TableCell>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>Category</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {editablePrompts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} sx={{ textAlign: "center", py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No prompts found in this dataset.
+                  <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      No prompts in this dataset yet.
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Plus size={16} />}
+                      onClick={handleAddPrompt}
+                      sx={{
+                        color: "#13715B",
+                        borderColor: "#13715B",
+                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                      }}
+                    >
+                      Add your first prompt
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -714,9 +813,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
+                          color: p.prompt ? "#374151" : "#9CA3AF",
+                          fontStyle: p.prompt ? "normal" : "italic",
                         }}
                       >
-                        {p.prompt}
+                        {p.prompt || "Empty prompt - click to edit"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -732,12 +833,51 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         }}
                       />
                     </TableCell>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePrompt(idx);
+                        }}
+                        sx={{
+                          color: "#9CA3AF",
+                          "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Add prompt button */}
+        {editablePrompts.length > 0 && (
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={16} />}
+            onClick={handleAddPrompt}
+            fullWidth
+            sx={{
+              mt: 2,
+              color: "#13715B",
+              borderColor: "#E5E7EB",
+              borderStyle: "dashed",
+              py: 1.5,
+              "&:hover": { 
+                borderColor: "#13715B", 
+                backgroundColor: "#E8F5F1",
+                borderStyle: "dashed",
+              },
+            }}
+          >
+            Add prompt
+          </Button>
+        )}
 
         {/* Prompt Edit Drawer */}
         <Drawer
@@ -826,21 +966,43 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   type="description"
                 />
 
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setPromptDrawerOpen(false);
-                    setSelectedPromptIndex(null);
-                  }}
-                  sx={{
-                    bgcolor: "#13715B",
-                    "&:hover": { bgcolor: "#0F5E4B" },
-                    height: "34px",
-                    mt: 2,
-                  }}
-                >
-                  Done
-                </Button>
+                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Trash2 size={14} />}
+                    onClick={() => {
+                      if (selectedPromptIndex !== null) {
+                        handleDeletePrompt(selectedPromptIndex);
+                      }
+                    }}
+                    sx={{
+                      color: "#EF4444",
+                      borderColor: "#FCA5A5",
+                      "&:hover": { 
+                        borderColor: "#EF4444", 
+                        backgroundColor: "#FEE2E2" 
+                      },
+                      height: "34px",
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setPromptDrawerOpen(false);
+                      setSelectedPromptIndex(null);
+                    }}
+                    sx={{
+                      bgcolor: "#13715B",
+                      "&:hover": { bgcolor: "#0F5E4B" },
+                      height: "34px",
+                      flex: 1,
+                    }}
+                  >
+                    Done
+                  </Button>
+                </Stack>
               </Stack>
             )}
           </Stack>
@@ -853,6 +1015,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+          Datasets
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
+        </Typography>
+      </Stack>
 
       {/* Hidden file input for uploads */}
       <input
@@ -882,7 +1054,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       {/* My datasets view */}
       {activeTab === "my" && (
         <>
-          {/* Filters + search + upload */}
+          {/* Filters + search + upload + create */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" gap={2} sx={{ marginBottom: "18px" }}>
             <Stack direction="row" alignItems="center" gap={2}>
               <FilterBy columns={filterColumns} onFilterChange={handleFilterChange} />
@@ -904,18 +1076,31 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 fullWidth={false}
               />
             </Stack>
-            <CustomizableButton
-              variant="outlined"
-              text={uploading ? "Uploading..." : "Upload dataset"}
-              icon={<Upload size={16} />}
-              onClick={handleUploadClick}
-              isDisabled={uploading}
-              sx={{
-                border: "1px solid #d0d5dd",
-                color: "#344054",
-                gap: 2,
-              }}
-            />
+            <Stack direction="row" spacing={2}>
+              <CustomizableButton
+                variant="outlined"
+                text={uploading ? "Uploading..." : "Upload dataset"}
+                icon={<Upload size={16} />}
+                onClick={handleUploadClick}
+                isDisabled={uploading}
+                sx={{
+                  border: "1px solid #d0d5dd",
+                  color: "#344054",
+                  gap: 2,
+                }}
+              />
+              <CustomizableButton
+                variant="contained"
+                text="Add dataset"
+                icon={<Plus size={16} />}
+                onClick={() => setCreateDatasetModalOpen(true)}
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+              />
+            </Stack>
           </Stack>
 
           {/* Table of user datasets */}
@@ -1242,7 +1427,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       </Popover>
 
       {/* Delete confirmation modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={deleteModalOpen}
         title="Delete this dataset?"
         body={`Are you sure you want to remove "${datasetToDelete?.name || "this dataset"}" from your project? This action cannot be undone.`}
@@ -1258,7 +1443,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       />
 
       {/* Copy template confirmation modal */}
-      <DualButtonModal
+      <ConfirmationModal
         isOpen={copyModalOpen}
         title="Copy to my datasets?"
         TitleFontSize={16}
@@ -1283,21 +1468,70 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         isOpen={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         title="Upload dataset"
-        description="Upload a custom dataset in JSON format"
+        description="Upload a custom dataset in JSON format for your evaluations"
         onSubmit={handleFileSelect}
         submitButtonText="Choose file"
         isSubmitting={false}
       >
         <Stack spacing={3}>
+          {/* Dataset type selector */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1.5 }}>
+              Dataset type
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              {(["chatbot", "rag", "agent"] as const).map((type) => (
+                <Chip
+                  key={type}
+                  label={type === "rag" ? "RAG" : type.charAt(0).toUpperCase() + type.slice(1)}
+                  onClick={() => setExampleDatasetType(type)}
+                  sx={{
+                    cursor: "pointer",
+                    height: 28,
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    backgroundColor: exampleDatasetType === type
+                      ? type === "chatbot" ? "#DBEAFE"
+                        : type === "rag" ? "#E0E7FF"
+                        : "#FEF3C7"
+                      : "#F3F4F6",
+                    color: exampleDatasetType === type
+                      ? type === "chatbot" ? "#1E40AF"
+                        : type === "rag" ? "#3730A3"
+                        : "#92400E"
+                      : "#6B7280",
+                    border: exampleDatasetType === type ? "1px solid" : "1px solid transparent",
+                    borderColor: exampleDatasetType === type
+                      ? type === "chatbot" ? "#3B82F6"
+                        : type === "rag" ? "#6366F1"
+                        : "#F59E0B"
+                      : "transparent",
+                    "&:hover": {
+                      backgroundColor: type === "chatbot" ? "#DBEAFE"
+                        : type === "rag" ? "#E0E7FF"
+                        : "#FEF3C7",
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
+              {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
+              {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
+              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."}
+            </Typography>
+          </Box>
+
+          {/* JSON structure based on type */}
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px" }}>
-                Required JSON structure
+                JSON structure for {exampleDatasetType === "rag" ? "RAG" : exampleDatasetType.charAt(0).toUpperCase() + exampleDatasetType.slice(1)}
               </Typography>
               <Button
                 size="small"
                 startIcon={<Download size={14} />}
-                onClick={handleDownloadExample}
+                onClick={() => handleDownloadExample(exampleDatasetType)}
                 sx={{
                   textTransform: "none",
                   fontSize: "12px",
@@ -1317,45 +1551,62 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 borderRadius: "6px",
                 p: 2,
                 fontFamily: "monospace",
-                fontSize: "12px",
+                fontSize: "11px",
                 overflow: "auto",
+                maxHeight: "200px",
               }}
             >
               <pre style={{ margin: 0 }}>
-{`[
+{exampleDatasetType === "chatbot" ? `[
   {
-    "id": "unique_id",
-    "category": "category_name",
-    "prompt": "The question or prompt",
-    "expected_output": "Expected response",
-    "expected_keywords": ["optional", "keywords"],
-    "difficulty": "easy|medium|hard",
-    "retrieval_context": ["optional", "for RAG"]
+    "id": "chatbot_001",
+    "category": "general_knowledge",
+    "prompt": "What is machine learning?",
+    "expected_output": "Machine learning is...",
+    "expected_keywords": ["algorithm", "data"],
+    "difficulty": "easy"
+  }
+]` : exampleDatasetType === "rag" ? `[
+  {
+    "id": "rag_001",
+    "category": "document_qa",
+    "prompt": "What are the key benefits?",
+    "expected_output": "The key benefits are...",
+    "expected_keywords": ["benefit", "advantage"],
+    "difficulty": "medium",
+    "retrieval_context": [
+      "Context document 1...",
+      "Context document 2..."
+    ]
+  }
+]` : `[
+  {
+    "id": "agent_001",
+    "category": "task_execution",
+    "prompt": "Search for weather in NYC",
+    "expected_output": "The weather in NYC is...",
+    "expected_keywords": ["weather", "NYC"],
+    "difficulty": "medium",
+    "tools_available": ["web_search", "calculator"],
+    "expected_tools": ["web_search"]
   }
 ]`}
               </pre>
             </Box>
           </Box>
 
+          {/* Field descriptions based on type */}
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
               Field descriptions
             </Typography>
-            <Stack spacing={1}>
+            <Stack spacing={0.75}>
               <Box>
                 <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
                   id
                 </Typography>
                 <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) Unique identifier for the test case
-                </Typography>
-              </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  category
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) Category or topic of the test
+                  (required) Unique identifier
                 </Typography>
               </Box>
               <Box>
@@ -1363,7 +1614,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   prompt
                 </Typography>
                 <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) The input question or prompt
+                  (required) The input question or task
                 </Typography>
               </Box>
               <Box>
@@ -1371,33 +1622,39 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   expected_output
                 </Typography>
                 <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (required) The expected model response
+                  (required) Expected model response
                 </Typography>
               </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  expected_keywords
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (optional) Keywords that should appear in the response
-                </Typography>
-              </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  difficulty
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (optional) Difficulty level: easy, medium, or hard
-                </Typography>
-              </Box>
-              <Box>
-                <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace" }}>
-                  retrieval_context
-                </Typography>
-                <Typography component="span" sx={{ fontSize: "12px", color: "text.secondary", ml: 1 }}>
-                  (optional) Context documents for RAG evaluations
-                </Typography>
-              </Box>
+              {exampleDatasetType === "rag" && (
+                <Box sx={{ backgroundColor: "#EEF2FF", p: 1, borderRadius: 1, mt: 0.5 }}>
+                  <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#4338CA" }}>
+                    retrieval_context
+                  </Typography>
+                  <Typography component="span" sx={{ fontSize: "12px", color: "#4338CA", ml: 1 }}>
+                    (required for RAG) Array of retrieved context documents
+                  </Typography>
+                </Box>
+              )}
+              {exampleDatasetType === "agent" && (
+                <>
+                  <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1, mt: 0.5 }}>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
+                      tools_available
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "#92400E", ml: 1 }}>
+                      (recommended) List of tools the agent can use
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1 }}>
+                    <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
+                      expected_tools
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: "12px", color: "#92400E", ml: 1 }}>
+                      (recommended) Expected tools to be called
+                    </Typography>
+                  </Box>
+                </>
+              )}
             </Stack>
           </Box>
         </Stack>
@@ -1632,65 +1889,99 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {templatePrompts.map((prompt, index) => (
-                    <TableRow key={prompt.id || index} sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "default" }}>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%" }}>
-                        <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden" }}>
-                        <Chip
-                          label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
-                          title={prompt.category}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "10px",
-                            backgroundColor: "#E5E7EB",
-                            color: "#374151",
-                            borderRadius: "4px",
-                            maxWidth: "100%",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden" }}>
-                        <Typography
-                          sx={{
-                            fontSize: "13px",
-                            color: theme.palette.text.primary,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: "100%",
-                          }}
-                          title={prompt.prompt}
-                        >
-                          {prompt.prompt.length > 40 ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%" }}>
-                        {prompt.difficulty && (
+                  {templatePrompts.map((prompt, index) => {
+                    const promptKey = prompt.id || `prompt-${index}`;
+                    const isExpanded = expandedPromptIds.has(promptKey);
+                    const isLongPrompt = prompt.prompt.length > 40;
+                    
+                    return (
+                      <TableRow 
+                        key={promptKey} 
+                        onClick={() => {
+                          if (isLongPrompt) {
+                            setExpandedPromptIds(prev => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(promptKey)) {
+                                newSet.delete(promptKey);
+                              } else {
+                                newSet.add(promptKey);
+                              }
+                              return newSet;
+                            });
+                          }
+                        }}
+                        sx={{ 
+                          ...singleTheme.tableStyles.primary.body.row, 
+                          cursor: isLongPrompt ? "pointer" : "default",
+                          "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
+                          verticalAlign: "top",
+                        }}
+                      >
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                           <Chip
-                            label={prompt.difficulty}
+                            label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
+                            title={prompt.category}
                             size="small"
                             sx={{
-                              height: 20,
+                              height: 22,
                               fontSize: "10px",
-                              fontWeight: 500,
-                              backgroundColor:
-                                prompt.difficulty === "easy" ? "#D1FAE5" :
-                                prompt.difficulty === "medium" ? "#FEF3C7" :
-                                prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                              color:
-                                prompt.difficulty === "easy" ? "#065F46" :
-                                prompt.difficulty === "medium" ? "#92400E" :
-                                prompt.difficulty === "hard" ? "#991B1B" : "#374151",
+                              backgroundColor: "#E5E7EB",
+                              color: "#374151",
                               borderRadius: "4px",
+                              maxWidth: "100%",
                             }}
                           />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography
+                            sx={{
+                              fontSize: "13px",
+                              color: theme.palette.text.primary,
+                              overflow: isExpanded ? "visible" : "hidden",
+                              textOverflow: isExpanded ? "clip" : "ellipsis",
+                              whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                              maxWidth: "100%",
+                              wordBreak: isExpanded ? "break-word" : "normal",
+                              lineHeight: 1.5,
+                            }}
+                            title={isExpanded ? undefined : prompt.prompt}
+                          >
+                            {isExpanded ? prompt.prompt : (isLongPrompt ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt)}
+                          </Typography>
+                          {isLongPrompt && (
+                            <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                              {isExpanded ? "Collapse" : "Expand"}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", verticalAlign: "top", pt: 1.5 }}>
+                          {prompt.difficulty && (
+                            <Chip
+                              label={prompt.difficulty}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "10px",
+                                fontWeight: 500,
+                                backgroundColor:
+                                  prompt.difficulty === "easy" ? "#D1FAE5" :
+                                  prompt.difficulty === "medium" ? "#FEF3C7" :
+                                  prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
+                                color:
+                                  prompt.difficulty === "easy" ? "#065F46" :
+                                  prompt.difficulty === "medium" ? "#92400E" :
+                                  prompt.difficulty === "hard" ? "#991B1B" : "#374151",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -1717,7 +2008,208 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           )}
         </Stack>
       </Drawer>
+
+      {/* Create Dataset Modal - Choice between Editor and Upload */}
+      {createDatasetModalOpen && (
+        <>
+          <Box
+            onClick={() => setCreateDatasetModalOpen(false)}
+            sx={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 1299,
+            }}
+          />
+          <Box
+            sx={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 1300,
+              backgroundColor: "white",
+              borderRadius: "12px",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+              width: "100%",
+              maxWidth: "480px",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ p: 3, borderBottom: "1px solid #E5E7EB" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#111827" }}>
+                    Add dataset
+                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#6B7280", mt: 0.5 }}>
+                    Choose how you want to add a new dataset
+                  </Typography>
+                </Box>
+                <IconButton
+                  onClick={() => setCreateDatasetModalOpen(false)}
+                  size="small"
+                  sx={{ color: "#9CA3AF", "&:hover": { color: "#6B7280" } }}
+                >
+                  <X size={20} />
+                </IconButton>
+              </Stack>
+            </Box>
+
+            {/* Options */}
+            <Box sx={{ p: 3 }}>
+              <Stack spacing={2}>
+                {/* Create from scratch option */}
+                <Box
+                  onClick={() => {
+                    setCreateDatasetModalOpen(false);
+                    setEditablePrompts([{
+                      id: "prompt_1",
+                      category: "general",
+                      prompt: "",
+                      expected_output: "",
+                    }]);
+                    setEditDatasetName("");
+                    setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: "chatbot" });
+                    setEditorOpen(true);
+                  }}
+                  sx={{
+                    p: 2,
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      borderColor: "#13715B",
+                      backgroundColor: "#F7FAF9",
+                    },
+                  }}
+                >
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "10px",
+                        backgroundColor: "#E8F5F1",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Edit3 size={22} color="#13715B" />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
+                        Create from scratch
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        Use the editor to manually add prompts
+                      </Typography>
+                    </Box>
+                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
+                  </Stack>
+                </Box>
+
+                {/* Upload JSON option */}
+                <Box
+                  onClick={() => {
+                    setCreateDatasetModalOpen(false);
+                    setUploadModalOpen(true);
+                  }}
+                  sx={{
+                    p: 2,
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      borderColor: "#4F46E5",
+                      backgroundColor: "#F5F5FF",
+                    },
+                  }}
+                >
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "10px",
+                        backgroundColor: "#EEF2FF",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Upload size={22} color="#4F46E5" />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
+                        Upload JSON file
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        Import existing dataset in JSON format
+                      </Typography>
+                    </Box>
+                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
+                  </Stack>
+                </Box>
+
+                {/* Use template option */}
+                <Box
+                  onClick={() => {
+                    setCreateDatasetModalOpen(false);
+                    setActiveTab("templates");
+                  }}
+                  sx={{
+                    p: 2,
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      borderColor: "#D97706",
+                      backgroundColor: "#FFFBEB",
+                    },
+                  }}
+                >
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "10px",
+                        backgroundColor: "#FEF3C7",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Database size={22} color="#D97706" />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
+                        Start from template
+                      </Typography>
+                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                        Browse pre-built evaluation templates
+                      </Typography>
+                    </Box>
+                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
+                  </Stack>
+                </Box>
+              </Stack>
+            </Box>
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
-

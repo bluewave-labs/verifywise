@@ -216,7 +216,9 @@ const CustomizableButton = memo(
           ]}
           disableElevation={variant === "contained" && !isLink}
           startIcon={
-            loading ? (
+            // Show spinner as startIcon if loading AND (has original startIcon OR has endIcon)
+            // If no icons at all, we'll show a centered spinner instead
+            loading && (resolvedStartIcon || endIcon) ? (
               <Box
                 component="span"
                 sx={{ display: "flex", alignItems: "center" }}
@@ -230,6 +232,7 @@ const CustomizableButton = memo(
           endIcon={!loading ? endIcon : undefined}
           {...filteredRest}
         >
+          {/* Show centered spinner only when loading and NO icons at all */}
           {loading && !resolvedStartIcon && !endIcon && (
             <Box
               component="span"

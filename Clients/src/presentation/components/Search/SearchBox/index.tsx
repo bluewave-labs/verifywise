@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, InputBase, SxProps, Theme, useTheme } from "@mui/material";
 import { Search } from "lucide-react";
-import { ISearchBoxProps } from "../../../../domain/interfaces/iWidget";
+import { ISearchBoxProps } from "../../../../domain/interfaces/i.widget";
 import { getSearchBoxStyles } from "../../../utils/inputStyles";
 
 const SearchBox: React.FC<ISearchBoxProps> = ({

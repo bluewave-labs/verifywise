@@ -21,7 +21,7 @@ import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
 import { RiskFormValues, RiskFormErrors } from "../interface";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
-import { alertState } from "../../../../domain/interfaces/iAlert";
+import { alertState } from "../../../../domain/interfaces/i.alert";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useFrameworks from "../../../../application/hooks/useFrameworks";

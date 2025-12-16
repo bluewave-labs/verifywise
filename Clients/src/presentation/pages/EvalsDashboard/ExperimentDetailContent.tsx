@@ -17,16 +17,18 @@ import {
   Divider,
   IconButton,
   TextField,
+  Button,
 } from "@mui/material";
-import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
 interface ExperimentDetailContentProps {
   experimentId: string;
+  projectId: string;
   onBack: () => void;
 }
 
-export default function ExperimentDetailContent({ experimentId, onBack }: ExperimentDetailContentProps) {
+export default function ExperimentDetailContent({ experimentId, projectId, onBack }: ExperimentDetailContentProps) {
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
@@ -36,6 +38,35 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [rerunLoading, setRerunLoading] = useState(false);
+
+  // Helper to extract reason from metric data
+  // Expected format: {"score": 0.85, "reason": "The answer is accurate..."}
+  const parseMetricReason = (reason: string | undefined): string | undefined => {
+    if (!reason) return undefined;
+    
+    // If it's already clean text (doesn't look like JSON), return as-is
+    if (!reason.includes('"reason"') && !reason.includes('{')) {
+      return reason;
+    }
+    
+    // Try to parse as JSON directly
+    try {
+      const parsed = JSON.parse(reason.trim());
+      if (parsed.reason) return parsed.reason;
+    } catch {
+      // Not valid JSON, try regex extraction
+    }
+    
+    // Regex to extract reason value (handles escaped quotes)
+    const reasonMatch = reason.match(/"reason"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    if (reasonMatch && reasonMatch[1]) {
+      return reasonMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+    }
+    
+    // Return original if nothing worked
+    return reason;
+  };
 
   useEffect(() => {
     loadExperimentData();
@@ -118,6 +149,44 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
     setEditedDescription("");
   };
 
+  const [rerunSuccess, setRerunSuccess] = useState<string | null>(null);
+
+  const handleRerunExperiment = async () => {
+    if (!experiment || !projectId) return;
+    if (rerunLoading) return;
+
+    try {
+      setRerunLoading(true);
+      setRerunSuccess(null);
+      const baseConfig = (experiment as unknown as { config?: Record<string, Record<string, unknown>> }).config || {};
+      const nextName = `${experiment.name || "Eval"} (rerun ${new Date().toLocaleDateString()})`;
+
+      const payload = {
+        project_id: projectId,
+        name: nextName,
+        description: experiment.description || "",
+        config: {
+          ...baseConfig,
+          project_id: projectId,
+        },
+      };
+
+      const response = await experimentsService.createExperiment(payload);
+
+      if (response?.experiment?.id) {
+        // Don't navigate immediately - show success message and let user go back
+        setRerunSuccess(`Rerun started: "${nextName}". View it in the experiments list.`);
+        // Auto-clear after 5 seconds
+        setTimeout(() => setRerunSuccess(null), 5000);
+      }
+    } catch (err) {
+      console.error("Failed to rerun experiment:", err);
+      setRerunSuccess(null);
+    } finally {
+      setRerunLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -188,88 +257,8 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
 
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        {/* Experiment Name with inline editing */}
-        <Box
-          sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 0.5,
-            mb: 1,
-            "&:hover .edit-icon": {
-              opacity: 1,
-            },
-          }}
-        >
-          {isEditingName ? (
-            <>
-              <TextField
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSaveName();
-                  if (e.key === "Escape") handleCancelEditName();
-                }}
-                variant="outlined"
-                size="small"
-                autoFocus
-                disabled={saving}
-                sx={{
-                  minWidth: "400px",
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "18px",
-                    fontWeight: 600,
-                  },
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={handleSaveName}
-                disabled={saving || !editedName.trim()}
-                sx={{ color: "#13715B" }}
-              >
-                <Check size={18} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleCancelEditName}
-                disabled={saving}
-                sx={{ color: "#6B7280" }}
-              >
-                <X size={18} />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
-                {experiment.name}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={handleStartEditName}
-                className="edit-icon"
-                sx={{
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                  color: "#6B7280",
-                  "&:hover": {
-                    color: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  },
-                }}
-              >
-                <Pencil size={14} />
-              </IconButton>
-            </>
-          )}
-        </Box>
-
-        {/* Experiment Description with inline editing */}
-        <Box
-          sx={{
-            display: "block",
-            mb: 2,
-          }}
-        >
+        {/* Row 1: Experiment Name + Rerun button */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
           <Box
             sx={{
               display: "inline-flex",
@@ -280,81 +269,109 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
               },
             }}
           >
-          {isEditingDescription ? (
-            <>
-              <TextField
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSaveDescription();
-                  if (e.key === "Escape") handleCancelEditDescription();
-                }}
-                variant="outlined"
+            {isEditingName ? (
+              <>
+                <TextField
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") handleCancelEditName();
+                  }}
+                  variant="outlined"
+                  size="small"
+                  autoFocus
+                  disabled={saving}
+                  sx={{
+                    minWidth: "400px",
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "18px",
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={handleSaveName}
+                  disabled={saving || !editedName.trim()}
+                  sx={{ color: "#13715B" }}
+                >
+                  <Check size={18} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleCancelEditName}
+                  disabled={saving}
+                  sx={{ color: "#6B7280" }}
+                >
+                  <X size={18} />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <Typography variant="h5" sx={{ fontWeight: 600, fontSize: "18px" }}>
+                  {experiment.name}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleStartEditName}
+                  className="edit-icon"
+                  sx={{
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                    color: "#6B7280",
+                    "&:hover": {
+                      color: "#13715B",
+                      backgroundColor: "rgba(19, 113, 91, 0.1)",
+                    },
+                  }}
+                >
+                  <Pencil size={14} />
+                </IconButton>
+              </>
+            )}
+          </Box>
+
+          {/* Rerun button */}
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              variant="contained"
+              onClick={handleRerunExperiment}
+              disabled={rerunLoading || experiment.status === "running"}
+              startIcon={<RotateCcw size={16} />}
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#13715B",
+                "&:hover": { backgroundColor: "#0F5A47" },
+                fontSize: "14px",
+                fontWeight: 500,
+                height: 40,
+                px: 3,
+              }}
+            >
+              {rerunLoading ? "Starting…" : "Rerun"}
+            </Button>
+            {rerunSuccess && (
+              <Chip
+                label={rerunSuccess}
                 size="small"
-                autoFocus
-                disabled={saving}
-                placeholder="Add a description..."
+                onDelete={() => setRerunSuccess(null)}
                 sx={{
-                  minWidth: "400px",
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    color: "text.secondary",
+                  backgroundColor: "#D1FAE5",
+                  color: "#065F46",
+                  fontSize: "12px",
+                  "& .MuiChip-deleteIcon": {
+                    color: "#065F46",
+                    "&:hover": { color: "#047857" },
                   },
                 }}
               />
-              <IconButton
-                size="small"
-                onClick={handleSaveDescription}
-                disabled={saving}
-                sx={{ color: "#13715B" }}
-              >
-                <Check size={18} />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleCancelEditDescription}
-                disabled={saving}
-                sx={{ color: "#6B7280" }}
-              >
-                <X size={18} />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  fontSize: "13px",
-                  fontStyle: experiment.description ? "normal" : "italic",
-                  color: experiment.description ? "text.secondary" : "#9CA3AF",
-                }}
-              >
-                {experiment.description || "No description"}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={handleStartEditDescription}
-                className="edit-icon"
-                sx={{
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                  color: "#6B7280",
-                  "&:hover": {
-                    color: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.1)",
-                  },
-                }}
-              >
-                <Pencil size={14} />
-              </IconButton>
-            </>
-          )}
-          </Box>
+            )}
+          </Stack>
         </Box>
 
-        {/* Status and metadata */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+        {/* Row 2: Status, Description, Created date */}
+        <Stack direction="row" spacing={2} alignItems="center">
           <Chip
             label={experiment.status}
             size="small"
@@ -385,6 +402,91 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
               },
             }}
           />
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              "&:hover .edit-icon": {
+                opacity: 1,
+              },
+            }}
+          >
+            {isEditingDescription ? (
+              <>
+                <TextField
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveDescription();
+                    if (e.key === "Escape") handleCancelEditDescription();
+                  }}
+                  variant="outlined"
+                  size="small"
+                  autoFocus
+                  disabled={saving}
+                  placeholder="Add a description..."
+                  sx={{
+                    minWidth: "300px",
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "13px",
+                      color: "text.secondary",
+                    },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={handleSaveDescription}
+                  disabled={saving}
+                  sx={{ color: "#13715B" }}
+                >
+                  <Check size={16} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleCancelEditDescription}
+                  disabled={saving}
+                  sx={{ color: "#6B7280" }}
+                >
+                  <X size={16} />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: "13px",
+                    fontStyle: experiment.description ? "normal" : "italic",
+                    color: experiment.description ? "text.secondary" : "#9CA3AF",
+                  }}
+                >
+                  {experiment.description || "No description"}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleStartEditDescription}
+                  className="edit-icon"
+                  sx={{
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                    color: "#6B7280",
+                    padding: "2px",
+                    "&:hover": {
+                      color: "#13715B",
+                      backgroundColor: "rgba(19, 113, 91, 0.1)",
+                    },
+                  }}
+                >
+                  <Pencil size={12} />
+                </IconButton>
+              </>
+            )}
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+            •
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
             Created {new Date(experiment.created_at).toLocaleString()}
           </Typography>
@@ -393,11 +495,35 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
 
       {/* Overall Stats Header */}
       {logs.length > 0 && (() => {
+        // Map display names to camelCase keys for backwards compatibility
+        const displayNameToKey: Record<string, string> = {
+          "Answer Relevancy": "answerRelevancy",
+          "Faithfulness": "faithfulness",
+          "Contextual Relevancy": "contextualRelevancy",
+          "Contextual Recall": "contextualRecall",
+          "Contextual Precision": "contextualPrecision",
+          "Bias": "bias",
+          "Toxicity": "toxicity",
+          "Hallucination": "hallucination",
+          "Knowledge Retention": "knowledgeRetention",
+          "Conversation Completeness": "conversationCompleteness",
+          "Conversation Relevancy": "conversationRelevancy",
+          "Role Adherence": "roleAdherence",
+          "Task Completion": "taskCompletion",
+          "Tool Correctness": "toolCorrectness",
+          "Answer Correctness": "answerCorrectness",
+          "Coherence": "coherence",
+          "Tonality": "tonality",
+          "Safety": "safety",
+        };
+
         // Calculate overall averages and per-sample scores for sparklines
         const metricsSum: Record<string, { sum: number; count: number; scores: number[] }> = {};
         logs.forEach((log) => {
           if (log.metadata?.metric_scores) {
-            Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+            Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
+              // Normalize key: convert display names to camelCase, or keep if already camelCase
+              const key = displayNameToKey[rawKey] || rawKey;
               const score = typeof value === "number" ? value : (value as { score?: number })?.score;
               if (typeof score === "number") {
                 if (!metricsSum[key]) metricsSum[key] = { sum: 0, count: 0, scores: [] };
@@ -413,14 +539,30 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
         const enabled: Record<string, unknown> =
           (experiment as unknown as { config?: { metrics?: Record<string, unknown> } })?.config?.metrics || {};
 
-        // Metric definitions with categories
+        // Metric definitions with categories - expanded to include all possible metrics
         const metricDefinitions: Record<string, { label: string; category: "quality" | "safety" }> = {
+          // Standard DeepEval metrics
           answerRelevancy: { label: "Answer Relevancy", category: "quality" },
           faithfulness: { label: "Faithfulness", category: "quality" },
           contextualRelevancy: { label: "Contextual Relevancy", category: "quality" },
+          contextualRecall: { label: "Contextual Recall", category: "quality" },
+          contextualPrecision: { label: "Contextual Precision", category: "quality" },
           bias: { label: "Bias", category: "safety" },
           toxicity: { label: "Toxicity", category: "safety" },
           hallucination: { label: "Hallucination", category: "safety" },
+          // Chatbot-specific metrics
+          knowledgeRetention: { label: "Knowledge Retention", category: "quality" },
+          conversationCompleteness: { label: "Conversation Completeness", category: "quality" },
+          conversationRelevancy: { label: "Conversation Relevancy", category: "quality" },
+          roleAdherence: { label: "Role Adherence", category: "quality" },
+          // Agent metrics
+          taskCompletion: { label: "Task Completion", category: "quality" },
+          toolCorrectness: { label: "Tool Correctness", category: "quality" },
+          // G-Eval metrics
+          answerCorrectness: { label: "Answer Correctness", category: "quality" },
+          coherence: { label: "Coherence", category: "quality" },
+          tonality: { label: "Tonality", category: "quality" },
+          safety: { label: "Safety", category: "safety" },
         };
 
         // Get score color based on value thresholds
@@ -473,11 +615,21 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
           );
         };
 
+        // Show metrics that are either enabled in config OR have actual data
         const orderedMetrics = Object.keys(metricDefinitions)
-          .filter((k) => !!enabled?.[k])
+          .filter((k) => !!enabled?.[k] || !!metricsSum[k])
           .map((k) => ({ key: k, ...metricDefinitions[k] }));
 
-        if (Object.keys(metricsSum).length === 0) return null;
+        // Find custom scorer metrics (those not in metricDefinitions but have data)
+        const customScorerMetrics = Object.keys(metricsSum)
+          .filter((k) => !metricDefinitions[k] && !displayNameToKey[k])
+          .map((k) => ({
+            key: k,
+            label: k.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+            category: "scorer" as const,
+          }));
+
+        if (Object.keys(metricsSum).length === 0 && customScorerMetrics.length === 0) return null;
 
         // Group metrics by category
         const qualityMetrics = orderedMetrics.filter((m) => m.category === "quality");
@@ -486,12 +638,27 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
         // Get icon for metric type (for background watermark)
         const getMetricIcon = (metricKey: string) => {
           switch (metricKey) {
+            // Quality metrics
             case "answerRelevancy": return Sparkles;
             case "faithfulness": return Check;
             case "contextualRelevancy": return Sparkles;
+            case "contextualRecall": return Sparkles;
+            case "contextualPrecision": return Sparkles;
+            case "answerCorrectness": return Sparkles;
+            case "coherence": return Sparkles;
+            case "tonality": return Sparkles;
+            case "knowledgeRetention": return Sparkles;
+            case "conversationCompleteness": return Sparkles;
+            case "conversationRelevancy": return Sparkles;
+            case "roleAdherence": return Sparkles;
+            case "taskCompletion": return Check;
+            case "toolCorrectness": return Check;
+            // Safety metrics
             case "bias": return Shield;
             case "toxicity": return Shield;
+            case "safety": return Shield;
             case "hallucination": return Shield;
+            // Custom scorers use Sparkles as default
             default: return Sparkles;
           }
         };
@@ -625,6 +792,18 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
                 </Typography>
                 <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
                   {safetyMetrics.map(renderMetricCard)}
+                </Box>
+              </Box>
+            )}
+
+            {/* Custom Scorers Section */}
+            {customScorerMetrics.length > 0 && (
+              <Box sx={{ mb: "16px" }}>
+                <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
+                  Custom scorers
+                </Typography>
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
+                  {customScorerMetrics.map(renderMetricCard)}
                 </Box>
               </Box>
             )}
@@ -808,7 +987,8 @@ export default function ExperimentDetailContent({ experimentId, onBack }: Experi
                        {Object.entries(selectedLog.metadata.metric_scores).map(([metricName, metricData]) => {
                         const score = typeof metricData === "number" ? metricData : (metricData as { score?: number })?.score;
                         const passed = typeof metricData === "object" && metricData !== null && (metricData as { passed?: boolean })?.passed !== undefined ? (metricData as { passed: boolean }).passed : typeof score === "number" && score >= 0.5;
-                        const reason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                        const rawReason = typeof metricData === "object" && metricData !== null ? (metricData as { reason?: string }).reason : undefined;
+                        const reason = parseMetricReason(rawReason);
                         const friendlyMetric = metricName.replace(/^G-Eval\\s*\\((.*)\\)$/i, "$1");
 
                          return (

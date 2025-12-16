@@ -15,14 +15,6 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
             key={index}
             style={{
               ...singleTheme.tableStyles.primary.header.cell,
-              ...(index === columns.length - 1
-                ? {
-                    position: "sticky",
-                    right: 0,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                : {}),
             }}
           >
             {column}

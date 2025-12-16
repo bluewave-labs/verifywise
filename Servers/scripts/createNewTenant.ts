@@ -185,6 +185,31 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create use_case_change_history table for tracking project/use case changes
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".use_case_change_history (
+        id SERIAL PRIMARY KEY,
+        use_case_id INTEGER NOT NULL REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for use_case_change_history
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_id ON "${tenantHash}".use_case_change_history(use_case_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_changed_at ON "${tenantHash}".use_case_change_history(changed_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_use_case_change_history_use_case_changed ON "${tenantHash}".use_case_change_history(use_case_id, changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
     (
@@ -576,6 +601,17 @@ export const createNewTenant = async (
     );
 
     await sequelize.query(
+      `CREATE TABLE "${tenantHash}".subcontrols_eu__risks (
+      subcontrol_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (subcontrol_id, projects_risks_id),
+      FOREIGN KEY (subcontrol_id) REFERENCES "${tenantHash}".subcontrols_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`,
+      { transaction }
+    );
+
+    await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
     (
       id serial NOT NULL,
@@ -813,13 +849,38 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create policy_change_history table for tracking policy changes
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".policy_change_history (
+        id SERIAL PRIMARY KEY,
+        policy_id INTEGER NOT NULL REFERENCES "${tenantHash}".policy_manager(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for policy_change_history
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_policy_id ON "${tenantHash}".policy_change_history(policy_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_changed_at ON "${tenantHash}".policy_change_history(changed_at DESC);`,
+        `CREATE INDEX IF NOT EXISTS idx_policy_change_history_policy_changed ON "${tenantHash}".policy_change_history(policy_id, changed_at DESC);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     await sequelize.query(
       `
       CREATE TABLE "${tenantHash}".model_inventories (
         id SERIAL PRIMARY KEY,
         provider_model VARCHAR(255) NOT NULL,
         version VARCHAR(255) NOT NULL,
-        approver INTEGER NOT NULL,
+        approver INTEGER,
         capabilities TEXT NOT NULL,
         security_assessment BOOLEAN NOT NULL DEFAULT false,
         status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,
@@ -1148,7 +1209,8 @@ export const createNewTenant = async (
       upload_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       model_id INTEGER NULL,
       org_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-      is_demo BOOLEAN NOT NULL DEFAULT FALSE
+      is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+      source public.enum_file_manager_source DEFAULT 'file_manager'
     );`,
       { transaction }
     );
@@ -1489,6 +1551,34 @@ export const createNewTenant = async (
         ON "${tenantHash}".project_risk_change_history(project_risk_id, changed_at DESC);`,
         { transaction }
       );
+
+    // Add risk query optimization indexes
+    await Promise.all(
+      [
+        // Index on risks table for filtering and sorting
+        `CREATE INDEX IF NOT EXISTS idx_risks_is_deleted ON "${tenantHash}".risks(is_deleted);`,
+        `CREATE INDEX IF NOT EXISTS idx_risks_created_at_id ON "${tenantHash}".risks(created_at DESC, id ASC);`,
+        `CREATE INDEX IF NOT EXISTS idx_risks_severity_likelihood ON "${tenantHash}".risks(severity, likelihood);`,
+
+        // Indexes on junction tables for risk_id lookups
+        `CREATE INDEX IF NOT EXISTS idx_projects_risks_risk_id ON "${tenantHash}".projects_risks(risk_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_frameworks_risks_risk_id ON "${tenantHash}".frameworks_risks(risk_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso_risks_risk_id ON "${tenantHash}".subclauses_iso__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcategories_iso_risks_risk_id ON "${tenantHash}".annexcategories_iso__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_controls_eu_risks_risk_id ON "${tenantHash}".controls_eu__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_answers_eu_risks_risk_id ON "${tenantHash}".answers_eu__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcontrols_iso27001_risks_risk_id ON "${tenantHash}".annexcontrols_iso27001__risks(projects_risks_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso27001_risks_risk_id ON "${tenantHash}".subclauses_iso27001__risks(projects_risks_id);`,
+
+        // Foreign key indexes for joins
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso_subclause_id ON "${tenantHash}".subclauses_iso__risks(subclause_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcategories_iso_annexcategory_id ON "${tenantHash}".annexcategories_iso__risks(annexcategory_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_controls_eu_control_id ON "${tenantHash}".controls_eu__risks(control_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_answers_eu_answer_id ON "${tenantHash}".answers_eu__risks(answer_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_annexcontrols_iso27001_annexcontrol_id ON "${tenantHash}".annexcontrols_iso27001__risks(annexcontrol_id);`,
+        `CREATE INDEX IF NOT EXISTS idx_subclauses_iso27001_subclause_id ON "${tenantHash}".subclauses_iso27001__risks(subclause_id);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
 
     // NIST AI RMF FRAMEWORK TABLES CREATION
     console.log(`🏗️ Creating NIST AI RMF tables for new tenant: ${tenantHash}`);

@@ -4,7 +4,6 @@ dotenv.load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers.bias_and_fairness import router as bias_and_fairness
 from routers.deepeval import router as deepeval
 from routers.deepeval_projects import router as deepeval_projects
 from routers.evaluation_logs import router as evaluation_logs
@@ -43,11 +42,14 @@ app.add_middleware(
 
 app.add_middleware(TenantMiddleware)
 
+@app.on_event("startup")
+def startup_event():
+    run_migrations()
+
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Bias and Fairness Server!"}
+    return {"message": "Welcome to the Eval Server!"}
 
-app.include_router(bias_and_fairness, prefix="/bias_and_fairness", tags=["Bias and Fairness"])
 app.include_router(deepeval, prefix="/deepeval", tags=["DeepEval"])
 app.include_router(deepeval_projects, prefix="/deepeval", tags=["DeepEval Projects"])
 app.include_router(deepeval_orgs, prefix="/deepeval", tags=["DeepEval Orgs"])

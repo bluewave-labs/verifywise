@@ -1,30 +1,38 @@
 /**
- * @fileoverview useDeadlineWarnings Hook
+ * @fileoverview useDeadlineWarningsQuery Hook
  *
- * Custom React hook for managing deadline warning state and data fetching.
- * Provides automatic refresh, error handling, and performance optimization.
+ * React Query-based hook for managing deadline warning state and data fetching.
+ * Replaces manual state management with React Query for better caching,
+ * deduplication, and performance.
  *
  * @package hooks
  */
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import {
-  fetchDeadlineAnalytics,
-  clearDeadlineCache,
-  DeadlineApiError,
-} from "../../infrastructure/api/deadlineService";
+import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useMemo, useCallback, useState } from 'react';
+import { useAuth } from '../../application/hooks/useAuth';
+import { getDeadlineAnalytics } from '../../application/repository/deadlineAnalytics.repository';
 import {
   DeadlineAnalytics,
   LoadingState,
   DeadlineError,
-  DeadlineWarningMetrics,
   DeadlineFilterState,
-} from "../components/DeadlineWarningBox/types";
+} from '../components/DeadlineWarningBox/types';
+
+/**
+ * Query keys for deadline warnings
+ */
+export const deadlineWarningQueryKeys = {
+  all: ['deadlines'] as const,
+  lists: () => [...deadlineWarningQueryKeys.all, 'list'] as const,
+  list: (userId: number | null) => [...deadlineWarningQueryKeys.lists(), userId] as const,
+  details: () => [...deadlineWarningQueryKeys.all, 'detail'] as const,
+};
 
 /**
  * Hook configuration options
  */
-interface UseDeadlineWarningsOptions {
+interface UseDeadlineWarningsQueryOptions {
   /**
    * Auto-refresh interval in milliseconds (0 = disabled)
    * @default 60000 (1 minute)
@@ -32,49 +40,27 @@ interface UseDeadlineWarningsOptions {
   refreshInterval?: number;
 
   /**
-   * Enable/disable caching
+   * Enable/disable query
    * @default true
    */
-  enableCache?: boolean;
+  enabled?: boolean;
 
   /**
-   * Retry delay in milliseconds on error
-   * @default 5000 (5 seconds)
+   * Custom stale time in milliseconds
+   * @default 30000 (30 seconds)
    */
-  retryDelay?: number;
+  staleTime?: number;
 
   /**
-   * Maximum number of retry attempts
-   * @default 3
+   * Custom query options
    */
-  maxRetries?: number;
-
-  /**
-   * Enable performance metrics collection
-   * @default false
-   */
-  enableMetrics?: boolean;
-
-  /**
-   * Callback for successful data fetch
-   */
-  onSuccess?: (data: DeadlineAnalytics) => void;
-
-  /**
-   * Callback for error during fetch
-   */
-  onError?: (error: DeadlineError) => void;
-
-  /**
-   * Callback for loading state changes
-   */
-  onLoadingChange?: (loading: boolean) => void;
+  queryOptions?: Omit<UseQueryOptions<DeadlineAnalytics, unknown>, 'queryKey' | 'queryFn'>;
 }
 
 /**
  * Hook return value
  */
-interface UseDeadlineWarningsReturn {
+interface UseDeadlineWarningsQueryReturn {
   /**
    * Deadline analytics data
    */
@@ -104,11 +90,6 @@ interface UseDeadlineWarningsReturn {
    * Whether there are any warnings to display
    */
   hasWarnings: boolean;
-
-  /**
-   * Performance metrics (if enabled)
-   */
-  metrics: DeadlineWarningMetrics | null;
 
   /**
    * Currently active filters
@@ -146,45 +127,87 @@ interface UseDeadlineWarningsReturn {
   clearFilters: () => void;
 
   /**
-   * Abort current request
+   * Whether the query is fetching
    */
-  abortRequest: () => void;
+  isFetching: boolean;
+
+  /**
+   * Last updated timestamp
+   */
+  lastUpdated: number | null;
 }
 
 /**
  * Default hook configuration
  */
-const DEFAULT_CONFIG: Required<Omit<UseDeadlineWarningsOptions, "onSuccess" | "onError" | "onLoadingChange">> = {
+const DEFAULT_CONFIG: Required<Omit<UseDeadlineWarningsQueryOptions, 'queryOptions'>> = {
   refreshInterval: 60000,
-  enableCache: true,
-  retryDelay: 5000,
-  maxRetries: 3,
-  enableMetrics: false,
+  enabled: true,
+  staleTime: 30000,
 };
 
 /**
- * Custom hook for managing deadline warnings
+ * React Query-based hook for managing deadline warnings
  *
  * @param options - Hook configuration options
  * @returns Hook return value with state and actions
  */
 export function useDeadlineWarnings(
-  options: UseDeadlineWarningsOptions = {}
-): UseDeadlineWarningsReturn {
+  options: UseDeadlineWarningsQueryOptions = {}
+): UseDeadlineWarningsQueryReturn {
   const config = { ...DEFAULT_CONFIG, ...options };
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
 
-  // State management
-  const [data, setData] = useState<DeadlineAnalytics | null>(null);
-  const [loadingState, setLoadingState] = useState<LoadingState>("idle");
-  const [error, setError] = useState<DeadlineError | null>(null);
-  const [activeFilters, setActiveFilters] = useState<DeadlineFilterState>({});
-  const [metrics, setMetrics] = useState<DeadlineWarningMetrics | null>(null);
+  // Check if snoozed
+  const isSnoozed = useMemo(() => {
+    const snoozeData = localStorage.getItem('deadline-warnings-snoozed');
+    if (!snoozeData) return false;
 
-  // Refs for cleanup and request management
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const retryCountRef = useRef<number>(0);
+    const { snoozedAt, duration } = JSON.parse(snoozeData);
+    const now = Date.now();
+    const snoozeEndTime = snoozedAt + duration;
+
+    // Clear expired snooze
+    if (now > snoozeEndTime) {
+      localStorage.removeItem('deadline-warnings-snoozed');
+      return false;
+    }
+
+    return true;
+  }, []);
+
+  // Active filters state
+  const [activeFilters, setActiveFiltersState] = useState<DeadlineFilterState>(() => {
+    // Try to restore filters from localStorage
+    try {
+      const savedFilters = localStorage.getItem('deadline-warnings-filters');
+      return savedFilters ? JSON.parse(savedFilters) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Main React Query for deadline analytics
+  const {
+    data,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: deadlineWarningQueryKeys.list(userId),
+    queryFn: async () => {
+      const response = await getDeadlineAnalytics();
+      return response.data;
+    },
+    enabled: config.enabled && !!userId && !isSnoozed,
+    refetchInterval: config.refreshInterval,
+    staleTime: config.staleTime,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    ...config.queryOptions,
+  });
 
   // Computed values - calculate totals from entity data
   const totalOverdue = useMemo(() => {
@@ -203,132 +226,71 @@ export function useDeadlineWarnings(
 
   const hasWarnings = totalOverdue > 0 || totalDueSoon > 0;
 
-  /**
-   * Update performance metrics
-   */
-  const updateMetrics = useCallback((operation: string, duration: number) => {
-    if (!config.enableMetrics) return;
+  // Convert unknown error to DeadlineError
+  const formattedError: DeadlineError | null = useMemo(() => {
+    if (!error) return null;
 
-    setMetrics(prev => ({
-      renderTime: prev?.renderTime ?? 0,
-      apiResponseTime: duration,
-      lastRefreshTime: Date.now(),
-      refreshCount: (prev?.refreshCount ?? 0) + 1,
-      errorCount: operation === "error" ? (prev?.errorCount ?? 0) + 1 : (prev?.errorCount ?? 0),
-    }));
-  }, [config.enableMetrics]);
+    if (error instanceof Error) {
+      return {
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
 
-  /**
-   * Handle API errors
-   */
-  const handleError = useCallback((err: unknown) => {
-    let deadlineError: DeadlineError;
-
-    if (err instanceof DeadlineApiError) {
-      deadlineError = {
-        message: err.message,
+    // Handle Axios error or other error types
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any;
+      return {
+        message: err.message || 'An unknown error occurred',
         code: err.code,
-        statusCode: err.statusCode,
-        timestamp: new Date().toISOString(),
-      };
-    } else if (err instanceof Error) {
-      deadlineError = {
-        message: err.message,
-        timestamp: new Date().toISOString(),
-      };
-    } else {
-      deadlineError = {
-        message: "An unknown error occurred",
+        statusCode: err.status || err.statusCode,
         timestamp: new Date().toISOString(),
       };
     }
 
-    setError(deadlineError);
-    setLoadingState("error");
-    config.onError?.(deadlineError);
-    updateMetrics("error", 0);
+    return {
+      message: 'An unknown error occurred',
+      timestamp: new Date().toISOString(),
+    };
+  }, [error]);
 
-    // Auto-retry if configured
-    if (retryCountRef.current < config.maxRetries) {
-      retryTimeoutRef.current = setTimeout(() => {
-        retryCountRef.current++;
-        fetchData(true);
-      }, config.retryDelay);
-    }
-  }, [config, updateMetrics]);
+  // Determine loading state
+  const loadingState: LoadingState = useMemo(() => {
+    if (isLoading) return 'loading';
+    if (error) return 'error';
+    if (data) return 'success';
+    return 'idle';
+  }, [isLoading, error, data]);
 
-  /**
-   * Fetch deadline analytics data
-   */
-  const fetchData = useCallback(
-    async (forceRefresh = false) => {
-      // Cancel any existing request
-      abortControllerRef.current?.abort();
-      abortControllerRef.current = new AbortController();
-
-      setLoadingState("loading");
-      config.onLoadingChange?.(true);
-
-      const startTime = performance.now();
-
-      try {
-        const analytics = await fetchDeadlineAnalytics({
-          useCache: config.enableCache && !forceRefresh,
-          signal: abortControllerRef.current.signal,
-        });
-
-        const duration = performance.now() - startTime;
-        updateMetrics("success", duration);
-
-        setData(analytics);
-        setError(null);
-        setLoadingState("success");
-        retryCountRef.current = 0;
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") {
-          // Request was aborted, don't treat as error
-          return;
-        }
-        handleError(err);
-      } finally {
-        config.onLoadingChange?.(false);
-      }
-    },
-    [config, handleError, updateMetrics]
-  );
-
-  /**
-   * Retry fetching data
-   */
+  // Retry function
   const retry = useCallback(() => {
-    retryCountRef.current = 0;
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-    fetchData(true);
-  }, [fetchData]);
+    refetch();
+  }, [refetch]);
 
-  /**
-   * Refresh data (ignore cache)
-   */
+  // Refresh function (ignoring cache)
   const refresh = useCallback(() => {
-    fetchData(true);
-  }, [fetchData]);
+    refetch();
+  }, [refetch]);
 
-  /**
-   * Clear cache and refetch
-   */
+  // Clear cache function
   const clearCache = useCallback(() => {
-    clearDeadlineCache();
-    fetchData(true);
-  }, [fetchData]);
+    queryClient.invalidateQueries({ queryKey: deadlineWarningQueryKeys.lists() });
+    refetch();
+  }, [queryClient, refetch]);
 
-  /**
-   * Toggle filter for specific entity and severity
-   */
+  // Set active filters
+  const setActiveFilters = useCallback((filters: DeadlineFilterState) => {
+    setActiveFiltersState(filters);
+    try {
+      localStorage.setItem('deadline-warnings-filters', JSON.stringify(filters));
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  // Toggle filter for specific entity and severity
   const toggleFilter = useCallback((entityType: string, severity: "overdue" | "dueSoon") => {
-    setActiveFilters(prev => {
+    setActiveFiltersState((prev: DeadlineFilterState) => {
       const entityFilters = prev[entityType] || { overdue: false, dueSoon: false };
       const newEntityFilters = {
         ...entityFilters,
@@ -348,62 +310,25 @@ export function useDeadlineWarnings(
     });
   }, []);
 
-  /**
-   * Clear all active filters
-   */
+  // Clear all filters
   const clearFilters = useCallback(() => {
     setActiveFilters({});
-  }, []);
+  }, [setActiveFilters]);
 
-  /**
-   * Abort current request
-   */
-  const abortRequest = useCallback(() => {
-    abortControllerRef.current?.abort();
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-  }, []);
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Set up auto-refresh interval
-  useEffect(() => {
-    if (config.refreshInterval > 0) {
-      refreshIntervalRef.current = setInterval(() => {
-        fetchData(false);
-      }, config.refreshInterval);
-    }
-
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [config.refreshInterval, fetchData]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      abortRequest();
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
-    };
-  }, [abortRequest]);
+  // Last updated timestamp
+  const lastUpdated = useMemo(() => {
+    if (!data) return null;
+    // Extract lastUpdated from data if available, or use current time
+    return (data as any).lastUpdated ? new Date((data as any).lastUpdated).getTime() : Date.now();
+  }, [data]);
 
   return {
-    data,
+    data: data || null,
     loadingState,
-    error,
+    error: formattedError,
     totalOverdue,
     totalDueSoon,
     hasWarnings,
-    metrics,
     activeFilters,
     retry,
     refresh,
@@ -411,7 +336,8 @@ export function useDeadlineWarnings(
     setActiveFilters,
     toggleFilter,
     clearFilters,
-    abortRequest,
+    isFetching,
+    lastUpdated,
   };
 }
 

@@ -9,7 +9,6 @@ import StandardModal from "../Modals/StandardModal";
 
 import { textfieldStyle } from "./styles";
 import { LinkedRisksModalProps } from "../../../domain/interfaces/i.table";
-import { debug } from "console";
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose,
@@ -17,14 +16,9 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   setSelectecRisks,
   _setDeletedRisks,
   projectId: propProjectId,
-  frameworkId,
+  _frameworkId,
   isOrganizational = false,
 }) => {
-  if (frameworkId) {
-    debug("frameworkId", frameworkId);
-  } else {
-    debug("no frameworkId");
-  }
   const [searchParams] = useSearchParams();
   const pId = searchParams.get("projectId");
   const projectId = propProjectId || parseInt(pId ?? "0");

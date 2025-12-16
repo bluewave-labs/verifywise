@@ -7,30 +7,65 @@ interface PerformanceChartProps {
   projectId: string;
 }
 
-// Metric definitions - maps camelCase keys to labels and colors
-const metricDefinitions: Record<string, { label: string; color: string }> = {
+// 15 distinct colors for the chart - no repetition
+const CHART_COLORS = [
+  "#2563EB", // Blue
+  "#DC2626", // Red
+  "#16A34A", // Green
+  "#7C3AED", // Purple
+  "#EA580C", // Orange
+  "#0891B2", // Cyan
+  "#DB2777", // Pink
+  "#CA8A04", // Yellow
+  "#0D9488", // Teal
+  "#4F46E5", // Indigo
+  "#059669", // Emerald
+  "#9333EA", // Violet
+  "#C026D3", // Fuchsia
+  "#65A30D", // Lime
+  "#0284C7", // Sky
+];
+
+// Metric definitions - maps camelCase keys to labels
+const metricDefinitions: Record<string, { label: string }> = {
   // Standard DeepEval metrics
-  answerRelevancy: { label: "Answer Relevancy", color: "#2563eb" },
-  faithfulness: { label: "Faithfulness", color: "#16a34a" },
-  contextualRelevancy: { label: "Contextual Relevancy", color: "#0891b2" },
-  contextualRecall: { label: "Contextual Recall", color: "#0d9488" },
-  contextualPrecision: { label: "Contextual Precision", color: "#059669" },
-  bias: { label: "Bias", color: "#dc2626" },
-  toxicity: { label: "Toxicity", color: "#7c3aed" },
-  hallucination: { label: "Hallucination", color: "#ea580c" },
+  answerRelevancy: { label: "Answer Relevancy" },
+  faithfulness: { label: "Faithfulness" },
+  contextualRelevancy: { label: "Contextual Relevancy" },
+  contextualRecall: { label: "Contextual Recall" },
+  contextualPrecision: { label: "Contextual Precision" },
+  bias: { label: "Bias" },
+  toxicity: { label: "Toxicity" },
+  hallucination: { label: "Hallucination" },
   // Chatbot-specific metrics
-  knowledgeRetention: { label: "Knowledge Retention", color: "#8b5cf6" },
-  conversationCompleteness: { label: "Conversation Completeness", color: "#06b6d4" },
-  conversationRelevancy: { label: "Conversation Relevancy", color: "#14b8a6" },
-  roleAdherence: { label: "Role Adherence", color: "#f59e0b" },
+  knowledgeRetention: { label: "Knowledge Retention" },
+  conversationCompleteness: { label: "Conversation Completeness" },
+  conversationRelevancy: { label: "Conversation Relevancy" },
+  roleAdherence: { label: "Role Adherence" },
   // Agent metrics
-  taskCompletion: { label: "Task Completion", color: "#10b981" },
-  toolCorrectness: { label: "Tool Correctness", color: "#6366f1" },
+  taskCompletion: { label: "Task Completion" },
+  toolCorrectness: { label: "Tool Correctness" },
   // G-Eval metrics (legacy support)
-  answerCorrectness: { label: "Answer Correctness", color: "#2563eb" },
-  coherence: { label: "Coherence", color: "#16a34a" },
-  tonality: { label: "Tonality", color: "#f59e0b" },
-  safety: { label: "Safety", color: "#7c3aed" },
+  answerCorrectness: { label: "Answer Correctness" },
+  coherence: { label: "Coherence" },
+  tonality: { label: "Tonality" },
+  safety: { label: "Safety" },
+};
+
+// Get color for a metric by index to ensure unique colors
+const getMetricColor = (index: number): string => {
+  return CHART_COLORS[index % CHART_COLORS.length];
+};
+
+// Convert snake_case or camelCase to Title Case for custom scorers
+const formatMetricLabel = (key: string): string => {
+  return key
+    .replace(/_/g, " ")
+    .replace(/([A-Z])/g, " $1")
+    .trim()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 };
 
 // Map old display names to camelCase keys for backwards compatibility
@@ -58,7 +93,9 @@ const displayNameToKey: Record<string, string> = {
 type ChartPoint = {
   name: string;
   date: string;
-  [key: string]: number | string | null;
+  uniqueId: string; // Unique identifier for each experiment (date + time)
+  _calculatedMetrics: string[]; // Track which metrics were actually calculated for this point
+  [key: string]: number | string | string[] | null;
 };
 
 export default function PerformanceChart({ projectId }: PerformanceChartProps) {
@@ -117,16 +154,23 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
             }
           });
 
-          // Build chart point
+          // Build chart point - track which metrics were actually calculated
+          const calculatedMetrics: string[] = [];
+          const dateStr = new Date(exp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const timeStr = new Date(exp.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
           const point: ChartPoint = {
             name: `Run ${i + 1}`,
-            date: new Date(exp.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            // Use unique identifier combining date and time to avoid confusion with same-day experiments
+            date: `${dateStr}`,
+            uniqueId: `${dateStr} ${timeStr}`,
+            _calculatedMetrics: calculatedMetrics,
           };
 
           // Add all found metrics to the point
           Object.keys(metricsSum).forEach((metricKey) => {
             if (metricsSum[metricKey].count > 0) {
               point[metricKey] = metricsSum[metricKey].sum / metricsSum[metricKey].count;
+              calculatedMetrics.push(metricKey); // Track that this metric was calculated
             }
           });
 
@@ -137,8 +181,8 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
       }
 
       setData(chartData);
-      // Only show metrics that have at least one data point
-      setActiveMetrics(Array.from(metricsFound).filter((m) => m in metricDefinitions));
+      // Show all metrics that have data (including custom scorers)
+      setActiveMetrics(Array.from(metricsFound));
     } catch (err: unknown) {
       console.error("Failed to load performance data:", err);
       setData([]);
@@ -177,6 +221,101 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     ? activeMetrics 
     : Object.keys(metricDefinitions);
 
+  // Create a color map for metrics (used by custom tooltip)
+  const metricColorMap: Record<string, string> = {};
+  metricsToDisplay.forEach((metricKey, index) => {
+    metricColorMap[metricKey] = getMetricColor(index);
+  });
+
+  // Custom tooltip that only shows metrics that were actually calculated for this data point
+  interface TooltipEntry {
+    dataKey: string;
+    value: number | null | undefined;
+    color?: string;
+    payload?: ChartPoint;
+  }
+  
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: TooltipEntry[];
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    // Get the actual data point from recharts payload
+    const dataPoint = payload[0]?.payload;
+    if (!dataPoint) return null;
+
+    // Only show metrics that actually exist as a key in this data point
+    // (not name, date, uniqueId, or _calculatedMetrics)
+    const excludeKeys = ["name", "date", "uniqueId", "_calculatedMetrics"];
+    
+    const validEntries = payload.filter((entry: TooltipEntry) => {
+      const metricKey = entry.dataKey as string;
+      // Check if this metric key actually exists in the data point with a real value
+      const hasValue = metricKey in dataPoint && 
+                       !excludeKeys.includes(metricKey) &&
+                       dataPoint[metricKey] !== null && 
+                       dataPoint[metricKey] !== undefined;
+      return hasValue;
+    });
+
+    if (validEntries.length === 0) return null;
+
+    return (
+      <Box
+        sx={{
+          backgroundColor: "#fff",
+          border: "1px solid #E5E7EB",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          padding: "12px",
+          minWidth: "180px",
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
+          {dataPoint.uniqueId || label}
+        </Typography>
+        {validEntries.map((entry: TooltipEntry) => {
+          const metricKey = entry.dataKey as string;
+          const metricDef = metricDefinitions[metricKey as keyof typeof metricDefinitions];
+          const metricLabel = metricDef?.label || formatMetricLabel(metricKey);
+          const color = metricColorMap[metricKey] || entry.color;
+          // Use the actual value from the data point, not from entry.value (which can be interpolated)
+          const rawValue = dataPoint[metricKey];
+          const value = typeof rawValue === "number" ? (rawValue * 100).toFixed(1) : "0";
+
+          return (
+            <Box
+              key={metricKey}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                py: 0.25,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: color,
+                  flexShrink: 0,
+                }}
+              />
+              <Typography sx={{ fontSize: "12px", color: "#374151" }}>
+                {metricLabel} : <span style={{ fontWeight: 600 }}>{value}%</span>
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    );
+  };
+
   return (
     <Box sx={{
       width: "100%",
@@ -189,9 +328,13 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
         <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
-            dataKey="date" 
-            tick={{ fontSize: 12, fill: "#6B7280" }}
+            dataKey="uniqueId" 
+            tick={{ fontSize: 11, fill: "#6B7280" }}
             axisLine={{ stroke: "#E5E7EB" }}
+            interval={0}
+            angle={-20}
+            textAnchor="end"
+            height={50}
           />
           <YAxis 
             domain={[0, 1]} 
@@ -199,40 +342,28 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
             axisLine={{ stroke: "#E5E7EB" }}
             tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
           />
-          <Tooltip
-            formatter={(value: number, name: string) => {
-              const metricDef = metricDefinitions[name as keyof typeof metricDefinitions];
-              return [`${(value * 100).toFixed(1)}%`, metricDef?.label || name];
-            }}
-            contentStyle={{ 
-              backgroundColor: "#fff", 
-              border: "1px solid #E5E7EB",
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-            labelStyle={{ fontWeight: 600, marginBottom: 4 }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Legend 
             formatter={(value: string) => {
               const metricDef = metricDefinitions[value as keyof typeof metricDefinitions];
-              return metricDef?.label || value;
+              return metricDef?.label || formatMetricLabel(value);
             }}
           />
-          {metricsToDisplay.map((metricKey) => {
-            const metricDef = metricDefinitions[metricKey];
-            if (!metricDef) return null;
+          {metricsToDisplay.map((metricKey, index) => {
+            const color = getMetricColor(index);
             return (
               <Line
                 key={metricKey}
                 type="monotone"
                 dataKey={metricKey}
-                stroke={metricDef.color}
+                stroke={color}
                 strokeWidth={2}
                 name={metricKey}
-                dot={{ r: 4, fill: metricDef.color }}
+                dot={{ r: 4, fill: color }}
                 activeDot={{ r: 6 }}
                 isAnimationActive={false}
-                connectNulls
+                connectNulls={false}
+                legendType="plainline"
               />
             );
           })}

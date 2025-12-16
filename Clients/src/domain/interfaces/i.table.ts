@@ -98,33 +98,6 @@ export interface IEventsTableProps {
   paginated?: boolean;
 }
 
-export interface IFairnessRow {
-  id: number;
-  model: string;
-  dataset: string;
-  status: "In Progress" | "Completed" | "Failed";
-}
-
-export interface IFairnessTableBodyProps {
-  rows: IFairnessRow[];
-  page: number;
-  rowsPerPage: number;
-  onShowDetails: (model: IFairnessRow) => void;
-  onRemoveModel: {
-    onConfirm: (id: number) => void;
-  };
-}
-
-export interface IFairnessTableProps {
-  columns: any[];
-  rows: any[];
-  removeModel: {
-    onConfirm: (id: number) => void; // actually deletes
-  };
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  onShowDetails: (model: any) => void;
-}
 export interface IColumn {
   id: number;
   name: keyof FileModel | string;

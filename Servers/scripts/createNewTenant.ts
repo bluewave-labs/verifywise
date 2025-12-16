@@ -1607,6 +1607,7 @@ export const createNewTenant = async (
         path TEXT NOT NULL,
         size BIGINT NOT NULL DEFAULT 0,
         prompt_count INTEGER DEFAULT 0,
+        dataset_type VARCHAR(50) DEFAULT 'chatbot',
         tenant VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,

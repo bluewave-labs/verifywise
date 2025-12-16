@@ -21,7 +21,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import {
   IGenerateReportProps,
   ReportFormat,
-} from "../../../../domain/interfaces/iWidget";
+} from "../../../../domain/interfaces/i.widget";
 import {
   getDefaultSectionSelection,
   loadSectionPreferences,

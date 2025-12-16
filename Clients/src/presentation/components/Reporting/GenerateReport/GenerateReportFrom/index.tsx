@@ -24,7 +24,7 @@ import {
   FrameworkValues,
 } from "../../../../../application/interfaces/appStates";
 import { FileText, FileType } from "lucide-react";
-import { ReportFormat } from "../../../../../domain/interfaces/iWidget";
+import { ReportFormat } from "../../../../../domain/interfaces/i.widget";
 
 interface BasicFormValues {
   project: number | null;

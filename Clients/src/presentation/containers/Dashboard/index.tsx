@@ -44,14 +44,14 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { dashboard, fetchDashboard } = useDashboard();
 
   // Handle deadline filter click
-  const handleDeadlineFilterClick = (severity: "overdue" | "dueSoon", entityType: string) => {
-    console.log(`Deadline filter clicked: ${severity} ${entityType}`);
+  const handleDeadlineFilterClick = (category: "overdue" | "dueSoon" | null) => {
+    console.log(`Deadline filter clicked: ${category}`);
 
     // Navigate to tasks page with filters applied
     // You can enhance this to integrate with your existing filtering system
-    if (location.pathname !== '/tasks') {
+    if (location.pathname !== '/tasks' && category) {
       // For now, just log - in real implementation, you'd navigate and apply filters
-      console.log(`Would navigate to tasks with filters: severity=${severity}, entityType=${entityType}`);
+      console.log(`Would navigate to tasks with filters: category=${category}, entityType=tasks`);
     }
   };
 
@@ -296,12 +296,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         <DemoAppBanner />
         <Box sx={{ mb: 2 }}>
           <DeadlineWarningBox
-            refreshInterval={30000} // 30 seconds for testing
-            onFilterClick={handleDeadlineFilterClick}
-            hideWhenEmpty={false} // Show even when empty for testing
-            onRetry={() => {
-              console.log("Manual retry triggered");
-            }}
+            entityType="tasks"
+            onFilterChange={handleDeadlineFilterClick}
           />
         </Box>
         {alertState && (

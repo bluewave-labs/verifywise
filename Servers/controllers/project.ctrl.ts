@@ -30,6 +30,7 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import { createNISTAI_RMFFrameworkQuery } from "../utils/nistAiRmfCorrect.utils";
 import {
   ValidationException,
   BusinessLogicException,
@@ -191,6 +192,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           transaction
         );
         frameworks["iso27001"] = iso27001;
+      } else if (framework === 4) {
+        const nist = await createNISTAI_RMFFrameworkQuery(
+          createdProject.id!,
+          newProject.enable_ai_data_insertion,
+          req.tenantId!,
+          transaction
+        );
+        frameworks["nist_ai_rmf"] = nist;
       }
     }
 

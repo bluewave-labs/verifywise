@@ -88,6 +88,14 @@ jobs:
           docker system prune -f
           docker builder prune -f
 
+      - name: Check disk space
+        run: df . -h
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Build and push EvalServer image
         uses: docker/build-push-action@v4
         with:

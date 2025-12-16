@@ -18,7 +18,9 @@ evaluation_module_path = Path(__file__).parent.parent.parent.parent / "Evaluatio
 sys.path.insert(0, str((evaluation_module_path / "src").resolve()))
 
 from crud import evaluation_logs as crud
+from crud.deepeval_scorers import list_scorers
 from deepeval_engine.gatekeeper import evaluate_gate
+from utils.run_custom_scorer import run_custom_scorer, ScorerResult
 
 
 async def run_evaluation(
@@ -84,8 +86,25 @@ async def run_evaluation(
         metrics_config = config.get("metrics", {})
         thresholds_config = config.get("thresholds", {})
         
+        # Evaluation mode: "scorer" = custom only, "standard" = judge only, "both" = run both
+        evaluation_mode = config.get("evaluationMode", "standard")
+        print(f"📋 Evaluation mode: {evaluation_mode}")
+        
         # Set up API keys from config (if provided)
-        # Judge LLM API keys (for DeepEval metrics)
+        # First check for scorer API key (used when Custom Scorer mode is selected)
+        scorer_api_key = config.get("scorerApiKey")
+        if scorer_api_key:
+            print(f"🔑 Scorer API key provided - setting for ALL providers (including DeepEval judge)")
+            os.environ["OPENAI_API_KEY"] = scorer_api_key
+            os.environ["ANTHROPIC_API_KEY"] = scorer_api_key
+            os.environ["GEMINI_API_KEY"] = scorer_api_key
+            os.environ["XAI_API_KEY"] = scorer_api_key
+            os.environ["MISTRAL_API_KEY"] = scorer_api_key
+            # Set G_EVAL to use OpenAI by default when using custom scorer
+            os.environ["G_EVAL_PROVIDER"] = "openai"
+            print(f"✅ API keys set for DeepEval metrics AND custom scorers")
+        
+        # Judge LLM API keys (for DeepEval metrics - Standard Judge mode)
         print(f"📝 Judge LLM config: provider={judge_config.get('provider')}, has_apiKey={bool(judge_config.get('apiKey'))}")
         if judge_config.get("apiKey") and judge_config["apiKey"] not in ["***", "", None]:
             provider = judge_config.get("provider", "").lower()
@@ -106,6 +125,10 @@ async def run_evaluation(
                 os.environ["G_EVAL_PROVIDER"] = provider
             if judge_config.get("model"):
                 os.environ["G_EVAL_MODEL"] = str(judge_config["model"])
+            # Set max tokens for judge (default 512, but user can set higher)
+            max_tokens = judge_config.get("maxTokens", 512)
+            os.environ["G_EVAL_MAX_TOKENS"] = str(max_tokens)
+            print(f"✅ G_EVAL_MAX_TOKENS set to {max_tokens}")
         
         # Model API keys (for the model being tested)
         if model_config.get("apiKey") and model_config["apiKey"] != "***":
@@ -527,10 +550,143 @@ async def run_evaluation(
         enabled_metrics = [k for k, v in deepeval_metrics_config.items() if v]
         print(f"📊 Enabled metrics: {enabled_metrics}")
         
-        results = evaluator.run_evaluation(
-            test_cases_data=test_cases_data,
-            metrics_config=deepeval_metrics_config,
-        )
+        # 4. Run DeepEval metrics (only if mode is "standard" or "both")
+        results = []
+        if evaluation_mode in ("standard", "both"):
+            print(f"\n🧪 Running DeepEval built-in metrics (mode: {evaluation_mode})")
+            results = evaluator.run_evaluation(
+                test_cases_data=test_cases_data,
+                metrics_config=deepeval_metrics_config,
+            )
+        else:
+            print(f"\n⏭️ Skipping DeepEval metrics (mode: {evaluation_mode})")
+            # Still need to create empty results structure for consistency
+            # test_cases_data is a list of {"test_case": LLMTestCase, "metadata": {...}}
+            results = []
+            for tc_data in test_cases_data:
+                test_case = tc_data.get("test_case")
+                if test_case:
+                    results.append({
+                        "input": getattr(test_case, "input", ""),
+                        "output": getattr(test_case, "actual_output", ""),
+                        "expected": getattr(test_case, "expected_output", None),
+                        "context": getattr(test_case, "retrieval_context", None),
+                        "metric_scores": {},
+                    })
+
+        # 4.1 Run Custom LLM Judge Scorers (if mode is "scorer" or "both")
+        print(f"\n{'='*50}")
+        print(f"🔍 CUSTOM SCORER EXECUTION")
+        print(f"{'='*50}")
+        
+        project_id = config.get("project_id")
+        custom_scorer_results: Dict[str, list] = {}  # scorer_id -> list of results per test case
+        enabled_scorers: list = []  # Track for later use in storing results
+        
+        # Only run custom scorers if mode is "scorer" or "both"
+        if evaluation_mode not in ("scorer", "both"):
+            print(f"⏭️ Skipping custom scorers (mode: {evaluation_mode})")
+        else:
+            print(f"🎯 Running custom scorers (mode: {evaluation_mode})")
+        
+        # Note: Scorer API key is now set at the start of evaluation (see above)
+        # This ensures DeepEval metrics also use the key
+        
+        if evaluation_mode in ("scorer", "both"):
+            try:
+                # Load enabled custom scorers for this project
+                all_scorers = await list_scorers(tenant=tenant, db=db, project_id=project_id)
+                enabled_scorers = [s for s in all_scorers if s.get("enabled") and s.get("type") == "llm"]
+                
+                print(f"📋 Found {len(all_scorers)} total scorers, {len(enabled_scorers)} enabled LLM scorers")
+                
+                if enabled_scorers:
+                    for scorer in enabled_scorers:
+                        scorer_id = scorer.get("id", "unknown")
+                        scorer_name = scorer.get("name", "Unknown Scorer")
+                        metric_key = scorer.get("metricKey", scorer_id)
+                        scorer_config = scorer.get("config", {})
+                        
+                        print(f"\n🎯 Running Scorer: {scorer_name}")
+                        print(f"   ID: {scorer_id}")
+                        print(f"   Metric Key: {metric_key}")
+                        print(f"   Judge Model: {scorer_config.get('judgeModel', 'NOT CONFIGURED')}")
+                        print(f"   Messages: {len(scorer_config.get('messages', []))} template(s)")
+                        print(f"   Choice Scores: {scorer_config.get('choiceScores', [])}")
+                        print(f"   Threshold: {scorer.get('defaultThreshold', 0.5)}")
+                        
+                        scorer_scores = []
+                        
+                        for idx, tc_data in enumerate(test_cases_data):
+                            test_case = tc_data.get("test_case")
+                            if not test_case:
+                                continue
+                            
+                            input_text = getattr(test_case, "input", "") or ""
+                            output_text = getattr(test_case, "actual_output", "") or ""
+                            expected_text = getattr(test_case, "expected_output", "") or ""
+                            
+                            print(f"   [{idx+1}/{len(test_cases_data)}] Evaluating...")
+                            print(f"      Input: {input_text[:80]}...")
+                            print(f"      Output: {output_text[:80]}...")
+                            
+                            try:
+                                result: ScorerResult = await run_custom_scorer(
+                                    scorer_config=scorer,
+                                    input_text=input_text,
+                                    output_text=output_text,
+                                    expected_text=expected_text,
+                                )
+                                
+                                scorer_scores.append({
+                                    "test_case_idx": idx,
+                                    "label": result.label,
+                                    "score": result.score,
+                                    "passed": result.passed,
+                                    "raw_response": result.raw_response,
+                                })
+                                
+                                status_icon = "✅" if result.passed else "❌"
+                                print(f"      {status_icon} Result: {result.label} (score={result.score:.2f}, passed={result.passed})")
+                                if result.total_tokens:
+                                    print(f"      📊 Tokens: {result.total_tokens} (prompt={result.prompt_tokens}, completion={result.completion_tokens})")
+                                
+                                # Merge scorer result into test case results
+                                if idx < len(results):
+                                    if "metric_scores" not in results[idx]:
+                                        results[idx]["metric_scores"] = {}
+                                    results[idx]["metric_scores"][scorer_name] = {
+                                        "score": result.score,
+                                        "label": result.label,
+                                        "passed": result.passed,
+                                        "reason": result.raw_response[:200] if result.raw_response else "",
+                                    }
+                                
+                            except Exception as scorer_err:
+                                print(f"      ❌ Error: {scorer_err}")
+                                scorer_scores.append({
+                                    "test_case_idx": idx,
+                                    "label": "ERROR",
+                                    "score": 0.0,
+                                    "passed": False,
+                                    "raw_response": str(scorer_err),
+                                })
+                        
+                        custom_scorer_results[scorer_id] = scorer_scores
+                        
+                        # Calculate average score for this scorer
+                        if scorer_scores:
+                            avg_score = sum(s["score"] for s in scorer_scores) / len(scorer_scores)
+                            passed_count = sum(1 for s in scorer_scores if s["passed"])
+                            print(f"\n   📈 Scorer Summary: avg_score={avg_score:.3f}, passed={passed_count}/{len(scorer_scores)}")
+                else:
+                    print("   ⚪ No enabled LLM scorers found for this project")
+                    
+            except Exception as scorer_load_err:
+                print(f"⚠️ Error loading/running custom scorers: {scorer_load_err}")
+                traceback.print_exc()
+        
+        print(f"\n{'='*50}\n")
 
         # 4.25 Run gatekeeper quality gate on the latest summary (if suite is available)
         gatekeeper_result: dict[str, Any] | None = None
@@ -674,11 +830,44 @@ async def run_evaluation(
                         experiment_id=experiment_id,
                     )
         
+        # 5.1 Store Custom Scorer Results (same format as DeepEval metrics)
+        if custom_scorer_results:
+            print(f"💾 Storing custom scorer results...")
+            for scorer_id, scorer_scores in custom_scorer_results.items():
+                if scorer_scores:
+                    # Find scorer info from enabled_scorers
+                    scorer_name = scorer_id
+                    metric_key = scorer_id
+                    for s in enabled_scorers:
+                        if s.get("id") == scorer_id:
+                            scorer_name = s.get("name", scorer_id)
+                            metric_key = s.get("metricKey", scorer_id)
+                            break
+                    
+                    # Calculate average
+                    avg_score = sum(s["score"] for s in scorer_scores) / len(scorer_scores)
+                    passed_rate = sum(1 for s in scorer_scores if s["passed"]) / len(scorer_scores)
+                    
+                    # Store in avg_scores with metricKey (same as DeepEval metrics)
+                    avg_scores[metric_key] = avg_score
+                    
+                    # Store as metric (same format as DeepEval metrics)
+                    await crud.create_metric(
+                        db=db,
+                        project_id=config.get("project_id"),
+                        metric_name=metric_key,
+                        metric_type="quality",  # Same type as DeepEval metrics
+                        value=avg_score,
+                        tenant=tenant,
+                        experiment_id=experiment_id,
+                    )
+                    print(f"   ✅ Saved {scorer_name} ({metric_key}): avg={avg_score:.3f}, pass_rate={passed_rate:.1%}")
+        
         # Update experiment with results
         experiment_results: Dict[str, Any] = {
             "total_prompts": total_prompts,
-            "avg_scores": avg_scores,
-            "detailed_results": results[:10],  # Store first 10 for preview
+            "avg_scores": avg_scores,  # Contains both DeepEval and custom scorer averages
+            "detailed_results": results[:10],  # Store first 10 for preview (includes custom scorer scores in metric_scores)
             "completed_at": datetime.now().isoformat(),
         }
         if gatekeeper_result is not None:

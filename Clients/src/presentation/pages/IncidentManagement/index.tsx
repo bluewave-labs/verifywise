@@ -42,7 +42,7 @@ import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
-import { AIIncidentManagementModel } from "../../../domain/models/Common/IncidentManagement/incidentManagement.model";
+import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import { GroupBy } from "../../components/Table/GroupBy";
 import {
   useTableGrouping,

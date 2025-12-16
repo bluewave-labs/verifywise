@@ -28,7 +28,9 @@ from crud.deepeval_scorers import (
     create_scorer,
     update_scorer,
     delete_scorer,
+    get_scorer_by_id,
 )
+from utils.run_custom_scorer import run_custom_scorer
 
 
 # In-memory storage for evaluation results (can be replaced with database)
@@ -1023,4 +1025,75 @@ async def delete_deepeval_scorer_controller(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete scorer: {e}")
+
+
+async def test_deepeval_scorer_controller(
+    scorer_id: str,
+    *,
+    tenant: str,
+    payload: Dict[str, Any],
+) -> JSONResponse:
+    """
+    Test a scorer with sample input/output data.
+    
+    Expected payload:
+    {
+      "input": "The source text to evaluate...",
+      "output": "The model's output to judge...",
+      "expected": "Optional expected/reference output..."
+    }
+    """
+    try:
+        # Get scorer config from database
+        async with get_db() as db:
+            scorer = await get_scorer_by_id(scorer_id=scorer_id, tenant=tenant, db=db)
+        
+        if not scorer:
+            raise HTTPException(status_code=404, detail="Scorer not found")
+        
+        if scorer.get("type") != "llm":
+            raise HTTPException(
+                status_code=400, 
+                detail="Only LLM judge scorers can be tested via this endpoint"
+            )
+        
+        # Extract test data from payload
+        input_text = payload.get("input", "")
+        output_text = payload.get("output", "")
+        expected_text = payload.get("expected", "")
+        
+        if not input_text or not output_text:
+            raise HTTPException(
+                status_code=400,
+                detail="Both 'input' and 'output' are required for testing"
+            )
+        
+        # Run the scorer
+        result = await run_custom_scorer(
+            scorer_config=scorer,
+            input_text=input_text,
+            output_text=output_text,
+            expected_text=expected_text,
+        )
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "scorerId": result.scorer_id,
+                "scorerName": result.scorer_name,
+                "label": result.label,
+                "score": result.score,
+                "passed": result.passed,
+                "rawResponse": result.raw_response,
+                "tokenUsage": {
+                    "promptTokens": result.prompt_tokens,
+                    "completionTokens": result.completion_tokens,
+                    "totalTokens": result.total_tokens,
+                } if result.total_tokens else None,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to test scorer: {e}")
 

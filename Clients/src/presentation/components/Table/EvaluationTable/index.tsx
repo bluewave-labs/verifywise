@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Suspense, lazy, useMemo, useState, useCallback } from "react";
 import TablePaginationActions from "../../TablePagination";
-import TableHeader from "../TableHead";
+import TableHeader from "./TableHead";
 import EmptyState from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 

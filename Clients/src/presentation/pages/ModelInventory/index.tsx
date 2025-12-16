@@ -66,7 +66,7 @@ import { SearchBox } from "../../components/Search";
 import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
-import { EvidenceHubModel } from "../../../domain/models/Common/EvidenceHub/evidenceHub.model";
+import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import NewEvidenceHub from "../../components/Modals/EvidenceHub";
 import { createEvidenceHub } from "../../../application/repository/evidenceHub.repository";
 import EvidenceHubTable from "./evidenceHubTable";

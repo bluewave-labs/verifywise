@@ -23,7 +23,7 @@ import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../../domain/interfaces/i.table";
 import { VWLink } from "../../Link";
-import { VendorModel } from "../../../../domain/models/Common/Vendor/vendor.model";
+import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 
 const VENDOR_RISKS_ROWS_PER_PAGE_KEY = "verifywise_vendor_risks_rows_per_page";
 const VENDOR_RISKS_SORTING_KEY = "verifywise_vendor_risks_sorting";

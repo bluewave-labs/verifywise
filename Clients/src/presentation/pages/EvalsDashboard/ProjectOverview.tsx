@@ -45,7 +45,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       sx={{
-        ...(cardStyles.base(theme) as any),
+        ...(cardStyles.base(theme) as Record<string, unknown>),
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         border: "1px solid #DCDFE3",
         height: "100%",
@@ -310,12 +310,13 @@ export default function ProjectOverview({
           <Box sx={{
             display: "flex",
             flexDirection: "column",
+            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
-            // Match height of two stat cards (90px each) + gap between them when empty
-            ...(!hasExperiments && { minHeight: "214px", justifyContent: "center" }),
+            // Fixed height to match two stat cards (90px each) + gap between them
+            minHeight: "214px",
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */
@@ -356,7 +357,7 @@ export default function ProjectOverview({
             ) : (
               [...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5)
+                .slice(0, 4)
                 .map((exp, index, arr) => {
                   const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
                   const modelName = cfg?.model?.name || "-";
@@ -395,6 +396,7 @@ export default function ProjectOverview({
                         px: 2,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
+                        flex: "0 0 auto",
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },

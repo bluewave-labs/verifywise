@@ -43,6 +43,7 @@ import TablePaginationActions from "../../components/TablePagination";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import HelperIcon from "../../components/HelperIcon";
+import SelectableCard from "../../components/SelectableCard";
 
 type ProjectDatasetsProps = { projectId: string };
 
@@ -2145,206 +2146,59 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       </Drawer>
 
       {/* Create Dataset Modal - Choice between Editor and Upload */}
-      {createDatasetModalOpen && (
-        <>
-          <Box
-            onClick={() => setCreateDatasetModalOpen(false)}
-            sx={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              zIndex: 1299,
+      <ModalStandard
+        isOpen={createDatasetModalOpen}
+        onClose={() => setCreateDatasetModalOpen(false)}
+        title="Add dataset"
+        description="Choose how you want to add a new dataset"
+        maxWidth="480px"
+      >
+        <Stack spacing="8px">
+          {/* Create from scratch option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setEditablePrompts([{
+                id: "prompt_1",
+                category: "general",
+                prompt: "",
+                expected_output: "",
+              }]);
+              setEditDatasetName("");
+              setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: exampleDatasetType, datasetType: exampleDatasetType });
+              setEditorOpen(true);
             }}
+            icon={<Edit3 size={14} color="#9CA3AF" />}
+            title="Create from scratch"
+            description="Use the editor to manually add prompts"
           />
-          <Box
-            sx={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 1300,
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
-              width: "100%",
-              maxWidth: "480px",
-              overflow: "hidden",
+
+          {/* Upload JSON option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setUploadModalOpen(true);
             }}
-          >
-            {/* Header */}
-            <Box sx={{ p: 3, borderBottom: "1px solid #E5E7EB" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#111827" }}>
-                    Add dataset
-                  </Typography>
-                  <Typography sx={{ fontSize: "13px", color: "#6B7280", mt: 0.5 }}>
-                    Choose how you want to add a new dataset
-                  </Typography>
-                </Box>
-                <IconButton
-                  onClick={() => setCreateDatasetModalOpen(false)}
-                  size="small"
-                  sx={{ color: "#9CA3AF", "&:hover": { color: "#6B7280" } }}
-                >
-                  <X size={20} />
-                </IconButton>
-              </Stack>
-            </Box>
+            icon={<Upload size={14} color="#9CA3AF" />}
+            title="Upload JSON file"
+            description="Import existing dataset in JSON format"
+          />
 
-            {/* Options */}
-            <Box sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                {/* Create from scratch option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setEditablePrompts([{
-                      id: "prompt_1",
-                      category: "general",
-                      prompt: "",
-                      expected_output: "",
-                    }]);
-                    setEditDatasetName("");
-                    setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: exampleDatasetType, datasetType: exampleDatasetType });
-                    setEditorOpen(true);
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      backgroundColor: "#F7FAF9",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#E8F5F1",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Edit3 size={22} color="#13715B" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Create from scratch
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Use the editor to manually add prompts
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-
-                {/* Upload JSON option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setUploadModalOpen(true);
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#4F46E5",
-                      backgroundColor: "#F5F5FF",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#EEF2FF",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Upload size={22} color="#4F46E5" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Upload JSON file
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Import existing dataset in JSON format
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-
-                {/* Use template option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setActiveTab("templates");
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#D97706",
-                      backgroundColor: "#FFFBEB",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#FEF3C7",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Database size={22} color="#D97706" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Start from template
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Browse pre-built evaluation templates
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
-        </>
-      )}
+          {/* Use template option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setActiveTab("templates");
+            }}
+            icon={<Database size={14} color="#9CA3AF" />}
+            title="Start from template"
+            description="Browse pre-built evaluation templates"
+          />
+        </Stack>
+      </ModalStandard>
     </Box>
   );
 }

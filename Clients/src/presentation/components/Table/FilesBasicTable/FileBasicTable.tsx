@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Box,
   Table,
@@ -25,6 +26,7 @@ import {
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
 import { IFileBasicTableProps } from "../../../../domain/interfaces/i.table";
+import { deleteEntityById } from "../../../../application/repository/entity.repository";
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 const FILES_BASIC_SORTING_KEY = "verifywise_files_basic_sorting";
@@ -327,6 +329,11 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
         if (onFileDeleted) {
           onFileDeleted();
         }
+        await deleteEntityById({
+          routeUrl: `/policy-linked/evidence/${fileId}/unlink-all`,
+        });
+        
+
       } catch (error) {
         console.error("Failed to delete file:", error);
         throw error; // Re-throw so IconButton can show error

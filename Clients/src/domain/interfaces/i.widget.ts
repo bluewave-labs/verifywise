@@ -37,6 +37,7 @@ export interface IconButtonProps {
   isArchived?: boolean;
   onRestore?: () => void;
   onHardDelete?: () => void;
+  onLinkedObjects?: () => void;
   hardDeleteWarningTitle?: string;
   hardDeleteWarningMessage?: string | React.ReactNode;
 }

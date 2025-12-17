@@ -2,24 +2,10 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Box,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  TableFooter,
-  TablePagination,
-  Chip,
-  IconButton,
-  Popover,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Typography,
-  useTheme,
 } from "@mui/material";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { Plus, Settings, Pencil, Trash2, ChevronsUpDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
@@ -29,16 +15,10 @@ import {
   type DeepEvalScorer,
 } from "../../../infrastructure/api/deepEvalScorersService";
 import Alert from "../../components/Alert";
-import TableHeader from "../../components/Table/TableHead";
-import TablePaginationActions from "../../components/TablePagination";
-import singleTheme from "../../themes/v1SingleTheme";
 import StandardModal from "../../components/Modals/StandardModal";
-import {
-  getPaginationRowCount,
-  setPaginationRowCount,
-} from "../../../application/utils/paginationStorage";
-import EmptyState from "../../components/EmptyState";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
+import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
+import HelperIcon from "../../components/HelperIcon";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -49,44 +29,11 @@ interface AlertState {
   body: string;
 }
 
-const StatusChip: React.FC<{ enabled: boolean }> = ({ enabled }) => {
-  const styles = enabled
-    ? { backgroundColor: "#c8e6c9", color: "#388e3c" }
-    : { backgroundColor: "#e0e0e0", color: "#616161" };
-
-  return (
-    <Chip
-      label={enabled ? "Enabled" : "Disabled"}
-      size="small"
-      sx={{
-        ...styles,
-        fontWeight: 500,
-        fontSize: "11px",
-        textTransform: "uppercase",
-        letterSpacing: "0.5px",
-        borderRadius: "4px",
-        "& .MuiChip-label": {
-          padding: "4px 8px",
-        },
-      }}
-    />
-  );
-};
-
 export default function ProjectScorers({ projectId }: ProjectScorersProps) {
-  const theme = useTheme();
   const [scorers, setScorers] = useState<DeepEvalScorer[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() =>
-    getPaginationRowCount("scorers", 10)
-  );
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertState | null>(null);
-
-  // Gear menu state
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [menuScorer, setMenuScorer] = useState<DeepEvalScorer | null>(null);
 
   // Edit modal state - using comprehensive CreateScorerModal
   const [editScorerModalOpen, setEditScorerModalOpen] = useState(false);
@@ -173,66 +120,87 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     );
   }, [scorers, filterData, searchTerm]);
 
-  const tableColumns = ["SCORER", "MODEL / JUDGE", "TYPE", "METRIC", "STATUS", "ACTION"];
+  // Convert DeepEvalScorer to ScorerRow for the table
+  const scorerRows: ScorerRow[] = useMemo(() => {
+    return filteredScorers.map((scorer) => ({
+      id: scorer.id,
+      name: scorer.name,
+      type: scorer.type,
+      metricKey: scorer.metricKey,
+      enabled: scorer.enabled,
+      defaultThreshold: scorer.defaultThreshold,
+      config: scorer.config,
+      createdAt: scorer.createdAt,
+      updatedAt: scorer.updatedAt,
+    }));
+  }, [filteredScorers]);
 
-  // Gear menu handlers
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>,
-    scorer: DeepEvalScorer
-  ) => {
-    setMenuAnchor(event.currentTarget);
-    setMenuScorer(scorer);
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-    setMenuScorer(null);
-  };
-
-  const handleEditClick = () => {
-    if (menuScorer) {
-      try {
-        const scorerConfig = typeof menuScorer.config === 'object' && menuScorer.config !== null ? menuScorer.config : {};
-        
-        // Convert scorer to ScorerConfig format for the comprehensive modal
-        const judgeModel = scorerConfig.judgeModel;
-        const provider = typeof judgeModel === 'object' ? judgeModel?.provider : scorerConfig.provider || "openai";
-        const model = typeof judgeModel === 'object' ? judgeModel?.name : (typeof judgeModel === 'string' ? judgeModel : scorerConfig.model || "");
-        const modelParams = typeof judgeModel === 'object' && judgeModel?.params ? {
-          temperature: judgeModel.params.temperature ?? 0,
-          maxTokens: judgeModel.params.max_tokens ?? 256,
-          topP: judgeModel.params.top_p ?? 1,
-        } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
-        
-        setEditInitialConfig({
-          name: menuScorer.name || "",
-          slug: menuScorer.metricKey || "",
-          provider: provider || "",
-          model: model || "",
-          modelParams,
-          messages: scorerConfig.messages || [{ role: "system", content: "You are a helpful assistant" }],
-          useChainOfThought: scorerConfig.useChainOfThought ?? true,
-          choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
-          passThreshold: menuScorer.defaultThreshold ?? 0.5,
-        });
-        
-        setEditingScorer(menuScorer);
-        setEditScorerModalOpen(true);
-      } catch (err) {
-        console.error("Error opening scorer edit modal:", err);
-        setAlert({ variant: "error", body: "Failed to open scorer for editing" });
-        setTimeout(() => setAlert(null), 4000);
-      }
+  // Helper to open edit modal for a scorer
+  const openEditModal = useCallback((scorer: DeepEvalScorer) => {
+    try {
+      const scorerConfig = typeof scorer.config === 'object' && scorer.config !== null ? scorer.config : {};
+      
+      // Convert scorer to ScorerConfig format for the comprehensive modal
+      const judgeModel = scorerConfig.judgeModel;
+      const provider = typeof judgeModel === 'object' ? judgeModel?.provider : scorerConfig.provider || "openai";
+      const model = typeof judgeModel === 'object' ? judgeModel?.name : (typeof judgeModel === 'string' ? judgeModel : scorerConfig.model || "");
+      const modelParams = typeof judgeModel === 'object' && judgeModel?.params ? {
+        temperature: judgeModel.params.temperature ?? 0,
+        maxTokens: judgeModel.params.max_tokens ?? 256,
+        topP: judgeModel.params.top_p ?? 1,
+      } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
+      
+      setEditInitialConfig({
+        name: scorer.name || "",
+        slug: scorer.metricKey || "",
+        provider: provider || "",
+        model: model || "",
+        modelParams,
+        messages: scorerConfig.messages || [{ role: "system", content: "You are a helpful assistant" }],
+        useChainOfThought: scorerConfig.useChainOfThought ?? true,
+        choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
+        passThreshold: scorer.defaultThreshold ?? 0.5,
+        inputSchema: scorerConfig.inputSchema || `{
+          "input": "",
+          "output": "",
+          "expected": "",
+          "metadata": {}
+        }`,
+      });
+      
+      setEditingScorer(scorer);
+      setEditScorerModalOpen(true);
+    } catch (err) {
+      console.error("Error opening scorer edit modal:", err);
+      setAlert({ variant: "error", body: "Failed to open scorer for editing" });
+      setTimeout(() => setAlert(null), 4000);
     }
-    handleMenuClose();
-  };
+  }, []);
 
-  const handleDeleteClick = () => {
-    if (!menuScorer) return;
-    setScorerToDelete(menuScorer);
-    setDeleteModalOpen(true);
-    handleMenuClose();
-  };
+  // Row click handler - opens edit modal
+  const handleRowClick = useCallback((row: ScorerRow) => {
+    const scorer = scorers.find((s) => s.id === row.id);
+    if (scorer) {
+      openEditModal(scorer);
+    }
+  }, [scorers, openEditModal]);
+
+  // Edit handler from menu
+  const handleEdit = useCallback((row: ScorerRow) => {
+    const scorer = scorers.find((s) => s.id === row.id);
+    if (scorer) {
+      openEditModal(scorer);
+    }
+  }, [scorers, openEditModal]);
+
+  // Delete handler from menu
+  const handleDelete = useCallback((row: ScorerRow) => {
+    const scorer = scorers.find((s) => s.id === row.id);
+    if (scorer) {
+      setScorerToDelete(scorer);
+      setDeleteModalOpen(true);
+    }
+  }, [scorers]);
 
   const handleConfirmDelete = async () => {
     if (!scorerToDelete) return;
@@ -343,42 +311,20 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
     }
   };
 
-
-  // Pagination
-  const handleChangePage = useCallback((_: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
-
-  const handleChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newRowsPerPage = parseInt(event.target.value, 10);
-      setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount("scorers", newRowsPerPage);
-      setPage(0);
-    },
-    []
-  );
-
-  const getRange = useMemo(() => {
-    const start = page * rowsPerPage + 1;
-    const end = Math.min(
-      page * rowsPerPage + rowsPerPage,
-      filteredScorers.length
-    );
-    return `${start} - ${end}`;
-  }, [page, rowsPerPage, filteredScorers.length]);
-
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Scorers
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Scorers
+          </Typography>
+          <HelperIcon articlePath="llm-evals/configuring-scorers" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Scorers are custom LLM judges that evaluate model outputs using your own criteria. Unlike built-in metrics (Relevancy, Bias, Toxicity), scorers let you define domain-specific evaluation prompts like "Is this response compliant with our guidelines?" or "Does the code follow best practices?". Each scorer calls an LLM (e.g., GPT-4) to judge the model's responses based on your prompt.
+          Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts.
         </Typography>
       </Stack>
 
@@ -423,287 +369,14 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
 
       {/* Scorers table */}
       <Box mb={4}>
-        <TableContainer>
-          <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-            <TableHeader columns={tableColumns} />
-            {filteredScorers.length !== 0 ? (
-              <>
-                <TableBody>
-                  {filteredScorers
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((scorer) => (
-                      <TableRow
-                        key={scorer.id}
-                        onClick={() => {
-                          try {
-                            const scorerConfig = typeof scorer.config === 'object' && scorer.config !== null ? scorer.config : {};
-                            // Convert scorer to ScorerConfig format for comprehensive modal
-                            const judgeModel = scorerConfig.judgeModel;
-                            const provider = typeof judgeModel === 'object' ? judgeModel?.provider : scorerConfig.provider || "openai";
-                            const model = typeof judgeModel === 'object' ? judgeModel?.name : (typeof judgeModel === 'string' ? judgeModel : scorerConfig.model || "");
-                            const modelParams = typeof judgeModel === 'object' && judgeModel?.params ? {
-                              temperature: judgeModel.params.temperature ?? 0,
-                              maxTokens: judgeModel.params.max_tokens ?? 256,
-                              topP: judgeModel.params.top_p ?? 1,
-                            } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
-                            
-                            setEditInitialConfig({
-                              name: scorer.name || "",
-                              slug: scorer.metricKey || "",
-                              provider: provider || "",
-                              model: model || "",
-                              modelParams,
-                              messages: scorerConfig.messages || [{ role: "system", content: "You are a helpful assistant" }],
-                              useChainOfThought: scorerConfig.useChainOfThought ?? true,
-                              choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
-                              passThreshold: scorer.defaultThreshold ?? 0.5,
-                              inputSchema: scorerConfig.inputSchema || `{
-                                "input": "",
-                                "output": "",
-                                "expected": "",
-                                "metadata": {}
-                              }`,
-                            });
-                            setEditingScorer(scorer);
-                            setEditScorerModalOpen(true);
-                          } catch (err) {
-                            console.error("Error opening scorer edit modal:", err);
-                          }
-                        }}
-                        sx={{
-                          ...singleTheme.tableStyles.primary.body.row,
-                          "&:hover": { cursor: "pointer", backgroundColor: "#f9fafb" },
-                        }}
-                      >
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            textTransform: "none",
-                            width: "20%",
-                          }}
-                        >
-                          {scorer.name}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            textTransform: "none",
-                          }}
-                        >
-                          {/* judgeModel can be string or object {name, params, provider} */}
-                          {typeof scorer.config?.judgeModel === 'string' 
-                            ? scorer.config.judgeModel 
-                            : scorer.config?.judgeModel?.name ||
-                              (typeof scorer.config?.model === 'string' 
-                                ? scorer.config.model 
-                                : scorer.config?.model?.name) ||
-                              scorer.metricKey ||
-                              "Scorer"}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            textTransform: "none",
-                          }}
-                        >
-                          {scorer.type.toUpperCase()}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            textTransform: "none",
-                          }}
-                        >
-                          {scorer.metricKey}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                            textTransform: "none",
-                          }}
-                        >
-                          <StatusChip enabled={scorer.enabled} />
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            paddingLeft: "12px",
-                            paddingRight: "12px",
-                          }}
-                        >
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMenuOpen(e, scorer);
-                            }}
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              "&:hover": {
-                                backgroundColor: theme.palette.action.hover,
-                              },
-                            }}
-                          >
-                            <Settings size={18} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow
-                    sx={{
-                      "& .MuiTableCell-root.MuiTableCell-footer": {
-                        paddingX: theme.spacing(8),
-                        paddingY: theme.spacing(4),
-                      },
-                    }}
-                  >
-                    <TableCell
-                      sx={{
-                        fontSize: "12px",
-                        color: theme.palette.text.secondary,
-                        borderBottom: "none",
-                      }}
-                    >
-                      Showing {getRange} of {filteredScorers.length} scorer
-                      {filteredScorers.length !== 1 ? "s" : ""}
-                    </TableCell>
-                    <TablePagination
-                      count={filteredScorers.length}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => (
-                        <TablePaginationActions {...props} />
-                      )}
-                      labelRowsPerPage="Scorers per page"
-                      labelDisplayedRows={({ page: p, count }) =>
-                        `Page ${p + 1} of ${Math.max(
-                          0,
-                          Math.ceil(count / rowsPerPage)
-                        )}`
-                      }
-                      sx={{
-                        borderBottom: "none",
-                        "& .MuiTablePagination-toolbar": {
-                          minHeight: "40px",
-                        },
-                        "& .MuiTablePagination-selectLabel": {
-                          fontSize: "12px",
-                          color: theme.palette.text.secondary,
-                        },
-                        "& .MuiTablePagination-displayedRows": {
-                          fontSize: "12px",
-                          color: theme.palette.text.secondary,
-                        },
-                      }}
-                      slotProps={{
-                        select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              sx: {
-                                borderRadius: "4px",
-                                boxShadow: theme.shadows[3],
-                                mt: 1,
-                              },
-                            },
-                            transformOrigin: {
-                              vertical: "bottom",
-                              horizontal: "left",
-                            },
-                            anchorOrigin: {
-                              vertical: "top",
-                              horizontal: "left",
-                            },
-                            sx: { mt: theme.spacing(-2) },
-                          },
-                          inputProps: { id: "pagination-dropdown" },
-                          IconComponent: () => <ChevronsUpDown size={16} />,
-                          sx: {
-                            fontSize: "12px",
-                            "& .MuiSelect-select": {
-                              paddingY: "4px",
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </TableRow>
-                </TableFooter>
-              </>
-            ) : (
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    colSpan={tableColumns.length}
-                    sx={{ border: "none", p: 0 }}
-                  >
-                    <EmptyState message="There is currently no data in this table." />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            )}
-          </Table>
-        </TableContainer>
+        <ScorersTable
+          rows={scorerRows}
+          onRowClick={handleRowClick}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          loading={loading}
+        />
       </Box>
-
-      {/* Gear menu popover */}
-      <Popover
-        open={Boolean(menuAnchor)}
-        anchorEl={menuAnchor}
-        onClose={handleMenuClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        slotProps={{
-          paper: {
-            sx: {
-              borderRadius: "4px",
-              boxShadow: theme.shadows[3],
-              minWidth: "120px",
-            },
-          },
-        }}
-      >
-        <MenuItem onClick={handleEditClick} sx={{ fontSize: "13px", py: 1 }}>
-          <ListItemIcon sx={{ minWidth: "28px !important" }}>
-            <Pencil size={16} />
-          </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-            Edit
-          </ListItemText>
-        </MenuItem>
-        <MenuItem
-          onClick={handleDeleteClick}
-          sx={{ fontSize: "13px", py: 1, color: "#c62828" }}
-        >
-          <ListItemIcon sx={{ minWidth: "28px !important", color: "#c62828" }}>
-            <Trash2 size={16} />
-          </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-            Delete
-          </ListItemText>
-        </MenuItem>
-      </Popover>
 
       {/* Edit Scorer Modal - uses comprehensive CreateScorerModal */}
       <CreateScorerModal

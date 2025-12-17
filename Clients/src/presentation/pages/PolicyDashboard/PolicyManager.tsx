@@ -21,6 +21,7 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -32,6 +33,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
+
+  const [showLinkedObjectModal, setLinkedObjectsModalOpen] =  useState(false);
+  const [policyId, setSelectedPolicyId] = useState<number | null>(null);
 
   useEffect(() => {
     setPolicies(policyList);
@@ -127,6 +131,27 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         alertTimeout: 4000,
       });
     }
+  };
+
+  const handleLinkedObject = async (id: number) => {
+    try {
+       setSelectedPolicyId(id);
+       setLinkedObjectsModalOpen(true);
+    } catch (err) {
+      console.error(err);
+
+      // Show error alert for failed deletion
+      handleAlert({
+        variant: "error",
+        body: "Failed to delete policy. Please try again.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    }
+  }
+
+  const handleCloseLinkedObjects = () => {
+    setLinkedObjectsModalOpen(false);
   };
 
   const { users } = useUsers();
@@ -366,6 +391,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
                 data={data}
                 onOpen={handleOpen}
                 onDelete={handleDelete}
+                onLinkedObjects={handleLinkedObject}
                 hidePagination={options?.hidePagination}
               />
             )}
@@ -381,6 +407,16 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           onClose={handleClose}
           onSaved={handleSaved}
         />
+      )}
+
+      {/* Modal */}
+      {showLinkedObjectModal && (
+      <LinkedPolicyModal
+        onClose = {handleCloseLinkedObjects}
+        policyId = {policyId}
+        isOpen = {showLinkedObjectModal}
+      />
+      
       )}
 
       {alert && (

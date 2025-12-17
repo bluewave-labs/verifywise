@@ -1,0 +1,69 @@
+.app-switcher {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  flex-shrink: 0;
+  height: 100vh;
+  background-color: #1a1a2e;
+  border-right: 1px solid #2d2d44;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.app-switcher-modules {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.app-switcher-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+  background-color: transparent;
+  padding: 0;
+}
+
+.app-switcher-icon svg {
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.2s ease;
+}
+
+.app-switcher-icon:hover:not(.disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.app-switcher-icon:hover:not(.disabled) svg {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.app-switcher-icon.active {
+  background-color: #13715B;
+}
+
+.app-switcher-icon.active svg {
+  color: #ffffff;
+}
+
+.app-switcher-icon.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.app-switcher-icon.disabled svg {
+  color: rgba(255, 255, 255, 0.3);
+}

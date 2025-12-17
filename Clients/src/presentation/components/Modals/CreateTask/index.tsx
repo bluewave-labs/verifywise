@@ -310,7 +310,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
     >
       <Stack spacing={6}>
         {/* Row 1: Task title | Assignees */}
-        <Stack direction="row" spacing={6}>
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Field
               id="title"
@@ -454,7 +454,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
         </Stack>
 
         {/* Row 2: Status | Categories */}
-        <Stack direction="row" spacing={6}>
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
           <SelectComponent
             items={statusOptions}
             value={values.status}
@@ -488,7 +488,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
         </Stack>
 
         {/* Row 3: Priority | Due date */}
-        <Stack direction="row" spacing={6}>
+        <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
           <SelectComponent
             items={priorityOptions}
             value={values.priority}
@@ -520,20 +520,23 @@ const CreateTask: FC<ICreateTaskProps> = ({
           </Suspense>
         </Stack>
 
-        {/* Row 4: Description (full width) */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <Field
-            id="description"
-            label="Description"
-            width="100%"
-            type="description"
-            value={values.description}
-            onChange={handleOnTextFieldChange("description")}
-            error={errors.description}
-            sx={fieldStyle}
-            placeholder="Enter description"
-          />
-        </Suspense>
+        {/* Row 4: Description (full width = 350px + 350px + 48px gap) */}
+        <Stack direction="row" spacing={6}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Field
+              id="description"
+              label="Description"
+              width="350px"
+              type="description"
+              value={values.description}
+              onChange={handleOnTextFieldChange("description")}
+              error={errors.description}
+              sx={fieldStyle}
+              placeholder="Enter description"
+            />
+          </Suspense>
+          <Box sx={{ width: "350px" }} />
+        </Stack>
       </Stack>
     </StandardModal>
   );

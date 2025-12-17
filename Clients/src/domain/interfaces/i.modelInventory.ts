@@ -74,6 +74,7 @@ export interface ModelInventoryTableProps {
   paginated?: boolean;
   deletingId?: string | null;
   hidePagination?: boolean;
+  modelRisks?: IModelRisk[];
 }
 
 export interface ModelRisksTableProps {

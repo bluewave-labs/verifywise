@@ -1,58 +1,30 @@
-import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import {
-  projectRisksCard,
-  projectRisksTileCard,
-  projectRisksTileCardKey,
-  projectRisksTileCardvalue,
-} from "../../components/Cards/RisksCard/style"; // ✅ reuse same styles as ProjectRiskView Cards
-import { PolicyStatusCardProps } from "../../../domain/interfaces/IPolicy";
-
+import React from "react";
+import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { PolicyStatusCardProps } from "../../../domain/interfaces/i.policy";
 
 const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
   const statusLevels = [
     { key: "Draft", label: "Draft", color: "#9E9E9E" },
-    { key: "Under Review", label: "Under Review", color: "#FF9800" },
+    { key: "Under Review", label: "Under review", color: "#FF9800" },
     { key: "Approved", label: "Approved", color: "#4CAF50" },
     { key: "Published", label: "Published", color: "#2196F3" },
     { key: "Archived", label: "Archived", color: "#757575" },
     { key: "Deprecated", label: "Deprecated", color: "#F44336" },
   ];
 
-  // Count how many policies per status
-  const statusCounts = statusLevels.map((level) => ({
-    ...level,
+  const items: StatusTileItem[] = statusLevels.map((level) => ({
+    key: level.key,
+    label: level.label,
     count: policies.filter((p) => p.status === level.key).length,
+    color: level.color,
   }));
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Stack className="vw-policy-status" sx={projectRisksCard}>
-        {statusCounts.map((level) => (
-          <Tooltip
-            key={level.key}
-            title={`${level.count} ${level.label} Policy`}
-            arrow
-            placement="top"
-          >
-            <Stack
-              className="vw-policy-status-tile"
-              sx={{
-                ...projectRisksTileCard,
-                color: level.color,
-                border: `1px solid #d0d5dd`,
-                cursor: "default",
-                paddingX: { xs: "15px", sm: "20px" }, // Reduced from 30px to prevent text wrapping
-              }}
-            >
-              <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>
-              <Typography sx={projectRisksTileCardvalue}>
-                {level.count}
-              </Typography>
-            </Stack>
-          </Tooltip>
-        ))}
-      </Stack>
-    </Box>
+    <StatusTileCards
+      items={items}
+      entityName="policy"
+      cardSx={{ paddingX: { xs: "15px", sm: "20px" } }}
+    />
   );
 };
 

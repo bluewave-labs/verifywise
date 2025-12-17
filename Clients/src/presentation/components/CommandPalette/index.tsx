@@ -22,6 +22,7 @@ import {
   ArrowDown,
   CornerDownLeft,
   ChevronRight,
+  FlaskConical,
   LucideIcon
 } from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
@@ -56,6 +57,7 @@ const ENTITY_ICONS: Record<string, LucideIcon> = {
   ai_trust_center_subprocessors: Building2,
   training_registar: GraduationCap,
   incident_management: AlertCircle,
+  deepeval_projects: FlaskConical,
 }
 
 // Welcome banner component
@@ -196,7 +198,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     results: searchResults,
     flatResults,
     isLoading: isSearching,
-    totalCount,
     recentSearches,
     addToRecent,
     removeFromRecent,
@@ -237,8 +238,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
   // Group search results by entity type with deduplication
   const groupedSearchResults = useMemo(() => {
     return Object.entries(searchResults).map(([entityType, data]) => {
-      // Deduplicate results by id within each entity type
-      const seenIds = new Set<number>()
+      // Deduplicate results by id within each entity type (supports both number and string IDs)
+      const seenIds = new Set<number | string>()
       const uniqueResults = data.results.filter((result) => {
         if (seenIds.has(result.id)) {
           return false
@@ -254,6 +255,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
       }
     })
   }, [searchResults])
+
+  // Calculate actual total count after deduplication
+  const actualTotalCount = useMemo(() => {
+    return groupedSearchResults.reduce((sum, group) => sum + group.count, 0)
+  }, [groupedSearchResults])
 
   // Command action handlers
   const actionHandlers: CommandActionHandlers = useMemo(() => ({
@@ -328,6 +334,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
 
   if (!open) return null
 
+  // Disable cmdk's built-in filtering when in search mode (we use server-side search)
+  const shouldFilter = !isSearchMode
+
   return (
     <Command.Dialog
       open={open}
@@ -337,6 +346,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
       aria-describedby="command-palette-description"
       value=""
       onValueChange={() => {}}
+      shouldFilter={shouldFilter}
     >
       <Dialog.Title asChild>
         <VisuallyHidden>Command Palette</VisuallyHidden>
@@ -361,7 +371,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
 
         <div id="command-palette-help" className="sr-only">
           {isSearchMode
-            ? `${totalCount} results found. Type to search across all data.`
+            ? `${actualTotalCount} results found. Type to search across all data.`
             : `${commands.length} commands available. Type to filter commands.`
           }
         </div>
@@ -400,7 +410,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
             <>
               <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="caption" sx={{ color: '#999', fontWeight: 400 }}>
-                  {totalCount} result{totalCount !== 1 ? 's' : ''} found
+                  {actualTotalCount} result{actualTotalCount !== 1 ? 's' : ''} found
                 </Typography>
               </Box>
 

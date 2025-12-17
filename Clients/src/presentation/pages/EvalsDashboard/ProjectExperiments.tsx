@@ -13,6 +13,7 @@ import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import HelperIcon from "../../components/HelperIcon";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -29,10 +30,22 @@ interface AlertState {
   body: string;
 }
 
+/**
+ * Shortens model names by removing date suffixes for cleaner display
+ * e.g., "claude-sonnet-4-20250514" → "claude-sonnet-4"
+ *       "claude-3-5-haiku-20241022" → "claude-3-5-haiku"
+ *       "gpt-4o-2024-05-13" → "gpt-4o"
+ */
+function shortenModelName(modelName: string): string {
+  if (!modelName) return modelName;
+  // Remove date patterns like -20250514 or -2024-05-13 from the end
+  return modelName.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '');
+}
+
 export default function ProjectExperiments({ projectId, onViewExperiment }: ProjectExperimentsProps) {
   const navigate = useNavigate();
   const [experiments, setExperiments] = useState<ExperimentWithMetrics[]>([]);
-  const [_loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [newEvalModalOpen, setNewEvalModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
@@ -81,12 +94,18 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       // Load metrics for each experiment (skip for running/pending experiments)
       const experimentsWithMetrics = await Promise.all(
         (data.experiments || []).map(async (exp: Experiment) => {
+          // Get prompt count from config (available immediately)
+          const configPromptCount = exp.config?.dataset?.count || 
+                                    exp.config?.dataset?.prompts?.length || 
+                                    exp.results?.total_prompts || 
+                                    0;
+          
           // Skip log fetching for running/pending experiments to avoid timeout
           if (exp.status === "running" || exp.status === "pending") {
             return {
               ...exp,
               avgMetrics: {},
-              sampleCount: 0,
+              sampleCount: configPromptCount,
             };
           }
 
@@ -99,11 +118,33 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
             const logs = logsData.logs || [];
 
+            // Map display names to camelCase keys for backwards compatibility
+            const displayNameToKey: Record<string, string> = {
+              "Answer Relevancy": "answerRelevancy",
+              "Faithfulness": "faithfulness",
+              "Contextual Relevancy": "contextualRelevancy",
+              "Bias": "bias",
+              "Toxicity": "toxicity",
+              "Hallucination": "hallucination",
+              "Knowledge Retention": "knowledgeRetention",
+              "Conversation Completeness": "conversationCompleteness",
+              "Conversation Relevancy": "conversationRelevancy",
+              "Role Adherence": "roleAdherence",
+              "Task Completion": "taskCompletion",
+              "Tool Correctness": "toolCorrectness",
+              "Answer Correctness": "answerCorrectness",
+              "Coherence": "coherence",
+              "Tonality": "tonality",
+              "Safety": "safety",
+            };
+
             // Calculate average metrics from logs
             const metricsSum: Record<string, { sum: number; count: number }> = {};
             logs.forEach((log: EvaluationLog) => {
               if (log.metadata?.metric_scores) {
-                Object.entries(log.metadata.metric_scores).forEach(([key, value]) => {
+                Object.entries(log.metadata.metric_scores).forEach(([rawKey, value]) => {
+                  // Normalize key: convert display names to camelCase
+                  const key = displayNameToKey[rawKey] || rawKey;
                   if (typeof value === "number" || (typeof value === "object" && value !== null && "score" in value)) {
                     const scoreValue = typeof value === "number" ? value : (value as { score: number }).score;
                     if (typeof scoreValue === "number") {
@@ -132,7 +173,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
             return {
               ...exp,
               avgMetrics: {},
-              sampleCount: 0,
+              sampleCount: configPromptCount,
             };
           }
         })
@@ -154,6 +195,62 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     }
   };
 
+  const handleRerunExperiment = async (row: IEvaluationRow) => {
+    // Find the original experiment to get its config
+    const originalExp = experiments.find((e) => e.id === row.id);
+    if (!originalExp) {
+      setAlert({ variant: "error", body: "Could not find experiment to rerun" });
+      setTimeout(() => setAlert(null), 4000);
+      return;
+    }
+
+    try {
+      const baseConfig = originalExp.config || {};
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const nextName = `${originalExp.name || "Eval"} (rerun ${dateStr}, ${timeStr})`;
+
+      const payload = {
+        project_id: projectId,
+        name: nextName,
+        description: originalExp.description || "",
+        config: {
+          ...baseConfig,
+          project_id: projectId,
+        },
+      };
+
+      setAlert({ variant: "success", body: "Starting new evaluation run..." });
+      
+      const response = await experimentsService.createExperiment(payload);
+
+      if (response?.experiment?.id) {
+        // Add the new experiment to the list optimistically
+        handleStarted({
+          id: response.experiment.id,
+          config: payload.config as Record<string, unknown>,
+          status: "running",
+          created_at: new Date().toISOString(),
+        });
+        
+        setAlert({ variant: "success", body: `Rerun started: ${nextName}` });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to rerun experiment:", err);
+      setAlert({ variant: "error", body: "Failed to start rerun" });
+      setTimeout(() => setAlert(null), 5000);
+    }
+  };
+
   const handleDeleteExperiment = async (experimentId: string) => {
     try {
       await experimentsService.deleteExperiment(experimentId);
@@ -167,11 +264,19 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   };
 
   const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
-    const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } };
+    const cfg = exp.config as { 
+      model?: { name?: string }; 
+      judgeLlm?: { model?: string; provider?: string };
+      dataset?: { count?: number; prompts?: unknown[] };
+    };
     const cfgForState: Record<string, unknown> = {
       model: { name: cfg.model?.name },
       judgeLlm: { model: cfg.judgeLlm?.model, provider: cfg.judgeLlm?.provider },
+      dataset: cfg.dataset,
     };
+    // Get prompt count from config
+    const promptCount = cfg.dataset?.count || cfg.dataset?.prompts?.length || 0;
+    
     setExperiments((prev) => [
       ({
         id: exp.id,
@@ -190,7 +295,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
         tenant: "",
         created_by: undefined,
         avgMetrics: {},
-        sampleCount: 0,
+        sampleCount: promptCount,
       } as unknown as ExperimentWithMetrics),
       ...prev,
     ]);
@@ -222,6 +327,8 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
       const cfg = exp.config as {
         model?: { name?: string };
         judgeLlm?: { model?: string; provider?: string };
+        evaluationMode?: string;
+        scorerName?: string;
       } | undefined;
 
       switch (fieldId) {
@@ -231,8 +338,14 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
           return exp.status;
         case "model":
           return cfg?.model?.name || "";
-        case "judge":
-          return cfg?.judgeLlm?.model || cfg?.judgeLlm?.provider || "";
+        case "judge": {
+          const evaluationMode = cfg?.evaluationMode || "standard";
+          const judgeModel = cfg?.judgeLlm?.model || cfg?.judgeLlm?.provider || "";
+          const scorerName = cfg?.scorerName || "";
+          if (evaluationMode === "scorer") return scorerName;
+          if (evaluationMode === "both") return `${judgeModel} + ${scorerName}`;
+          return judgeModel;
+        }
         default:
           return "";
       }
@@ -268,33 +381,104 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     });
   }, [experiments, filterData, searchTerm]);
 
-  // Transform to table format (exact match to Bias & Fairness structure)
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE", "DATASET", "STATUS", "ACTION"];
+  // Transform to table format
+  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "STATUS", "DATE", "ACTION"];
 
-  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => ({
-    id: exp.id,
-    name: exp.name,
-    model: exp.config?.model?.name || exp.name || "Unknown",
-    judge: exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "-",
-    dataset: `${exp.sampleCount || 0} samples`,
-    status:
-      exp.status === "completed" ? "Completed" :
-      exp.status === "failed" ? "Failed" :
-      exp.status === "running" ? "Running" :
-      "Pending",
-  }));
+  const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
+    // Get dataset name from config - try multiple sources
+    let datasetName = "Dataset";
+    const datasetConfig = exp.config?.dataset;
+    if (datasetConfig) {
+      if (datasetConfig.name) {
+        datasetName = datasetConfig.name;
+      } else if (datasetConfig.path) {
+        // Extract friendly name from path like "chatbot/chatbot_coding_helper.json"
+        const pathParts = datasetConfig.path.split("/");
+        const fileName = pathParts[pathParts.length - 1]?.replace(/\.json$/i, "") || "";
+        // Convert snake_case to Title Case
+        datasetName = fileName
+          .split("_")
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      } else if (datasetConfig.datasetId) {
+        datasetName = datasetConfig.datasetId;
+      } else if (datasetConfig.categories?.[0]) {
+        datasetName = datasetConfig.categories[0];
+      } else if (datasetConfig.useBuiltin) {
+        datasetName = "Template";
+      }
+    }
+    
+    // Format the date with time
+    const createdDate = exp.created_at 
+      ? new Date(exp.created_at).toLocaleDateString("en-US", { 
+          month: "short", 
+          day: "numeric", 
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "-";
+
+    // Determine judge display based on evaluation mode
+    const evaluationMode = exp.config?.evaluationMode || "standard";
+    const judgeModelRaw = exp.config?.judgeLlm?.model || exp.config?.judgeLlm?.provider || "";
+    const judgeModel = shortenModelName(judgeModelRaw);
+    const scorerName = exp.config?.scorerName || "";
+    
+    let judgeDisplay = "-";
+    if (evaluationMode === "scorer" && scorerName) {
+      judgeDisplay = `${scorerName}`;
+    } else if (evaluationMode === "standard" && judgeModel) {
+      judgeDisplay = judgeModel;
+    } else if (evaluationMode === "both" && judgeModel && scorerName) {
+      judgeDisplay = `${judgeModel} + ${scorerName}`;
+    } else if (judgeModel) {
+      judgeDisplay = judgeModel;
+    } else if (scorerName) {
+      judgeDisplay = `${scorerName}`;
+    }
+
+    return {
+      id: exp.id,
+      name: exp.name,
+      model: exp.config?.model?.name || "Unknown",
+      judge: judgeDisplay,
+      dataset: datasetName,
+      prompts: exp.sampleCount || 0,
+      date: createdDate,
+      status:
+        exp.status === "completed" ? "Completed" :
+        exp.status === "failed" ? "Failed" :
+        exp.status === "running" ? "Running" :
+        "Pending",
+    };
+  });
 
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Experiments
+          </Typography>
+          <HelperIcon articlePath="llm-evals/running-experiments" />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
+        </Typography>
+      </Stack>
+
       {/* Performance Chart */}
       <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
-        <CardContent>
-          <Box mb={2}>
-            <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600 }}>Performance tracking</Typography>
+        <CardContent sx={{ py: 2 }}>
+          <Box mb={1}>
+            <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
             Track metric scores across eval runs
           </Typography>
 
@@ -383,6 +567,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
           page={currentPage}
           setCurrentPagingation={setCurrentPage}
           onShowDetails={handleViewExperiment}
+          onRerun={handleRerunExperiment}
         />
       </Box>
 

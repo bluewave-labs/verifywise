@@ -123,6 +123,10 @@ const SetNewPassword: React.FC = () => {
       const response = await apiServices.post("/users/reset-password", {
         email: userInfo?.email,
         newPassword: values.password,
+      }, {
+        headers: {
+          "Authorization": `Bearer ${userToken}`,
+        }
       });
 
       if (response.status === 202) {

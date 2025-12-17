@@ -3,8 +3,6 @@ import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
-import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
@@ -24,14 +22,14 @@ import {
 // Assumes infrastructure has been pre-checked via ensureProjectInfrastructure
 export const generateNextUcId = async (
   tenant: string,
-  transaction: Transaction,
+  transaction: Transaction
 ): Promise<string> => {
   const result = await sequelize.query<{ next_id: number }>(
     `SELECT nextval('"${tenant}".project_uc_id_seq') AS next_id`,
     {
       type: QueryTypes.SELECT,
       transaction,
-    },
+    }
   );
 
   const nextNumber = result[0].next_id;
@@ -115,9 +113,9 @@ export const getAllProjectsQuery = async (
         replacements: { project_id: project.id },
       }
     )) as [
-        { project_framework_id: number; framework_id: number; name: string }[],
-        number,
-      ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -163,21 +161,28 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
     }
   )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number,
-    ];
+    { project_framework_id: number; framework_id: number; name: string }[],
+    number,
+  ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
   }
 
-  const projectOwner = await sequelize.query(
-    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
-    {
-      replacements: { owner_id: project.owner },
+  // Handle case where project owner might be null or user doesn't exist
+  let ownerName = "Unassigned";
+  if (project.owner) {
+    const projectOwner = (await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+      {
+        replacements: { owner_id: project.owner },
+      }
+    )) as [{ full_name: string }[], number];
+    if (projectOwner[0] && projectOwner[0][0]) {
+      ownerName = projectOwner[0][0].full_name;
     }
-  ) as [{ full_name: string }[], number];
-  (project.dataValues as any)["owner_name"] = projectOwner[0][0].full_name;
+  }
+  (project.dataValues as any)["owner_name"] = ownerName;
 
   const members = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
@@ -300,7 +305,7 @@ export const createNewProjectQuery = async (
       model: ProjectModel,
       // type: QueryTypes.INSERT
       transaction,
-    },
+    }
   );
   const createdProject = result[0];
   (createdProject.dataValues as any)["members"] = [];
@@ -317,7 +322,7 @@ export const createNewProjectQuery = async (
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
         transaction,
-      },
+      }
     );
     (createdProject.dataValues as any)["members"].push(member);
   }
@@ -339,42 +344,58 @@ export const createNewProjectQuery = async (
     (createdProject.dataValues as any)["framework"].push(framework);
   }
 
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_added") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: createdProject.dataValues.owner },
-          transaction
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectReplacements({ ...createdProject.dataValues, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectReplacements({
+        ...createdProject.dataValues,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
 
@@ -498,6 +519,7 @@ export const updateProjectByIdQuery = async (
           project[f as keyof ProjectModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
@@ -524,49 +546,65 @@ export const updateProjectByIdQuery = async (
     }
   );
   const updatedProject = result[0];
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_updated") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: updatedProject.dataValues.owner },
-          transaction
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectUpdateReplacements(oldProject, { ...updatedProject.dataValues, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectUpdateReplacements(oldProject, {
+        ...updatedProject.dataValues,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
   return result.length
     ? {
-      ...updatedProject.dataValues,
-      members: updatedMembers.map((m) => m.user_id),
-    }
+        ...updatedProject.dataValues,
+        members: updatedMembers.map((m) => m.user_id),
+      }
     : null;
 };
 
@@ -716,42 +754,58 @@ export const deleteProjectByIdQuery = async (
     }
   );
   const deletedProject = result[0];
-  const automations = await sequelize.query(
+  const automations = (await sequelize.query(
     `SELECT
       pat.key AS trigger_key,
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
-  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    { transaction }
+  )) as [
+    (TenantAutomationActionModel & {
+      trigger_key: string;
+      action_key: string;
+      automation_id: number;
+    })[],
+    number,
+  ];
   if (automations[0].length > 0) {
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_deleted") {
-      const owner_name = await sequelize.query(
+      const owner_name = (await sequelize.query(
         `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: deletedProject.owner },
-          transaction
+          transaction,
         }
-      ) as [{ full_name: string }[], number];
+      )) as [{ full_name: string }[], number];
 
       const params = automation.params!;
 
       // Build replacements
-      const replacements = buildProjectReplacements({ ...deletedProject, owner_name: owner_name[0][0].full_name });
+      const replacements = buildProjectReplacements({
+        ...deletedProject,
+        owner_name: owner_name[0]?.[0]?.full_name || "Unknown",
+      });
 
       // Replace variables in subject and body
       const processedParams = {
         ...params,
-        subject: replaceTemplateVariables(params.subject || '', replacements),
-        body: replaceTemplateVariables(params.body || '', replacements),
+        subject: replaceTemplateVariables(params.subject || "", replacements),
+        body: replaceTemplateVariables(params.body || "", replacements),
         automation_id: automation.automation_id,
       };
 
       // Enqueue with processed params
-      await enqueueAutomationAction(automation.action_key, {...processedParams, tenant});
+      await enqueueAutomationAction(automation.action_key, {
+        ...processedParams,
+        tenant,
+      });
     } else {
-      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+      console.warn(
+        `No matching trigger found for key: ${automation["trigger_key"]}`
+      );
     }
   }
   return result.length > 0;
@@ -798,7 +852,6 @@ export const calculateVendirRisks = async (
   return result;
 };
 
-
 /**
  * Gets current project members to identify newly added ones
  * @param projectId - The project ID to get members for
@@ -821,4 +874,3 @@ export const getCurrentProjectMembers = async (
   );
   return (currentMembersResult as any[]).map((m) => m.user_id);
 };
-

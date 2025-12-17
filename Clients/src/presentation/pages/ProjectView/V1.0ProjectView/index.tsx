@@ -17,6 +17,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
 import CEMarking from "../CEMarking";
+import Activity from "../Activity";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -208,6 +209,11 @@ const VWProjectView = () => {
                 icon: "Award",
               },
               {
+                label: "Activity",
+                value: "activity",
+                icon: "History",
+              },
+              {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
@@ -290,6 +296,17 @@ const VWProjectView = () => {
             {project ? (
               // Render settings content here
               <ProjectSettings triggerRefresh={handleRefresh} />
+            ) : (
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
+            )}
+          </TabPanel>
+          <TabPanel value="activity" sx={tabPanelStyle}>
+            {project ? (
+              <Activity entityType="use_case" entityId={parseInt(projectId)} />
             ) : (
               <CustomizableSkeleton
                 variant="rectangular"

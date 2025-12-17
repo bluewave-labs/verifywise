@@ -457,16 +457,19 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       orientation="horizontal"
       timeout={300}
       sx={{
-        alignSelf: "flex-start",
+        position: "fixed",
+        right: 16,
+        top: 180,
+        zIndex: 1000,
       }}
     >
       <Box
         sx={{
           width: "320px",
           height: height,
-          marginLeft: "16px",
           display: "flex",
           flexDirection: "column",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         }}
       >
         <Box

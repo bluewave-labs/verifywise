@@ -32,21 +32,32 @@ async function injectApiKeys(req: Request, _res: Response, next: NextFunction) {
       return next();
     }
 
-    // 1. Inject API key for custom scorers (scorer or both mode)
-    if (body?.config?.useCustomScorer && !body?.config?.scorerApiKey) {
-      // Try to determine the provider - default to OpenAI for now
-      // TODO: In the future, fetch scorer config from EvalServer to get the actual provider
-      const provider = "openai";
+    // 1. Inject API keys for custom scorers (scorer or both mode)
+    // Frontend sends scorerProviders: ["mistral", "openai"] - only the providers actually needed
+    if (body?.config?.useCustomScorer && body?.config?.scorerProviders) {
+      const requestedProviders: string[] = body.config.scorerProviders;
+      const scorerApiKeys: Record<string, string> = {};
       
-      if (VALID_PROVIDERS.includes(provider as LLMProvider)) {
-        const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
-          organizationId,
-          provider as LLMProvider
-        );
-        
-        if (apiKey) {
-          req.body.config.scorerApiKey = apiKey;
+      for (const provider of requestedProviders) {
+        const normalizedProvider = provider.toLowerCase();
+        if (VALID_PROVIDERS.includes(normalizedProvider as LLMProvider)) {
+          try {
+            const apiKey = await EvaluationLlmApiKeyModel.getDecryptedKey(
+              organizationId,
+              normalizedProvider as LLMProvider
+            );
+            if (apiKey) {
+              scorerApiKeys[normalizedProvider] = apiKey;
+            }
+          } catch {
+            // Skip providers without keys
+          }
         }
+      }
+      
+      if (Object.keys(scorerApiKeys).length > 0) {
+        req.body.config.scorerApiKeys = scorerApiKeys;
+        console.log(`[DeepEval Proxy] Injecting API keys for scorer providers: ${Object.keys(scorerApiKeys).join(", ")}`);
       }
     }
 

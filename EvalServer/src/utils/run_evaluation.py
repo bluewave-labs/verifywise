@@ -91,18 +91,38 @@ async def run_evaluation(
         print(f"📋 Evaluation mode: {evaluation_mode}")
         
         # Set up API keys from config (if provided)
-        # First check for scorer API key (used when Custom Scorer mode is selected)
-        scorer_api_key = config.get("scorerApiKey")
-        if scorer_api_key:
-            print(f"🔑 Scorer API key provided - setting for ALL providers (including DeepEval judge)")
-            os.environ["OPENAI_API_KEY"] = scorer_api_key
-            os.environ["ANTHROPIC_API_KEY"] = scorer_api_key
-            os.environ["GEMINI_API_KEY"] = scorer_api_key
-            os.environ["XAI_API_KEY"] = scorer_api_key
-            os.environ["MISTRAL_API_KEY"] = scorer_api_key
-            # Set G_EVAL to use OpenAI by default when using custom scorer
-            os.environ["G_EVAL_PROVIDER"] = "openai"
-            print(f"✅ API keys set for DeepEval metrics AND custom scorers")
+        # Check for multi-provider API keys map (new format from backend)
+        # These keys are used by CUSTOM SCORERS - each scorer uses its own configured provider
+        # G_EVAL_PROVIDER is set later based on the Judge LLM config (user's explicit selection)
+        scorer_api_keys = config.get("scorerApiKeys")
+        if scorer_api_keys and isinstance(scorer_api_keys, dict):
+            # Map provider names to environment variable names
+            provider_env_map = {
+                "openai": "OPENAI_API_KEY",
+                "anthropic": "ANTHROPIC_API_KEY",
+                "google": "GEMINI_API_KEY",
+                "gemini": "GEMINI_API_KEY",
+                "xai": "XAI_API_KEY",
+                "mistral": "MISTRAL_API_KEY",
+                "huggingface": "HF_API_KEY",
+            }
+            
+            configured_count = 0
+            for provider in list(scorer_api_keys.keys()):
+                env_var = provider_env_map.get(provider.lower())
+                key_value = scorer_api_keys.get(provider)
+                if env_var and key_value:
+                    os.environ[env_var] = key_value
+                    configured_count += 1
+        
+        # Legacy: single scorer API key (backward compatibility)
+        legacy_key = config.get("scorerApiKey")
+        if legacy_key and not scorer_api_keys:
+            os.environ["OPENAI_API_KEY"] = legacy_key
+            os.environ["ANTHROPIC_API_KEY"] = legacy_key
+            os.environ["GEMINI_API_KEY"] = legacy_key
+            os.environ["XAI_API_KEY"] = legacy_key
+            os.environ["MISTRAL_API_KEY"] = legacy_key
         
         # Judge LLM API keys (for DeepEval metrics - Standard Judge mode)
         print(f"📝 Judge LLM config: provider={judge_config.get('provider')}, has_apiKey={bool(judge_config.get('apiKey'))}")

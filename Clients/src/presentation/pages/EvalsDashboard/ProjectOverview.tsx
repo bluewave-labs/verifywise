@@ -18,6 +18,7 @@ import { experimentsService, monitoringService, type Experiment, type MonitorDas
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
+import HelperIcon from "../../components/HelperIcon";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -44,7 +45,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       sx={{
-        ...(cardStyles.base(theme) as any),
+        ...(cardStyles.base(theme) as Record<string, unknown>),
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         border: "1px solid #DCDFE3",
         height: "100%",
@@ -233,9 +234,12 @@ export default function ProjectOverview({
     <Box>
       {/* Header + description */}
       <Stack spacing={1} mb={4}>
-        <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-          Overview
-        </Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Overview
+          </Typography>
+          <HelperIcon articlePath="llm-evals/llm-evals-overview" />
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
           Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
         </Typography>
@@ -306,10 +310,13 @@ export default function ProjectOverview({
           <Box sx={{
             display: "flex",
             flexDirection: "column",
+            justifyContent: hasExperiments ? "flex-start" : "center",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
+            // Fixed height to match two stat cards (90px each) + gap between them
+            minHeight: "214px",
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */
@@ -350,7 +357,7 @@ export default function ProjectOverview({
             ) : (
               [...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5)
+                .slice(0, 4)
                 .map((exp, index, arr) => {
                   const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
                   const modelName = cfg?.model?.name || "-";
@@ -389,6 +396,7 @@ export default function ProjectOverview({
                         px: 2,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
+                        flex: "0 0 auto",
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },

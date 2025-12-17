@@ -4,6 +4,7 @@ Evaluation Runner - Executes DeepEval evaluations and stores results
 
 import os
 import sys
+import re
 import asyncio
 import json
 import traceback
@@ -12,6 +13,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Regex pattern for valid model names (alphanumeric, dash, underscore, colon, slash, dot)
+# Examples: llama3.2, mistral:7b, microsoft/phi-2, gpt-4o-mini
+SAFE_MODEL_NAME_PATTERN = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$')
 
 # Add EvaluationModule to path (use absolute path)
 evaluation_module_path = Path(__file__).parent.parent.parent.parent / "EvaluationModule"
@@ -55,6 +60,14 @@ async def run_evaluation(
     try:
         # Helper: ensure Ollama model is locally available
         def ensure_ollama_model(model_name: str) -> None:
+            # Security: Validate model name to prevent command injection
+            if not model_name or not SAFE_MODEL_NAME_PATTERN.match(model_name):
+                print(f"⚠️  Invalid model name format: '{model_name}'. Skipping Ollama check.")
+                return
+            if len(model_name) > 128:
+                print(f"⚠️  Model name too long: '{model_name[:50]}...'. Skipping Ollama check.")
+                return
+
             try:
                 # Check if model exists locally
                 list_proc = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=30)

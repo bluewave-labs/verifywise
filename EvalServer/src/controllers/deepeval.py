@@ -812,22 +812,29 @@ async def read_deepeval_dataset_controller(path: str) -> JSONResponse:
     - Relative to datasets folder (e.g., "chatbot/chatbot_basic.json")
     """
     try:
+        # Security: Early rejection of suspicious path patterns
+        if ".." in path or path.startswith("/") or path.startswith("\\"):
+            raise HTTPException(status_code=400, detail="Invalid dataset path: path traversal not allowed")
+
         root_path = Path(__file__).parent.parent.parent.parent
         evaluation_module_path = root_path / "EvaluationModule"
-        
+        data_dir = (evaluation_module_path / "data").resolve()
+
         # Try as full path first (for uploads: data/uploads/...)
         target = (evaluation_module_path / path).resolve()
-        
+
         # If not found, try in datasets folder (for built-ins: chatbot/...)
         if not target.is_file():
             datasets_base = _safe_evalmodule_data_root()
             target = (datasets_base / path).resolve()
-        
-        # Security check: ensure target is inside EvaluationModule/data
-        data_dir = (evaluation_module_path / "data").resolve()
-        if data_dir not in target.parents:
-            raise HTTPException(status_code=400, detail="Invalid dataset path")
-        
+
+        # Security check: ensure resolved target is inside EvaluationModule/data
+        # Use try/except for Python 3.8 compatibility (is_relative_to is 3.9+)
+        try:
+            target.relative_to(data_dir)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset path: access denied")
+
         if not target.is_file():
             raise HTTPException(status_code=404, detail="Dataset file not found")
         

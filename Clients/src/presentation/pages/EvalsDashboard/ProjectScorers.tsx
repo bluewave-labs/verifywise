@@ -19,6 +19,8 @@ import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
 import HelperIcon from "../../components/HelperIcon";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -34,6 +36,12 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertState | null>(null);
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateScorer = allowedRoles.evals.createScorer.includes(userRoleName);
+  const canEditScorer = allowedRoles.evals.editScorer.includes(userRoleName);
+  const canDeleteScorer = allowedRoles.evals.deleteScorer.includes(userRoleName);
 
   // Edit modal state - using comprehensive CreateScorerModal
   const [editScorerModalOpen, setEditScorerModalOpen] = useState(false);
@@ -363,7 +371,7 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
             gap: 2,
           }}
           onClick={handleCreateScorer}
-          isDisabled={loading}
+          isDisabled={loading || !canCreateScorer}
         />
       </Stack>
 
@@ -371,9 +379,9 @@ export default function ProjectScorers({ projectId }: ProjectScorersProps) {
       <Box mb={4}>
         <ScorersTable
           rows={scorerRows}
-          onRowClick={handleRowClick}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onRowClick={canEditScorer ? handleRowClick : undefined}
+          onEdit={canEditScorer ? handleEdit : undefined}
+          onDelete={canDeleteScorer ? handleDelete : undefined}
           loading={loading}
         />
       </Box>

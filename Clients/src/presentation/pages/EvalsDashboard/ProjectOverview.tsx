@@ -19,6 +19,8 @@ import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
 import HelperIcon from "../../components/HelperIcon";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -142,6 +144,10 @@ export default function ProjectOverview({
   const [dashboardData, setDashboardData] = useState<MonitorDashboard | null>(null);
   const [newExperimentModalOpen, setNewExperimentModalOpen] = useState(false);
 
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateExperiment = allowedRoles.evals.createExperiment.includes(userRoleName);
+
   const loadOverviewData = useCallback(async () => {
     try {
       setLoading(true);
@@ -252,6 +258,7 @@ export default function ProjectOverview({
           variant="contained"
           text="New experiment"
           icon={<Play size={16} />}
+          isDisabled={!canCreateExperiment}
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
@@ -342,6 +349,7 @@ export default function ProjectOverview({
                   variant="contained"
                   text="Run first experiment"
                   icon={<Play size={14} />}
+                  isDisabled={!canCreateExperiment}
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",

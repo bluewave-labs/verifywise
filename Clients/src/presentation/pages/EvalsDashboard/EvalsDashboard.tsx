@@ -5,6 +5,8 @@ import { Check } from "lucide-react";
 import { Home, FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 import ModalStandard from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
@@ -120,6 +122,12 @@ export default function EvalsDashboard() {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRoleName } = useAuth();
+
+  // Helper to check if user can perform write operations
+  const canManageApiKeys = allowedRoles.evals.manageApiKeys.includes(userRoleName);
+  const canCreateProject = allowedRoles.evals.createProject.includes(userRoleName);
+  const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
 
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {
@@ -1013,6 +1021,7 @@ export default function EvalsDashboard() {
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setApiKeyModalOpen(true)}
+                      isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
@@ -1055,13 +1064,14 @@ export default function EvalsDashboard() {
                       No API keys yet
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
-                      Add your first API key to enable LLM evaluations
+                      {canManageApiKeys ? "Add your first API key to enable LLM evaluations" : "Contact an admin to add API keys"}
                     </Typography>
                     <CustomizableButton
                       variant="contained"
                       text="Add API key"
                       icon={<PlusIcon size={16} />}
                       onClick={() => setApiKeyModalOpen(true)}
+                      isDisabled={!canManageApiKeys}
                       sx={{
                         backgroundColor: "#13715B",
                         color: "#fff",
@@ -1185,12 +1195,16 @@ export default function EvalsDashboard() {
                                 setNewApiKey("");
                                 setApiKeyModalOpen(true);
                               }}
+                              disabled={!canManageApiKeys}
                               sx={{
                                 color: "#6B7280",
                                 padding: "8px",
                                 "&:hover": {
                                   backgroundColor: "#F3F4F6",
                                   color: "#374151",
+                                },
+                                "&.Mui-disabled": {
+                                  color: "#D1D5DB",
                                 },
                               }}
                             >
@@ -1204,12 +1218,16 @@ export default function EvalsDashboard() {
                                 setKeyToDelete(key);
                                 setDeleteKeyModalOpen(true);
                               }}
+                              disabled={!canManageApiKeys}
                               sx={{
                                 color: "#DC2626",
                                 padding: "8px",
                                 "&:hover": {
                                   backgroundColor: "#FEF2F2",
                                   color: "#B91C1C",
+                                },
+                                "&.Mui-disabled": {
+                                  color: "#D1D5DB",
                                 },
                               }}
                             >

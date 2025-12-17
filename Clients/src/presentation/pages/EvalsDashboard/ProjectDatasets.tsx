@@ -44,6 +44,8 @@ import { getPaginationRowCount, setPaginationRowCount } from "../../../applicati
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import HelperIcon from "../../components/HelperIcon";
 import SelectableCard from "../../components/SelectableCard";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 type ProjectDatasetsProps = { projectId: string };
 
@@ -64,6 +66,11 @@ type BuiltInDataset = ListedDataset & {
 export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   void projectId; // Used for future project-scoped features
   const theme = useTheme();
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canUploadDataset = allowedRoles.evals.uploadDataset.includes(userRoleName);
+  const canDeleteDataset = allowedRoles.evals.deleteDataset.includes(userRoleName);
 
   // Tab state: "my" for user datasets, "templates" for built-in datasets
   const [activeTab, setActiveTab] = useState<"my" | "templates">("my");
@@ -1261,7 +1268,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 text={uploading ? "Uploading..." : "Upload dataset"}
                 icon={<Upload size={16} />}
                 onClick={handleUploadClick}
-                isDisabled={uploading}
+                isDisabled={uploading || !canUploadDataset}
                 sx={{
                   border: "1px solid #d0d5dd",
                   color: "#344054",
@@ -1273,6 +1280,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 text="Add dataset"
                 icon={<Plus size={16} />}
                 onClick={() => setCreateDatasetModalOpen(true)}
+                isDisabled={!canUploadDataset}
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
@@ -1297,25 +1305,25 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     createdAt: dataset.createdAt,
                     metadata: datasetMetadata[dataset.path],
                   }))}
-                  onRowClick={(row) => {
+                  onRowClick={canUploadDataset ? (row) => {
                     const dataset = data.find((d) => d.path === row.path);
                     if (dataset) handleRowClick(dataset);
-                  }}
+                  } : undefined}
                   onView={(row) => {
                     const dataset = data.find((d) => d.path === row.path);
                     if (dataset) handleViewPrompts(dataset);
                   }}
-                  onEdit={(row) => {
+                  onEdit={canUploadDataset ? (row) => {
                     const dataset = data.find((d) => d.path === row.path);
                     if (dataset) handleOpenInEditor(dataset);
-                  }}
-                  onDelete={(row) => {
+                  } : undefined}
+                  onDelete={canDeleteDataset ? (row) => {
                     const dataset = data.find((d) => d.path === row.path);
                     if (dataset) {
                       setDatasetToDelete(dataset);
                       setDeleteModalOpen(true);
                     }
-                  }}
+                  } : undefined}
                   loading={loading}
                   hidePagination={options?.hidePagination}
                 />

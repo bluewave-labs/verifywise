@@ -20,6 +20,7 @@ import {
   Button,
 } from "@mui/material";
 import { TrendingUp, TrendingDown, Minus, X, Pencil, Check, Shield, Sparkles, RotateCcw } from "lucide-react";
+import DOMPurify from "dompurify";
 import { experimentsService, evaluationLogsService, type Experiment, type EvaluationLog } from "../../../infrastructure/api/evaluationLogsService";
 
 interface ExperimentDetailContentProps {
@@ -204,6 +205,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
   }
 
   // Lightweight Markdown -> HTML converter for common syntax
+  // Uses DOMPurify to sanitize output and prevent XSS attacks
   const markdownToHtml = (md: string): string => {
     if (!md) return "";
     let html = md;
@@ -229,7 +231,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
     // Paragraph breaks
     html = html.replace(/\n{2,}/g, '</p><p>');
     html = `<p style="margin:0;line-height:1.6;font-size:12px">${html}</p>`;
-    return html;
+    // Sanitize HTML to prevent XSS attacks
+    return DOMPurify.sanitize(html);
   };
 
   return (

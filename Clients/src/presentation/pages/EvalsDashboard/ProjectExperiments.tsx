@@ -16,6 +16,8 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import HelperIcon from "../../components/HelperIcon";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -53,6 +55,11 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   const [alert, setAlert] = useState<AlertState | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateExperiment = allowedRoles.evals.createExperiment.includes(userRoleName);
+  const canDeleteExperiment = allowedRoles.evals.deleteExperiment.includes(userRoleName);
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -578,6 +585,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
             gap: 2,
           }}
           onClick={() => setNewEvalModalOpen(true)}
+          isDisabled={!canCreateExperiment}
         />
       </Stack>
 
@@ -590,13 +598,13 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
             <EvaluationTable
               columns={tableColumns}
               rows={data}
-              removeModel={{
+              removeModel={canDeleteExperiment ? {
                 onConfirm: handleDeleteExperiment,
-              }}
+              } : undefined}
               page={currentPage}
               setCurrentPagingation={setCurrentPage}
               onShowDetails={handleViewExperiment}
-              onRerun={handleRerunExperiment}
+              onRerun={canCreateExperiment ? handleRerunExperiment : undefined}
               hidePagination={options?.hidePagination}
             />
           )}

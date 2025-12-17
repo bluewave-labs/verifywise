@@ -81,6 +81,7 @@ import { EvidenceHubModel } from "../domain.layer/models/evidenceHub/evidenceHub
 import { ShareLinkModel } from "../domain.layer/models/shareLink/shareLink.model";
 import { EvaluationLlmApiKeyModel } from "../domain.layer/models/evaluationLlmApiKey/evaluationLlmApiKey.model";
 import { NotesModel } from "../domain.layer/models/notes/notes.model";
+import { PolicyLinkedObjectsModel } from "../domain.layer/models/policy/policy_linked_objects.model";
 
 dotenv.config();
 
@@ -171,6 +172,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ShareLinkModel,
     EvaluationLlmApiKeyModel,
     NotesModel,
+    PolicyLinkedObjectsModel,
   ],
 }) as Sequelize;
 

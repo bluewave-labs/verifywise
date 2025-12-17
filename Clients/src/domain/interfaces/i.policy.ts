@@ -5,6 +5,7 @@ export interface PolicyTableProps {
   data: PolicyManagerModel[];
   onOpen: (id: number) => void;
   onDelete: (id: number) => void;
+  onLinkedObjects: (id: number) => void;
   onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;

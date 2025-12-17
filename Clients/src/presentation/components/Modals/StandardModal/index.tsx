@@ -113,6 +113,9 @@ interface StandardModalProps {
 
   /** Custom color for the submit button (default: "#13715B"). Use "#c62828" for destructive actions like delete */
   submitButtonColor?: string;
+
+  /** When true, remove the cancel button from footer */
+  showCancelButton?: boolean;
 }
 
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -131,6 +134,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
   headerActions,
   expandedHeight = false,
   submitButtonColor = "#13715B",
+  showCancelButton = true,
 }) => {
   return (
     <Modal
@@ -283,21 +287,24 @@ const StandardModal: React.FC<StandardModalProps> = ({
               customFooter
             ) : (
               <>
-                <CustomizableButton
-                  variant="outlined"
-                  text={cancelButtonText}
-                  onClick={onClose}
-                  sx={{
-                    minWidth: "80px",
-                    height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: "#344054",
-                    "&:hover": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
-                    },
-                  }}
-                />
+               {showCancelButton && (
+                    <CustomizableButton
+                      variant="outlined"
+                      text={cancelButtonText}
+                      onClick={onClose}
+                      sx={{
+                        minWidth: "80px",
+                        height: "34px",
+                        border: "1px solid #D0D5DD",
+                        color: "#344054",
+                        "&:hover": {
+                          backgroundColor: "#F9FAFB",
+                          border: "1px solid #D0D5DD",
+                        },
+                      }}
+                    />
+                )}
+
                 {onSubmit && (
                   <CustomizableButton
                     variant="contained"

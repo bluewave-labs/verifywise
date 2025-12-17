@@ -314,8 +314,9 @@ export default function ProjectOverview({
             borderRadius: "4px",
             overflow: "hidden",
             backgroundColor: "#FFFFFF",
-            // Match height of two stat cards (90px each) + gap between them when empty
-            ...(!hasExperiments && { minHeight: "214px", justifyContent: "center" }),
+            // Fixed height to match two stat cards (90px each) + gap between them
+            minHeight: "214px",
+            ...(!hasExperiments && { justifyContent: "center" }),
           }}>
             {!hasExperiments ? (
               /* Empty state inside the consistent layout */
@@ -356,7 +357,7 @@ export default function ProjectOverview({
             ) : (
               [...experiments]
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5)
+                .slice(0, 4)
                 .map((exp, index, arr) => {
                   const cfg = exp.config as { model?: { name?: string }; judgeLlm?: { model?: string; provider?: string } } | undefined;
                   const modelName = cfg?.model?.name || "-";
@@ -395,6 +396,7 @@ export default function ProjectOverview({
                         px: 2,
                         cursor: "pointer",
                         borderBottom: index < arr.length - 1 ? "1px solid #d0d5dd" : "none",
+                        flex: "0 0 auto",
                         "&:hover": {
                           backgroundColor: "#F9FAFB",
                         },

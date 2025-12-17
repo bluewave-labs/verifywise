@@ -20,6 +20,8 @@ import { deepEvalProjectsService } from "../../../infrastructure/api/deepEvalPro
 import { deepEvalOrgsService } from "../../../infrastructure/api/deepEvalOrgsService";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import type { DeepEvalProject } from "./types";
+import { useAuth } from "../../../application/hooks/useAuth";
+import allowedRoles from "../../../application/constants/permissions";
 // NewProjectModal was merged into StandardModal-based flow
 
 export default function ProjectsList() {
@@ -34,6 +36,12 @@ export default function ProjectsList() {
     variant: "success" | "error";
     body: string;
   } | null>(null);
+
+  // RBAC permissions
+  const { userRoleName } = useAuth();
+  const canCreateProject = allowedRoles.evals.createProject.includes(userRoleName);
+  const canEditProject = allowedRoles.evals.editProject.includes(userRoleName);
+  const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
 
   const [newProject, setNewProject] = useState<{ name: string; description: string; useCase: "chatbot" | "rag" | "agent" }>({
     name: "",
@@ -278,6 +286,7 @@ export default function ProjectsList() {
               onClick={() => setCreateModalOpen(true)}
               variant="contained"
               startIcon={<CirclePlus size={20} />}
+              isDisabled={!canCreateProject}
               sx={{
                 textTransform: "none",
                 backgroundColor: "#13715B",
@@ -376,51 +385,55 @@ export default function ProjectsList() {
                         {project.name}
                       </Typography>
                       {/* Edit Button */}
-                      <Box
-                        onClick={(e) => handleEditClick(e, project)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          color: "#6b7280",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                          opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
-                          "&:hover": {
-                            color: "#13715B",
-                            backgroundColor: "rgba(19, 113, 91, 0.1)",
-                          },
-                        }}
-                      >
-                        <Pencil size={14} strokeWidth={2} />
-                      </Box>
+                      {canEditProject && (
+                        <Box
+                          onClick={(e) => handleEditClick(e, project)}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "4px",
+                            color: "#6b7280",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            opacity: hoveredCard === project.id ? 1 : 0,
+                            transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
+                            "&:hover": {
+                              color: "#13715B",
+                              backgroundColor: "rgba(19, 113, 91, 0.1)",
+                            },
+                          }}
+                        >
+                          <Pencil size={14} strokeWidth={2} />
+                        </Box>
+                      )}
                       {/* Delete Button */}
-                      <Box
-                        onClick={(e) => handleDeleteClick(e, project)}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          color: "#6b7280",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                          opacity: hoveredCard === project.id ? 1 : 0,
-                          transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
-                          "&:hover": {
-                            color: "#D32F2F",
-                            backgroundColor: "rgba(211, 47, 47, 0.1)",
-                          },
-                        }}
-                      >
-                        <Trash2 size={14} strokeWidth={2} />
-                      </Box>
+                      {canDeleteProject && (
+                        <Box
+                          onClick={(e) => handleDeleteClick(e, project)}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "4px",
+                            color: "#6b7280",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            opacity: hoveredCard === project.id ? 1 : 0,
+                            transition: "opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease",
+                            "&:hover": {
+                              color: "#D32F2F",
+                              backgroundColor: "rgba(211, 47, 47, 0.1)",
+                            },
+                          }}
+                        >
+                          <Trash2 size={14} strokeWidth={2} />
+                        </Box>
+                      )}
                     </Box>
                   </Box>
 

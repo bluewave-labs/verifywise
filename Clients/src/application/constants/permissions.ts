@@ -50,7 +50,7 @@ const allowedRoles = {
     manage: ["Admin"],
   },
   evals: {
-    view: ["Admin", "Editor", "Auditor"],
+    view: ["Admin", "Editor", "Reviewer", "Auditor"],
     createProject: ["Admin", "Editor"],
     editProject: ["Admin", "Editor"],
     deleteProject: ["Admin", "Editor"],

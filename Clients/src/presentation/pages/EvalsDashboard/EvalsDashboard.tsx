@@ -126,8 +126,6 @@ export default function EvalsDashboard() {
 
   // Helper to check if user can perform write operations
   const canManageApiKeys = allowedRoles.evals.manageApiKeys.includes(userRoleName);
-  const canCreateProject = allowedRoles.evals.createProject.includes(userRoleName);
-  const canDeleteProject = allowedRoles.evals.deleteProject.includes(userRoleName);
 
   // Determine tab from URL hash or default
   const [tab, setTab] = useState(() => {

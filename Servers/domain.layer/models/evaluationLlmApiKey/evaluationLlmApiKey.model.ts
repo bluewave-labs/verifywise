@@ -36,6 +36,62 @@ export const VALID_PROVIDERS: LLMProvider[] = [
   'huggingface',
 ];
 
+/**
+ * API key format patterns for each provider
+ * These are used to validate that the user entered a valid-looking API key
+ */
+export const API_KEY_PATTERNS: Record<LLMProvider, { pattern: RegExp; example: string; description: string }> = {
+  openai: {
+    pattern: /^sk-(proj-)?[a-zA-Z0-9_-]{20,}$/,
+    example: 'sk-... or sk-proj-...',
+    description: 'OpenAI keys start with "sk-" or "sk-proj-"',
+  },
+  anthropic: {
+    pattern: /^sk-ant-(api\d+-)?[a-zA-Z0-9_-]{20,}$/,
+    example: 'sk-ant-api03-...',
+    description: 'Anthropic keys start with "sk-ant-" (typically "sk-ant-api03-")',
+  },
+  google: {
+    pattern: /^AIza[a-zA-Z0-9_-]{35,}$/,
+    example: 'AIza...',
+    description: 'Google API keys start with "AIza"',
+  },
+  xai: {
+    pattern: /^xai-[a-zA-Z0-9_-]{20,}$/,
+    example: 'xai-...',
+    description: 'xAI keys start with "xai-"',
+  },
+  mistral: {
+    pattern: /^[a-zA-Z0-9]{32,}$/,
+    example: '32+ character alphanumeric string',
+    description: 'Mistral keys are alphanumeric strings (32+ characters)',
+  },
+  huggingface: {
+    pattern: /^hf_[a-zA-Z0-9]{20,}$/,
+    example: 'hf_...',
+    description: 'Hugging Face keys start with "hf_"',
+  },
+};
+
+/**
+ * Validate API key format for a specific provider
+ * @returns null if valid, or error message if invalid
+ */
+export function validateApiKeyFormat(provider: LLMProvider, apiKey: string): string | null {
+  const config = API_KEY_PATTERNS[provider];
+  if (!config) {
+    return null; // Unknown provider, skip format validation
+  }
+
+  const trimmedKey = apiKey.trim();
+  
+  if (!config.pattern.test(trimmedKey)) {
+    return `Invalid ${provider} API key format. ${config.description}. Expected format: ${config.example}`;
+  }
+
+  return null; // Valid
+}
+
 @Table({
   tableName: 'evaluation_llm_api_keys',
   timestamps: true,
@@ -144,6 +200,12 @@ export class EvaluationLlmApiKeyModel extends Model<EvaluationLlmApiKeyModel> {
 
     if (!apiKey || apiKey.trim().length === 0) {
       throw new ValidationException('API key cannot be empty', 'apiKey', apiKey);
+    }
+
+    // Validate API key format
+    const formatError = validateApiKeyFormat(provider, apiKey);
+    if (formatError) {
+      throw new ValidationException(formatError, 'apiKey', apiKey);
     }
 
     // Check if key already exists for this provider

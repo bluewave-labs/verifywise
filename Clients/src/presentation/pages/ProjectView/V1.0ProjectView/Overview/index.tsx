@@ -23,8 +23,6 @@ import {
   Users as UsersIcon,
   Clock as ClockIcon
 } from "lucide-react";
-import HistorySidebar from "../../../../components/Common/HistorySidebar";
-import { useEntityChangeHistory } from "../../../../../application/hooks/useEntityChangeHistory";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -34,9 +32,6 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     null
   );
   const { users } = useUsers();
-
-  // Prefetch history data
-  useEntityChangeHistory("use_case", project?.id ?? 0);
 
   // Update framework IDs when project changes
   useEffect(() => {
@@ -212,9 +207,9 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const titleIso42001 = ["Clauses", "Annexes"];
 
   return (
-    <Stack direction="row" sx={{ width: "100%" }}>
+    <Stack sx={{ width: "100%" }}>
       {/* Main Content */}
-      <Stack className="vw-project-overview" sx={{ flex: 1, minWidth: 0 }}>
+      <Stack className="vw-project-overview" sx={{ width: "100%" }}>
         <Stack className="vw-project-overview-row" sx={rowStyle}>
           {project ? (
             <>
@@ -348,14 +343,6 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           )}
         </Stack>
       </Stack>
-
-      {/* History Sidebar - always visible */}
-      <HistorySidebar
-        isOpen={true}
-        entityType="use_case"
-        entityId={project?.id ?? 0}
-        height="560px"
-      />
     </Stack>
   );
 };

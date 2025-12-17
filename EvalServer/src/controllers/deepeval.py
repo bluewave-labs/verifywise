@@ -569,6 +569,7 @@ async def get_evaluation_dataset_info_controller() -> JSONResponse:
 async def upload_deepeval_dataset_controller(
     dataset: UploadFile,
     tenant: str,
+    dataset_type: str = "chatbot",
 ) -> JSONResponse:
     """
     Upload a custom dataset JSON file for DeepEval and return a server-relative path
@@ -577,6 +578,11 @@ async def upload_deepeval_dataset_controller(
     try:
         if not dataset:
             raise HTTPException(status_code=400, detail="No dataset file provided")
+
+        # Validate dataset_type
+        valid_types = ["chatbot", "rag", "agent"]
+        if dataset_type not in valid_types:
+            dataset_type = "chatbot"
 
         # Basic content-type check (best-effort)
         content_type = (dataset.content_type or "").lower()
@@ -600,22 +606,29 @@ async def upload_deepeval_dataset_controller(
         uploads_dir = evaluation_module_path / "data" / "uploads" / tenant
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # Remove .json extension from original filename to avoid double extension
+        # Use only the original filename, no timestamp prefix
         original_name = dataset.filename.replace("/", "_").replace("\\", "_")
         if original_name.lower().endswith(".json"):
             original_name = original_name[:-5]
         
-        # Extract dataset name from filename (clean it up)
-        dataset_name = original_name.replace("_", " ").replace("-", " ").strip().title()
+        # Extract dataset name from filename (clean it up) - just the file name
+        dataset_name = original_name.replace("_", " ").replace("-", " ").strip()
         if not dataset_name:
             dataset_name = "Untitled Dataset"
         
         # Count prompts
         prompt_count = len(data) if isinstance(data, list) else 0
         
-        filename = f"{timestamp}_{original_name}.json"
+        # Use original filename without timestamp prefix
+        filename = f"{original_name}.json"
         full_path = uploads_dir / filename
+        
+        # If file exists, add a suffix
+        counter = 1
+        while full_path.exists():
+            filename = f"{original_name}_{counter}.json"
+            full_path = uploads_dir / filename
+            counter += 1
 
         # Save pretty JSON back to disk to ensure UTF-8 and normalized formatting
         with open(full_path, "w", encoding="utf-8") as f:
@@ -632,7 +645,8 @@ async def upload_deepeval_dataset_controller(
                     name=dataset_name, 
                     path=relative_path, 
                     size=len(content_bytes),
-                    prompt_count=prompt_count
+                    prompt_count=prompt_count,
+                    dataset_type=dataset_type
                 )
                 await db.commit()
         except Exception:
@@ -646,6 +660,7 @@ async def upload_deepeval_dataset_controller(
                 "filename": filename,
                 "size": len(content_bytes),
                 "tenant": tenant,
+                "datasetType": dataset_type,
             },
         )
     except HTTPException:

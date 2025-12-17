@@ -214,6 +214,8 @@ export interface IGenerateReportProps {
   reportType: "project" | "organization" | null;
 }
 
+export type ReportFormat = "pdf" | "docx";
+
 export interface IInputProps {
   report_type: string | string[];
   report_name: string;
@@ -221,6 +223,7 @@ export interface IInputProps {
   framework: number;
   projectFrameworkId: number;
   reportType?: "project" | "organization" | null;
+  format: ReportFormat;
 }
 
 export interface IHeaderProps {

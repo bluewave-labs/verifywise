@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import { LayoutDashboard, AlertTriangle, Settings } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Settings, History } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -8,6 +8,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
 import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
+import Activity from "./Activity";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
 import EmptyState from "../../components/EmptyState";
@@ -152,6 +153,15 @@ const ProjectView = () => {
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
+                  <Tab
+                    label={createTabLabelWithCount({
+                      label: "Activity",
+                      icon: <History size={14} />,
+                    })}
+                    value="activity"
+                    sx={tabStyle}
+                    disableRipple={disableRipple}
+                  />
                 </TabList>
               </Box>
               {/* overview panel */}
@@ -176,6 +186,9 @@ const ProjectView = () => {
               </TabPanel> */}
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>
                 <ProjectSettings />
+              </TabPanel>
+              <TabPanel value="activity" sx={{ p: "32px 0 0" }}>
+                <Activity entityType="use_case" entityId={parseInt(projectId)} />
               </TabPanel>
             </TabContext>
           </Stack>

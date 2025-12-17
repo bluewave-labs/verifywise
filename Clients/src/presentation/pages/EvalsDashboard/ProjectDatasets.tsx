@@ -1467,47 +1467,79 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1.5 }}>
               Conversation type
             </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-              {(["single-turn", "multi-turn", "simulated"] as const).map((turnType) => (
-                <Chip
-                  key={turnType}
-                  label={
-                    turnType === "single-turn" ? "Single-Turn" : 
-                    turnType === "multi-turn" ? "Multi-Turn" : 
-                    "🎭 Simulated"
-                  }
-                  onClick={() => setDatasetTurnType(turnType)}
-                  sx={{
-                    cursor: "pointer",
-                    height: 28,
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    backgroundColor: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#FEF3C7" 
-                        : turnType === "multi-turn" ? "#E3F2FD"
-                        : "#F3E8FF"
-                      : "#F3F4F6",
-                    color: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#92400E" 
-                        : turnType === "multi-turn" ? "#1565C0"
-                        : "#7C3AED"
-                      : "#6B7280",
-                    border: datasetTurnType === turnType ? "1px solid" : "1px solid transparent",
-                    borderColor: datasetTurnType === turnType
-                      ? turnType === "single-turn" ? "#F59E0B" 
-                        : turnType === "multi-turn" ? "#2196F3"
-                        : "#A78BFA"
-                      : "transparent",
-                    "&:hover": {
-                      backgroundColor: turnType === "single-turn" ? "#FEF3C7" 
-                        : turnType === "multi-turn" ? "#E3F2FD"
-                        : "#F3E8FF",
-                    },
-                  }}
-                />
-              ))}
+            <Stack direction="row" spacing={1}>
+              <Chip
+                label="Single-Turn"
+                onClick={() => setDatasetTurnType("single-turn")}
+                sx={{
+                  cursor: "pointer",
+                  height: 28,
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  backgroundColor: datasetTurnType === "single-turn" ? "#FEF3C7" : "#F3F4F6",
+                  color: datasetTurnType === "single-turn" ? "#92400E" : "#6B7280",
+                  border: datasetTurnType === "single-turn" ? "1px solid #F59E0B" : "1px solid transparent",
+                  "&:hover": { backgroundColor: "#FEF3C7" },
+                }}
+              />
+              <Chip
+                label="Multi-Turn"
+                onClick={() => setDatasetTurnType("multi-turn")}
+                sx={{
+                  cursor: "pointer",
+                  height: 28,
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  backgroundColor: (datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#E3F2FD" : "#F3F4F6",
+                  color: (datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#1565C0" : "#6B7280",
+                  border: (datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "1px solid #2196F3" : "1px solid transparent",
+                  "&:hover": { backgroundColor: "#E3F2FD" },
+                }}
+              />
             </Stack>
-            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
+            
+            {/* Multi-turn sub-options: Default or Simulated */}
+            {(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") && (
+              <Box sx={{ mt: 1.5, ml: 2, pl: 2, borderLeft: "2px solid #E3F2FD" }}>
+                <Typography variant="body2" sx={{ fontSize: "11px", color: "#6B7280", mb: 1 }}>
+                  Multi-turn mode:
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Chip
+                    label="Default"
+                    size="small"
+                    onClick={() => setDatasetTurnType("multi-turn")}
+                    sx={{
+                      cursor: "pointer",
+                      height: 24,
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      backgroundColor: datasetTurnType === "multi-turn" ? "#E3F2FD" : "#F3F4F6",
+                      color: datasetTurnType === "multi-turn" ? "#1565C0" : "#6B7280",
+                      border: datasetTurnType === "multi-turn" ? "1px solid #2196F3" : "1px solid transparent",
+                      "&:hover": { backgroundColor: "#E3F2FD" },
+                    }}
+                  />
+                  <Chip
+                    label="Simulated"
+                    size="small"
+                    onClick={() => setDatasetTurnType("simulated")}
+                    sx={{
+                      cursor: "pointer",
+                      height: 24,
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      backgroundColor: datasetTurnType === "simulated" ? "#F3E8FF" : "#F3F4F6",
+                      color: datasetTurnType === "simulated" ? "#7C3AED" : "#6B7280",
+                      border: datasetTurnType === "simulated" ? "1px solid #A78BFA" : "1px solid transparent",
+                      "&:hover": { backgroundColor: "#F3E8FF" },
+                    }}
+                  />
+                </Stack>
+              </Box>
+            )}
+
+            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1.5 }}>
               {datasetTurnType === "single-turn" 
                 ? "Simple prompt → response pairs. Best for RAG and basic Q&A evaluation."
                 : datasetTurnType === "multi-turn"
@@ -1564,7 +1596,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px" }}>
-                {datasetTurnType === "single-turn" ? "Single-Turn" : datasetTurnType === "multi-turn" ? "Multi-Turn" : "🎭 Simulated"} JSON format
+                {datasetTurnType === "single-turn" ? "Single-Turn" : datasetTurnType === "multi-turn" ? "Multi-Turn" : "Simulated"} JSON format
               </Typography>
               <Button
                 size="small"
@@ -1641,7 +1673,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             {datasetTurnType === "simulated" && (
               <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: "#F3E8FF", borderRadius: "6px", border: "1px solid #A78BFA" }}>
                 <Typography sx={{ fontSize: "12px", color: "#7C3AED", fontWeight: 500 }}>
-                  💡 How Simulated Mode Works
+                  How Simulated Mode Works
                 </Typography>
                 <Typography sx={{ fontSize: "11px", color: "#6B21A8", mt: 0.5 }}>
                   You provide scenarios only — no need to write conversations. During evaluation, the AI will:

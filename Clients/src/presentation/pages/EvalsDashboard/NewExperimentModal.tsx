@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
+import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
 import Alert from "../../components/Alert";
@@ -38,55 +39,6 @@ import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDat
 import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
 import { evaluationLlmApiKeysService, type LLMApiKey, type LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 import { PROVIDERS, type ModelInfo } from "../../utils/providers";
-
-// Reusable selectable card component for Step 2 and Step 3
-interface SelectableCardProps {
-  isSelected: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  chip?: React.ReactNode;
-  accentColor?: string;
-}
-
-const SelectableCard = ({
-  isSelected,
-  onClick,
-  icon,
-  title,
-  description,
-  chip,
-  accentColor = "#13715B",
-}: SelectableCardProps) => (
-  <Box
-    onClick={onClick}
-    sx={{
-      p: "8px",
-      border: "1px solid",
-      borderColor: isSelected ? accentColor : "#E5E7EB",
-      borderRadius: "4px",
-      cursor: "pointer",
-      backgroundColor: isSelected ? (accentColor === "#6366F1" ? "#EEF2FF" : "#F0FDF4") : "#FFFFFF",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      transition: "all 0.15s ease",
-      "&:hover": {
-        borderColor: accentColor,
-        backgroundColor: isSelected ? (accentColor === "#6366F1" ? "#EEF2FF" : "#F0FDF4") : "#F9FAFB",
-      },
-    }}
-  >
-    {icon}
-    <Box sx={{ flex: 1 }}>
-      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{title}</Typography>
-      <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{description}</Typography>
-    </Box>
-    {chip}
-    {isSelected && <Check size={14} color={accentColor} />}
-  </Box>
-);
 
 interface NewExperimentModalProps {
   isOpen: boolean;

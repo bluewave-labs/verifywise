@@ -263,6 +263,16 @@ async def run_evaluation(
 
         prompts = dataset_config.get("prompts", [])
         conversations = []  # list[dict]: { scenario?: str, turns: [{role, content}] }
+        
+        # Check if prompts from frontend are actually multi-turn (have 'turns' key instead of 'prompt')
+        if prompts and isinstance(prompts, list) and len(prompts) > 0:
+            first_item = prompts[0]
+            if isinstance(first_item, dict) and "turns" in first_item:
+                # This is multi-turn data, move to conversations
+                print(f"📝 Detected multi-turn dataset with {len(prompts)} conversations")
+                conversations = prompts
+                prompts = []
+        
         # Built-in preset by name (chatbot | rag | agent | safety)
         builtin_value = dataset_config.get("useBuiltin")
         if not prompts and isinstance(builtin_value, str):
@@ -554,7 +564,7 @@ async def run_evaluation(
                         project_id=config.get("project_id"),
                         tenant=tenant,
                         experiment_id=experiment_id,
-                        input_text=prompt_data["prompt"],
+                        input_text=prompt_data.get("prompt", str(prompt_data)[:200]),
                         model_name=model_name,
                         status="error",
                         error_message=str(e),

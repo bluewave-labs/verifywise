@@ -256,86 +256,86 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
           </TableBody>
         )}
         {!hidePagination && (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <Box
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingX: theme.spacing(4),
+                }}
+              >
+                <Typography
                   sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    paddingX: theme.spacing(4),
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                    color: theme.palette.text.secondary,
                   }}
                 >
-                  <Typography
+                  Showing {getRange} of {sortedRows?.length} dataset
+                  {sortedRows?.length !== 1 ? "s" : ""}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <TablePagination
+                    component="div"
+                    count={sortedRows?.length}
+                    page={validPage}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ActionsComponent={(props) => (
+                      <TablePaginationActions {...props} />
+                    )}
+                    labelRowsPerPage="Datasets per page"
+                    labelDisplayedRows={({ page: p, count }) =>
+                      `Page ${p + 1} of ${Math.max(
+                        0,
+                        Math.ceil(count / rowsPerPage)
+                      )}`
+                    }
                     sx={{
-                      paddingX: theme.spacing(2),
-                      fontSize: 12,
-                      opacity: 0.7,
+                      mt: theme.spacing(6),
                       color: theme.palette.text.secondary,
+                      "& .MuiSelect-select": {
+                        width: theme.spacing(10),
+                        borderRadius: theme.shape.borderRadius,
+                        border: `1px solid ${theme.palette.border.light}`,
+                        padding: theme.spacing(4),
+                      },
                     }}
-                  >
-                    Showing {getRange} of {sortedRows?.length} dataset
-                    {sortedRows?.length !== 1 ? "s" : ""}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <TablePagination
-                      component="div"
-                      count={sortedRows?.length}
-                      page={validPage}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => (
-                        <TablePaginationActions {...props} />
-                      )}
-                      labelRowsPerPage="Datasets per page"
-                      labelDisplayedRows={({ page: p, count }) =>
-                        `Page ${p + 1} of ${Math.max(
-                          0,
-                          Math.ceil(count / rowsPerPage)
-                        )}`
-                      }
-                      sx={{
-                        mt: theme.spacing(6),
-                        color: theme.palette.text.secondary,
-                        "& .MuiSelect-select": {
-                          width: theme.spacing(10),
-                          borderRadius: theme.shape.borderRadius,
-                          border: `1px solid ${theme.palette.border.light}`,
-                          padding: theme.spacing(4),
-                        },
-                      }}
-                      slotProps={{
-                        select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              className: "pagination-dropdown",
-                              sx: { mt: 0, mb: theme.spacing(2) },
-                            },
-                            transformOrigin: { vertical: "bottom", horizontal: "left" },
-                            anchorOrigin: { vertical: "top", horizontal: "left" },
-                            sx: { mt: theme.spacing(-2) },
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          keepMounted: true,
+                          PaperProps: {
+                            className: "pagination-dropdown",
+                            sx: { mt: 0, mb: theme.spacing(2) },
                           },
-                          inputProps: { id: "pagination-dropdown" },
-                          IconComponent: SelectorVertical,
-                          sx: {
-                            ml: theme.spacing(4),
-                            mr: theme.spacing(12),
-                            minWidth: theme.spacing(20),
-                            textAlign: "left",
-                          },
+                          transformOrigin: { vertical: "bottom", horizontal: "left" },
+                          anchorOrigin: { vertical: "top", horizontal: "left" },
+                          sx: { mt: theme.spacing(-2) },
                         },
-                      }}
-                    />
-                  </Box>
+                        inputProps: { id: "pagination-dropdown" },
+                        IconComponent: SelectorVertical,
+                        sx: {
+                          ml: theme.spacing(4),
+                          mr: theme.spacing(12),
+                          minWidth: theme.spacing(20),
+                          textAlign: "left",
+                        },
+                      },
+                    }}
+                  />
                 </Box>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
+              </Box>
+            </TableCell>
+          </TableRow>
+        </TableFooter>
         )}
       </Table>
     </TableContainer>

@@ -22,7 +22,8 @@ export interface ListedDataset {
 
 export type DatasetType = "chatbot" | "rag" | "agent";
 
-export interface DatasetPromptRecord {
+// Single-turn prompt record
+export interface SingleTurnPrompt {
   id: string;
   category: string;
   prompt: string;
@@ -30,6 +31,31 @@ export interface DatasetPromptRecord {
   expected_keywords?: string[];
   difficulty?: string;
   retrieval_context?: string[];
+}
+
+// Multi-turn conversation record
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface MultiTurnConversation {
+  id?: string;
+  scenario: string;
+  expected_outcome?: string;
+  turns: ConversationTurn[];
+}
+
+// Union type for both formats
+export type DatasetPromptRecord = SingleTurnPrompt | MultiTurnConversation;
+
+// Type guards
+export function isSingleTurnPrompt(record: DatasetPromptRecord): record is SingleTurnPrompt {
+  return 'prompt' in record && typeof record.prompt === 'string';
+}
+
+export function isMultiTurnConversation(record: DatasetPromptRecord): record is MultiTurnConversation {
+  return 'turns' in record && Array.isArray(record.turns);
 }
 
 class DeepEvalDatasetsService {

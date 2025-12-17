@@ -135,7 +135,7 @@ export default function NewExperimentModal({
     },
     // Step 4: Metrics - Universal core for all, plus use-case specific
     metrics: {
-      // Universal Core (always enabled for all use cases)
+      // Universal Core (always runs for every use case)
       answerRelevancy: true,
       correctness: true,
       completeness: true,
@@ -143,12 +143,12 @@ export default function NewExperimentModal({
       instructionFollowing: true,
       toxicity: true,
       bias: true,
-      // RAG-specific (require retrieval_context)
+      // RAG-specific (requires retrieval_context)
       contextRelevancy: false,
       contextPrecision: false,
       contextRecall: false,
       faithfulness: false,
-      // Agent-specific
+      // Agent-specific (requires tools)
       toolSelection: false,
       toolCorrectness: false,
       actionRelevance: false,
@@ -176,7 +176,7 @@ export default function NewExperimentModal({
   // Update metric defaults when task type changes
   useEffect(() => {
     setConfig((prev) => {
-      // Universal Core - always enabled for all use cases
+      // Universal Core - always runs for every use case
       const universalCore = {
         answerRelevancy: true,
         correctness: true,
@@ -232,7 +232,7 @@ export default function NewExperimentModal({
           },
         };
       } else {
-        // chatbot - Universal core only
+        // chatbot - Universal core only (no extra metrics)
         return {
           ...prev,
           metrics: {
@@ -554,7 +554,7 @@ export default function NewExperimentModal({
         maxTurns: 6,
       },
       metrics: {
-        // Universal Core
+        // Universal Core (runs for every use case)
         answerRelevancy: true,
         correctness: true,
         completeness: true,
@@ -1070,7 +1070,7 @@ export default function NewExperimentModal({
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                 Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
-              </Typography>
+                  </Typography>
               <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
@@ -1526,8 +1526,9 @@ export default function NewExperimentModal({
               </Typography>
             </Box>
 
-            {/* General Metrics - All Use Cases */}
+            {/* Universal Core Metrics - All Use Cases */}
             <Accordion
+              defaultExpanded
               disableGutters
               elevation={0}
               sx={{
@@ -1548,10 +1549,10 @@ export default function NewExperimentModal({
               >
                 <Box>
                   <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
-                    General Metrics
+                    Universal Core Metrics
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                    Available for all evaluation types
+                    Runs for every use case (Chatbot, RAG, Agent)
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -1560,97 +1561,31 @@ export default function NewExperimentModal({
                   {Object.entries({
                     answerRelevancy: {
                       label: "Answer Relevancy",
-                      desc: "Measures how relevant the model's answer is to the input.",
+                      desc: "Measures how relevant the model's answer is to the input (GEval).",
                     },
-                    bias: {
-                      label: "Bias Detection",
-                      desc: "Detects biased or discriminatory content in responses.",
+                    correctness: {
+                      label: "Correctness",
+                      desc: "Evaluates factual accuracy of the model's response (GEval).",
                     },
-                    toxicity: {
-                      label: "Toxicity Detection",
-                      desc: "Flags toxic or harmful language in outputs.",
-                    },
-                  }).map(([key, meta]) => (
-                    <Box key={key}>
-                      <Stack spacing={0.5}>
-                        <Checkbox
-                          id={`metric-${key}`}
-                          label={(meta as { label: string }).label}
-                          size="small"
-                          value={key}
-                          isChecked={config.metrics[key as keyof typeof config.metrics]}
-                          onChange={() =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              metrics: {
-                                ...prev.metrics,
-                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                    completeness: {
+                      label: "Completeness",
+                      desc: "Checks if the response fully addresses all aspects of the query (GEval).",
                               },
-                            }))
-                          }
-                        />
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
-                        >
-                          {(meta as { desc: string }).desc}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Chatbot-Specific Metrics */}
-            {config.taskType === "chatbot" && (
-              <Accordion
-                disableGutters
-                elevation={0}
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "4px !important",
-                  "&:before": { display: "none" },
-                  "&.Mui-expanded": { margin: 0 },
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
-                  sx={{
-                    minHeight: 48,
-                    px: "8px",
-                    "&.Mui-expanded": { minHeight: 48 },
-                    "& .MuiAccordionSummary-content": { my: "8px" },
-                  }}
-                >
-                  <Box>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
-                      Chatbot Metrics
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                      Specifically designed for conversational AI evaluation
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
-                  <Stack spacing="8px">
-                    {Object.entries({
-                      knowledgeRetention: {
-                        label: "Knowledge Retention",
-                        desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                    hallucination: {
+                      label: "Hallucination",
+                      desc: "Detects fabricated or unsupported information in outputs (GEval).",
+                    },
+                    instructionFollowing: {
+                      label: "Instruction Following",
+                      desc: "Measures how well the model follows the given instructions.",
                       },
-                      conversationRelevancy: {
-                        label: "Conversation Relevancy",
-                        desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                    toxicity: {
+                      label: "Toxicity",
+                      desc: "Flags toxic or harmful language in outputs.",
                       },
-                      conversationCompleteness: {
-                        label: "Conversation Completeness",
-                        desc: "Checks if the model fully answers the user's question and covers all requested details.",
-                      },
-                      roleAdherence: {
-                        label: "Role Adherence",
-                        desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                    bias: {
+                      label: "Bias",
+                      desc: "Detects biased or discriminatory content in responses.",
                       },
                     }).map(([key, meta]) => (
                       <Box key={key}>
@@ -1684,7 +1619,6 @@ export default function NewExperimentModal({
                   </Stack>
                 </AccordionDetails>
               </Accordion>
-            )}
 
             {/* RAG-Specific Metrics */}
             {config.taskType === "rag" && (

@@ -21,10 +21,10 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, ChevronUp, ChevronDown, User, Bot } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType, type SingleTurnPrompt, type MultiTurnConversation, isSingleTurnPrompt, isMultiTurnConversation } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
@@ -130,9 +130,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // State for dataset metadata (prompt counts, difficulty)
   const [datasetMetadata, setDatasetMetadata] = useState<Record<string, { promptCount: number; avgDifficulty: string; loading: boolean }>>({});
 
-  // Calculate average difficulty from prompts
+  // Calculate average difficulty from prompts (only for single-turn prompts)
   const calculateAvgDifficulty = (prompts: DatasetPromptRecord[]): string => {
-    const difficulties = prompts.filter(p => p.difficulty).map(p => p.difficulty!.toLowerCase());
+    const difficulties = prompts
+      .filter(p => isSingleTurnPrompt(p) && p.difficulty)
+      .map(p => (p as SingleTurnPrompt).difficulty!.toLowerCase());
     if (difficulties.length === 0) return "Medium"; // Default to Medium if no difficulty data
     
     const counts = { easy: 0, medium: 0, hard: 0 };
@@ -519,7 +521,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   };
 
   const isValidToSave = useMemo(() => {
-    return editablePrompts && editablePrompts.length > 0 && editablePrompts.some((p) => p.prompt.trim()) && editDatasetName.trim();
+    if (!editablePrompts || editablePrompts.length === 0 || !editDatasetName.trim()) return false;
+    // Check if any record has valid content (single-turn prompt or multi-turn turns)
+    return editablePrompts.some((p) => {
+      if (isSingleTurnPrompt(p)) {
+        return p.prompt.trim().length > 0;
+      } else if (isMultiTurnConversation(p)) {
+        return p.turns && p.turns.length > 0 && p.turns.some(t => t.content.trim().length > 0);
+      }
+      return false;
+    });
   }, [editablePrompts, editDatasetName]);
 
   const handleAddPrompt = () => {
@@ -852,22 +863,28 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           </Typography>
         </Stack>
 
-        {/* Prompts table */}
+        {/* Prompts/Conversations table */}
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
             <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
               <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Prompt</TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "90px" }}>Difficulty</TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px" }}>Category</TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.header.cell}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Scenario / Turns" : "Prompt"}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "90px" }}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Turns" : "Difficulty"}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px" }}>
+                  {editablePrompts.length > 0 && isMultiTurnConversation(editablePrompts[0]) ? "Outcome" : "Category"}
+                </TableCell>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {editablePrompts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
+                  <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       No prompts in this dataset yet.
                     </Typography>
@@ -886,7 +903,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                editablePrompts.map((p, idx) => (
+                editablePrompts.map((p, idx) => {
+                  const isMultiTurn = isMultiTurnConversation(p);
+                  const displayText = isMultiTurn
+                    ? (p as MultiTurnConversation).scenario || (p as MultiTurnConversation).turns?.[0]?.content || "Empty conversation"
+                    : (p as SingleTurnPrompt).prompt || "Empty prompt - click to edit";
+                  const hasContent = isMultiTurn
+                    ? (p as MultiTurnConversation).turns?.length > 0
+                    : !!(p as SingleTurnPrompt).prompt;
+
+                  return (
                   <TableRow
                     key={p.id || idx}
                     onClick={() => {
@@ -901,7 +927,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   >
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
-                        {p.id || `prompt_${idx + 1}`}
+                          {p.id || (isMultiTurn ? `conv_${idx + 1}` : `prompt_${idx + 1}`)}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -913,32 +939,53 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
-                          color: p.prompt ? "#374151" : "#9CA3AF",
-                          fontStyle: p.prompt ? "normal" : "italic",
+                            color: hasContent ? "#374151" : "#9CA3AF",
+                            fontStyle: hasContent ? "normal" : "italic",
                         }}
                       >
-                        {p.prompt || "Empty prompt - click to edit"}
+                          {displayText}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      {p.difficulty && (
+                        {isMultiTurn ? (
                         <Chip
-                          label={p.difficulty}
+                            label={`${(p as MultiTurnConversation).turns?.length || 0} turns`}
+                            variant="info"
+                            uppercase={false}
+                          />
+                        ) : (p as SingleTurnPrompt).difficulty ? (
+                          <Chip
+                            label={(p as SingleTurnPrompt).difficulty!}
                           variant={
-                            p.difficulty === "easy" ? "success" :
-                            p.difficulty === "medium" ? "medium" :
-                            p.difficulty === "hard" ? "error" : "default"
+                              (p as SingleTurnPrompt).difficulty === "easy" ? "success" :
+                              (p as SingleTurnPrompt).difficulty === "medium" ? "medium" :
+                              (p as SingleTurnPrompt).difficulty === "hard" ? "error" : "default"
                           }
                           uppercase={false}
                         />
-                      )}
+                        ) : null}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        {isMultiTurn ? (
+                          <Typography
+                            sx={{
+                              fontSize: "12px",
+                              color: "#6B7280",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              maxWidth: "100px",
+                            }}
+                          >
+                            {(p as MultiTurnConversation).expected_outcome || "-"}
+                          </Typography>
+                        ) : (
                       <Chip
-                        label={p.category || "uncategorized"}
+                            label={(p as SingleTurnPrompt).category || "uncategorized"}
                         variant="default"
                         uppercase={false}
                       />
+                        )}
                     </TableCell>
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
                       <IconButton
@@ -956,7 +1003,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -1023,9 +1071,178 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
             {selectedPromptIndex !== null && editablePrompts[selectedPromptIndex] && (
               <Stack spacing={3}>
+                {/* Multi-turn conversation editor */}
+                {isMultiTurnConversation(editablePrompts[selectedPromptIndex]) ? (
+                  <>
+                    <Field
+                      label="Scenario"
+                      value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).scenario || ""}
+                      onChange={(e) => {
+                        const next = [...editablePrompts];
+                        next[selectedPromptIndex] = { ...next[selectedPromptIndex], scenario: e.target.value };
+                        setEditablePrompts(next);
+                      }}
+                      placeholder="Describe the conversation scenario"
+                      type="description"
+                    />
+
+                    <Field
+                      label="Expected outcome"
+                      value={(editablePrompts[selectedPromptIndex] as MultiTurnConversation).expected_outcome || ""}
+                      onChange={(e) => {
+                        const next = [...editablePrompts];
+                        next[selectedPromptIndex] = { ...next[selectedPromptIndex], expected_outcome: e.target.value };
+                        setEditablePrompts(next);
+                      }}
+                      placeholder="What should the conversation achieve?"
+                      type="description"
+                    />
+
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 2 }}>
+                        Conversation Turns
+                      </Typography>
+
+                      {/* Chat conversation container */}
+                      <Box
+                        sx={{
+                          border: "1px solid #DDD6FE",
+                          borderRadius: "12px",
+                          backgroundColor: "#FAF5FF",
+                          p: 2,
+                          minHeight: "200px",
+                        }}
+                      >
+                        <Stack spacing={2}>
+                          {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns || []).map((turn, turnIdx) => (
+                            <Box
+                              key={turnIdx}
+                              sx={{
+                                display: "flex",
+                                flexDirection: turn.role === "user" ? "row-reverse" : "row",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: "85%",
+                                  p: 1.5,
+                                  borderRadius: turn.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
+                                  backgroundColor: turn.role === "user" ? "#ECFDF5" : "#EBF5FF",
+                                  border: "1px solid",
+                                  borderColor: turn.role === "user" ? "#A7F3D0" : "#BFDBFE",
+                                }}
+                              >
+                                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                                  <Stack direction="row" alignItems="center" spacing={1}>
+                                    <Box
+                                      sx={{
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: "4px",
+                                        backgroundColor: turn.role === "user" ? "#10B981" : "#1E40AF",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      {turn.role === "user" ? (
+                                        <User size={12} color="#FFFFFF" />
+                                      ) : (
+                                        <Bot size={12} color="#FFFFFF" />
+                                      )}
+                                    </Box>
+                                    <Typography sx={{ fontSize: "11px", fontWeight: 600, color: turn.role === "user" ? "#059669" : "#1E40AF" }}>
+                                      {turn.role === "user" ? "User" : "Assistant"}
+                                    </Typography>
+                                  </Stack>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      const next = [...editablePrompts];
+                                      const conv = next[selectedPromptIndex] as MultiTurnConversation;
+                                      const turns = [...(conv.turns || [])];
+                                      turns.splice(turnIdx, 1);
+                                      next[selectedPromptIndex] = { ...conv, turns };
+                                      setEditablePrompts(next);
+                                    }}
+                                    sx={{ 
+                                      p: 0.5,
+                                      color: "#9CA3AF", 
+                                      "&:hover": { color: "#EF4444", backgroundColor: "transparent" } 
+                                    }}
+                                  >
+                                    <Trash2 size={12} />
+                                  </IconButton>
+                                </Stack>
+                                <Field
+                                  value={turn.content}
+                                  onChange={(e) => {
+                                    const next = [...editablePrompts];
+                                    const conv = next[selectedPromptIndex] as MultiTurnConversation;
+                                    const turns = [...(conv.turns || [])];
+                                    turns[turnIdx] = { ...turns[turnIdx], content: e.target.value };
+                                    next[selectedPromptIndex] = { ...conv, turns };
+                                    setEditablePrompts(next);
+                                  }}
+                                  placeholder={turn.role === "user" ? "What does the user say?" : "How should the assistant respond?"}
+                                  type="description"
+                                />
+                              </Box>
+                            </Box>
+                          ))}
+
+                          {/* Empty state when no turns */}
+                          {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns || []).length === 0 && (
+                            <Box sx={{ py: 4, textAlign: "center" }}>
+                              <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>
+                                No conversation turns yet. Add a turn to start building the conversation.
+                              </Typography>
+                            </Box>
+                          )}
+                        </Stack>
+                      </Box>
+
+                      {/* Add turn button - at the bottom with more spacing */}
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<Plus size={14} />}
+                        onClick={() => {
+                          const next = [...editablePrompts];
+                          const conv = next[selectedPromptIndex] as MultiTurnConversation;
+                          const turns = [...(conv.turns || [])];
+                          // Add user turn if last was assistant, or assistant if last was user
+                          const lastRole = turns.length > 0 ? turns[turns.length - 1].role : "assistant";
+                          turns.push({ role: lastRole === "user" ? "assistant" : "user", content: "" });
+                          next[selectedPromptIndex] = { ...conv, turns };
+                          setEditablePrompts(next);
+                        }}
+                        sx={{ 
+                          mt: 3,
+                          textTransform: "none", 
+                          color: "#13715B",
+                          borderColor: "#E5E7EB",
+                          borderStyle: "dashed",
+                          py: 1.5,
+                          "&:hover": { 
+                            borderColor: "#13715B", 
+                            backgroundColor: "#F0FDF4",
+                            borderStyle: "dashed",
+                          },
+                        }}
+                      >
+                        Add {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.length || 0) > 0 
+                          ? ((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.slice(-1)[0]?.role === "user" ? "assistant" : "user") 
+                          : "user"} turn
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
+                  /* Single-turn prompt editor */
+                  <>
                 <Field
                   label="Prompt"
-                  value={editablePrompts[selectedPromptIndex].prompt}
+                      value={(editablePrompts[selectedPromptIndex] as SingleTurnPrompt).prompt || ""}
                   onChange={(e) => {
                     const next = [...editablePrompts];
                     next[selectedPromptIndex] = { ...next[selectedPromptIndex], prompt: e.target.value };
@@ -1038,7 +1255,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
                 <Field
                   label="Expected output"
-                  value={editablePrompts[selectedPromptIndex].expected_output || ""}
+                      value={(editablePrompts[selectedPromptIndex] as SingleTurnPrompt).expected_output || ""}
                   onChange={(e) => {
                     const next = [...editablePrompts];
                     next[selectedPromptIndex] = { ...next[selectedPromptIndex], expected_output: e.target.value };
@@ -1054,7 +1271,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </Typography>
                   <Stack direction="row" spacing={1}>
                     {(["easy", "medium", "hard"] as const).map((diff) => {
-                      const isSelected = editablePrompts[selectedPromptIndex].difficulty === diff;
+                          const isSelected = (editablePrompts[selectedPromptIndex] as SingleTurnPrompt).difficulty === diff;
                       return (
                         <Box
                           key={diff}
@@ -1084,7 +1301,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
                 <Field
                   label="Category"
-                  value={editablePrompts[selectedPromptIndex].category || ""}
+                      value={(editablePrompts[selectedPromptIndex] as SingleTurnPrompt).category || ""}
                   onChange={(e) => {
                     const next = [...editablePrompts];
                     next[selectedPromptIndex] = { ...next[selectedPromptIndex], category: e.target.value };
@@ -1095,7 +1312,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
                 <Field
                   label="Keywords"
-                  value={(editablePrompts[selectedPromptIndex].expected_keywords || []).join(", ")}
+                      value={((editablePrompts[selectedPromptIndex] as SingleTurnPrompt).expected_keywords || []).join(", ")}
                   onChange={(e) => {
                     const value = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
                     const next = [...editablePrompts];
@@ -1109,7 +1326,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 {editingDataset?.datasetType === "rag" && (
                   <Field
                     label="Retrieval context"
-                    value={(editablePrompts[selectedPromptIndex].retrieval_context || []).join("\n")}
+                        value={((editablePrompts[selectedPromptIndex] as SingleTurnPrompt).retrieval_context || []).join("\n")}
                     onChange={(e) => {
                       const lines = e.target.value.split("\n");
                       const next = [...editablePrompts];
@@ -1119,9 +1336,11 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     placeholder="One entry per line"
                     type="description"
                   />
+                    )}
+                  </>
                 )}
 
-                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                <Stack direction="row" spacing={2} sx={{ mt: 4, pt: 3, borderTop: "1px solid #E5E7EB" }}>
                   <Button
                     variant="outlined"
                     startIcon={<Trash2 size={14} />}
@@ -1137,7 +1356,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         borderColor: "#EF4444", 
                         backgroundColor: "#FEE2E2" 
                       },
-                      height: "34px",
+                      height: "40px",
+                      textTransform: "none",
                     }}
                   >
                     Delete
@@ -1151,8 +1371,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     sx={{
                       bgcolor: "#13715B",
                       "&:hover": { bgcolor: "#0F5E4B" },
-                      height: "34px",
+                      height: "40px",
                       flex: 1,
+                      textTransform: "none",
                     }}
                   >
                     Done
@@ -1488,16 +1709,16 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             </Typography>
             <Stack direction="row" spacing={1}>
               <Box onClick={() => setDatasetTurnType("single-turn")} sx={{ cursor: "pointer" }}>
-                <Chip
-                  label="Single-Turn"
+              <Chip
+                label="Single-Turn"
                   uppercase={false}
                   backgroundColor={datasetTurnType === "single-turn" ? "#FEF3C7" : "#F3F4F6"}
                   textColor={datasetTurnType === "single-turn" ? "#92400E" : "#6B7280"}
                 />
               </Box>
               <Box onClick={() => setDatasetTurnType("multi-turn")} sx={{ cursor: "pointer" }}>
-                <Chip
-                  label="Multi-Turn"
+              <Chip
+                label="Multi-Turn"
                   uppercase={false}
                   backgroundColor={(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#E3F2FD" : "#F3F4F6"}
                   textColor={(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#1565C0" : "#6B7280"}
@@ -1513,18 +1734,18 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                 </Typography>
                 <Stack direction="row" spacing={1}>
                   <Box onClick={() => setDatasetTurnType("multi-turn")} sx={{ cursor: "pointer" }}>
-                    <Chip
-                      label="Default"
-                      size="small"
+                  <Chip
+                    label="Default"
+                    size="small"
                       uppercase={false}
                       backgroundColor={datasetTurnType === "multi-turn" ? "#E3F2FD" : "#F3F4F6"}
                       textColor={datasetTurnType === "multi-turn" ? "#1565C0" : "#6B7280"}
                     />
                   </Box>
                   <Box onClick={() => setDatasetTurnType("simulated")} sx={{ cursor: "pointer" }}>
-                    <Chip
-                      label="Simulated"
-                      size="small"
+                  <Chip
+                    label="Simulated"
+                    size="small"
                       uppercase={false}
                       backgroundColor={datasetTurnType === "simulated" ? "#F3E8FF" : "#F3F4F6"}
                       textColor={datasetTurnType === "simulated" ? "#7C3AED" : "#6B7280"}
@@ -1849,33 +2070,43 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       ID
                     </TableCell>
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>
-                      Category
+                      {isMultiTurnConversation(datasetPrompts[0]) ? "Turns" : "Category"}
                     </TableCell>
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "360px" }}>
-                      Prompt
+                      {isMultiTurnConversation(datasetPrompts[0]) ? "Scenario" : "Prompt"}
                     </TableCell>
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>
-                      Difficulty
+                      {isMultiTurnConversation(datasetPrompts[0]) ? "Outcome" : "Difficulty"}
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {datasetPrompts.map((prompt: DatasetPromptRecord, index: number) => (
+                  {datasetPrompts.map((prompt: DatasetPromptRecord, index: number) => {
+                    const isMultiTurn = isMultiTurnConversation(prompt);
+                    return (
                     <TableRow
                       key={prompt.id || index}
                       sx={singleTheme.tableStyles.primary.body.row}
                     >
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
-                          {prompt.id}
+                            {prompt.id || (isMultiTurn ? `conv_${index + 1}` : `prompt_${index + 1}`)}
                         </Typography>
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                          {isMultiTurn ? (
                         <Chip
-                          label={prompt.category}
+                              label={`${(prompt as MultiTurnConversation).turns?.length || 0} turns`}
+                              variant="info"
+                              uppercase={false}
+                            />
+                          ) : (
+                            <Chip
+                              label={(prompt as SingleTurnPrompt).category || "-"}
                           variant="default"
                           uppercase={false}
                         />
+                          )}
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography
@@ -1889,24 +2120,31 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                             WebkitBoxOrient: "vertical",
                           }}
                         >
-                          {prompt.prompt}
+                            {isMultiTurn 
+                              ? (prompt as MultiTurnConversation).scenario || (prompt as MultiTurnConversation).turns?.[0]?.content || "-"
+                              : (prompt as SingleTurnPrompt).prompt || "-"}
                         </Typography>
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        {prompt.difficulty && (
+                          {isMultiTurn ? (
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              {(prompt as MultiTurnConversation).expected_outcome?.substring(0, 20) || "-"}
+                            </Typography>
+                          ) : (prompt as SingleTurnPrompt).difficulty && (
                           <Chip
-                            label={prompt.difficulty}
+                              label={(prompt as SingleTurnPrompt).difficulty!}
                             variant={
-                              prompt.difficulty === "easy" ? "success" :
-                              prompt.difficulty === "medium" ? "medium" :
-                              prompt.difficulty === "hard" ? "error" : "default"
+                                (prompt as SingleTurnPrompt).difficulty === "easy" ? "success" :
+                                (prompt as SingleTurnPrompt).difficulty === "medium" ? "medium" :
+                                (prompt as SingleTurnPrompt).difficulty === "hard" ? "error" : "default"
                             }
                             uppercase={false}
                           />
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -2097,6 +2335,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             }
             
             // Single-turn dataset display (original table)
+            const singleTurnPrompts = templatePrompts as SingleTurnPrompt[];
             return (
               <TableContainer sx={{ maxWidth: "100%", overflowX: "hidden" }}>
                 <Table sx={{ ...singleTheme.tableStyles.primary.frame, tableLayout: "fixed", width: "100%" }}>
@@ -2109,7 +2348,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {templatePrompts.map((prompt, index) => {
+                    {singleTurnPrompts.map((prompt, index) => {
                       const promptKey = prompt.id || `prompt-${index}`;
                       const isExpanded = expandedPromptIds.has(promptKey);
                       const promptText = prompt.prompt || "";
@@ -2143,9 +2382,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           </TableCell>
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                             <Box title={prompt.category || ""}>
-                              <Chip
-                                label={(prompt.category?.length || 0) > 8 ? `${(prompt.category || "").substring(0, 8)}...` : (prompt.category || "-")}
-                                size="small"
+                            <Chip
+                                label={(prompt.category?.length || 0) > 8 ? `${prompt.category.substring(0, 8)}...` : (prompt.category || "-")}
+                              size="small"
                                 backgroundColor="#E5E7EB"
                                 textColor="#374151"
                               />

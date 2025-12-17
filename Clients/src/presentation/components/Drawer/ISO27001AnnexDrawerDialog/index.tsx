@@ -710,12 +710,7 @@ const VWISO27001AnnexDrawerDialog = ({
               </Stack>
             </Stack>
 
-            <Stack
-              sx={{
-                padding: "15px 20px",
-              }}
-              gap={"24px"}
-            >
+            <Stack gap={"24px"} sx={{ marginTop: "15px" }}>
               <Select
                 id="status"
                 label="Status:"

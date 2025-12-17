@@ -23,6 +23,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   data,
   onOpen,
   onDelete,
+  onLinkedObjects,
   isLoading,
   error,
   onRefresh,
@@ -175,10 +176,13 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                   onEdit={() => {
                     onOpen(policy.id);
                   }}
+                  onLinkedObjects={() => {
+                    onLinkedObjects(policy.id);
+                  }}
                   onMouseEvent={() => {}}
                   warningTitle="Delete this policy?"
                   warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
-                  type=""
+                  type="Policy"
                 />
               </div>
             </TableCell>

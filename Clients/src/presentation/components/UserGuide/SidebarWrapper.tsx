@@ -12,8 +12,9 @@ import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
 import { useUserGuideSidebarContext, DEFAULT_CONTENT_WIDTH } from './UserGuideSidebarContext';
-import './SidebarWrapper.css';
 import AdvisorChat from '../AdvisorChat';
+import AdvisorHeader from './AdvisorHeader';
+import './SidebarWrapper.css';
 
 type Tab = 'user-guide' | 'advisor' | 'help';
 
@@ -46,6 +47,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
+  const [selectedLLMKeyId, setSelectedLLMKeyId] = useState<number | undefined>(undefined);
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handleRef = useRef<HTMLDivElement>(null);
 
@@ -301,7 +303,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Render Advisor content
   const renderAdvisorContent = () => {
-    return <AdvisorChat />
+    return <AdvisorChat selectedLLMKeyId={selectedLLMKeyId} />
   }
 
   const contentArea = (tabValue: Tab) => {
@@ -448,22 +450,31 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         {isOpen && (
           <>
             {/* Header */}
-            <SidebarHeader
-              showOpenInNewTab={activeTab === 'user-guide'}
-              showNavigation={activeTab === 'user-guide'}
-              breadcrumbs={buildBreadcrumbs()}
-              onHomeClick={handleHomeClick}
-              onBack={handleBack}
-              onForward={handleForward}
-              canGoBack={canGoBack}
-              canGoForward={canGoForward}
-              onClose={onClose}
-              onOpenInNewTab={handleOpenInNewTab}
-              isSearchOpen={isSearchOpen}
-              onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
+            {activeTab === 'advisor' ? (
+              <AdvisorHeader
+                onClose={onClose}
+                selectedLLMKeyId={selectedLLMKeyId}
+                onLLMKeyChange={setSelectedLLMKeyId}
+              />
+            ): (
+              <SidebarHeader
+                showOpenInNewTab={activeTab === 'user-guide'}
+                showNavigation={activeTab === 'user-guide'}
+                breadcrumbs={buildBreadcrumbs()}
+                onHomeClick={handleHomeClick}
+                onBack={handleBack}
+                onForward={handleForward}
+                canGoBack={canGoBack}
+                canGoForward={canGoForward}
+                onClose={onClose}
+                onOpenInNewTab={handleOpenInNewTab}
+                isSearchOpen={isSearchOpen}
+                onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            )}
+            
 
             {/* Content Area */}
             <div

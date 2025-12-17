@@ -5,7 +5,6 @@ import {
   Stack,
   Drawer,
   Divider,
-  Chip,
   CircularProgress,
   TableContainer,
   Table,
@@ -24,21 +23,27 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { Upload, Download, X, MoreVertical, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown, Plus } from "lucide-react";
+import { Upload, Download, X, Eye, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, ChevronUp, ChevronDown, ChevronsUpDown, Plus } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import ButtonToggle from "../../components/ButtonToggle";
-import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalDatasetsService, type DatasetPromptRecord, type ListedDataset, type DatasetType } from "../../../infrastructure/api/deepEvalDatasetsService";
 import Alert from "../../components/Alert";
+import Chip from "../../components/Chip";
 import ModalStandard from "../../components/Modals/StandardModal";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import Field from "../../components/Inputs/Field";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
+import HelperIcon from "../../components/HelperIcon";
+import SelectableCard from "../../components/SelectableCard";
 
 type ProjectDatasetsProps = { projectId: string };
 
@@ -46,6 +51,7 @@ type BuiltInDataset = ListedDataset & {
   promptCount?: number;
   isUserDataset?: boolean;
   createdAt?: string;
+  datasetType?: DatasetType;
   // Additional metadata for templates
   test_count?: number;
   categories?: string[];
@@ -65,9 +71,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // My datasets state
   const [datasets, setDatasets] = useState<BuiltInDataset[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => getPaginationRowCount("datasets", 10));
   const [searchTerm, setSearchTerm] = useState("");
+  const { groupBy: datasetsGroupBy, groupSortOrder: datasetsGroupSortOrder, handleGroupChange: handleDatasetsGroupChange } = useGroupByState();
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -93,6 +98,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [templatePage, setTemplatePage] = useState(0);
   const [templateRowsPerPage, setTemplateRowsPerPage] = useState(() => getPaginationRowCount("templates", 10));
   const [templateSearchTerm, setTemplateSearchTerm] = useState("");
+  const { groupBy: templatesGroupBy, groupSortOrder: templatesGroupSortOrder, handleGroupChange: handleTemplatesGroupChange } = useGroupByState();
   const [templateSortConfig, setTemplateSortConfig] = useState<{ key: string; direction: "asc" | "desc" | null }>({
     key: "",
     direction: null,
@@ -101,6 +107,9 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // Copy template confirmation modal state
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [templateToCopy, setTemplateToCopy] = useState<BuiltInDataset | null>(null);
+
+  // Expanded prompt rows in template preview
+  const [expandedPromptIds, setExpandedPromptIds] = useState<Set<string>>(new Set());
 
   // Template drawer state
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false);
@@ -128,6 +137,59 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   // Create dataset modal state
   const [createDatasetModalOpen, setCreateDatasetModalOpen] = useState(false);
 
+  // State for dataset metadata (prompt counts, difficulty)
+  const [datasetMetadata, setDatasetMetadata] = useState<Record<string, { promptCount: number; avgDifficulty: string; loading: boolean }>>({});
+
+  // Calculate average difficulty from prompts
+  const calculateAvgDifficulty = (prompts: DatasetPromptRecord[]): string => {
+    const difficulties = prompts.filter(p => p.difficulty).map(p => p.difficulty!.toLowerCase());
+    if (difficulties.length === 0) return "-";
+    
+    const counts = { easy: 0, medium: 0, hard: 0 };
+    difficulties.forEach(d => {
+      if (d === "easy") counts.easy++;
+      else if (d === "medium") counts.medium++;
+      else if (d === "hard") counts.hard++;
+    });
+    
+    // Return the most common difficulty
+    const max = Math.max(counts.easy, counts.medium, counts.hard);
+    if (max === 0) return "-";
+    if (counts.hard === max) return "Hard";
+    if (counts.medium === max) return "Medium";
+    return "Easy";
+  };
+
+  // Load metadata for a single dataset
+  const loadDatasetMetadata = useCallback(async (dataset: BuiltInDataset) => {
+    if (datasetMetadata[dataset.path]?.loading || datasetMetadata[dataset.path]?.promptCount !== undefined) {
+      return; // Already loading or loaded
+    }
+    
+    setDatasetMetadata(prev => ({
+      ...prev,
+      [dataset.path]: { promptCount: 0, avgDifficulty: "-", loading: true }
+    }));
+    
+    try {
+      const res = await deepEvalDatasetsService.read(dataset.path);
+      const prompts = res.prompts || [];
+      setDatasetMetadata(prev => ({
+        ...prev,
+        [dataset.path]: {
+          promptCount: prompts.length,
+          avgDifficulty: calculateAvgDifficulty(prompts),
+          loading: false
+        }
+      }));
+    } catch {
+      setDatasetMetadata(prev => ({
+        ...prev,
+        [dataset.path]: { promptCount: 0, avgDifficulty: "-", loading: false }
+      }));
+    }
+  }, [datasetMetadata]);
+
   // Load user's datasets (My datasets tab)
   const loadMyDatasets = useCallback(async () => {
     try {
@@ -138,7 +200,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
         key: `user_${ud.id}`,
         name: ud.name,
         path: ud.path,
-        use_case: "chatbot" as const,
+        use_case: (ud.datasetType || "chatbot") as "chatbot" | "rag" | "agent" | "safety",
+        datasetType: ud.datasetType || "chatbot",
         isUserDataset: true,
         createdAt: ud.createdAt,
       }));
@@ -247,6 +310,19 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             aVal = a.test_count ?? 0;
             bVal = b.test_count ?? 0;
             break;
+          case "difficulty": {
+            // Calculate predominant difficulty from the object
+            const getPredominantDifficulty = (diff?: { easy: number; medium: number; hard: number }) => {
+              if (!diff) return 0;
+              const total = diff.easy + diff.medium + diff.hard;
+              if (total === 0) return 0;
+              // Weight: easy=1, medium=2, hard=3, then average
+              return (diff.easy * 1 + diff.medium * 2 + diff.hard * 3) / total;
+            };
+            aVal = getPredominantDifficulty(a.difficulty);
+            bVal = getPredominantDifficulty(b.difficulty);
+            break;
+          }
           default:
             return 0;
         }
@@ -264,11 +340,35 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     return result;
   }, [flattenedTemplates, filterTemplateData, templateSearchTerm, templateSortConfig]);
 
-  // Paginated templates
-  const paginatedTemplates = useMemo(() => {
-    const start = templatePage * templateRowsPerPage;
-    return filteredAndSortedTemplates.slice(start, start + templateRowsPerPage);
-  }, [filteredAndSortedTemplates, templatePage, templateRowsPerPage]);
+  // Templates grouping
+  const getTemplateGroupKey = useCallback((template: TemplateWithCategory, field: string): string => {
+    switch (field) {
+      case "category":
+        return template.category === "rag" ? "RAG" :
+               template.category === "chatbot" ? "Chatbot" :
+               template.category === "agent" ? "Agent" :
+               template.category === "safety" ? "Safety" :
+               template.category || "Other";
+      case "difficulty": {
+        const diff = template.difficulty;
+        if (!diff) return "Unknown";
+        const total = diff.easy + diff.medium + diff.hard;
+        if (total === 0) return "Unknown";
+        if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
+        if (diff.medium >= diff.easy) return "Medium";
+        return "Easy";
+      }
+      default:
+        return "Other";
+    }
+  }, []);
+
+  const groupedTemplates = useTableGrouping({
+    data: filteredAndSortedTemplates,
+    groupByField: templatesGroupBy,
+    sortOrder: templatesGroupSortOrder,
+    getGroupKey: getTemplateGroupKey,
+  });
 
   // Template sorting handler
   const handleTemplateSort = useCallback((columnId: string) => {
@@ -311,6 +411,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const handleViewTemplate = (template: BuiltInDataset) => {
     setSelectedTemplate(template);
     setTemplateDrawerOpen(true);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Close template drawer
@@ -318,6 +419,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     setTemplateDrawerOpen(false);
     setSelectedTemplate(null);
     setTemplatePrompts([]);
+    setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
   // Load data based on active tab
@@ -411,13 +513,44 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     );
   }, [datasets, filterData, searchTerm]);
 
-  // Action menu handlers
-  const handleActionMenuOpen = (event: React.MouseEvent<HTMLElement>, dataset: BuiltInDataset) => {
-    event.stopPropagation();
-    setActionAnchor(event.currentTarget);
-    setActionDataset(dataset);
-  };
+  // Datasets grouping
+  const getDatasetGroupKey = useCallback((dataset: BuiltInDataset, field: string): string => {
+    switch (field) {
+      case "name":
+        // Group by first letter
+        return dataset.name?.charAt(0).toUpperCase() || "Other";
+      case "prompts": {
+        const count = dataset.promptCount ?? 0;
+        if (count === 0) return "No prompts";
+        if (count <= 10) return "1-10 prompts";
+        if (count <= 50) return "11-50 prompts";
+        if (count <= 100) return "51-100 prompts";
+        return "100+ prompts";
+      }
+      case "createdAt": {
+        if (!dataset.createdAt) return "Unknown";
+        const date = new Date(dataset.createdAt);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return "Today";
+        if (diffDays === 1) return "Yesterday";
+        if (diffDays <= 7) return "This week";
+        if (diffDays <= 30) return "This month";
+        return "Older";
+      }
+      default:
+        return "Other";
+    }
+  }, []);
 
+  const groupedDatasets = useTableGrouping({
+    data: filteredDatasets,
+    groupByField: datasetsGroupBy,
+    sortOrder: datasetsGroupSortOrder,
+    getGroupKey: getDatasetGroupKey,
+  });
+
+  // Action menu handlers
   const handleActionMenuClose = () => {
     setActionAnchor(null);
     setActionDataset(null);
@@ -445,10 +578,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       setLoadingEditor(true);
       const res = await deepEvalDatasetsService.read(dataset.path);
       setEditablePrompts(res.prompts || []);
-      // Derive name from path
-      const base = dataset.path.split("/").pop() || "dataset";
-      const derivedName = base.replace(/\.json$/i, "").replace(/[_-]+/g, " ").replace(/^\d+\s+/, "");
-      setEditDatasetName(derivedName);
+      // Use the dataset name directly (already cleaned by backend)
+      setEditDatasetName(dataset.name);
       setEditingDataset(dataset);
       setEditorOpen(true);
     } catch (err) {
@@ -475,7 +606,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       const slug = editDatasetName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
       const finalName = slug ? `${slug}.json` : "dataset.json";
       const file = new File([blob], finalName, { type: "application/json" });
-      await deepEvalDatasetsService.uploadDataset(file);
+      const datasetType = editingDataset?.datasetType || "chatbot";
+      await deepEvalDatasetsService.uploadDataset(file, datasetType);
       setAlert({ variant: "success", body: `Dataset "${editDatasetName}" saved successfully!` });
       setTimeout(() => setAlert(null), 3000);
       handleCloseEditor();
@@ -495,7 +627,34 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     }
   };
 
-  const isValidToSave = useMemo(() => editablePrompts && editablePrompts.length > 0 && editDatasetName.trim(), [editablePrompts, editDatasetName]);
+  const isValidToSave = useMemo(() => {
+    return editablePrompts && editablePrompts.length > 0 && editablePrompts.some((p) => p.prompt.trim()) && editDatasetName.trim();
+  }, [editablePrompts, editDatasetName]);
+
+  const handleAddPrompt = () => {
+    const newPrompt: DatasetPromptRecord = {
+      id: `prompt_${Date.now()}`,
+      category: "General",
+      prompt: "",
+      expected_output: "",
+      expected_keywords: [],
+      retrieval_context: [],
+    };
+    setEditablePrompts((prev) => [...prev, newPrompt]);
+    // Open the drawer with the new prompt
+    setSelectedPromptIndex(editablePrompts.length);
+    setPromptDrawerOpen(true);
+  };
+
+  const handleDeletePrompt = (idx: number) => {
+    setEditablePrompts((prev) => prev.filter((_, i) => i !== idx));
+    if (selectedPromptIndex === idx) {
+      setPromptDrawerOpen(false);
+      setSelectedPromptIndex(null);
+    } else if (selectedPromptIndex !== null && selectedPromptIndex > idx) {
+      setSelectedPromptIndex(selectedPromptIndex - 1);
+    }
+  };
 
   const handleRemoveDataset = (dataset: BuiltInDataset) => {
     handleActionMenuClose();
@@ -521,26 +680,21 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   };
 
   const handleRowClick = async (dataset: BuiltInDataset) => {
-    // Open drawer when clicking on a row
-    await handleViewPrompts(dataset);
+    // Navigate directly to editor when clicking on a row
+    await handleOpenInEditor(dataset);
   };
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setRowsPerPage(newRowsPerPage);
-    setPaginationRowCount("datasets", newRowsPerPage);
-    setPage(0);
-  };
-
-  // Paginated datasets
-  const paginatedDatasets = useMemo(() => {
-    const start = page * rowsPerPage;
-    return filteredDatasets.slice(start, start + rowsPerPage);
-  }, [filteredDatasets, page, rowsPerPage]);
+  // Load metadata for datasets in "My datasets" tab
+  useEffect(() => {
+    if (activeTab === "my" && filteredDatasets.length > 0) {
+      filteredDatasets.forEach(dataset => {
+        if (!datasetMetadata[dataset.path]) {
+          void loadDatasetMetadata(dataset);
+        }
+      });
+    }
+  }, [activeTab, filteredDatasets, datasetMetadata, loadDatasetMetadata]);
 
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
@@ -652,7 +806,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     try {
       setUploading(true);
       setUploadModalOpen(false);
-      const resp = await deepEvalDatasetsService.uploadDataset(file);
+      const resp = await deepEvalDatasetsService.uploadDataset(file, exampleDatasetType);
       setAlert({ variant: "success", body: `Uploaded ${resp.filename}` });
       setTimeout(() => setAlert(null), 4000);
       void loadMyDatasets();
@@ -728,16 +882,30 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px" }}>ID</TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Prompt</TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>Category</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "90px" }}>Difficulty</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px" }}>Category</TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {editablePrompts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} sx={{ textAlign: "center", py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No prompts found in this dataset.
+                  <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      No prompts in this dataset yet.
                     </Typography>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Plus size={16} />}
+                      onClick={handleAddPrompt}
+                      sx={{
+                        color: "#13715B",
+                        borderColor: "#13715B",
+                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                      }}
+                    >
+                      Add your first prompt
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -768,23 +936,47 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
+                          color: p.prompt ? "#374151" : "#9CA3AF",
+                          fontStyle: p.prompt ? "normal" : "italic",
                         }}
                       >
-                        {p.prompt}
+                        {p.prompt || "Empty prompt - click to edit"}
                       </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      {p.difficulty && (
+                        <Chip
+                          label={p.difficulty}
+                          variant={
+                            p.difficulty === "easy" ? "success" :
+                            p.difficulty === "medium" ? "medium" :
+                            p.difficulty === "hard" ? "error" : "default"
+                          }
+                          uppercase={false}
+                        />
+                      )}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip
                         label={p.category || "uncategorized"}
-                        size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: "11px",
-                          backgroundColor: "#E5E7EB",
-                          color: "#374151",
-                          borderRadius: "4px",
-                        }}
+                        variant="default"
+                        uppercase={false}
                       />
+                    </TableCell>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePrompt(idx);
+                        }}
+                        sx={{
+                          color: "#9CA3AF",
+                          "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
@@ -792,6 +984,30 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Add prompt button */}
+        {editablePrompts.length > 0 && (
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={16} />}
+            onClick={handleAddPrompt}
+            fullWidth
+            sx={{
+              mt: 2,
+              color: "#13715B",
+              borderColor: "#E5E7EB",
+              borderStyle: "dashed",
+              py: 1.5,
+              "&:hover": { 
+                borderColor: "#13715B", 
+                backgroundColor: "#E8F5F1",
+                borderStyle: "dashed",
+              },
+            }}
+          >
+            Add prompt
+          </Button>
+        )}
 
         {/* Prompt Edit Drawer */}
         <Drawer
@@ -855,6 +1071,51 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   type="description"
                 />
 
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px", mb: 1 }}>
+                    Difficulty
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    {(["easy", "medium", "hard"] as const).map((diff) => {
+                      const isSelected = editablePrompts[selectedPromptIndex].difficulty === diff;
+                      return (
+                        <Box
+                          key={diff}
+                          onClick={() => {
+                            const next = [...editablePrompts];
+                            next[selectedPromptIndex] = { ...next[selectedPromptIndex], difficulty: diff };
+                            setEditablePrompts(next);
+                          }}
+                          sx={{ cursor: "pointer" }}
+                        >
+                          <Chip
+                            label={diff.charAt(0).toUpperCase() + diff.slice(1)}
+                            variant={
+                              isSelected
+                                ? diff === "easy" ? "success"
+                                  : diff === "medium" ? "medium"
+                                  : "error"
+                                : "default"
+                            }
+                            uppercase={false}
+                          />
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+
+                <Field
+                  label="Category"
+                  value={editablePrompts[selectedPromptIndex].category || ""}
+                  onChange={(e) => {
+                    const next = [...editablePrompts];
+                    next[selectedPromptIndex] = { ...next[selectedPromptIndex], category: e.target.value };
+                    setEditablePrompts(next);
+                  }}
+                  placeholder="e.g., general_knowledge, coding, etc."
+                />
+
                 <Field
                   label="Keywords"
                   value={(editablePrompts[selectedPromptIndex].expected_keywords || []).join(", ")}
@@ -867,34 +1128,59 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   placeholder="Comma separated keywords"
                 />
 
-                <Field
-                  label="Retrieval context"
-                  value={(editablePrompts[selectedPromptIndex].retrieval_context || []).join("\n")}
-                  onChange={(e) => {
-                    const lines = e.target.value.split("\n");
-                    const next = [...editablePrompts];
-                    next[selectedPromptIndex] = { ...next[selectedPromptIndex], retrieval_context: lines };
-                    setEditablePrompts(next);
-                  }}
-                  placeholder="One entry per line"
-                  type="description"
-                />
+                {/* Only show retrieval context for RAG datasets */}
+                {editingDataset?.datasetType === "rag" && (
+                  <Field
+                    label="Retrieval context"
+                    value={(editablePrompts[selectedPromptIndex].retrieval_context || []).join("\n")}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n");
+                      const next = [...editablePrompts];
+                      next[selectedPromptIndex] = { ...next[selectedPromptIndex], retrieval_context: lines };
+                      setEditablePrompts(next);
+                    }}
+                    placeholder="One entry per line"
+                    type="description"
+                  />
+                )}
 
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setPromptDrawerOpen(false);
-                    setSelectedPromptIndex(null);
-                  }}
-                  sx={{
-                    bgcolor: "#13715B",
-                    "&:hover": { bgcolor: "#0F5E4B" },
-                    height: "34px",
-                    mt: 2,
-                  }}
-                >
-                  Done
-                </Button>
+                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Trash2 size={14} />}
+                    onClick={() => {
+                      if (selectedPromptIndex !== null) {
+                        handleDeletePrompt(selectedPromptIndex);
+                      }
+                    }}
+                    sx={{
+                      color: "#EF4444",
+                      borderColor: "#FCA5A5",
+                      "&:hover": { 
+                        borderColor: "#EF4444", 
+                        backgroundColor: "#FEE2E2" 
+                      },
+                      height: "34px",
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setPromptDrawerOpen(false);
+                      setSelectedPromptIndex(null);
+                    }}
+                    sx={{
+                      bgcolor: "#13715B",
+                      "&:hover": { bgcolor: "#0F5E4B" },
+                      height: "34px",
+                      flex: 1,
+                    }}
+                  >
+                    Done
+                  </Button>
+                </Stack>
               </Stack>
             )}
           </Stack>
@@ -907,6 +1193,19 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
+
+      {/* Header + description */}
+      <Stack spacing={1} mb={4}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+            Datasets
+          </Typography>
+          <HelperIcon articlePath="llm-evals/managing-datasets" />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
+          Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
+        </Typography>
+      </Stack>
 
       {/* Hidden file input for uploads */}
       <input
@@ -946,9 +1245,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   { id: "prompts", label: "Prompts" },
                   { id: "createdAt", label: "Created" },
                 ]}
-                onGroupChange={() => {
-                  /* Grouping behaviour can be added later */
-                }}
+                onGroupChange={handleDatasetsGroupChange}
               />
               <SearchBox
                 placeholder="Search datasets..."
@@ -987,88 +1284,43 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
           {/* Table of user datasets */}
           <Box mb={4}>
-            <TableContainer>
-              <Table sx={singleTheme.tableStyles.primary.frame}>
-                <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Dataset</TableCell>
-                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Path</TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "60px" }}>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={3} sx={{ textAlign: "center", py: 4 }}>
-                        <CircularProgress size={24} sx={{ color: "#13715B" }} />
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedDatasets.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={3} sx={{ textAlign: "center", py: 4 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          No datasets found. Upload a dataset or copy from templates.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedDatasets.map((dataset) => (
-                      <TableRow
-                        key={dataset.path}
-                        onClick={() => handleRowClick(dataset)}
-                        sx={{
-                          ...singleTheme.tableStyles.primary.body.row,
-                          cursor: "pointer",
-                          "&:hover": { backgroundColor: "#f5f5f5" },
-                        }}
-                      >
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{dataset.name}</Typography>
-                        </TableCell>
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
-                            {dataset.path}
-                          </Typography>
-                        </TableCell>
-                        <TableCell
-                          sx={singleTheme.tableStyles.primary.body.cell}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleActionMenuOpen(e, dataset)}
-                            sx={{ padding: "4px" }}
-                          >
-                            <MoreVertical size={16} color="#6B7280" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-                {filteredDatasets.length > 0 && (
-                  <TableFooter>
-                    <TableRow>
-                      <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        count={filteredDatasets.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        ActionsComponent={TablePaginationActions}
-                        sx={{
-                          borderBottom: "none",
-                          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                            fontSize: "12px",
-                          },
-                        }}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
-            </TableContainer>
+            <GroupedTableView
+              groupedData={groupedDatasets}
+              ungroupedData={filteredDatasets}
+              renderTable={(data, options) => (
+                <DatasetsTable
+                  rows={data.map((dataset): DatasetRow => ({
+                    key: dataset.path,
+                    name: dataset.name,
+                    path: dataset.path,
+                    useCase: dataset.use_case || dataset.datasetType,
+                    createdAt: dataset.createdAt,
+                    metadata: datasetMetadata[dataset.path],
+                  }))}
+                  onRowClick={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleRowClick(dataset);
+                  }}
+                  onView={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleViewPrompts(dataset);
+                  }}
+                  onEdit={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleOpenInEditor(dataset);
+                  }}
+                  onDelete={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) {
+                      setDatasetToDelete(dataset);
+                      setDeleteModalOpen(true);
+                    }
+                  }}
+                  loading={loading}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
+            />
           </Box>
         </>
       )}
@@ -1079,6 +1331,13 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
           {/* Filter + search toolbar */}
             <Stack direction="row" alignItems="center" gap={2} sx={{ marginBottom: "18px" }}>
               <FilterBy columns={templateFilterColumns} onFilterChange={handleTemplateFilterChange} />
+              <GroupBy
+                options={[
+                  { id: "category", label: "Category" },
+                  { id: "difficulty", label: "Difficulty" },
+                ]}
+                onGroupChange={handleTemplatesGroupChange}
+              />
               <SearchBox
                 placeholder="Search templates..."
                 value={templateSearchTerm}
@@ -1088,165 +1347,208 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               />
             </Stack>
 
-            <TableContainer>
-              <Table sx={singleTheme.tableStyles.primary.frame}>
-                <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {/* Sortable Dataset column */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, cursor: "pointer", userSelect: "none" }}
-                      onClick={() => handleTemplateSort("name")}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Dataset</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "name" ? "#13715B" : "#9CA3AF" }}>
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "name" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Category column */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "120px", cursor: "pointer", userSelect: "none" }}
-                      onClick={() => handleTemplateSort("category")}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Category</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "category" ? "#13715B" : "#9CA3AF" }}>
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "category" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Tests column */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "80px", cursor: "pointer", userSelect: "none" }}
-                      onClick={() => handleTemplateSort("tests")}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Tests</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "tests" ? "#13715B" : "#9CA3AF" }}>
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "tests" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "100px" }}>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
-                        <CircularProgress size={24} sx={{ color: "#13715B" }} />
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedTemplates.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedTemplates.map((ds) => {
-                      return (
-                        <TableRow
-                          key={ds.key}
-                          onClick={() => handleViewTemplate(ds)}
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.row,
-                            cursor: "pointer",
-                            "&:hover": { backgroundColor: "#f5f5f5" },
-                          }}
-                        >
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
-                          </TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                            <Chip
-                              label={ds.category}
-                              size="small"
-                              sx={{
-                                height: 22,
-                                fontSize: "11px",
-                                textTransform: "capitalize",
-                                backgroundColor:
-                                  ds.category === "chatbot" ? "#DBEAFE" :
-                                  ds.category === "rag" ? "#E0E7FF" :
-                                  ds.category === "agent" ? "#FEF3C7" :
-                                  "#FEE2E2",
-                                color:
-                                  ds.category === "chatbot" ? "#1E40AF" :
-                                  ds.category === "rag" ? "#3730A3" :
-                                  ds.category === "agent" ? "#92400E" :
-                                  "#991B1B",
-                                borderRadius: "4px",
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                            <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                              {ds.test_count ?? "-"}
-                            </Typography>
-                          </TableCell>
+            <GroupedTableView
+              groupedData={groupedTemplates}
+              ungroupedData={filteredAndSortedTemplates}
+              renderTable={(data, options) => {
+                // Helper function for difficulty label
+                const getPredominantDifficultyLabel = (diff?: { easy: number; medium: number; hard: number }): string => {
+                  if (!diff) return "-";
+                  const total = diff.easy + diff.medium + diff.hard;
+                  if (total === 0) return "-";
+                  if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
+                  if (diff.medium >= diff.easy) return "Medium";
+                  return "Easy";
+                };
+
+                return (
+                  <TableContainer>
+                    <Table sx={singleTheme.tableStyles.primary.frame}>
+                      <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          {/* Sortable Dataset column - 20% */}
                           <TableCell
-                            sx={singleTheme.tableStyles.primary.body.cell}
-                            onClick={(e) => e.stopPropagation()}
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none" }}
+                            onClick={() => handleTemplateSort("name")}
                           >
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<Copy size={14} />}
-                              onClick={() => handleOpenCopyModal(ds)}
-                              disabled={copyingTemplate}
-                              sx={{
-                                textTransform: "none",
-                                fontSize: "12px",
-                                height: "28px",
-                                borderColor: "#d0d5dd",
-                                color: "#344054",
-                                "&:hover": {
-                                  borderColor: "#13715B",
-                                  color: "#13715B",
-                                },
-                              }}
-                            >
-                              Use
-                            </Button>
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DATASET</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "name" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "name" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "name" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "name" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable Category column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("category")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>CATEGORY</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "category" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "category" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "category" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "category" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable # Prompts column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("tests")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}># PROMPTS</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "tests" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "tests" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "tests" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "tests" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable Difficulty column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("difficulty")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DIFFICULTY</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "difficulty" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "difficulty" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* ACTION column - 20% */}
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", textAlign: "center" }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>ACTION</Typography>
                           </TableCell>
                         </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-                {filteredAndSortedTemplates.length > 0 && (
-                  <TableFooter>
-                    <TableRow>
-                      <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        count={filteredAndSortedTemplates.length}
-                        rowsPerPage={templateRowsPerPage}
-                        page={templatePage}
-                        onPageChange={handleTemplatePageChange}
-                        onRowsPerPageChange={handleTemplateRowsPerPageChange}
-                        ActionsComponent={TablePaginationActions}
-                        sx={{
-                          borderBottom: "none",
-                          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                            fontSize: "12px",
-                          },
-                        }}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
-            </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                              <CircularProgress size={24} sx={{ color: "#13715B" }} />
+                            </TableCell>
+                          </TableRow>
+                        ) : data.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          data.map((ds) => {
+                            const difficultyLabel = getPredominantDifficultyLabel(ds.difficulty);
+                            return (
+                              <TableRow
+                                key={ds.key}
+                                onClick={() => handleViewTemplate(ds)}
+                                sx={{
+                                  ...singleTheme.tableStyles.primary.body.row,
+                                  cursor: "pointer",
+                                  "&:hover": { backgroundColor: "#f5f5f5" },
+                                }}
+                              >
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                                  <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Chip
+                                    label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category === "safety" ? "Safety" : ds.category}
+                                    uppercase={false}
+                                    backgroundColor={
+                                      ds.category === "chatbot" ? "#DBEAFE" :
+                                      ds.category === "rag" ? "#E0E7FF" :
+                                      ds.category === "agent" ? "#FEF3C7" :
+                                      "#FEE2E2"
+                                    }
+                                    textColor={
+                                      ds.category === "chatbot" ? "#1E40AF" :
+                                      ds.category === "rag" ? "#3730A3" :
+                                      ds.category === "agent" ? "#92400E" :
+                                      "#991B1B"
+                                    }
+                                  />
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                                    {ds.test_count ?? "-"}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Chip
+                                    label={difficultyLabel}
+                                    variant={
+                                      difficultyLabel === "Easy" ? "success" :
+                                      difficultyLabel === "Medium" ? "medium" :
+                                      difficultyLabel === "Hard" ? "error" : "default"
+                                    }
+                                    uppercase={false}
+                                  />
+                                </TableCell>
+                                <TableCell
+                                  sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<Copy size={14} />}
+                                    onClick={() => handleOpenCopyModal(ds)}
+                                    disabled={copyingTemplate}
+                                    sx={{
+                                      textTransform: "none",
+                                      fontSize: "12px",
+                                      height: "28px",
+                                      borderColor: "#d0d5dd",
+                                      color: "#344054",
+                                      "&:hover": {
+                                        borderColor: "#13715B",
+                                        color: "#13715B",
+                                      },
+                                    }}
+                                  >
+                                    Use
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                      {!options?.hidePagination && data.length > 0 && (
+                        <TableFooter>
+                          <TableRow>
+                            <TablePagination
+                              rowsPerPageOptions={[5, 10, 25, 50]}
+                              count={filteredAndSortedTemplates.length}
+                              rowsPerPage={templateRowsPerPage}
+                              page={templatePage}
+                              onPageChange={handleTemplatePageChange}
+                              onRowsPerPageChange={handleTemplateRowsPerPageChange}
+                              ActionsComponent={TablePaginationActions}
+                              sx={{
+                                borderBottom: "none",
+                                "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
+                                  fontSize: "12px",
+                                },
+                              }}
+                            />
+                          </TableRow>
+                        </TableFooter>
+                      )}
+                    </Table>
+                  </TableContainer>
+                );
+              }}
+            />
         </Box>
       )}
 
@@ -1362,45 +1664,38 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               Dataset type
             </Typography>
             <Stack direction="row" spacing={1}>
-              {(["chatbot", "rag", "agent"] as const).map((type) => (
-                <Chip
-                  key={type}
-                  label={type === "rag" ? "RAG" : type.charAt(0).toUpperCase() + type.slice(1)}
-                  onClick={() => setExampleDatasetType(type)}
-                  sx={{
-                    cursor: "pointer",
-                    height: 28,
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    backgroundColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#DBEAFE"
-                        : type === "rag" ? "#E0E7FF"
-                        : "#FEF3C7"
-                      : "#F3F4F6",
-                    color: exampleDatasetType === type
-                      ? type === "chatbot" ? "#1E40AF"
-                        : type === "rag" ? "#3730A3"
-                        : "#92400E"
-                      : "#6B7280",
-                    border: exampleDatasetType === type ? "1px solid" : "1px solid transparent",
-                    borderColor: exampleDatasetType === type
-                      ? type === "chatbot" ? "#3B82F6"
-                        : type === "rag" ? "#6366F1"
-                        : "#F59E0B"
-                      : "transparent",
-                    "&:hover": {
-                      backgroundColor: type === "chatbot" ? "#DBEAFE"
-                        : type === "rag" ? "#E0E7FF"
-                        : "#FEF3C7",
-                    },
-                  }}
-                />
-              ))}
+              {/* "agent" commented out - not supported yet */}
+              {(["chatbot", "rag" /*, "agent" */] as const).map((type) => {
+                const isSelected = exampleDatasetType === type;
+                return (
+                  <Box
+                    key={type}
+                    onClick={() => setExampleDatasetType(type)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <Chip
+                      label={type === "rag" ? "RAG" : type.charAt(0).toUpperCase() + type.slice(1)}
+                      uppercase={false}
+                      backgroundColor={
+                        isSelected
+                          ? type === "chatbot" ? "#DBEAFE" : "#E0E7FF"
+                          : "#F3F4F6"
+                      }
+                      textColor={
+                        isSelected
+                          ? type === "chatbot" ? "#1E40AF" : "#3730A3"
+                          : "#6B7280"
+                      }
+                    />
+                  </Box>
+                );
+              })}
             </Stack>
             <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
               {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
               {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
-              {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."}
+              {/* Agent not supported yet */}
+              {/* {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent task completion."} */}
             </Typography>
           </Box>
 
@@ -1517,7 +1812,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </Typography>
                 </Box>
               )}
-              {exampleDatasetType === "agent" && (
+              {/* Agent not supported yet */}
+              {/* {exampleDatasetType === "agent" && (
                 <>
                   <Box sx={{ backgroundColor: "#FEF3C7", p: 1, borderRadius: 1, mt: 0.5 }}>
                     <Typography component="span" sx={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", color: "#92400E" }}>
@@ -1536,7 +1832,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                     </Typography>
                   </Box>
                 </>
-              )}
+              )} */}
             </Stack>
           </Box>
         </Stack>
@@ -1563,14 +1859,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               {datasetPrompts.length > 0 && (
                 <Chip
                   label={`${datasetPrompts.length} prompts`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "11px",
-                    backgroundColor: "#E5E7EB",
-                    color: "#374151",
-                    borderRadius: "4px",
-                  }}
+                  variant="default"
+                  uppercase={false}
                 />
               )}
             </Stack>
@@ -1634,14 +1924,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Chip
                           label={prompt.category}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "11px",
-                            backgroundColor: "#E5E7EB",
-                            color: "#374151",
-                            borderRadius: "4px",
-                          }}
+                          variant="default"
+                          uppercase={false}
                         />
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -1663,21 +1947,12 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                         {prompt.difficulty && (
                           <Chip
                             label={prompt.difficulty}
-                            size="small"
-                            sx={{
-                              height: 20,
-                              fontSize: "10px",
-                              fontWeight: 500,
-                              backgroundColor:
-                                prompt.difficulty === "easy" ? "#D1FAE5" :
-                                prompt.difficulty === "medium" ? "#FEF3C7" :
-                                prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                              color:
-                                prompt.difficulty === "easy" ? "#065F46" :
-                                prompt.difficulty === "medium" ? "#92400E" :
-                                prompt.difficulty === "hard" ? "#991B1B" : "#374151",
-                              borderRadius: "4px",
-                            }}
+                            variant={
+                              prompt.difficulty === "easy" ? "success" :
+                              prompt.difficulty === "medium" ? "medium" :
+                              prompt.difficulty === "hard" ? "error" : "default"
+                            }
+                            uppercase={false}
                           />
                         )}
                       </TableCell>
@@ -1711,14 +1986,8 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               {templatePrompts.length > 0 && (
                 <Chip
                   label={`${templatePrompts.length} prompts`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "11px",
-                    backgroundColor: "#E5E7EB",
-                    color: "#374151",
-                    borderRadius: "4px",
-                  }}
+                  variant="default"
+                  uppercase={false}
                 />
               )}
             </Stack>
@@ -1771,65 +2040,84 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {templatePrompts.map((prompt, index) => (
-                    <TableRow key={prompt.id || index} sx={{ ...singleTheme.tableStyles.primary.body.row, cursor: "default" }}>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%" }}>
-                        <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden" }}>
-                        <Chip
-                          label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
-                          title={prompt.category}
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: "10px",
-                            backgroundColor: "#E5E7EB",
-                            color: "#374151",
-                            borderRadius: "4px",
-                            maxWidth: "100%",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden" }}>
-                        <Typography
-                          sx={{
-                            fontSize: "13px",
-                            color: theme.palette.text.primary,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: "100%",
-                          }}
-                          title={prompt.prompt}
-                        >
-                          {prompt.prompt.length > 40 ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%" }}>
-                        {prompt.difficulty && (
-                          <Chip
-                            label={prompt.difficulty}
-                            size="small"
+                  {templatePrompts.map((prompt, index) => {
+                    const promptKey = prompt.id || `prompt-${index}`;
+                    const isExpanded = expandedPromptIds.has(promptKey);
+                    const isLongPrompt = prompt.prompt.length > 40;
+                    
+                    return (
+                      <TableRow 
+                        key={promptKey} 
+                        onClick={() => {
+                          if (isLongPrompt) {
+                            setExpandedPromptIds(prev => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(promptKey)) {
+                                newSet.delete(promptKey);
+                              } else {
+                                newSet.add(promptKey);
+                              }
+                              return newSet;
+                            });
+                          }
+                        }}
+                        sx={{ 
+                          ...singleTheme.tableStyles.primary.body.row, 
+                          cursor: isLongPrompt ? "pointer" : "default",
+                          "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
+                          verticalAlign: "top",
+                        }}
+                      >
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                          <Box title={prompt.category}>
+                            <Chip
+                              label={prompt.category?.length > 8 ? `${prompt.category.substring(0, 8)}...` : prompt.category}
+                              variant="default"
+                              uppercase={false}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "48%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
+                          <Typography
                             sx={{
-                              height: 20,
-                              fontSize: "10px",
-                              fontWeight: 500,
-                              backgroundColor:
-                                prompt.difficulty === "easy" ? "#D1FAE5" :
-                                prompt.difficulty === "medium" ? "#FEF3C7" :
-                                prompt.difficulty === "hard" ? "#FEE2E2" : "#E5E7EB",
-                              color:
-                                prompt.difficulty === "easy" ? "#065F46" :
-                                prompt.difficulty === "medium" ? "#92400E" :
-                                prompt.difficulty === "hard" ? "#991B1B" : "#374151",
-                              borderRadius: "4px",
+                              fontSize: "13px",
+                              color: theme.palette.text.primary,
+                              overflow: isExpanded ? "visible" : "hidden",
+                              textOverflow: isExpanded ? "clip" : "ellipsis",
+                              whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                              maxWidth: "100%",
+                              wordBreak: isExpanded ? "break-word" : "normal",
+                              lineHeight: 1.5,
                             }}
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            title={isExpanded ? undefined : prompt.prompt}
+                          >
+                            {isExpanded ? prompt.prompt : (isLongPrompt ? `${prompt.prompt.substring(0, 40)}...` : prompt.prompt)}
+                          </Typography>
+                          {isLongPrompt && (
+                            <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                              {isExpanded ? "Collapse" : "Expand"}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", verticalAlign: "top", pt: 1.5 }}>
+                          {prompt.difficulty && (
+                            <Chip
+                              label={prompt.difficulty}
+                              variant={
+                                prompt.difficulty === "easy" ? "success" :
+                                prompt.difficulty === "medium" ? "medium" :
+                                prompt.difficulty === "hard" ? "error" : "default"
+                              }
+                              uppercase={false}
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -1858,206 +2146,59 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       </Drawer>
 
       {/* Create Dataset Modal - Choice between Editor and Upload */}
-      {createDatasetModalOpen && (
-        <>
-          <Box
-            onClick={() => setCreateDatasetModalOpen(false)}
-            sx={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              zIndex: 1299,
+      <ModalStandard
+        isOpen={createDatasetModalOpen}
+        onClose={() => setCreateDatasetModalOpen(false)}
+        title="Add dataset"
+        description="Choose how you want to add a new dataset"
+        maxWidth="480px"
+      >
+        <Stack spacing="8px">
+          {/* Create from scratch option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setEditablePrompts([{
+                id: "prompt_1",
+                category: "general",
+                prompt: "",
+                expected_output: "",
+              }]);
+              setEditDatasetName("");
+              setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: exampleDatasetType, datasetType: exampleDatasetType });
+              setEditorOpen(true);
             }}
+            icon={<Edit3 size={14} color="#9CA3AF" />}
+            title="Create from scratch"
+            description="Use the editor to manually add prompts"
           />
-          <Box
-            sx={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 1300,
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
-              width: "100%",
-              maxWidth: "480px",
-              overflow: "hidden",
+
+          {/* Upload JSON option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setUploadModalOpen(true);
             }}
-          >
-            {/* Header */}
-            <Box sx={{ p: 3, borderBottom: "1px solid #E5E7EB" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#111827" }}>
-                    Add dataset
-                  </Typography>
-                  <Typography sx={{ fontSize: "13px", color: "#6B7280", mt: 0.5 }}>
-                    Choose how you want to add a new dataset
-                  </Typography>
-                </Box>
-                <IconButton
-                  onClick={() => setCreateDatasetModalOpen(false)}
-                  size="small"
-                  sx={{ color: "#9CA3AF", "&:hover": { color: "#6B7280" } }}
-                >
-                  <X size={20} />
-                </IconButton>
-              </Stack>
-            </Box>
+            icon={<Upload size={14} color="#9CA3AF" />}
+            title="Upload JSON file"
+            description="Import existing dataset in JSON format"
+          />
 
-            {/* Options */}
-            <Box sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                {/* Create from scratch option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setEditablePrompts([{
-                      id: "prompt_1",
-                      category: "general",
-                      prompt: "",
-                      expected_output: "",
-                    }]);
-                    setEditDatasetName("");
-                    setEditingDataset({ key: "new", name: "New Dataset", path: "", use_case: "chatbot" });
-                    setEditorOpen(true);
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#13715B",
-                      backgroundColor: "#F7FAF9",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#E8F5F1",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Edit3 size={22} color="#13715B" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Create from scratch
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Use the editor to manually add prompts
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-
-                {/* Upload JSON option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setUploadModalOpen(true);
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#4F46E5",
-                      backgroundColor: "#F5F5FF",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#EEF2FF",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Upload size={22} color="#4F46E5" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Upload JSON file
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Import existing dataset in JSON format
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-
-                {/* Use template option */}
-                <Box
-                  onClick={() => {
-                    setCreateDatasetModalOpen(false);
-                    setActiveTab("templates");
-                  }}
-                  sx={{
-                    p: 2,
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: "#D97706",
-                      backgroundColor: "#FFFBEB",
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: "10px",
-                        backgroundColor: "#FEF3C7",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Database size={22} color="#D97706" />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#111827", mb: 0.25 }}>
-                        Start from template
-                      </Typography>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                        Browse pre-built evaluation templates
-                      </Typography>
-                    </Box>
-                    <Box sx={{ color: "#9CA3AF" }}>→</Box>
-                  </Stack>
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
-        </>
-      )}
+          {/* Use template option */}
+          <SelectableCard
+            isSelected={false}
+            onClick={() => {
+              setCreateDatasetModalOpen(false);
+              setActiveTab("templates");
+            }}
+            icon={<Database size={14} color="#9CA3AF" />}
+            title="Start from template"
+            description="Browse pre-built evaluation templates"
+          />
+        </Stack>
+      </ModalStandard>
     </Box>
   );
 }

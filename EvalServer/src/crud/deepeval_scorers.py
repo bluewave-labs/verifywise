@@ -254,6 +254,63 @@ async def update_scorer(
   }
 
 
+async def get_scorer_by_id(
+  scorer_id: str,
+  *,
+  tenant: str,
+  db: AsyncSession,
+) -> Optional[Dict[str, Any]]:
+  """
+  Get a single scorer by ID.
+  """
+  schema_name = _get_schema_name(tenant)
+
+  result = await db.execute(
+    text(
+      f'''
+      SELECT id,
+             project_id,
+             name,
+             description,
+             type,
+             metric_key,
+             config,
+             enabled,
+             default_threshold,
+             weight,
+             tenant,
+             created_at,
+             updated_at,
+             created_by
+      FROM "{schema_name}".deepeval_scorers
+      WHERE id = :id AND tenant = :tenant
+      '''
+    ),
+    {"id": scorer_id, "tenant": tenant},
+  )
+
+  row = result.mappings().first()
+  if not row:
+    return None
+
+  return {
+    "id": row["id"],
+    "projectId": row["project_id"],
+    "name": row["name"],
+    "description": row["description"],
+    "type": row["type"],
+    "metricKey": row["metric_key"],
+    "config": row["config"] or {},
+    "enabled": row["enabled"],
+    "defaultThreshold": float(row["default_threshold"]) if row["default_threshold"] is not None else None,
+    "weight": float(row["weight"]) if row["weight"] is not None else None,
+    "tenant": row["tenant"],
+    "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
+    "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
+    "createdBy": row["created_by"],
+  }
+
+
 async def delete_scorer(
   scorer_id: str,
   *,

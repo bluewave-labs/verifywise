@@ -3,9 +3,13 @@ import { AssistantRuntime, AssistantRuntimeProvider } from '@assistant-ui/react'
 import { useAdvisorRuntime } from './useAdvisorRuntime';
 import { CustomThread } from './CustomThread';
 
-const AdvisorChat = () => {
+interface AdvisorChatProps {
+  selectedLLMKeyId?: number;
+}
+
+const AdvisorChat = ({ selectedLLMKeyId }: AdvisorChatProps) => {
   const theme = useTheme();
-  const runtime: AssistantRuntime = useAdvisorRuntime(); 
+  const runtime: AssistantRuntime = useAdvisorRuntime(selectedLLMKeyId);
 
   return (
     <Paper

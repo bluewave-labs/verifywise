@@ -7,12 +7,22 @@ import {
   CardContent,
   Grid,
   Button,
+  Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { Check, Database, ExternalLink, Upload } from "lucide-react";
+import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
+import SelectableCard from "../../components/SelectableCard";
 import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
 import Alert from "../../components/Alert";
+import Chip from "../../components/Chip";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -26,6 +36,9 @@ import { ReactComponent as FolderFilledIcon } from "../../assets/icons/folder_fi
 import { ReactComponent as BuildIcon } from "../../assets/icons/build.svg";
 import { experimentsService } from "../../../infrastructure/api/evaluationLogsService";
 import { deepEvalDatasetsService } from "../../../infrastructure/api/deepEvalDatasetsService";
+import { deepEvalScorersService, type DeepEvalScorer } from "../../../infrastructure/api/deepEvalScorersService";
+import { evaluationLlmApiKeysService, type LLMApiKey, type LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
+import { PROVIDERS, type ModelInfo } from "../../utils/providers";
 
 interface NewExperimentModalProps {
   isOpen: boolean;
@@ -35,7 +48,7 @@ interface NewExperimentModalProps {
   onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
 }
 
-const steps = ["Model", "Dataset", "Judge LLM", "Metrics"];
+const steps = ["Model", "Dataset", "Scorer / Judge", "Metrics"];
 
 export default function NewExperimentModal({
   isOpen,
@@ -73,6 +86,17 @@ export default function NewExperimentModal({
   const [loadingUserDatasets, setLoadingUserDatasets] = useState(false);
   const [uploadingDataset, setUploadingDataset] = useState(false);
   const [selectedPresetPath, setSelectedPresetPath] = useState<string>("");
+
+  // Scorer / Judge mode state: scorer = custom only, standard = judge only, both = run both
+  const [judgeMode, setJudgeMode] = useState<"scorer" | "standard" | "both">("standard");
+  const [userScorers, setUserScorers] = useState<DeepEvalScorer[]>([]);
+  const [selectedScorer, setSelectedScorer] = useState<DeepEvalScorer | null>(null);
+  const [loadingScorers, setLoadingScorers] = useState(false);
+  
+  // Configured API keys state
+  const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
+  const [loadingApiKeys, setLoadingApiKeys] = useState(true);
+  
 
   // Configuration state
   const [config, setConfig] = useState({
@@ -116,6 +140,9 @@ export default function NewExperimentModal({
       conversationRelevancy: true,
       conversationCompleteness: true,
       roleAdherence: true,
+      // Agent-specific
+      taskCompletion: false,
+      toolCorrectness: false,
     },
     thresholds: {
       answerRelevancy: 0.5,
@@ -128,12 +155,87 @@ export default function NewExperimentModal({
       conversationRelevancy: 0.5,
       conversationCompleteness: 0.5,
       roleAdherence: 0.5,
+      taskCompletion: 0.5,
+      toolCorrectness: 0.5,
     },
   });
+
+  // Update metric defaults when task type changes
+  useEffect(() => {
+    setConfig((prev) => {
+      const baseMetrics = {
+        // General metrics (always available)
+        answerRelevancy: true,
+        bias: true,
+        toxicity: true,
+        // RAG-specific
+        faithfulness: false,
+        hallucination: false,
+        contextualRelevancy: false,
+        // Chatbot-specific
+        knowledgeRetention: false,
+        conversationRelevancy: false,
+        conversationCompleteness: false,
+        roleAdherence: false,
+        // Agent-specific
+        taskCompletion: false,
+        toolCorrectness: false,
+      };
+
+      if (prev.taskType === "rag") {
+        return {
+          ...prev,
+          metrics: {
+            ...baseMetrics,
+            faithfulness: true,
+            hallucination: true,
+            contextualRelevancy: true,
+          },
+        };
+      } else if (prev.taskType === "agent") {
+        return {
+          ...prev,
+          metrics: {
+            ...baseMetrics,
+            taskCompletion: true,
+            toolCorrectness: true,
+          },
+        };
+      } else {
+        // chatbot
+        return {
+          ...prev,
+          metrics: {
+            ...baseMetrics,
+            knowledgeRetention: true,
+            conversationRelevancy: true,
+            conversationCompleteness: true,
+            roleAdherence: true,
+          },
+        };
+      }
+    });
+  }, [config.taskType]);
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
   };
+
+  // Load configured API keys when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    (async () => {
+      try {
+        setLoadingApiKeys(true);
+        const keys = await evaluationLlmApiKeysService.getAllKeys();
+        setConfiguredApiKeys(keys);
+      } catch {
+        /* ignore */
+      } finally {
+        setLoadingApiKeys(false);
+      }
+    })();
+  }, [isOpen]);
 
   // Load user datasets when entering the dataset step
   useEffect(() => {
@@ -155,6 +257,28 @@ export default function NewExperimentModal({
       }
     })();
   }, [activeStep]);
+
+  // Load user scorers when entering the scorer/judge step
+  useEffect(() => {
+    if (activeStep !== 2) return;
+    (async () => {
+      try {
+        setLoadingScorers(true);
+        const res = await deepEvalScorersService.list({ project_id: projectId });
+        const enabledScorers = (res.scorers || []).filter((s) => s.enabled);
+        setUserScorers(enabledScorers);
+        // If user has scorers, default to scorer mode
+        if (enabledScorers.length > 0) {
+          setJudgeMode("scorer");
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setLoadingScorers(false);
+      }
+    })();
+  }, [activeStep, projectId]);
+
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
   };
@@ -191,11 +315,63 @@ export default function NewExperimentModal({
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Auto-save any new API keys entered
+      const saveApiKeyPromises: Promise<void>[] = [];
+      
+      // Save model provider API key if entered (only for cloud providers with saved model lists)
+      const modelProvider = config.model.accessMethod;
+      if (config.model.apiKey && modelProvider && PROVIDERS[modelProvider] && !hasApiKey(modelProvider)) {
+        saveApiKeyPromises.push(
+          evaluationLlmApiKeysService.addKey({
+            provider: modelProvider as LLMProvider,
+            apiKey: config.model.apiKey,
+          }).then((newKey) => {
+            // Update local state so we know it's configured now
+            setConfiguredApiKeys((prev) => [...prev, newKey]);
+          }).catch((err) => {
+            console.warn("Failed to save model API key:", err);
+          })
+        );
+      }
+      
+      // Save judge provider API key if entered
+      const judgeProvider = config.judgeLlm.provider;
+      if (config.judgeLlm.apiKey && judgeProvider && PROVIDERS[judgeProvider] && !hasApiKey(judgeProvider)) {
+        saveApiKeyPromises.push(
+          evaluationLlmApiKeysService.addKey({
+            provider: judgeProvider as LLMProvider,
+            apiKey: config.judgeLlm.apiKey,
+          }).then((newKey) => {
+            setConfiguredApiKeys((prev) => [...prev, newKey]);
+          }).catch((err) => {
+            console.warn("Failed to save judge API key:", err);
+          })
+        );
+      }
+      
+      // Wait for API keys to be saved (don't block if they fail)
+      await Promise.allSettled(saveApiKeyPromises);
+      
       // Prepare experiment configuration
+      // Create experiment name with model name + date/time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const dateTimeStr = `${dateStr}, ${timeStr}`;
+      const modelName = config.model.name || "Unknown Model";
+      
       const experimentConfig = {
         project_id: projectId,
-        name: `${config.model.name} - ${new Date().toLocaleDateString()}`,
-        description: `Evaluating ${config.model.name} with ${datasetPrompts.length} prompts`,
+        name: `${modelName} - ${dateTimeStr}`,
+        description: `Evaluating ${modelName} with ${datasetPrompts.length} prompts`,
         config: {
           project_id: projectId,  // Include in config for runner
           model: {
@@ -205,15 +381,53 @@ export default function NewExperimentModal({
             apiKey: config.model.apiKey || undefined, // Send actual key to runner, backend won't store it
             modelPath: config.model.modelPath,
           },
-          judgeLlm: {
+          // Include scorer info if using custom scorer mode or both
+          ...((judgeMode === "scorer" || judgeMode === "both") && selectedScorer ? {
+            useCustomScorer: true,
+            scorerId: selectedScorer.id,
+            scorerName: selectedScorer.name,
+            scorerMetricKey: selectedScorer.metricKey,
+            // Tell backend which providers the custom scorer needs (for API key injection)
+            scorerProviders: (() => {
+              const providers: string[] = [];
+              const judgeModel = selectedScorer.config?.judgeModel;
+              if (typeof judgeModel === 'object' && judgeModel?.provider) {
+                providers.push(judgeModel.provider.toLowerCase());
+              } else if (typeof judgeModel === 'string') {
+                // Legacy format - infer provider from model name
+                const modelLower = judgeModel.toLowerCase();
+                if (modelLower.includes('gpt') || modelLower.includes('o1') || modelLower.includes('o3')) {
+                  providers.push('openai');
+                } else if (modelLower.includes('claude')) {
+                  providers.push('anthropic');
+                } else if (modelLower.includes('gemini')) {
+                  providers.push('google');
+                } else if (modelLower.includes('mistral') || modelLower.includes('magistral')) {
+                  providers.push('mistral');
+                } else if (modelLower.includes('grok')) {
+                  providers.push('xai');
+                }
+              }
+              return providers.length > 0 ? providers : ['openai']; // Default to OpenAI
+            })(),
+            // API key is automatically injected by the backend from organization settings
+          } : {}),
+          // Include judge LLM config if using standard mode or both
+          judgeLlm: (judgeMode === "standard" || judgeMode === "both") ? {
             provider: config.judgeLlm.provider,
             model: config.judgeLlm.model,
             apiKey: config.judgeLlm.apiKey || undefined, // Send actual key to runner, backend won't store it
             temperature: config.judgeLlm.temperature,
             maxTokens: config.judgeLlm.maxTokens,
-          },
+          } : undefined,
+          // Include evaluation mode for the runner
+          evaluationMode: judgeMode,
           dataset: {
             useBuiltin: config.dataset.useBuiltin,
+            // Include dataset name and path for display in experiments table
+            name: selectedUserDataset?.name || (selectedPresetPath ? selectedPresetPath.split("/").pop()?.replace(/\.json$/i, "").split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : undefined),
+            path: selectedUserDataset?.path || selectedPresetPath || undefined,
+            datasetId: selectedUserDataset?.id || undefined,
             prompts: datasetPrompts,
             count: datasetPrompts.length,
           },
@@ -282,6 +496,9 @@ export default function NewExperimentModal({
     setDatasetLoaded(false);
     setSelectedUserDataset(null);
     setSelectedPresetPath("");
+    // Reset scorer state
+    setJudgeMode("standard");
+    setSelectedScorer(null);
     setConfig({
       taskType: "chatbot",
       model: {
@@ -315,6 +532,8 @@ export default function NewExperimentModal({
         conversationRelevancy: true,
         conversationCompleteness: true,
         roleAdherence: true,
+        taskCompletion: false,
+        toolCorrectness: false,
       },
       thresholds: {
         answerRelevancy: 0.5,
@@ -327,23 +546,48 @@ export default function NewExperimentModal({
         conversationRelevancy: 0.5,
         conversationCompleteness: 0.5,
         roleAdherence: 0.5,
+        taskCompletion: 0.5,
+        toolCorrectness: 0.5,
       },
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "gemini" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api";
 
-  const providers = [
-    { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"], needsApiKey: true },
-    { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, models: ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"], needsApiKey: true },
-    { id: "gemini" as ProviderType, name: "Gemini", Logo: GeminiLogo, models: ["gemini-pro", "gemini-ultra"], needsApiKey: true },
-    { id: "xai" as ProviderType, name: "xAI", Logo: XAILogo, models: ["grok-1"], needsApiKey: true },
-    { id: "mistral" as ProviderType, name: "Mistral", Logo: MistralLogo, models: ["mistral-large", "mistral-medium"], needsApiKey: true },
-    { id: "huggingface" as ProviderType, name: "HuggingFace", Logo: HuggingFaceLogo, models: ["TinyLlama/TinyLlama-1.1B-Chat-v1.0"], needsApiKey: false },
-    { id: "ollama" as ProviderType, name: "Ollama", Logo: OllamaLogo, models: ["llama2", "mistral", "codellama"], needsApiKey: false },
+  // Check if a provider has a configured API key
+  const hasApiKey = (providerId: string): boolean => {
+    return configuredApiKeys.some((k) => k.provider === providerId);
+  };
+
+  // All cloud providers that need API keys (using the saved models)
+  const cloudProviders = [
+    { id: "openai" as ProviderType, name: "OpenAI", Logo: OpenAILogo, needsApiKey: true },
+    { id: "anthropic" as ProviderType, name: "Anthropic", Logo: AnthropicLogo, needsApiKey: true },
+    { id: "google" as ProviderType, name: "Gemini", Logo: GeminiLogo, needsApiKey: true },
+    { id: "xai" as ProviderType, name: "xAI", Logo: XAILogo, needsApiKey: true },
+    { id: "mistral" as ProviderType, name: "Mistral", Logo: MistralLogo, needsApiKey: true },
   ];
 
-  const selectedProvider = providers.find(p => p.id === config.judgeLlm.provider);
+  // Local providers that don't need API keys
+  const localProviders = [
+    { id: "huggingface" as ProviderType, name: "HuggingFace", Logo: HuggingFaceLogo, needsApiKey: false },
+    { id: "ollama" as ProviderType, name: "Ollama", Logo: OllamaLogo, needsApiKey: false },
+  ];
+
+  // All available providers for judge selection (all cloud + local)
+  const availableJudgeProviders = [...cloudProviders, ...localProviders];
+
+  const selectedProvider = availableJudgeProviders.find(p => p.id === config.judgeLlm.provider);
+  
+  // Get models for selected provider
+  const getProviderModels = (providerId: string): ModelInfo[] => {
+    // For cloud providers, use the saved model lists
+    if (PROVIDERS[providerId]) {
+      return PROVIDERS[providerId].models;
+    }
+    // For local providers, return empty (user types model name)
+    return [];
+  };
 
   // Auto-scroll when provider is selected
   useEffect(() => {
@@ -364,14 +608,18 @@ export default function NewExperimentModal({
     }
   }, [activeStep, config.dataset.useBuiltin, datasetLoaded, handleLoadBuiltinDataset]);
 
-  // Model providers - includes all Judge LLM providers plus Local and Custom API
-  const modelProviders = [
-    ...providers,
-    { id: "local" as ProviderType, name: "Local", Logo: FolderFilledIcon, models: ["local-model"], needsApiKey: false, needsUrl: true },
-    { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, models: ["custom-model"], needsApiKey: true, needsUrl: true },
+  // Model providers - show ALL providers (cloud + local)
+  const allModelProviders = [
+    ...cloudProviders.map(p => ({ ...p, needsUrl: false })),
+    ...localProviders.map(p => ({ ...p, needsUrl: false })),
+    { id: "local" as ProviderType, name: "Local", Logo: FolderFilledIcon, needsApiKey: false, needsUrl: true },
+    { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, needsApiKey: true, needsUrl: true },
   ];
+  
+  // Show all providers - we'll handle missing API keys with a message
+  const availableModelProviders = allModelProviders;
 
-  const selectedModelProvider = modelProviders.find(p => p.id === config.model.accessMethod);
+  const selectedModelProvider = availableModelProviders.find(p => p.id === config.model.accessMethod);
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -385,130 +633,197 @@ export default function NewExperimentModal({
               </Typography>
             </Box>
 
-            <Box>
-              <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                Model Provider
-              </Typography>
-              <Grid container spacing={1.5}>
-                {modelProviders.map((provider) => {
-                  const { Logo } = provider;
-                  const isSelected = config.model.accessMethod === provider.id;
-                  
-                  return (
-                    <Grid item xs={4} sm={3} key={provider.id}>
-                      <Card
-                        onClick={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            model: {
-                              ...prev.model,
-                              accessMethod: provider.id as typeof config.model.accessMethod,
-                              name: provider.name,
-                            },
-                          }))
-                        }
-                        sx={{
-                          cursor: "pointer",
-                          border: "1px solid",
-                          borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                          backgroundColor: "#FFFFFF",
-                          boxShadow: "none",
-                          transition: "all 0.2s ease",
-                          position: "relative",
-                          height: "100%",
-                          "&:hover": {
-                            borderColor: "#13715B",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                          },
-                        }}
-                      >
-                        <CardContent
+            {loadingApiKeys ? (
+              <Box sx={{ py: 4, textAlign: "center" }}>
+                <CircularProgress size={24} />
+                <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                  Loading providers...
+                </Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                  Model provider
+                </Typography>
+                <Grid container spacing={1.5}>
+                  {/* Show all providers */}
+                  {availableModelProviders.map((provider) => {
+                    const { Logo } = provider;
+                    const isSelected = config.model.accessMethod === provider.id;
+                    
+                    return (
+                      <Grid item xs={4} sm={3} key={provider.id}>
+                        <Card
+                          onClick={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              model: {
+                                ...prev.model,
+                                accessMethod: provider.id as typeof config.model.accessMethod,
+                                name: "", // Reset model name when changing provider
+                              },
+                            }))
+                          }
                           sx={{
-                            textAlign: "center",
-                            py: 3,
-                            px: 2,
+                            cursor: "pointer",
+                            border: "1px solid",
+                            borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                            backgroundColor: "#FFFFFF",
+                            boxShadow: "none",
+                            transition: "all 0.2s ease",
+                            position: "relative",
                             height: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            "&:last-child": { pb: 3 },
+                            "&:hover": {
+                              borderColor: "#13715B",
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                            },
                           }}
                         >
-                          {isSelected && (
+                          <CardContent
+                            sx={{
+                              textAlign: "center",
+                              py: 3,
+                              px: 2,
+                              height: "100%",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              "&:last-child": { pb: 3 },
+                            }}
+                          >
+                            {isSelected && (
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: 8,
+                                  right: 8,
+                                  backgroundColor: "#13715B",
+                                  borderRadius: "50%",
+                                  width: 20,
+                                  height: 20,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                              </Box>
+                            )}
+                            
+                            {/* Provider Logo */}
                             <Box
                               sx={{
-                                position: "absolute",
-                                top: 8,
-                                right: 8,
-                                backgroundColor: "#13715B",
-                                borderRadius: "50%",
-                                width: 20,
-                                height: 20,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
+                                width: "100%",
+                                height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                mb: 1.5,
+                                "& svg": {
+                                  maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
+                                  maxHeight: "100%",
+                                  width: "auto",
+                                  height: "auto",
+                                  objectFit: "contain",
+                                },
                               }}
                             >
-                              <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                              <Logo />
                             </Box>
-                          )}
-                          
-                          {/* Provider Logo */}
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                              height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
-                              mb: 1.5,
-                              "& svg": {
-                                maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                maxHeight: "100%",
-                                width: "auto",
-                                height: "auto",
-                                objectFit: "contain",
-                              },
-                            }}
-                          >
-                            <Logo />
-                          </Box>
-                          
-                          {/* Provider Name */}
-                          <Typography
-                            sx={{
-                              fontSize: "12px",
-                              fontWeight: isSelected ? 600 : 500,
-                              color: isSelected ? "#13715B" : "#374151",
-                              textAlign: "center",
-                            }}
-                          >
-                            {provider.name}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            </Box>
+                            
+                            {/* Provider Name */}
+                            <Typography
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: isSelected ? 600 : 500,
+                                color: isSelected ? "#13715B" : "#374151",
+                                textAlign: "center",
+                              }}
+                            >
+                              {provider.name}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
+            )}
 
             {/* Conditional Fields Based on Provider */}
             {config.model.accessMethod && (
               <Box ref={formFieldsRef}>
                 <Stack spacing={3}>
-                  <Field
-                    label="Model name"
-                    value={config.model.name}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        model: { ...prev.model, name: e.target.value },
-                      }))
-                    }
-                    placeholder="e.g., gpt-4, claude-3-opus, tinyllama"
-                  />
+                  {/* Model Selection - Dropdown for cloud providers, text input for local */}
+                  {PROVIDERS[config.model.accessMethod] ? (
+                    <Box>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                        Model
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <Select
+                          value={config.model.name}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              model: { ...prev.model, name: e.target.value as string },
+                            }))
+                          }
+                          displayEmpty
+                          sx={{
+                            fontSize: "13px",
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#E5E7EB",
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#D1D5DB",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#13715B",
+                            },
+                          }}
+                        >
+                          <MenuItem value="" disabled>
+                            <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                              Select a model
+                            </Typography>
+                          </MenuItem>
+                          {getProviderModels(config.model.accessMethod).map((model) => (
+                            <MenuItem key={model.id} value={model.id}>
+                              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
+                                <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
+                                {model.inputCost !== undefined && (
+                                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                    ${model.inputCost}/1M in • ${model.outputCost}/1M out
+                                  </Typography>
+                                )}
+                              </Stack>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  ) : (
+                    <Field
+                      label="Model name"
+                      value={config.model.name}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          model: { ...prev.model, name: e.target.value },
+                        }))
+                      }
+                      placeholder={
+                        config.model.accessMethod === "ollama" 
+                          ? "e.g., llama2, mistral, codellama" 
+                          : config.model.accessMethod === "huggingface"
+                          ? "e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+                          : "e.g., gpt-4, claude-3-opus"
+                      }
+                    />
+                  )}
 
                   {/* URL field for Local and Custom API */}
                   {(selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl) && (
@@ -528,21 +843,33 @@ export default function NewExperimentModal({
                     />
                   )}
 
-                  {/* API Key field for providers that need it */}
+                  {/* API Key - show configured status OR input field */}
                   {selectedModelProvider?.needsApiKey && (
-                    <Field
-                      label="API Key"
-                      type="password"
-                      value={config.model.apiKey}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          model: { ...prev.model, apiKey: e.target.value },
-                        }))
-                      }
-                      placeholder="Enter your API key"
-                      autoComplete="off"
-                    />
+                    hasApiKey(config.model.accessMethod) ? (
+                      <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Check size={16} color="#059669" />
+                          <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                            API key configured — will be saved for future experiments
+                          </Typography>
+                        </Stack>
+                      </Box>
+                    ) : (
+                      <Field
+                        label="API Key"
+                        type="password"
+                        value={config.model.apiKey}
+                        onChange={(e) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            model: { ...prev.model, apiKey: e.target.value },
+                          }))
+                        }
+                        placeholder={`Enter your ${selectedModelProvider.name} API key`}
+                        autoComplete="off"
+                        helperText="Your key will be saved securely for future experiments"
+                      />
+                    )
                   )}
                 </Stack>
               </Box>
@@ -553,23 +880,28 @@ export default function NewExperimentModal({
       case 1:
         // Step 2: Dataset
         return (
-          <Stack spacing={2}>
+          <Stack spacing="16px">
             {/* Description */}
             <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
               </Typography>
 
-            {/* Upload Section - Compact drop zone */}
-            <Box
+            {/* Option 1: Custom dataset */}
+            <Box>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
+                Option 1: Use custom dataset
+              </Typography>
+              {/* Upload Section - Compact drop zone */}
+              <Box
               component="label"
                   sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1.5,
-                    p: 1.5,
+                gap: "8px",
+                    p: "8px",
                 border: "1px dashed",
                 borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
-                borderRadius: "8px",
+                borderRadius: "4px",
                 backgroundColor: "#FAFAFA",
                 cursor: uploadingDataset ? "wait" : "pointer",
                 transition: "all 0.15s ease",
@@ -630,6 +962,7 @@ export default function NewExperimentModal({
                     }}
                   />
               </Box>
+            </Box>
 
             {/* My Datasets Section */}
             {loadingUserDatasets ? (
@@ -640,7 +973,7 @@ export default function NewExperimentModal({
                 <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    Your Datasets
+                    Option 2: Your datasets
                   </Typography>
                   <Button
                   size="small"
@@ -652,12 +985,13 @@ export default function NewExperimentModal({
                     Manage
                   </Button>
                 </Stack>
-                <Stack spacing={0.5}>
+                <Stack spacing="8px">
                   {userDatasets.slice(0, 4).map((dataset) => {
                     const isSelected = selectedUserDataset?.id === dataset.id && !config.dataset.useBuiltin;
                     return (
-                      <Box
+                      <SelectableCard
                         key={dataset.id}
+                        isSelected={isSelected}
                         onClick={async () => {
                           setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: false } }));
                           setSelectedUserDataset(dataset);
@@ -670,24 +1004,11 @@ export default function NewExperimentModal({
                             setDatasetPrompts([]);
                           }
                         }}
-                        sx={{
-                          p: 1,
-                          border: "1px solid",
-                          borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          transition: "all 0.15s ease",
-                          "&:hover": { borderColor: "#13715B", backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB" },
-                        }}
-                      >
-                        <Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", flex: 1 }}>{dataset.name}</Typography>
-                        {isSelected && <Check size={14} color="#13715B" />}
-                      </Box>
+                        icon={<Database size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                        title={dataset.name}
+                        description="Custom uploaded dataset"
+                        chip={isSelected && datasetPrompts.length > 0 ? <Chip label={`${datasetPrompts.length} prompts`} variant="info" uppercase={false} /> : undefined}
+                      />
                     );
                   })}
                 </Stack>
@@ -697,30 +1018,29 @@ export default function NewExperimentModal({
             {/* Template Datasets Section */}
             <Box>
               <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
-                {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} Templates
+                Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
                   </Typography>
-              <Stack spacing={0.5}>
+              <Stack spacing="8px">
                 {[
                   ...(config.taskType === "chatbot" ? [
-                    { name: "General Q&A", path: "chatbot/chatbot_singleturn_example.json", desc: "Standard question-answer pairs" },
-                    { name: "Conversational", path: "chatbot/chatbot_conversations_example.json", desc: "Multi-turn dialogue samples" },
-                    { name: "Knowledge Test", path: "chatbot/chatbot_knowledge_example.json", desc: "Factual knowledge evaluation" },
+                    { name: "Basic Chatbot", path: "chatbot/chatbot_basic.json", desc: "Standard question-answer pairs" },
+                    { name: "Coding Helper", path: "chatbot/chatbot_coding_helper.json", desc: "Code assistance scenarios" },
+                    { name: "Customer Support", path: "chatbot/chatbot_customer_support.json", desc: "Support conversation samples" },
                   ] : []),
                   ...(config.taskType === "rag" ? [
-                    { name: "Document QA", path: "rag/document_qa_example.json", desc: "Questions with retrieval context" },
-                    { name: "Technical Docs", path: "rag/technical_docs_example.json", desc: "Technical documentation queries" },
-                    { name: "Research Papers", path: "rag/research_papers_example.json", desc: "Academic content retrieval" },
+                    { name: "Product Docs", path: "rag/rag_product_docs.json", desc: "Product documentation queries" },
+                    { name: "Wikipedia QA", path: "rag/rag_wikipedia_small.json", desc: "Wikipedia-based questions" },
+                    { name: "Research Papers", path: "rag/rag_research_papers.json", desc: "Academic content retrieval" },
                   ] : []),
                   ...(config.taskType === "agent" ? [
-                    { name: "Tool Usage", path: "agent/tool_usage_example.json", desc: "Tasks requiring tool calls" },
-                    { name: "Multi-step Tasks", path: "agent/multistep_example.json", desc: "Complex multi-step reasoning" },
-                    { name: "API Interactions", path: "agent/api_interactions_example.json", desc: "External API orchestration" },
+                    { name: "Agent Tasks", path: "presets/agent_dataset.json", desc: "Tool usage and multi-step tasks" },
                   ] : []),
                 ].map((template) => {
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
                   return (
-                    <Box
+                    <SelectableCard
                       key={template.path}
+                      isSelected={isSelected}
                       onClick={async () => {
                         setConfig((prev) => ({ ...prev, dataset: { ...prev.dataset, useBuiltin: true } }));
                         setSelectedUserDataset(null);
@@ -732,230 +1052,410 @@ export default function NewExperimentModal({
                         } catch {
                           setDatasetPrompts([]);
                         }
-                              }}
-                              sx={{
-                        p: 1,
-                        border: "1px solid",
-                        borderColor: isSelected ? "#6366F1" : "#E5E7EB",
-                        borderRadius: "6px",
-                                cursor: "pointer",
-                        backgroundColor: isSelected ? "#EEF2FF" : "#FFFFFF",
-                                display: "flex",
-                                alignItems: "center",
-                        gap: 1,
-                        transition: "all 0.15s ease",
-                        "&:hover": { borderColor: "#6366F1", backgroundColor: isSelected ? "#EEF2FF" : "#F9FAFB" },
                       }}
-                    >
-                      <Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>{template.name}</Typography>
-                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{template.desc}</Typography>
-                            </Box>
-                      {isSelected && <Check size={14} color="#6366F1" />}
-                        </Box>
+                      icon={<Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />}
+                      title={template.name}
+                      description={template.desc}
+                      accentColor="#6366F1"
+                      chip={isSelected && datasetPrompts.length > 0 ? <Chip label={`${datasetPrompts.length} prompts`} variant="info" uppercase={false} /> : undefined}
+                    />
                   );
                 })}
-                          </Stack>
+              </Stack>
             </Box>
-
-            {/* Selected dataset confirmation */}
-            {(selectedUserDataset || (config.dataset.useBuiltin && selectedPresetPath)) && datasetPrompts.length > 0 && (
-              <Box sx={{ p: 1.5, backgroundColor: "#ECFDF5", borderRadius: "8px", border: "1px solid #A7F3D0" }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Check size={16} color="#059669" />
-                  <Typography sx={{ fontSize: "13px", color: "#065F46", fontWeight: 500 }}>
-                    {datasetPrompts.length} prompts ready
-                  </Typography>
-                </Stack>
-              </Box>
-            )}
           </Stack>
         );
 
       case 2:
-        // Step 3: Judge LLM - Provider Selection Grid
+        // Step 3: Scorer / Judge - Choose evaluation method
         return (
-          <Stack spacing={4}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Select the LLM provider to use as a judge for evaluating your model's outputs.
-              </Typography>
-            </Box>
+          <Stack spacing="16px">
+            {/* Mode Toggle - 3 Options */}
+            <Stack spacing="8px">
+              <SelectableCard
+                isSelected={judgeMode === "scorer"}
+                onClick={() => {
+                  setJudgeMode("scorer");
+                  setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, provider: "" } }));
+                }}
+                icon={<Sparkles size={14} color={judgeMode === "scorer" ? "#13715B" : "#9CA3AF"} />}
+                title="Custom scorer only"
+                description="Use your own prompts for domain-specific evaluation"
+              />
+              <SelectableCard
+                isSelected={judgeMode === "standard"}
+                onClick={() => {
+                  setJudgeMode("standard");
+                  setSelectedScorer(null);
+                }}
+                icon={<Settings size={14} color={judgeMode === "standard" ? "#13715B" : "#9CA3AF"} />}
+                title="Standard judge only"
+                description="Use built-in metrics with fixed evaluation criteria"
+              />
+              <SelectableCard
+                isSelected={judgeMode === "both"}
+                onClick={() => setJudgeMode("both")}
+                icon={<Layers size={14} color={judgeMode === "both" ? "#13715B" : "#9CA3AF"} />}
+                title="Judge + scorer"
+                description="Use both built-in metrics and your custom scorers"
+              />
+            </Stack>
 
-            <Box>
-              <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                Providers and frameworks
-              </Typography>
-              <Grid container spacing={1.5}>
-                {providers.map((provider) => {
-                  const { Logo } = provider;
-                  const isSelected = config.judgeLlm.provider === provider.id;
-                  
-                  return (
-                    <Grid item xs={4} sm={3} key={provider.id}>
-                      <Card
-                        onClick={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            judgeLlm: {
-                              ...prev.judgeLlm,
-                              provider: provider.id,
-                              model: provider.models[0],
-                            },
-                          }))
-                        }
-                        sx={{
-                          cursor: "pointer",
-                          border: "1px solid",
-                          borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                          backgroundColor: "#FFFFFF",
-                          boxShadow: "none",
-                          transition: "all 0.2s ease",
-                          position: "relative",
-                          height: "100%",
-                          "&:hover": {
-                            borderColor: "#13715B",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                          },
-                        }}
+            {/* Custom Scorers Section - shown for "scorer" and "both" modes */}
+            {(judgeMode === "scorer" || judgeMode === "both") && (
+              <Box>
+                {loadingScorers ? (
+                  <Box sx={{ py: 3, textAlign: "center" }}>
+                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your scorers...</Typography>
+                  </Box>
+                ) : userScorers.length > 0 ? (
+                  <Box>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                      <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Your Scorers
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="text"
+                        startIcon={<ExternalLink size={12} />}
+                        onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
+                        sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
                       >
-                        <CardContent
-                          sx={{
-                            textAlign: "center",
-                            py: 3,
-                            px: 2,
-                            height: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            "&:last-child": { pb: 3 },
-                          }}
-                        >
-                          {isSelected && (
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                top: 8,
-                                right: 8,
-                                backgroundColor: "#13715B",
-                                borderRadius: "50%",
-                                width: 20,
-                                height: 20,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Check size={12} color="#FFFFFF" strokeWidth={3} />
-                            </Box>
-                          )}
-                          
-                          {/* Provider Logo - Properly sized and centered */}
-                          <Box
+                        Manage
+                      </Button>
+                    </Stack>
+                    <Stack spacing="8px">
+                      {userScorers.map((scorer) => {
+                        const isSelected = selectedScorer?.id === scorer.id;
+                        const modelName = typeof scorer.config?.judgeModel === 'string'
+                          ? scorer.config.judgeModel
+                          : scorer.config?.judgeModel?.name || scorer.config?.model || "LLM Judge";
+                        return (
+                          <SelectableCard
+                            key={scorer.id}
+                            isSelected={isSelected}
+                            onClick={() => setSelectedScorer(scorer)}
+                            icon={<Sparkles size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                            title={scorer.name}
+                            description={`${modelName} • ${scorer.metricKey}`}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                ) : (
+                  <Box sx={{ py: 4, textAlign: "center", border: "1px dashed #E5E7EB", borderRadius: "8px" }}>
+                    <Sparkles size={32} color="#D1D5DB" style={{ marginBottom: 8 }} />
+                    <Typography sx={{ fontSize: "14px", color: "#6B7280", mb: 1 }}>
+                      No custom scorers yet
+                    </Typography>
+                    <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mb: 2 }}>
+                      Create a scorer to use custom evaluation criteria
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<Plus size={14} />}
+                      onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
+                      sx={{
+                        textTransform: "none",
+                        fontSize: "12px",
+                        color: "#13715B",
+                        borderColor: "#13715B",
+                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#F0FDF4" },
+                      }}
+                    >
+                      Create Scorer
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* Divider between sections when in "both" mode */}
+            {judgeMode === "both" && (
+              <Box sx={{ pt: 2 }}>
+                <Divider sx={{ mb: 2 }} />
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                  Standard Judge Configuration
+                </Typography>
+              </Box>
+            )}
+
+            {/* Standard Judge Section - shown for "standard" and "both" modes */}
+            {(judgeMode === "standard" || judgeMode === "both") && (
+              <>
+                {judgeMode === "standard" && (
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                    Select a Provider
+                  </Typography>
+                )}
+                <Box>
+                  <Grid container spacing="8px">
+                    {availableJudgeProviders.map((provider) => {
+                      const { Logo } = provider;
+                      const isSelected = config.judgeLlm.provider === provider.id;
+                      
+                      return (
+                        <Grid item xs={4} sm={3} key={provider.id}>
+                          <Card
+                            onClick={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: {
+                                  ...prev.judgeLlm,
+                                  provider: provider.id,
+                                  model: "", // Reset model when changing provider
+                                },
+                              }))
+                            }
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                              height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
-                              mb: 1.5,
-                              "& svg": {
-                                maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
-                                maxHeight: "100%",
-                                width: "auto",
-                                height: "auto",
-                                objectFit: "contain",
+                              cursor: "pointer",
+                              border: "1px solid",
+                              borderColor: isSelected ? "#13715B" : "#E5E7EB",
+                              backgroundColor: "#FFFFFF",
+                              boxShadow: "none",
+                              transition: "all 0.2s ease",
+                              position: "relative",
+                              height: "100%",
+                              "&:hover": {
+                                borderColor: "#13715B",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                               },
                             }}
                           >
-                            <Logo />
-                          </Box>
-                          
-                          {/* Provider Name */}
-                          <Typography
-                            sx={{
-                              fontSize: "12px",
-                              fontWeight: 500,
-                              color: "#374151",
-                              lineHeight: 1.3,
-                              mt: "auto",
-                            }}
-                          >
-                            {provider.name}
+                            <CardContent
+                              sx={{
+                                textAlign: "center",
+                                py: 3,
+                                px: 2,
+                                height: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                "&:last-child": { pb: 3 },
+                              }}
+                            >
+                              {isSelected && (
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    backgroundColor: "#13715B",
+                                    borderRadius: "50%",
+                                    width: 20,
+                                    height: 20,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                </Box>
+                              )}
+                              
+                              {/* Provider Logo */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "100%",
+                                  height: provider.id === "huggingface" || provider.id === "xai" ? 56 : 48,
+                                  mb: 1.5,
+                                  "& svg": {
+                                    maxWidth: provider.id === "huggingface" || provider.id === "xai" ? "100%" : "90%",
+                                    maxHeight: "100%",
+                                    width: "auto",
+                                    height: "auto",
+                                    objectFit: "contain",
+                                  },
+                                }}
+                              >
+                                <Logo />
+                              </Box>
+                              
+                              {/* Provider Name */}
+                              <Typography
+                                sx={{
+                                  fontSize: "12px",
+                                  fontWeight: 500,
+                                  color: "#374151",
+                                  lineHeight: 1.3,
+                                  mt: "auto",
+                                }}
+                              >
+                                {provider.name}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                </Box>
+
+                {config.judgeLlm.provider && (
+                  <Box ref={formFieldsRef}>
+                    <Stack spacing={3}>
+                      {/* Model Selection - Dropdown for cloud providers, text input for local */}
+                      {PROVIDERS[config.judgeLlm.provider] ? (
+                        <Box>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                            Model
                           </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            </Box>
+                          <FormControl fullWidth size="small">
+                            <Select
+                              value={config.judgeLlm.model}
+                              onChange={(e) =>
+                                setConfig((prev) => ({
+                                  ...prev,
+                                  judgeLlm: { ...prev.judgeLlm, model: e.target.value as string },
+                                }))
+                              }
+                              displayEmpty
+                              sx={{
+                                fontSize: "13px",
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  borderColor: "#E5E7EB",
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                  borderColor: "#D1D5DB",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                  borderColor: "#13715B",
+                                },
+                              }}
+                            >
+                              <MenuItem value="" disabled>
+                                <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                                  Select a model
+                                </Typography>
+                              </MenuItem>
+                              {getProviderModels(config.judgeLlm.provider).map((model) => (
+                                <MenuItem key={model.id} value={model.id}>
+                                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
+                                    <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
+                                    {model.inputCost !== undefined && (
+                                      <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                        ${model.inputCost}/1M in
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      ) : (
+                        <Field
+                          label="Model Name"
+                          value={config.judgeLlm.model}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              judgeLlm: { ...prev.judgeLlm, model: e.target.value },
+                            }))
+                          }
+                          placeholder={
+                            config.judgeLlm.provider === "ollama"
+                              ? "e.g., llama2, mistral, codellama"
+                              : "e.g., gpt-4, claude-3-opus"
+                          }
+                        />
+                      )}
 
-            {config.judgeLlm.provider && (
-              <Box ref={formFieldsRef}>
-                {selectedProvider?.needsApiKey && (
-                  <Field
-                    label="API Key"
-                    type="password"
-                    value={config.judgeLlm.apiKey}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        judgeLlm: { ...prev.judgeLlm, apiKey: e.target.value },
-                      }))
-                    }
-                    placeholder={`Enter your ${selectedProvider.name} API key`}
-                    autoComplete="off"
-                  />
+                      {/* API Key - show configured status OR input field */}
+                      {selectedProvider?.needsApiKey && (
+                        hasApiKey(config.judgeLlm.provider) ? (
+                          <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <Check size={16} color="#059669" />
+                              <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                                API key configured — will be saved for future experiments
+                              </Typography>
+                            </Stack>
+                          </Box>
+                        ) : (
+                          <Field
+                            label="API Key"
+                            type="password"
+                            value={config.judgeLlm.apiKey}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, apiKey: e.target.value },
+                              }))
+                            }
+                            placeholder={`Enter your ${selectedProvider.name} API key`}
+                            autoComplete="off"
+                            helperText="Your key will be saved securely for future experiments"
+                          />
+                        )
+                      )}
+
+                      <Stack direction="row" spacing={3}>
+                        <Field
+                          label="Temperature"
+                          type="number"
+                          value={String(config.judgeLlm.temperature)}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              judgeLlm: { ...prev.judgeLlm, temperature: parseFloat(e.target.value) || 0 },
+                            }))
+                          }
+                        />
+                        <Field
+                          label="Max tokens"
+                          type="number"
+                          value={String(config.judgeLlm.maxTokens)}
+                          onChange={(e) =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              judgeLlm: { ...prev.judgeLlm, maxTokens: parseInt(e.target.value) || 0 },
+                            }))
+                          }
+                        />
+                      </Stack>
+                    </Stack>
+                  </Box>
                 )}
-
-                <Field
-                  label="Model Name"
-                  value={config.judgeLlm.model}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      judgeLlm: { ...prev.judgeLlm, model: e.target.value },
-                    }))
-                  }
-                  placeholder="e.g., gpt-4, claude-3-opus, tinyllama"
-                />
-
-                <Stack direction="row" spacing={3}>
-                  <Field
-                    label="Temperature"
-                    type="number"
-                    value={String(config.judgeLlm.temperature)}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        judgeLlm: { ...prev.judgeLlm, temperature: parseFloat(e.target.value) || 0 },
-                      }))
-                    }
-                  />
-                  <Field
-                    label="Max tokens"
-                    type="number"
-                    value={String(config.judgeLlm.maxTokens)}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        judgeLlm: { ...prev.judgeLlm, maxTokens: parseInt(e.target.value) || 0 },
-                      }))
-                    }
-                  />
-                </Stack>
-              </Box>
+              </>
             )}
           </Stack>
         );
 
       case 3:
         // Step 4: Metrics - organized by use case
+        // If using scorer-only mode, don't show metrics selection
+        if (judgeMode === "scorer") {
+          return (
+            <Stack spacing={3}>
+              <Box
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  backgroundColor: "#F9FAFB",
+                }}
+              >
+                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: "#374151", mb: 1 }}>
+                  No metrics available
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
+                  Standard metrics require a Judge LLM to evaluate model outputs. Since you selected "Custom Scorer Only", your experiment will use only your custom scorer ({selectedScorer?.name || "selected scorer"}) for evaluation.
+                </Typography>
+              </Box>
+            </Stack>
+          );
+        }
+
         return (
-          <Stack spacing={3}>
+          <Stack spacing="16px">
             <Box>
               <Typography variant="body2" color="text.secondary">
                 Select metrics for your evaluation. Metrics are organized by use case.
@@ -963,113 +1463,163 @@ export default function NewExperimentModal({
             </Box>
 
             {/* General Metrics - All Use Cases */}
-            <Box>
-              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                General Metrics
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                Available for all evaluation types
-              </Typography>
-              {Object.entries({
-                answerRelevancy: {
-                  label: "Answer Relevancy",
-                  desc: "Measures how relevant the model's answer is to the input.",
-                },
-                bias: {
-                  label: "Bias Detection",
-                  desc: "Detects biased or discriminatory content in responses.",
-                },
-                toxicity: {
-                  label: "Toxicity Detection",
-                  desc: "Flags toxic or harmful language in outputs.",
-                },
-              }).map(([key, meta]) => (
-                <Box key={key} sx={{ mb: 1.5 }}>
-                  <Stack spacing={0.5}>
-                    <Checkbox
-                      id={`metric-${key}`}
-                      label={(meta as { label: string }).label}
-                      size="small"
-                      value={key}
-                      isChecked={config.metrics[key as keyof typeof config.metrics]}
-                      onChange={() =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          metrics: {
-                            ...prev.metrics,
-                            [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                          },
-                        }))
-                      }
-                    />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                    >
-                      {(meta as { desc: string }).desc}
-                    </Typography>
-                  </Stack>
+            <Accordion
+              disableGutters
+              elevation={0}
+              sx={{
+                border: "1px solid #E5E7EB",
+                borderRadius: "4px !important",
+                "&:before": { display: "none" },
+                "&.Mui-expanded": { margin: 0 },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                sx={{
+                  minHeight: 48,
+                  px: "8px",
+                  "&.Mui-expanded": { minHeight: 48 },
+                  "& .MuiAccordionSummary-content": { my: "8px" },
+                }}
+              >
+                <Box>
+                  <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                    General Metrics
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                    Available for all evaluation types
+                  </Typography>
                 </Box>
-              ))}
-            </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
+                <Stack spacing="8px">
+                  {Object.entries({
+                    answerRelevancy: {
+                      label: "Answer Relevancy",
+                      desc: "Measures how relevant the model's answer is to the input.",
+                    },
+                    bias: {
+                      label: "Bias Detection",
+                      desc: "Detects biased or discriminatory content in responses.",
+                    },
+                    toxicity: {
+                      label: "Toxicity Detection",
+                      desc: "Flags toxic or harmful language in outputs.",
+                    },
+                  }).map(([key, meta]) => (
+                    <Box key={key}>
+                      <Stack spacing={0.5}>
+                        <Checkbox
+                          id={`metric-${key}`}
+                          label={(meta as { label: string }).label}
+                          size="small"
+                          value={key}
+                          isChecked={config.metrics[key as keyof typeof config.metrics]}
+                          onChange={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                              },
+                            }))
+                          }
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
+                        >
+                          {(meta as { desc: string }).desc}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
 
             {/* Chatbot-Specific Metrics */}
             {config.taskType === "chatbot" && (
-              <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
-                  Chatbot Metrics
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                  Specifically designed for conversational AI evaluation
-                </Typography>
-                {Object.entries({
-                  knowledgeRetention: {
-                    label: "Knowledge Retention",
-                    desc: "Evaluates how well the model remembers and reuses information across the conversation.",
-                  },
-                  conversationRelevancy: {
-                    label: "Conversation Relevancy",
-                    desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
-                  },
-                  conversationCompleteness: {
-                    label: "Conversation Completeness",
-                    desc: "Checks if the model fully answers the user's question and covers all requested details.",
-                  },
-                  roleAdherence: {
-                    label: "Role Adherence",
-                    desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
-                  },
-                }).map(([key, meta]) => (
-                  <Box key={key} sx={{ mb: 1.5 }}>
-                    <Stack spacing={0.5}>
-                      <Checkbox
-                        id={`metric-${key}`}
-                        label={(meta as { label: string }).label}
-                        size="small"
-                        value={key}
-                        isChecked={config.metrics[key as keyof typeof config.metrics]}
-                        onChange={() =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            metrics: {
-                              ...prev.metrics,
-                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
-                            },
-                          }))
-                        }
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
-                      >
-                        {(meta as { desc: string }).desc}
-                      </Typography>
-                    </Stack>
+              <Accordion
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  "&.Mui-expanded": { margin: 0 },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  sx={{
+                    minHeight: 48,
+                    px: "8px",
+                    "&.Mui-expanded": { minHeight: 48 },
+                    "& .MuiAccordionSummary-content": { my: "8px" },
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                      Chatbot Metrics
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                      Specifically designed for conversational AI evaluation
+                    </Typography>
                   </Box>
-                ))}
-              </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: "8px", pt: "8px", pb: "8px" }}>
+                  <Stack spacing="8px">
+                    {Object.entries({
+                      knowledgeRetention: {
+                        label: "Knowledge Retention",
+                        desc: "Evaluates how well the model remembers and reuses information across the conversation.",
+                      },
+                      conversationRelevancy: {
+                        label: "Conversation Relevancy",
+                        desc: "Measures whether each turn stays focused on the ongoing conversation and user goal.",
+                      },
+                      conversationCompleteness: {
+                        label: "Conversation Completeness",
+                        desc: "Checks if the model fully answers the user's question and covers all requested details.",
+                      },
+                      roleAdherence: {
+                        label: "Role Adherence",
+                        desc: "Evaluates how well the model follows its assigned role, persona, or instructions.",
+                      },
+                    }).map(([key, meta]) => (
+                      <Box key={key}>
+                        <Stack spacing={0.5}>
+                          <Checkbox
+                            id={`metric-${key}`}
+                            label={(meta as { label: string }).label}
+                            size="small"
+                            value={key}
+                            isChecked={config.metrics[key as keyof typeof config.metrics]}
+                            onChange={() =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                metrics: {
+                                  ...prev.metrics,
+                                  [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                                },
+                              }))
+                            }
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ ml: 3, pr: 2, display: "block", fontSize: "12px" }}
+                          >
+                            {(meta as { desc: string }).desc}
+                          </Typography>
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
             )}
 
             {/* RAG-Specific Metrics */}
@@ -1125,6 +1675,56 @@ export default function NewExperimentModal({
                 ))}
               </Box>
             )}
+
+            {/* Agent-Specific Metrics */}
+            {config.taskType === "agent" && (
+              <Box>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                  Agent Metrics
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                  Specifically designed for evaluating AI agents with tool usage
+                </Typography>
+                {Object.entries({
+                  taskCompletion: {
+                    label: "Task Completion",
+                    desc: "Evaluates whether the agent successfully completed the assigned task or goal.",
+                  },
+                  toolCorrectness: {
+                    label: "Tool Correctness",
+                    desc: "Measures whether the agent used the correct tools with appropriate parameters.",
+                  },
+                }).map(([key, meta]) => (
+                  <Box key={key} sx={{ mb: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Checkbox
+                        id={`metric-${key}`}
+                        label={(meta as { label: string }).label}
+                        size="small"
+                        value={key}
+                        isChecked={config.metrics[key as keyof typeof config.metrics]}
+                        onChange={() =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            metrics: {
+                              ...prev.metrics,
+                              [key]: !prev.metrics[key as keyof typeof prev.metrics],
+                            },
+                          }))
+                        }
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 4, pr: 2, display: "block", fontSize: "12px" }}
+                      >
+                        {(meta as { desc: string }).desc}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Stack>
         );
 
@@ -1143,18 +1743,38 @@ export default function NewExperimentModal({
       
       // Check conditional fields based on access method
       if (selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl && !config.model.endpointUrl) return false;
-      if (selectedModelProvider?.needsApiKey && !config.model.apiKey) return false;
+      
+      // Only require API key for custom_api (cloud providers use saved keys)
+      if (config.model.accessMethod === "custom_api" && !config.model.apiKey) return false;
       
       return true;
     }
+
+    if (activeStep === 1) {
+      // Step 2: Dataset validation - must have loaded prompts
+      return datasetPrompts.length > 0;
+    }
     
     if (activeStep === 2) {
-      // Step 3: Judge LLM validation  
-      return !!(
-        config.judgeLlm.provider &&
-        config.judgeLlm.model &&
-        (selectedProvider?.needsApiKey ? config.judgeLlm.apiKey : true)
-      );
+      // Step 3: Scorer / Judge validation
+      if (judgeMode === "scorer") {
+        // Custom scorer only - must have a scorer selected
+        return !!selectedScorer;
+      } else if (judgeMode === "standard") {
+        // Standard judge only - must have provider and model (API key is from saved settings)
+        return !!(
+          config.judgeLlm.provider &&
+          config.judgeLlm.model
+        );
+      } else {
+        // Both mode - must have scorer selected AND standard judge configured
+        const hasScorer = !!selectedScorer;
+        const hasJudge = !!(
+          config.judgeLlm.provider &&
+          config.judgeLlm.model
+        );
+        return hasScorer && hasJudge;
+      }
     }
     
     return true;
@@ -1196,5 +1816,6 @@ export default function NewExperimentModal({
     </>
   );
 }
+
 
 

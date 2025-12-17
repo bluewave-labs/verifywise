@@ -15,8 +15,6 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
 
-        console.log(`Adding optimization indexes for ${tenantHash}...`);
-
         try {
           // Index on risks table for filtering and sorting
           await queryInterface.sequelize.query(
@@ -105,15 +103,12 @@ module.exports = {
             `CREATE INDEX IF NOT EXISTS idx_subclauses_iso27001_subclause_id ON "${tenantHash}".subclauses_iso27001__risks(subclause_id);`,
             { transaction }
           );
-
-          console.log(`Successfully added optimization indexes for ${tenantHash}`);
         } catch (error) {
-          console.log(`Error adding indexes for ${tenantHash}: ${error.message}`);
+          console.error(`Error adding indexes for ${tenantHash}: ${error.message}`);
         }
       }
 
       await transaction.commit();
-      console.log('Risk query optimization indexes migration completed successfully');
     } catch (error) {
       await transaction.rollback();
       console.error('Risk query optimization indexes migration failed:', error);
@@ -132,8 +127,6 @@ module.exports = {
 
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
-
-        console.log(`Removing optimization indexes for ${tenantHash}...`);
 
         try {
           // Drop all indexes created in up migration
@@ -221,15 +214,12 @@ module.exports = {
             `DROP INDEX IF EXISTS "${tenantHash}".idx_subclauses_iso27001_subclause_id;`,
             { transaction }
           );
-
-          console.log(`Successfully removed optimization indexes for ${tenantHash}`);
         } catch (error) {
-          console.log(`Error removing indexes for ${tenantHash}: ${error.message}`);
+          console.error(`Error removing indexes for ${tenantHash}: ${error.message}`);
         }
       }
 
       await transaction.commit();
-      console.log('Risk query optimization indexes rollback completed successfully');
     } catch (error) {
       await transaction.rollback();
       console.error('Risk query optimization indexes rollback failed:', error);

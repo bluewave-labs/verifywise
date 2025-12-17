@@ -99,11 +99,6 @@ async def run_evaluation(
         # These keys are used by CUSTOM SCORERS - each scorer uses its own configured provider
         # G_EVAL_PROVIDER is set later based on the Judge LLM config (user's explicit selection)
         scorer_api_keys = config.get("scorerApiKeys")
-        # Only log provider names, never log actual keys
-        available_providers = list(scorer_api_keys.keys()) if scorer_api_keys and isinstance(scorer_api_keys, dict) else []
-        print(f"🔑 Scorer API keys available: {available_providers if available_providers else 'None'}")
-        has_model_api_key = bool(model_config.get('apiKey') and model_config.get('apiKey') != '***')
-        print(f"🔑 Model config has apiKey: {has_model_api_key}")
         if scorer_api_keys and isinstance(scorer_api_keys, dict):
             # Map provider names to environment variable names
             provider_env_map = {

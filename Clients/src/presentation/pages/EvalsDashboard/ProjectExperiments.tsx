@@ -12,6 +12,8 @@ import type { IEvaluationRow } from "../../../domain/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import HelperIcon from "../../components/HelperIcon";
 
@@ -51,6 +53,9 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
   const [alert, setAlert] = useState<AlertState | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // GroupBy state
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
   useEffect(() => {
     loadExperiments();
@@ -455,6 +460,28 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
     };
   });
 
+  // Define how to get the group key for each row
+  const getRowGroupKey = useCallback((row: IEvaluationRow, field: string): string => {
+    switch (field) {
+      case "status":
+        return row.status || "Unknown";
+      case "model":
+        return row.model || "Unknown";
+      case "judge":
+        return row.judge || "Unknown";
+      default:
+        return "Other";
+    }
+  }, []);
+
+  // Apply grouping to table rows
+  const groupedRows = useTableGrouping({
+    data: tableRows,
+    groupByField: groupBy,
+    sortOrder: groupSortOrder,
+    getGroupKey: getRowGroupKey,
+  });
+
   return (
     <Box>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
@@ -531,9 +558,7 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
               { id: "model", label: "Model" },
               { id: "judge", label: "Judge" },
             ]}
-            onGroupChange={() => {
-              /* Grouping behaviour will be added in a later iteration */
-            }}
+            onGroupChange={handleGroupChange}
           />
           <SearchBox
             placeholder="Search experiments..."
@@ -558,16 +583,23 @@ export default function ProjectExperiments({ projectId, onViewExperiment }: Proj
 
       {/* Experiments Table with Pagination */}
       <Box mb={4}>
-        <EvaluationTable
-          columns={tableColumns}
-          rows={tableRows}
-          removeModel={{
-            onConfirm: handleDeleteExperiment,
-          }}
-          page={currentPage}
-          setCurrentPagingation={setCurrentPage}
-          onShowDetails={handleViewExperiment}
-          onRerun={handleRerunExperiment}
+        <GroupedTableView
+          groupedData={groupedRows}
+          ungroupedData={tableRows}
+          renderTable={(data, options) => (
+            <EvaluationTable
+              columns={tableColumns}
+              rows={data}
+              removeModel={{
+                onConfirm: handleDeleteExperiment,
+              }}
+              page={currentPage}
+              setCurrentPagingation={setCurrentPage}
+              onShowDetails={handleViewExperiment}
+              onRerun={handleRerunExperiment}
+              hidePagination={options?.hidePagination}
+            />
+          )}
         />
       </Box>
 

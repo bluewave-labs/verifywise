@@ -120,7 +120,7 @@ export default function OrgSettings() {
       const response = await CustomAxios.get('/evaluation-llm-keys');
 
       if (response.data.success && response.data.data) {
-        setSavedKeys(response.data.data.map((key: any) => ({
+        setSavedKeys(response.data.data.map((key: { provider: string; maskedKey: string }) => ({
           provider: key.provider,
           apiKey: '', // Never sent to frontend
           maskedKey: key.maskedKey,
@@ -306,7 +306,7 @@ export default function OrgSettings() {
             >
               Configured LLM providers
             </Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing="8px">
               {savedKeys.map((key) => (
                 <Box
                   key={key.provider}
@@ -314,9 +314,10 @@ export default function OrgSettings() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    p: 2,
+                    p: "8px",
+                    gap: "8px",
                     border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 1,
+                    borderRadius: "4px",
                     backgroundColor: theme.palette.background.paper,
                   }}
                 >

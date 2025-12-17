@@ -12,9 +12,11 @@ import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
 import { extractToc } from '@user-guide-content/contentTypes';
 import { useUserGuideSidebarContext, DEFAULT_CONTENT_WIDTH } from './UserGuideSidebarContext';
+import AdvisorChat from '../AdvisorChat';
+import AdvisorHeader from './AdvisorHeader';
 import './SidebarWrapper.css';
 
-type Tab = 'user-guide' | 'help';
+type Tab = 'user-guide' | 'advisor' | 'help';
 
 interface SidebarWrapperProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
+  const [selectedLLMKeyId, setSelectedLLMKeyId] = useState<number | undefined>(undefined);
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handleRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +69,11 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [historyIndex, setHistoryIndex] = useState(0);
   const isNavigatingRef = useRef(false);
 
+
+  // To display adivsor in the sidebar, add a path to that particular page here
+  const advisorEligiblePaths = ['/risk-management'];
+  const displayAdvisor: boolean = advisorEligiblePaths.includes(location.pathname);
+
   // Parse initial path on mount
   useEffect(() => {
     if (initialPath) {
@@ -78,6 +86,13 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       }
     }
   }, [initialPath]);
+
+  
+  useEffect(() => {
+    if (!displayAdvisor && activeTab === 'advisor') {
+      setActiveTab('user-guide');
+    }
+  }, [activeTab, displayAdvisor]);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -190,16 +205,24 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
 
   // Build breadcrumb items for dropdown
   const buildBreadcrumbs = () => {
-    const items: { label: string; onClick: () => void }[] = [
-      { label: 'User guide', onClick: handleHomeClick },
-    ];
-    if (collection) {
-      items.push({ label: collection.title, onClick: () => setArticleId(undefined) });
+    let items: { label: string; onClick: () => void }[] = [];
+    switch (activeTab) {
+      case 'user-guide':
+        items = [
+          { label: 'User guide', onClick: handleHomeClick },
+        ];
+        if (collection) {
+          items.push({ label: collection.title, onClick: () => setArticleId(undefined) });
+        }
+        if (article) {
+          items.push({ label: article.title, onClick: () => {} });
+        }
+        return items;
+      case 'advisor':
+        return [{ label: 'Advisor', onClick: () => {} }];
+      default:
+        return [{ label: 'Help', onClick: () => {} }];
     }
-    if (article) {
-      items.push({ label: article.title, onClick: () => {} });
-    }
-    return items;
   };
 
   // Handle "Open in new tab"
@@ -277,6 +300,22 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       />
     );
   };
+
+  // Render Advisor content
+  const renderAdvisorContent = () => {
+    return <AdvisorChat selectedLLMKeyId={selectedLLMKeyId} />
+  }
+
+  const contentArea = (tabValue: Tab) => {
+    switch (tabValue) {
+      case 'user-guide':
+        return renderUserGuideContent();
+      case 'advisor':
+        return renderAdvisorContent();
+      default: 
+        return <HelpSection />;
+    }
+  }
 
   // Handle tab click - open sidebar if closed, or just switch tab
   const handleTabClick = (tab: Tab) => {
@@ -391,6 +430,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       <TabBar
         activeTab={isOpen ? activeTab : undefined}
         onTabChange={handleTabClick}
+        displayAdvisor={displayAdvisor}
       />
 
       {/* Main Sidebar Content - Slides in/out */}
@@ -410,22 +450,31 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         {isOpen && (
           <>
             {/* Header */}
-            <SidebarHeader
-              showOpenInNewTab={activeTab === 'user-guide'}
-              showNavigation={activeTab === 'user-guide'}
-              breadcrumbs={buildBreadcrumbs()}
-              onHomeClick={handleHomeClick}
-              onBack={handleBack}
-              onForward={handleForward}
-              canGoBack={canGoBack}
-              canGoForward={canGoForward}
-              onClose={onClose}
-              onOpenInNewTab={handleOpenInNewTab}
-              isSearchOpen={isSearchOpen}
-              onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
+            {activeTab === 'advisor' ? (
+              <AdvisorHeader
+                onClose={onClose}
+                selectedLLMKeyId={selectedLLMKeyId}
+                onLLMKeyChange={setSelectedLLMKeyId}
+              />
+            ): (
+              <SidebarHeader
+                showOpenInNewTab={activeTab === 'user-guide'}
+                showNavigation={activeTab === 'user-guide'}
+                breadcrumbs={buildBreadcrumbs()}
+                onHomeClick={handleHomeClick}
+                onBack={handleBack}
+                onForward={handleForward}
+                canGoBack={canGoBack}
+                canGoForward={canGoForward}
+                onClose={onClose}
+                onOpenInNewTab={handleOpenInNewTab}
+                isSearchOpen={isSearchOpen}
+                onSearchToggle={() => setIsSearchOpen(!isSearchOpen)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            )}
+            
 
             {/* Content Area */}
             <div
@@ -435,7 +484,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
                 backgroundColor: colors.background.alt,
               }}
             >
-              {activeTab === 'user-guide' ? renderUserGuideContent() : <HelpSection />}
+              {contentArea(activeTab)}
             </div>
           </>
         )}

@@ -17,7 +17,7 @@ module.exports = {
           CREATE TABLE IF NOT EXISTS "${tenantHash}".api_tokens (
             id SERIAL PRIMARY KEY,
             token TEXT NOT NULL UNIQUE,
-            name TEXT NOT NULL,
+            name TEXT NOT NULL UNIQUE,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             expires_at TIMESTAMPTZ,
             created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL

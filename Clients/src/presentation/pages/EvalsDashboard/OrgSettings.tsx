@@ -114,7 +114,7 @@ export default function OrgSettings() {
       const response = await CustomAxios.get('/evaluation-llm-keys');
 
       if (response.data.success && response.data.data) {
-        setSavedKeys(response.data.data.map((key: any) => ({
+        setSavedKeys(response.data.data.map((key: { provider: string; maskedKey: string }) => ({
           provider: key.provider,
           apiKey: '', // Never sent to frontend
           maskedKey: key.maskedKey,

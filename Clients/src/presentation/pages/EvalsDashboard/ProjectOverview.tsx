@@ -45,7 +45,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       sx={{
-        ...(cardStyles.base(theme) as any),
+        ...(cardStyles.base(theme) as Record<string, unknown>),
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         border: "1px solid #DCDFE3",
         height: "100%",

@@ -4,6 +4,7 @@ import {
   Database,
   Award,
   Settings,
+  KeyRound,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -98,6 +99,13 @@ export default function EvalsSidebar({
       value: "configuration",
       icon: <Settings size={16} strokeWidth={1.5} />,
       disabled: disabled,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      value: "settings",
+      icon: <KeyRound size={16} strokeWidth={1.5} />,
+      disabled: false, // Organization-wide settings - always enabled
     },
   ];
 

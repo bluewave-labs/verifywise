@@ -382,6 +382,29 @@ export default function NewExperimentModal({
             scorerId: selectedScorer.id,
             scorerName: selectedScorer.name,
             scorerMetricKey: selectedScorer.metricKey,
+            // Tell backend which providers the custom scorer needs (for API key injection)
+            scorerProviders: (() => {
+              const providers: string[] = [];
+              const judgeModel = selectedScorer.config?.judgeModel;
+              if (typeof judgeModel === 'object' && judgeModel?.provider) {
+                providers.push(judgeModel.provider.toLowerCase());
+              } else if (typeof judgeModel === 'string') {
+                // Legacy format - infer provider from model name
+                const modelLower = judgeModel.toLowerCase();
+                if (modelLower.includes('gpt') || modelLower.includes('o1') || modelLower.includes('o3')) {
+                  providers.push('openai');
+                } else if (modelLower.includes('claude')) {
+                  providers.push('anthropic');
+                } else if (modelLower.includes('gemini')) {
+                  providers.push('google');
+                } else if (modelLower.includes('mistral') || modelLower.includes('magistral')) {
+                  providers.push('mistral');
+                } else if (modelLower.includes('grok')) {
+                  providers.push('xai');
+                }
+              }
+              return providers.length > 0 ? providers : ['openai']; // Default to OpenAI
+            })(),
             // API key is automatically injected by the backend from organization settings
           } : {}),
           // Include judge LLM config if using standard mode or both

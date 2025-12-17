@@ -38,6 +38,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   checkForRisks,
   onDeleteWithRisks,
   onView,
+  openLinkedPolicies,
   onSendTest,
   onToggleEnable,
   // Task-specific props
@@ -146,6 +147,15 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleOpenLinkedPolicies = (e?: React.SyntheticEvent) => {
+    if (openLinkedPolicies) {
+      openLinkedPolicies();
+      if (e) {
+        closeDropDownMenu(e);
+      }
+    }
+  };
+
   const handleMakeVisible = (e?: React.SyntheticEvent) => {
     if (onMakeVisible) {
       onMakeVisible();
@@ -230,7 +240,7 @@ const IconButton: React.FC<IconButtonProps> = ({
    */
   const getListOfButtons = () => {
     if (type === "report") {
-      return ["download", "remove"];
+      return ["download", "linked_policies" , "remove"];
     } else if (type === "evidence") {
         return ["download", "remove"];
     } else if (type === "Resource") {
@@ -252,6 +262,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["edit", "link_objects" , "remove"];
     } else if (type === "LinkedObjectsType") {
       return ["remove",];
+    } else if (type === "risk") {
+      return ["edit", "linked_policies", "remove"];
     } else {
       return ["edit", "remove"];
     }
@@ -281,6 +293,12 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
     if ((type === "Policy" || type === "policy") && item === "link_objects") {
       return "Linked objects";
+    }
+    if ((type === "risk" ) && item === "linked_policies") {
+      return "Linked policies";
+    }
+    if ((type === "report" ) && item === "linked_policies") {
+      return "Linked policies";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -345,7 +363,9 @@ const IconButton: React.FC<IconButtonProps> = ({
                 handleRestore(e);
               } else if (item === "link_objects") {
                 handleLinkedObjects(e);
-              } else if (item === "delete" && (type === "Task" || type === "task")) {
+              } else if (item === "linked_policies") {
+                handleOpenLinkedPolicies(e);
+              }else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {
                   setIsOpenHardDeleteModal(true);
@@ -395,7 +415,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                 if (item === "restore") {
                   return { color: "#13715B" }; // primary color
                 }
-                if (item === "link_objects") {
+                if (item === "link_objects" || item === "linked_policies") {
                   return { color: "#13715B" }; // primary color
                 }
                 return {};

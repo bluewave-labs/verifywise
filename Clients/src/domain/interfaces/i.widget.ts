@@ -31,6 +31,7 @@ export interface IconButtonProps {
   checkForRisks?: () => Promise<boolean>;
   onDeleteWithRisks?: (deleteRisks: boolean) => void;
   onView?: () => void;
+  openLinkedPolicies?: ()  => void;
   onSendTest?: () => void;
   onToggleEnable?: () => void;
   // Task-specific props

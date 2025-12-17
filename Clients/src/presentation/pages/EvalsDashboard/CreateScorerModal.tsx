@@ -613,112 +613,111 @@ export default function CreateScorerModal({
             )}
           </Box>
 
-            {/* Prompt Messages */}
-            <Typography
-              sx={{
-                fontSize: "13px",
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                mb: 1,
-                mt: 2,
-              }}
-            >
-              Prompt
-            </Typography>
-            <Stack spacing={2}>
-              {config.messages.map((msg, index) => (
-                <Box
-                  key={index}
+          {/* Prompt Messages */}
+          <Typography
+            sx={{
+              fontSize: "13px",
+              fontWeight: 500,
+              color: theme.palette.text.secondary,
+              mb: 1,
+              mt: 2,
+            }}
+          >
+            Prompt
+          </Typography>
+          <Stack spacing={2}>
+            {config.messages.map((msg, index) => (
+              <Box
+                key={index}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
                   sx={{
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    overflow: "hidden",
+                    px: 1.5,
+                    py: 0.75,
+                    backgroundColor: "#F9FAFB",
+                    borderBottom: "1px solid #E5E7EB",
                   }}
                 >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
+                  <MuiSelect
+                    size="small"
+                    value={msg.role}
+                    onChange={(e) =>
+                      handleUpdateMessage(index, "role", e.target.value)
+                    }
+                    variant="standard"
+                    disableUnderline
                     sx={{
-                      px: 1.5,
-                      py: 0.75,
-                      backgroundColor: "#F9FAFB",
-                      borderBottom: "1px solid #E5E7EB",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      minWidth: 80,
+                      "& .MuiSelect-select": { py: 0 },
                     }}
                   >
-                    <MuiSelect
+                    <MenuItem value="system">System</MenuItem>
+                    <MenuItem value="user">User</MenuItem>
+                    <MenuItem value="assistant">Assistant</MenuItem>
+                  </MuiSelect>
+                  {config.messages.length > 1 && (
+                    <IconButton
                       size="small"
-                      value={msg.role}
-                      onChange={(e) =>
-                        handleUpdateMessage(index, "role", e.target.value)
-                      }
-                      variant="standard"
-                      disableUnderline
-                      sx={{
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        minWidth: 80,
-                        "& .MuiSelect-select": { py: 0 },
-                      }}
+                      onClick={() => handleRemoveMessage(index)}
+                      sx={{ p: 0.5 }}
                     >
-                      <MenuItem value="system">System</MenuItem>
-                      <MenuItem value="user">User</MenuItem>
-                      <MenuItem value="assistant">Assistant</MenuItem>
-                    </MuiSelect>
-                    {config.messages.length > 1 && (
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveMessage(index)}
-                        sx={{ p: 0.5 }}
-                      >
-                        <Trash2 size={14} color="#9CA3AF" />
-                      </IconButton>
-                    )}
-                  </Stack>
-                  <TextField
-                    multiline
-                    minRows={2}
-                    maxRows={6}
-                    fullWidth
-                    placeholder={
-                      msg.role === "system"
-                        ? "You are a helpful assistant that evaluates..."
-                        : "Enter message content..."
-                    }
-                    value={msg.content}
-                    onChange={(e) =>
-                      handleUpdateMessage(index, "content", e.target.value)
-                    }
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        border: "none",
-                        "& fieldset": { border: "none" },
-                      },
-                      "& .MuiInputBase-input": {
-                        fontSize: "13px",
-                        p: 1.5,
-                      },
-                    }}
-                  />
-                </Box>
-              ))}
+                      <Trash2 size={14} color="#9CA3AF" />
+                    </IconButton>
+                  )}
+                </Stack>
+                <TextField
+                  multiline
+                  minRows={2}
+                  maxRows={6}
+                  fullWidth
+                  placeholder={
+                    msg.role === "system"
+                      ? "You are a helpful assistant that evaluates..."
+                      : "Enter message content..."
+                  }
+                  value={msg.content}
+                  onChange={(e) =>
+                    handleUpdateMessage(index, "content", e.target.value)
+                  }
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      border: "none",
+                      "& fieldset": { border: "none" },
+                    },
+                    "& .MuiInputBase-input": {
+                      fontSize: "13px",
+                      p: 1.5,
+                    },
+                  }}
+                />
+              </Box>
+            ))}
 
-              <CustomizableButton
-                variant="text"
-                text="Add message"
-                icon={<Plus size={14} />}
-                onClick={handleAddMessage}
-                sx={{
-                  alignSelf: "flex-start",
-                  color: "#13715B",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  "&:hover": { backgroundColor: "#E8F5F1" },
-                }}
-              />
-            </Stack>
-          </Box>
+            <CustomizableButton
+              variant="text"
+              text="Add message"
+              icon={<Plus size={14} />}
+              onClick={handleAddMessage}
+              sx={{
+                alignSelf: "flex-start",
+                color: "#13715B",
+                fontSize: "13px",
+                fontWeight: 600,
+                textTransform: "none",
+                "&:hover": { backgroundColor: "#E8F5F1" },
+              }}
+            />
+          </Stack>
 
           <Divider />
 

@@ -7,7 +7,7 @@ import {
   Divider,
   IconButton,
   Slider,
-  Select,
+  Select as MuiSelect,
   MenuItem,
   TextField,
   useTheme,
@@ -15,13 +15,13 @@ import {
   Popper,
   Paper,
   ClickAwayListener,
-  InputAdornment,
 } from "@mui/material";
-import { Plus, Trash2, Settings, ChevronDown, ChevronRight, Search } from "lucide-react";
+import { Plus, Trash2, Settings } from "lucide-react";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { PROVIDERS, getModelsForProvider, type ModelInfo } from "../../utils/providers";
+import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
 import { evaluationLlmApiKeysService, type LLMApiKey } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 
 interface ChoiceScore {
@@ -65,15 +65,15 @@ interface CreateScorerModalProps {
   projectId: string;
 }
 
-// Score input component with up/down buttons
+// Simple score text input (0 to 1)
 function ScoreInput({ value, onChange }: { value: number; onChange: (val: number) => void }) {
   const [inputValue, setInputValue] = useState(value.toString());
-  
-  // Sync with external value changes (always use dot)
+
+  // Sync with external value changes
   useEffect(() => {
     setInputValue(value.toString());
   }, [value]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow typing any valid decimal pattern, convert comma to dot
     const raw = e.target.value.replace(",", ".");
@@ -82,7 +82,7 @@ function ScoreInput({ value, onChange }: { value: number; onChange: (val: number
       setInputValue(raw);
     }
   };
-  
+
   const handleBlur = () => {
     // On blur, validate and update parent
     const numVal = parseFloat(inputValue);
@@ -96,81 +96,24 @@ function ScoreInput({ value, onChange }: { value: number; onChange: (val: number
       onChange(clamped);
     }
   };
-  
-  const increment = () => {
-    const newVal = Math.min(1, Math.round((value + 0.1) * 10) / 10);
-    setInputValue(newVal.toString());
-    onChange(newVal);
-  };
-  
-  const decrement = () => {
-    const newVal = Math.max(0, Math.round((value - 0.1) * 10) / 10);
-    setInputValue(newVal.toString());
-    onChange(newVal);
-  };
-  
+
   return (
-    <Box sx={{ display: "flex", alignItems: "stretch", width: 100 }}>
-      <TextField
-        size="small"
-        value={inputValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        sx={{
-          flex: 1,
-          "& .MuiInputBase-input": { 
-            fontSize: "13px", 
-            textAlign: "center",
-          },
-          "& .MuiOutlinedInput-root": {
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
-          },
-        }}
-      />
-      <Box sx={{ 
-        display: "flex", 
-        flexDirection: "column", 
-        border: "1px solid #E5E7EB",
-        borderLeft: "none",
-        borderRadius: "0 4px 4px 0",
-        overflow: "hidden",
-      }}>
-        <Box
-          onClick={increment}
-          sx={{ 
-            cursor: "pointer", 
-            px: 0.75, 
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "10px",
-            color: "#6B7280",
-            "&:hover": { backgroundColor: "#F3F4F6" },
-            borderBottom: "1px solid #E5E7EB",
-          }}
-        >
-          ▲
-        </Box>
-        <Box
-          onClick={decrement}
-          sx={{ 
-            cursor: "pointer", 
-            px: 0.75, 
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "10px",
-            color: "#6B7280",
-            "&:hover": { backgroundColor: "#F3F4F6" },
-          }}
-        >
-          ▼
-        </Box>
-      </Box>
-    </Box>
+    <TextField
+      size="small"
+      value={inputValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      sx={{
+        width: 100,
+        "& .MuiInputBase-input": {
+          fontSize: "13px",
+          textAlign: "center",
+        },
+        "& .MuiOutlinedInput-root": {
+          borderRadius: "4px",
+        },
+      }}
+    />
   );
 }
 
@@ -216,15 +159,10 @@ export default function CreateScorerModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [configuredProviders, setConfiguredProviders] = useState<LLMApiKey[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(true);
-  
-  // Model selector state
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
-  const [modelSearchQuery, setModelSearchQuery] = useState("");
+
+  // Model params popover state
   const [paramsPopoverOpen, setParamsPopoverOpen] = useState(false);
-  const modelSelectorRef = useRef<HTMLDivElement>(null);
   const paramsButtonRef = useRef<HTMLButtonElement>(null);
-  const providerItemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Update config when initialConfig changes (for editing)
   useEffect(() => {
@@ -319,16 +257,22 @@ export default function CreateScorerModal({
     setConfig((prev) => ({ ...prev, name, slug }));
   }, []);
 
-  // Handle model selection from nested dropdown
-  const handleModelSelect = useCallback((providerId: string, modelId: string) => {
+  // Handle provider change - reset model when provider changes
+  const handleProviderChange = useCallback((providerId: string) => {
+    const models = getModelsForProvider(providerId);
     setConfig((prev) => ({
       ...prev,
       provider: providerId,
+      model: models.length > 0 ? models[0].id : "",
+    }));
+  }, []);
+
+  // Handle model change
+  const handleModelChange = useCallback((modelId: string) => {
+    setConfig((prev) => ({
+      ...prev,
       model: modelId,
     }));
-    setModelDropdownOpen(false);
-    setExpandedProvider(null);
-    setModelSearchQuery("");
   }, []);
 
   const handleAddMessage = useCallback(() => {
@@ -441,550 +385,339 @@ export default function CreateScorerModal({
             </Box>
           </Stack>
 
-          {/* Model Section - Braintrust-style nested dropdown */}
+          {/* Model Section */}
           <Box>
-            <Typography
-              sx={{
-                fontSize: "13px",
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                mb: 1,
-              }}
-            >
-              Model
-            </Typography>
-
-            {/* Model Selector - Braintrust style */}
-            <Box sx={{ mb: 2, position: "relative" }} ref={modelSelectorRef}>
-              {loadingProviders ? (
-                <Box sx={{ display: "flex", alignItems: "center", height: 40 }}>
-                  <CircularProgress size={20} />
-                  <Typography sx={{ ml: 1, fontSize: "13px", color: "#6B7280" }}>
-                    Loading providers...
-                  </Typography>
-                </Box>
-              ) : availableProviders.length === 0 ? (
-                <Box
-                  sx={{
-                    p: 2,
-                    backgroundColor: "#FEF3C7",
-                    borderRadius: "8px",
-                    border: "1px solid #F59E0B",
+            {loadingProviders ? (
+              <Box sx={{ display: "flex", alignItems: "center", height: 40 }}>
+                <CircularProgress size={20} />
+                <Typography sx={{ ml: 1, fontSize: "13px", color: "#6B7280" }}>
+                  Loading providers...
+                </Typography>
+              </Box>
+            ) : availableProviders.length === 0 ? (
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: "#FEF3C7",
+                  borderRadius: "4px",
+                  border: "1px solid #F59E0B",
+                }}
+              >
+                <Typography sx={{ fontSize: "13px", color: "#92400E", mb: 1 }}>
+                  No API keys configured
+                </Typography>
+                <CustomizableButton
+                  variant="text"
+                  text="Add API key in Configuration"
+                  icon={<Settings size={14} />}
+                  onClick={() => {
+                    onClose();
+                    navigate(`/evals/${projectId}#configuration`)
                   }}
-                >
-                  <Typography sx={{ fontSize: "13px", color: "#92400E", mb: 1 }}>
-                    No API keys configured
-                  </Typography>
-                  <CustomizableButton
-                    variant="text"
-                    text="Add API key in Configuration"
-                    icon={<Settings size={14} />}
-                    onClick={() => {
-                      onClose();
-                      navigate(`/evals/${projectId}#configuration`)
-                    }}
+                  sx={{
+                    color: "#92400E",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    p: 0,
+                    "&:hover": { backgroundColor: "transparent", textDecoration: "underline" },
+                  }}
+                />
+              </Box>
+            ) : (
+              <>
+                {/* Provider and Model Selects with Params Button */}
+                <Stack direction="row" spacing={2} alignItems="flex-end">
+                  <Box sx={{ flex: 1 }}>
+                    <Select
+                      id="scorer-provider-select"
+                      label="Provider"
+                      placeholder="Select provider"
+                      value={config.provider}
+                      onChange={(e) => handleProviderChange(e.target.value as string)}
+                      items={availableProviders.map((p) => ({
+                        _id: p.provider,
+                        name: p.displayName,
+                      }))}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Select
+                      id="scorer-model-select"
+                      label="Model"
+                      placeholder="Select model"
+                      value={config.model}
+                      onChange={(e) => handleModelChange(e.target.value as string)}
+                      items={availableModels.map((m) => ({
+                        _id: m.id,
+                        name: m.name,
+                      }))}
+                      disabled={!config.provider}
+                    />
+                  </Box>
+                  <Box
+                    component="button"
+                    ref={paramsButtonRef}
+                    onClick={() => setParamsPopoverOpen(!paramsPopoverOpen)}
                     sx={{
-                      color: "#92400E",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      textTransform: "none",
-                      p: 0,
-                      "&:hover": { backgroundColor: "transparent", textDecoration: "underline" },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                      px: 1.5,
+                      height: 34,
+                      border: "1px solid #d0d5dd",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      backgroundColor: paramsPopoverOpen ? "#F3F4F6" : "#fff",
+                      transition: "all 0.15s ease",
+                      "&:hover": {
+                        borderColor: "#9CA3AF",
+                        backgroundColor: "#FAFAFA",
+                      },
                     }}
-                  />
-                </Box>
-              ) : (
-                <>
-                  {/* Model Selector Row with Params Button */}
-                  <Stack direction="row" spacing={1} alignItems="stretch">
-                    {/* Selected Model Display Button */}
-                    <Box
-                      onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        px: 1.5,
-                        py: 1,
-                        border: "1px solid #E5E7EB",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        backgroundColor: "#fff",
-                        transition: "all 0.15s ease",
-                        "&:hover": { 
-                          borderColor: "#9CA3AF",
-                          backgroundColor: "#FAFAFA",
-                        },
-                      }}
-                    >
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        {config.provider && PROVIDERS[config.provider] && (
-                          <img
-                            src={PROVIDERS[config.provider].logo}
-                            alt={PROVIDERS[config.provider].displayName}
-                            style={{ width: 18, height: 18 }}
-                          />
-                        )}
-                        <Typography sx={{ fontSize: "13px", color: "#374151" }}>
-                          {config.model
-                            ? availableModels.find((m) => m.id === config.model)?.name || config.model
-                            : "Select a model"}
-                        </Typography>
-                      </Stack>
-                      <ChevronDown size={16} color="#6B7280" />
-                    </Box>
+                  >
+                    <Settings size={14} color="#6B7280" />
+                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                      Params
+                    </Typography>
+                  </Box>
+                </Stack>
 
-                    {/* Params Button */}
-                    <Box
-                      component="button"
-                      ref={paramsButtonRef}
-                      onClick={() => setParamsPopoverOpen(!paramsPopoverOpen)}
+                {/* Params Popover */}
+                <Popper
+                  open={paramsPopoverOpen}
+                  anchorEl={paramsButtonRef.current}
+                  placement="bottom-end"
+                  style={{ zIndex: 1400 }}
+                >
+                  <ClickAwayListener onClickAway={() => setParamsPopoverOpen(false)}>
+                    <Paper
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0.75,
-                        px: 1.5,
-                        py: 1,
-                        border: "1px solid #E5E7EB",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        backgroundColor: paramsPopoverOpen ? "#F3F4F6" : "#fff",
-                        transition: "all 0.15s ease",
-                        "&:hover": { 
-                          borderColor: "#9CA3AF",
-                          backgroundColor: "#FAFAFA",
-                        },
+                        mt: 0.5,
+                        p: 2,
+                        width: 280,
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
+                        borderRadius: "4px",
+                        border: "1px solid #d0d5dd",
                       }}
                     >
-                      <Settings size={14} color="#6B7280" />
-                      <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                        Params
+                      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#374151", mb: 2 }}>
+                        Model parameters
                       </Typography>
-                    </Box>
-                  </Stack>
-
-                  {/* Params Popover */}
-                  <Popper
-                    open={paramsPopoverOpen}
-                    anchorEl={paramsButtonRef.current}
-                    placement="bottom-end"
-                    style={{ zIndex: 1400 }}
-                  >
-                    <ClickAwayListener onClickAway={() => setParamsPopoverOpen(false)}>
-                      <Paper
-                        sx={{
-                          mt: 0.5,
-                          p: 2,
-                          width: 280,
-                          boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
-                          borderRadius: "10px",
-                          border: "1px solid #E5E7EB",
-                        }}
-                      >
-                        <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#374151", mb: 2 }}>
-                          Model parameters
-                        </Typography>
-                        <Stack spacing={2.5}>
-                          {/* Temperature */}
-                          <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                Temperature
-                              </Typography>
-                              <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
-                                {config.modelParams.temperature.toFixed(1)}
-                              </Typography>
-                            </Stack>
-                            <Slider
-                              size="small"
-                              value={config.modelParams.temperature}
-                              onChange={(_, value) =>
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  modelParams: { ...prev.modelParams, temperature: value as number },
-                                }))
-                              }
-                              min={0}
-                              max={2}
-                              step={0.1}
-                              sx={{
-                                color: "#13715B",
-                                height: 4,
-                                "& .MuiSlider-thumb": {
-                                  width: 14,
-                                  height: 14,
-                                  backgroundColor: "#fff",
-                                  border: "2px solid #13715B",
-                                },
-                                "& .MuiSlider-track": { border: "none" },
-                              }}
-                            />
-                          </Box>
-
-                          {/* Max Tokens */}
-                          <Box>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.75 }}>
-                              Max tokens
+                      <Stack spacing={2.5}>
+                        {/* Temperature */}
+                        <Box>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              Temperature
                             </Typography>
-                            <TextField
-                              size="small"
-                              type="number"
-                              value={config.modelParams.maxTokens}
-                              onChange={(e) =>
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  modelParams: { ...prev.modelParams, maxTokens: parseInt(e.target.value) || 0 },
-                                }))
-                              }
-                              inputProps={{ min: 1, max: 4096 }}
-                              fullWidth
-                              sx={{
-                                "& .MuiOutlinedInput-root": {
-                                  fontSize: "13px",
-                                  height: 36,
-                                  "& fieldset": { borderColor: "#E5E7EB" },
-                                  "&:hover fieldset": { borderColor: "#D1D5DB" },
-                                  "&.Mui-focused fieldset": { borderColor: "#13715B" },
-                                },
-                              }}
-                            />
-                          </Box>
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                              {config.modelParams.temperature.toFixed(1)}
+                            </Typography>
+                          </Stack>
+                          <Slider
+                            size="small"
+                            value={config.modelParams.temperature}
+                            onChange={(_, value) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                modelParams: { ...prev.modelParams, temperature: value as number },
+                              }))
+                            }
+                            min={0}
+                            max={2}
+                            step={0.1}
+                            sx={{
+                              color: "#13715B",
+                              height: 4,
+                              "& .MuiSlider-thumb": {
+                                width: 14,
+                                height: 14,
+                                backgroundColor: "#fff",
+                                border: "2px solid #13715B",
+                              },
+                              "& .MuiSlider-track": { border: "none" },
+                            }}
+                          />
+                        </Box>
 
-                          {/* Top P */}
-                          <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
-                                Top P
-                              </Typography>
-                              <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
-                                {config.modelParams.topP.toFixed(2)}
-                              </Typography>
-                            </Stack>
-                            <Slider
-                              size="small"
-                              value={config.modelParams.topP}
-                              onChange={(_, value) =>
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  modelParams: { ...prev.modelParams, topP: value as number },
-                                }))
-                              }
-                              min={0}
-                              max={1}
-                              step={0.05}
-                              sx={{
-                                color: "#13715B",
-                                height: 4,
-                                "& .MuiSlider-thumb": {
-                                  width: 14,
-                                  height: 14,
-                                  backgroundColor: "#fff",
-                                  border: "2px solid #13715B",
-                                },
-                                "& .MuiSlider-track": { border: "none" },
-                              }}
-                            />
-                          </Box>
-                        </Stack>
-                      </Paper>
-                    </ClickAwayListener>
-                  </Popper>
-
-                  {/* Providers Dropdown */}
-                  <Popper
-                    open={modelDropdownOpen}
-                    anchorEl={modelSelectorRef.current}
-                    placement="bottom-start"
-                    style={{ zIndex: 1400 }}
-                  >
-                    <ClickAwayListener onClickAway={() => {
-                      setModelDropdownOpen(false);
-                      setExpandedProvider(null);
-                      setModelSearchQuery("");
-                    }}>
-                      <Paper
-                        sx={{
-                          mt: 0.5,
-                          boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
-                          borderRadius: "10px",
-                          border: "1px solid #E5E7EB",
-                          overflow: "hidden",
-                          width: 200,
-                        }}
-                      >
-                        {/* Search Box */}
-                        <Box sx={{ px: 1.5, py: 1.25, borderBottom: "1px solid #F3F4F6", backgroundColor: "#fff" }}>
+                        {/* Max Tokens */}
+                        <Box>
+                          <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.75 }}>
+                            Max tokens
+                          </Typography>
                           <TextField
                             size="small"
+                            type="number"
+                            value={config.modelParams.maxTokens}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                modelParams: { ...prev.modelParams, maxTokens: parseInt(e.target.value) || 0 },
+                              }))
+                            }
+                            inputProps={{ min: 1, max: 4096 }}
                             fullWidth
-                            placeholder="Find a model"
-                            value={modelSearchQuery}
-                            onChange={(e) => setModelSearchQuery(e.target.value)}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Search size={15} color="#9CA3AF" />
-                                </InputAdornment>
-                              ),
-                            }}
                             sx={{
                               "& .MuiOutlinedInput-root": {
                                 fontSize: "13px",
-                                height: 34,
-                                borderRadius: "6px",
-                                backgroundColor: "#F9FAFB",
-                                "& fieldset": { borderColor: "#E5E7EB" },
+                                height: 36,
+                                "& fieldset": { borderColor: "#d0d5dd" },
                                 "&:hover fieldset": { borderColor: "#D1D5DB" },
-                                "&.Mui-focused fieldset": { borderColor: "#13715B", borderWidth: 1 },
-                              },
-                              "& .MuiInputBase-input": { 
-                                py: 0.5,
-                                "&::placeholder": { color: "#9CA3AF", opacity: 1 },
+                                "&.Mui-focused fieldset": { borderColor: "#13715B" },
                               },
                             }}
                           />
                         </Box>
 
-                        {/* Provider List */}
-                        <Box sx={{ py: 0.5, maxHeight: 280, overflowY: "auto" }}>
-                          {availableProviders.map((provider) => (
-                            <Box
-                              key={provider.provider}
-                              ref={(el: HTMLDivElement | null) => { providerItemRefs.current[provider.provider] = el; }}
-                              onMouseEnter={() => setExpandedProvider(provider.provider)}
-                              onClick={() => setExpandedProvider(
-                                expandedProvider === provider.provider ? null : provider.provider
-                              )}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                pl: 1.5,
-                                pr: 1,
-                                py: 0.875,
-                                cursor: "pointer",
-                                transition: "background-color 0.1s ease",
-                                backgroundColor: expandedProvider === provider.provider ? "#F3F4F6" : "transparent",
-                                "&:hover": { backgroundColor: "#F3F4F6" },
-                              }}
-                            >
-                              <Stack direction="row" alignItems="center" spacing={1.25}>
-                                <img
-                                  src={provider.logo}
-                                  alt={provider.displayName}
-                                  style={{ width: 16, height: 16 }}
-                                />
-                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
-                                  {provider.displayName}
-                                </Typography>
-                              </Stack>
-                              <ChevronRight 
-                                size={14} 
-                                color={expandedProvider === provider.provider ? "#13715B" : "#9CA3AF"} 
-                              />
-                            </Box>
-                          ))}
-
-                          {/* Add AI Provider */}
-                          <Divider sx={{ my: 0.5 }} />
-                          <Box
-                            onClick={() => {
-                              onClose();
-                              navigate(`/evals/${projectId}#configuration`);
-                            }}
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              pl: 1.5,
-                              pr: 1,
-                              py: 0.875,
-                              cursor: "pointer",
-                              transition: "background-color 0.1s ease",
-                              "&:hover": { backgroundColor: "#E8F5F1" },
-                            }}
-                          >
-                            <Stack direction="row" alignItems="center" spacing={1.25}>
-                              <Plus size={16} color="#13715B" strokeWidth={2} />
-                              <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
-                                Add AI provider
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        </Box>
-                      </Paper>
-                    </ClickAwayListener>
-                  </Popper>
-
-                  {/* Models Sub-dropdown (appears to the right of providers) */}
-                  <Popper
-                    open={modelDropdownOpen && expandedProvider !== null}
-                    anchorEl={providerItemRefs.current[expandedProvider || ""]}
-                    placement="right-start"
-                    style={{ zIndex: 1401 }}
-                    modifiers={[{ name: "offset", options: { offset: [0, -8] } }]}
-                  >
-                    <Paper
-                      sx={{
-                        ml: 0.5,
-                        boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
-                        borderRadius: "10px",
-                        border: "1px solid #E5E7EB",
-                        overflow: "hidden",
-                        width: 240,
-                        maxHeight: 320,
-                        overflowY: "auto",
-                        py: 0.5,
-                      }}
-                    >
-                      {expandedProvider && getModelsForProvider(expandedProvider)
-                        .filter((m: ModelInfo) =>
-                          modelSearchQuery === "" ||
-                          m.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
-                          m.id.toLowerCase().includes(modelSearchQuery.toLowerCase())
-                        )
-                        .map((model: ModelInfo) => (
-                          <Box
-                            key={model.id}
-                            onClick={() => handleModelSelect(expandedProvider, model.id)}
-                            sx={{
-                              pl: 1.5,
-                              pr: 1,
-                              py: 0.75,
-                              cursor: "pointer",
-                              transition: "background-color 0.1s ease",
-                              backgroundColor: config.model === model.id ? "#E8F5F1" : "transparent",
-                              "&:hover": { 
-                                backgroundColor: config.model === model.id ? "#E8F5F1" : "#F9FAFB",
-                              },
-                            }}
-                          >
-                            <Typography sx={{ 
-                              fontSize: "13px", 
-                              fontWeight: config.model === model.id ? 500 : 400,
-                              color: "#374151",
-                            }}>
-                              {model.name}
+                        {/* Top P */}
+                        <Box>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              Top P
                             </Typography>
-                            {(model.inputCost !== undefined || model.outputCost !== undefined) && (
-                              <Typography sx={{ fontSize: "10px", color: "#9CA3AF", mt: 0.125 }}>
-                                ${model.inputCost?.toFixed(2)} / ${model.outputCost?.toFixed(2)} per 1M tokens
-                              </Typography>
-                            )}
-                          </Box>
-                        ))}
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                              {config.modelParams.topP.toFixed(2)}
+                            </Typography>
+                          </Stack>
+                          <Slider
+                            size="small"
+                            value={config.modelParams.topP}
+                            onChange={(_, value) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                modelParams: { ...prev.modelParams, topP: value as number },
+                              }))
+                            }
+                            min={0}
+                            max={1}
+                            step={0.05}
+                            sx={{
+                              color: "#13715B",
+                              height: 4,
+                              "& .MuiSlider-thumb": {
+                                width: 14,
+                                height: 14,
+                                backgroundColor: "#fff",
+                                border: "2px solid #13715B",
+                              },
+                              "& .MuiSlider-track": { border: "none" },
+                            }}
+                          />
+                        </Box>
+                      </Stack>
                     </Paper>
-                  </Popper>
-                </>
-              )}
-            </Box>
+                  </ClickAwayListener>
+                </Popper>
+              </>
+            )}
+          </Box>
 
-            {/* Prompt Messages */}
-            <Typography
-              sx={{
-                fontSize: "13px",
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                mb: 1,
-                mt: 2,
-              }}
-            >
-              Prompt
-            </Typography>
-            <Stack spacing={2}>
-              {config.messages.map((msg, index) => (
-                <Box
-                  key={index}
+          {/* Prompt Messages */}
+          <Typography
+            sx={{
+              fontSize: "13px",
+              fontWeight: 500,
+              color: theme.palette.text.secondary,
+              mb: 1,
+              mt: 2,
+            }}
+          >
+            Prompt
+          </Typography>
+          <Stack spacing={2}>
+            {config.messages.map((msg, index) => (
+              <Box
+                key={index}
+                sx={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
                   sx={{
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "8px",
-                    overflow: "hidden",
+                    px: 1.5,
+                    py: 0.75,
+                    backgroundColor: "#F9FAFB",
+                    borderBottom: "1px solid #E5E7EB",
                   }}
                 >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
+                  <MuiSelect
+                    size="small"
+                    value={msg.role}
+                    onChange={(e) =>
+                      handleUpdateMessage(index, "role", e.target.value)
+                    }
+                    variant="standard"
+                    disableUnderline
                     sx={{
-                      px: 1.5,
-                      py: 0.75,
-                      backgroundColor: "#F9FAFB",
-                      borderBottom: "1px solid #E5E7EB",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      minWidth: 80,
+                      "& .MuiSelect-select": { py: 0 },
                     }}
                   >
-                    <Select
+                    <MenuItem value="system">System</MenuItem>
+                    <MenuItem value="user">User</MenuItem>
+                    <MenuItem value="assistant">Assistant</MenuItem>
+                  </MuiSelect>
+                  {config.messages.length > 1 && (
+                    <IconButton
                       size="small"
-                      value={msg.role}
-                      onChange={(e) =>
-                        handleUpdateMessage(index, "role", e.target.value)
-                      }
-                      variant="standard"
-                      disableUnderline
-                      sx={{
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        minWidth: 80,
-                        "& .MuiSelect-select": { py: 0 },
-                      }}
+                      onClick={() => handleRemoveMessage(index)}
+                      sx={{ p: 0.5 }}
                     >
-                      <MenuItem value="system">System</MenuItem>
-                      <MenuItem value="user">User</MenuItem>
-                      <MenuItem value="assistant">Assistant</MenuItem>
-                    </Select>
-                    {config.messages.length > 1 && (
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveMessage(index)}
-                        sx={{ p: 0.5 }}
-                      >
-                        <Trash2 size={14} color="#9CA3AF" />
-                      </IconButton>
-                    )}
-                  </Stack>
-                  <TextField
-                    multiline
-                    minRows={2}
-                    maxRows={6}
-                    fullWidth
-                    placeholder={
-                      msg.role === "system"
-                        ? "You are a helpful assistant that evaluates..."
-                        : "Enter message content..."
-                    }
-                    value={msg.content}
-                    onChange={(e) =>
-                      handleUpdateMessage(index, "content", e.target.value)
-                    }
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        border: "none",
-                        "& fieldset": { border: "none" },
-                      },
-                      "& .MuiInputBase-input": {
-                        fontSize: "13px",
-                        p: 1.5,
-                      },
-                    }}
-                  />
-                </Box>
-              ))}
+                      <Trash2 size={14} color="#9CA3AF" />
+                    </IconButton>
+                  )}
+                </Stack>
+                <TextField
+                  multiline
+                  minRows={2}
+                  maxRows={6}
+                  fullWidth
+                  placeholder={
+                    msg.role === "system"
+                      ? "You are a helpful assistant that evaluates..."
+                      : "Enter message content..."
+                  }
+                  value={msg.content}
+                  onChange={(e) =>
+                    handleUpdateMessage(index, "content", e.target.value)
+                  }
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      border: "none",
+                      "& fieldset": { border: "none" },
+                    },
+                    "& .MuiInputBase-input": {
+                      fontSize: "13px",
+                      p: 1.5,
+                    },
+                  }}
+                />
+              </Box>
+            ))}
 
-              <CustomizableButton
-                variant="text"
-                text="Add message"
-                icon={<Plus size={14} />}
-                onClick={handleAddMessage}
-                sx={{
-                  alignSelf: "flex-start",
-                  color: "#13715B",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  "&:hover": { backgroundColor: "#E8F5F1" },
-                }}
-              />
-            </Stack>
-          </Box>
+            <CustomizableButton
+              variant="text"
+              text="Add message"
+              icon={<Plus size={14} />}
+              onClick={handleAddMessage}
+              sx={{
+                alignSelf: "flex-start",
+                color: "#13715B",
+                fontSize: "13px",
+                fontWeight: 600,
+                textTransform: "none",
+                "&:hover": { backgroundColor: "#E8F5F1" },
+              }}
+            />
+          </Stack>
 
           <Divider />
 

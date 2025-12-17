@@ -1523,6 +1523,26 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Create policy_linked_objects table for linking policies with controls/risks/evidence
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".policy_linked_objects (
+          id SERIAL PRIMARY KEY,
+          
+          policy_id INTEGER NOT NULL,
+          object_id INTEGER NOT NULL,
+          object_type VARCHAR(50) NOT NULL CHECK (object_type IN ('control', 'risk', 'evidence')),
+          
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          
+          FOREIGN KEY (policy_id)
+            REFERENCES "${tenantHash}".policy_manager(id)
+            ON DELETE CASCADE
+      );`,
+      { transaction }
+    );
+
+
     // Create notes table for collaborative annotation system
     await sequelize.query(
       `CREATE TABLE "${tenantHash}".notes (

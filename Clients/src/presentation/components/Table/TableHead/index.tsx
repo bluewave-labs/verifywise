@@ -6,7 +6,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
  * Columns receive dynamic widths based on the table theme.
  * For custom column widths, create a dedicated TableHead in your table's directory.
  */
-const TableHeader = ({ columns }: { columns: string[] }) => {
+const TableHeader = ({ columns, centered = false }: { columns: string[]; centered?: boolean }) => {
   return (
     <TableHead
       sx={{
@@ -17,11 +17,13 @@ const TableHeader = ({ columns }: { columns: string[] }) => {
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
         {columns.map((column, index) => {
           const isActionColumn = column === "ACTION" || column === "Actions";
+          const isFirstColumn = index === 0;
           return (
             <TableCell
               key={index}
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
+                ...(centered && !isFirstColumn ? { textAlign: "center" } : {}),
                 ...(isActionColumn
                   ? {
                       minWidth: "80px",

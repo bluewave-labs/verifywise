@@ -58,6 +58,7 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -178,6 +179,7 @@ try {
   app.use("/api/user-preferences", userPreferenceRouter);
   app.use("/api/nist-ai-rmf", nistAiRmfRoutes);
   app.use("/api/evidenceHub", evidenceHubRouter);
+  app.use("/api/policy-linked", policyLinkedObjects);
 
   // Adding background jobs in the Queue
   (async () => {

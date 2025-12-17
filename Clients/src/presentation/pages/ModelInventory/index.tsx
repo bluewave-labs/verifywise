@@ -1153,8 +1153,48 @@ const ModelInventory: React.FC = () => {
 
   const handleShareEnabledChange = async (enabled: boolean) => {
     setIsShareEnabled(enabled);
-    if (enabled && !shareableLink) {
-      await generateShareableLink(shareSettings);
+    if (enabled) {
+      // Re-enable the existing share link or create a new one
+      if (shareLinkId) {
+        // Re-enable existing share link
+        try {
+          await updateShareMutation.mutateAsync({
+            id: shareLinkId,
+            is_enabled: true,
+          });
+          console.log("Share link re-enabled successfully");
+        } catch (error) {
+          console.error("Failed to re-enable share link:", error);
+          // Revert the UI state if API call fails
+          setIsShareEnabled(false);
+          setAlert({
+            variant: "error",
+            body: "Failed to enable share link. Please try again.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        }
+      } else if (!shareableLink) {
+        // Create new share link if none exists
+        await generateShareableLink(shareSettings);
+      }
+    } else if (!enabled && shareLinkId) {
+      // Disable the existing share link when toggled off
+      try {
+        await updateShareMutation.mutateAsync({
+          id: shareLinkId,
+          is_enabled: false,
+        });
+        console.log("Share link disabled successfully");
+      } catch (error) {
+        console.error("Failed to disable share link:", error);
+        // Revert the UI state if API call fails
+        setIsShareEnabled(true);
+        setAlert({
+          variant: "error",
+          body: "Failed to disable share link. Please try again.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
     }
   };
 

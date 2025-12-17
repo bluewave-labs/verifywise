@@ -3,14 +3,16 @@ Custom Scorer Executor - Runs LLM judge scorers from database configs
 
 This module connects the scorer configs stored in the database (via web UI)
 to actual execution using OpenAI or other LLM providers.
+
+Supports multiple providers: OpenAI, Anthropic, Mistral, xAI, Google (Gemini), etc.
 """
 
 import re
 import os
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple, Union
 from dataclasses import dataclass
 
-# OpenAI client
+# OpenAI client (used for OpenAI-compatible APIs)
 try:
     from openai import OpenAI
 except ImportError:
@@ -32,6 +34,94 @@ class ScorerResult:
 
 
 _PLACEHOLDER_PATTERN = re.compile(r"{{\s*([a-zA-Z0-9_]+)\s*}}")
+
+
+# Provider detection and configuration
+PROVIDER_CONFIG = {
+    "openai": {
+        "env_var": "OPENAI_API_KEY",
+        "base_url": None,  # Use default
+    },
+    "anthropic": {
+        "env_var": "ANTHROPIC_API_KEY",
+        "base_url": "https://api.anthropic.com/v1",
+    },
+    "mistral": {
+        "env_var": "MISTRAL_API_KEY",
+        "base_url": "https://api.mistral.ai/v1",
+    },
+    "xai": {
+        "env_var": "XAI_API_KEY",
+        "base_url": "https://api.x.ai/v1",
+    },
+    "google": {
+        "env_var": "GEMINI_API_KEY",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    },
+    "gemini": {
+        "env_var": "GEMINI_API_KEY",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    },
+    "huggingface": {
+        "env_var": "HF_API_KEY",
+        "base_url": "https://api-inference.huggingface.co/v1",
+    },
+}
+
+def get_provider_from_config(judge_model_config: Any) -> str:
+    """
+    Get the provider from the judge model configuration.
+    
+    The user explicitly selects both provider and model in the UI,
+    so we use the provider from the config directly.
+    
+    Args:
+        judge_model_config: The judgeModel config - can be dict or string
+        
+    Returns:
+        Provider name (lowercase)
+    """
+    if isinstance(judge_model_config, dict):
+        # New format: { name, provider, params }
+        provider = judge_model_config.get("provider")
+        if provider:
+            return provider.lower()
+    
+    # Default to OpenAI if no provider specified
+    return "openai"
+
+
+def get_provider_client(provider: str) -> Tuple[Any, str]:
+    """
+    Get the appropriate API client and key for a provider.
+    
+    Args:
+        provider: Provider name (e.g., "openai", "mistral")
+        
+    Returns:
+        Tuple of (OpenAI client, api_key)
+        
+    Raises:
+        RuntimeError: If API key is not set for the provider
+    """
+    if OpenAI is None:
+        raise RuntimeError("OpenAI package not installed")
+    
+    config = PROVIDER_CONFIG.get(provider, PROVIDER_CONFIG["openai"])
+    env_var = config["env_var"]
+    base_url = config["base_url"]
+    
+    api_key = os.getenv(env_var)
+    if not api_key:
+        raise RuntimeError(f"{env_var} environment variable not set")
+    
+    # Create OpenAI client with appropriate base_url
+    if base_url:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+    else:
+        client = OpenAI(api_key=api_key)
+    
+    return client, api_key
 
 
 def render_template(template: str, values: Dict[str, str]) -> str:
@@ -142,6 +232,10 @@ async def run_custom_scorer(
     if not model_name:
         raise ValueError(f"Scorer {scorer_name} has no judge model configured")
     
+    # Get the provider from config (user explicitly selects provider + model)
+    provider = get_provider_from_config(judge_model_config)
+    print(f"   🔍 Using provider: {provider} for model: {model_name}")
+    
     # Get temperature and max_tokens from params, with defaults
     temperature = model_params.get("temperature", 0.0)
     max_tokens = model_params.get("max_tokens", 256)
@@ -163,12 +257,19 @@ async def run_custom_scorer(
     
     rendered_messages = render_messages(messages_templates, values)
     
-    # Call the judge model
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY not set")
-    
-    client = OpenAI(api_key=api_key)
+    # Get the appropriate client for this provider
+    try:
+        client, api_key = get_provider_client(provider)
+        print(f"   ✅ Using {provider.upper()} API client")
+    except RuntimeError as e:
+        return ScorerResult(
+            scorer_id=scorer_id,
+            scorer_name=scorer_name,
+            label="ERROR",
+            score=0.0,
+            raw_response=f"Failed to initialize model: {str(e)}",
+            passed=False,
+        )
     
     try:
         response = client.chat.completions.create(
@@ -205,7 +306,7 @@ async def run_custom_scorer(
             scorer_name=scorer_name,
             label="ERROR",
             score=0.0,
-            raw_response=f"Error calling judge model: {str(e)}",
+            raw_response=f"Error calling judge model ({provider}): {str(e)}",
             passed=False,
         )
 

@@ -79,36 +79,13 @@ async def run_evaluation(
         from deepeval.test_case import LLMTestCase, ConversationalTestCase
         print("✅ deepeval imported")
         
-        # Import Turn class for multi-turn conversations
-        try:
-            from deepeval.test_case import Turn
-            print("✅ Turn class imported for multi-turn evaluation")
-        except ImportError:
-            # Fallback: define a simple Turn class if not available
-            class Turn:
-                def __init__(self, role: str, content: str):
-                    self.role = role
-                    self.content = content
-            print("⚠️ Using fallback Turn class")
+        # Import Turn class for multi-turn conversations (required)
+        from deepeval.test_case import Turn
+        print("✅ Turn class imported for multi-turn evaluation")
         
-        # Import native multi-turn metrics if available
-        try:
-            from deepeval.metrics import ConversationRelevancyMetric
-            HAS_NATIVE_CONV_METRICS = True
-            print("✅ Native ConversationRelevancyMetric available")
-        except ImportError:
-            HAS_NATIVE_CONV_METRICS = False
-            print("⚠️ Native multi-turn metrics not available, using G-Eval fallback")
-        
-        # Import ConversationSimulator for simulated turns
-        try:
-            from deepeval.conversation_simulator import ConversationSimulator
-            from deepeval.dataset import ConversationalGolden
-            HAS_CONVERSATION_SIMULATOR = True
-            print("✅ ConversationSimulator available for simulated turns")
-        except ImportError:
-            HAS_CONVERSATION_SIMULATOR = False
-            print("⚠️ ConversationSimulator not available")
+        # Import native multi-turn metrics (required for multi-turn evaluation)
+        from deepeval.metrics import ConversationRelevancyMetric
+        print("✅ Native ConversationRelevancyMetric available")
         
         # Extract configuration
         model_config = config.get("model", {})
@@ -286,73 +263,48 @@ async def run_evaluation(
             preset_path = preset_map.get(name)
             if preset_path and preset_path.is_file():
                 print(f"📦 Using built-in dataset: {name} -> {preset_path}")
-                try:
-                    with open(preset_path, "r", encoding="utf-8") as f:
-                        loaded = json.load(f)
-                        # Accept either prompts (single-turn) or conversational scenarios
-                        if isinstance(loaded, list) and loaded and isinstance(loaded[0], dict) and "turns" in loaded[0]:
-                            conversations = loaded
-                        else:
-                            prompts = loaded
-                except Exception as e:
-                    print(f"⚠️  Failed to load builtin dataset '{name}': {e}")
-        # Custom dataset path if provided
-        if not prompts and dataset_config.get("path"):
-            custom_path = Path(dataset_config["path"])
-            if not custom_path.is_absolute():
-                custom_path = (evaluation_module_path / custom_path).resolve()
-            print(f"📄 Using custom dataset: {custom_path}")
-            try:
-                with open(custom_path, "r", encoding="utf-8") as f:
+                with open(preset_path, "r", encoding="utf-8") as f:
                     loaded = json.load(f)
+                    # Accept either prompts (single-turn) or conversational scenarios
                     if isinstance(loaded, list) and loaded and isinstance(loaded[0], dict) and "turns" in loaded[0]:
                         conversations = loaded
                     else:
                         prompts = loaded
-            except Exception as e:
-                print(f"⚠️  Failed to load custom dataset '{custom_path}': {e}")
-        # DeepEval benchmark (fallback)
-        if not prompts and dataset_config.get("benchmark"):
-            bench_name = str(dataset_config.get("benchmark")).strip().lower()
-            print(f"• Attempting to load DeepEval benchmark: {bench_name}")
-            try:
-                # Try common loader patterns
-                try:
-                    from deepeval.benchmarks import load_benchmark  # type: ignore
-                    bench = load_benchmark(bench_name)
-                except Exception:
-                    bench = None
-
-                if bench is None:
-                    # Fallback: some packages expose specific helpers, try minimal mapping
-                    from importlib import import_module
-                    mod = import_module("deepeval.benchmarks")
-                    bench = getattr(mod, "load", None)
-                    if callable(bench):
-                        bench = bench(bench_name)
-
-                # Convert benchmark to our prompts format
-                extracted: list[dict[str, str]] = []
-                if bench is not None and hasattr(bench, "to_test_cases"):
-                    tcs = bench.to_test_cases()
-                    for i, tc in enumerate(tcs, 1):
-                        # tc likely resembles LLMTestCase
-                        inp = getattr(tc, "input", "")
-                        exp = getattr(tc, "expected_output", "")
-                        extracted.append({
-                            "id": f"bench_{bench_name}_{i}",
-                            "category": bench_name,
-                            "prompt": inp,
-                            "expected_output": exp,
-                            "difficulty": "benchmark",
-                        })
-                if extracted:
-                    prompts = extracted
-                    print(f"✓ Loaded {len(prompts)} prompts from benchmark '{bench_name}'")
+            elif name in preset_map:
+                error_msg = f"Built-in dataset file not found: {preset_map.get(name)}"
+                print(f"❌ {error_msg}")
+                await crud.update_experiment_status(
+                    db=db,
+                    experiment_id=experiment_id,
+                    tenant=tenant,
+                    status="failed",
+                    error_message=error_msg
+                )
+                return {"error": error_msg}
+        # Custom dataset path if provided (only load if we don't have data yet)
+        if not prompts and not conversations and dataset_config.get("path"):
+            custom_path = Path(dataset_config["path"])
+            if not custom_path.is_absolute():
+                custom_path = (evaluation_module_path / custom_path).resolve()
+            print(f"📄 Loading custom dataset from: {custom_path}")
+            if not custom_path.exists():
+                error_msg = f"Dataset file not found: {custom_path}"
+                print(f"❌ {error_msg}")
+                await crud.update_experiment_status(
+                    db=db,
+                    experiment_id=experiment_id,
+                    tenant=tenant,
+                    status="failed",
+                    error_message=error_msg
+                )
+                return {"error": error_msg}
+            with open(custom_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, list) and loaded and isinstance(loaded[0], dict) and "turns" in loaded[0]:
+                    conversations = loaded
                 else:
-                    print(f"⚠️  Could not extract prompts from benchmark '{bench_name}', falling back to provided prompts")
-            except Exception as be:
-                print(f"⚠️  Benchmark load failed: {be}")
+                    prompts = loaded
+            print(f"✓ Loaded dataset from {custom_path}")
         if not prompts and not conversations:
             error_msg = "No prompts or conversations in dataset"
             print(f"❌ {error_msg}")
@@ -371,7 +323,22 @@ async def run_evaluation(
         simulated_mode = dataset_config.get("simulatedMode", False)
         simulated_scenarios = dataset_config.get("scenarios", [])
         
-        if simulated_mode and simulated_scenarios and HAS_CONVERSATION_SIMULATOR:
+        if simulated_mode and simulated_scenarios:
+            # Import ConversationSimulator (required for simulated mode)
+            try:
+                from deepeval.conversation_simulator import ConversationSimulator
+                from deepeval.dataset import ConversationalGolden
+            except ImportError:
+                error_msg = "ConversationSimulator is not available. Please upgrade DeepEval to use simulated mode."
+                print(f"❌ {error_msg}")
+                await crud.update_experiment_status(
+                    db=db,
+                    experiment_id=experiment_id,
+                    tenant=tenant,
+                    status="failed",
+                    error_message=error_msg
+                )
+                return {"error": error_msg}
             # 3A-SIM. Simulated conversation mode: use ConversationSimulator
             print(f"\n🎭 SIMULATED MODE: Generating conversations for {len(simulated_scenarios)} scenarios...")
             

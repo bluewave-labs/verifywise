@@ -341,7 +341,21 @@ class ModelRunner:
         if top_p is not None:
             params["top_p"] = top_p
         chat_response = self.mistral_client.chat.complete(**params)
-        return chat_response.choices[0].message.content.strip()
+        content = chat_response.choices[0].message.content
+
+        # Handle case where content is a list (e.g., list of content blocks)
+        if isinstance(content, list):
+            # Extract text from content blocks if they're dicts with 'text' key
+            # Otherwise just join them as strings
+            text_parts = []
+            for item in content:
+                if isinstance(item, dict) and 'text' in item:
+                    text_parts.append(item['text'])
+                else:
+                    text_parts.append(str(item))
+            content = ''.join(text_parts)
+
+        return content.strip() if content else ""
     
     def _generate_ollama(
         self,

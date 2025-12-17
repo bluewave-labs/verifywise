@@ -35,6 +35,8 @@ import Field from "../../components/Inputs/Field";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
@@ -69,6 +71,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [datasets, setDatasets] = useState<BuiltInDataset[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { groupBy: datasetsGroupBy, groupSortOrder: datasetsGroupSortOrder, handleGroupChange: handleDatasetsGroupChange } = useGroupByState();
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -94,6 +97,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
   const [templatePage, setTemplatePage] = useState(0);
   const [templateRowsPerPage, setTemplateRowsPerPage] = useState(() => getPaginationRowCount("templates", 10));
   const [templateSearchTerm, setTemplateSearchTerm] = useState("");
+  const { groupBy: templatesGroupBy, groupSortOrder: templatesGroupSortOrder, handleGroupChange: handleTemplatesGroupChange } = useGroupByState();
   const [templateSortConfig, setTemplateSortConfig] = useState<{ key: string; direction: "asc" | "desc" | null }>({
     key: "",
     direction: null,
@@ -335,11 +339,35 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
     return result;
   }, [flattenedTemplates, filterTemplateData, templateSearchTerm, templateSortConfig]);
 
-  // Paginated templates
-  const paginatedTemplates = useMemo(() => {
-    const start = templatePage * templateRowsPerPage;
-    return filteredAndSortedTemplates.slice(start, start + templateRowsPerPage);
-  }, [filteredAndSortedTemplates, templatePage, templateRowsPerPage]);
+  // Templates grouping
+  const getTemplateGroupKey = useCallback((template: TemplateWithCategory, field: string): string => {
+    switch (field) {
+      case "category":
+        return template.category === "rag" ? "RAG" :
+               template.category === "chatbot" ? "Chatbot" :
+               template.category === "agent" ? "Agent" :
+               template.category === "safety" ? "Safety" :
+               template.category || "Other";
+      case "difficulty": {
+        const diff = template.difficulty;
+        if (!diff) return "Unknown";
+        const total = diff.easy + diff.medium + diff.hard;
+        if (total === 0) return "Unknown";
+        if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
+        if (diff.medium >= diff.easy) return "Medium";
+        return "Easy";
+      }
+      default:
+        return "Other";
+    }
+  }, []);
+
+  const groupedTemplates = useTableGrouping({
+    data: filteredAndSortedTemplates,
+    groupByField: templatesGroupBy,
+    sortOrder: templatesGroupSortOrder,
+    getGroupKey: getTemplateGroupKey,
+  });
 
   // Template sorting handler
   const handleTemplateSort = useCallback((columnId: string) => {
@@ -483,6 +511,43 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
       [d.name, d.path, d.use_case].filter(Boolean).join(" ").toLowerCase().includes(q)
     );
   }, [datasets, filterData, searchTerm]);
+
+  // Datasets grouping
+  const getDatasetGroupKey = useCallback((dataset: BuiltInDataset, field: string): string => {
+    switch (field) {
+      case "name":
+        // Group by first letter
+        return dataset.name?.charAt(0).toUpperCase() || "Other";
+      case "prompts": {
+        const count = dataset.promptCount ?? 0;
+        if (count === 0) return "No prompts";
+        if (count <= 10) return "1-10 prompts";
+        if (count <= 50) return "11-50 prompts";
+        if (count <= 100) return "51-100 prompts";
+        return "100+ prompts";
+      }
+      case "createdAt": {
+        if (!dataset.createdAt) return "Unknown";
+        const date = new Date(dataset.createdAt);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return "Today";
+        if (diffDays === 1) return "Yesterday";
+        if (diffDays <= 7) return "This week";
+        if (diffDays <= 30) return "This month";
+        return "Older";
+      }
+      default:
+        return "Other";
+    }
+  }, []);
+
+  const groupedDatasets = useTableGrouping({
+    data: filteredDatasets,
+    groupByField: datasetsGroupBy,
+    sortOrder: datasetsGroupSortOrder,
+    getGroupKey: getDatasetGroupKey,
+  });
 
   // Action menu handlers
   const handleActionMenuClose = () => {
@@ -1179,9 +1244,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   { id: "prompts", label: "Prompts" },
                   { id: "createdAt", label: "Created" },
                 ]}
-                onGroupChange={() => {
-                  /* Grouping behaviour can be added later */
-                }}
+                onGroupChange={handleDatasetsGroupChange}
               />
               <SearchBox
                 placeholder="Search datasets..."
@@ -1220,35 +1283,42 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
 
           {/* Table of user datasets */}
           <Box mb={4}>
-            <DatasetsTable
-              rows={filteredDatasets.map((dataset): DatasetRow => ({
-                key: dataset.path,
-                name: dataset.name,
-                path: dataset.path,
-                useCase: dataset.use_case || dataset.datasetType,
-                createdAt: dataset.createdAt,
-                metadata: datasetMetadata[dataset.path],
-              }))}
-              onRowClick={(row) => {
-                const dataset = filteredDatasets.find((d) => d.path === row.path);
-                if (dataset) handleRowClick(dataset);
-              }}
-              onView={(row) => {
-                const dataset = filteredDatasets.find((d) => d.path === row.path);
-                if (dataset) handleViewPrompts(dataset);
-              }}
-              onEdit={(row) => {
-                const dataset = filteredDatasets.find((d) => d.path === row.path);
-                if (dataset) handleOpenInEditor(dataset);
-              }}
-              onDelete={(row) => {
-                const dataset = filteredDatasets.find((d) => d.path === row.path);
-                if (dataset) {
-                  setDatasetToDelete(dataset);
-                  setDeleteModalOpen(true);
-                }
-              }}
-              loading={loading}
+            <GroupedTableView
+              groupedData={groupedDatasets}
+              ungroupedData={filteredDatasets}
+              renderTable={(data, options) => (
+                <DatasetsTable
+                  rows={data.map((dataset): DatasetRow => ({
+                    key: dataset.path,
+                    name: dataset.name,
+                    path: dataset.path,
+                    useCase: dataset.use_case || dataset.datasetType,
+                    createdAt: dataset.createdAt,
+                    metadata: datasetMetadata[dataset.path],
+                  }))}
+                  onRowClick={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleRowClick(dataset);
+                  }}
+                  onView={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleViewPrompts(dataset);
+                  }}
+                  onEdit={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) handleOpenInEditor(dataset);
+                  }}
+                  onDelete={(row) => {
+                    const dataset = data.find((d) => d.path === row.path);
+                    if (dataset) {
+                      setDatasetToDelete(dataset);
+                      setDeleteModalOpen(true);
+                    }
+                  }}
+                  loading={loading}
+                  hidePagination={options?.hidePagination}
+                />
+              )}
             />
           </Box>
         </>
@@ -1265,7 +1335,7 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
                   { id: "category", label: "Category" },
                   { id: "difficulty", label: "Difficulty" },
                 ]}
-                onGroupChange={() => {}}
+                onGroupChange={handleTemplatesGroupChange}
               />
               <SearchBox
                 placeholder="Search templates..."
@@ -1276,212 +1346,208 @@ export function ProjectDatasets({ projectId }: ProjectDatasetsProps) {
               />
             </Stack>
 
-            <TableContainer>
-              <Table sx={singleTheme.tableStyles.primary.frame}>
-                <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                    {/* Sortable Dataset column - 20% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none" }}
-                      onClick={() => handleTemplateSort("name")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DATASET</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "name" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "name" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "name" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Category column - 20% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("category")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>CATEGORY</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "category" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "category" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "category" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable # Prompts column - 20% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("tests")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}># PROMPTS</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "tests" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "tests" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "tests" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* Sortable Difficulty column - 20% */}
-                    <TableCell
-                      sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
-                      onClick={() => handleTemplateSort("difficulty")}
-                    >
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DIFFICULTY</Typography>
-                        <Box sx={{ color: templateSortConfig.key === "difficulty" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
-                          {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
-                          {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
-                          {templateSortConfig.key !== "difficulty" && <ChevronsUpDown size={16} />}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    {/* ACTION column - 20% */}
-                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", textAlign: "center" }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>ACTION</Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
-                        <CircularProgress size={24} sx={{ color: "#13715B" }} />
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedTemplates.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedTemplates.map((ds) => {
-                      // Calculate predominant difficulty label from the object
-                      const getPredominantDifficultyLabel = (diff?: { easy: number; medium: number; hard: number }): string => {
-                        if (!diff) return "-";
-                        const total = diff.easy + diff.medium + diff.hard;
-                        if (total === 0) return "-";
-                        // Find which has the highest count
-                        if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
-                        if (diff.medium >= diff.easy) return "Medium";
-                        return "Easy";
-                      };
-                      const getDifficultyStyles = (difficulty: string | undefined) => {
-                        switch (difficulty) {
-                          case "Easy":
-                            return { backgroundColor: "#c8e6c9", color: "#388e3c" };
-                          case "Medium":
-                            return { backgroundColor: "#fff3e0", color: "#ef6c00" };
-                          case "Hard":
-                            return { backgroundColor: "#ffebee", color: "#c62828" };
-                          default:
-                            return { backgroundColor: "#e0e0e0", color: "#616161" };
-                        }
-                      };
-                      const difficultyLabel = getPredominantDifficultyLabel(ds.difficulty);
-                      return (
-                        <TableRow
-                          key={ds.key}
-                          onClick={() => handleViewTemplate(ds)}
-                          sx={{
-                            ...singleTheme.tableStyles.primary.body.row,
-                            cursor: "pointer",
-                            "&:hover": { backgroundColor: "#f5f5f5" },
-                          }}
-                        >
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Chip
-                              label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category === "safety" ? "Safety" : ds.category}
-                              uppercase={false}
-                              backgroundColor={
-                                ds.category === "chatbot" ? "#DBEAFE" :
-                                ds.category === "rag" ? "#E0E7FF" :
-                                ds.category === "agent" ? "#FEF3C7" :
-                                "#FEE2E2"
-                              }
-                              textColor={
-                                ds.category === "chatbot" ? "#1E40AF" :
-                                ds.category === "rag" ? "#3730A3" :
-                                ds.category === "agent" ? "#92400E" :
-                                "#991B1B"
-                              }
-                            />
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
-                              {ds.test_count ?? "-"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
-                            <Chip
-                              label={difficultyLabel}
-                              variant={
-                                difficultyLabel === "Easy" ? "success" :
-                                difficultyLabel === "Medium" ? "medium" :
-                                difficultyLabel === "Hard" ? "error" : "default"
-                              }
-                              uppercase={false}
-                            />
-                          </TableCell>
+            <GroupedTableView
+              groupedData={groupedTemplates}
+              ungroupedData={filteredAndSortedTemplates}
+              renderTable={(data, options) => {
+                // Helper function for difficulty label
+                const getPredominantDifficultyLabel = (diff?: { easy: number; medium: number; hard: number }): string => {
+                  if (!diff) return "-";
+                  const total = diff.easy + diff.medium + diff.hard;
+                  if (total === 0) return "-";
+                  if (diff.hard >= diff.medium && diff.hard >= diff.easy) return "Hard";
+                  if (diff.medium >= diff.easy) return "Medium";
+                  return "Easy";
+                };
+
+                return (
+                  <TableContainer>
+                    <Table sx={singleTheme.tableStyles.primary.frame}>
+                      <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          {/* Sortable Dataset column - 20% */}
                           <TableCell
-                            sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}
-                            onClick={(e) => e.stopPropagation()}
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none" }}
+                            onClick={() => handleTemplateSort("name")}
                           >
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<Copy size={14} />}
-                              onClick={() => handleOpenCopyModal(ds)}
-                              disabled={copyingTemplate}
-                              sx={{
-                                textTransform: "none",
-                                fontSize: "12px",
-                                height: "28px",
-                                borderColor: "#d0d5dd",
-                                color: "#344054",
-                                "&:hover": {
-                                  borderColor: "#13715B",
-                                  color: "#13715B",
-                                },
-                              }}
-                            >
-                              Use
-                            </Button>
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DATASET</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "name" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "name" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "name" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "name" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable Category column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("category")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>CATEGORY</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "category" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "category" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "category" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "category" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable # Prompts column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("tests")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}># PROMPTS</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "tests" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "tests" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "tests" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "tests" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* Sortable Difficulty column - 20% */}
+                          <TableCell
+                            sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", cursor: "pointer", userSelect: "none", textAlign: "center" }}
+                            onClick={() => handleTemplateSort("difficulty")}
+                          >
+                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>DIFFICULTY</Typography>
+                              <Box sx={{ color: templateSortConfig.key === "difficulty" ? "#13715B" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+                                {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "asc" && <ChevronUp size={16} />}
+                                {templateSortConfig.key === "difficulty" && templateSortConfig.direction === "desc" && <ChevronDown size={16} />}
+                                {templateSortConfig.key !== "difficulty" && <ChevronsUpDown size={16} />}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          {/* ACTION column - 20% */}
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "20%", textAlign: "center" }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>ACTION</Typography>
                           </TableCell>
                         </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-                {filteredAndSortedTemplates.length > 0 && (
-                  <TableFooter>
-                    <TableRow>
-                      <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        count={filteredAndSortedTemplates.length}
-                        rowsPerPage={templateRowsPerPage}
-                        page={templatePage}
-                        onPageChange={handleTemplatePageChange}
-                        onRowsPerPageChange={handleTemplateRowsPerPageChange}
-                        ActionsComponent={TablePaginationActions}
-                        sx={{
-                          borderBottom: "none",
-                          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                            fontSize: "12px",
-                          },
-                        }}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
-            </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                              <CircularProgress size={24} sx={{ color: "#13715B" }} />
+                            </TableCell>
+                          </TableRow>
+                        ) : data.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: "center", py: 4 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {flattenedTemplates.length === 0 ? "No template datasets available" : "No templates match your search"}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          data.map((ds) => {
+                            const difficultyLabel = getPredominantDifficultyLabel(ds.difficulty);
+                            return (
+                              <TableRow
+                                key={ds.key}
+                                onClick={() => handleViewTemplate(ds)}
+                                sx={{
+                                  ...singleTheme.tableStyles.primary.body.row,
+                                  cursor: "pointer",
+                                  "&:hover": { backgroundColor: "#f5f5f5" },
+                                }}
+                              >
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                                  <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>{ds.name}</Typography>
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Chip
+                                    label={ds.category === "rag" ? "RAG" : ds.category === "chatbot" ? "Chatbot" : ds.category === "agent" ? "Agent" : ds.category === "safety" ? "Safety" : ds.category}
+                                    uppercase={false}
+                                    backgroundColor={
+                                      ds.category === "chatbot" ? "#DBEAFE" :
+                                      ds.category === "rag" ? "#E0E7FF" :
+                                      ds.category === "agent" ? "#FEF3C7" :
+                                      "#FEE2E2"
+                                    }
+                                    textColor={
+                                      ds.category === "chatbot" ? "#1E40AF" :
+                                      ds.category === "rag" ? "#3730A3" :
+                                      ds.category === "agent" ? "#92400E" :
+                                      "#991B1B"
+                                    }
+                                  />
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                                    {ds.test_count ?? "-"}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
+                                  <Chip
+                                    label={difficultyLabel}
+                                    variant={
+                                      difficultyLabel === "Easy" ? "success" :
+                                      difficultyLabel === "Medium" ? "medium" :
+                                      difficultyLabel === "Hard" ? "error" : "default"
+                                    }
+                                    uppercase={false}
+                                  />
+                                </TableCell>
+                                <TableCell
+                                  sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<Copy size={14} />}
+                                    onClick={() => handleOpenCopyModal(ds)}
+                                    disabled={copyingTemplate}
+                                    sx={{
+                                      textTransform: "none",
+                                      fontSize: "12px",
+                                      height: "28px",
+                                      borderColor: "#d0d5dd",
+                                      color: "#344054",
+                                      "&:hover": {
+                                        borderColor: "#13715B",
+                                        color: "#13715B",
+                                      },
+                                    }}
+                                  >
+                                    Use
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                      {!options?.hidePagination && data.length > 0 && (
+                        <TableFooter>
+                          <TableRow>
+                            <TablePagination
+                              rowsPerPageOptions={[5, 10, 25, 50]}
+                              count={filteredAndSortedTemplates.length}
+                              rowsPerPage={templateRowsPerPage}
+                              page={templatePage}
+                              onPageChange={handleTemplatePageChange}
+                              onRowsPerPageChange={handleTemplateRowsPerPageChange}
+                              ActionsComponent={TablePaginationActions}
+                              sx={{
+                                borderBottom: "none",
+                                "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
+                                  fontSize: "12px",
+                                },
+                              }}
+                            />
+                          </TableRow>
+                        </TableFooter>
+                      )}
+                    </Table>
+                  </TableContainer>
+                );
+              }}
+            />
         </Box>
       )}
 
